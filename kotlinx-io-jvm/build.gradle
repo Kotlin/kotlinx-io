@@ -1,0 +1,25 @@
+buildscript {
+    ext.kotlin_version = '1.1.60-dev-117'
+
+    repositories {
+        maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+apply plugin: 'kotlin-platform-jvm'
+
+repositories {
+    maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implement project(":")
+    testCompile "junit:junit:4.12"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+}

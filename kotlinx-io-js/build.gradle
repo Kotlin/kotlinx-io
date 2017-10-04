@@ -1,0 +1,37 @@
+buildscript {
+    ext.kotlin_version = '1.1.60-dev-117'
+
+    repositories {
+        maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+apply plugin: 'kotlin-platform-js'
+
+repositories {
+    maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    implement project(":")
+}
+
+build.doLast {
+    configurations.compile.each { File file ->
+        copy {
+            includeEmptyDirs = false
+
+            from zipTree(file.absolutePath)
+            into "${project.buildDir}/libs/"
+            include { fileTreeElement ->
+                def path = fileTreeElement.path
+                path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/")) && !path.endsWith(".meta.js")
+            }
+        }
+    }
+}
