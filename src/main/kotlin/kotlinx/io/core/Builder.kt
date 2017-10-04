@@ -4,7 +4,7 @@ import kotlinx.io.pool.*
 
 expect val PACKET_MAX_COPY_SIZE: Int
 
-fun BytePacketBuilder() = BytePacketBuilder(0)
+//fun BytePacketBuilder() = BytePacketBuilder(0)
 
 inline fun buildPacket(headerSizeHint: Int = 0, block: (BytePacketBuilder) -> Unit): ByteReadPacket {
     val builder = BytePacketBuilder(headerSizeHint)
