@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.60-dev-117'
+    ext.kotlin_version = '1.1.60-dev-277'
 
     repositories {
         maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
