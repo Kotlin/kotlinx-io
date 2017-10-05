@@ -244,9 +244,9 @@ actual class BufferView private constructor(
 
         val view = BufferView(content, newOrigin)
         view.attachment = attachment
-        view.readPosition = readPosition
         view.writePosition = writePosition
         view.writeBuffer.limit(writeBuffer.limit())
+        view.readPosition = readPosition
 
         return view
     }
