@@ -177,6 +177,26 @@ actual class BufferView internal constructor(
         }
     }
 
+    fun write(src: Int8Array, offset: Int, length: Int) {
+        val wp = writePosition
+        val rem = limit - wp
+        val i8 = i8
+
+        if (length > rem) throw IndexOutOfBoundsException()
+        if (offset == 0 && length == src.length) {
+            i8.set(src, wp)
+        } else if (length < 100) {
+            for (i in 0 .. length - 1) {
+                i8[wp + i] = src[offset + i]
+            }
+        } else {
+            val from = Int8Array(src.buffer, src.byteOffset + offset, length)
+            i8.set(from, wp)
+        }
+
+        writePosition = wp + length
+    }
+
     actual fun readLong(): Long {
         val a = readInt()
         val b = readInt()
@@ -318,5 +338,10 @@ actual class BufferView internal constructor(
 
         actual val Empty = BufferView(EmptyBuffer, null)
         actual val Pool: ObjectPool<BufferView> = DefaultBufferViewPool
+        actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
+            override fun borrow(): BufferView {
+                return BufferView(ArrayBuffer(4096), null)
+            }
+        }
     }
 }

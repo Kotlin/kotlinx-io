@@ -333,5 +333,11 @@ actual class BufferView private constructor(
                 require(instance.origin == null) { "Unable to recycle buffer view, only origin buffers are applicable" }
             }
         }
+
+        actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
+            override fun borrow(): BufferView {
+                return BufferView(ByteBuffer.allocateDirect(4096), null)
+            }
+        }
     }
 }

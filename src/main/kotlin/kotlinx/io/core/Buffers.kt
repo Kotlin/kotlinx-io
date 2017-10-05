@@ -62,6 +62,7 @@ expect class BufferView {
     companion object {
         val Empty: BufferView
         val Pool: ObjectPool<BufferView>
+        val NoPool: ObjectPool<BufferView>
     }
 }
 
