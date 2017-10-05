@@ -273,5 +273,6 @@ actual class BufferView internal constructor(
         private val Empty8 = Int8Array(0)
 
         actual val Empty = BufferView(EmptyBuffer, null)
+        actual val Pool: ObjectPool<BufferView> = DefaultBufferViewPool
     }
 }
