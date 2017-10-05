@@ -47,6 +47,8 @@ class ByteReadPacket(private var head: BufferView,
     fun readFloat() = readN(4) { readFloat() }
     fun readDouble() = readN(8) { readDouble() }
 
+    fun readAvailable(dst: ByteArray): Int = readAvailable(dst, 0, dst.size)
+
     fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(length >= 0) { "length shouldn't be negative: $length" }
