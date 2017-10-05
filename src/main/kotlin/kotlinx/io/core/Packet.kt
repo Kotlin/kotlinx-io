@@ -248,8 +248,7 @@ class ByteReadPacket(private var head: BufferView,
         return rc
     }
 
-    // TODO internal!
-    tailrec fun prepareRead(minSize: Int): BufferView? {
+    internal tailrec fun prepareRead(minSize: Int): BufferView? {
         val head = head
 
         val headSize = head.readRemaining

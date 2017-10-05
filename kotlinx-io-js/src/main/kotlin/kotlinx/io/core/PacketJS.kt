@@ -20,3 +20,24 @@ internal val DefaultBufferViewPool: ObjectPool<BufferView> = object: DefaultPool
 actual fun BytePacketBuilder(headerSizeHint: Int) = BytePacketBuilder(headerSizeHint, DefaultBufferViewPool)
 
 actual class EOFException actual constructor(message: String) : Exception(message)
+
+fun ByteReadPacket.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength): Int {
+    var read = 0
+    var rem = minOf(length, remaining)
+    val i8 = Int8Array(dst, offset, length)
+
+    while (rem > 0) {
+        @Suppress("INVISIBLE_MEMBER")
+        val bb: BufferView = prepareRead(1) ?: break
+        val size = minOf(rem, bb.readRemaining)
+        bb.read(i8, read, size)
+        read += size
+        rem -= size
+        if (bb.readRemaining == 0) {
+            @Suppress("INVISIBLE_MEMBER")
+            releaseHead(bb)
+        }
+    }
+
+    return read
+}

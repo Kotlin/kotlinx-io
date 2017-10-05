@@ -113,6 +113,8 @@ actual class BufferView internal constructor(
         for (idx in 0 .. length - 1) {
             dst[offset + idx] = i8[rp + idx]
         }
+
+        readPosition += length
     }
 
     fun read(dst: Array<Byte>, offset: Int, length: Int) {
@@ -122,6 +124,48 @@ actual class BufferView internal constructor(
         for (idx in 0 .. length - 1) {
             dst[offset + idx] = i8[rp + idx]
         }
+
+        readPosition += length
+    }
+
+    fun read(dst: ArrayBuffer, offset: Int, length: Int) {
+        val to = Int8Array(dst, offset, length)
+
+        val rp = readPosition
+        val rem = writePosition - rp
+        val i8 = i8
+
+        if (rp == 0 && length == rem) {
+            to.set(i8, offset)
+        } else if (length < 100) {
+            for (i in 0 .. length - 1) {
+                to[offset + i] = i8[rp + i]
+            }
+        } else {
+            val from = Int8Array(content, rp, length)
+            to.set(from)
+        }
+
+        readPosition = rp + length
+    }
+
+    fun read(dst: Int8Array, offset: Int, length: Int) {
+        val rp = readPosition
+        val rem = writePosition - rp
+        val i8 = i8
+
+        if (rp == 0 && rem == length) {
+            dst.set(i8, offset)
+        } else if (length < 100) {
+            for (i in 0 .. length - 1) {
+                dst[offset + i] = i8[rp + i]
+            }
+        } else {
+            val from = Int8Array(content, rp, length)
+            dst.set(from, offset)
+        }
+
+        readPosition = rp + length
     }
 
     actual fun write(array: ByteArray, offset: Int, length: Int) {

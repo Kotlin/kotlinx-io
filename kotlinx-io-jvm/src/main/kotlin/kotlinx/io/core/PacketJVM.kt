@@ -73,8 +73,8 @@ fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
 
 private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: Int): Int {
     if (!bb.hasRemaining()) return copied
-    @Suppress("USELESS_CAST")
-    val current = prepareRead(1) as? BufferView ?: return copied
+    @Suppress("INVISIBLE_MEMBER")
+    val current: BufferView = prepareRead(1) ?: return copied
 
     val destinationCapacity = bb.remaining()
     val available = current.readRemaining
