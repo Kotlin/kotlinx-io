@@ -20,7 +20,16 @@ class ByteReadPacket(private var head: BufferView,
         }
     }
 
-    fun steal(): BufferView? {
+    internal fun stealAll(): BufferView? {
+        val head = head
+        val empty = BufferView.Empty
+
+        if (head === empty) return null
+        this.head = empty
+        return head
+    }
+
+    internal fun steal(): BufferView? {
         val head = head
         val next = head.next
         val empty = BufferView.Empty
@@ -52,6 +61,9 @@ class ByteReadPacket(private var head: BufferView,
     }
 
     fun skip(n: Int) = discardAsMuchAsPossible(n, 0)
+    fun skipExact(n: Int) {
+        if (skip(n) != n) throw EOFException("Unable to skip $n bytes due to end of packet")
+    }
 
     fun readUTF8LineTo(out: Appendable, limit: Int): Boolean {
         var decoded = 0
@@ -261,8 +273,7 @@ class ByteReadPacket(private var head: BufferView,
         }
     }
 
-    // TODO internal
-    fun releaseHead(head: BufferView) {
+    internal fun releaseHead(head: BufferView) {
         val next = head.next
         this.head = next ?: BufferView.Empty
         head.release(pool)
@@ -275,6 +286,10 @@ class ByteReadPacket(private var head: BufferView,
 
         val ReservedSize = 8
     }
+}
+
+fun ByteReadPacket.readFully(dst: ByteArray) {
+    readFully(dst, 0, dst.size)
 }
 
 typealias EOFException = Exception

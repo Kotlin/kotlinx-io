@@ -40,7 +40,11 @@ actual class BufferView private constructor(
     actual fun canRead(): Boolean = readBuffer.hasRemaining()
     actual fun canWrite(): Boolean = writeBuffer.hasRemaining()
 
-    actual val readRemaining: Int get() = readBuffer.remaining()
+    actual val readRemaining: Int get() {
+        if (refCount == 0L) throw IllegalStateException("Using released object")
+
+        return readBuffer.remaining()
+    }
     actual val writeRemaining: Int get() = writeBuffer.remaining()
 
     actual var byteOrder: ByteOrder
@@ -59,8 +63,8 @@ actual class BufferView private constructor(
         val wp = writePosition
         if (wp != 0 || rp != wp) throw IllegalStateException("Can't reserve $n bytes gap: there are already bytes written at the beginning")
 
-        readPosition = rp + n
         writePosition = wp + n
+        readPosition = rp + n
     }
 
     actual fun reserveEndGap(n: Int) {
@@ -136,7 +140,7 @@ actual class BufferView private constructor(
         val delta = buffer.position() - positionBefore
         if (delta < 0 || delta > rem) throw IllegalStateException("Wrong buffer position change: $delta (position should be moved forward only by at most size bytes (size =  $size)")
 
-        writePosition += delta
+        readBuffer.limit(buffer.position())
         return delta
     }
 
@@ -224,6 +228,7 @@ actual class BufferView private constructor(
     }
 
     actual fun resetForWrite() {
+        writeBuffer.limit(writeBuffer.capacity())
         readPosition = 0
         writePosition = 0
     }
@@ -275,6 +280,7 @@ actual class BufferView private constructor(
     }
 
     private fun releaseRefCount(): Boolean {
+        if (this === Empty) throw IllegalArgumentException("Attempted to release empty")
         while (true) {
             val value = refCount
             val newValue = value - 1
@@ -304,5 +310,30 @@ actual class BufferView private constructor(
         private val RefCount = AtomicLongFieldUpdater.newUpdater(BufferView::class.java, BufferView::refCount.name)!!
 
         actual val Empty = BufferView(EmptyBuffer, null)
+        actual val Pool: ObjectPool<BufferView> = object : DefaultPool<BufferView>(100) {
+            override fun produceInstance(): BufferView {
+                return BufferView(ByteBuffer.allocateDirect(4096), null)
+            }
+
+            override fun disposeInstance(instance: BufferView) {
+                instance.unlink()
+            }
+
+            override fun clearInstance(instance: BufferView): BufferView {
+                return instance.apply {
+                    next = null
+                    attachment = null
+                    resetForWrite()
+                    if (!RefCount.compareAndSet(this, 0L, 1L)) {
+                        throw IllegalStateException("Unable to prepare buffer: refCount is not zero (used while parked in the pool?)")
+                    }
+                }
+            }
+
+            override fun validateInstance(instance: BufferView) {
+                require(instance.refCount == 0L) { "Buffer is not yet released but tried to recycle" }
+                require(instance.origin == null) { "Unable to recycle buffer view, only origin buffers are applicable" }
+            }
+        }
     }
 }

@@ -19,7 +19,7 @@ inline fun buildPacket(headerSizeHint: Int = 0, block: (BytePacketBuilder) -> Un
 
 expect fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder
 
-class BytePacketBuilder(private var headerSizeHint: Int, private val pool: ObjectPool<BufferView>) {
+class BytePacketBuilder(private var headerSizeHint: Int, private val pool: ObjectPool<BufferView>) : Appendable {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
@@ -35,6 +35,10 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
 
     private var head: BufferView = BufferView.Empty
     private var tail: BufferView = head
+
+    fun writeFully(src: ByteArray) {
+        writeFully(src, 0, src.size)
+    }
 
     fun writeFully(src: ByteArray, offset: Int, length: Int) {
         var copied = 0
@@ -73,20 +77,33 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         write(4) { it.writeFloat(f); 4 }
     }
 
-    fun append(c: Char): BytePacketBuilder {
+    override fun append(c: Char): BytePacketBuilder {
         write(3) {
             it.putUtf8Char(c.toInt() and 0xffff)
         }
         return this
     }
 
-    fun append(csq: CharSequence, start: Int, end: Int): BytePacketBuilder {
+    override fun append(csq: CharSequence?): BytePacketBuilder {
+        if (csq == null) {
+            append("null")
+        } else {
+            append(csq, 0, csq.length)
+        }
+        return this
+    }
+
+    override fun append(csq: CharSequence?, start: Int, end: Int): BytePacketBuilder {
+        if (csq == null) {
+            return append("null", start, end)
+        }
+
         appendASCII(csq, start, end)
         return this
     }
 
     fun writePacket(p: ByteReadPacket) {
-        val foreignStolen = p.steal()
+        val foreignStolen = p.stealAll()
         if (foreignStolen == null) {
             p.release()
             return

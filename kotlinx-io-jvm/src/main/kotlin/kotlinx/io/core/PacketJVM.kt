@@ -19,8 +19,8 @@ private fun orderOf(nioOrder: java.nio.ByteOrder): ByteOrder = if (nioOrder === 
 
 actual val PACKET_MAX_COPY_SIZE: Int = 500
 
-
-actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder = TODO()
+fun BytePacketBuilder() = BytePacketBuilder(0)
+actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder = BytePacketBuilder(headerSizeHint, BufferView.Pool)
 
 private val SkipBuffer = CharArray(8192)
 
