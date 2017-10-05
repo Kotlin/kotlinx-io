@@ -11,6 +11,9 @@ buildscript {
     }
 }
 
+plugins {
+    id 'net.researchgate.release' version '2.4.0'
+}
 
 apply plugin: 'kotlin-platform-common'
 
