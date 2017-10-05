@@ -456,6 +456,8 @@ class BytePacketReaderWriterTest {
         }
     }
 
+    private inline fun buildString(block: StringBuilder.() -> Unit) = StringBuilder().apply(block).toString()
+
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
