@@ -81,6 +81,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
 
     return if (destinationCapacity >= available) {
         current.read(bb, available)
+        @Suppress("INVISIBLE_MEMBER")
         releaseHead(current)
 
         readAsMuchAsPossible(bb, copied + available)
@@ -147,3 +148,6 @@ fun BytePacketBuilder.writeFully(src: ByteBuffer) {
         }
     }
 }
+
+@Suppress("ACTUAL_WITHOUT_EXPECT")
+actual typealias EOFException = java.io.EOFException

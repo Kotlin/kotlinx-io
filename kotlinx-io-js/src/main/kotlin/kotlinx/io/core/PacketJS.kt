@@ -18,3 +18,5 @@ internal val DefaultBufferViewPool: ObjectPool<BufferView> = object: DefaultPool
 }
 
 actual fun BytePacketBuilder(headerSizeHint: Int) = BytePacketBuilder(headerSizeHint, DefaultBufferViewPool)
+
+actual class EOFException actual constructor(message: String) : Exception(message)

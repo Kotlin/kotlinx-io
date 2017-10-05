@@ -292,4 +292,4 @@ fun ByteReadPacket.readFully(dst: ByteArray) {
     readFully(dst, 0, dst.size)
 }
 
-typealias EOFException = Exception
+expect class EOFException(message: String) : Exception
