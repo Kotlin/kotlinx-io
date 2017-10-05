@@ -17,11 +17,46 @@ plugins {
 
 apply plugin: 'kotlin-platform-common'
 
-repositories {
-    maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-    maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-    mavenCentral()
+allprojects {
+    group = 'org.jetbrains.kotlinx'
+    version '0.0.1-SNAPSHOT'
+
+    apply plugin: 'maven-publish'
+
+    repositories {
+//        maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
+        maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        mavenCentral()
+        mavenLocal()
+    }
+
+    afterEvaluate {
+        task sourceJar(type: Jar, dependsOn: classes) {
+            classifier 'sources'
+            from sourceSets.main.kotlin
+            duplicatesStrategy = "exclude"
+            def platformSrc = sourceSets.main.kotlin
+            def commonSrc = project(':').sourceSets.main.kotlin
+            from (platformSrc + commonSrc)
+        }
+    }
+
+    publishing {
+        publications {
+            mavenProject(MavenPublication) {
+                from components.java
+                groupId project.group
+                artifactId project.name
+                version project.version
+
+                artifact sourceJar {
+                    classifier "sources"
+                }
+            }
+        }
+    }
 }
+
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"

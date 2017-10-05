@@ -1,20 +1,4 @@
-buildscript {
-    ext.kotlin_version = '1.1.60-dev-277'
-
-    repositories {
-        maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
 apply plugin: 'kotlin-platform-js'
-
-repositories {
-    maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-    mavenCentral()
-}
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
