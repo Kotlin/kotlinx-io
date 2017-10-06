@@ -18,11 +18,13 @@ plugins {
 
 apply plugin: 'kotlin-platform-common'
 
-if (project.hasProperty('releaseVersion')) {
-    project.version = project.releaseVersion
-}
-
 allprojects {
+    if (project.hasProperty('releaseVersion')) {
+        project.version = project.releaseVersion
+    }
+
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'maven'
     apply plugin: 'maven-publish'
 
     repositories {
@@ -57,24 +59,31 @@ allprojects {
             }
         }
     }
-}
 
+    bintray {
+        user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+        key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+//    publish = true
+
+        pkg {
+            userOrg = 'kotlin'
+            repo = 'kotlinx'
+            name = 'kotlinx-io'
+            licenses = ['Apache-2.0']
+            publications = ['mavenProject']
+
+            version {
+                name = project.version
+                released = new Date()
+                vcsTag = project.version
+            }
+        }
+    }
+}
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
-}
-
-bintray {
-    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-
-    pkg {
-        userOrg = 'kotlin'
-        repo = 'kotlinx'
-        name = 'kotlinx-io'
-        licenses = ['Apache-2.0']
-    }
 }
 
 afterReleaseBuild.dependsOn bintrayUpload
