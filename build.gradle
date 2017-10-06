@@ -18,10 +18,11 @@ plugins {
 
 apply plugin: 'kotlin-platform-common'
 
-allprojects {
-    group = 'org.jetbrains.kotlinx'
-    version '0.0.1-SNAPSHOT'
+if (project.hasProperty('releaseVersion')) {
+    project.version = project.releaseVersion
+}
 
+allprojects {
     apply plugin: 'maven-publish'
 
     repositories {
