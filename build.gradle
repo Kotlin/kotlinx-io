@@ -12,6 +12,7 @@ buildscript {
 }
 
 plugins {
+    id "com.jfrog.bintray" version "1.7.3"
     id 'net.researchgate.release' version '2.4.0'
 }
 
@@ -62,3 +63,17 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
 }
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+
+    pkg {
+        userOrg = 'kotlin'
+        repo = 'kotlinx'
+        name = 'kotlinx-io'
+        licenses = ['Apache-2.0']
+    }
+}
+
+afterReleaseBuild.dependsOn bintrayUpload
