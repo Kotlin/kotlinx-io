@@ -10,23 +10,70 @@ expect enum class ByteOrder {
     }
 }
 
+/**
+ * A read-write facade to actual buffer of fixed size. Multiple views could share the same actual buffer.
+ * Concurrent unsafe. The only concurrent-safe operation is [release].
+ * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
+ */
 expect class BufferView {
+    /**
+     * Reference to an origin buffer view this was copied from
+     */
     private val origin: BufferView?
 
+    /**
+     * Mutable reference to next buffer view. Useful to chain multiple views
+     */
     var next: BufferView?
+
+    /**
+     * User data: could be a session, connection or anything useful
+     */
     var attachment: Any?
+
+    /**
+     * Amount of reserved bytes at the beginning
+     */
     val startGap: Int
+
+    /**
+     * Amount of reserved bytes at the end
+     */
     val endGap: Int
 
+    /**
+     * @return `true` if there are available bytes to be read
+     */
     fun canRead(): Boolean
+
+    /**
+     * @return `true` if there is free room to for write
+     */
     fun canWrite(): Boolean
 
+    /**
+     * Number of bytes available for read
+     */
     val readRemaining: Int
+
+    /**
+     * Number of free bytes useful for writing. Doesn't include gaps.
+     */
     val writeRemaining: Int
 
+    /**
+     * Reserves [n] bytes at the beginning. Could be invoked only once and only before writing.
+     */
     fun reserveStartGap(n: Int)
+
+    /**
+     * Reserves [n] bytes at the end of buffer. Could be invoked only once and only if there are at least [n] bytes free
+     */
     fun reserveEndGap(n: Int)
 
+    /**
+     * read and write operations byte-order (endianness)
+     */
     var byteOrder: ByteOrder
 
     fun readByte(): Byte
@@ -37,6 +84,9 @@ expect class BufferView {
     fun readDouble(): Double
     fun read(dst: ByteArray, offset: Int, length: Int)
 
+    /**
+     * Discards [n] bytes or fails if there is not enough bytes available for read.
+     */
     fun discardExact(n: Int)
 
     fun writeByte(v: Byte)
@@ -45,18 +95,51 @@ expect class BufferView {
     fun writeLong(v: Long)
     fun writeFloat(v: Float)
     fun writeDouble(v: Double)
+
+    /**
+     * Writes exactly [length] bytes of [array] starting from [offset] position or fails if not enough free space
+     */
     fun write(array: ByteArray, offset: Int, length: Int)
 
-    fun writeBuffer(other: BufferView, length: Int): Int
+    /**
+     * Writes [length] bytes of [src] buffer or fails if not enough free space available
+     */
+    fun writeBuffer(src: BufferView, length: Int): Int
     internal fun writeBufferPrepend(other: BufferView)
     internal fun writeBufferAppend(other: BufferView, maxSize: Int)
 
+    /**
+     * Push back [n] bytes: only possible if there were at least [n] bytes read before this operation.
+     */
     fun pushBack(n: Int)
+
+    /**
+     * Marks the whole buffer available for write and no bytes for read.
+     */
     fun resetForWrite()
+
+    /**
+     * Marks the whole buffer available for read and no for write
+     */
     fun resetForRead()
+
+    /**
+     * @return `true` if and only if the are no buffer views that share the same actual buffer. This actually does
+     * refcount and only work guaranteed if other views created/not created via [makeView] function.
+     * One can instantiate multiple buffers with the same buffer and this function will return `true` in spite of
+     * the fact that the buffer is actually shared.
+     */
     fun isExclusivelyOwned(): Boolean
 
+    /**
+     * Creates a new view to the same actual buffer with independant read and write positions and gaps
+     */
     fun makeView(): BufferView
+
+    /**
+     * releases buffer view and returns it to the [pool] if there are no more usages. Based on simple ref-couting so
+     * it is very fragile.
+     */
     fun release(pool: ObjectPool<BufferView>)
 
     companion object {

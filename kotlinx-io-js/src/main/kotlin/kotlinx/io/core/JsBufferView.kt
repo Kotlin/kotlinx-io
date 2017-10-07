@@ -270,14 +270,14 @@ actual class BufferView internal constructor(
         }
     }
 
-    actual fun writeBuffer(other: BufferView, length: Int): Int {
-        require(length <= other.readRemaining)
+    actual fun writeBuffer(src: BufferView, length: Int): Int {
+        require(length <= src.readRemaining)
         require(length <= writeRemaining)
 
-        val otherEnd = other.readPosition + length
-        val sub = other.i8.subarray(other.readPosition, otherEnd)
+        val otherEnd = src.readPosition + length
+        val sub = src.i8.subarray(src.readPosition, otherEnd)
         i8.set(sub, writePosition)
-        other.readPosition = otherEnd
+        src.readPosition = otherEnd
         writePosition += length
 
         return length

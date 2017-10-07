@@ -4,6 +4,9 @@ import kotlinx.io.pool.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
+/**
+ * A read-write facade to actual buffer of fixed size. Multiple views could share the same actual buffer.
+ */
 actual class BufferView private constructor(
         private var content: ByteBuffer,
         private actual val origin: BufferView?) {
@@ -31,22 +34,53 @@ actual class BufferView private constructor(
         readBuffer.limit(0)
     }
 
+    /**
+     * Mutable reference to next buffer view. Useful to chain multiple views
+     */
     actual var next: BufferView? = null
+
+    /**
+     * User data: could be a session, connection or anything useful
+     */
     actual var attachment: Any? = null
 
+    /**
+     * Amount of reserved bytes at the beginning
+     */
     actual val startGap: Int get() = readPosition
+
+    /**
+     * Amount of reserved bytes at the end
+     */
     actual val endGap: Int get() = writeBuffer.limit() - writeBuffer.capacity()
 
+    /**
+     * @return `true` if there are available bytes to be read
+     */
     actual fun canRead(): Boolean = readBuffer.hasRemaining()
+
+    /**
+     * @return `true` if there is free room to for write
+     */
     actual fun canWrite(): Boolean = writeBuffer.hasRemaining()
 
+    /**
+     * Number of bytes available for read
+     */
     actual val readRemaining: Int get() {
         if (refCount == 0L) throw IllegalStateException("Using released object")
 
         return readBuffer.remaining()
     }
+
+    /**
+     * Number of free bytes useful for writing. Doesn't include gaps.
+     */
     actual val writeRemaining: Int get() = writeBuffer.remaining()
 
+    /**
+     * read and write operations byte-order (endianness)
+     */
     actual var byteOrder: ByteOrder
         get() = ByteOrder.of(readBuffer.order())
         set(value) {
@@ -54,6 +88,9 @@ actual class BufferView private constructor(
             writeBuffer.order(value.nioOrder)
         }
 
+    /**
+     * Reserves [n] bytes at the beginning. Could be invoked only once and only before writing.
+     */
     actual fun reserveStartGap(n: Int) {
         require(n >= 0)
         require(n <= writeBuffer.capacity())
@@ -67,6 +104,9 @@ actual class BufferView private constructor(
         readPosition = rp + n
     }
 
+    /**
+     * Reserves [n] bytes at the end of buffer. Could be invoked only once and only if there are at least [n] bytes free
+     */
     actual fun reserveEndGap(n: Int) {
         require(n >= 0)
         val writeBufferLimit = writeBuffer.limit()
@@ -109,6 +149,9 @@ actual class BufferView private constructor(
         afterWrite()
     }
 
+    /**
+     * Writes exactly [length] bytes of [array] starting from [offset] position or fails if not enough free space
+     */
     actual fun write(array: ByteArray, offset: Int, length: Int) {
         writeBuffer.put(array, offset, length)
         afterWrite()
@@ -142,20 +185,23 @@ actual class BufferView private constructor(
         return delta
     }
 
-    actual fun writeBuffer(other: BufferView, length: Int): Int {
-        val otherSize = other.readBuffer.remaining()
+    /**
+     * Writes [length] bytes of [src] buffer or fails if not enough free space available
+     */
+    actual fun writeBuffer(src: BufferView, length: Int): Int {
+        val otherSize = src.readBuffer.remaining()
         return when {
             otherSize <= length -> {
-                writeBuffer.put(other.readBuffer)
+                writeBuffer.put(src.readBuffer)
                 afterWrite()
                 otherSize
             }
             length > writeBuffer.remaining() -> throw BufferOverflowException()
             else -> {
-                val l = other.readBuffer.limit()
-                other.readBuffer.limit(other.readBuffer.position() + length)
-                writeBuffer.put(other.readBuffer)
-                other.readBuffer.limit(l)
+                val l = src.readBuffer.limit()
+                src.readBuffer.limit(src.readBuffer.position() + length)
+                writeBuffer.put(src.readBuffer)
+                src.readBuffer.limit(l)
                 afterWrite()
                 length
             }
@@ -221,23 +267,41 @@ actual class BufferView private constructor(
         readBuffer.position(readBuffer.position() + n)
     }
 
+    /**
+     * Push back [n] bytes: only possible if there were at least [n] bytes read before this operation.
+     */
     actual fun pushBack(n: Int) {
         readBuffer.position(readBuffer.position() - n)
     }
 
+    /**
+     * Marks the whole buffer available for write and no bytes for read.
+     */
     actual fun resetForWrite() {
         writeBuffer.limit(writeBuffer.capacity())
         readPosition = 0
         writePosition = 0
     }
 
+    /**
+     * Marks the whole buffer available for read and no for write
+     */
     actual fun resetForRead() {
         readPosition = 0
         writePosition = writeBuffer.limit()
     }
 
+    /**
+     * @return `true` if and only if the are no buffer views that share the same actual buffer. This actually does
+     * refcount and only work guaranteed if other views created/not created via [makeView] function.
+     * One can instantiate multiple buffers with the same buffer and this function will return `true` in spite of
+     * the fact that the buffer is actually shared.
+     */
     actual fun isExclusivelyOwned(): Boolean = refCount == 1L
 
+    /**
+     * Creates a new view to the same actual buffer with independant read and write positions and gaps
+     */
     actual fun makeView(): BufferView {
         val newOrigin = origin ?: this
         newOrigin.acquire()
@@ -251,6 +315,10 @@ actual class BufferView private constructor(
         return view
     }
 
+    /**
+     * releases buffer view and returns it to the [pool] if there are no more usages. Based on simple ref-couting so
+     * it is very fragile.
+     */
     actual fun release(pool: ObjectPool<BufferView>) {
         if (releaseRefCount()) {
             resetForWrite()
