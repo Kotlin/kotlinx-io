@@ -112,7 +112,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         val tail = tail
         if (tail === BufferView.Empty) {
             head = foreignStolen
-            this.tail = foreignStolen.tail()
+            this.tail = foreignStolen.findTail()
             size = foreignStolen.remainingAll().toInt()
             return
         }
@@ -132,13 +132,13 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         if (appendSize == -1 && prependSize == -1) {
             // simply enqueue
             tail.next = foreignStolen
-            this.tail = foreignStolen.tail()
+            this.tail = foreignStolen.findTail()
             size = head.remainingAll().toInt()
         } else if (prependSize == -1 || appendSize <= prependSize) {
             // do append
             tail.writeBufferAppend(foreignStolen, tail.writeRemaining + tail.endGap)
             tail.next = foreignStolen.next
-            this.tail = foreignStolen.tail().takeUnless { it === foreignStolen } ?: tail
+            this.tail = foreignStolen.findTail().takeUnless { it === foreignStolen } ?: tail
             foreignStolen.release(p.pool)
             size = head.remainingAll().toInt()
         } else if (appendSize == -1 || prependSize < appendSize) {
@@ -159,7 +159,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
             }
             tail.release(pool)
 
-            this.tail = foreignStolen.tail()
+            this.tail = foreignStolen.findTail()
             size = head.remainingAll().toInt()
         } else {
             throw IllegalStateException("prep = $prependSize, app = $appendSize")

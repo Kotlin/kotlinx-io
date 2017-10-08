@@ -22,48 +22,6 @@ actual val PACKET_MAX_COPY_SIZE: Int = 500
 fun BytePacketBuilder() = BytePacketBuilder(0)
 actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder = BytePacketBuilder(headerSizeHint, BufferView.Pool)
 
-private val SkipBuffer = CharArray(8192)
-
-fun ByteReadPacket.inputStream(): InputStream {
-    return object : InputStream() {
-        override fun read(): Int {
-            if (isEmpty) return -1
-            return readByte().toInt() and 0xff
-        }
-
-        override fun available() = remaining
-
-        override fun close() {
-            release()
-        }
-    }
-}
-
-fun ByteReadPacket.readerUTF8(): Reader {
-    return object : Reader() {
-        override fun close() {
-            release()
-        }
-
-        override fun skip(n: Long): Long {
-            var skipped = 0L
-            val buffer = SkipBuffer
-            val bufferSize = buffer.size
-
-            while (skipped < n) {
-                val size = minOf(bufferSize.toLong(), n - skipped).toInt()
-                val rc = read(buffer, 0, size)
-                if (rc == -1) break
-                skipped += rc
-            }
-
-            return skipped
-        }
-
-        override fun read(cbuf: CharArray, off: Int, len: Int) = readCbuf(cbuf, off, len)
-    }
-}
-
 fun ByteReadPacket.readAvailable(dst: ByteBuffer) = readAsMuchAsPossible(dst, 0)
 fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
     val rc = readAsMuchAsPossible(dst, 0)
@@ -88,36 +46,6 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
     } else {
         current.read(bb, destinationCapacity)
         copied + destinationCapacity
-    }
-}
-
-fun BytePacketBuilder.outputStream(): OutputStream {
-    return object : OutputStream() {
-        override fun write(b: Int) {
-            writeByte(b.toByte())
-        }
-
-        override fun write(b: ByteArray, off: Int, len: Int) {
-            this@outputStream.writeFully(b, off, len)
-        }
-
-        override fun close() {
-        }
-    }
-}
-
-fun BytePacketBuilder.writerUTF8(): Writer {
-    return object : Writer() {
-        override fun write(cbuf: CharArray, off: Int, len: Int) {
-            @Suppress("INVISIBLE_MEMBER")
-            appendChars(cbuf, off, off + len)
-        }
-
-        override fun flush() {
-        }
-
-        override fun close() {
-        }
     }
 }
 

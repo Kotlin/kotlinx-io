@@ -1,7 +1,8 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
-import kotlinx.io.utils.*
+import kotlinx.io.nio.*
+import kotlinx.io.streams.*
 import org.junit.*
 import java.io.*
 import java.nio.*

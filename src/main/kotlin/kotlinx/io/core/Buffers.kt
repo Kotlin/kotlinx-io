@@ -159,6 +159,9 @@ internal tailrec fun BufferView?.releaseAll(pool: ObjectPool<BufferView>) {
     next.releaseAll(pool)
 }
 
+/**
+ * Copy every element of the chain starting from this and setup next links.
+ */
 internal fun BufferView.copyAll(): BufferView {
     val copied = makeView()
     val next = this.next ?: return copied
@@ -175,11 +178,14 @@ private tailrec fun BufferView.copyAll(head: BufferView, prev: BufferView): Buff
     return next.copyAll(head, copied)
 }
 
-internal tailrec fun BufferView.tail(): BufferView {
+internal tailrec fun BufferView.findTail(): BufferView {
     val next = this.next ?: return this
-    return next.tail()
+    return next.findTail()
 }
 
+/**
+ * Summarize remainings of all elements of the chain
+ */
 internal fun BufferView.remainingAll(): Long = remainingAll(0L)
 
 private tailrec fun BufferView.remainingAll(n: Long): Long {

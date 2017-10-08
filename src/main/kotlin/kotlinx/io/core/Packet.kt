@@ -2,21 +2,43 @@ package kotlinx.io.core
 
 import kotlinx.io.pool.*
 
+/**
+ * Read-only immutable byte packet. Could be consumed only once however it does support [copy] that doesn't copy every byte
+ * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
+ * via [release].
+ */
 class ByteReadPacket(private var head: BufferView,
                               val pool: ObjectPool<BufferView>) {
 
+    /**
+     * Number of bytes available for read
+     */
     val remaining: Int
         get() = head.remainingAll().toInt() // TODO Long or Int?
 
+    /**
+     * `true` if no bytes available for read
+     */
     val isEmpty: Boolean
         get() = head.isEmpty()
 
+    /**
+     * Returns a copy of the packet. The original packet and the copy could be used concurrently. Both need to be
+     * either completely consumed or released via [release]
+     */
     fun copy(): ByteReadPacket = ByteReadPacket(head.copyAll(), pool)
 
+    /**
+     * Release packet. After this function invocation the packet becomes empty. If it has been copied via [copy]
+     * then the copy should be released as well.
+     */
     fun release() {
-        if (head !== BufferView.Empty) {
+        val head = head
+        val empty = BufferView.Empty
+
+        if (head !== empty) {
+            this.head = empty
             head.releaseAll(pool)
-            head = BufferView.Empty
         }
     }
 
@@ -62,9 +84,17 @@ class ByteReadPacket(private var head: BufferView,
         if (rc != length) throw IllegalStateException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
     }
 
-    fun skip(n: Int) = discardAsMuchAsPossible(n, 0)
-    fun skipExact(n: Int) {
-        if (skip(n) != n) throw EOFException("Unable to skip $n bytes due to end of packet")
+    /**
+     * Discards at most [n] bytes
+     * @return number of bytes has been discarded
+     */
+    fun discard(n: Int) = discardAsMuchAsPossible(n, 0)
+
+    /**
+     * Discards exactly [n] bytes or fails with [EOFException]
+     */
+    fun discardExact(n: Int) {
+        if (discard(n) != n) throw EOFException("Unable to discard $n bytes due to end of packet")
     }
 
     fun readUTF8LineTo(out: Appendable, limit: Int): Boolean {
@@ -119,8 +149,21 @@ class ByteReadPacket(private var head: BufferView,
         return decoded > 0 || !isEmpty
     }
 
+    internal fun readDirect(block: (BufferView) -> Unit) {
+        val current = head
+
+        if (current !== BufferView.Empty) {
+            block(current)
+            if (!current.canRead()) {
+                releaseHead(current)
+            }
+        }
+    }
+
     fun readText(): CharSequence {
-        return buildString(remaining) {
+        if (isEmpty) return ""
+
+        return StringBuilder(remaining).apply {
             while (true) {
                 val bb = prepareRead(1) ?: break
                 if (!bb.decodeASCII { append(it); true }) {
@@ -149,8 +192,7 @@ class ByteReadPacket(private var head: BufferView,
         }
     }
 
-    // TODO should be internal
-    fun readCbuf(cbuf: CharArray, off: Int, len: Int): Int {
+    internal fun readCbuf(cbuf: CharArray, off: Int, len: Int): Int {
         var rem = len
         var idx = off
 

@@ -1,29 +1,47 @@
-package kotlinx.io.utils
+package kotlinx.io.nio
 
 import kotlinx.io.core.*
 import java.io.EOFException
 import java.nio.channels.*
 
-fun WritableByteChannel.writePacket(builder: BytePacketBuilder.() -> Unit) {
-    writePacket(buildPacket(block = builder))
+/**
+ * Builds packet and write it to a NIO channel. May block if the channel is configured as blocking or
+ * may write packet partially so this function returns remaining packet. So for blocking channel this
+ * function always returns `null`.
+ */
+fun WritableByteChannel.writePacket(builder: BytePacketBuilder.() -> Unit): ByteReadPacket? {
+    val p = buildPacket(block = builder)
+    return try {
+        if (writePacket(p)) null else p
+    } catch (t: Throwable) {
+        p.release()
+        throw t
+    }
 }
 
-fun WritableByteChannel.writePacket(p: ByteReadPacket) {
-    var b: BufferView? = null
+/**
+ * Writes packet to a NIO channel. May block if the channel is configured as blocking or may write packet
+ * only partially if the channel is non-blocking and there is not enough buffer space.
+ * @return `true` if the whole packet has been written to the channel
+ */
+fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
     try {
         while (true) {
-            @Suppress("INVISIBLE_MEMBER")
-            b = p.steal() ?: break
+            var rc = 0
 
-            b.readDirect { bb ->
-                while (bb.hasRemaining()) {
-                    write(bb)
+            @Suppress("INVISIBLE_MEMBER")
+            p.readDirect { node : BufferView ->
+                node.readDirect {
+                    rc = write(it)
                 }
             }
+
+            if (p.isEmpty) return true
+            if (rc == 0) return false
         }
-    } finally {
-        b?.release(p.pool)
+    } catch (t: Throwable) {
         p.release()
+        throw t
     }
 }
 

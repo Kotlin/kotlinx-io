@@ -80,7 +80,7 @@ class BytePacketBuildTest {
             writeFully(kotlin.ByteArray(9999))
         }
 
-        assertEquals(9999, p.skip(10000))
+        assertEquals(9999, p.discard(10000))
     }
 
     @Test
@@ -89,7 +89,7 @@ class BytePacketBuildTest {
             writeFully("ABC123".toByteArray())
         }
 
-        assertEquals(3, p.skip(3))
+        assertEquals(3, p.discard(3))
         assertEquals("123", p.readUTF8Line())
     }
 
@@ -99,7 +99,7 @@ class BytePacketBuildTest {
             writeFully("ABC123".toByteArray())
         }
 
-        p.skipExact(3)
+        p.discardExact(3)
         assertEquals("123", p.readUTF8Line())
     }
 
@@ -109,7 +109,7 @@ class BytePacketBuildTest {
             writeFully("ABC123".toByteArray())
         }
 
-        p.skipExact(1000)
+        p.discardExact(1000)
     }
 
     @Test
@@ -118,7 +118,7 @@ class BytePacketBuildTest {
             writeFully(kotlin.ByteArray(99999))
         }
 
-        assertEquals(99999, p.skip(1000000))
+        assertEquals(99999, p.discard(1000000))
     }
 
     @Test
@@ -128,7 +128,7 @@ class BytePacketBuildTest {
             writeFully("ABC123".toByteArray())
         }
 
-        assertEquals(99999 + 3, p.skip(99999 + 3))
+        assertEquals(99999 + 3, p.discard(99999 + 3))
         assertEquals("123", p.readUTF8Line())
     }
 
