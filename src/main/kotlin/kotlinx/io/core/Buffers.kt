@@ -2,14 +2,6 @@ package kotlinx.io.core
 
 import kotlinx.io.pool.*
 
-expect enum class ByteOrder {
-    BIG_ENDIAN, LITTLE_ENDIAN;
-
-    companion object {
-        fun nativeOrder(): ByteOrder
-    }
-}
-
 /**
  * A read-write facade to actual buffer of fixed size. Multiple views could share the same actual buffer.
  * Concurrent unsafe. The only concurrent-safe operation is [release].

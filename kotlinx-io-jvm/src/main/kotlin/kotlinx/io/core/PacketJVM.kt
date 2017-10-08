@@ -1,81 +1,9 @@
 package kotlinx.io.core
 
-import java.io.*
-import java.nio.*
-
-actual enum class ByteOrder(val nioOrder: java.nio.ByteOrder) {
-    BIG_ENDIAN(java.nio.ByteOrder.BIG_ENDIAN),
-    LITTLE_ENDIAN(java.nio.ByteOrder.LITTLE_ENDIAN);
-
-    actual companion object {
-        private val native: ByteOrder = orderOf(java.nio.ByteOrder.nativeOrder())
-        fun of(nioOrder: java.nio.ByteOrder): ByteOrder = orderOf(nioOrder)
-
-        actual fun nativeOrder(): ByteOrder = native
-    }
-}
-
-private fun orderOf(nioOrder: java.nio.ByteOrder): ByteOrder = if (nioOrder === java.nio.ByteOrder.BIG_ENDIAN) ByteOrder.BIG_ENDIAN else ByteOrder.LITTLE_ENDIAN
-
 actual val PACKET_MAX_COPY_SIZE: Int = 500
 
 fun BytePacketBuilder() = BytePacketBuilder(0)
 actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder = BytePacketBuilder(headerSizeHint, BufferView.Pool)
-
-fun ByteReadPacket.readAvailable(dst: ByteBuffer) = readAsMuchAsPossible(dst, 0)
-fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
-    val rc = readAsMuchAsPossible(dst, 0)
-    if (dst.hasRemaining()) throw EOFException("Not enough data in packet to fill buffer: ${dst.remaining()} more bytes required")
-    return rc
-}
-
-private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: Int): Int {
-    if (!bb.hasRemaining()) return copied
-    @Suppress("INVISIBLE_MEMBER")
-    val current: BufferView = prepareRead(1) ?: return copied
-
-    val destinationCapacity = bb.remaining()
-    val available = current.readRemaining
-
-    return if (destinationCapacity >= available) {
-        current.read(bb, available)
-        @Suppress("INVISIBLE_MEMBER")
-        releaseHead(current)
-
-        readAsMuchAsPossible(bb, copied + available)
-    } else {
-        current.read(bb, destinationCapacity)
-        copied + destinationCapacity
-    }
-}
-
-fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    @Suppress("INVISIBLE_MEMBER")
-    write(size) { buffer: BufferView ->
-        buffer.writeDirect(size, block)
-    }
-}
-
-fun BytePacketBuilder.writeFully(src: ByteBuffer) {
-    while (src.hasRemaining()) {
-        @Suppress("INVISIBLE_MEMBER")
-        write(1) { buffer: BufferView ->
-            val srcSize = src.remaining()
-            val capacity = buffer.writeRemaining
-
-            if (capacity >= srcSize) {
-                buffer.write(src)
-                srcSize
-            } else {
-                val lim = src.limit()
-                src.limit(src.position() + capacity)
-                buffer.write(src)
-                src.limit(lim)
-                capacity
-            }
-        }
-    }
-}
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 actual typealias EOFException = java.io.EOFException
