@@ -1,6 +1,7 @@
 package kotlinx.io.core
 
 import kotlinx.io.pool.*
+import kotlinx.io.utils.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
@@ -375,10 +376,13 @@ actual class BufferView private constructor(
         val EmptyBuffer: ByteBuffer = ByteBuffer.allocateDirect(0)
         private val RefCount = AtomicLongFieldUpdater.newUpdater(BufferView::class.java, BufferView::refCount.name)!!
 
+        private val DEFAULT_BUFFER_SIZE = getIOIntProperty("buffer.size", 4096)
+        private val DEFAULT_BUFFER_POOL_SIZE = getIOIntProperty("buffer.pool.size", 100)
+
         actual val Empty = BufferView(EmptyBuffer, null)
-        actual val Pool: ObjectPool<BufferView> = object : DefaultPool<BufferView>(100) {
+        actual val Pool: ObjectPool<BufferView> = object : DefaultPool<BufferView>(DEFAULT_BUFFER_POOL_SIZE) {
             override fun produceInstance(): BufferView {
-                return BufferView(ByteBuffer.allocateDirect(4096), null)
+                return BufferView(ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE), null)
             }
 
             override fun disposeInstance(instance: BufferView) {
@@ -404,7 +408,7 @@ actual class BufferView private constructor(
 
         actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
             override fun borrow(): BufferView {
-                return BufferView(ByteBuffer.allocateDirect(4096), null)
+                return BufferView(ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE), null)
             }
         }
     }
