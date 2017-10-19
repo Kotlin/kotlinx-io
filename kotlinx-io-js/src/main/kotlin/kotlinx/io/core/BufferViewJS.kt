@@ -5,7 +5,7 @@ import org.khronos.webgl.*
 
 actual class BufferView internal constructor(
         private var content: ArrayBuffer,
-        private actual val origin: BufferView?
+        internal actual val origin: BufferView?
 ) {
     private var refCount = 0
 

@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.*
  */
 actual class BufferView private constructor(
         private var content: ByteBuffer,
-        private actual val origin: BufferView?) {
+        internal actual val origin: BufferView?) {
 
     private var readBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
     private var writeBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()

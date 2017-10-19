@@ -11,7 +11,7 @@ expect class BufferView {
     /**
      * Reference to an origin buffer view this was copied from
      */
-    private val origin: BufferView?
+    internal val origin: BufferView?
 
     /**
      * Mutable reference to next buffer view. Useful to chain multiple views
