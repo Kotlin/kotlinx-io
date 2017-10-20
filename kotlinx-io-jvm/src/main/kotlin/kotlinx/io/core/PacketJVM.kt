@@ -1,6 +1,7 @@
 package kotlinx.io.core
 
 import kotlinx.io.utils.*
+import java.nio.*
 
 actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
 
@@ -9,3 +10,10 @@ actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder = BytePacke
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 actual typealias EOFException = java.io.EOFException
+
+fun ByteReadPacket.readByteBuffer(n: Int = remaining, direct: Boolean = false): ByteBuffer {
+    val bb: ByteBuffer = if (direct) ByteBuffer.allocateDirect(n) else ByteBuffer.allocate(n)
+    readFully(bb)
+    bb.clear()
+    return bb
+}
