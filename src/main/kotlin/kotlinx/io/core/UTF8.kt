@@ -16,7 +16,7 @@ internal inline fun BufferView.decodeASCII(consumer: (Char) -> Boolean): Boolean
 /**
  * Decodes all the bytes to utf8 applying every character on [consumer] until or consumer return `false`.
  * If a consumer returned false then a character will be pushed back (including all surrogates will be pushed back as well)
- * and [decodeUTF8] returns 0
+ * and [decodeUTF8] returns -1
  * @return number of bytes required to decode incomplete utf8 character or 0 if all bytes were processed
  * or -1 if consumer rejected loop
  */

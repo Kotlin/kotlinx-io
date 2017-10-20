@@ -160,63 +160,85 @@ class ByteReadPacket(private var head: BufferView,
         }
     }
 
-    fun readText(): CharSequence {
-        if (isEmpty) return ""
-
-        return StringBuilder(remaining).apply {
-            while (true) {
-                val bb = prepareRead(1) ?: break
-                if (!bb.decodeASCII { append(it); true }) {
-                    readTextUtf8()
-                    break
-                }
-                afterRead()
-            }
-        }
-    }
-
-    private fun StringBuilder.readTextUtf8() {
-        var size = 1
-        while (true) {
-            val bb = prepareRead(size)
-            if (bb == null) {
-                if (size == 1) break
-                throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
-            }
-
-            size = bb.decodeUTF8 { append(it); true }
-            if (size == 0) {
-                afterRead()
-                size = 1
-            }
-        }
-    }
-
     internal fun readCbuf(cbuf: CharArray, off: Int, len: Int): Int {
-        var rem = len
-        var idx = off
+        if (isEmpty) return -1
 
-        while (rem > 0) {
-            val bb = prepareRead(1) ?: break
-            val rc = bb.decodeASCII {
-                if (rem == 0) false
+        val out = object : Appendable {
+            private var idx = off
+
+            override fun append(c: Char): Appendable {
+                cbuf[idx++] = c
+                return this
+            }
+
+            override fun append(csq: CharSequence?): Appendable {
+                throw UnsupportedOperationException()
+            }
+
+            override fun append(csq: CharSequence?, start: Int, end: Int): Appendable {
+                throw UnsupportedOperationException()
+            }
+        }
+
+        return readText(out, 0, len)
+    }
+
+    fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
+        return readASCII(out, min, max)
+    }
+
+    fun readText(out: Appendable, exactCharacters: Int) {
+        readText(out, exactCharacters, exactCharacters)
+    }
+
+    fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
+        if (min == 0 && (max == 0 || isEmpty)) return ""
+
+        return buildString(min.coerceAtLeast(16).coerceAtMost(max)) {
+            readASCII(this, min, max)
+        }
+    }
+
+    fun readText(exactCharacters: Int): String {
+        return readText(exactCharacters, exactCharacters)
+    }
+
+    private fun readASCII(out: Appendable, min: Int, max: Int): Int {
+        when {
+            max == 0 && min == 0 -> return 0
+            isEmpty -> if (min == 0) return 0 else throw EOFException("at least $min characters required but no bytes available")
+            max < min -> throw IllegalArgumentException("min should be less or equal to max but min = $min, max = $max")
+        }
+
+        var copied = 0
+
+        while (copied < max) {
+            val buffer = prepareRead(1)
+            if (buffer == null) {
+                if (copied >= min) break
+                throw MalformedUTF8InputException("Premature end of stream: expected at least $min chars but had only $copied")
+            }
+
+            val rc = buffer.decodeASCII {
+                if (copied == max) false
                 else {
-                    cbuf[idx++] = it
-                    rem--
+                    out.append(it)
+                    copied++
                     true
                 }
             }
 
             if (rc) {
                 afterRead()
-            } else if (rem == 0) {
+            } else if (copied == max) {
                 break
             } else {
-                return readUtf8(cbuf, idx, rem, idx - off)
+                // it is safe here to have negative min - copied
+                // and it will be never negative max - copied
+                return copied + readUtf8(out, min - copied, max - copied)
             }
         }
 
-        val copied = idx - off
         return when {
             copied > 0 -> copied
             head.isEmpty() -> -1
@@ -224,23 +246,22 @@ class ByteReadPacket(private var head: BufferView,
         }
     }
 
-    private fun readUtf8(cbuf: CharArray, off: Int, len: Int, copied0: Int): Int {
+    private fun readUtf8(out: Appendable, min: Int, max: Int): Int {
         var size = 1
-        var rem = len
-        var idx = off
+        var copied = 0
 
-        while (rem > 0) {
+        while (copied < max) {
             val buffer = prepareRead(size)
             if (buffer == null) {
-                if (size == 1) break
+                if (copied >= min) break
                 throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
             }
 
             size = buffer.decodeUTF8 {
-                if (rem == 0) false
+                if (copied == max) false
                 else {
-                    cbuf[idx++] = it
-                    rem--
+                    out.append(it)
+                    copied++
                     true
                 }
             }
@@ -251,12 +272,7 @@ class ByteReadPacket(private var head: BufferView,
             }
         }
 
-        val copied = idx - off + copied0
-        return when {
-            copied > 0 -> copied
-            head.isEmpty() -> -1
-            else -> 0
-        }
+        return copied
     }
 
     private tailrec fun discardAsMuchAsPossible(n: Int, skipped: Int): Int {
