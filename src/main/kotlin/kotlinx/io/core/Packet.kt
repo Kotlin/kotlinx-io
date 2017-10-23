@@ -69,9 +69,17 @@ class ByteReadPacket(private var head: BufferView,
     fun readFloat() = readN(4) { readFloat() }
     fun readDouble() = readN(8) { readDouble() }
 
+    /**
+     * Read as much bytes as possible to [dst] array
+     * @return number of bytes copied
+     */
     fun readAvailable(dst: ByteArray): Int = readAvailable(dst, 0, dst.size)
 
-    fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
+    /**
+     * Read at most [length] bytes to [dst] array and write them at [offset]
+     * @return number of bytes copied to the array
+     */
+    fun readAvailable(dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int {
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset + length <= dst.size) { throw IllegalArgumentException() }
@@ -79,9 +87,12 @@ class ByteReadPacket(private var head: BufferView,
         return readAsMuchAsPossible(dst, offset, length, 0)
     }
 
-    fun readFully(dst: ByteArray, offset: Int, length: Int) {
+    /**
+     * Read exactly [length] bytes to [dst] array at specified [offset]
+     */
+    fun readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size) {
         val rc = readAvailable(dst, offset, length)
-        if (rc != length) throw IllegalStateException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
+        if (rc != length) throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
     }
 
     /**
@@ -97,6 +108,11 @@ class ByteReadPacket(private var head: BufferView,
         if (discard(n) != n) throw EOFException("Unable to discard $n bytes due to end of packet")
     }
 
+    /**
+     * Read UTF-8 line and append all line characters to [out] except line endings. Does support CR, LF and CR+LF
+     * @return `true` if some characters were appended or line ending reached (empty line) or `false` if packet
+     * if empty
+     */
     fun readUTF8LineTo(out: Appendable, limit: Int): Boolean {
         var decoded = 0
         var size = 1
@@ -183,14 +199,24 @@ class ByteReadPacket(private var head: BufferView,
         return readText(out, 0, len)
     }
 
+    /**
+     * Read at least [min] and at most [max] characters and append them to [out]
+     * @return number of characters appended
+     */
     fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
         return readASCII(out, min, max)
     }
 
-    fun readText(out: Appendable, exactCharacters: Int) {
+    /**
+     * Read exactly [exactCharacters] characters and append them to [out]
+     */
+    fun readTextExact(out: Appendable, exactCharacters: Int) {
         readText(out, exactCharacters, exactCharacters)
     }
 
+    /**
+     * Read a string at last [min] and at most [max] characters length
+     */
     fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
         if (min == 0 && (max == 0 || isEmpty)) return ""
 
@@ -199,7 +225,10 @@ class ByteReadPacket(private var head: BufferView,
         }
     }
 
-    fun readText(exactCharacters: Int): String {
+    /**
+     * Read a string exactly [exactCharacters] length
+     */
+    fun readTextExact(exactCharacters: Int): String {
         return readText(exactCharacters, exactCharacters)
     }
 
@@ -345,10 +374,6 @@ class ByteReadPacket(private var head: BufferView,
 
         val ReservedSize = 8
     }
-}
-
-fun ByteReadPacket.readFully(dst: ByteArray) {
-    readFully(dst, 0, dst.size)
 }
 
 expect class EOFException(message: String) : Exception
