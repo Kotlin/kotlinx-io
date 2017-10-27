@@ -6,6 +6,9 @@ expect val PACKET_MAX_COPY_SIZE: Int
 
 //fun BytePacketBuilder() = BytePacketBuilder(0)
 
+/**
+ * Build a byte packet in [block] lambda. Creates a temporary builder and releases it in case of failure
+ */
 inline fun buildPacket(headerSizeHint: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
     val builder = BytePacketBuilder(headerSizeHint)
     try {
@@ -19,14 +22,39 @@ inline fun buildPacket(headerSizeHint: Int = 0, block: BytePacketBuilder.() -> U
 
 expect fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder
 
+/**
+ * A builder that provides ability to build byte packets with no knowledge of it's size.
+ * Unlike Java's ByteArrayOutputStream it doesn't copy the whole content every time it's internal buffer overflows
+ * but chunks buffers instead. Packet building via [build] function is O(1) operation and only does instantiate
+ * a new [ByteReadPacket]. Once a byte packet has been built via [build] function call, the builder could be
+ * reused again. You also can discard all written bytes via [reset] or [release]. Please note that an instance of
+ * builder need to be terminated either via [build] function invocation or via [release] call otherwise it will
+ * cause byte buffer leak so that may have performance impact.
+ *
+ * Byte packet builder is also an [Appendable] so it does append UTF-8 characters to a packet
+ *
+ * ```
+ * buildPacket {
+ *     listOf(1,2,3).joinTo(this, separator = ",")
+ * }
+ * ```
+ */
 class BytePacketBuilder(private var headerSizeHint: Int, private val pool: ObjectPool<BufferView>) : Appendable {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
 
+    /**
+     * Number of bytes currently buffered
+     */
     var size: Int = 0
         private set
 
+    /**
+     * Byte order (Endianness) to be used by future write functions calls on this builder instance. Doesn't affect any
+     * previously written values. Note that [reset] doesn't change this value back to the default byte order.
+     * @default [ByteOrder.BIG_ENDIAN]
+     */
     var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(value) {
             field = value
@@ -77,6 +105,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         write(4) { it.writeFloat(f); 4 }
     }
 
+    /**
+     * Append single UTF-8 character
+     */
     override fun append(c: Char): BytePacketBuilder {
         write(3) {
             it.putUtf8Char(c.toInt() and 0xffff)
@@ -102,6 +133,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         return this
     }
 
+    /**
+     * Writes another packet to the end. Please note that the instance [p] gets consumed so you don't need to release it
+     */
     fun writePacket(p: ByteReadPacket) {
         val foreignStolen = p.stealAll()
         if (foreignStolen == null) {
@@ -291,6 +325,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         }
     }
 
+    /**
+     * Builds byte packet instance and resets builder's state to be able to build another one packet if needed
+     */
     fun build(): ByteReadPacket {
         val head = this.head
 
@@ -302,6 +339,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         return ByteReadPacket(head, pool)
     }
 
+    /**
+     * Release any resources that the builder holds. Builder shouldn't be used after release
+     */
     fun release() {
         val head = this.head
         val empty = BufferView.Empty
@@ -314,6 +354,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         }
     }
 
+    /**
+     * Discard all written bytes and prepare to build another packet.
+     */
     fun reset() {
         release()
     }
