@@ -51,7 +51,7 @@ expect abstract class DefaultPool<T : Any> : ObjectPool<T> {
     /**
      * Dispose [instance] and release it's resources
      */
-    protected abstract fun disposeInstance(instance: T)
+    protected open fun disposeInstance(instance: T)
 
     /**
      * Clear [instance]'s state before reuse: reset pointers, counters and so on

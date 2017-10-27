@@ -5,7 +5,7 @@ actual abstract class DefaultPool<T : Any>(actual override final val capacity: I
     private var size = 0
 
     actual protected abstract fun produceInstance(): T
-    actual protected abstract fun disposeInstance(instance: T)
+    actual protected open fun disposeInstance(instance: T) {}
 
     actual protected open fun clearInstance(instance: T): T = instance
     actual protected open fun validateInstance(instance: T) {}

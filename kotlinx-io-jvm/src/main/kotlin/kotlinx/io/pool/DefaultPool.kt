@@ -17,7 +17,7 @@ actual abstract class DefaultPool<T : Any>(actual final override val capacity: I
     protected actual abstract fun produceInstance(): T // factory
     protected actual open fun clearInstance(instance: T) = instance // optional cleaning of poped items
     protected actual open fun validateInstance(instance: T) {} // optional validation for recycled items
-    protected open fun disposeInstance(instance: T) {} // optional destruction of unpoolable items
+    protected actual open fun disposeInstance(instance: T) {} // optional destruction of unpoolable items
 
     @Volatile
     private var top: Long = 0L
