@@ -45,8 +45,21 @@ fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
     }
 }
 
+/**
+ * Read a packet of exactly [n] bytes. This function is useless with non-blocking channels
+ */
 fun ReadableByteChannel.readPacketExact(n: Long): ByteReadPacket = readPacketImpl(n, n)
+
+/**
+ * Read a packet of at least [n] bytes or all remaining. Does fail if not enough bytes remaining.
+ * . This function is useless with non-blocking channels
+ */
 fun ReadableByteChannel.readPacketAtLeast(n: Long): ByteReadPacket = readPacketImpl(n, Long.MAX_VALUE)
+
+/**
+ * Read a packet of at most [n] bytes. Resulting packet could be empty however this function does always reads
+ * as much bytes as possible. You also can use it with non-blocking channels
+ */
 fun ReadableByteChannel.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)
 
 private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPacket {
