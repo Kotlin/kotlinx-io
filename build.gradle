@@ -1,9 +1,13 @@
 buildscript {
-    ext.kotlin_version = '1.1.60-dev-277'
-
     repositories {
-        maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-        maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        if (kotlin_version.contains("eap")) {
+            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
+            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+        }
+        if (kotlin_version.contains("dev")) {
+            maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        }
+
         mavenCentral()
     }
     dependencies {
@@ -26,10 +30,17 @@ allprojects {
     apply plugin: 'com.jfrog.bintray'
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
+    apply from: rootProject.file('pom.gradle')
+    apply from: rootProject.file('bintray.gradle')
 
     repositories {
-//        maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-        maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        if (kotlin_version.contains("eap")) {
+            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
+            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+        }
+        if (kotlin_version.contains("dev")) {
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        }
         mavenCentral()
         mavenLocal()
     }
@@ -45,6 +56,10 @@ allprojects {
         }
     }
 
+    task emptyJar(type: Jar) {
+        classifier 'javadoc'
+    }
+
     publishing {
         publications {
             mavenProject(MavenPublication) {
@@ -54,28 +69,14 @@ allprojects {
                 version project.version
 
                 artifact sourceJar {
-                    classifier "sources"
+                    classifier 'sources'
                 }
-            }
-        }
-    }
 
-    bintray {
-        user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-        key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-        publish = true
+                artifact emptyJar {
+                    classifier 'javadoc'
+                }
 
-        pkg {
-            userOrg = 'kotlin'
-            repo = 'kotlinx'
-            name = 'kotlinx-io'
-            licenses = ['Apache-2.0']
-            publications = ['mavenProject']
-
-            version {
-                name = project.version
-                released = new Date()
-                vcsTag = project.version
+                withPom(pom)
             }
         }
     }
