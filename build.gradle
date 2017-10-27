@@ -60,6 +60,8 @@ allprojects {
         classifier 'javadoc'
     }
 
+    tasks.build.dependsOn(['sourceJar', 'emptyJar'])
+
     publishing {
         publications {
             mavenProject(MavenPublication) {
