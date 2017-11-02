@@ -2,7 +2,9 @@ package kotlinx.io.tests
 
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
-import org.junit.*
+import org.junit.Test
+import org.junit.Ignore
+import org.junit.Rule
 import java.util.*
 import kotlin.test.*
 

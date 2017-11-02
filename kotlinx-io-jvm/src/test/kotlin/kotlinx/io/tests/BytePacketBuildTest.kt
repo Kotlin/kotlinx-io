@@ -1,7 +1,9 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
-import org.junit.*
+import org.junit.Test
+import org.junit.Ignore
+import org.junit.Rule
 import java.io.EOFException
 import java.nio.*
 import kotlin.test.*

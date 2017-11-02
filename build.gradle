@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        if (kotlin_version.contains("eap")) {
+        if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
         }
@@ -34,7 +34,7 @@ allprojects {
     apply from: rootProject.file('bintray.gradle')
 
     repositories {
-        if (kotlin_version.contains("eap")) {
+        if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
         }
