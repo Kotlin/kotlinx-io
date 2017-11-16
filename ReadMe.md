@@ -11,4 +11,63 @@ Please note that this library is experimental. Any API is a subject to change.
  
 Best with [kotlinx.coroutines-io](https://github.com/Kotlin/kotlinx.coroutines)
 
+# Setup
+
+```gradle
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlinx:kotlinx-io-jvm:$kotlinx_io_version"
+}
+```
+
+Use `kotlinx-io-js` with Kotlin JavaScript and `kotlin-io` for common code if you are doing multiplatform module.
+
+# Basic concepts
+
+## BufferView
+
+A buffer view is a view to byte buffer (in JVM it could be direct `ByteBuffer`, on JS it could be `ArrayBuffer`). Comparing to java's NIO `ByteBuffer`, `BufferView` ...
+
+- should be released via `release()` invocation
+- could be copied via `copy()` that actually doesn't copy any bytes but makes a new view
+  - copy should be released as well
+- could be used to read and write, no need to do `flip`
+- has a `next` property so it is suitable to make chains of buffer views with no need to allocate any lists or extra arrays
+- designed to work with buffer view pool
+
+Note that `BufferView` is not concurrent safe however it is safe to do `copy()` and `release()` concurrently (when this makes sense).
+
+
+## ByteReadPacket
+
+`ByteReadPacket` is a packet consist of a managed sequence of buffer views. So one can easily read from a packet and buffer view segments will be released on the way of reading. As far it contains buffer views, a `ByteReadPacket` instance should be released as well via `release()` invocation at the end however there is no need to do it (but it is allowed to do) if all the bytes were consumed and the packet is empty.
+
+- byte packet is read only
+- there is no way to reset/pushback already readen bytes
+- every buffer view will be released once it becomes empty
+- does support `copy()`, similar to `BufferView.copy()` it doesn't copy bytes
+- not reusable - once all bytes were read there is no way to reset it to read bytes again - make a copy instead
+- supports start gap hint (see byte packet builder)
+- provides `java.io.Reader` (reads characters as UTF-8) and `java.io.InputStream` compatibility
+
+
+## BytePacketBuilder
+
+A packet builder that consists of a sequence of buffer views. It borrows buffer views from a pool on demand and does nevery copy bytes on growth (as it does `ByteArrayOutputStream`). 
+
+- write-only
+- has explicit `release()` function to discard all bytes
+- `build()` makes an instance of `ByteReadPacket` and resets builder's state to the initial one so builder becomes empty and ready to build another one packet
+- supports optimized write byte packet operation: could merge miltiple buffers into one if possible (only if bytes quantity is not too large), considers start gap hint as well
+- provides `java.io.OutputStream` and `java.lang.Appendable` (appends characters as UTF-8)
+- as was noted before it is reusable: another byte packet could be built once `build()` has been invoked to build a previous one or `reset()` to discard all previously written bytes
+
+## ObjectPool
+
+`ObjectPool` is a general purpose lock-free concurrent-safe object pool. It is leak-safe: all object that hasn't been recycled but collected by GC do not cause any issues with a pool but only allocation penalty. Note that it doens't mean that leaking object will not cause any issues at all as lost objects could hold some native or external resources. The only guarantee is that `ObjectPool` is not going to break if there are lost objects.
+
+
 
