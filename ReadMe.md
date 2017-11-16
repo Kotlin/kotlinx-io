@@ -53,6 +53,19 @@ Note that `BufferView` is not concurrent safe however it is safe to do `copy()` 
 - supports start gap hint (see byte packet builder)
 - provides `java.io.Reader` (reads characters as UTF-8) and `java.io.InputStream` compatibility
 
+```kotlin
+suspend fun parse(packet: ByteReadPacket, tee: SendChannel<ByteReadPacket>) {
+    tee.send(packet.copy())
+
+    while (!packet.isEmpty()) {
+        val size = packet.readInt()
+        for (i in 1 .. size) {
+            println("number: ${packet.readInt()}")
+        }
+    }
+}
+```
+
 
 ## BytePacketBuilder
 
@@ -65,9 +78,59 @@ A packet builder that consists of a sequence of buffer views. It borrows buffer 
 - provides `java.io.OutputStream` and `java.lang.Appendable` (appends characters as UTF-8)
 - as was noted before it is reusable: another byte packet could be built once `build()` has been invoked to build a previous one or `reset()` to discard all previously written bytes
 
+```kotlin
+val packet = buildPacket {
+    writeInt(size * 4)
+    for (i in 1..size) {
+        writeInt(i)
+    }
+}
+```
+
+```kotlin
+private fun BytePacketBuilder.writeData() = TODO("write something")
+
+suspend fun loop(destination: SendChannel<ByteReadPacket>) {
+    val builder = BytePacketBuilder()
+
+    try {
+        while (true) {
+            builder.writeData()
+            destination.send(builder.build())
+        }
+    } finally {
+        builder.release()
+    }
+}
+
+```
+
 ## ObjectPool
 
 `ObjectPool` is a general purpose lock-free concurrent-safe object pool. It is leak-safe: all object that hasn't been recycled but collected by GC do not cause any issues with a pool but only allocation penalty. Note that it doens't mean that leaking object will not cause any issues at all as lost objects could hold some native or external resources. The only guarantee is that `ObjectPool` is not going to break if there are lost objects.
+
+```kotlin
+val ExampleIntArrayPool = object : DefaultPool<IntArray>(ARRAY_POOL_SIZE) {
+    override fun produceInstance(): IntArray = IntArray(ARRAY_SIZE)
+}
+```
+
+```kotlin
+class ExampleDirectByteBufferPool(val bufferSize: Int, size: Int) : DefaultPool<ByteBuffer>(size) {
+    override fun produceInstance(): ByteBuffer = java.nio.ByteBuffer.allocateDirect(bufferSize)
+
+    override fun clearInstance(instance: ByteBuffer): ByteBuffer {
+        instance.clear()
+        return instance
+    }
+
+    override fun validateInstance(instance: ByteBuffer) {
+        require(instance.isDirect)
+        require(instance.capacity() == bufferSize)
+    }
+}
+```
+
 
 
 
