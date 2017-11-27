@@ -3,6 +3,7 @@ package kotlinx.io.core
 import kotlinx.io.pool.*
 import kotlinx.io.utils.*
 import java.nio.*
+import java.nio.charset.*
 import java.util.concurrent.atomic.*
 
 /**
@@ -331,6 +332,78 @@ actual class BufferView private constructor(
                 pool.recycle(this)
             }
         }
+    }
+
+    fun readText(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
+        if (out is CharBuffer) {
+            return readTextDirectlyToOut(decoder, out, lastBuffer, max)
+        }
+
+        return readTextImpl(decoder, out, lastBuffer, max)
+    }
+
+    private fun readTextImpl(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
+        if (max == 0 || !readBuffer.hasRemaining()) return 0
+
+        val buffer = Pool.borrow()
+        val cb = buffer.content.asCharBuffer()
+        var decoded = 0
+        var maxRemaining = max
+
+        while (decoded < max) {
+            cb.clear()
+            if (maxRemaining < cb.remaining()) {
+                cb.limit(maxRemaining)
+            }
+
+            val cr = decoder.decode(readBuffer, cb, lastBuffer)
+            if (cr.isError) {
+                buffer.release(Pool)
+                cr.throwException()
+            }
+
+            cb.flip()
+            val decodedPart = cb.remaining()
+            out.append(cb)
+            decoded += decodedPart
+            maxRemaining -= decodedPart
+
+            if (decodedPart == 0 && cr.isUnderflow) {
+                break
+            }
+        }
+
+        buffer.release(Pool)
+
+        return decoded
+    }
+
+    private fun readTextDirectlyToOut(decoder: CharsetDecoder, out: CharBuffer, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
+        if (!readBuffer.hasRemaining()) return 0
+        var decoded = 0
+
+        val outLimit = out.limit()
+        if (max < out.remaining()) {
+            out.limit(out.position() + max)
+        }
+
+        while (true) {
+            val before = out.position()
+            val cr = decoder.decode(readBuffer, out, lastBuffer)
+            if (cr.isError) {
+                cr.throwException()
+            }
+
+            val decodedPart = out.position() - before
+            decoded += decodedPart
+
+            if (cr.isOverflow) break
+            else if (cr.isUnderflow && !readBuffer.hasRemaining()) break
+        }
+
+        out.limit(outLimit)
+
+        return decoded
     }
 
     private fun unlink(): ByteBuffer? {
