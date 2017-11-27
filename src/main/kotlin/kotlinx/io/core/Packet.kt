@@ -165,7 +165,7 @@ class ByteReadPacket(private var head: BufferView,
         return decoded > 0 || !isEmpty
     }
 
-    internal fun readDirect(block: (BufferView) -> Unit) {
+    internal inline fun readDirect(block: (BufferView) -> Unit) {
         val current = head
 
         if (current !== BufferView.Empty) {
