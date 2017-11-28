@@ -1,21 +1,37 @@
 apply plugin: 'kotlin-platform-js'
+apply plugin: 'org.jetbrains.kotlin.frontend'
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+
     expectedBy project(":")
 }
 
-build.doLast {
-    configurations.compile.each { File file ->
-        copy {
-            includeEmptyDirs = false
+kotlinFrontend {
+    downloadNodeJsVersion = 'latest'
 
-            from zipTree(file.absolutePath)
-            into "${project.buildDir}/libs/"
-            include { fileTreeElement ->
-                def path = fileTreeElement.path
-                path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/")) && !path.endsWith(".meta.js")
-            }
-        }
+    webpackBundle {
+        bundleName = "test"
     }
+
+    karma {
+        enableWebPack = true
+    }
+}
+
+compileKotlin2Js {
+    kotlinOptions.metaInfo = true
+//    kotlinOptions.outputFile = "$project.buildDir.path/js/${project.name}.js"
+    kotlinOptions.sourceMap = true
+    kotlinOptions.moduleKind = 'commonjs'
+    kotlinOptions.main = "noCall"
+}
+
+compileTestKotlin2Js {
+    kotlinOptions.metaInfo = true
+//    kotlinOptions.outputFile = "$project.buildDir.path/js-tests/${project.name}-tests.js"
+    kotlinOptions.sourceMap = true
+    kotlinOptions.moduleKind = 'commonjs'
+    kotlinOptions.main = "call"
 }

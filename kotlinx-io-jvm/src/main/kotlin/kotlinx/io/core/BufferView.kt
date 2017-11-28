@@ -318,7 +318,7 @@ actual class BufferView private constructor(
     }
 
     /**
-     * releases buffer view and returns it to the [pool] if there are no more usages. Based on simple ref-couting so
+     * releases buffer view and returns it to the [pool] if there are no more usages. Based on simple ref-counting so
      * it is very fragile.
      */
     actual fun release(pool: ObjectPool<BufferView>) {
@@ -407,6 +407,8 @@ actual class BufferView private constructor(
     }
 
     private fun unlink(): ByteBuffer? {
+        if (refCount != 0L) throw IllegalStateException("Unable to unlink buffer view: refCount is $refCount != 0")
+
         val empty = EmptyBuffer
         val buffer = content
 

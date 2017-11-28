@@ -1,75 +1,83 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
-import org.junit.Test
-import org.junit.Ignore
-import org.junit.Rule
-import java.io.EOFException
-import java.nio.*
+import kotlin.test.Test
 import kotlin.test.*
 
-class BytePacketBuildTest {
-    @get:Rule
-    internal val pool = VerifyingObjectPool(BufferView.Pool)
+open class BytePacketBuildTest {
+    open val pool: VerifyingObjectPool<BufferView> = VerifyingObjectPool(BufferView.NoPool)
+
+    @AfterTest
+    fun verifyPool() {
+        pool.assertEmpty()
+    }
 
     @Test
     fun smokeSingleBufferTest() {
         val p = buildPacket {
-            writeFully(kotlin.ByteArray(2))
-            writeFully(java.nio.ByteBuffer.allocate(3))
+            val ba = ByteArray(2)
+            ba[0] = 0x11
+            ba[1] = 0x22
+            writeFully(ba)
 
             writeByte(0x12)
             writeShort(0x1234)
             writeInt(0x12345678)
-            writeDouble(1.23)
-            writeFloat(1.23f)
+            writeDouble(1.25)
+            writeFloat(1.25f)
+            writeLong(0x123456789abcdef0)
             writeLong(0x123456789abcdef0)
 
             writeStringUtf8("OK\n")
-            kotlin.collections.listOf(1, 2, 3).joinTo(this, separator = "|")
+            listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(2 + 3 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+//        assertEquals(2 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+        val ba = ByteArray(2)
+        p.readFully(ba)
 
-        p.readFully(ByteArray(2))
-        p.readFully(ByteBuffer.allocate(3))
+        assertEquals(0x11, ba[0])
+        assertEquals(0x22, ba[1])
 
         assertEquals(0x12, p.readByte())
         assertEquals(0x1234, p.readShort())
         assertEquals(0x12345678, p.readInt())
-        assertEquals(1.23, p.readDouble())
-        assertEquals(1.23f, p.readFloat())
+        assertEquals(1.25, p.readDouble())
+        assertEquals(1.25f, p.readFloat())
+
+        val ll = (1..8).map { p.readByte().toInt() and 0xff }.joinToString()
+        assertEquals("18, 52, 86, 120, 154, 188, 222, 240", ll)
         assertEquals(0x123456789abcdef0, p.readLong())
 
         assertEquals("OK", p.readUTF8Line())
         assertEquals("1|2|3", p.readUTF8Line())
+
+        assertTrue { p.isEmpty }
     }
 
     @Test
     fun smokeMultiBufferTest() {
         val p = buildPacket {
-            writeFully(kotlin.ByteArray(9999))
-            writeFully(java.nio.ByteBuffer.allocate(8888))
+            writeFully(ByteArray(9999))
             writeByte(0x12)
             writeShort(0x1234)
             writeInt(0x12345678)
-            writeDouble(1.23)
-            writeFloat(1.23f)
+            writeDouble(1.25)
+            writeFloat(1.25f)
             writeLong(0x123456789abcdef0)
 
             writeStringUtf8("OK\n")
             kotlin.collections.listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(9999 + 8888 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
+        assertEquals(9999 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
 
         p.readFully(ByteArray(9999))
-        p.readFully(ByteBuffer.allocate(8888))
         assertEquals(0x12, p.readByte())
         assertEquals(0x1234, p.readShort())
         assertEquals(0x12345678, p.readInt())
-        assertEquals(1.23, p.readDouble())
-        assertEquals(1.23f, p.readFloat())
+        assertEquals(1.25, p.readDouble())
+        assertEquals(1.25f, p.readFloat())
         assertEquals(0x123456789abcdef0, p.readLong())
 
         assertEquals("OK", p.readUTF8Line())
@@ -88,7 +96,7 @@ class BytePacketBuildTest {
     @Test
     fun testSingleBufferSkip() {
         val p = buildPacket {
-            writeFully("ABC123".toByteArray())
+            writeFully("ABC123".toByteArray0())
         }
 
         assertEquals(3, p.discard(3))
@@ -98,20 +106,22 @@ class BytePacketBuildTest {
     @Test
     fun testSingleBufferSkipExact() {
         val p = buildPacket {
-            writeFully("ABC123".toByteArray())
+            writeFully("ABC123".toByteArray0())
         }
 
         p.discardExact(3)
         assertEquals("123", p.readUTF8Line())
     }
 
-    @Test(expected = EOFException::class)
+    @Test
     fun testSingleBufferSkipExactTooMuch() {
         val p = buildPacket {
-            writeFully("ABC123".toByteArray())
+            writeFully("ABC123".toByteArray0())
         }
 
-        p.discardExact(1000)
+        assertFailsWith<EOFException> {
+            p.discardExact(1000)
+        }
     }
 
     @Test
@@ -127,7 +137,7 @@ class BytePacketBuildTest {
     fun testMultiBufferSkip() {
         val p = buildPacket {
             writeFully(kotlin.ByteArray(99999))
-            writeFully("ABC123".toByteArray())
+            writeFully("ABC123".toByteArray0())
         }
 
         assertEquals(99999 + 3, p.discard(99999 + 3))
@@ -175,6 +185,18 @@ class BytePacketBuildTest {
             builder.release()
             throw t
         }
+    }
+
+    private fun String.toByteArray0(): ByteArray {
+        val result = ByteArray(length)
+
+        for (i in 0 until length) {
+            val v = this[i].toInt() and 0xff
+            if (v > 0x7f) fail()
+            result[i] = v.toByte()
+        }
+
+        return result
     }
 
     companion object {

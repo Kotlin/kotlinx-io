@@ -18,10 +18,11 @@ actual abstract class DefaultPool<T : Any>(actual override final val capacity: I
         val instance = instances[idx] as T
         instances[idx] = null
 
-        return instance
+        return clearInstance(instance)
     }
 
     override final fun recycle(instance: T) {
+        validateInstance(instance)
         if (size == capacity) disposeInstance(instance)
         instances[size++] = instance
     }

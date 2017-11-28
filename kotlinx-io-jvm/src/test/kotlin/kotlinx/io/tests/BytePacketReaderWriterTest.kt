@@ -201,60 +201,7 @@ class BytePacketReaderWriterTest {
         assertEquals(s, packet.inputStream().readBytes().toString(Charsets.UTF_8))
     }
 
-    @Test
-    fun testReadLineSingleBuffer() {
-        val p = buildPacket {
-            append("1\r22\n333\r\n4444")
-        }
 
-        assertEquals("1", p.readUTF8Line())
-        assertEquals("22", p.readUTF8Line())
-        assertEquals("333", p.readUTF8Line())
-        assertEquals("4444", p.readUTF8Line())
-        assertNull(p.readUTF8Line())
-    }
-
-    @Test
-    fun testReadLineMutiBuffer() {
-        val p = buildPacket {
-            kotlin.repeat(1000) {
-                append("1\r22\n333\r\n4444\n")
-            }
-        }
-
-        repeat(1000) {
-            assertEquals("1", p.readUTF8Line())
-            assertEquals("22", p.readUTF8Line())
-            assertEquals("333", p.readUTF8Line())
-            assertEquals("4444", p.readUTF8Line())
-        }
-
-        assertNull(p.readUTF8Line())
-    }
-
-    @Test
-    fun testSingleBufferReadText() {
-        val p = buildPacket {
-            append("ABC")
-        }
-
-        assertEquals("ABC", p.readText().toString())
-    }
-
-    @Test
-    fun testMultiBufferReadText() {
-        val s = buildString {
-            repeat(100000) {
-                append("x")
-            }
-        }
-
-        val packet = buildPacket {
-            writeFully(s.toByteArray())
-        }
-
-        assertEquals(s, packet.readText().toString())
-    }
 
     @Test
     fun testSingleBufferReadAll() {

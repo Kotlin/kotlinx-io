@@ -7,26 +7,10 @@ import org.junit.runners.model.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-class VerifyingObjectPool<T : Any> internal constructor(private val delegate: ObjectPool<T>) : ObjectPool<T> by delegate, TestRule {
-    private val allocated = ConcurrentHashMap<IdentityWrapper<T>, Boolean>()
+internal actual fun identityHashCode(instance: Any) = System.identityHashCode(instance)
 
-    val used: Int
-        get() = allocated.size
-
-    override fun borrow(): T {
-        val instance = delegate.borrow()
-        if (allocated.put(IdentityWrapper(instance), true) != null) {
-            throw AssertionError("Instance $instance has been provided by the pool twice")
-        }
-        return instance
-    }
-
-    override fun recycle(instance: T) {
-        if (allocated.remove(IdentityWrapper(instance)) == null) {
-            throw AssertionError("Instance $instance hasn't been borrowed but tried to recycle (possibly double recycle)")
-        }
-        delegate.recycle(instance)
-    }
+actual class VerifyingObjectPool<T : Any> actual constructor(delegate: ObjectPool<T>) : VerifyingPoolBase<T>(delegate), TestRule {
+    override val allocated = ConcurrentHashMap<IdentityWrapper<T>, Boolean>().keySet(true)!!
 
     override fun apply(base: Statement, description: Description): Statement {
         return object: Statement() {
@@ -49,18 +33,5 @@ class VerifyingObjectPool<T : Any> internal constructor(private val delegate: Ob
                 }
             }
         }
-    }
-
-    private fun assertEmpty() {
-        assertEquals(0, allocated.size, "There are remaining unreleased buffers, ")
-    }
-
-    private class IdentityWrapper<T : Any>(private val instance: T) {
-        override fun equals(other: Any?): Boolean {
-            if (other !is IdentityWrapper<*>) return false
-            return other.instance === this.instance
-        }
-
-        override fun hashCode() = System.identityHashCode(instance)
     }
 }

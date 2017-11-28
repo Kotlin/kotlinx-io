@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.js.*
 import kotlinx.io.pool.*
 import org.khronos.webgl.*
 
@@ -7,7 +8,7 @@ actual class BufferView internal constructor(
         private var content: ArrayBuffer,
         internal actual val origin: BufferView?
 ) {
-    private var refCount = 0
+    private var refCount = 1
 
     private var readPosition = 0
     private var writePosition = 0
@@ -175,6 +176,8 @@ actual class BufferView internal constructor(
         for (idx in 0 .. length - 1) {
             i8[wp + idx] = array[offset + idx]
         }
+
+        writePosition = wp + length
     }
 
     fun write(src: Int8Array, offset: Int, length: Int) {
@@ -198,19 +201,21 @@ actual class BufferView internal constructor(
     }
 
     actual fun readLong(): Long {
-        val a = readInt()
-        val b = readInt()
+        val m = 0xffffffff
+        val a = readInt().toLong() and m
+        val b = readInt().toLong() and m
 
         return if (littleEndian) {
-            (b.toLong() shl 32) or a.toLong()
+            (b shl 32) or a
         } else {
-            (a.toLong() shl 32) or b.toLong()
+            (a shl 32) or b
         }
     }
 
     actual fun writeLong(v: Long) {
-        val a = (v and Int.MAX_VALUE.toLong()).toInt()
-        val b = (v shr 32).toInt()
+        val m = 0xffffffff
+        val a = (v shr 32).toInt()
+        val b = (v and m).toInt()
 
         if (littleEndian) {
             writeInt(b)
@@ -235,10 +240,12 @@ actual class BufferView internal constructor(
     actual fun resetForWrite() {
         readPosition = 0
         writePosition = 0
+        limit = content.byteLength
     }
 
     actual fun resetForRead() {
         readPosition = 0
+        limit = content.byteLength
         writePosition = limit
     }
 
@@ -271,8 +278,8 @@ actual class BufferView internal constructor(
     }
 
     actual fun writeBuffer(src: BufferView, length: Int): Int {
-        require(length <= src.readRemaining)
-        require(length <= writeRemaining)
+        require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
+        require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
 
         val otherEnd = src.readPosition + length
         val sub = src.i8.subarray(src.readPosition, otherEnd)
@@ -283,9 +290,44 @@ actual class BufferView internal constructor(
         return length
     }
 
+    internal fun readText(decoder: TextDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
+        require(max >= 0) { "max shouldn't be negative: $max" }
+
+        if (readRemaining == 0) return 0
+
+        val rawResult = decoder.decodeStream(i8.subarray(readPosition, writePosition), !lastBuffer)
+        val result = if (rawResult.length <= max) {
+            readPosition = writePosition
+            rawResult
+        } else {
+            val actual = rawResult.substring(0, max)
+
+            // as js's text decoder is too stupid, let's guess new readPosition
+            val subDecoder = TextDecoder(decoder.encoding)
+            val subArray = Int8Array(1)
+            var subDecoded = 0
+
+            for (i in readPosition until writePosition) {
+                subArray[0] = i8[i]
+                subDecoded += subDecoder.decodeStream(subArray, true).length
+
+                if (subDecoded == max) {
+                    readPosition = i
+                    break
+                }
+            }
+
+            actual
+        }
+
+        out.append(result)
+
+        return result.length
+    }
+
     internal actual fun writeBufferPrepend(other: BufferView) {
         val size = other.readRemaining
-        require(size <= startGap)
+        require(size <= startGap) { "size should be greater than startGap (size = $size, startGap = $startGap)" }
 
         val otherEnd = other.readPosition + size
         val sub = other.i8.subarray(other.readPosition, otherEnd)
@@ -297,7 +339,8 @@ actual class BufferView internal constructor(
 
     internal actual fun writeBufferAppend(other: BufferView, maxSize: Int) {
         val size = minOf(other.readRemaining, maxSize)
-        require(size <= writeRemaining + endGap)
+        require(size <= writeRemaining + endGap) { "should should be greater than write space + end gap (size = $size, " +
+                "writeRemaining = $writeRemaining, endGap = $endGap, rem+gap = ${writeRemaining + endGap}" }
 
         val otherEnd = other.readPosition + size
         val sub = other.i8.subarray(other.readPosition, otherEnd)
@@ -311,21 +354,24 @@ actual class BufferView internal constructor(
     }
 
     internal fun unlink() {
-        limit = 0
+        if (refCount != 0) throw IllegalStateException("Unable to unlink buffers: buffer view is in use")
         content = EmptyBuffer
         i8 = Empty8
         view = EmptyDataView
+        resetForWrite()
     }
 
     private fun acquire() {
         val v = refCount
-        if (v == 0) throw IllegalStateException("buffer has been already released")
+        if (v == 0) throw IllegalStateException("Failed to acquire buffer: buffer has been already released")
         refCount = v + 1
     }
 
     private fun release(): Boolean {
+        if (this === Empty) throw IllegalStateException("attempted to release BufferView.Empty")
+
         val v = refCount
-        if (v == 0) throw IllegalStateException("buffer has been already released")
+        if (v == 0) throw IllegalStateException("Unable to release: buffer has been already released")
         val newCount = v - 1
         refCount = newCount
         return newCount == 0
@@ -337,7 +383,34 @@ actual class BufferView internal constructor(
         private val Empty8 = Int8Array(0)
 
         actual val Empty = BufferView(EmptyBuffer, null)
-        actual val Pool: ObjectPool<BufferView> = DefaultBufferViewPool
+        actual val Pool: ObjectPool<BufferView> = object: DefaultPool<BufferView>(BUFFER_VIEW_POOL_SIZE) {
+            override fun produceInstance(): BufferView {
+                return BufferView(ArrayBuffer(BUFFER_VIEW_SIZE), null)
+            }
+
+            override fun clearInstance(instance: BufferView): BufferView {
+                return super.clearInstance(instance).apply {
+                    instance.resetForWrite()
+                    instance.next = null
+                    instance.attachment = null
+
+                    if (instance.refCount != 0) throw IllegalStateException("Unable to clear instance: refCount is ${instance.refCount} != 0")
+                    instance.refCount = 1
+                }
+            }
+
+            override fun validateInstance(instance: BufferView) {
+                super.validateInstance(instance)
+
+                require(instance.refCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.refCount})"}
+                require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
+            }
+
+            override fun disposeInstance(instance: BufferView) {
+                instance.unlink()
+            }
+        }
+
         actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
             override fun borrow(): BufferView {
                 return BufferView(ArrayBuffer(4096), null)
