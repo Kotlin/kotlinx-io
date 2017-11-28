@@ -311,9 +311,19 @@ actual class BufferView internal constructor(
                 subArray[0] = i8[i]
                 subDecoded += subDecoder.decodeStream(subArray, true).length
 
-                if (subDecoded == max) {
-                    readPosition = i
+                if (subDecoded >= max) {
+                    readPosition = i + 1
                     break
+                }
+            }
+
+            if (subDecoded < max) {
+                subDecoded += subDecoder.decode().length
+
+                if (subDecoded >= max) {
+                    readPosition = writePosition
+                } else {
+                    throw IllegalStateException("Failed to readText: don't know how to update read position")
                 }
             }
 

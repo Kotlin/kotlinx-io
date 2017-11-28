@@ -3,10 +3,13 @@ package kotlinx.io.js
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 
+fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = buildString(remaining) {
+    readText(encoding, this, max)
+}
+
 fun ByteReadPacket.readText(encoding: String = "UTF-8", out: Appendable, max: Int = Int.MAX_VALUE): Int {
     require(max >= 0) { "max shouldn't be negative, got $max"}
-    val decoder = TextDecoder(encoding)
-    decoder.fatal = true
+    val decoder = TextDecoderFatal(encoding)
     var decoded = 0
 
     while (decoded < max) {
@@ -21,9 +24,8 @@ fun ByteReadPacket.readText(encoding: String = "UTF-8", out: Appendable, max: In
     return decoded
 }
 
-internal external class TextDecoder(encoding: String) {
+internal external class TextDecoder(encoding: String, options: dynamic = definedExternally) {
     val encoding: String
-    var fatal: Boolean
 
     fun decode(): String
     fun decode(buffer: ArrayBuffer): String
@@ -40,6 +42,17 @@ private val STREAM_TRUE = Any().apply {
     with(this.asDynamic()) {
         stream = true
     }
+}
+
+private val FATAL_TRUE = Any().apply {
+    with(this.asDynamic()) {
+        fatal = true
+    }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun TextDecoderFatal(encoding: String, fatal: Boolean = true): TextDecoder {
+    return if (fatal) TextDecoder(encoding, FATAL_TRUE) else TextDecoder(encoding)
 }
 
 internal inline fun TextDecoder.decodeStream(buffer: ArrayBufferView, stream: Boolean): String {
