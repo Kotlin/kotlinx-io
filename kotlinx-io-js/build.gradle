@@ -11,6 +11,10 @@ dependencies {
 kotlinFrontend {
     downloadNodeJsVersion = 'latest'
 
+    npm {
+        dependency "text-encoding"
+    }
+
     webpackBundle {
         bundleName = "test"
     }

@@ -303,7 +303,7 @@ actual class BufferView internal constructor(
             val actual = rawResult.substring(0, max)
 
             // as js's text decoder is too stupid, let's guess new readPosition
-            val subDecoder = TextDecoder(decoder.encoding)
+            val subDecoder = TextDecoderFatal(decoder.encoding, true)
             val subArray = Int8Array(1)
             var subDecoded = 0
 
