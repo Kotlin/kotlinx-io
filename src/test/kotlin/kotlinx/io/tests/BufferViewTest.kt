@@ -45,4 +45,17 @@ class BufferViewTest {
             buffer.release(BufferView.Pool)
         }
     }
+
+    @Test
+    fun testWriteWhenImpossible() {
+        val buffer = BufferView.Pool.borrow()
+        try {
+            buffer.resetForRead()
+            assertFails {
+                buffer.writeInt(1)
+            }
+        } finally {
+            buffer.release(BufferView.Pool)
+        }
+    }
 }
