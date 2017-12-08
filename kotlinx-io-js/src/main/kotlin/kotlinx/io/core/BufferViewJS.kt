@@ -22,6 +22,10 @@ actual class BufferView internal constructor(
     actual var attachment: Any? = null
     actual var next: BufferView? = null
 
+    /**
+     * Backing buffer capacity. Value for released buffer is unspecified
+     */
+    actual val capacity: Int get() = content.byteLength
     actual val readRemaining get() = writePosition - readPosition
     actual val writeRemaining get() = limit - writePosition
 
@@ -238,9 +242,14 @@ actual class BufferView internal constructor(
     }
 
     actual fun resetForWrite() {
+        resetForWrite(content.byteLength)
+    }
+
+    actual fun resetForWrite(limit: Int) {
+        require(limit <= content.byteLength) { "Limit shouldn't be bigger than buffer size: limit = $limit, size = ${content.byteLength}"}
         readPosition = 0
         writePosition = 0
-        limit = content.byteLength
+        this.limit = limit
     }
 
     actual fun resetForRead() {

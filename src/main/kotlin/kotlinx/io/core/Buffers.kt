@@ -24,6 +24,11 @@ expect class BufferView {
     var attachment: Any?
 
     /**
+     * Backing buffer capacity. Value for released buffer is unspecified
+     */
+    val capacity: Int
+
+    /**
      * Amount of reserved bytes at the beginning
      */
     val startGap: Int
@@ -109,6 +114,11 @@ expect class BufferView {
      * Marks the whole buffer available for write and no bytes for read.
      */
     fun resetForWrite()
+
+    /**
+     * Marks up to [limit] bytes of the buffer available for write and no bytes for read
+     */
+    fun resetForWrite(limit: Int)
 
     /**
      * Marks the whole buffer available for read and no for write

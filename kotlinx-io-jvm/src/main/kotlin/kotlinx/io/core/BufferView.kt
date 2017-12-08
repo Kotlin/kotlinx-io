@@ -67,6 +67,11 @@ actual class BufferView private constructor(
     actual fun canWrite(): Boolean = writeBuffer.hasRemaining()
 
     /**
+     * Backing buffer capacity. Value for released buffer is unspecified
+     */
+    actual val capacity: Int get() = writeBuffer.capacity()
+
+    /**
      * Number of bytes available for read
      */
     actual val readRemaining: Int get() {
@@ -280,7 +285,12 @@ actual class BufferView private constructor(
      * Marks the whole buffer available for write and no bytes for read.
      */
     actual fun resetForWrite() {
-        writeBuffer.limit(writeBuffer.capacity())
+        resetForWrite(writeBuffer.capacity())
+    }
+
+    actual fun resetForWrite(limit: Int) {
+        require(limit <= writeBuffer.capacity())
+        writeBuffer.limit(limit)
         readPosition = 0
         writePosition = 0
     }
