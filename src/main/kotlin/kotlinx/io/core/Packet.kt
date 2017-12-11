@@ -7,7 +7,7 @@ import kotlinx.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
-class ByteReadPacket(private var head: BufferView,
+abstract class ByteReadPacketBase (private var head: BufferView,
                               val pool: ObjectPool<BufferView>) {
 
     /**
