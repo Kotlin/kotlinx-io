@@ -7,7 +7,7 @@ import org.khronos.webgl.*
 actual class BufferView internal constructor(
         private var content: ArrayBuffer,
         internal actual val origin: BufferView?
-) {
+) : Input {
     private var refCount = 1
 
     private var readPosition = 0
@@ -47,7 +47,7 @@ actual class BufferView internal constructor(
     actual val startGap: Int get() = readPosition
     actual val endGap: Int get() = content.byteLength - limit
 
-    actual var byteOrder: ByteOrder
+    actual final override var byteOrder: ByteOrder
         get() = if (littleEndian) ByteOrder.LITTLE_ENDIAN else  ByteOrder.BIG_ENDIAN
         set(value) {
             littleEndian = when (value) {
@@ -56,7 +56,7 @@ actual class BufferView internal constructor(
             }
         }
 
-    actual fun readByte(): Byte {
+    actual final override fun readByte(): Byte {
         if (readRemaining < 0) throw IllegalStateException("No bytes available for read")
         val value = i8[readPosition]
         readPosition++
@@ -69,7 +69,7 @@ actual class BufferView internal constructor(
         writePosition++
     }
 
-    actual fun readShort(): Short {
+    actual final override fun readShort(): Short {
         if (readRemaining < 2) throw IllegalStateException("Not enough bytes available to read a short")
         val value = view.getInt16(readPosition, littleEndian)
         readPosition += 2
@@ -82,8 +82,12 @@ actual class BufferView internal constructor(
         writePosition += 2
     }
 
-    actual fun readInt(): Int {
+    actual final override fun readInt(): Int {
         if (readRemaining < 4) throw IllegalStateException("Not enough bytes available to read an int")
+        return readIntUnsafe()
+    }
+
+    private fun readIntUnsafe(): Int {
         val value = view.getInt32(readPosition, littleEndian)
         readPosition += 4
         return value
@@ -95,7 +99,7 @@ actual class BufferView internal constructor(
         writePosition += 4
     }
 
-    actual fun readFloat(): Float {
+    actual final override fun readFloat(): Float {
         if (readRemaining < 4) throw IllegalStateException("Not enough bytes available to read a float")
         val value = view.getFloat32(readPosition, littleEndian)
         readPosition += 4
@@ -108,7 +112,7 @@ actual class BufferView internal constructor(
         writePosition += 4
     }
 
-    actual fun readDouble(): Double {
+    actual final override fun readDouble(): Double {
         if (readRemaining < 8) throw IllegalStateException("Not enough bytes available to read a double")
         val value = view.getFloat64(readPosition, littleEndian)
         readPosition += 8
@@ -121,7 +125,12 @@ actual class BufferView internal constructor(
         writePosition += 8
     }
 
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
     actual fun read(dst: ByteArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
+
+    actual final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
         val rp = readPosition
         val i8 = i8
@@ -133,7 +142,118 @@ actual class BufferView internal constructor(
         readPosition += length
     }
 
+    actual final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
+        if (readRemaining < length * 2) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length short integers")
+        var rp = readPosition
+
+        for (idx in 0 .. length - 1) {
+            dst[idx] = view.getInt16(rp, littleEndian)
+            rp += 2
+        }
+
+        readPosition = rp
+    }
+
+    actual final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readFully(dst: IntArray, offset: Int, length: Int) {
+        if (readRemaining < length * 4) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length integers")
+        var rp = readPosition
+
+        for (idx in 0 .. length - 1) {
+            dst[idx] = view.getInt32(rp, littleEndian)
+            rp += 4
+        }
+
+        readPosition = rp
+    }
+
+    actual final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readFully(dst: LongArray, offset: Int, length: Int) {
+        if (readRemaining < length * 8) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length long integers")
+
+        for (idx in 0 .. length - 1) {
+            dst[idx] = readLongUnsafe()
+        }
+    }
+
+    actual final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
+        if (readRemaining < length * 4) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length float numbers")
+        var rp = readPosition
+        val littleEndian = littleEndian
+
+        for (idx in 0 .. length - 1) {
+            dst[idx] = view.getFloat32(rp, littleEndian)
+            rp += 4
+        }
+
+        readPosition = rp
+    }
+
+    actual final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
+        if (readRemaining < length * 8) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length double float numbers")
+        var rp = readPosition
+        val littleEndian = littleEndian
+
+        for (idx in 0 .. length - 1) {
+            dst[idx] = view.getFloat64(rp, littleEndian)
+            rp += 8
+        }
+
+        readPosition = rp
+    }
+
+    actual final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining, length)
+        readFully(dst, offset, length)
+        return size
+    }
+
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
     fun read(dst: Array<Byte>, offset: Int, length: Int) {
+        return readFully(dst, offset, length)
+    }
+
+    fun readFully(dst: Array<Byte>, offset: Int, length: Int) {
         if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
         val rp = readPosition
         val i8 = i8
@@ -145,7 +265,12 @@ actual class BufferView internal constructor(
         readPosition += length
     }
 
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
     fun read(dst: ArrayBuffer, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
+
+    override final fun readFully(dst: ArrayBuffer, offset: Int, length: Int) {
         if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
         val to = Int8Array(dst, offset, length)
 
@@ -167,7 +292,28 @@ actual class BufferView internal constructor(
         readPosition = rp + length
     }
 
+    actual final override fun readAvailable(dst: BufferView, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(dst.writeRemaining, readRemaining, length)
+        readFully(dst, size)
+        return size
+    }
+
+    override fun readFully(dst: ArrayBufferView, offset: Int, length: Int) {
+        if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
+        if (length > dst.byteLength) throw IllegalArgumentException("Destination buffer overflow: length = $length, buffer capacity ${dst.byteLength}")
+        require(offset >= 0)
+
+        readFully(dst.buffer, dst.byteOffset + offset, length)
+    }
+
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
     fun read(dst: Int8Array, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
+
+    override fun readFully(dst: Int8Array, offset: Int, length: Int) {
         if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
         val rp = readPosition
         val rem = writePosition - rp
@@ -185,6 +331,24 @@ actual class BufferView internal constructor(
         }
 
         readPosition = rp + length
+    }
+
+    actual final override fun readFully(dst: BufferView, length: Int) {
+        if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
+        if (dst.writeRemaining < length) throw IllegalArgumentException("Not enough free space in dst buffer to write $length bytes")
+
+        val thisBuffer = if (i8.length == length) i8 else Int8Array(content, readPosition, length)
+        val dstBuffer = if (dst.writePosition == 0) dst.i8 else Int8Array(dst.content, dst.writePosition, length)
+        dstBuffer.set(thisBuffer, writePosition)
+
+        dst.writePosition += length
+        readPosition += length
+    }
+
+    actual final override fun discard(n: Long): Long {
+        val size = minOf(readRemaining.toLong(), n).toInt()
+        readPosition += size
+        return size.toLong()
     }
 
     actual fun write(array: ByteArray, offset: Int, length: Int) {
@@ -220,11 +384,15 @@ actual class BufferView internal constructor(
         writePosition = wp + length
     }
 
-    actual fun readLong(): Long {
+    actual final override fun readLong(): Long {
         if (readRemaining < 8) throw IllegalStateException("Not enough bytes available to read a long")
+        return readLongUnsafe()
+    }
+
+    private fun readLongUnsafe(): Long {
         val m = 0xffffffff
-        val a = readInt().toLong() and m
-        val b = readInt().toLong() and m
+        val a = readIntUnsafe().toLong() and m
+        val b = readIntUnsafe().toLong() and m
 
         return if (littleEndian) {
             (b shl 32) or a

@@ -7,7 +7,7 @@ import kotlinx.io.pool.*
  * Concurrent unsafe. The only concurrent-safe operation is [release].
  * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
  */
-expect class BufferView {
+expect class BufferView : Input {
     /**
      * Reference to an origin buffer view this was copied from
      */
@@ -71,19 +71,40 @@ expect class BufferView {
     /**
      * read and write operations byte-order (endianness)
      */
-    var byteOrder: ByteOrder
+    final override var byteOrder: ByteOrder
 
-    fun readByte(): Byte
-    fun readShort(): Short
-    fun readInt(): Int
-    fun readLong(): Long
-    fun readFloat(): Float
-    fun readDouble(): Double
+    final override fun readByte(): Byte
+    final override fun readShort(): Short
+    final override fun readInt(): Int
+    final override fun readLong(): Long
+    final override fun readFloat(): Float
+    final override fun readDouble(): Double
+
+    @Deprecated("Use readFully instead")
     fun read(dst: ByteArray, offset: Int, length: Int)
+
+    final override fun readFully(dst: ByteArray, offset: Int, length: Int)
+    final override fun readFully(dst: ShortArray, offset: Int, length: Int)
+    final override fun readFully(dst: IntArray, offset: Int, length: Int)
+    final override fun readFully(dst: LongArray, offset: Int, length: Int)
+    final override fun readFully(dst: FloatArray, offset: Int, length: Int)
+    final override fun readFully(dst: DoubleArray, offset: Int, length: Int)
+    final override fun readFully(dst: BufferView, length: Int)
+
+    final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+    final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
+    final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int
+    final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
+    final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
+    final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
+    final override fun readAvailable(dst: BufferView, length: Int): Int
+
+    final override fun discard(n: Long): Long
 
     /**
      * Discards [n] bytes or fails if there is not enough bytes available for read.
      */
+    @Deprecated("Extension function should be used instead", level = DeprecationLevel.HIDDEN)
     fun discardExact(n: Int)
 
     fun writeByte(v: Byte)

@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.*
  */
 actual class BufferView private constructor(
         private var content: ByteBuffer,
-        internal actual val origin: BufferView?) {
+        internal actual val origin: BufferView?) : Input {
 
     private var readBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
     private var writeBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
@@ -88,7 +88,7 @@ actual class BufferView private constructor(
     /**
      * read and write operations byte-order (endianness)
      */
-    actual var byteOrder: ByteOrder
+    actual final override var byteOrder: ByteOrder
         get() = ByteOrder.of(readBuffer.order())
         set(value) {
             readBuffer.order(value.nioOrder)
@@ -247,27 +247,147 @@ actual class BufferView private constructor(
         writeBuffer(other, size)
     }
 
-    actual fun readByte() = readBuffer.get()
-    actual fun readShort() = readBuffer.getShort()
-    actual fun readInt() = readBuffer.getInt()
-    actual fun readLong() = readBuffer.getLong()
-    actual fun readFloat() = readBuffer.getFloat()
-    actual fun readDouble() = readBuffer.getDouble()
+    actual final override fun readByte() = readBuffer.get()
+    actual final override fun readShort() = readBuffer.getShort()
+    actual final override fun readInt() = readBuffer.getInt()
+    actual final override fun readLong() = readBuffer.getLong()
+    actual final override fun readFloat() = readBuffer.getFloat()
+    actual final override fun readDouble() = readBuffer.getDouble()
 
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
     actual fun read(dst: ByteArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
+
+    actual final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         readBuffer.get(dst, offset, length)
     }
 
+    actual final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
+        val size = minOf(length, readBuffer.remaining())
+        if (size == -1 && readBuffer.remaining() == 0) return -1
+
+        readBuffer.get(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readFully(dst: BufferView, length: Int) {
+        val readRemaining = readRemaining
+        require(length <= dst.writeRemaining)
+        require(length <= readRemaining)
+
+        readFully(dst.writeBuffer, length)
+    }
+
+    actual final override fun readAvailable(dst: BufferView, length: Int): Int {
+        val readRemaining = readRemaining
+        val size = minOf(length, readRemaining)
+        if (readRemaining == 0) return -1
+
+        readFully(dst.writeBuffer, size)
+        return size
+    }
+
+    actual final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
+        readBuffer.asShortBuffer().get(dst, offset, length)
+        readPosition += length shl 1
+    }
+
+    actual final override fun readFully(dst: IntArray, offset: Int, length: Int) {
+        readBuffer.asIntBuffer().get(dst, offset, length)
+        readPosition += length shl 2
+    }
+
+    actual final override fun readFully(dst: LongArray, offset: Int, length: Int) {
+        readBuffer.asLongBuffer().get(dst, offset, length)
+        readPosition += length shl 3
+    }
+
+    actual final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
+        readBuffer.asDoubleBuffer().get(dst, offset, length)
+        readPosition += length shl 3
+    }
+
+    actual final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
+        readBuffer.asFloatBuffer().get(dst, offset, length)
+        readPosition += length shl 2
+    }
+
+    actual final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining shr 1, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining shr 2, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining shr 3, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining shr 2, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    actual final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining shr 3, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, length)"))
     fun read(dst: ByteBuffer, length: Int) {
+        return readFully(dst, length)
+    }
+
+    final override fun readAvailable(dst: ByteBuffer, length: Int): Int {
+        val remaining = readRemaining
+        val size = minOf(remaining, length)
+        if (remaining == 0) return -1
+
+        readFully(dst, size)
+        return size
+    }
+
+    final override fun readFully(dst: ByteBuffer, length: Int) {
         val bb = readBuffer
-        if (length == bb.remaining()) {
+        val rem = bb.remaining()
+
+        if (length == rem) {
             dst.put(bb)
+        } else if (length > rem) {
+            throw BufferUnderflowException()
         } else {
             val l = bb.limit()
             bb.limit(bb.position() + length)
             dst.put(bb)
             bb.limit(l)
         }
+    }
+
+    actual final override fun discard(n: Long): Long {
+        require(n >= 0L) { "Negative discard quantity $n" }
+        val size = minOf(readRemaining.toLong(), n).toInt()
+        readPosition += size
+        return size.toLong()
     }
 
     actual fun discardExact(n: Int) {
