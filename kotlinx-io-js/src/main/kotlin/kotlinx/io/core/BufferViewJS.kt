@@ -292,6 +292,14 @@ actual class BufferView internal constructor(
         readPosition = rp + length
     }
 
+    override fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
     actual final override fun readAvailable(dst: BufferView, length: Int): Int {
         val readRemaining = readRemaining
         if (readRemaining == 0) return -1
@@ -306,6 +314,14 @@ actual class BufferView internal constructor(
         require(offset >= 0)
 
         readFully(dst.buffer, dst.byteOffset + offset, length)
+    }
+
+    override fun readAvailable(dst: ArrayBufferView, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(length, readRemaining)
+        readFully(dst, offset, size)
+        return size
     }
 
     @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
@@ -331,6 +347,14 @@ actual class BufferView internal constructor(
         }
 
         readPosition = rp + length
+    }
+
+    override fun readAvailable(dst: Int8Array, offset: Int, length: Int): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+        val size = minOf(readRemaining, length)
+        readFully(dst, offset, size)
+        return size
     }
 
     actual final override fun readFully(dst: BufferView, length: Int) {

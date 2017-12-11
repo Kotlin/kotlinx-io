@@ -7,8 +7,10 @@ import kotlinx.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
-abstract class ByteReadPacketBase (private var head: BufferView,
-                              val pool: ObjectPool<BufferView>) {
+abstract class ByteReadPacketBase(private var head: BufferView,
+                                  val pool: ObjectPool<BufferView>) : Input {
+
+    final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
 
     /**
      * Number of bytes available for read
@@ -62,12 +64,12 @@ abstract class ByteReadPacketBase (private var head: BufferView,
         return head
     }
 
-    fun readByte() = readN(1) { readByte() }
-    fun readShort() = readN(2) { readShort() }
-    fun readInt() = readN(4) { readInt() }
-    fun readLong() = readN(8) { readLong() }
-    fun readFloat() = readN(4) { readFloat() }
-    fun readDouble() = readN(8) { readDouble() }
+    final override fun readByte() = readN(1) { readByte() }
+    final override fun readShort() = readN(2) { readShort() }
+    final override fun readInt() = readN(4) { readInt() }
+    final override fun readLong() = readN(8) { readLong() }
+    final override fun readFloat() = readN(4) { readFloat() }
+    final override fun readDouble() = readN(8) { readDouble() }
 
     /**
      * Read as much bytes as possible to [dst] array
@@ -79,7 +81,7 @@ abstract class ByteReadPacketBase (private var head: BufferView,
      * Read at most [length] bytes to [dst] array and write them at [offset]
      * @return number of bytes copied to the array
      */
-    fun readAvailable(dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int {
+    final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset + length <= dst.size) { throw IllegalArgumentException() }
@@ -90,7 +92,7 @@ abstract class ByteReadPacketBase (private var head: BufferView,
     /**
      * Read exactly [length] bytes to [dst] array at specified [offset]
      */
-    fun readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size) {
+    final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         val rc = readAvailable(dst, offset, length)
         if (rc != length) throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
     }
@@ -174,6 +176,130 @@ abstract class ByteReadPacketBase (private var head: BufferView,
                 releaseHead(current)
             }
         }
+    }
+
+    final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
+        if (remaining < length * 2) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length short integers")
+
+        var copied = 0
+        takeWhile { buffer ->
+            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
+            if (rc == -1) throw EOFException("Unexpected EOF while reading $length bytes")
+            copied += rc
+            copied < length
+        }
+    }
+
+    final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
+        val remaining = remaining
+        if (remaining == 0) return -1
+        val size = minOf(remaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    final override fun readFully(dst: IntArray, offset: Int, length: Int) {
+        if (remaining < length * 4) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length integers")
+
+        var copied = 0
+        takeWhile { buffer ->
+            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
+            if (rc == -1) throw EOFException("Unexpected EOF while read $length short integers")
+            copied += rc
+            copied < length
+        }
+    }
+
+    final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
+        val remaining = remaining
+        if (remaining == 0) return -1
+        val size = minOf(remaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    final override fun readFully(dst: LongArray, offset: Int, length: Int) {
+        if (remaining < length * 8) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length long integers")
+
+        var copied = 0
+        takeWhile { buffer ->
+            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
+            if (rc == -1) throw EOFException("Unexpected EOF while reading $length long integers")
+            copied += rc
+            copied < length
+        }
+    }
+
+    final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
+        val remaining = remaining
+        if (remaining == 0) return -1
+        val size = minOf(remaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
+        if (remaining < length * 4) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length float numbers")
+
+        var copied = 0
+        takeWhile { buffer ->
+            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
+            if (rc == -1) throw EOFException("Unexpected EOF while read $length float number")
+            copied += rc
+            copied < length
+        }
+    }
+
+    final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
+        val remaining = remaining
+        if (remaining == 0) return -1
+        val size = minOf(remaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
+        if (remaining < length * 8) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length double float numbers")
+
+        var copied = 0
+        takeWhile { buffer ->
+            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
+            if (rc == -1) throw EOFException("Unexpected EOF while reading $length double float numbers")
+            copied += rc
+            copied < length
+        }
+    }
+
+    final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
+        val remaining = remaining
+        if (remaining == 0) return -1
+        val size = minOf(remaining, length)
+        readFully(dst, offset, size)
+        return size
+    }
+
+    final override fun readFully(dst: BufferView, length: Int) {
+        if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
+        require(length <= dst.writeRemaining) { "Not enough free space in destination buffer to write $length bytes" }
+
+        var copied = 0
+        takeWhile { buffer ->
+            val rc = buffer.readAvailable(dst, length - copied)
+            if (rc > 0) copied += rc
+            copied < length
+        }
+    }
+
+    final override fun readAvailable(dst: BufferView, length: Int): Int {
+        val remaining = remaining
+        if (remaining == 0) return -1
+        val size = minOf(remaining, length, dst.writeRemaining)
+        readFully(dst, size)
+        return size
+    }
+
+    final override fun discard(n: Long): Long {
+        return discardAsMuchAsPossible(minOf(Int.MAX_VALUE.toLong(), n).toInt(), 0).toLong()
     }
 
     internal fun readCbuf(cbuf: CharArray, off: Int, len: Int): Int {
@@ -319,7 +445,7 @@ abstract class ByteReadPacketBase (private var head: BufferView,
         val current = prepareRead(1) ?: return copied
         val size = minOf(length, current.readRemaining)
 
-        current.read(array, offset, size)
+        current.readFully(array, offset, size)
         return if (size != length || current.readRemaining == 0) {
             afterRead()
             readAsMuchAsPossible(array, offset + size, length - size, copied + size)
@@ -335,11 +461,37 @@ abstract class ByteReadPacketBase (private var head: BufferView,
         return rc
     }
 
+    internal inline fun takeWhile(block: (BufferView) -> Boolean) {
+        var current = head
+        if (current !== BufferView.Empty) {
+            current.byteOrder = byteOrder
+        }
+
+        while (true) {
+            if (current.canRead()) {
+                if (!block(current)) {
+                    afterRead()
+                    return
+                }
+            }
+            if (current.readRemaining == 0) {
+                val next = current.next
+                if (current === BufferView.Empty) break
+                releaseHead(current)
+                current = next ?: break
+                next.byteOrder = byteOrder
+            }
+        }
+    }
+
     internal tailrec fun prepareRead(minSize: Int): BufferView? {
         val head = head
 
         val headSize = head.readRemaining
-        if (headSize >= minSize) return head
+        if (headSize >= minSize) {
+            head.byteOrder = byteOrder
+            return head
+        }
         val next = head.next ?: return null
 
         head.writeBufferAppend(next, minSize - headSize)
@@ -348,7 +500,10 @@ abstract class ByteReadPacketBase (private var head: BufferView,
             next.release(pool)
         }
 
-        if (head.readRemaining >= minSize) return head
+        if (head.readRemaining >= minSize) {
+            head.byteOrder = byteOrder
+            return head
+        }
         if (minSize > ReservedSize) throw IllegalStateException("minSize of $minSize is too big (should be less than $ReservedSize")
 
         return prepareRead(minSize)
@@ -368,7 +523,7 @@ abstract class ByteReadPacketBase (private var head: BufferView,
     }
 
     companion object {
-        val Empty = ByteReadPacket(BufferView.Empty, object: NoPoolImpl<BufferView>() {
+        val Empty = ByteReadPacket(BufferView.Empty, object : NoPoolImpl<BufferView>() {
             override fun borrow() = BufferView.Empty
         })
 

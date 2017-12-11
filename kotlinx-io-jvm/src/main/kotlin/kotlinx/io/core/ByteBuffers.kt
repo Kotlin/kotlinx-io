@@ -27,13 +27,13 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
     val available = current.readRemaining
 
     return if (destinationCapacity >= available) {
-        current.read(bb, available)
+        current.readFully(bb, available)
         @Suppress("INVISIBLE_MEMBER")
         releaseHead(current)
 
         readAsMuchAsPossible(bb, copied + available)
     } else {
-        current.read(bb, destinationCapacity)
+        current.readFully(bb, destinationCapacity)
         copied + destinationCapacity
     }
 }

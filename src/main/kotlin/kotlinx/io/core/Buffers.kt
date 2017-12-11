@@ -80,7 +80,7 @@ expect class BufferView : Input {
     final override fun readFloat(): Float
     final override fun readDouble(): Double
 
-    @Deprecated("Use readFully instead")
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
     fun read(dst: ByteArray, offset: Int, length: Int)
 
     final override fun readFully(dst: ByteArray, offset: Int, length: Int)
@@ -155,7 +155,7 @@ expect class BufferView : Input {
     fun isExclusivelyOwned(): Boolean
 
     /**
-     * Creates a new view to the same actual buffer with independant read and write positions and gaps
+     * Creates a new view to the same actual buffer with independent read and write positions and gaps
      */
     fun makeView(): BufferView
 

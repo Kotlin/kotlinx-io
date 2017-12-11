@@ -32,5 +32,9 @@ actual interface Input {
     actual fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
     actual fun readAvailable(dst: BufferView, length: Int): Int
 
+    fun readAvailable(dst: Int8Array, offset: Int, length: Int): Int
+    fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int
+    fun readAvailable(dst: ArrayBufferView, offset: Int, length: Int): Int
+
     actual fun discard(n: Long): Long
 }
