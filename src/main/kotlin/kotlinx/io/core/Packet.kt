@@ -7,7 +7,7 @@ import kotlinx.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
-abstract class ByteReadPacketBase(private var head: BufferView,
+abstract class ByteReadPacketBase(protected var head: BufferView,
                                   val pool: ObjectPool<BufferView>) : Input {
 
     final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
@@ -463,9 +463,10 @@ abstract class ByteReadPacketBase(private var head: BufferView,
 
     internal inline fun takeWhile(block: (BufferView) -> Boolean) {
         var current = head
-        if (current !== BufferView.Empty) {
-            current.byteOrder = byteOrder
+        if (current === BufferView.Empty) {
+            current = doFill() ?: return
         }
+        current.byteOrder = byteOrder
 
         while (true) {
             if (current.canRead()) {
@@ -478,21 +479,40 @@ abstract class ByteReadPacketBase(private var head: BufferView,
                 val next = current.next
                 if (current === BufferView.Empty) break
                 releaseHead(current)
-                current = next ?: break
-                next.byteOrder = byteOrder
+                current = next ?: doFill() ?: break
+                current.byteOrder = byteOrder
             }
         }
     }
 
+    protected abstract fun fill(): BufferView?
+
+    private fun doFill(): BufferView? {
+        val chunk = fill() ?: return null
+        val tail = head.findTail()
+        if (tail === BufferView.Empty) {
+            head = chunk
+        } else {
+            tail.next = chunk
+        }
+
+        return chunk
+    }
+
     internal tailrec fun prepareRead(minSize: Int): BufferView? {
         val head = head
+
+        if (head === BufferView.Empty) {
+            if (doFill() == null) return null
+            return prepareRead(minSize)
+        }
 
         val headSize = head.readRemaining
         if (headSize >= minSize) {
             head.byteOrder = byteOrder
             return head
         }
-        val next = head.next ?: return null
+        val next = head.next ?: doFill() ?: return null
 
         head.writeBufferAppend(next, minSize - headSize)
         if (next.readRemaining == 0) {

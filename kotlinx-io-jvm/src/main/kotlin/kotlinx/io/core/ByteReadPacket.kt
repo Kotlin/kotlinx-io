@@ -3,8 +3,7 @@ package kotlinx.io.core
 import kotlinx.io.pool.*
 import java.nio.*
 
-actual class ByteReadPacket
-    actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : ByteReadPacketBase(head, pool), Input {
+actual abstract class ByteReadPacketPlatformBase actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : ByteReadPacketBase(head, pool), Input {
 
     override fun readFully(dst: ByteBuffer, length: Int) {
         require(length <= remaining) { "Not enough bytes available ($remaining) to read $length bytes" }
@@ -26,6 +25,12 @@ actual class ByteReadPacket
         readFully(dst, size)
         return size
     }
+}
+
+actual class ByteReadPacket
+    actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : ByteReadPacketPlatformBase(head, pool), Input {
+
+    final override fun fill() = null
 
     actual companion object {
         actual val Empty = ByteReadPacketBase.Empty

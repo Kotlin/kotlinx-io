@@ -3,7 +3,7 @@ package kotlinx.io.core
 import kotlinx.io.pool.*
 import org.khronos.webgl.*
 
-actual class ByteReadPacket
+actual abstract class ByteReadPacketPlatformBase
     actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : ByteReadPacketBase(head, pool), Input {
 
     override fun readFully(dst: Int8Array, offset: Int, length: Int) {
@@ -65,6 +65,13 @@ actual class ByteReadPacket
         readFully(dst, offset, size)
         return size
     }
+
+}
+
+actual class ByteReadPacket
+    actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : ByteReadPacketPlatformBase(head, pool), Input {
+
+    final override fun fill() = null
 
     actual companion object {
         actual val Empty = ByteReadPacketBase.Empty
