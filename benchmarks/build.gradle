@@ -1,0 +1,27 @@
+plugins {
+    id 'me.champeau.gradle.jmh' version '0.4.5'
+}
+
+apply plugin: 'kotlin-platform-jvm'
+apply plugin: 'kotlin-allopen'
+
+
+dependencies {
+    jmh project(':kotlinx-io-jvm')
+    jmh project(':kotlinx-io-jvm').sourceSets.test.output
+}
+
+allOpen {
+    annotation('org.openjdk.jmh.annotations.State')
+}
+
+jmh {
+    jmhVersion '1.19'
+    jmhJar {
+        archiveName = 'benchmarks.jar'
+    }
+
+//    include = ['.*.myInput2?$', '.*.bufferInputStream']
+//    exclude = ['.*Guice.*', '.*PingPong.*']
+}
+
