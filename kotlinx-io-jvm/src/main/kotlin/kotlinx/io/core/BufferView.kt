@@ -75,8 +75,6 @@ actual class BufferView private constructor(
      * Number of bytes available for read
      */
     actual val readRemaining: Int get() {
-        if (refCount == 0L) throw IllegalStateException("Using released object")
-
         return readBuffer.remaining()
     }
 

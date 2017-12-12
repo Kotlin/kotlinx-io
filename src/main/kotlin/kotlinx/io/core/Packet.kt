@@ -7,7 +7,7 @@ import kotlinx.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
-abstract class ByteReadPacketBase(protected var head: BufferView,
+abstract class ByteReadPacketBase(private var head: BufferView,
                                   val pool: ObjectPool<BufferView>) : Input {
 
     final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
@@ -64,7 +64,34 @@ abstract class ByteReadPacketBase(protected var head: BufferView,
         return head
     }
 
-    final override fun readByte() = readN(1) { readByte() }
+    final override fun readByte(): Byte {
+        val head = head
+        val rem = head.readRemaining
+        if (rem > 1) {
+            return head.readByte()
+        }
+
+        return readByteSlow2(head, rem)
+    }
+
+    private fun readByteSlow2(head: BufferView, rem: Int): Byte {
+        if (rem == 1) {
+            return head.readByte().also { releaseHead(head) }
+        } else {
+            return readByteSlow(head)
+        }
+    }
+
+    private tailrec fun readByteSlow(head: BufferView): Byte {
+        val next = head.next
+        if (head !== BufferView.Empty) releaseHead(head)
+        val chunk = next ?: doFill() ?: notEnoughBytesAvailable(1)
+        return if (chunk.canRead()) {
+            chunk.byteOrder = byteOrder
+            chunk.readByte()
+        } else readByteSlow(chunk)
+    }
+
     final override fun readShort() = readN(2) { readShort() }
     final override fun readInt() = readN(4) { readInt() }
     final override fun readLong() = readN(8) { readLong() }
@@ -455,33 +482,46 @@ abstract class ByteReadPacketBase(protected var head: BufferView,
     }
 
     private inline fun <R> readN(n: Int, block: BufferView.() -> R): R {
-        val bb = prepareRead(n) ?: throw EOFException("Not enough data in packet to read $n byte(s)")
+        val bb = prepareRead(n) ?: notEnoughBytesAvailable(n)
         val rc = block(bb)
-        afterRead()
+        if (bb.readRemaining == 0) {
+            releaseHead(bb)
+        }
         return rc
     }
 
-    internal inline fun takeWhile(block: (BufferView) -> Boolean) {
-        var current = head
-        if (current === BufferView.Empty) {
-            current = doFill() ?: return
-        }
-        current.byteOrder = byteOrder
+    private fun notEnoughBytesAvailable(n: Int): Nothing {
+        throw EOFException("Not enough data in packet ($remaining) to read $n byte(s)")
+    }
 
-        while (true) {
+    inline fun takeWhile(block: (BufferView) -> Boolean) {
+        var current = @Suppress("DEPRECATION_ERROR") `$first$`()
+        var continueFlag = true
+
+        do {
             if (current.canRead()) {
-                if (!block(current)) {
-                    afterRead()
-                    return
-                }
+                continueFlag = block(current)
             }
             if (current.readRemaining == 0) {
-                val next = current.next
-                if (current === BufferView.Empty) break
-                releaseHead(current)
-                current = next ?: doFill() ?: break
-                current.byteOrder = byteOrder
+                current = @Suppress("DEPRECATION_ERROR") ensureNext(current) ?: break
             }
+        } while (continueFlag)
+    }
+
+    @Deprecated("Non public API", level = DeprecationLevel.ERROR)
+    fun `$first$`(): BufferView = head
+
+    @Deprecated("Non public API", level = DeprecationLevel.ERROR)
+    fun ensureNext(current: BufferView): BufferView? {
+        val next = current.next
+        current.release(pool)
+        if (next == null) {
+            head = BufferView.Empty
+            return doFill() ?: return null
+        } else {
+            head = next
+            next.byteOrder = byteOrder
+            return next
         }
     }
 
@@ -492,6 +532,7 @@ abstract class ByteReadPacketBase(protected var head: BufferView,
         val tail = head.findTail()
         if (tail === BufferView.Empty) {
             head = chunk
+            chunk.byteOrder = byteOrder
         } else {
             tail.next = chunk
         }
@@ -499,34 +540,38 @@ abstract class ByteReadPacketBase(protected var head: BufferView,
         return chunk
     }
 
-    internal tailrec fun prepareRead(minSize: Int): BufferView? {
-        val head = head
+    @Suppress("NOTHING_TO_INLINE")
+    internal inline fun prepareRead(minSize: Int): BufferView? = prepareRead(minSize, head)
 
-        if (head === BufferView.Empty) {
-            if (doFill() == null) return null
-            return prepareRead(minSize)
-        }
-
+    internal tailrec fun prepareRead(minSize: Int, head: BufferView): BufferView? {
         val headSize = head.readRemaining
-        if (headSize >= minSize) {
-            head.byteOrder = byteOrder
-            return head
-        }
+        if (headSize >= minSize) return head
+
         val next = head.next ?: doFill() ?: return null
+        next.byteOrder = byteOrder
 
-        head.writeBufferAppend(next, minSize - headSize)
-        if (next.readRemaining == 0) {
-            head.next = next.next
-            next.release(pool)
+        if (headSize == 0) {
+            if (head !== BufferView.Empty) {
+                releaseHead(head)
+            }
+
+            return prepareRead(minSize, next)
+        } else {
+            head.writeBufferAppend(next, minSize - headSize)
+            if (next.readRemaining == 0) {
+                head.next = next.next
+                next.release(pool)
+            }
         }
 
-        if (head.readRemaining >= minSize) {
-            head.byteOrder = byteOrder
-            return head
-        }
-        if (minSize > ReservedSize) throw IllegalStateException("minSize of $minSize is too big (should be less than $ReservedSize")
+        if (head.readRemaining >= minSize) return head
+        if (minSize > ReservedSize) minSizeIsTooBig(minSize)
 
-        return prepareRead(minSize)
+        return prepareRead(minSize, head)
+    }
+
+    private fun minSizeIsTooBig(minSize: Int): Nothing {
+        throw IllegalStateException("minSize of $minSize is too big (should be less than $ReservedSize")
     }
 
     private fun afterRead() {
