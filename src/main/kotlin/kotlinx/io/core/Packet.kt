@@ -101,10 +101,32 @@ abstract class ByteReadPacketBase(private var head: BufferView,
     }
 
     final override fun readShort() = readN(2) { readShort() }
-    final override fun readInt() = readN(4) { readInt() }
-    final override fun readLong() = readN(8) { readLong() }
     final override fun readFloat() = readN(4) { readFloat() }
     final override fun readDouble() = readN(8) { readDouble() }
+
+    final override fun readInt(): Int {
+        val headRemaining = headRemaining
+        if (headRemaining > 4) {
+            this.headRemaining = headRemaining - 4
+            return head.readInt()
+        }
+
+        return readIntSlow()
+    }
+
+    private fun readIntSlow(): Int = readN(4) { readInt() }
+
+    final override fun readLong(): Long {
+        val headRemaining = headRemaining
+        if (headRemaining > 8) {
+            this.headRemaining = headRemaining - 8
+            return head.readLong()
+        }
+
+        return readLongSlow()
+    }
+
+    private fun readLongSlow(): Long = readN(8) { readLong() }
 
     /**
      * Read as much bytes as possible to [dst] array
