@@ -13,4 +13,4 @@ fun ByteReadPacket.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_VALUE):
 /**
  * Read exactly [n] bytes (consumes all remaining if [n] is not specified). Does fail if not enough bytes remaining
  */
-fun ByteReadPacket.readBytes(n: Int = remaining): ByteArray = ByteArray(n).also { readFully(it, 0, n) }
+fun ByteReadPacket.readBytes(n: Int = remaining.coerceAtMostMaxInt()): ByteArray = ByteArray(n).also { readFully(it, 0, n) }

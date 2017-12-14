@@ -131,7 +131,7 @@ class PacketReadBenchmark {
         val input = packet.copy()
         var c = 0L
 
-        repeat(input.remaining / 8) {
+        repeat(input.remaining.toInt() / 8) {
             c += input.readLong()
         }
 

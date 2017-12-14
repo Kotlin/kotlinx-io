@@ -16,14 +16,14 @@ actual typealias EOFException = java.io.EOFException
  * Read exactly [n] (optional, read all remaining by default) bytes to a newly allocated byte buffer
  * @return a byte buffer containing [n] bytes
  */
-fun ByteReadPacket.readByteBuffer(n: Int = remaining, direct: Boolean = false): ByteBuffer {
+fun ByteReadPacket.readByteBuffer(n: Int = remaining.coerceAtMostMaxInt(), direct: Boolean = false): ByteBuffer {
     val bb: ByteBuffer = if (direct) ByteBuffer.allocateDirect(n) else ByteBuffer.allocate(n)
     readFully(bb)
     bb.clear()
     return bb
 }
 
-fun ByteReadPacket.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String = buildString(remaining) {
+fun ByteReadPacket.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String = buildString(minOf(max, remaining.coerceAtMostMaxInt())) {
     readText(decoder, this, max)
 }
 

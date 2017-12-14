@@ -348,13 +348,14 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
      */
     fun build(): ByteReadPacket {
         val head = this.head
+        val size = size
 
         this.head = BufferView.Empty
         this.tail = BufferView.Empty
         this.size = 0
 
-        if (head === BufferView.Empty) return ByteReadPacket(head, EmptyBufferViewPool)
-        return ByteReadPacket(head, pool)
+        if (head === BufferView.Empty) return ByteReadPacket(head, 0L, EmptyBufferViewPool)
+        return ByteReadPacket(head, size.toLong(), pool)
     }
 
     /**

@@ -4,7 +4,7 @@ import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.io.*
 
-internal class InputStreamAsInput(private val stream: InputStream, pool: ObjectPool<BufferView>) : ByteReadPacketPlatformBase(BufferView.Empty, pool), Input {
+internal class InputStreamAsInput(private val stream: InputStream, pool: ObjectPool<BufferView>) : ByteReadPacketPlatformBase(BufferView.Empty, 0L, pool), Input {
     override fun fill(): BufferView? {
         val buffer = ByteArrayPool.borrow()
         try {

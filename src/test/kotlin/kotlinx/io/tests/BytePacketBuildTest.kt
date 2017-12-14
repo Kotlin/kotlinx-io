@@ -152,7 +152,7 @@ open class BytePacketBuildTest {
             }
         }
 
-        assertEquals(PACKET_BUFFER_SIZE + 3, p.remaining)
+        assertEquals(PACKET_BUFFER_SIZE + 3, p.remaining.toInt())
         p.readFully(ByteArray(PACKET_BUFFER_SIZE - 1))
         assertEquals(0x01010101, p.readInt())
     }

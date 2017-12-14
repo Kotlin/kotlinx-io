@@ -4,38 +4,6 @@ import kotlinx.io.core.*
 import org.khronos.webgl.*
 
 /**
- * Read at most [length] bytes to the specified [dst] typed array at optional [offset]
- * @return number of copied bytes
- */
-fun ByteReadPacket.readAvailable(dst: Int8Array, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
-    var read = 0
-    var rem = minOf(length, remaining)
-
-    while (rem > 0) {
-        @Suppress("INVISIBLE_MEMBER")
-        val bb: BufferView = prepareRead(1) ?: break
-        val size = minOf(rem, bb.readRemaining)
-        bb.read(dst, offset + read, size)
-        read += size
-        rem -= size
-        if (bb.readRemaining == 0) {
-            @Suppress("INVISIBLE_MEMBER")
-            releaseHead(bb)
-        }
-    }
-
-    return read
-}
-
-/**
- * Read at most [length] bytes to the specified [dst] array buffer at optional [offset]
- * @return number of copied bytes
- */
-fun ByteReadPacket.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
-    return readAvailable(Int8Array(dst), offset, length)
-}
-
-/**
  * Read exactly [length] bytes to the specified [dst] array buffer at optional [offset]
  */
 fun ByteReadPacket.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset) {
@@ -53,7 +21,7 @@ fun ByteReadPacket.readFully(dst: Int8Array, offset: Int = 0, length: Int = dst.
 /**
  * Read exactly [n] bytes to a new array buffer instance
  */
-fun ByteReadPacket.readArrayBuffer(n: Int = remaining): ArrayBuffer {
+fun ByteReadPacket.readArrayBuffer(n: Int = remaining.coerceAtMostMaxInt()): ArrayBuffer {
     val buffer = ArrayBuffer(n)
     readFully(buffer)
     return buffer

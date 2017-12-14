@@ -16,8 +16,8 @@ fun OutputStream.writePacket(builder: BytePacketBuilder.() -> Unit) {
  */
 fun OutputStream.writePacket(packet: ByteReadPacket) {
     val s = packet.remaining
-    if (s == 0) return
-    val buffer = ByteArray(s.coerceAtMost(4096))
+    if (s == 0L) return
+    val buffer = ByteArray(s.coerceAtMost(4096L).toInt())
 
     try {
         while (!packet.isEmpty) {
@@ -82,7 +82,7 @@ fun ByteReadPacket.inputStream(): InputStream {
             return readByte().toInt() and 0xff
         }
 
-        override fun available() = remaining
+        override fun available() = remaining.coerceAtMostMaxInt()
 
         override fun close() {
             release()

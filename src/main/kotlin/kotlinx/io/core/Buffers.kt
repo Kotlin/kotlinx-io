@@ -224,4 +224,7 @@ internal tailrec fun BufferView.isEmpty(): Boolean {
     return next.isEmpty()
 }
 
+@Suppress("NOTHING_TO_INLINE")
+inline fun Long.coerceAtMostMaxInt(): Int = minOf(this, Int.MAX_VALUE.toLong()).toInt()
+
 class BufferLimitExceededException(message: String) : Exception(message)

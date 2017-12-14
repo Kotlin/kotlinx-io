@@ -3,7 +3,7 @@ package kotlinx.io.js
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 
-fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = buildString(remaining) {
+fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = buildString(minOf(max, remaining.coerceAtMostMaxInt())) {
     readText(encoding, this, max)
 }
 

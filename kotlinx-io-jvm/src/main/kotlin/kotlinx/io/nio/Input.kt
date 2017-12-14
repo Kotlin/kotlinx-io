@@ -5,7 +5,7 @@ import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.channels.*
 
-private class ChannelAsInput(private val channel: ReadableByteChannel, pool: ObjectPool<BufferView>) : ByteReadPacketPlatformBase(BufferView.Empty, pool), Input {
+private class ChannelAsInput(private val channel: ReadableByteChannel, pool: ObjectPool<BufferView>) : ByteReadPacketPlatformBase(BufferView.Empty, 0L, pool), Input {
     init {
         require(channel !is SelectableChannel || !channel.isBlocking) { "Non-blocking channels as not supported" }
     }
