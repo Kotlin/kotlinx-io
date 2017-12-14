@@ -31,7 +31,7 @@ class PacketReadBenchmark {
     }
 
     @Benchmark
-    fun bufferInputStream(): Long {
+    fun bufferedInputStream(): Long {
         val stream = BufferedInputStream(ByteArrayInputStream(array))
         var c = 0L
 
@@ -47,6 +47,20 @@ class PacketReadBenchmark {
     @Benchmark
     fun byteArrayInputStream(): Long {
         val stream = ByteArrayInputStream(array)
+        var c = 0L
+
+        while (true) {
+            val rc = stream.read()
+            if (rc == -1) break
+            c += rc.toLong() and 0xff
+        }
+
+        return c
+    }
+
+    @Benchmark
+    fun byteArrayInputStreamReal(): Long {
+        val stream = { ByteArrayInputStream(array) }()
         var c = 0L
 
         while (true) {
@@ -77,7 +91,7 @@ class PacketReadBenchmark {
     }
 
     @Benchmark
-    fun myInputForEach(): Long {
+    fun myInputTakeWhile(): Long {
         val input = packet.copy()
         var c = 0L
 
