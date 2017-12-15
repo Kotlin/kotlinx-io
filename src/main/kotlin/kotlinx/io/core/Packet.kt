@@ -531,63 +531,16 @@ abstract class ByteReadPacketBase(private var head: BufferView,
         throw EOFException("Not enough data in packet ($remaining) to read $n byte(s)")
     }
 
-    inline fun takeWhile(block: (BufferView) -> Boolean) {
-        var current = @Suppress("DEPRECATION_ERROR") `$first$`()
-        var continueFlag = true
-
-        do {
-            val before = current.readRemaining
-            val after = if (before > 0) {
-                continueFlag = block(current)
-                current.readRemaining
-            } else before
-
-            if (after == 0) {
-                current = @Suppress("DEPRECATION_ERROR") `$ensureNext$`(current) ?: break
-            } else {
-                @Suppress("DEPRECATION_ERROR") `$updateRemaining$`(after)
-            }
-        } while (continueFlag)
-    }
-
-    inline fun takeWhileSize(block: (BufferView) -> Int) {
-        var current = @Suppress("DEPRECATION_ERROR") `$first$`()
-        var size = 1
-
-        do {
-            val before = current.readRemaining
-            val after: Int
-
-            if (before >= size) {
-                try {
-                    size = block(current)
-                } finally {
-                    after = current.readRemaining
-                }
-            } else {
-                after = before
-            }
-
-            if (after == 0) {
-                current = @Suppress("DEPRECATION_ERROR") `$ensureNext$`(current) ?: break
-            } else if (after < size) {
-                current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(size) ?: break
-            } else {
-                @Suppress("DEPRECATION_ERROR") `$updateRemaining$`(after)
-            }
-        } while (size > 0)
-    }
-
     @Deprecated("Non-public API. Do not use otherwise packet could be damaged", level = DeprecationLevel.ERROR)
-    fun `$updateRemaining$`(remaining: Int) {
+    final override fun `$updateRemaining$`(remaining: Int) {
         headRemaining = remaining
     }
 
-    @Deprecated("Non public API", level = DeprecationLevel.ERROR)
-    fun `$first$`(): BufferView = head
+    @Deprecated("Non-public API", level = DeprecationLevel.ERROR)
+    final override fun `$prepareRead$`(minSize: Int): BufferView? = prepareRead(minSize, head)
 
     @Deprecated("Non public API", level = DeprecationLevel.ERROR)
-    fun `$ensureNext$`(current: BufferView): BufferView? = ensureNext(current)
+    final override fun `$ensureNext$`(current: BufferView): BufferView? = ensureNext(current)
 
     private fun ensureNext(current: BufferView) = ensureNext(current, BufferView.Empty)
 
@@ -636,14 +589,12 @@ abstract class ByteReadPacketBase(private var head: BufferView,
         return chunk
     }
 
-    @Deprecated("Non-public API", level = DeprecationLevel.ERROR)
-    fun `$prepareRead$`(minSize: Int): BufferView? = prepareRead(minSize, head)
 
     @Suppress("NOTHING_TO_INLINE")
     internal inline fun prepareRead(minSize: Int): BufferView? = prepareRead(minSize, head)
 
     internal tailrec fun prepareRead(minSize: Int, head: BufferView): BufferView? {
-        val headSize = head.readRemaining
+        val headSize = headRemaining
         if (headSize >= minSize) return head
 
         val next = head.next ?: doFill() ?: return null

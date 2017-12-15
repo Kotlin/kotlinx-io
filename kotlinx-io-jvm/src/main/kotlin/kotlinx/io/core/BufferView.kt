@@ -470,6 +470,20 @@ actual class BufferView private constructor(
         return readTextImpl(decoder, out, lastBuffer, max)
     }
 
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$updateRemaining$`(remaining: Int) {
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$ensureNext$`(current: BufferView): BufferView? {
+        return null
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$prepareRead$`(minSize: Int): BufferView? {
+        return this.takeIf { readRemaining >= minSize }
+    }
+
     private fun readTextImpl(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
         if (max == 0 || !readBuffer.hasRemaining()) return 0
 

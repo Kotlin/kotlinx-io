@@ -31,4 +31,13 @@ actual interface Input {
     fun readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int
 
     actual fun discard(n: Long): Long
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual fun `$updateRemaining$`(remaining: Int)
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual fun `$ensureNext$`(current: BufferView): BufferView?
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual fun `$prepareRead$`(minSize: Int): BufferView?
 }

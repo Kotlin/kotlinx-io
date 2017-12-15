@@ -165,6 +165,10 @@ expect class BufferView : Input {
      */
     fun release(pool: ObjectPool<BufferView>)
 
+    final override fun `$updateRemaining$`(remaining: Int)
+    final override fun `$ensureNext$`(current: BufferView): BufferView?
+    final override fun `$prepareRead$`(minSize: Int): BufferView?
+
     companion object {
         val Empty: BufferView
         val Pool: ObjectPool<BufferView>

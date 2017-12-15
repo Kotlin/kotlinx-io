@@ -270,7 +270,7 @@ actual class BufferView internal constructor(
         readFully(dst, offset, length)
     }
 
-    override final fun readFully(dst: ArrayBuffer, offset: Int, length: Int) {
+    final override fun readFully(dst: ArrayBuffer, offset: Int, length: Int) {
         if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
         val to = Int8Array(dst, offset, length)
 
@@ -507,6 +507,20 @@ actual class BufferView internal constructor(
         writePosition += length
 
         return length
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$updateRemaining$`(remaining: Int) {
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$ensureNext$`(current: BufferView): BufferView? {
+        return null
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$prepareRead$`(minSize: Int): BufferView? {
+        return this.takeIf { it.readRemaining >= minSize }
     }
 
     internal fun readText(decoder: TextDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
