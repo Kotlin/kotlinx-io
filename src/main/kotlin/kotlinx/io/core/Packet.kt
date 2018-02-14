@@ -342,7 +342,7 @@ class ByteReadPacket(private var head: BufferView,
         if (headSize >= minSize) return head
         val next = head.next ?: return null
 
-        head.writeBufferAppend(next, minSize)
+        head.writeBufferAppend(next, minSize - headSize)
         if (next.readRemaining == 0) {
             head.next = next.next
             next.release(pool)
