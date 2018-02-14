@@ -54,7 +54,7 @@ actual class BufferView private constructor(
     /**
      * Amount of reserved bytes at the end
      */
-    actual val endGap: Int get() = writeBuffer.limit() - writeBuffer.capacity()
+    actual val endGap: Int get() = writeBuffer.capacity() - writeBuffer.limit()
 
     /**
      * @return `true` if there are available bytes to be read

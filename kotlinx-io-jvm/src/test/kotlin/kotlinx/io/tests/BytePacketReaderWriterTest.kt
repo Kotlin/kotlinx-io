@@ -436,6 +436,28 @@ class BytePacketReaderWriterTest {
     }
 
     @Test
+    fun testReadTextChainThroughReservation() {
+        val segment1 = pool.borrow()
+        val segment2 = pool.borrow()
+        segment1.next = segment2
+        segment1.reserveEndGap(8)
+
+        while (segment1.writeRemaining > 1) {
+            segment1.writeByte(0)
+        }
+        segment1.writeByte(0xc6.toByte())
+        while (segment1.readRemaining > 1) {
+            segment1.readByte()
+        }
+        segment2.writeByte(0x86.toByte())
+
+        val packet = ByteReadPacket(segment1, pool)
+
+        assertEquals("\u0186", packet.readText())
+        assertTrue { packet.isEmpty }
+    }
+
+    @Test
     fun testReadTextChainWithDecoder() {
         val segment1 = pool.borrow()
         val segment2 = pool.borrow()
