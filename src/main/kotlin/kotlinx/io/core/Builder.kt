@@ -326,6 +326,24 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     /**
+     * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
+     * This is similar to `build().copy()` except that the builder keeps already written bytes untouched.
+     * A temporary view packet is passed as argument to [block] function and it shouldn't leak outside of this block
+     * otherwise an unexpected behaviour may occur.
+     */
+    fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
+        val head = head.copyAll()
+        val pool = if (head === BufferView.Empty) EmptyBufferViewPool else pool
+        val packet = ByteReadPacket(head, pool)
+
+        return try {
+            block(packet)
+        } finally {
+            packet.release()
+        }
+    }
+
+    /**
      * Builds byte packet instance and resets builder's state to be able to build another one packet if needed
      */
     fun build(): ByteReadPacket {
