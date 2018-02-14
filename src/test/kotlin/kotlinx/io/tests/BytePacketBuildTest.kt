@@ -176,6 +176,21 @@ open class BytePacketBuildTest {
         }
     }
 
+    @Test
+    fun testPreview() {
+        val p = buildPacket {
+            writeInt(777)
+
+            val i = preview { tmp ->
+                tmp.readInt()
+            }
+
+            assertEquals(777, i)
+        }
+
+        assertEquals(777, p.readInt())
+    }
+
     private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(0, pool)
         try {
