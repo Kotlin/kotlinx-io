@@ -415,3 +415,12 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 }
 
+private inline fun <T> T.takeIf(predicate: (T) -> Boolean): T? {
+    return if (predicate(this)) this else null
+}
+
+private inline fun <T> T.takeUnless(predicate: (T) -> Boolean): T? {
+    return if (!predicate(this)) this else null
+}
+
+

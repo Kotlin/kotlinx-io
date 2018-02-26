@@ -1,0 +1,22 @@
+apply plugin: 'konan'
+
+konanArtifacts {
+    library('native') {
+        enableMultiplatform true
+    }
+
+    /*program('native-test') {
+        srcDir 'src/test/kotlin'
+        commonSourceSet 'test'
+        libraries {
+            artifact 'native'
+        }
+        extraOpts '-tr'
+    }*/
+}
+
+dependencies {
+    expectedBy project(':')
+}
+
+//task test(dependsOn: run)

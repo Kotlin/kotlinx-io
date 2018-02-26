@@ -10,10 +10,12 @@ buildscript {
 
         mavenCentral()
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+        maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.25"
+        classpath "org.jetbrains.kotlin:kotlin-native-gradle-plugin:$kotlin_native_version"
     }
 }
 
@@ -64,7 +66,7 @@ allprojects {
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
 
-    publishing {
+   /* publishing {
         publications {
             mavenProject(MavenPublication) {
                 from components.java
@@ -83,7 +85,7 @@ allprojects {
                 withPom(pom)
             }
         }
-    }
+    } */
 }
 
 dependencies {

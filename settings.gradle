@@ -1,3 +1,5 @@
 rootProject.name = 'kotlinx-io'
 
-include 'kotlinx-io-jvm', 'kotlinx-io-js'
+//include 'kotlinx-io-jvm', 'kotlinx-io-js', 'kotlin-io-native'
+
+include 'kotlinx-io-jvm', 'kotlinx-io-native'
