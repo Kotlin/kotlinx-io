@@ -155,13 +155,35 @@ actual class BufferView internal constructor(
         writePosition += 8
     }
 
+    fun read(dst: CPointer<ByteVar>, offset: Int, length: Int) {
+        require(length <= readRemaining)
+        require(length >= 0)
+        
+        memcpy(dst + offset, content + readPosition, length.toLong())
+        readPosition += length
+    }
+
+    fun write(array: CPointer<ByteVar>, offset: Int, length: Int) {
+        require(length <= writeRemaining)
+        require(length >= 0)
+
+        memcpy(content + writePosition, array + offset, length.toLong())
+        writePosition += length
+    }
+
     actual fun read(dst: ByteArray, offset: Int, length: Int) {
         require(length <= readRemaining)
         require(length >= 0)
         require(offset >= 0)
         require(offset + length <= dst.size)
 
-        memcpy((dst as CPointer<ByteVar>) + offset, content + readPosition, length.toLong())
+        memScoped {
+            val array = allocArray<ByteVar>(length)
+            memcpy(array, content + readPosition, length.toLong())
+            for (i in 0 .. length - 1) {
+                dst[i + offset] = array[i]
+            }
+        }
         readPosition += length
     }
 
@@ -171,7 +193,13 @@ actual class BufferView internal constructor(
         require(offset >= 0)
         require(offset + length <= array.size)
 
-        memcpy(content + writePosition, (array as CPointer<ByteVar>) + offset, length.toLong())
+        memScoped {
+            val tmp = allocArray<ByteVar>(length)
+            for (i in 0 .. length - 1) {
+                tmp[i] = array[i + offset]
+            }
+            memcpy(content + writePosition, tmp, length.toLong())
+        }
 
         writePosition += length
     }
@@ -207,8 +235,6 @@ actual class BufferView internal constructor(
     actual fun writeBuffer(src: BufferView, length: Int): Int {
         require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
         require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
-
-        val otherEnd = src.readPosition + length
 
         memcpy(content + writePosition, src.content + src.readPosition, length.toLong())
 
@@ -322,7 +348,9 @@ actual class BufferView internal constructor(
         }
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or (s.toInt() ushr 8)).toShort()
+    @Suppress("NOTHING_TO_INLINE")
     private inline fun swap(s: Int): Int = (swap((s and 0xffff).toShort()).toInt() shl 16) or (swap((s ushr 16).toShort()).toInt())
 
     actual companion object {
