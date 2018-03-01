@@ -7,7 +7,7 @@ import kotlin.test.*
 open class StringsTest {
     open val pool: VerifyingObjectPool<BufferView> = VerifyingObjectPool(BufferView.NoPool)
 
-    @AfterTest
+    //@AfterTest
     fun verifyPool() {
         pool.assertEmpty()
     }
