@@ -128,8 +128,8 @@ actual class BufferView internal constructor(
             val value = allocArray<DoubleVar>(1)
             val rints = value.reinterpret<IntVar>()
 
-            ints[0] = swap(rints[1])
-            ints[1] = swap(rints[0])
+            rints[0] = swap(ints[1])
+            rints[1] = swap(ints[0])
 
             readPosition += 8
 
@@ -301,7 +301,7 @@ actual class BufferView internal constructor(
     internal fun unlink() {
         if (refCount != 0) throw IllegalStateException("Unable to unlink buffers: buffer view is in use")
         content = EmptyBuffer
-        resetForWrite()
+        resetForWrite(0)
     }
 
     private fun acquire() {
@@ -349,9 +349,9 @@ actual class BufferView internal constructor(
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or (s.toInt() ushr 8)).toShort()
+    private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or ((s.toInt() and 0xffff) ushr 8)).toShort()
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun swap(s: Int): Int = (swap((s and 0xffff).toShort()).toInt() shl 16) or (swap((s ushr 16).toShort()).toInt())
+    private inline fun swap(s: Int): Int = (swap((s and 0xffff).toShort()).toInt() shl 16) or (swap((s ushr 16).toShort()).toInt() and 0xffff)
 
     actual companion object {
         private val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
@@ -383,13 +383,23 @@ actual class BufferView internal constructor(
             }
 
             override fun disposeInstance(instance: BufferView) {
-                instance.unlink()
+                require(instance.refCount == 0)
+                require(instance.content !== EmptyBuffer)
+
+                nativeHeap.free(instance.content)
             }
         }
 
         actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
             override fun borrow(): BufferView {
-                TODO("Not yet supported")
+                val content = nativeHeap.allocArray<ByteVar>(BUFFER_VIEW_SIZE)
+                return BufferView(content, BUFFER_VIEW_SIZE, null)
+            }
+
+            override fun recycle(instance: BufferView) {
+                require(instance.refCount == 0)
+                require(instance.content !== EmptyBuffer)
+                nativeHeap.free(instance.content)
             }
         }
     }
