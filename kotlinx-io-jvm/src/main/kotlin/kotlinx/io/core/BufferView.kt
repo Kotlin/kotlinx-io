@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.*
  */
 actual class BufferView private constructor(
         private var content: ByteBuffer,
-        internal actual val origin: BufferView?) : Input {
+        internal actual val origin: BufferView?) : Input, Output {
 
     private var readBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
     private var writeBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
@@ -124,33 +124,102 @@ actual class BufferView private constructor(
         writeBuffer.limit(newLimit)
     }
 
-    actual fun writeByte(v: Byte) {
+    actual final override fun writeByte(v: Byte) {
         writeBuffer.put(v)
         afterWrite()
     }
 
-    actual fun writeShort(v: Short) {
+    actual final override  fun writeShort(v: Short) {
         writeBuffer.putShort(v)
         afterWrite()
     }
 
-    actual fun writeInt(v: Int) {
+    actual final override  fun writeInt(v: Int) {
         writeBuffer.putInt(v)
         afterWrite()
     }
 
-    actual fun writeLong(v: Long) {
+    actual final override  fun writeLong(v: Long) {
         writeBuffer.putLong(v)
         afterWrite()
     }
 
-    actual fun writeFloat(v: Float) {
+    actual final override  fun writeFloat(v: Float) {
         writeBuffer.putFloat(v)
         afterWrite()
     }
 
-    actual fun writeDouble(v: Double) {
+    actual final override  fun writeDouble(v: Double) {
         writeBuffer.putDouble(v)
+        afterWrite()
+    }
+
+    actual final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
+        writeBuffer.put(src, offset, length)
+        afterWrite()
+    }
+
+    actual final override fun writeFully(src: ShortArray, offset: Int, length: Int) {
+        val bb = writeBuffer
+        for (i in offset until offset + length) {
+            bb.putShort(src[i])
+        }
+        afterWrite()
+    }
+
+    actual final override fun writeFully(src: IntArray, offset: Int, length: Int) {
+        val bb = writeBuffer
+        for (i in offset until offset + length) {
+            bb.putInt(src[i])
+        }
+        afterWrite()
+    }
+
+    actual final override fun writeFully(src: LongArray, offset: Int, length: Int) {
+        val bb = writeBuffer
+        for (i in offset until offset + length) {
+            bb.putLong(src[i])
+        }
+        afterWrite()
+    }
+
+    actual final override fun writeFully(src: FloatArray, offset: Int, length: Int) {
+        val bb = writeBuffer
+        for (i in offset until offset + length) {
+            bb.putFloat(src[i])
+        }
+        afterWrite()
+    }
+
+    actual final override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
+        val bb = writeBuffer
+        for (i in offset until offset + length) {
+            bb.putDouble(src[i])
+        }
+        afterWrite()
+    }
+
+    actual final override fun writeFully(src: BufferView, length: Int) {
+        if (length == src.readRemaining) {
+            writeBuffer.put(src.readBuffer)
+        } else {
+            val bb = src.readBuffer
+            bb.mark()
+            bb.limit(bb.position() + length)
+            writeBuffer.put(bb)
+            bb.reset()
+            bb.position(bb.position() + length)
+        }
+        afterWrite()
+    }
+
+    actual final override fun fill(n: Long, v: Byte) {
+        require(n <= writeRemaining)
+
+        val bb = writeBuffer
+        repeat(n.toInt()) {
+            bb.put(v)
+        }
         afterWrite()
     }
 

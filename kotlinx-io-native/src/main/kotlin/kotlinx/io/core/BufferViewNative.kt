@@ -3,12 +3,13 @@ package kotlinx.io.core
 import kotlinx.cinterop.*
 import kotlinx.io.pool.*
 import platform.posix.memcpy
+import platform.posix.memset
 
 actual class BufferView internal constructor(
         private var content: CPointer<ByteVar>,
         private val contentCapacity: Int,
         internal actual val origin: BufferView?
-) {
+) : Input, Output {
     private var refCount = 1
 
     private var readPosition = 0
@@ -27,7 +28,7 @@ actual class BufferView internal constructor(
     actual fun canRead() = writePosition > readPosition
     actual fun canWrite() = writePosition < limit
 
-    actual var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
+    actual final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {
             field = newOrder
             platformEndian = newOrder === ByteOrder.nativeOrder()
@@ -49,20 +50,20 @@ actual class BufferView internal constructor(
     actual val endGap: Int get() = contentCapacity - limit
 
 
-    actual fun readByte(): Byte {
+    actual final override fun readByte(): Byte {
         if (readRemaining < 0) throw IllegalStateException("No bytes available for read")
         val value = content[readPosition]
         readPosition++
         return value
     }
 
-    actual fun writeByte(v: Byte) {
+    actual final override fun writeByte(v: Byte) {
         if (writeRemaining < 1) throw IllegalStateException("No space left for writing")
         content[writePosition] = v
         writePosition++
     }
 
-    actual fun readShort(): Short {
+    actual final override fun readShort(): Short {
         if (readRemaining < 2) throw IllegalStateException("Not enough bytes available to read a short")
         var value = (content + readPosition)!!.reinterpret<ShortVar>()[0]
         if (!platformEndian) value = swap(value)
@@ -70,7 +71,7 @@ actual class BufferView internal constructor(
         return value
     }
 
-    actual fun writeShort(v: Short) {
+    actual final override fun writeShort(v: Short) {
         if (writeRemaining < 2) throw IllegalStateException("Not enough space left to write a short")
         var value = v
         if (!platformEndian) value = swap(value)
@@ -78,7 +79,7 @@ actual class BufferView internal constructor(
         writePosition += 2
     }
 
-    actual fun readInt(): Int {
+    actual final override fun readInt(): Int {
         if (readRemaining < 4) throw IllegalStateException("Not enough bytes available to read an int")
         var value = (content + readPosition)!!.reinterpret<IntVar>()[0]
         if (!platformEndian) value = swap(value)
@@ -86,14 +87,14 @@ actual class BufferView internal constructor(
         return value
     }
 
-    actual fun writeInt(v: Int) {
+    actual final override fun writeInt(v: Int) {
         if (writeRemaining < 4) throw IllegalStateException("Not enough space left to write an int")
         var value = if (platformEndian) v else swap(v)
         (content + writePosition)!!.reinterpret<IntVar>()[0] = value
         writePosition += 4
     }
 
-    actual fun readFloat(): Float {
+    actual final override fun readFloat(): Float {
         if (readRemaining < 4) throw IllegalStateException("Not enough bytes available to read a float")
         return memScoped {
             val value = alloc<IntVar>()
@@ -104,7 +105,7 @@ actual class BufferView internal constructor(
         }
     }
 
-    actual fun writeFloat(v: Float) {
+    actual final override fun writeFloat(v: Float) {
         if (writeRemaining < 4) throw IllegalStateException("Not enough space left to write a float")
         memScoped {
             val value = alloc<IntVar>()
@@ -114,8 +115,8 @@ actual class BufferView internal constructor(
         }
         writePosition += 4
     }
-    
-    actual fun readDouble(): Double {
+
+    actual final override fun readDouble(): Double {
         if (readRemaining < 8) throw IllegalStateException("Not enough bytes available to read a double")
         if (platformEndian) {
             val v = (content + readPosition)!!.reinterpret<DoubleVar>()[0]
@@ -137,7 +138,7 @@ actual class BufferView internal constructor(
         }
     }
 
-    actual fun writeDouble(v: Double) {
+    actual final override fun writeDouble(v: Double) {
         if (writeRemaining < 8) throw IllegalStateException("Not enough bytes available to write a double")
 
         if (platformEndian) {
@@ -155,7 +156,7 @@ actual class BufferView internal constructor(
         writePosition += 8
     }
 
-    fun read(dst: CPointer<ByteVar>, offset: Int, length: Int) {
+    final override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= readRemaining)
         require(length >= 0)
         
@@ -163,7 +164,7 @@ actual class BufferView internal constructor(
         readPosition += length
     }
 
-    fun write(array: CPointer<ByteVar>, offset: Int, length: Int) {
+    fun writeFully(array: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= writeRemaining)
         require(length >= 0)
 
@@ -171,7 +172,12 @@ actual class BufferView internal constructor(
         writePosition += length
     }
 
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
     actual fun read(dst: ByteArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
+
+    actual final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         require(length <= readRemaining)
         require(length >= 0)
         require(offset >= 0)
@@ -187,16 +193,277 @@ actual class BufferView internal constructor(
         readPosition += length
     }
 
-    actual fun write(array: ByteArray, offset: Int, length: Int) {
+    actual final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
+        require(length * 2 <= readRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 2L)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<ShortVar>()
+            for (i in 0 .. length - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+        readPosition += length * 2
+    }
+
+    actual final override fun readFully(dst: IntArray, offset: Int, length: Int) {
+        require(length * 4 <= readRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 4L)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<IntVar>()
+            for (i in 0 .. length - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+        readPosition += length * 4
+    }
+
+    actual final override fun readFully(dst: LongArray, offset: Int, length: Int) {
+        require(length * 8 <= readRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 8L)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<LongVar>()
+            for (i in 0 .. length - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+        readPosition += length * 8
+    }
+
+    actual final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
+        require(length * 4 <= readRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 4L)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<FloatVar>()
+            for (i in 0 .. length - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+        readPosition += length * 4
+    }
+
+    actual final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
+        require(length * 8 <= readRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 8L)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
+            for (i in 0 .. length - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+        readPosition += length * 8
+    }
+
+    actual final override fun readFully(dst: BufferView, length: Int) {
+        require(length <= readRemaining)
+        require(length <= dst.writeRemaining)
+        require(length >= 0)
+
+        memcpy(dst.content + dst.writePosition, content + readPosition, length.toLong())
+        readPosition += length
+        dst.writePosition += length
+    }
+
+
+    actual final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        return dst.usePinned {
+            val copySize = minOf(length, readRemaining)
+            memcpy(it.addressOf(offset), content + readPosition, copySize.toLong())
+            readPosition += copySize
+            copySize
+        }
+    }
+
+    actual final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        val copySize = minOf(length, readRemaining shr 1)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 2)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<ShortVar>()
+            for (i in 0 .. copySize - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+
+        readPosition += copySize * 2
+
+        return copySize
+    }
+
+    actual final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        val copySize = minOf(length, readRemaining shr 2)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 4)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<IntVar>()
+            for (i in 0 .. copySize - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+
+        readPosition += copySize * 4
+
+        return copySize
+    }
+
+    actual final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        val copySize = minOf(length, readRemaining shr 3)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 8)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<LongVar>()
+            for (i in 0 .. copySize - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+
+        readPosition += copySize * 8
+
+        return copySize
+    }
+
+    actual final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        val copySize = minOf(length, readRemaining shr 2)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 4)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<FloatVar>()
+            for (i in 0 .. copySize - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+
+        readPosition += copySize * 4
+
+        return copySize
+    }
+
+    actual final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= dst.size)
+
+        val copySize = minOf(length, readRemaining shr 3)
+
+        if (platformEndian) {
+            dst.usePinned {
+                memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 8)
+            }
+        } else {
+            var ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
+            for (i in 0 .. copySize - 1) {
+                dst[offset + i] = swap(ptr[i])
+            }
+        }
+
+        readPosition += copySize * 8
+
+        return copySize
+    }
+
+    actual final override fun readAvailable(dst: BufferView, length: Int): Int {
+        require(length <= dst.writeRemaining)
+        require(length >= 0)
+
+        val copySize = minOf(length, readRemaining)
+        memcpy(dst.content + dst.writePosition, content + readPosition, copySize.toLong())
+        readPosition += length
+        dst.writePosition += length
+
+        return copySize
+    }
+
+    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
+        require(length >= 0)
+
+        val copySize = minOf(length, readRemaining)
+        memcpy(dst + offset, content + readPosition, copySize.toLong())
+        readPosition += length
+
+        return copySize
+    }
+
+    @Deprecated("Use writeFully instead")
+    actual final fun write(array: ByteArray, offset: Int, length: Int) {
+        writeFully(array, offset, length)
+    }
+
+    actual final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
         require(length <= writeRemaining)
         require(length >= 0)
         require(offset >= 0)
-        require(offset + length <= array.size)
+        require(offset + length <= src.size)
 
         memScoped {
             val tmp = allocArray<ByteVar>(length)
             for (i in 0 .. length - 1) {
-                tmp[i] = array[i + offset]
+                tmp[i] = src[i + offset]
             }
             memcpy(content + writePosition, tmp, length.toLong())
         }
@@ -204,7 +471,125 @@ actual class BufferView internal constructor(
         writePosition += length
     }
 
-    actual fun readLong(): Long {
+    actual final override fun writeFully(src: ShortArray, offset: Int, length: Int) {
+        require(length * 2 <= writeRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= src.size)
+
+        if (platformEndian) {
+            src.usePinned {
+                memcpy(content + writePosition, it.addressOf(offset), length.toLong() * 2L)
+            }
+        } else {
+            val buffer = (content + writePosition)!!.reinterpret<ShortVar>()
+            for (i in 0 .. length - 1){
+                buffer[i] = swap(src[i + offset])
+            }
+        }
+
+        writePosition += length * 2
+    }
+
+    actual final override fun writeFully(src: IntArray, offset: Int, length: Int) {
+        require(length * 4 <= writeRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= src.size)
+
+        if (platformEndian) {
+            src.usePinned {
+                memcpy(content + writePosition, it.addressOf(offset), length.toLong() * 4L)
+            }
+        } else {
+            val buffer = (content + writePosition)!!.reinterpret<IntVar>()
+            for (i in 0 .. length - 1){
+                buffer[i] = swap(src[i + offset])
+            }
+        }
+
+        writePosition += length * 4
+    }
+
+    actual final override fun writeFully(src: LongArray, offset: Int, length: Int) {
+        require(length * 8 <= writeRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= src.size)
+
+        if (platformEndian) {
+            src.usePinned {
+                memcpy(content + writePosition, it.addressOf(offset), length.toLong() * 8L)
+            }
+        } else {
+            val buffer = (content + writePosition)!!.reinterpret<LongVar>()
+            for (i in 0 .. length - 1){
+                buffer[i] = swap(src[i + offset])
+            }
+        }
+
+        writePosition += length * 8
+    }
+
+    actual final override fun writeFully(src: FloatArray, offset: Int, length: Int) {
+        require(length * 4 <= writeRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= src.size)
+
+        if (platformEndian) {
+            src.usePinned {
+                memcpy(content + writePosition, it.addressOf(offset), length.toLong() * 4L)
+            }
+        } else {
+            val buffer = (content + writePosition)!!.reinterpret<FloatVar>()
+            for (i in 0 .. length - 1){
+                buffer[i] = swap(src[i + offset])
+            }
+        }
+
+        writePosition += length * 4
+    }
+
+    actual final override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
+        require(length * 8 <= writeRemaining)
+        require(length >= 0)
+        require(offset >= 0)
+        require(offset + length <= src.size)
+
+        if (platformEndian) {
+            src.usePinned {
+                memcpy(content + writePosition, it.addressOf(offset), length.toLong() * 8L)
+            }
+        } else {
+            val buffer = (content + writePosition)!!.reinterpret<DoubleVar>()
+            for (i in 0 .. length - 1){
+                buffer[i] = swap(src[i + offset])
+            }
+        }
+
+        writePosition += length * 8
+    }
+
+    actual final override fun writeFully(src: BufferView, length: Int) {
+        require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
+        require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
+
+        memcpy(content + writePosition, src.content + src.readPosition, length.toLong())
+
+        src.readPosition += length
+        writePosition += length
+    }
+
+    actual final override fun fill(n: Long, v: Byte) {
+        require(n <= writeRemaining.toLong())
+        require(n >= 0)
+
+        memset(content + writePosition, v.toInt() and 0xff, n)
+        writePosition += n.toInt()
+    }
+
+    actual final override fun readLong(): Long {
         if (readRemaining < 8) throw IllegalStateException("Not enough bytes available to read a long")
         val m = 0xffffffff
         val a = readInt().toLong() and m
@@ -217,7 +602,7 @@ actual class BufferView internal constructor(
         }
     }
 
-    actual fun writeLong(v: Long) {
+    actual final override fun writeLong(v: Long) {
         if (writeRemaining < 8) throw IllegalStateException("Not enough space left to write a long")
         val m = 0xffffffff
         val a = (v shr 32).toInt()
@@ -233,14 +618,7 @@ actual class BufferView internal constructor(
     }
 
     actual fun writeBuffer(src: BufferView, length: Int): Int {
-        require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
-        require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
-
-        memcpy(content + writePosition, src.content + src.readPosition, length.toLong())
-
-        src.readPosition += length
-        writePosition += length
-
+        writeFully(src, length)
         return length
     }
 
@@ -270,11 +648,14 @@ actual class BufferView internal constructor(
     }
 
     actual fun discardExact(n: Int) {
-        val rem = readRemaining
-        if (n > rem) throw IllegalArgumentException("Can't discard $n bytes: only $rem bytes available")
-        readPosition += n
+        if (discard(n.toLong()) != n.toLong()) throw EOFException("Unable to discard $n")
     }
 
+    actual final override fun discard(n: Long): Long {
+        val step = minOf(readRemaining.toLong(), n).toInt()
+        readPosition += step
+        return step.toLong()
+    }
 
     actual fun resetForWrite() {
         resetForWrite(contentCapacity)
@@ -348,10 +729,32 @@ actual class BufferView internal constructor(
         }
     }
 
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$updateRemaining$`(remaining: Int) {
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$ensureNext$`(current: BufferView): BufferView? {
+        return null
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$prepareRead$`(minSize: Int): BufferView? {
+        return if (readRemaining >= minSize) this else null
+    }
+
     @Suppress("NOTHING_TO_INLINE")
     private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or ((s.toInt() and 0xffff) ushr 8)).toShort()
     @Suppress("NOTHING_TO_INLINE")
     private inline fun swap(s: Int): Int = (swap((s and 0xffff).toShort()).toInt() shl 16) or (swap((s ushr 16).toShort()).toInt() and 0xffff)
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun swap(s: Long): Long = (swap((s and 0xffffffff).toInt()).toLong() shl 32) or (swap((s ushr 32).toInt()).toLong() and 0xffffffff)
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun swap(s: Float): Float = TODO()
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun swap(s: Double): Double = TODO()
 
     actual companion object {
         private val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)

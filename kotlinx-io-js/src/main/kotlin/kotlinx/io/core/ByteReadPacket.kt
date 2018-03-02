@@ -75,7 +75,7 @@ actual class ByteReadPacket
     final override fun fill() = null
 
     actual companion object {
-        actual val Empty = ByteReadPacketBase.Empty
+        actual val Empty: ByteReadPacket = ByteReadPacketBase.Empty
         actual val ReservedSize = ByteReadPacketBase.ReservedSize
     }
 }

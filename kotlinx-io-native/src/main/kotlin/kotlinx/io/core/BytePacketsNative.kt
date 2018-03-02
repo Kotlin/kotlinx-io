@@ -26,13 +26,13 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(buffer: CPointer<ByteVar
     val available = current.readRemaining
 
     return if (destinationCapacity >= available) {
-        current.read(buffer, 0, available)
+        current.readFully(buffer, 0, available)
         @Suppress("INVISIBLE_MEMBER")
         releaseHead(current)
 
         readAsMuchAsPossible((buffer + available)!!, destinationCapacity - available, copied + available)
     } else {
-        current.read(buffer, 0, destinationCapacity)
+        current.readFully(buffer, 0, destinationCapacity)
         copied + destinationCapacity
     }
 }
@@ -51,7 +51,7 @@ fun BytePacketBuilder.writeFully(src: CPointer<ByteVar>, size: Int) {
             val capacity = buffer.writeRemaining
 
             val partSize = minOf(srcSize, capacity)
-            buffer.write(src, offset, partSize)
+            buffer.writeFully(src, offset, partSize)
             offset += partSize
             remaining -= partSize
 

@@ -645,7 +645,7 @@ abstract class ByteReadPacketBase(private var head: BufferView,
     }
 
     companion object {
-        val Empty = ByteReadPacket(BufferView.Empty, object : NoPoolImpl<BufferView>() {
+        val Empty: ByteReadPacket = ByteReadPacket(BufferView.Empty, object : NoPoolImpl<BufferView>() {
             override fun borrow() = BufferView.Empty
         })
 

@@ -7,7 +7,7 @@ import kotlinx.io.pool.*
  * Concurrent unsafe. The only concurrent-safe operation is [release].
  * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
  */
-expect class BufferView : Input {
+expect class BufferView : Input, Output {
     /**
      * Reference to an origin buffer view this was copied from
      */
@@ -107,12 +107,22 @@ expect class BufferView : Input {
     @Deprecated("Extension function should be used instead", level = DeprecationLevel.HIDDEN)
     fun discardExact(n: Int)
 
-    fun writeByte(v: Byte)
-    fun writeShort(v: Short)
-    fun writeInt(v: Int)
-    fun writeLong(v: Long)
-    fun writeFloat(v: Float)
-    fun writeDouble(v: Double)
+    final override fun writeByte(v: Byte)
+    final override fun writeShort(v: Short)
+    final override fun writeInt(v: Int)
+    final override fun writeLong(v: Long)
+    final override fun writeFloat(v: Float)
+    final override fun writeDouble(v: Double)
+
+    final override fun writeFully(src: ByteArray, offset: Int, length: Int)
+    final override fun writeFully(src: ShortArray, offset: Int, length: Int)
+    final override fun writeFully(src: IntArray, offset: Int, length: Int)
+    final override fun writeFully(src: LongArray, offset: Int, length: Int)
+    final override fun writeFully(src: FloatArray, offset: Int, length: Int)
+    final override fun writeFully(src: DoubleArray, offset: Int, length: Int)
+    final override fun writeFully(src: BufferView, length: Int)
+
+    final override fun fill(n: Long, v: Byte)
 
     /**
      * Writes exactly [length] bytes of [array] starting from [offset] position or fails if not enough free space

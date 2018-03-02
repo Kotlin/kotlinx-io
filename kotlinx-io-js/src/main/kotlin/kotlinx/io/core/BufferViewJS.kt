@@ -7,7 +7,7 @@ import org.khronos.webgl.*
 actual class BufferView internal constructor(
         private var content: ArrayBuffer,
         internal actual val origin: BufferView?
-) : Input {
+) : Input, Output {
     private var refCount = 1
 
     private var readPosition = 0
@@ -63,7 +63,7 @@ actual class BufferView internal constructor(
         return value
     }
 
-    actual fun writeByte(v: Byte) {
+    actual final override fun writeByte(v: Byte) {
         if (writeRemaining < 1) throw IllegalStateException("No space left for writing")
         i8[writePosition] = v
         writePosition++
@@ -76,7 +76,7 @@ actual class BufferView internal constructor(
         return value
     }
 
-    actual fun writeShort(v: Short) {
+    actual final override fun writeShort(v: Short) {
         if (writeRemaining < 2) throw IllegalStateException("Not enough space left to write a short")
         view.setInt16(writePosition, v, littleEndian)
         writePosition += 2
@@ -93,7 +93,7 @@ actual class BufferView internal constructor(
         return value
     }
 
-    actual fun writeInt(v: Int) {
+    actual final override fun writeInt(v: Int) {
         if (writeRemaining < 4) throw IllegalStateException("Not enough space left to write an int")
         view.setInt32(writePosition, v, littleEndian)
         writePosition += 4
@@ -106,7 +106,7 @@ actual class BufferView internal constructor(
         return value
     }
 
-    actual fun writeFloat(v: Float) {
+    actual final override fun writeFloat(v: Float) {
         if (writeRemaining < 4) throw IllegalStateException("Not enough space left to write a float")
         view.setFloat32(writePosition, v, littleEndian)
         writePosition += 4
@@ -119,10 +119,85 @@ actual class BufferView internal constructor(
         return value
     }
 
-    actual fun writeDouble(v: Double) {
+    actual final override fun writeDouble(v: Double) {
         if (writeRemaining < 8) throw IllegalStateException("Not enough space left to write a double")
         view.setFloat64(writePosition, v, littleEndian)
         writePosition += 8
+    }
+
+    actual final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
+        write(src, offset, length)
+    }
+
+    actual final override fun writeFully(src: ShortArray, offset: Int, length: Int) {
+        if (writeRemaining < length * 2) throw IllegalStateException("Not enough space left to write a double")
+        var wp = writePosition
+
+        for (i in offset .. offset + length - 1) {
+            view.setInt16(wp, src[i], littleEndian)
+            wp += 2
+        }
+
+        writePosition = wp
+    }
+
+    actual final override fun writeFully(src: IntArray, offset: Int, length: Int) {
+        if (writeRemaining < length * 4) throw IllegalStateException("Not enough space left to write a double")
+        var wp = writePosition
+
+        for (i in offset .. offset + length - 1) {
+            view.setInt32(wp, src[i], littleEndian)
+            wp += 4
+        }
+
+        writePosition = wp
+    }
+
+    actual final override fun writeFully(src: LongArray, offset: Int, length: Int) {
+        if (writeRemaining < length * 8) throw IllegalStateException("Not enough space left to write a double")
+
+        for (i in offset .. offset + length - 1) {
+            writeLong(src[i])
+        }
+    }
+
+    actual final override fun writeFully(src: FloatArray, offset: Int, length: Int) {
+        if (writeRemaining < length * 4) throw IllegalStateException("Not enough space left to write a double")
+        var wp = writePosition
+
+        for (i in offset .. offset + length - 1) {
+            view.setFloat32(wp, src[i], littleEndian)
+            wp += 4
+        }
+
+        writePosition = wp
+    }
+
+    actual final override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
+        if (writeRemaining < length * 8) throw IllegalStateException("Not enough space left to write a double")
+        var wp = writePosition
+
+        for (i in offset .. offset + length - 1) {
+            view.setFloat64(wp, src[i], littleEndian)
+            wp += 8
+        }
+
+        writePosition = wp
+    }
+
+    actual final override fun writeFully(src: BufferView, length: Int) {
+        writeBuffer(src, length)
+    }
+
+    actual final override fun fill(n: Long, v: Byte) {
+        if (writeRemaining.toLong() < n) throw IllegalStateException("Not enough space to fill with $n values")
+
+        val wp = writePosition
+        repeat(n.toInt()) {
+            i8[wp + it] = v
+        }
+
+        writePosition += n.toInt()
     }
 
     @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
@@ -425,7 +500,7 @@ actual class BufferView internal constructor(
         }
     }
 
-    actual fun writeLong(v: Long) {
+    actual final override fun writeLong(v: Long) {
         if (writeRemaining < 8) throw IllegalStateException("Not enough space left to write a long")
         val m = 0xffffffff
         val a = (v shr 32).toInt()

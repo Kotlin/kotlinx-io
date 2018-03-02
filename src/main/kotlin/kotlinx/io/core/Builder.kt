@@ -39,7 +39,7 @@ expect fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder
  * }
  * ```
  */
-class BytePacketBuilder(private var headerSizeHint: Int, private val pool: ObjectPool<BufferView>) : Appendable {
+class BytePacketBuilder(private var headerSizeHint: Int, private val pool: ObjectPool<BufferView>) : Appendable, Output {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
@@ -55,7 +55,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
      * previously written values. Note that [reset] doesn't change this value back to the default byte order.
      * @default [ByteOrder.BIG_ENDIAN]
      */
-    var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
+    final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(value) {
             field = value
             tail.byteOrder = value
@@ -68,41 +68,158 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         writeFully(src, 0, src.size)
     }
 
-    fun writeFully(src: ByteArray, offset: Int, length: Int) {
+    final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
         var copied = 0
 
         while (copied < length) {
             write(1) { buffer ->
                 val size = minOf(buffer.writeRemaining, length - copied)
-                buffer.write(src, offset + copied, size)
+                buffer.writeFully(src, offset + copied, size)
                 copied += size
                 size
             }
         }
     }
 
-    fun writeLong(l: Long) {
-        write(8) { it.writeLong(l); 8 }
+    final override fun writeLong(v: Long) {
+        write(8) { it.writeLong(v); 8 }
     }
 
-    fun writeInt(i: Int) {
-        write(4) { it.writeInt(i); 4 }
+    final override fun writeInt(v: Int) {
+        write(4) { it.writeInt(v); 4 }
     }
 
-    fun writeShort(s: Short) {
-        write(2) { it.writeShort(s); 2 }
+    final override fun writeShort(v: Short) {
+        write(2) { it.writeShort(v); 2 }
     }
 
-    fun writeByte(b: Byte) {
-        write(1) { it.writeByte(b); 1 }
+    final override fun writeByte(v: Byte) {
+        write(1) { it.writeByte(v); 1 }
     }
 
-    fun writeDouble(d: Double) {
-        write(8) { it.writeDouble(d); 8 }
+    final override fun writeDouble(v: Double) {
+        write(8) { it.writeDouble(v); 8 }
     }
 
-    fun writeFloat(f: Float) {
-        write(4) { it.writeFloat(f); 4 }
+    final override fun writeFloat(v: Float) {
+        write(4) { it.writeFloat(v); 4 }
+    }
+
+    override fun writeFully(src: ShortArray, offset: Int, length: Int) {
+        require(length >= 0)
+        require(offset + length < src.lastIndex)
+
+        var start = offset
+        var remaining = length
+
+        while (remaining > 0) {
+            write(2) { v ->
+                val qty = minOf(v.writeRemaining shr 1, remaining)
+                v.writeFully(src, start, qty)
+                start += qty
+                remaining -= qty
+                qty * 2
+            }
+        }
+    }
+
+    override fun writeFully(src: IntArray, offset: Int, length: Int) {
+        require(length >= 0)
+        require(offset + length < src.lastIndex)
+
+        var start = offset
+        var remaining = length
+
+        while (remaining > 0) {
+            write(4) { v ->
+                val qty = minOf(v.writeRemaining shr 2, remaining)
+                v.writeFully(src, start, qty)
+                start += qty
+                remaining -= qty
+                qty * 4
+            }
+        }
+    }
+
+    override fun writeFully(src: LongArray, offset: Int, length: Int) {
+        require(length >= 0)
+        require(offset + length < src.lastIndex)
+
+        var start = offset
+        var remaining = length
+
+        while (remaining > 0) {
+            write(8) { v ->
+                val qty = minOf(v.writeRemaining shr 3, remaining)
+                v.writeFully(src, start, qty)
+                start += qty
+                remaining -= qty
+                qty * 8
+            }
+        }
+    }
+
+    override fun writeFully(src: FloatArray, offset: Int, length: Int) {
+        require(length >= 0)
+        require(offset + length < src.lastIndex)
+
+        var start = offset
+        var remaining = length
+
+        while (remaining > 0) {
+            write(4) { v ->
+                val qty = minOf(v.writeRemaining shr 2, remaining)
+                v.writeFully(src, start, qty)
+                start += qty
+                remaining -= qty
+                qty * 4
+            }
+        }
+    }
+
+    override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
+        require(length >= 0)
+        require(offset + length < src.lastIndex)
+
+        var start = offset
+        var remaining = length
+
+        while (remaining > 0) {
+            write(8) { v ->
+                val qty = minOf(v.writeRemaining shr 3, remaining)
+                v.writeFully(src, start, qty)
+                start += qty
+                remaining -= qty
+                qty * 8
+            }
+        }
+    }
+
+    override fun writeFully(src: BufferView, length: Int) {
+        require(length >= 0)
+        require(length <= src.readRemaining)
+
+        while (src.readRemaining > 0) {
+            write(1) { v ->
+                val size = minOf(v.writeRemaining, src.readRemaining)
+                v.writeFully(src, size)
+                size
+            }
+        }
+    }
+
+    override fun fill(n: Long, v: Byte) {
+        require(n >= 0L)
+
+        var rem = n
+        while (rem > 0L) {
+            write(1) { buffer ->
+                val size = minOf(buffer.writeRemaining.toLong(), n).toInt()
+                buffer.fill(size.toLong(), v)
+                rem -= size
+                size
+            }
+        }
     }
 
     /**
