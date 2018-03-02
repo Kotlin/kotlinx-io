@@ -1,5 +1,5 @@
 apply plugin: 'kotlin-platform-js'
-apply plugin: 'org.jetbrains.kotlin.frontend'
+//apply plugin: 'org.jetbrains.kotlin.frontend'
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
@@ -8,7 +8,7 @@ dependencies {
     expectedBy project(":")
 }
 
-kotlinFrontend {
+/*kotlinFrontend {
     downloadNodeJsVersion = 'latest'
 
     npm {
@@ -24,7 +24,7 @@ kotlinFrontend {
         enableWebPack = true
     }
 }
-
+*/
 compileKotlin2Js {
     kotlinOptions.metaInfo = true
 //    kotlinOptions.outputFile = "$project.buildDir.path/js/${project.name}.js"
