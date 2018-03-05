@@ -64,10 +64,6 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     private var head: BufferView = BufferView.Empty
     private var tail: BufferView = head
 
-    fun writeFully(src: ByteArray) {
-        writeFully(src, 0, src.size)
-    }
-
     final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
         var copied = 0
 

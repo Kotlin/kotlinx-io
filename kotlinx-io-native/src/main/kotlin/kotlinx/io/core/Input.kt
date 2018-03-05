@@ -43,3 +43,34 @@ actual interface Input {
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     actual fun `$prepareRead$`(minSize: Int): BufferView?
 }
+
+fun Input.readAvailable(dst: ByteArray): Int = readAvailable(dst, 0, dst.size)
+fun Input.readAvailable(dst: ShortArray): Int = readAvailable(dst, 0, dst.size)
+fun Input.readAvailable(dst: IntArray): Int = readAvailable(dst, 0, dst.size)
+fun Input.readAvailable(dst: LongArray): Int = readAvailable(dst, 0, dst.size)
+fun Input.readAvailable(dst: FloatArray): Int = readAvailable(dst, 0, dst.size)
+fun Input.readAvailable(dst: DoubleArray): Int = readAvailable(dst, 0, dst.size)
+
+fun Input.readFully(dst: ByteArray) {
+    readFully(dst, 0, dst.size)
+}
+
+fun Input.readFully(dst: ShortArray) {
+    readFully(dst, 0, dst.size)
+}
+
+fun Input.readFully(dst: IntArray) {
+    readFully(dst, 0,  dst.size)
+}
+
+fun Input.readFully(dst: LongArray) {
+    readFully(dst, 0, dst.size)
+}
+
+fun Input.readFully(dst: FloatArray) {
+    readFully(dst, 0, dst.size)
+}
+
+fun Input.readFully(dst: DoubleArray) {
+    readFully(dst, 0, dst.size)
+}

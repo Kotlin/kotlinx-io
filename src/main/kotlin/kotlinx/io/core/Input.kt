@@ -10,21 +10,21 @@ expect interface Input {
     fun readFloat(): Float
     fun readDouble(): Double
 
-    fun readFully(dst: ByteArray, offset: Int, length: Int)
-    fun readFully(dst: ShortArray, offset: Int, length: Int)
-    fun readFully(dst: IntArray, offset: Int, length: Int)
-    fun readFully(dst: LongArray, offset: Int, length: Int)
-    fun readFully(dst: FloatArray, offset: Int, length: Int)
-    fun readFully(dst: DoubleArray, offset: Int, length: Int)
-    fun readFully(dst: BufferView, length: Int)
+    fun readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size)
+    fun readFully(dst: ShortArray, offset: Int = 0, length: Int = dst.size)
+    fun readFully(dst: IntArray, offset: Int = 0, length: Int = dst.size)
+    fun readFully(dst: LongArray, offset: Int = 0, length: Int = dst.size)
+    fun readFully(dst: FloatArray, offset: Int = 0, length: Int = dst.size)
+    fun readFully(dst: DoubleArray, offset: Int = 0, length: Int = dst.size)
+    fun readFully(dst: BufferView, length: Int = dst.writeRemaining)
 
-    fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: IntArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: BufferView, length: Int): Int
+    fun readAvailable(dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int
+    fun readAvailable(dst: ShortArray, offset: Int = 0, length: Int = dst.size): Int
+    fun readAvailable(dst: IntArray, offset: Int = 0, length: Int = dst.size): Int
+    fun readAvailable(dst: LongArray, offset: Int = 0, length: Int = dst.size): Int
+    fun readAvailable(dst: FloatArray, offset: Int = 0, length: Int = dst.size): Int
+    fun readAvailable(dst: DoubleArray, offset: Int = 0, length: Int = dst.size): Int
+    fun readAvailable(dst: BufferView, length: Int = dst.writeRemaining): Int
 
     fun discard(n: Long): Long
 
@@ -37,37 +37,6 @@ expect interface Input {
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     fun `$prepareRead$`(minSize: Int): BufferView?
 }
-
-fun Input.readFully(dst: ByteArray) {
-    readFully(dst, 0, dst.size)
-}
-
-fun Input.readFully(dst: ShortArray) {
-    readFully(dst, 0, dst.size)
-}
-
-fun Input.readFully(dst: IntArray) {
-    readFully(dst, 0,  dst.size)
-}
-
-fun Input.readFully(dst: LongArray) {
-    readFully(dst, 0, dst.size)
-}
-
-fun Input.readFully(dst: FloatArray) {
-    readFully(dst, 0, dst.size)
-}
-
-fun Input.readFully(dst: DoubleArray) {
-    readFully(dst, 0, dst.size)
-}
-
-fun Input.readAvailable(dst: ByteArray): Int = readAvailable(dst, 0, dst.size)
-fun Input.readAvailable(dst: ShortArray): Int = readAvailable(dst, 0, dst.size)
-fun Input.readAvailable(dst: IntArray): Int = readAvailable(dst, 0, dst.size)
-fun Input.readAvailable(dst: LongArray): Int = readAvailable(dst, 0, dst.size)
-fun Input.readAvailable(dst: FloatArray): Int = readAvailable(dst, 0, dst.size)
-fun Input.readAvailable(dst: DoubleArray): Int = readAvailable(dst, 0, dst.size)
 
 fun Input.discardExact(n: Long) {
     val discarded = discard(n)

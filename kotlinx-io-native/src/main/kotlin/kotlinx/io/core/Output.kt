@@ -22,3 +22,35 @@ actual interface Output {
 
     actual fun fill(n: Long, v: Byte)
 }
+
+fun Output.writeFully(src: ByteArray) {
+    writeFully(src, 0, src.size)
+}
+
+fun Output.writeFully(src: ShortArray) {
+    writeFully(src, 0, src.size)
+}
+
+fun Output.writeFully(src: IntArray) {
+    writeFully(src, 0, src.size)
+}
+
+fun Output.writeFully(src: LongArray) {
+    writeFully(src, 0, src.size)
+}
+
+fun Output.writeFully(src: FloatArray) {
+    writeFully(src, 0, src.size)
+}
+
+fun Output.writeFully(src: DoubleArray) {
+    writeFully(src, 0, src.size)
+}
+
+fun Output.writeFully(src: BufferView) {
+    writeFully(src, src.readRemaining)
+}
+
+fun Output.fill(n: Long) {
+    fill(n, 0)
+}

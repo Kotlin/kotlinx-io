@@ -19,7 +19,7 @@ class PrimitiveArraysTest {
             val size = 1
 
             view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("f10001ff7f", view.readHex())
@@ -53,7 +53,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = ByteArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -86,7 +86,7 @@ class PrimitiveArraysTest {
             val size = 2
 
             view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("fff10000000100ffffffceff", view.readHex())
@@ -120,7 +120,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = ShortArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -153,7 +153,7 @@ class PrimitiveArraysTest {
             val size = 2
 
             view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("f1ff00000100ff00ffffffce", view.readHex())
@@ -187,7 +187,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = ShortArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -220,7 +220,7 @@ class PrimitiveArraysTest {
             val size = 4
 
             view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("fffffff10000000000000001000000ff0000ffffffffffffceffffff", view.readHex())
@@ -254,7 +254,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = IntArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -287,7 +287,7 @@ class PrimitiveArraysTest {
             val size = 4
 
             view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("f1ffffff0000000001000000ff000000ffff0000ffffffffffffffce", view.readHex())
@@ -321,7 +321,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = IntArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -354,7 +354,7 @@ class PrimitiveArraysTest {
             val size = 8
 
             view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff", view.readHex())
@@ -388,7 +388,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = LongArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -421,7 +421,7 @@ class PrimitiveArraysTest {
             val size = 8
 
             view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff", view.readHex())
@@ -455,7 +455,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = LongArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -488,7 +488,7 @@ class PrimitiveArraysTest {
             val size = 4
 
             view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("3f8000003f000000bf800000", view.readHex())
@@ -522,7 +522,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = FloatArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -555,7 +555,7 @@ class PrimitiveArraysTest {
             val size = 4
 
             view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("0000803f0000003f000080bf", view.readHex())
@@ -589,7 +589,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = FloatArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -622,7 +622,7 @@ class PrimitiveArraysTest {
             val size = 8
 
             view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("3ff00000000000003fe0000000000000bff0000000000000", view.readHex())
@@ -656,7 +656,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = DoubleArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
@@ -689,7 +689,7 @@ class PrimitiveArraysTest {
             val size = 8
 
             view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 0, array.size)
+            view.writeFully(array)
 
             assertEquals(array.size * size, view.readRemaining)
             assertEquals("000000000000f03f000000000000e03f000000000000f0bf", view.readHex())
@@ -723,7 +723,7 @@ class PrimitiveArraysTest {
 
             assertEquals(array.size * size, view.readRemaining)
             val tmp = DoubleArray(array.size)
-            view.readFully(tmp, 0, tmp.size)
+            view.readFully(tmp)
             assertTrue { tmp.contentEquals(array) }
         } finally {
             view.release(BufferView.NoPool)
