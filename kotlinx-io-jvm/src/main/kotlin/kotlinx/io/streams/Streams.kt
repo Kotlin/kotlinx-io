@@ -46,8 +46,8 @@ fun InputStream.readPacketAtLeast(n: Long): ByteReadPacket = readPacketImpl(n, L
 fun InputStream.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)
 
 private fun InputStream.readPacketImpl(min: Long, max: Long): ByteReadPacket {
-    require(min >= 0L)
-    require(min <= max)
+    require(min >= 0L) { "min shouldn't be negative" }
+    require(min <= max) { "min shouldn't be greater than max: $min > $max" }
 
     val buffer = ByteArray(max.coerceAtMost(4096).toInt())
     val builder = BytePacketBuilder()

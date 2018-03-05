@@ -63,8 +63,8 @@ fun ReadableByteChannel.readPacketAtLeast(n: Long): ByteReadPacket = readPacketI
 fun ReadableByteChannel.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)
 
 private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPacket {
-    require(min >= 0L)
-    require(min <= max)
+    require(min >= 0L) { "min shouldn't be negative: $min" }
+    require(min <= max) { "min shouldn't be greater than max: $min > $max" }
 
     if (max == 0L) return ByteReadPacket.Empty
 

@@ -2,6 +2,7 @@ package kotlinx.io.pool
 
 import kotlinx.io.utils.*
 import java.util.concurrent.atomic.*
+import kotlin.jvm.*
 
 private const val MULTIPLIER = 4
 private const val PROBE_COUNT = 8 // number of attepts to find a slot
@@ -63,7 +64,7 @@ actual abstract class DefaultPool<T : Any>(actual final override val capacity: I
     }
 
     private fun pushTop(index: Int) {
-        require(index > 0)
+        require(index > 0) { "index should be positive" }
         while (true) { // lock-free loop on top
             val top = this.top // volatile read
             val topVersion = (top shr 32 and 0xffffffffL) + 1L

@@ -125,16 +125,16 @@ actual class BufferView internal constructor(
     }
 
     final override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
-        require(length <= readRemaining)
-        require(length >= 0)
+        require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
         
         memcpy(dst + offset, content + readPosition, length.toLong())
         readPosition += length
     }
 
     fun writeFully(array: CPointer<ByteVar>, offset: Int, length: Int) {
-        require(length <= writeRemaining)
-        require(length >= 0)
+        require(length <= writeRemaining) { "Not enough space available to write $length bytes" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
 
         memcpy(content + writePosition, array + offset, length.toLong())
         writePosition += length
@@ -146,10 +146,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
-        require(length <= readRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         dst.usePinned {
             val address = it.addressOf(offset)
@@ -160,10 +160,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
-        require(length * 2 <= readRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length * 2 <= readRemaining) { "Not enough bytes available to read $length short int numbers (16)" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         if (platformEndian) {
             dst.usePinned {
@@ -179,10 +179,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readFully(dst: IntArray, offset: Int, length: Int) {
-        require(length * 4 <= readRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length * 4 <= readRemaining) { "Not enough bytes available to read $length int numbers (32)" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         if (platformEndian) {
             dst.usePinned {
@@ -198,10 +198,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readFully(dst: LongArray, offset: Int, length: Int) {
-        require(length * 8 <= readRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length * 8 <= readRemaining) { "Not enough bytes available to read $length long int numbers (64)" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         if (platformEndian) {
             dst.usePinned {
@@ -217,10 +217,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
-        require(length * 4 <= readRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length * 4 <= readRemaining) { "Not enough bytes available to read $length float numbers" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         if (platformEndian) {
             dst.usePinned {
@@ -236,10 +236,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
-        require(length * 8 <= readRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length * 8 <= readRemaining) { "Not enough bytes available to read $length double numbers" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         if (platformEndian) {
             dst.usePinned {
@@ -255,9 +255,9 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readFully(dst: BufferView, length: Int) {
-        require(length <= readRemaining)
-        require(length <= dst.writeRemaining)
-        require(length >= 0)
+        require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
+        require(length <= dst.writeRemaining) { "Not enough space in the destination buffer to read $length bytes" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
 
         memcpy(dst.content + dst.writePosition, content + readPosition, length.toLong())
         readPosition += length
@@ -266,9 +266,9 @@ actual class BufferView internal constructor(
 
 
     actual final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         return dst.usePinned {
             val copySize = minOf(length, readRemaining)
@@ -279,9 +279,9 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         val copySize = minOf(length, readRemaining shr 1)
 
@@ -302,9 +302,9 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         val copySize = minOf(length, readRemaining shr 2)
 
@@ -325,9 +325,9 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         val copySize = minOf(length, readRemaining shr 3)
 
@@ -348,9 +348,9 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         val copySize = minOf(length, readRemaining shr 2)
 
@@ -371,9 +371,9 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= dst.size)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         val copySize = minOf(length, readRemaining shr 3)
 
@@ -394,8 +394,8 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun readAvailable(dst: BufferView, length: Int): Int {
-        require(length <= dst.writeRemaining)
-        require(length >= 0)
+        require(length <= dst.writeRemaining) { "Not enough space in the dst buffer to write $length bytes" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
 
         val copySize = minOf(length, readRemaining)
         memcpy(dst.content + dst.writePosition, content + readPosition, copySize.toLong())
@@ -406,7 +406,7 @@ actual class BufferView internal constructor(
     }
 
     final override fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
-        require(length >= 0)
+        require(length >= 0) { "length shouldn't be negative: $length" }
 
         val copySize = minOf(length, readRemaining)
         memcpy(dst + offset, content + readPosition, copySize.toLong())
@@ -421,10 +421,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
-        require(length <= writeRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= src.size)
+        require(length <= writeRemaining) { "Not enough space to write $length bytes" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         src.usePinned {
             val address = it.addressOf(offset)
@@ -435,10 +435,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: ShortArray, offset: Int, length: Int) {
-        require(length * 2 <= writeRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= src.size)
+        require(length * 2 <= writeRemaining) { "Not enough space to write $length short int numbers (16)" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         if (platformEndian) {
             src.usePinned {
@@ -455,10 +455,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: IntArray, offset: Int, length: Int) {
-        require(length * 4 <= writeRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= src.size)
+        require(length * 4 <= writeRemaining) { "Not enough space to write $length int numbers (32)"}
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         if (platformEndian) {
             src.usePinned {
@@ -475,10 +475,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: LongArray, offset: Int, length: Int) {
-        require(length * 8 <= writeRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= src.size)
+        require(length * 8 <= writeRemaining) { "Not enough space to write $length long int numbers (64)"}
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         if (platformEndian) {
             src.usePinned {
@@ -495,10 +495,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: FloatArray, offset: Int, length: Int) {
-        require(length * 4 <= writeRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= src.size)
+        require(length * 4 <= writeRemaining) { "Not enough space to write $length float numbers (32)" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         if (platformEndian) {
             src.usePinned {
@@ -515,10 +515,10 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
-        require(length * 8 <= writeRemaining)
-        require(length >= 0)
-        require(offset >= 0)
-        require(offset + length <= src.size)
+        require(length * 8 <= writeRemaining) { "Not enough space to write $length double numbers (64)"}
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         if (platformEndian) {
             src.usePinned {
@@ -546,7 +546,7 @@ actual class BufferView internal constructor(
 
     actual final override fun fill(n: Long, v: Byte) {
         require(n <= writeRemaining.toLong())
-        require(n >= 0)
+        require(n >= 0) { "n shouldn't be negative: $n" }
 
         memset(content + writePosition, v.toInt() and 0xff, n)
         writePosition += n.toInt()
@@ -626,7 +626,7 @@ actual class BufferView internal constructor(
     }
 
     actual fun resetForWrite(limit: Int) {
-        require(limit <= contentCapacity)
+        require(limit <= contentCapacity) { "Limit shouldn't be greater than buffers capacity" }
         readPosition = 0
         writePosition = 0
         this.limit = limit
@@ -750,8 +750,8 @@ actual class BufferView internal constructor(
             }
 
             override fun disposeInstance(instance: BufferView) {
-                require(instance.refCount == 0)
-                require(instance.content !== EmptyBuffer)
+                require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
+                require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
 
                 nativeHeap.free(instance.content)
             }
@@ -764,8 +764,8 @@ actual class BufferView internal constructor(
             }
 
             override fun recycle(instance: BufferView) {
-                require(instance.refCount == 0)
-                require(instance.content !== EmptyBuffer)
+                require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
+                require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
                 nativeHeap.free(instance.content)
             }
         }

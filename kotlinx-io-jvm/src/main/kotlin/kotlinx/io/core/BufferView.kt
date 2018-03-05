@@ -98,8 +98,8 @@ actual class BufferView private constructor(
      * Reserves [n] bytes at the beginning. Could be invoked only once and only before writing.
      */
     actual fun reserveStartGap(n: Int) {
-        require(n >= 0)
-        require(n <= writeBuffer.capacity())
+        require(n >= 0) { "n shouldn't be negative: $n" }
+        require(n <= writeBuffer.capacity()) { "Not enough space to reserve $n bytes" }
 
         val rp = readPosition
         if (rp != 0) throw IllegalStateException("Can't reserve $n bytes gap: there is already a reserved gap ($rp bytes)")
@@ -114,7 +114,7 @@ actual class BufferView private constructor(
      * Reserves [n] bytes at the end of buffer. Could be invoked only once and only if there are at least [n] bytes free
      */
     actual fun reserveEndGap(n: Int) {
-        require(n >= 0)
+        require(n >= 0) { "n shouldn't be negative: $n" }
         val writeBufferLimit = writeBuffer.limit()
 
         if (writeBufferLimit != writeBuffer.capacity()) throw IllegalStateException("Can't reserve $n bytes gap: there is already a reserved gap (${writeBuffer.capacity() - writeBufferLimit} bytes)")
@@ -201,9 +201,9 @@ actual class BufferView private constructor(
     }
 
     actual final override fun writeFully(src: BufferView, length: Int) {
-        require(length >= 0)
-        require(length <= src.readRemaining)
-        require(length <= writeRemaining)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(length <= src.readRemaining) { "length is bigger than src buffer size: $length > ${src.readRemaining}" }
+        require(length <= writeRemaining) { "Not enough space to write $length bytes" }
 
         if (length == src.readRemaining) {
             writeBuffer.put(src.readBuffer)
@@ -219,7 +219,7 @@ actual class BufferView private constructor(
     }
 
     actual final override fun fill(n: Long, v: Byte) {
-        require(n <= writeRemaining)
+        require(n <= writeRemaining) { "Not enough space to write $n bytes" }
 
         val bb = writeBuffer
         repeat(n.toInt()) {
@@ -331,8 +331,8 @@ actual class BufferView private constructor(
 
     actual final override fun readFully(dst: BufferView, length: Int) {
         val readRemaining = readRemaining
-        require(length <= dst.writeRemaining)
-        require(length <= readRemaining)
+        require(length <= dst.writeRemaining) { "Not enough space in the destination buffer to write $length bytes" }
+        require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
 
         readFully(dst.writeBuffer, length)
     }
@@ -467,7 +467,7 @@ actual class BufferView private constructor(
     }
 
     actual fun resetForWrite(limit: Int) {
-        require(limit <= writeBuffer.capacity())
+        require(limit <= writeBuffer.capacity()) { "Limit shouldn't be greater than buffer's capacity" }
         writeBuffer.limit(limit)
         readPosition = 0
         writePosition = 0

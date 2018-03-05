@@ -106,8 +106,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     override fun writeFully(src: ShortArray, offset: Int, length: Int) {
-        require(length >= 0)
-        require(offset + length < src.lastIndex)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
 
         var start = offset
         var remaining = length
@@ -124,8 +124,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     override fun writeFully(src: IntArray, offset: Int, length: Int) {
-        require(length >= 0)
-        require(offset + length < src.lastIndex)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
 
         var start = offset
         var remaining = length
@@ -142,8 +142,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     override fun writeFully(src: LongArray, offset: Int, length: Int) {
-        require(length >= 0)
-        require(offset + length < src.lastIndex)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
 
         var start = offset
         var remaining = length
@@ -160,8 +160,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     override fun writeFully(src: FloatArray, offset: Int, length: Int) {
-        require(length >= 0)
-        require(offset + length < src.lastIndex)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
 
         var start = offset
         var remaining = length
@@ -178,8 +178,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
-        require(length >= 0)
-        require(offset + length < src.lastIndex)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
 
         var start = offset
         var remaining = length
@@ -196,8 +196,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     override fun writeFully(src: BufferView, length: Int) {
-        require(length >= 0)
-        require(length <= src.readRemaining)
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(length <= src.readRemaining) { "Not enough bytes available in src buffer to read $length bytes" }
 
         while (src.readRemaining > 0) {
             write(1) { v ->
@@ -209,7 +209,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     override fun fill(n: Long, v: Byte) {
-        require(n >= 0L)
+        require(n >= 0L) { "n shouldn't be negative: $n" }
 
         var rem = n
         while (rem > 0L) {

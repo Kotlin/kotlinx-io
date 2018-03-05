@@ -578,7 +578,7 @@ abstract class ByteReadPacketBase(private var head: BufferView,
         if (tail === BufferView.Empty) {
             head = chunk
             chunk.byteOrder = byteOrder
-            require(tailRemaining == 0L)
+            require(tailRemaining == 0L) { throw IllegalStateException("It should be no tail remaining bytes if current tail is EmptyBuffer") }
             headRemaining = chunk.readRemaining
             tailRemaining = chunk.next?.remainingAll() ?: 0L
         } else {

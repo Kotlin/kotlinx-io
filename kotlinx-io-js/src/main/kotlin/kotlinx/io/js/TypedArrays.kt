@@ -4,26 +4,11 @@ import kotlinx.io.core.*
 import org.khronos.webgl.*
 
 /**
- * Read exactly [length] bytes to the specified [dst] array buffer at optional [offset]
- */
-fun ByteReadPacket.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset) {
-    return readFully(Int8Array(dst), offset, length)
-}
-
-/**
- * Read exactly [length] bytes to the specified [dst] typed array at optional [offset]
- */
-fun ByteReadPacket.readFully(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset) {
-    require(length <= remaining)
-    readAvailable(dst, offset, length)
-}
-
-/**
  * Read exactly [n] bytes to a new array buffer instance
  */
 fun ByteReadPacket.readArrayBuffer(n: Int = remaining.coerceAtMostMaxInt()): ArrayBuffer {
     val buffer = ArrayBuffer(n)
-    readFully(buffer)
+    readFully(buffer, 0, n)
     return buffer
 }
 

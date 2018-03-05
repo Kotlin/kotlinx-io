@@ -7,7 +7,7 @@ actual abstract class ByteReadPacketPlatformBase protected actual constructor(he
 
     override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= remaining) { "Not enough bytes available ($remaining) to read $length bytes" }
-        require(length >= 0)
+        require(length >= 0) { "length shouldn't be negative: $length" }
 
         var copied = 0
 
