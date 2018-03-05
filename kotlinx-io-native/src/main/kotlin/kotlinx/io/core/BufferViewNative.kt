@@ -96,63 +96,31 @@ actual class BufferView internal constructor(
 
     actual final override fun readFloat(): Float {
         if (readRemaining < 4) throw IllegalStateException("Not enough bytes available to read a float")
-        return memScoped {
-            val value = alloc<IntVar>()
-            value.value = (content + readPosition)!!.reinterpret<IntVar>()[0]
-            if (!platformEndian) value.value = swap(value.value)
-            readPosition += 4
-            value.reinterpret<FloatVar>().value
-        }
+
+        val f = (content + readPosition)!!.reinterpret<FloatVar>()[0]
+        readPosition += 4
+        return if (platformEndian) f else swap(f)
     }
 
     actual final override fun writeFloat(v: Float) {
         if (writeRemaining < 4) throw IllegalStateException("Not enough space left to write a float")
-        memScoped {
-            val value = alloc<IntVar>()
-            value.reinterpret<FloatVar>().value = v
-            if (!platformEndian) value.value = swap(value.value)
-            (content + writePosition)!!.reinterpret<IntVar>()[0] = value.value
-        }
+        val b = if (platformEndian) v else swap(v)
+        (content + writePosition)!!.reinterpret<FloatVar>()[0] = b
+
         writePosition += 4
     }
 
     actual final override fun readDouble(): Double {
         if (readRemaining < 8) throw IllegalStateException("Not enough bytes available to read a double")
-        if (platformEndian) {
-            val v = (content + readPosition)!!.reinterpret<DoubleVar>()[0]
-            readPosition += 8
-            return v
-        }
 
-        return memScoped {
-            val ints = (content + readPosition)!!.reinterpret<IntVar>()
-            val value = allocArray<DoubleVar>(1)
-            val rints = value.reinterpret<IntVar>()
-
-            rints[0] = swap(ints[1])
-            rints[1] = swap(ints[0])
-
-            readPosition += 8
-
-            value[0]
-        }
+        val b = (content + readPosition)!!.reinterpret<DoubleVar>()[0]
+        readPosition += 8
+        return if (platformEndian) b else swap(b)
     }
 
     actual final override fun writeDouble(v: Double) {
-        if (writeRemaining < 8) throw IllegalStateException("Not enough bytes available to write a double")
-
-        if (platformEndian) {
-            (content + writePosition)!!.reinterpret<DoubleVar>()[0] = v
-        } else {
-            memScoped {
-                val value = allocArray<IntVar>(2)
-                value.reinterpret<DoubleVar>()[0] = v
-
-                (content + writePosition)!!.reinterpret<IntVar>()[0] = swap(value[1])
-                (content + writePosition)!!.reinterpret<IntVar>()[1] = swap(value[0])
-            }
-        }   
-
+        if (writeRemaining < 8) throw IllegalStateException("Not enough space left to write a double")
+        (content + writePosition)!!.reinterpret<DoubleVar>()[0] = if (platformEndian) v else swap(v)
         writePosition += 8
     }
 
@@ -183,13 +151,11 @@ actual class BufferView internal constructor(
         require(offset >= 0)
         require(offset + length <= dst.size)
 
-        memScoped {
-            val array = allocArray<ByteVar>(length)
-            memcpy(array, content + readPosition, length.toLong())
-            for (i in 0 .. length - 1) {
-                dst[i + offset] = array[i]
-            }
+        dst.usePinned {
+            val address = it.addressOf(offset)
+            memcpy(address, content + readPosition, length.toLong())
         }
+
         readPosition += length
     }
 
@@ -460,12 +426,9 @@ actual class BufferView internal constructor(
         require(offset >= 0)
         require(offset + length <= src.size)
 
-        memScoped {
-            val tmp = allocArray<ByteVar>(length)
-            for (i in 0 .. length - 1) {
-                tmp[i] = src[i + offset]
-            }
-            memcpy(content + writePosition, tmp, length.toLong())
+        src.usePinned {
+            val address = it.addressOf(offset)
+            memcpy(content + writePosition, address, length.toLong())
         }
 
         writePosition += length
