@@ -4,7 +4,9 @@ import kotlinx.io.core.*
 import kotlin.test.*
 
 class PrimitiveArraysTest {
-    private val view = BufferView.NoPool.borrow()
+    private val pool = VerifyingObjectPool(BufferView.NoPool)
+    private val view = pool.borrow()
+
     private val i8 = byteArrayOf(-15, 0, 1, -1, 127)
     private val i16 = shortArrayOf(-15, 0, 1, 0xff, 0xffff.toShort(), 0xceff.toShort())
     private val i32 = intArrayOf(-15, 0, 1, 0xff, 0xffff, 0xffffffff.toInt(), 0xceffffff.toInt())
@@ -12,741 +14,599 @@ class PrimitiveArraysTest {
     private val f32 = floatArrayOf(1.0f, 0.5f, -1.0f)
     private val f64 = doubleArrayOf(1.0, 0.5, -1.0)
 
+    @AfterTest
+    fun test() {
+        view.release(pool)
+        pool.assertEmpty()
+    }
+
     @Test
     fun testWriteByteArray() {
-        try {
-            val array = i8
-            val size = 1
+        val array = i8
+        val size = 1
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array)
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array)
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("f10001ff7f", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("f10001ff7f", view.readHex())
     }
 
     @Test
     fun testWriteByteArrayRange() {
-        try {
-            val array = i8
+        val array = i8
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
 
-            assertEquals("0001ff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals("0001ff", view.readHex())
     }
 
     @Test
     fun testReadByteArray() {
-        try {
-            val array = i8
-            val size = 1
+        val array = i8
+        val size = 1
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("f10001ff7f")
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("f10001ff7f")
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = ByteArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = ByteArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadByteArrayRange() {
-        try {
-            val array = i8
-            val size = 1
+        val array = i8
+        val size = 1
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("f10001ff7f")
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("f10001ff7f")
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = ByteArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = ByteArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteShortArrayBE() {
-        try {
-            val array = i16
-            val size = 2
+        val array = i16
+        val size = 2
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array)
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array)
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("fff10000000100ffffffceff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("fff10000000100ffffffceff", view.readHex())
     }
 
     @Test
     fun testWriteShortArrayBERange() {
-        try {
-            val array = i16
+        val array = i16
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
 
-            assertEquals("0000000100ffffff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals("0000000100ffffff", view.readHex())
     }
 
     @Test
     fun testReadShortArrayBE() {
-        try {
-            val array = i16
-            val size = 2
+        val array = i16
+        val size = 2
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("fff10000000100ffffffceff")
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("fff10000000100ffffffceff")
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = ShortArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = ShortArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadShortArrayRangeBE() {
-        try {
-            val array = i16
-            val size = 2
+        val array = i16
+        val size = 2
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("fff10000000100ffffffceff")
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("fff10000000100ffffffceff")
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = ShortArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = ShortArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteShortArrayLE() {
-        try {
-            val array = i16
-            val size = 2
+        val array = i16
+        val size = 2
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array)
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array)
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("f1ff00000100ff00ffffffce", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("f1ff00000100ff00ffffffce", view.readHex())
     }
 
     @Test
     fun testWriteShortArrayLERange() {
-        try {
-            val array = i16
+        val array = i16
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
 
-            assertEquals("00000100ff00ffff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals("00000100ff00ffff", view.readHex())
     }
 
     @Test
     fun testReadShortArrayLE() {
-        try {
-            val array = i16
-            val size = 2
+        val array = i16
+        val size = 2
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("f1ff00000100ff00ffffffce")
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("f1ff00000100ff00ffffffce")
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = ShortArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = ShortArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadShortArrayRangeLE() {
-        try {
-            val array = i16
-            val size = 2
+        val array = i16
+        val size = 2
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("f1ff00000100ff00ffffffce")
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("f1ff00000100ff00ffffffce")
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = ShortArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = ShortArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteIntArrayBE() {
-        try {
-            val array = i32
-            val size = 4
+        val array = i32
+        val size = 4
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array)
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array)
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("fffffff10000000000000001000000ff0000ffffffffffffceffffff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("fffffff10000000000000001000000ff0000ffffffffffffceffffff", view.readHex())
     }
 
     @Test
     fun testWriteIntArrayBERange() {
-        try {
-            val array = i32
+        val array = i32
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
 
-            assertEquals("0000000000000001000000ff0000ffffffffffff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals("0000000000000001000000ff0000ffffffffffff", view.readHex())
     }
 
     @Test
     fun testReadIntArrayBE() {
-        try {
-            val array = i32
-            val size = 4
+        val array = i32
+        val size = 4
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("fffffff10000000000000001000000ff0000ffffffffffffceffffff")
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("fffffff10000000000000001000000ff0000ffffffffffffceffffff")
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = IntArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = IntArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadIntArrayRangeBE() {
-        try {
-            val array = i32
-            val size = 4
+        val array = i32
+        val size = 4
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("fffffff10000000000000001000000ff0000ffffffffffffceffffff")
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("fffffff10000000000000001000000ff0000ffffffffffffceffffff")
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = IntArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = IntArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteIntArrayLE() {
-        try {
-            val array = i32
-            val size = 4
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array)
+        val array = i32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("f1ffffff0000000001000000ff000000ffff0000ffffffffffffffce", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array)
+
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("f1ffffff0000000001000000ff000000ffff0000ffffffffffffffce", view.readHex())
     }
 
     @Test
     fun testWriteIntArrayLERange() {
-        try {
-            val array = i32
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        val array = i32
 
-            assertEquals("0000000001000000ff000000ffff0000ffffffff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
+
+        assertEquals("0000000001000000ff000000ffff0000ffffffff", view.readHex())
     }
 
     @Test
     fun testReadIntArrayLE() {
-        try {
-            val array = i32
-            val size = 4
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("f1ffffff0000000001000000ff000000ffff0000ffffffffffffffce")
+        val array = i32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = IntArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("f1ffffff0000000001000000ff000000ffff0000ffffffffffffffce")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = IntArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadIntArrayRangeLE() {
-        try {
-            val array = i32
-            val size = 4
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("f1ffffff0000000001000000ff000000ffff0000ffffffffffffffce")
+        val array = i32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = IntArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("f1ffffff0000000001000000ff000000ffff0000ffffffffffffffce")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = IntArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteLongArrayBE() {
-        try {
-            val array = i64
-            val size = 8
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array)
+        val array = i64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array)
+
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff", view.readHex())
     }
 
     @Test
     fun testWriteLongArrayBERange() {
-        try {
-            val array = i64
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        val array = i64
 
-            assertEquals("0000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
+
+        assertEquals("0000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffff", view.readHex())
     }
 
     @Test
     fun testLongIntArrayBE() {
-        try {
-            val array = i64
-            val size = 8
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff")
+        val array = i64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = LongArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = LongArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadLongArrayRangeBE() {
-        try {
-            val array = i64
-            val size = 8
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff")
+        val array = i64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = LongArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = LongArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteLongArrayLE() {
-        try {
-            val array = i64
-            val size = 8
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array)
+        val array = i64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array)
+
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff", view.readHex())
     }
 
     @Test
     fun testWriteLongArrayLERange() {
-        try {
-            val array = i64
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        val array = i64
 
-            assertEquals("00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
+
+        assertEquals("00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000", view.readHex())
     }
 
     @Test
     fun testReadLongArrayLE() {
-        try {
-            val array = i64
-            val size = 8
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff")
+        val array = i64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = LongArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = LongArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadLongArrayRangeLE() {
-        try {
-            val array = i64
-            val size = 8
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff")
+        val array = i64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = LongArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = LongArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteFloatArrayBE() {
-        try {
-            val array = f32
-            val size = 4
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array)
+        val array = f32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("3f8000003f000000bf800000", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array)
+
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("3f8000003f000000bf800000", view.readHex())
     }
 
     @Test
     fun testWriteFloatArrayBERange() {
-        try {
-            val array = f32
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        val array = f32
 
-            assertEquals("3f000000", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
+
+        assertEquals("3f000000", view.readHex())
     }
 
     @Test
     fun testReadFloatArrayBE() {
-        try {
-            val array = f32
-            val size = 4
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("3f8000003f000000bf800000")
+        val array = f32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = FloatArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("3f8000003f000000bf800000")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = FloatArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadFloatArrayRangeBE() {
-        try {
-            val array = f32
-            val size = 4
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("3f8000003f000000bf800000")
+        val array = f32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = FloatArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("3f8000003f000000bf800000")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = FloatArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteFloatArrayLE() {
-        try {
-            val array = f32
-            val size = 4
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array)
+        val array = f32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("0000803f0000003f000080bf", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array)
+
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("0000803f0000003f000080bf", view.readHex())
     }
 
     @Test
     fun testWriteFloatArrayLERange() {
-        try {
-            val array = f32
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        val array = f32
 
-            assertEquals("0000003f", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
+
+        assertEquals("0000003f", view.readHex())
     }
 
     @Test
     fun testReadFloatArrayLE() {
-        try {
-            val array = f32
-            val size = 4
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("0000803f0000003f000080bf")
+        val array = f32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = FloatArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("0000803f0000003f000080bf")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = FloatArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadFloatArrayRangeLE() {
-        try {
-            val array = f32
-            val size = 4
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("0000803f0000003f000080bf")
+        val array = f32
+        val size = 4
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = FloatArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("0000803f0000003f000080bf")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = FloatArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteDoubleArrayBE() {
-        try {
-            val array = f64
-            val size = 8
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array)
+        val array = f64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("3ff00000000000003fe0000000000000bff0000000000000", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array)
+
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("3ff00000000000003fe0000000000000bff0000000000000", view.readHex())
     }
 
     @Test
     fun testWriteDoubleArrayBERange() {
-        try {
-            val array = f64
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        val array = f64
 
-            assertEquals("3fe0000000000000", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
+
+        assertEquals("3fe0000000000000", view.readHex())
     }
 
     @Test
     fun testReadDoubleArrayBE() {
-        try {
-            val array = f64
-            val size = 8
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("3ff00000000000003fe0000000000000bff0000000000000")
+        val array = f64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = DoubleArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("3ff00000000000003fe0000000000000bff0000000000000")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = DoubleArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadDoubleArrayRangeBE() {
-        try {
-            val array = f64
-            val size = 8
 
-            view.byteOrder = ByteOrder.BIG_ENDIAN
-            view.writeHex("3ff00000000000003fe0000000000000bff0000000000000")
+        val array = f64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = DoubleArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.BIG_ENDIAN
+        view.writeHex("3ff00000000000003fe0000000000000bff0000000000000")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = DoubleArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     @Test
     fun testWriteDoubleArrayLE() {
-        try {
-            val array = f64
-            val size = 8
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array)
+        val array = f64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            assertEquals("000000000000f03f000000000000e03f000000000000f0bf", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array)
+
+        assertEquals(array.size * size, view.readRemaining)
+        assertEquals("000000000000f03f000000000000e03f000000000000f0bf", view.readHex())
     }
 
     @Test
     fun testWriteDoubleArrayLERange() {
-        try {
-            val array = f64
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeFully(array, 1, array.size - 2)
+        val array = f64
 
-            assertEquals("000000000000e03f", view.readHex())
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeFully(array, 1, array.size - 2)
+
+        assertEquals("000000000000e03f", view.readHex())
     }
 
     @Test
     fun testReadDoubleArrayLE() {
-        try {
-            val array = f64
-            val size = 8
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("000000000000f03f000000000000e03f000000000000f0bf")
+        val array = f64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = DoubleArray(array.size)
-            view.readFully(tmp)
-            assertTrue { tmp.contentEquals(array) }
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("000000000000f03f000000000000e03f000000000000f0bf")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = DoubleArray(array.size)
+        view.readFully(tmp)
+        assertTrue { tmp.contentEquals(array) }
     }
 
     @Test
     fun testReadDoubleArrayRangeLE() {
-        try {
-            val array = f64
-            val size = 8
 
-            view.byteOrder = ByteOrder.LITTLE_ENDIAN
-            view.writeHex("000000000000f03f000000000000e03f000000000000f0bf")
+        val array = f64
+        val size = 8
 
-            assertEquals(array.size * size, view.readRemaining)
-            val tmp = DoubleArray(array.size + 2)
-            fill(tmp)
-            view.readFully(tmp, 1, tmp.size - 2)
-            compareSubRange(tmp)
-        } finally {
-            view.release(BufferView.NoPool)
-        }
+        view.byteOrder = ByteOrder.LITTLE_ENDIAN
+        view.writeHex("000000000000f03f000000000000e03f000000000000f0bf")
+
+        assertEquals(array.size * size, view.readRemaining)
+        val tmp = DoubleArray(array.size + 2)
+        fill(tmp)
+        view.readFully(tmp, 1, tmp.size - 2)
+        compareSubRange(tmp)
     }
 
     private fun BufferView.readHex() = buildString(readRemaining * 2) {
@@ -769,7 +629,7 @@ class PrimitiveArraysTest {
     }
 
     private fun BufferView.writeHex(hex: CharSequence) {
-        for (idx in 0 .. hex.length - 2 step 2) {
+        for (idx in 0..hex.length - 2 step 2) {
             val l = unhex(hex[idx])
             val r = unhex(hex[idx + 1])
 
@@ -855,5 +715,5 @@ class PrimitiveArraysTest {
         assertTrue { readBuffer.copyOfRange(1, readBuffer.size - 1).contentEquals(f64) }
     }
 
-    private fun unhex(h: Char): Int = if (h in '0'..'9') h - '0' else if (h in 'a' .. 'f') h - 'a' + 10 else fail()
+    private fun unhex(h: Char): Int = if (h in '0'..'9') h - '0' else if (h in 'a'..'f') h - 'a' + 10 else fail()
 }

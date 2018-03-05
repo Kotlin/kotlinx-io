@@ -8,7 +8,7 @@ class PrimitiveCodecTest {
     val pool = VerifyingObjectPool(BufferView.Pool)
     val builder = BytePacketBuilder(0, pool)
 
-    //@AfterTest
+    @AfterTest
     fun tearDown() {
         try {
             pool.assertEmpty()
