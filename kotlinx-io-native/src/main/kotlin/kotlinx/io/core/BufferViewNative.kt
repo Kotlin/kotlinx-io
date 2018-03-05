@@ -170,7 +170,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 2L)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<ShortVar>()
+            val ptr = (content + readPosition)!!.reinterpret<ShortVar>()
             for (i in 0 .. length - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -189,7 +189,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 4L)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<IntVar>()
+            val ptr = (content + readPosition)!!.reinterpret<IntVar>()
             for (i in 0 .. length - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -208,7 +208,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 8L)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<LongVar>()
+            val ptr = (content + readPosition)!!.reinterpret<LongVar>()
             for (i in 0 .. length - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -227,7 +227,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 4L)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<FloatVar>()
+            val ptr = (content + readPosition)!!.reinterpret<FloatVar>()
             for (i in 0 .. length - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -246,7 +246,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 8L)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
+            val ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
             for (i in 0 .. length - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -290,7 +290,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 2)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<ShortVar>()
+            val ptr = (content + readPosition)!!.reinterpret<ShortVar>()
             for (i in 0 .. copySize - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -313,7 +313,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 4)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<IntVar>()
+            val ptr = (content + readPosition)!!.reinterpret<IntVar>()
             for (i in 0 .. copySize - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -336,7 +336,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 8)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<LongVar>()
+            val ptr = (content + readPosition)!!.reinterpret<LongVar>()
             for (i in 0 .. copySize - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -359,7 +359,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 4)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<FloatVar>()
+            val ptr = (content + readPosition)!!.reinterpret<FloatVar>()
             for (i in 0 .. copySize - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
@@ -382,7 +382,7 @@ actual class BufferView internal constructor(
                 memcpy(it.addressOf(offset), content + readPosition, copySize.toLong() * 8)
             }
         } else {
-            var ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
+            val ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
             for (i in 0 .. copySize - 1) {
                 dst[offset + i] = swap(ptr[i])
             }
