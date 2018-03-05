@@ -186,7 +186,14 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: BufferView, length: Int) {
-        writeBuffer(src, length)
+        require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
+        require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
+
+        val otherEnd = src.readPosition + length
+        val sub = src.i8.subarray(src.readPosition, otherEnd)
+        i8.set(sub, writePosition)
+        src.readPosition = otherEnd
+        writePosition += length
     }
 
     actual final override fun fill(n: Long, v: Byte) {
@@ -571,16 +578,9 @@ actual class BufferView internal constructor(
         }
     }
 
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
     actual fun writeBuffer(src: BufferView, length: Int): Int {
-        require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
-        require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
-
-        val otherEnd = src.readPosition + length
-        val sub = src.i8.subarray(src.readPosition, otherEnd)
-        i8.set(sub, writePosition)
-        src.readPosition = otherEnd
-        writePosition += length
-
+        writeFully(src, length)
         return length
     }
 

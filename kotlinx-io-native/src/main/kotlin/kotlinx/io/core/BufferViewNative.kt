@@ -580,6 +580,7 @@ actual class BufferView internal constructor(
         }
     }
 
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
     actual fun writeBuffer(src: BufferView, length: Int): Int {
         writeFully(src, length)
         return length

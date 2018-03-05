@@ -5,6 +5,7 @@ import kotlinx.io.utils.*
 import java.nio.*
 import java.nio.charset.*
 import java.util.concurrent.atomic.*
+import kotlin.jvm.*
 
 /**
  * A read-write facade to actual buffer of fixed size. Multiple views could share the same actual buffer.
@@ -200,6 +201,10 @@ actual class BufferView private constructor(
     }
 
     actual final override fun writeFully(src: BufferView, length: Int) {
+        require(length >= 0)
+        require(length <= src.readRemaining)
+        require(length <= writeRemaining)
+
         if (length == src.readRemaining) {
             writeBuffer.put(src.readBuffer)
         } else {
@@ -262,24 +267,10 @@ actual class BufferView private constructor(
     /**
      * Writes [length] bytes of [src] buffer or fails if not enough free space available
      */
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
     actual fun writeBuffer(src: BufferView, length: Int): Int {
-        val otherSize = src.readBuffer.remaining()
-        return when {
-            otherSize <= length -> {
-                writeBuffer.put(src.readBuffer)
-                afterWrite()
-                otherSize
-            }
-            length > writeBuffer.remaining() -> throw BufferOverflowException()
-            else -> {
-                val l = src.readBuffer.limit()
-                src.readBuffer.limit(src.readBuffer.position() + length)
-                writeBuffer.put(src.readBuffer)
-                src.readBuffer.limit(l)
-                afterWrite()
-                length
-            }
-        }
+        writeFully(src, length)
+        return length
     }
 
     internal actual fun writeBufferPrepend(other: BufferView) {
@@ -311,7 +302,7 @@ actual class BufferView private constructor(
             writeBuffer.limit(writeBuffer.limit() + requiredGap)
         }
 
-        writeBuffer(other, size)
+        writeFully(other, size)
     }
 
     actual final override fun readByte() = readBuffer.get()

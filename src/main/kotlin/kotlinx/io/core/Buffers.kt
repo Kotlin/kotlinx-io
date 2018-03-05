@@ -132,7 +132,9 @@ expect class BufferView : Input, Output {
     /**
      * Writes [length] bytes of [src] buffer or fails if not enough free space available
      */
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
     fun writeBuffer(src: BufferView, length: Int): Int
+
     internal fun writeBufferPrepend(other: BufferView)
     internal fun writeBufferAppend(other: BufferView, maxSize: Int)
 
