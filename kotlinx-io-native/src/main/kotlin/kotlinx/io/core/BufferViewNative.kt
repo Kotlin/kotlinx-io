@@ -751,10 +751,10 @@ actual class BufferView internal constructor(
     private inline fun swap(s: Long): Long = (swap((s and 0xffffffff).toInt()).toLong() shl 32) or (swap((s ushr 32).toInt()).toLong() and 0xffffffff)
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun swap(s: Float): Float = TODO()
+    private inline fun swap(s: Float): Float = Float.fromBits(swap(s.bits()))
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun swap(s: Double): Double = TODO()
+    private inline fun swap(s: Double): Double = Double.fromBits(swap(s.bits()))
 
     actual companion object {
         private val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
