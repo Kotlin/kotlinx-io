@@ -470,6 +470,20 @@ actual class BufferView internal constructor(
         writePosition = wp + length
     }
 
+    internal fun writeFully(src: ArrayBufferView, offset: Int, length: Int) {
+        if (writeRemaining < length) throw IllegalStateException("Not enough space left ($writeRemaining) to write $length bytes")
+        val wp = writePosition
+        val rem = limit - wp
+        val i8 = i8
+
+        if (length > rem) throw IndexOutOfBoundsException()
+
+        val from = Int8Array(src.buffer, src.byteOffset + offset, length)
+        i8.set(from, wp)
+
+        writePosition = wp + length
+    }
+
     fun write(src: Int8Array, offset: Int, length: Int) {
         if (writeRemaining < length) throw IllegalStateException("Not enough space left ($writeRemaining) to write $length bytes")
         val wp = writePosition
@@ -642,6 +656,18 @@ actual class BufferView internal constructor(
         out.append(result)
 
         return result.length
+    }
+
+    internal fun readDirect(block: (ArrayBuffer) -> Int) {
+        if (content === EmptyBuffer) {
+            require(block(content) == 0)
+            return
+        }
+
+        val rc = block(content.slice(readPosition, writePosition))
+        require(rc >= 0)
+
+        readPosition += rc
     }
 
     internal actual fun writeBufferPrepend(other: BufferView) {

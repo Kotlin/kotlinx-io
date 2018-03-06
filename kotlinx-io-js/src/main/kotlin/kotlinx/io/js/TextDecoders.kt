@@ -69,3 +69,12 @@ internal inline fun TextDecoder.decodeStream(buffer: ArrayBufferView, stream: Bo
         decode(buffer)
     }
 }
+
+
+internal inline fun TextDecoder.decodeStream(buffer: ArrayBuffer, stream: Boolean): String {
+    return if (stream) {
+        decode(buffer, STREAM_TRUE)
+    } else {
+        decode(buffer)
+    }
+}
