@@ -13,7 +13,7 @@ abstract class VerifyingPoolBase<T : Any> constructor(private val delegate: Obje
     val used: Int
         get() = allocated.size
 
-    override final fun borrow(): T {
+    final override fun borrow(): T {
         val instance = delegate.borrow()
         if (!allocated.add(IdentityWrapper(instance))) {
             throw AssertionError("Instance $instance has been provided by the pool twice")
@@ -21,7 +21,7 @@ abstract class VerifyingPoolBase<T : Any> constructor(private val delegate: Obje
         return instance
     }
 
-    override final fun recycle(instance: T) {
+    final override fun recycle(instance: T) {
         if (!allocated.remove(IdentityWrapper(instance))) {
             throw AssertionError("Instance $instance hasn't been borrowed but tried to recycle (possibly double recycle)")
         }
