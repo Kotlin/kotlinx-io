@@ -1,12 +1,18 @@
 package kotlinx.io.charsets
 
 import kotlinx.io.core.*
-import kotlinx.io.js.*
 
 import kotlinx.cinterop.*
 import kotlinx.io.pool.*
 import platform.posix.memcpy
 import platform.posix.memset
+import platform.posix.size_t
+import platform.posix.size_tVar
+import platform.linux.iconv_open
+import platform.linux.iconv_close
+import platform.linux.iconv
+
+import konan.SymbolName
 
 actual abstract class Charset(internal val _name: String) {
     actual abstract fun newEncoder(): CharsetEncoder
@@ -23,12 +29,12 @@ actual abstract class Charset(internal val _name: String) {
 private class CharsetImpl(name: String) : Charset(name) {
     init {
         val v = iconv_open(name, "UTF-8")
-        if (v == -1) throw IllegalArgumentException("Charset $name is not supported")
+        //if (v == -1) throw IllegalArgumentException("Charset $name is not supported")
         iconv_close(v)
     }
 
-    actual abstract fun newEncoder(): CharsetEncoder
-    actual abstract fun newDecoder(): CharsetDecoder
+    override fun newEncoder(): CharsetEncoder = CharsetEncoderImpl(this)
+    override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
 }
 
 actual val Charset.name: String get() = _name
@@ -39,8 +45,50 @@ actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
 actual val CharsetEncoder.charset: Charset get() = _charset
 
+@SymbolName("Kotlin_Arrays_getAddressOfElement")
+private external fun getAddressOfElement(array: Any, index: Int): COpaquePointer
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun <P : CVariable> Pinned<*>.addressOfElement(index: Int): CPointer<P> =
+    getAddressOfElement(this.get(), index).reinterpret()
+
+private fun Pinned<CharArray>.addressOf(index: Int): CPointer<ByteVar> = this.addressOfElement(index)
+
 internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
-    TODO()
+    val length = toIndex - fromIndex
+    val chars = CharArray(length) { input[fromIndex + it] }
+    val cd = iconv_open("UTF-16", _charset.name)
+    //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
+    var charsConsumed = 0
+
+    try {
+        dst.writeDirect { buffer ->
+            chars.usePinned { pinned ->
+                memScoped {
+                    val inbuf = alloc<CPointerVar<ByteVar>>()
+                    val outbuf = alloc<CPointerVar<ByteVar>>()
+                    val inbytesleft = alloc<size_tVar>()
+                    val outbytesleft = alloc<size_tVar>()
+                    val dstRemaining = dst.writeRemaining.toLong()
+
+                    inbuf.value = pinned.addressOf(0)
+                    outbuf.value = buffer
+                    inbytesleft.value = (length * 2).toLong()
+                    outbytesleft.value = dstRemaining
+
+                    iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
+
+                    charsConsumed = (length * 2 - inbytesleft.value).toInt()
+                   
+                    (dstRemaining - outbytesleft.value).toInt()
+                }
+            }
+        }
+
+        return charsConsumed
+    } finally {
+        iconv_close(cd)
+    }
 }
 
 actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuilder) {
@@ -64,11 +112,5 @@ actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable) {
 actual object Charsets {
     actual val UTF_8: Charset = CharsetImpl("UTF-8")
 }
-
-private data class CharsetImpl(val name: String) : Charset(name) {
-    override fun newEncoder(): CharsetEncoder = CharsetEncoderImpl(this)
-    override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
-}
-
 
 actual class MalformedInputException actual constructor(message: String) : Throwable(message)
