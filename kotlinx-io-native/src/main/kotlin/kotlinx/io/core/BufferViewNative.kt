@@ -422,6 +422,13 @@ actual class BufferView internal constructor(
         writePosition += rc
     }
 
+    internal fun readDirect(block: (CPointer<ByteVar>) -> Int) {
+        val rc = block((content + readPosition)!!)
+        check(rc >= 0)
+        check(rc <= readRemaining)
+        readPosition += rc
+    }
+
     @Deprecated("Use writeFully instead")
     actual final fun write(array: ByteArray, offset: Int, length: Int) {
         writeFully(array, offset, length)
