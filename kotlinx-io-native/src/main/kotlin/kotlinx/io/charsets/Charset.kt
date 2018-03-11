@@ -57,7 +57,7 @@ private fun Pinned<CharArray>.addressOf(index: Int): CPointer<ByteVar> = this.ad
 internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     val length = toIndex - fromIndex
     val chars = CharArray(length) { input[fromIndex + it] }
-    val cd = iconv_open("UTF-16", _charset.name)
+    val cd = iconv_open(_charset.name, "UTF-16")
     //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
     var charsConsumed = 0
 
@@ -78,7 +78,7 @@ internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, t
 
                     iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
 
-                    charsConsumed = (length * 2 - inbytesleft.value).toInt()
+                    charsConsumed = (length * 2 - inbytesleft.value).toInt() / 2
                    
                     (dstRemaining - outbytesleft.value).toInt()
                 }
@@ -92,7 +92,67 @@ internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, t
 }
 
 actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuilder) {
-    TODO()
+    val cd = iconv_open(charset.name, "UTF-8")
+    //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
+
+    try {
+        var readSize = 1
+        var writeSize = 1
+
+        while (true) {
+            val srcView = input.prepareRead(readSize)
+            if (srcView == null) {
+                if (readSize != 1) throw MalformedInputException("...")
+                break
+            }
+
+            dst.write(writeSize) { dstBuffer ->
+                var written: Int = 0
+
+                dstBuffer.writeDirect { buffer ->
+                    var read = 0
+
+                    srcView.readDirect { src ->
+                        memScoped {
+                            val length = srcView.readRemaining.toLong()
+                            val inbuf = alloc<CPointerVar<ByteVar>>()
+                            val outbuf = alloc<CPointerVar<ByteVar>>()
+                            val inbytesleft = alloc<size_tVar>()
+                            val outbytesleft = alloc<size_tVar>()
+                            val dstRemaining = dstBuffer.writeRemaining.toLong()
+
+                            inbuf.value = src
+                            outbuf.value = buffer
+                            inbytesleft.value = length
+                            outbytesleft.value = dstRemaining
+
+                            iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
+
+                            read = (length - inbytesleft.value).toInt()
+                            written = (dstRemaining - outbytesleft.value).toInt()
+                        }
+
+                        read
+                    }
+
+                    if (read == 0) {
+                        readSize++
+                        writeSize = 8
+                    } else {
+                        @Suppress("DEPRECATION_ERROR")
+                        input.`$updateRemaining$`(srcView.readRemaining)
+                        readSize = 1
+                        writeSize = 1
+                    }
+
+                    written
+                }
+                written
+            }
+        }
+    } finally {
+        iconv_close(cd)
+    }
 }
 
 internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean = true
