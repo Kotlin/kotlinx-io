@@ -132,7 +132,7 @@ actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable)  {
                 dst.append(cb)
 
                 if (rc.isMalformed || rc.isUnmappable) rc.throwException()
-                if (rc.isUnderflow) {
+                if (rc.isUnderflow && bb.hasRemaining()) {
                     readSize++
                 } else {
                     readSize = 1

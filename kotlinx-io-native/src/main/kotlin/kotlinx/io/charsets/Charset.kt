@@ -163,8 +163,68 @@ actual abstract class CharsetDecoder(internal val _charset: Charset)
 private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDecoder(charset)
 actual val CharsetDecoder.charset: Charset get() = _charset
 
+private val platformUtf16: String by lazy { if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE" }
+
 actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable) {
-    TODO()
+    val cd = iconv_open(platformUtf16, charset.name)
+    //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
+    val chars = CharArray(8192)
+
+    try {
+        var readSize = 1
+
+        while (true) {
+            val srcView = input.prepareRead(readSize)
+            if (srcView == null) {
+                if (readSize != 1) throw MalformedInputException("...")
+                break
+            }
+
+            chars.usePinned { pinned ->
+                val buffer = pinned.addressOf(0)
+                var written: Int = 0
+
+                    var read = 0
+
+                    srcView.readDirect { src ->
+                        memScoped {
+                            val length = srcView.readRemaining.toLong()
+                            val inbuf = alloc<CPointerVar<ByteVar>>()
+                            val outbuf = alloc<CPointerVar<ByteVar>>()
+                            val inbytesleft = alloc<size_tVar>()
+                            val outbytesleft = alloc<size_tVar>()
+                            val dstRemaining = (chars.size * 2).toLong()
+
+                            inbuf.value = src
+                            outbuf.value = buffer
+                            inbytesleft.value = length
+                            outbytesleft.value = dstRemaining
+
+                            iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
+
+                            read = (length - inbytesleft.value).toInt()
+                            written = (dstRemaining - outbytesleft.value).toInt() / 2
+                        }
+
+                        read
+                    }
+
+                    if (read == 0) {
+                        readSize++
+                    } else {
+                        @Suppress("DEPRECATION_ERROR")
+                        input.`$updateRemaining$`(srcView.readRemaining)
+                        readSize = 1
+
+                        repeat(written) {
+                            dst.append(chars[it])
+                        }
+                    }
+            }
+        }
+    } finally {
+        iconv_close(cd)
+    }
 }
 
 // -----------------------------------------------------------
