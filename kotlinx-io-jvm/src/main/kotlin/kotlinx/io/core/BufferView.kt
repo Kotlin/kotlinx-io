@@ -544,6 +544,9 @@ actual class BufferView private constructor(
         return this.takeIf { readRemaining >= minSize }
     }
 
+    actual final override fun flush() {
+    }
+
     private fun readTextImpl(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
         if (max == 0 || !readBuffer.hasRemaining()) return 0
 

@@ -19,5 +19,6 @@ expect interface Output {
     fun writeFully(src: BufferView, length: Int = src.readRemaining)
 
     fun fill(n: Long, v: Byte = 0)
+    fun flush()
 }
 

@@ -22,4 +22,4 @@ internal class InputStreamAsInput(private val stream: InputStream, pool: ObjectP
     }
 }
 
-fun InputStream.asInput(pool: ObjectPool<BufferView>): Input = InputStreamAsInput(this, pool)
+fun InputStream.asInput(pool: ObjectPool<BufferView> = BufferView.Pool): Input = InputStreamAsInput(this, pool)

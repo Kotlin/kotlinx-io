@@ -19,5 +19,6 @@ actual interface Output {
     actual fun writeFully(src: BufferView, length: Int)
 
     actual fun fill(n: Long, v: Byte)
+    actual fun flush()
 }
 

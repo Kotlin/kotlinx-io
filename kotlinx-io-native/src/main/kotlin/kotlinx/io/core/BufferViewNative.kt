@@ -721,6 +721,9 @@ actual class BufferView internal constructor(
         return if (readRemaining >= minSize) this else null
     }
 
+    actual final override fun flush() {
+    }
+
     @Suppress("NOTHING_TO_INLINE")
     private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or ((s.toInt() and 0xffff) ushr 8)).toShort()
     @Suppress("NOTHING_TO_INLINE")

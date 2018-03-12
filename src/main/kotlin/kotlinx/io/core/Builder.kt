@@ -39,16 +39,162 @@ expect fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder
  * }
  * ```
  */
-class BytePacketBuilder(private var headerSizeHint: Int, private val pool: ObjectPool<BufferView>) : Appendable, Output {
+class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<BufferView>): BytePacketBuilderBase(pool) {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
+
+    private var head: BufferView = BufferView.Empty
+
+    override fun append(c: Char): BytePacketBuilder {
+        return super.append(c) as BytePacketBuilder
+    }
+
+    override fun append(csq: CharSequence?): BytePacketBuilder {
+        return super.append(csq) as BytePacketBuilder
+    }
+
+    override fun append(csq: CharSequence?, start: Int, end: Int): BytePacketBuilder {
+        return super.append(csq, start, end) as BytePacketBuilder
+    }
+
+    /**
+     * Release any resources that the builder holds. Builder shouldn't be used after release
+     */
+    override fun release() {
+        val head = this.head
+        val empty = BufferView.Empty
+
+        if (head !== empty) {
+            this.head = empty
+            this.tail = empty
+            head.releaseAll(pool)
+            size = 0
+        }
+    }
+
+    override fun flush() {
+    }
+
+    /**
+     * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
+     * This is similar to `build().copy()` except that the builder keeps already written bytes untouched.
+     * A temporary view packet is passed as argument to [block] function and it shouldn't leak outside of this block
+     * otherwise an unexpected behaviour may occur.
+     */
+    fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
+        val head = head.copyAll()
+        val pool = if (head === BufferView.Empty) EmptyBufferViewPool else pool
+        val packet = ByteReadPacket(head, pool)
+
+        return try {
+            block(packet)
+        } finally {
+            packet.release()
+        }
+    }
+
+    /**
+     * Builds byte packet instance and resets builder's state to be able to build another one packet if needed
+     */
+    fun build(): ByteReadPacket {
+        val head = this.head
+        val size = size
+
+        this.head = BufferView.Empty
+        this.tail = BufferView.Empty
+        this.size = 0
+
+        if (head === BufferView.Empty) return ByteReadPacket(head, 0L, EmptyBufferViewPool)
+        return ByteReadPacket(head, size.toLong(), pool)
+    }
+
+    /**
+     * Writes another packet to the end. Please note that the instance [p] gets consumed so you don't need to release it
+     */
+    override fun writePacket(p: ByteReadPacket) {
+        val foreignStolen = p.stealAll()
+        if (foreignStolen == null) {
+            p.release()
+            return
+        }
+
+        val tail = tail
+        if (tail === BufferView.Empty) {
+            head = foreignStolen
+            this.tail = foreignStolen.findTail()
+            size = foreignStolen.remainingAll().toInt()
+            return
+        }
+
+        val lastSize = tail.readRemaining
+        val nextSize = foreignStolen.readRemaining
+
+        val maxCopySize = PACKET_MAX_COPY_SIZE
+        val appendSize = if (nextSize < maxCopySize && nextSize <= (tail.endGap + tail.writeRemaining)) {
+            nextSize
+        } else -1
+
+        val prependSize = if (lastSize < maxCopySize && lastSize <= foreignStolen.startGap && foreignStolen.isExclusivelyOwned()) {
+            lastSize
+        } else -1
+
+        if (appendSize == -1 && prependSize == -1) {
+            // simply enqueue
+            tail.next = foreignStolen
+            this.tail = foreignStolen.findTail()
+            size = head.remainingAll().toInt()
+        } else if (prependSize == -1 || appendSize <= prependSize) {
+            // do append
+            tail.writeBufferAppend(foreignStolen, tail.writeRemaining + tail.endGap)
+            tail.next = foreignStolen.next
+            this.tail = foreignStolen.findTail().takeUnless { it === foreignStolen } ?: tail
+            foreignStolen.release(p.pool)
+            size = head.remainingAll().toInt()
+        } else if (appendSize == -1 || prependSize < appendSize) {
+            // do prepend
+            foreignStolen.writeBufferPrepend(tail)
+
+            if (head === tail) {
+                head = foreignStolen
+            } else {
+                var pre = head
+                while (true) {
+                    val next = pre.next!!
+                    if (next === tail) break
+                    pre = next
+                }
+
+                pre.next = foreignStolen
+            }
+            tail.release(pool)
+
+            this.tail = foreignStolen.findTail()
+            size = head.remainingAll().toInt()
+        } else {
+            throw IllegalStateException("prep = $prependSize, app = $appendSize")
+        }
+    }
+
+    override fun last(buffer: BufferView) {
+        if (head === BufferView.Empty) {
+            buffer.reserveStartGap(headerSizeHint)
+            tail = buffer
+            head = buffer
+        } else {
+            tail.next = buffer
+            tail = buffer
+        }
+    }
+}
+
+abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<BufferView>) : Appendable, Output {
 
     /**
      * Number of bytes currently buffered
      */
     var size: Int = 0
-        private set
+        protected set
 
     /**
      * Byte order (Endianness) to be used by future write functions calls on this builder instance. Doesn't affect any
@@ -61,8 +207,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
             tail.byteOrder = value
         }
 
-    private var head: BufferView = BufferView.Empty
-    private var tail: BufferView = head
+    protected var tail: BufferView = BufferView.Empty
 
     final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
         var copied = 0
@@ -221,14 +366,14 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     /**
      * Append single UTF-8 character
      */
-    override fun append(c: Char): BytePacketBuilder {
+    override fun append(c: Char): BytePacketBuilderBase {
         write(3) {
             it.putUtf8Char(c.toInt() and 0xffff)
         }
         return this
     }
 
-    override fun append(csq: CharSequence?): BytePacketBuilder {
+    override fun append(csq: CharSequence?): BytePacketBuilderBase {
         if (csq == null) {
             append("null")
         } else {
@@ -237,7 +382,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         return this
     }
 
-    override fun append(csq: CharSequence?, start: Int, end: Int): BytePacketBuilder {
+    override fun append(csq: CharSequence?, start: Int, end: Int): BytePacketBuilderBase {
         if (csq == null) {
             return append("null", start, end)
         }
@@ -246,70 +391,10 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         return this
     }
 
-    /**
-     * Writes another packet to the end. Please note that the instance [p] gets consumed so you don't need to release it
-     */
-    fun writePacket(p: ByteReadPacket) {
-        val foreignStolen = p.stealAll()
-        if (foreignStolen == null) {
-            p.release()
-            return
-        }
-
-        val tail = tail
-        if (tail === BufferView.Empty) {
-            head = foreignStolen
-            this.tail = foreignStolen.findTail()
-            size = foreignStolen.remainingAll().toInt()
-            return
-        }
-
-        val lastSize = tail.readRemaining
-        val nextSize = foreignStolen.readRemaining
-
-        val maxCopySize = PACKET_MAX_COPY_SIZE
-        val appendSize = if (nextSize < maxCopySize && nextSize <= (tail.endGap + tail.writeRemaining)) {
-            nextSize
-        } else -1
-
-        val prependSize = if (lastSize < maxCopySize && lastSize <= foreignStolen.startGap && foreignStolen.isExclusivelyOwned()) {
-            lastSize
-        } else -1
-
-        if (appendSize == -1 && prependSize == -1) {
-            // simply enqueue
-            tail.next = foreignStolen
-            this.tail = foreignStolen.findTail()
-            size = head.remainingAll().toInt()
-        } else if (prependSize == -1 || appendSize <= prependSize) {
-            // do append
-            tail.writeBufferAppend(foreignStolen, tail.writeRemaining + tail.endGap)
-            tail.next = foreignStolen.next
-            this.tail = foreignStolen.findTail().takeUnless { it === foreignStolen } ?: tail
-            foreignStolen.release(p.pool)
-            size = head.remainingAll().toInt()
-        } else if (appendSize == -1 || prependSize < appendSize) {
-            // do prepend
-            foreignStolen.writeBufferPrepend(tail)
-
-            if (head === tail) {
-                head = foreignStolen
-            } else {
-                var pre = head
-                while (true) {
-                    val next = pre.next!!
-                    if (next === tail) break
-                    pre = next
-                }
-
-                pre.next = foreignStolen
-            }
-            tail.release(pool)
-
-            this.tail = foreignStolen.findTail()
-            size = head.remainingAll().toInt()
-        } else {
-            throw IllegalStateException("prep = $prependSize, app = $appendSize")
+    open fun writePacket(p: ByteReadPacket) {
+        while (true) {
+            val buffer = p.steal() ?: break
+            last(buffer)
         }
     }
 
@@ -439,52 +524,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     /**
-     * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
-     * This is similar to `build().copy()` except that the builder keeps already written bytes untouched.
-     * A temporary view packet is passed as argument to [block] function and it shouldn't leak outside of this block
-     * otherwise an unexpected behaviour may occur.
-     */
-    fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
-        val head = head.copyAll()
-        val pool = if (head === BufferView.Empty) EmptyBufferViewPool else pool
-        val packet = ByteReadPacket(head, pool)
-
-        return try {
-            block(packet)
-        } finally {
-            packet.release()
-        }
-    }
-
-    /**
-     * Builds byte packet instance and resets builder's state to be able to build another one packet if needed
-     */
-    fun build(): ByteReadPacket {
-        val head = this.head
-        val size = size
-
-        this.head = BufferView.Empty
-        this.tail = BufferView.Empty
-        this.size = 0
-
-        if (head === BufferView.Empty) return ByteReadPacket(head, 0L, EmptyBufferViewPool)
-        return ByteReadPacket(head, size.toLong(), pool)
-    }
-
-    /**
      * Release any resources that the builder holds. Builder shouldn't be used after release
      */
-    fun release() {
-        val head = this.head
-        val empty = BufferView.Empty
-
-        if (head !== empty) {
-            this.head = empty
-            this.tail = empty
-            head.releaseAll(pool)
-            size = 0
-        }
-    }
+    abstract fun release()
 
     /**
      * Discard all written bytes and prepare to build another packet.
@@ -494,7 +536,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
     }
 
     internal inline fun write(size: Int, block: (BufferView) -> Int) {
-        val buffer = last()?.takeIf { it.writeRemaining >= size }
+        val buffer = lastOrNull()?.takeIf { it.writeRemaining >= size }
 
         this.size += if (buffer == null) {
             block(appendNewBuffer())
@@ -503,30 +545,21 @@ class BytePacketBuilder(private var headerSizeHint: Int, private val pool: Objec
         }
     }
 
-    private fun ensure(): BufferView = last()?.takeIf { it.writeRemaining > 0 } ?: appendNewBuffer()
+    private fun ensure(): BufferView = lastOrNull()?.takeIf { it.writeRemaining > 0 } ?: appendNewBuffer()
+
+    protected abstract fun last(buffer: BufferView)
 
     private fun appendNewBuffer(): BufferView {
         val new = pool.borrow()
-        if (head === BufferView.Empty) {
-            new.reserveStartGap(headerSizeHint)
-        }
         new.reserveEndGap(ByteReadPacket.ReservedSize)
         new.byteOrder = byteOrder
+
         last(new)
+
         return new
     }
 
-    private fun last(): BufferView? = tail.takeIf { it !== BufferView.Empty }
-
-    private fun last(new: BufferView) {
-        if (head === BufferView.Empty) {
-            tail = new
-            head = new
-        } else {
-            tail.next = new
-            tail = new
-        }
-    }
+    protected fun lastOrNull(): BufferView? = tail.takeIf { it !== BufferView.Empty }
 }
 
 private inline fun <T> T.takeIf(predicate: (T) -> Boolean): T? {

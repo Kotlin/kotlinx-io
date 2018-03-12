@@ -181,6 +181,8 @@ expect class BufferView : Input, Output {
     final override fun `$ensureNext$`(current: BufferView): BufferView?
     final override fun `$prepareRead$`(minSize: Int): BufferView?
 
+    final override fun flush()
+
     companion object {
         val Empty: BufferView
         val Pool: ObjectPool<BufferView>

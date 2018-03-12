@@ -613,6 +613,9 @@ actual class BufferView internal constructor(
         return this.takeIf { it.readRemaining >= minSize }
     }
 
+    actual final override fun flush() {
+    }
+
     internal fun readText(decoder: TextDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
         require(max >= 0) { "max shouldn't be negative: $max" }
 
