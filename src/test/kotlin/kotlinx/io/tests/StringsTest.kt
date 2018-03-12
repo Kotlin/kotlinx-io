@@ -1,5 +1,6 @@
 package kotlinx.io.tests
 
+import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import kotlin.test.Test
 import kotlin.test.*
@@ -67,6 +68,52 @@ open class StringsTest {
         }
 
         assertEquals(s, packet.readText())
+    }
+
+    @Test
+    fun testDecodePacketSingleByte() {
+        val packet = buildPacket {
+            append("1")
+        }
+
+        try {
+            assertEquals("1", Charsets.UTF_8.newDecoder().decode(packet))
+        } finally {
+            packet.release()
+        }
+    }
+
+    @Test
+    fun testDecodePacketMultiByte() {
+        val packet = buildPacket {
+            append("\u0422")
+        }
+
+        try {
+            assertEquals("\u0422", Charsets.UTF_8.newDecoder().decode(packet))
+        } finally {
+            packet.release()
+        }
+    }
+
+    @Test
+    fun testDecodePacketMultiByteSeveralCharacters() {
+        val packet = buildPacket {
+            append("\u0422e\u0438")
+        }
+
+        try {
+            assertEquals("\u0422e\u0438", Charsets.UTF_8.newDecoder().decode(packet))
+        } finally {
+            packet.release()
+        }
+    }
+
+    @Test
+    fun testEncode() {
+        assertTrue { byteArrayOf(0x41).contentEquals(Charsets.UTF_8.newEncoder().encode("A").readBytes()) }
+        assertTrue { byteArrayOf(0x41, 0x42, 0x43).contentEquals(Charsets.UTF_8.newEncoder().encode("ABC").readBytes()) }
+        assertTrue { byteArrayOf(0xd0.toByte(), 0xa2.toByte(), 0x41, 0xd0.toByte(), 0xb8.toByte()).contentEquals(Charsets.UTF_8.newEncoder().encode("\u0422A\u0438").readBytes()) }
     }
 
     private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
