@@ -1,6 +1,8 @@
 package kotlinx.io.core
 
-actual interface Output {
+import java.io.*
+
+actual interface Output : Closeable {
     actual var byteOrder: ByteOrder
 
     actual fun writeByte(v: Byte)
@@ -20,5 +22,6 @@ actual interface Output {
 
     actual fun fill(n: Long, v: Byte)
     actual fun flush()
+    actual override fun close()
 }
 

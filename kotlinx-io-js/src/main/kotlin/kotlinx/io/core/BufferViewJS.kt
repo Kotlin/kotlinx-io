@@ -725,6 +725,10 @@ actual class BufferView internal constructor(
         return newCount == 0
     }
 
+    actual override fun close() {
+        throw UnsupportedOperationException("close for buffer view is not supported")
+    }
+
     actual companion object {
         private val EmptyBuffer = ArrayBuffer(0)
         private val EmptyDataView = DataView(EmptyBuffer)

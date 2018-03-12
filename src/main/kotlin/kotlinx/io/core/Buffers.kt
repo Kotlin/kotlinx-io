@@ -124,6 +124,8 @@ expect class BufferView : Input, Output {
 
     final override fun fill(n: Long, v: Byte)
 
+    override fun close()
+
     /**
      * Writes exactly [length] bytes of [array] starting from [offset] position or fails if not enough free space
      */

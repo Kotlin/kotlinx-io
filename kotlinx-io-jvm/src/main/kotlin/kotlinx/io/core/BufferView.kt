@@ -522,6 +522,10 @@ actual class BufferView private constructor(
         }
     }
 
+    actual override fun close() {
+        throw UnsupportedOperationException("close for buffer view is not supported")
+    }
+
     fun readText(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
         if (out is CharBuffer) {
             return readTextDirectlyToOut(decoder, out, lastBuffer, max)

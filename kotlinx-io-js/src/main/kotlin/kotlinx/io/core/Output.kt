@@ -20,4 +20,5 @@ actual interface Output {
 
     actual fun fill(n: Long, v: Byte)
     actual fun flush()
+    actual fun close()
 }

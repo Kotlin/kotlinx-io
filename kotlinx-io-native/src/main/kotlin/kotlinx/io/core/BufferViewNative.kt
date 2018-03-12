@@ -724,6 +724,10 @@ actual class BufferView internal constructor(
     actual final override fun flush() {
     }
 
+    actual override fun close() {
+        throw UnsupportedOperationException("close for buffer view is not supported")
+    }
+
     @Suppress("NOTHING_TO_INLINE")
     private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or ((s.toInt() and 0xffff) ushr 8)).toShort()
     @Suppress("NOTHING_TO_INLINE")

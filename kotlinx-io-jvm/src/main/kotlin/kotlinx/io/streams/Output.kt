@@ -6,14 +6,7 @@ import java.io.*
 
 private class OutputStreamAdapter(pool: ObjectPool<BufferView>, private val stream: OutputStream): BytePacketBuilderBase(pool) {
     override fun release() {
-        val buffer = tail
-        val empty = BufferView.Empty
-
-        tail = empty
-        if (buffer !== empty) {
-            buffer.release(pool)
-        }
-
+        flush()
         stream.close()
     }
 
@@ -39,6 +32,11 @@ private class OutputStreamAdapter(pool: ObjectPool<BufferView>, private val stre
 
     override fun flush() {
         last(BufferView.Empty)
+    }
+
+    override fun close() {
+        flush()
+        stream.close()
     }
 }
 

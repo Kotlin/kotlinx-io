@@ -76,6 +76,10 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
     override fun flush() {
     }
 
+    override fun close() {
+        release()
+    }
+
     /**
      * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
      * This is similar to `build().copy()` except that the builder keeps already written bytes untouched.
