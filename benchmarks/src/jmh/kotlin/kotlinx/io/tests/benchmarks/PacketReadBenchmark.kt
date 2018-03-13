@@ -3,7 +3,6 @@ package kotlinx.io.tests.benchmarks
 import kotlinx.io.core.*
 import org.openjdk.jmh.annotations.*
 import java.io.*
-import java.io.EOFException
 import java.nio.*
 import java.util.*
 import java.util.concurrent.*
