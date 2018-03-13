@@ -3,6 +3,8 @@ package kotlinx.io.charsets
 import kotlinx.io.core.*
 import java.nio.*
 
+private const val DECODE_CHAR_BUFFER_SIZE = 8192
+
 @Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
 actual typealias Charset = java.nio.charset.Charset
 actual val Charset.name: String get() = name()
@@ -111,49 +113,54 @@ internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean {
 actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
 actual val CharsetDecoder.charset: Charset get() = charset()!!
 
-actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable)  {
-    var readSize = 1
+actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable, max: Int): Int  {
+    var copied = 0
+    val cb = CharBuffer.allocate(DECODE_CHAR_BUFFER_SIZE)
 
-    val cb = CharBuffer.allocate(8192)
-    while (true) {
-        @Suppress("DEPRECATION_ERROR")
-        val buffer: BufferView? = input.`$prepareRead$`(readSize)
+    input.takeWhileSize { buffer: BufferView ->
+        val rem = max - copied
+        if (rem == 0) return@takeWhileSize 0
 
-        if (buffer == null) {
-            if (readSize != 1) throw MalformedInputException("Not enough bytes available to decode a character: should be at least $readSize")
-            break
-        }
+        var readSize = 1
 
-        try {
-            buffer.readDirect { bb: ByteBuffer ->
-                cb.clear()
-                val rc = decode(bb, cb, false)
-                cb.flip()
-                dst.append(cb)
-
-                if (rc.isMalformed || rc.isUnmappable) rc.throwException()
-                if (rc.isUnderflow && bb.hasRemaining()) {
-                    readSize++
-                } else {
-                    readSize = 1
-                }
+        buffer.readDirect { bb: ByteBuffer ->
+            cb.clear()
+            if (rem < DECODE_CHAR_BUFFER_SIZE) {
+                cb.limit(rem)
             }
-        } finally {
-            @Suppress("DEPRECATION_ERROR")
-            input.`$updateRemaining$`(buffer.readRemaining)
+            val rc = decode(bb, cb, false)
+            cb.flip()
+            copied += cb.remaining()
+            dst.append(cb)
+
+            if (rc.isMalformed || rc.isUnmappable) rc.throwException()
+            if (rc.isUnderflow && bb.hasRemaining()) {
+                readSize++
+            } else {
+                readSize = 1
+            }
         }
+        readSize
     }
 
     while (true) {
         cb.clear()
+        val rem = max - copied
+        if (rem == 0) break
+        if (rem < DECODE_CHAR_BUFFER_SIZE) {
+            cb.limit(rem)
+        }
         val cr = decode(EmptyByteBuffer, cb, true)
         cb.flip()
+        copied += cb.remaining()
         dst.append(cb)
 
         if (cr.isUnmappable || cr.isMalformed) cr.throwException()
         if (cr.isOverflow) continue
         break
     }
+
+    return copied
 }
 
 // ----------------------------------

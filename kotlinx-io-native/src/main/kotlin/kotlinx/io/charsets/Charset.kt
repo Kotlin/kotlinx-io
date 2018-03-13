@@ -43,6 +43,7 @@ actual val Charset.name: String get() = _name
 
 actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
+
 actual val CharsetEncoder.charset: Charset get() = _charset
 
 @SymbolName("Kotlin_Arrays_getAddressOfElement")
@@ -50,7 +51,7 @@ private external fun getAddressOfElement(array: Any, index: Int): COpaquePointer
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun <P : CVariable> Pinned<*>.addressOfElement(index: Int): CPointer<P> =
-    getAddressOfElement(this.get(), index).reinterpret()
+        getAddressOfElement(this.get(), index).reinterpret()
 
 private fun Pinned<CharArray>.addressOf(index: Int): CPointer<ByteVar> = this.addressOfElement(index)
 
@@ -79,7 +80,7 @@ internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, t
                     iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
 
                     charsConsumed = (length * 2 - inbytesleft.value).toInt() / 2
-                   
+
                     (dstRemaining - outbytesleft.value).toInt()
                 }
             }
@@ -161,50 +162,49 @@ internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean = tr
 
 actual abstract class CharsetDecoder(internal val _charset: Charset)
 private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDecoder(charset)
+
 actual val CharsetDecoder.charset: Charset get() = _charset
 
 private val platformUtf16: String by lazy { if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE" }
 
-actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable) {
+actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable, max: Int): Int {
     val cd = iconv_open(platformUtf16, charset.name)
     //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
     val chars = CharArray(8192)
+    var copied = 0
 
     try {
         var readSize = 1
 
-        while (true) {
-            val srcView = input.prepareRead(readSize)
-            if (srcView == null) {
-                if (readSize != 1) throw MalformedInputException("...")
-                break
-            }
+        chars.usePinned { pinned ->
+            memScoped {
+                val inbuf = alloc<CPointerVar<ByteVar>>()
+                val outbuf = alloc<CPointerVar<ByteVar>>()
+                val inbytesleft = alloc<size_tVar>()
+                val outbytesleft = alloc<size_tVar>()
 
-            chars.usePinned { pinned ->
                 val buffer = pinned.addressOf(0)
-                var written: Int = 0
 
+                input.takeWhileSize { srcView ->
+                    val rem = max - copied
+                    if (rem == 0) return@takeWhileSize 0
+
+                    var written: Int = 0
                     var read = 0
 
                     srcView.readDirect { src ->
-                        memScoped {
-                            val length = srcView.readRemaining.toLong()
-                            val inbuf = alloc<CPointerVar<ByteVar>>()
-                            val outbuf = alloc<CPointerVar<ByteVar>>()
-                            val inbytesleft = alloc<size_tVar>()
-                            val outbytesleft = alloc<size_tVar>()
-                            val dstRemaining = (chars.size * 2).toLong()
+                        val length = srcView.readRemaining.toLong()
+                        val dstRemaining = minOf(chars.size, rem).toLong() * 2L
 
-                            inbuf.value = src
-                            outbuf.value = buffer
-                            inbytesleft.value = length
-                            outbytesleft.value = dstRemaining
+                        inbuf.value = src
+                        outbuf.value = buffer
+                        inbytesleft.value = length
+                        outbytesleft.value = dstRemaining
 
-                            iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
+                        iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
 
-                            read = (length - inbytesleft.value).toInt()
-                            written = (dstRemaining - outbytesleft.value).toInt() / 2
-                        }
+                        read = (length - inbytesleft.value).toInt()
+                        written = (dstRemaining - outbytesleft.value).toInt() / 2
 
                         read
                     }
@@ -212,16 +212,20 @@ actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable) {
                     if (read == 0) {
                         readSize++
                     } else {
-                        @Suppress("DEPRECATION_ERROR")
-                        input.`$updateRemaining$`(srcView.readRemaining)
                         readSize = 1
 
                         repeat(written) {
                             dst.append(chars[it])
                         }
+                        copied += written
                     }
+
+                    readSize
+                }
             }
         }
+
+        return copied
     } finally {
         iconv_close(cd)
     }

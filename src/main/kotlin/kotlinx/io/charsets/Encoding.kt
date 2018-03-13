@@ -70,11 +70,11 @@ internal expect fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean
 expect abstract class CharsetDecoder
 expect val CharsetDecoder.charset: Charset
 
-fun CharsetDecoder.decode(input: ByteReadPacket): String = buildString(minOf(Int.MAX_VALUE.toLong(), input.remaining).toInt()) {
-    decode(input, this)
+fun CharsetDecoder.decode(input: ByteReadPacket, max: Int = Int.MAX_VALUE): String = buildString(minOf(Int.MAX_VALUE.toLong(), input.remaining).toInt()) {
+    decode(input, this, max)
 }
 
-expect fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable)
+expect fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable, max: Int): Int
 
 // ----------------------------- REGISTRY ------------------------------------------------------------------------------
 expect object Charsets {

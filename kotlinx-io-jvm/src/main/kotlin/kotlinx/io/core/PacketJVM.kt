@@ -23,30 +23,7 @@ fun ByteReadPacket.readByteBuffer(n: Int = remaining.coerceAtMostMaxInt(), direc
     return bb
 }
 
-fun ByteReadPacket.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String = buildString(minOf(max, remaining.coerceAtMostMaxInt())) {
-    readText(decoder, this, max)
-}
-
+@Deprecated("Migrate parameters order", ReplaceWith("readText(out, decoder, max)"))
 fun ByteReadPacket.readText(decoder: CharsetDecoder, out: Appendable, max: Int = Int.MAX_VALUE): Int {
-    require(max >= 0) { "max shouldn't be negative, got $max"}
-
-    if (out is CharBuffer && max > out.remaining()) {
-        return readText(decoder, out, out.remaining())
-    }
-
-    var decoded = 0
-
-    while (decoded < max) {
-        @Suppress("INVISIBLE_MEMBER")
-        readDirect { view: BufferView ->
-            decoded += view.readText(decoder, out, view.next == null, max - decoded)
-            if (view.readRemaining > 0 && decoded < max) {
-                prepareRead(8)
-            }
-        }
-
-        if (isEmpty) break
-    }
-
-    return decoded
+    return readText(out, decoder, max)
 }

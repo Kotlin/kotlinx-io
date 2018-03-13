@@ -1,27 +1,15 @@
 package kotlinx.io.js
 
+import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 
-fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = buildString(minOf(max, remaining.coerceAtMostMaxInt())) {
-    readText(encoding, this, max)
-}
+@Deprecated("Use readText with charset instead", ReplaceWith("readText(Charset.forName(encoding), max)", "kotlinx.io.core.readText", "kotlinx.io.charsets.Charset"))
+fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = readText(Charset.forName(encoding), max)
 
+@Deprecated("Use readText with charset instead", ReplaceWith("readText(out, Charset.forName(encoding), max)", "kotlinx.io.core.readText", "kotlinx.io.charsets.Charset"))
 fun ByteReadPacket.readText(encoding: String = "UTF-8", out: Appendable, max: Int = Int.MAX_VALUE): Int {
-    require(max >= 0) { "max shouldn't be negative, got $max"}
-    val decoder = TextDecoderFatal(encoding)
-    var decoded = 0
-
-    while (decoded < max) {
-        @Suppress("INVISIBLE_MEMBER")
-        readDirect { view: BufferView ->
-            decoded += view.readText(decoder, out, view.next == null, max - decoded)
-        }
-
-        if (isEmpty) break
-    }
-
-    return decoded
+    return readText(out, Charset.forName(encoding), max)
 }
 
 internal external class TextDecoder(encoding: String, options: dynamic = definedExternally) {

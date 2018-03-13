@@ -604,7 +604,7 @@ actual class BufferView internal constructor(
         val size = other.readRemaining
         require(size <= startGap) { "size should be greater than startGap (size = $size, startGap = $startGap)" }
 
-        memcpy(content + (readPosition - size), other.content + readPosition, size.toLong())
+        memcpy(content + (readPosition - size), other.content + other.readPosition, size.toLong())
 
         readPosition -= size
         other.readPosition += size
@@ -612,11 +612,10 @@ actual class BufferView internal constructor(
 
     internal actual fun writeBufferAppend(other: BufferView, maxSize: Int) {
         val size = minOf(other.readRemaining, maxSize)
-        require(size <= writeRemaining + endGap) { "should should be greater than write space + end gap (size = $size, " +
+        require(size <= writeRemaining + endGap) { "size should be greater than write space + end gap (size = $size, " +
                 "writeRemaining = $writeRemaining, endGap = $endGap, rem+gap = ${writeRemaining + endGap}" }
 
-
-        memcpy(content + writePosition, other.content + readPosition, size.toLong())
+        memcpy(content + writePosition, other.content + other.readPosition, size.toLong())
 
         writePosition += size
         if (writePosition > limit) {

@@ -272,7 +272,7 @@ class BytePacketReaderWriterTest {
             append(".")
         }
 
-        assertEquals("123ABC.", outer.readText().toString())
+        assertEquals("123ABC.", outer.readText())
         assertEquals(0, inner.remaining)
     }
 
@@ -290,7 +290,7 @@ class BytePacketReaderWriterTest {
             append(".")
         }
 
-        assertEquals("123" + "o".repeat(100000) + ".", outer.readText().toString())
+        assertEquals("123" + "o".repeat(100000) + ".", outer.readText())
         assertEquals(0, inner.remaining)
     }
 
@@ -307,7 +307,7 @@ class BytePacketReaderWriterTest {
             assertEquals(5, size)
         }
 
-        assertEquals("1234.", outer.readText().toString())
+        assertEquals("1234.", outer.readText())
         assertEquals(0, inner.remaining)
     }
 
@@ -324,7 +324,7 @@ class BytePacketReaderWriterTest {
             kotlin.test.assertEquals(5, size)
         }
 
-        assertEquals("1234.", outer.readText().toString())
+        assertEquals("1234.", outer.readText())
         assertEquals(0, inner.remaining)
     }
 
@@ -341,7 +341,7 @@ class BytePacketReaderWriterTest {
             kotlin.test.assertEquals(5, size)
         }
 
-        assertEquals("1234.", outer.readText().toString())
+        assertEquals("1234.", outer.readText())
         assertEquals(0, inner.remaining)
     }
 
@@ -359,7 +359,7 @@ class BytePacketReaderWriterTest {
             append(".")
         }
 
-        assertEquals("123ABC.", outer.readText().toString())
+        assertEquals("123ABC.", outer.readText())
         assertEquals(3, inner.remaining)
         inner.release()
     }
@@ -378,7 +378,7 @@ class BytePacketReaderWriterTest {
             append(".")
         }
 
-        assertEquals("123" + "o".repeat(100000) + ".", outer.readText().toString())
+        assertEquals("123" + "o".repeat(100000) + ".", outer.readText())
         assertEquals(100000, inner.remaining)
         inner.release()
     }
