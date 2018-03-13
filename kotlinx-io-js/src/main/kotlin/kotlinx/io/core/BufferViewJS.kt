@@ -236,7 +236,7 @@ actual class BufferView internal constructor(
         if (readRemaining < length * 2) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length short integers")
         var rp = readPosition
 
-        for (idx in 0 .. length - 1) {
+        for (idx in offset .. offset + length - 1) {
             dst[idx] = view.getInt16(rp, littleEndian)
             rp += 2
         }
@@ -256,7 +256,7 @@ actual class BufferView internal constructor(
         if (readRemaining < length * 4) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length integers")
         var rp = readPosition
 
-        for (idx in 0 .. length - 1) {
+        for (idx in offset .. offset + length - 1) {
             dst[idx] = view.getInt32(rp, littleEndian)
             rp += 4
         }
@@ -275,7 +275,7 @@ actual class BufferView internal constructor(
     actual final override fun readFully(dst: LongArray, offset: Int, length: Int) {
         if (readRemaining < length * 8) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length long integers")
 
-        for (idx in 0 .. length - 1) {
+        for (idx in offset .. offset + length - 1) {
             dst[idx] = readLongUnsafe()
         }
     }
@@ -293,7 +293,7 @@ actual class BufferView internal constructor(
         var rp = readPosition
         val littleEndian = littleEndian
 
-        for (idx in 0 .. length - 1) {
+        for (idx in offset .. offset + length - 1) {
             dst[idx] = view.getFloat32(rp, littleEndian)
             rp += 4
         }
@@ -314,7 +314,7 @@ actual class BufferView internal constructor(
         var rp = readPosition
         val littleEndian = littleEndian
 
-        for (idx in 0 .. length - 1) {
+        for (idx in offset .. offset + length - 1) {
             dst[idx] = view.getFloat64(rp, littleEndian)
             rp += 8
         }
