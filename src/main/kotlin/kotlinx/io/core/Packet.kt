@@ -428,8 +428,8 @@ abstract class ByteReadPacketBase(private var head: BufferView,
     private fun readASCII(out: Appendable, min: Int, max: Int): Int {
         when {
             max == 0 && min == 0 -> return 0
-            isEmpty -> if (min == 0) return 0 else throw EOFException("at least $min characters required but no bytes available")
-            max < min -> throw IllegalArgumentException("min should be less or equal to max but min = $min, max = $max")
+            isEmpty -> if (min == 0) return 0 else atLeastMinCharactersRequire(min)
+            max < min -> minShouldBeLess(min, max)
         }
 
         var copied = 0
@@ -446,8 +446,8 @@ abstract class ByteReadPacketBase(private var head: BufferView,
             }
 
             when {
-                copied == max -> false
                 rc -> true
+                copied == max -> false
                 else -> {
                     utf8 = true
                     false
@@ -461,6 +461,10 @@ abstract class ByteReadPacketBase(private var head: BufferView,
         if (copied < min) prematureEndOfStreamChars(min, copied)
         return copied
     }
+
+    private fun atLeastMinCharactersRequire(min: Int): Nothing = throw EOFException("at least $min characters required but no bytes available")
+
+    private fun minShouldBeLess(min: Int, max: Int): Nothing = throw IllegalArgumentException("min should be less or equal to max but min = $min, max = $max")
 
     private fun prematureEndOfStreamChars(min: Int, copied: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected at least $min chars but had only $copied")
     private fun prematureEndOfStream(size: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
@@ -478,7 +482,11 @@ abstract class ByteReadPacketBase(private var head: BufferView,
                 }
             }
 
-            if (copied < max) size.coerceAtLeast(1) else 0
+            when {
+                size == 0 -> 1
+                size > 0 -> size
+                else -> 0
+            }
         }
 
         if (copied < min) prematureEndOfStreamChars(min, copied)

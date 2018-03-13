@@ -247,9 +247,12 @@ actual class BufferView private constructor(
         val limit = bb.limit()
         block(bb)
         val delta = bb.position() - positionBefore
-        if (delta < 0) throw IllegalStateException("Wrong buffer position change: negative shift $delta")
-        if (bb.limit() != limit) throw IllegalStateException("Limit change is now allowed")
+        if (delta < 0) negativeShift(delta)
+        if (bb.limit() != limit) limitChange()
     }
+
+    private fun negativeShift(delta: Int): Nothing = throw IllegalStateException("Wrong buffer position change: negative shift $delta")
+    private fun limitChange(): Nothing = throw IllegalStateException("Limit change is now allowed")
 
     internal inline fun writeDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
         val rem = writeRemaining

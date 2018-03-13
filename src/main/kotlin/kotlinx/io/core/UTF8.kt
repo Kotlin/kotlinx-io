@@ -29,7 +29,7 @@ internal inline fun BufferView.decodeUTF8(consumer: (Char) -> Boolean): Int {
         val v = readByte().toInt() and 0xff
         when {
             v and 0x80 == 0 -> {
-                if (byteCount != 0) throw MalformedUTF8InputException("Expected $byteCount more character bytes")
+                if (byteCount != 0) malformedByteCount(byteCount)
                 if (!consumer(v.toChar())) {
                     pushBack(1)
                     return -1
@@ -71,7 +71,7 @@ internal inline fun BufferView.decodeUTF8(consumer: (Char) -> Boolean): Int {
                             return -1
                         }
                     } else if (!isValidCodePoint(value)) {
-                        throw IllegalArgumentException("Malformed code-point $value found")
+                        malformedCodePoint(value)
                     } else {
                         if (!consumer(highSurrogate(value).toChar()) ||
                                 !consumer(lowSurrogate(value).toChar())) {
@@ -88,6 +88,9 @@ internal inline fun BufferView.decodeUTF8(consumer: (Char) -> Boolean): Int {
 
     return 0
 }
+
+private fun malformedByteCount(byteCount: Int): Nothing = throw MalformedUTF8InputException("Expected $byteCount more character bytes")
+private fun malformedCodePoint(value: Int): Nothing = throw IllegalArgumentException("Malformed code-point $value found")
 
 private const val MaxCodePoint = 0X10ffff
 private const val MinLowSurrogate = 0xdc00
