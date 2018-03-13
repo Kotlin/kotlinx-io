@@ -28,10 +28,10 @@ internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, t
     require(fromIndex <= toIndex)
     require(charset === Charsets.UTF_8)
 
-    val encoder = TextEncoder()  // Only UTF-8 is supported so we know that at most 6 bytes per character is used
+    val encoder = TextEncoderCtor()  // Only UTF-8 is supported so we know that at most 6 bytes per character is used
     var start = fromIndex
 
-    while (start < fromIndex) {
+    while (start < toIndex) {
         val minChars = minOf(toIndex - start, dst.writeRemaining / 6)
 
         if (minChars == 0) {
@@ -74,6 +74,8 @@ actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable, max: In
         input.readDirect { buffer: BufferView ->
             copied += buffer.readText(decoder, dst, buffer.next == null, rem)
         }
+
+        if (input.isEmpty) break
     }
 
     if (copied < max) {

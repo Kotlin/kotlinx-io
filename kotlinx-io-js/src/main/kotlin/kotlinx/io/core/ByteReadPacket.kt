@@ -70,7 +70,7 @@ actual abstract class ByteReadPacketPlatformBase
 
 actual class ByteReadPacket
     internal actual constructor(head: BufferView, remaining: Long, pool: ObjectPool<BufferView>) : ByteReadPacketPlatformBase(head, remaining, pool), Input {
-    actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : this(head, @Suppress("INVISIBLE_MEMBER") head.remainingAll(), pool)
+    actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : this(head, head.remainingAll(), pool)
 
     final override fun fill() = null
 
