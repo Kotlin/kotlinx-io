@@ -16,8 +16,13 @@ actual class BufferView internal constructor(
 
     private var view = if (content === EmptyBuffer) EmptyDataView else DataView(content)
     private var i8 = if (content === EmptyBuffer) Empty8 else Int8Array(content, 0, limit)
+    private var i16 = if (content === EmptyBuffer) Empty16 else Int16Array(content, 0, limit / 2)
+    private var i32 = if (content === EmptyBuffer) Empty32 else Int32Array(content, 0, limit / 4)
+    private var f32 = if (content === EmptyBuffer) EmptyF32 else Float32Array(content, 0, limit / 4)
+    private var f64 = if (content === EmptyBuffer) EmptyF64 else Float64Array(content, 0, limit / 8)
 
     private var littleEndian = false
+    private var platformEndian = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN
 
     actual var attachment: Any? = null
     actual var next: BufferView? = null
@@ -54,6 +59,7 @@ actual class BufferView internal constructor(
                 ByteOrder.BIG_ENDIAN -> false
                 ByteOrder.LITTLE_ENDIAN -> true
             }
+            platformEndian = value === ByteOrder.nativeOrder()
         }
 
     actual final override fun readByte(): Byte {
@@ -132,25 +138,69 @@ actual class BufferView internal constructor(
     actual final override fun writeFully(src: ShortArray, offset: Int, length: Int) {
         if (writeRemaining < length * 2) throw IllegalStateException("Not enough space left to write a double")
         var wp = writePosition
+        val platformEndian = platformEndian
 
-        for (i in offset .. offset + length - 1) {
-            view.setInt16(wp, src[i], littleEndian)
-            wp += 2
+        if (platformEndian && wp and 1 == 0) {
+            val array = i16
+            var j = wp / 2
+
+            for (i in offset .. offset + length - 1) {
+                array[j++] = src[i]
+            }
+
+            writePosition = wp + length * 2
         }
+        else if (platformEndian) {
+            val array = Int16Array(content, wp)
+            for (i in offset .. offset + length - 1) {
+                array[i - offset] = src[i]
+            }
+            writePosition = wp + length * 2
+        } else {
+            val littleEndian = littleEndian
+            val view = view
 
-        writePosition = wp
+            for (i in offset .. offset + length - 1) {
+                view.setInt16(wp, src[i], littleEndian)
+                wp += 2
+            }
+
+            writePosition = wp
+        }
     }
 
     actual final override fun writeFully(src: IntArray, offset: Int, length: Int) {
         if (writeRemaining < length * 4) throw IllegalStateException("Not enough space left to write a double")
         var wp = writePosition
+        val platformEndian = platformEndian
 
-        for (i in offset .. offset + length - 1) {
-            view.setInt32(wp, src[i], littleEndian)
-            wp += 4
+        if (platformEndian && wp and 3 == 0) {
+            val array = i32
+            var j = wp / 4
+
+            for (i in offset .. offset + length - 1) {
+                array[j++] = src[i]
+            }
+
+            writePosition = wp + length * 4
         }
+        else if (platformEndian) {
+            val array = Int32Array(content, wp)
+            for (i in offset .. offset + length - 1) {
+                array[i - offset] = src[i]
+            }
+            writePosition = wp + length * 4
+        } else {
+            val littleEndian = littleEndian
+            val view = view
 
-        writePosition = wp
+            for (i in offset..offset + length - 1) {
+                view.setInt32(wp, src[i], littleEndian)
+                wp += 4
+            }
+
+            writePosition = wp
+        }
     }
 
     actual final override fun writeFully(src: LongArray, offset: Int, length: Int) {
@@ -164,25 +214,69 @@ actual class BufferView internal constructor(
     actual final override fun writeFully(src: FloatArray, offset: Int, length: Int) {
         if (writeRemaining < length * 4) throw IllegalStateException("Not enough space left to write a double")
         var wp = writePosition
+        val platformEndian = platformEndian
 
-        for (i in offset .. offset + length - 1) {
-            view.setFloat32(wp, src[i], littleEndian)
-            wp += 4
+        if (platformEndian && wp and 3 == 0) {
+            val array = f32
+            var j = wp / 4
+
+            for (i in offset .. offset + length - 1) {
+                array[j++] = src[i]
+            }
+
+            writePosition = wp + length * 4
         }
+        else if (platformEndian) {
+            val array = Float32Array(content, wp)
+            for (i in offset .. offset + length - 1) {
+                array[i - offset] = src[i]
+            }
+            writePosition = wp + length * 4
+        } else {
+            val littleEndian = littleEndian
+            val view = view
 
-        writePosition = wp
+            for (i in offset..offset + length - 1) {
+                view.setFloat32(wp, src[i], littleEndian)
+                wp += 4
+            }
+
+            writePosition = wp
+        }
     }
 
     actual final override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
         if (writeRemaining < length * 8) throw IllegalStateException("Not enough space left to write a double")
         var wp = writePosition
+        val platformEndian = platformEndian
 
-        for (i in offset .. offset + length - 1) {
-            view.setFloat64(wp, src[i], littleEndian)
-            wp += 8
+        if (platformEndian && wp and 7 == 0) {
+            val array = f64
+            var j = wp / 8
+
+            for (i in offset .. offset + length - 1) {
+                array[j++] = src[i]
+            }
+
+            writePosition = wp + length * 8
         }
+        else if (platformEndian) {
+            val array = Float64Array(content, wp)
+            for (i in offset .. offset + length - 1) {
+                array[i - offset] = src[i]
+            }
+            writePosition = wp + length * 8
+        } else {
+            val littleEndian = littleEndian
+            val view = view
 
-        writePosition = wp
+            for (i in offset..offset + length - 1) {
+                view.setFloat64(wp, src[i], littleEndian)
+                wp += 8
+            }
+
+            writePosition = wp
+        }
     }
 
     actual final override fun writeFully(src: BufferView, length: Int) {
@@ -235,13 +329,36 @@ actual class BufferView internal constructor(
     actual final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
         if (readRemaining < length * 2) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length short integers")
         var rp = readPosition
+        val platformEndian = platformEndian
 
-        for (idx in offset .. offset + length - 1) {
-            dst[idx] = view.getInt16(rp, littleEndian)
-            rp += 2
+        if (platformEndian && rp and 1 == 0) {
+            val array = i16
+            var j = rp / 2
+
+            for (i in offset..offset + length - 1) {
+                dst[i] = array[j++]
+            }
+
+            readPosition = rp + length * 2
+        } else if (platformEndian) {
+            val array = Int16Array(content, rp)
+            var j = 0
+
+            for (i in offset..offset + length - 1) {
+                dst[i] = array[j++]
+            }
+
+            readPosition = rp + length * 2
+        } else {
+            val littleEndian = littleEndian
+            val view = view
+            for (idx in offset..offset + length - 1) {
+                dst[idx] = view.getInt16(rp, littleEndian)
+                rp += 2
+            }
+
+            readPosition = rp
         }
-
-        readPosition = rp
     }
 
     actual final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
@@ -255,13 +372,37 @@ actual class BufferView internal constructor(
     actual final override fun readFully(dst: IntArray, offset: Int, length: Int) {
         if (readRemaining < length * 4) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length integers")
         var rp = readPosition
+        val platformEndian = platformEndian
 
-        for (idx in offset .. offset + length - 1) {
-            dst[idx] = view.getInt32(rp, littleEndian)
-            rp += 4
+        if (platformEndian && rp and 3 == 0) {
+            val array = i32
+            var j = rp / 4
+
+            for (i in offset..offset + length - 1) {
+                dst[i] = array[j++]
+            }
+
+            readPosition = rp + length * 4
+        } else if (platformEndian) {
+            val array = Int32Array(content, rp)
+            var j = 0
+
+            for (i in offset..offset + length - 1) {
+                dst[i] = array[j++]
+            }
+
+            readPosition = rp + length * 4
+        } else {
+            val littleEndian = littleEndian
+            val view = view
+
+            for (idx in offset..offset + length - 1) {
+                dst[idx] = view.getInt32(rp, littleEndian)
+                rp += 4
+            }
+
+            readPosition = rp
         }
-
-        readPosition = rp
     }
 
     actual final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
@@ -291,14 +432,37 @@ actual class BufferView internal constructor(
     actual final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
         if (readRemaining < length * 4) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length float numbers")
         var rp = readPosition
-        val littleEndian = littleEndian
+        val platformEndian = platformEndian
 
-        for (idx in offset .. offset + length - 1) {
-            dst[idx] = view.getFloat32(rp, littleEndian)
-            rp += 4
+        if (platformEndian && rp and 3 == 0) {
+            val array = f32
+            var j = rp / 4
+
+            for (i in offset..offset + length - 1) {
+                dst[i] = array[j++]
+            }
+
+            readPosition = rp + length * 4
+        } else if (platformEndian) {
+            val array = Float32Array(content, rp)
+            var j = 0
+
+            for (i in offset..offset + length - 1) {
+                dst[i] = array[j++]
+            }
+
+            readPosition = rp + length * 4
+        } else {
+            val littleEndian = littleEndian
+            val view = view
+
+            for (idx in offset..offset + length - 1) {
+                dst[idx] = view.getFloat32(rp, littleEndian)
+                rp += 4
+            }
+
+            readPosition = rp
         }
-
-        readPosition = rp
     }
 
     actual final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
@@ -312,14 +476,37 @@ actual class BufferView internal constructor(
     actual final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
         if (readRemaining < length * 8) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length double float numbers")
         var rp = readPosition
-        val littleEndian = littleEndian
+        val platformEndian = platformEndian
 
-        for (idx in offset .. offset + length - 1) {
-            dst[idx] = view.getFloat64(rp, littleEndian)
-            rp += 8
+        if (platformEndian && rp and 7 == 0) {
+            val array = f64
+            var j = rp / 8
+
+            for (i in offset..offset + length - 1) {
+                dst[i] = array[j++]
+            }
+
+            readPosition = rp + length * 8
+        } else if (platformEndian) {
+            val array = Float64Array(content, rp)
+            var j = 0
+
+            for (i in offset..offset + length - 1) {
+                dst[i] = array[j++]
+            }
+
+            readPosition = rp + length * 8
+        } else {
+            val littleEndian = littleEndian
+            val view = view
+
+            for (idx in offset..offset + length - 1) {
+                dst[idx] = view.getFloat64(rp, littleEndian)
+                rp += 8
+            }
+
+            readPosition = rp
         }
-
-        readPosition = rp
     }
 
     actual final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
@@ -733,6 +920,10 @@ actual class BufferView internal constructor(
         private val EmptyBuffer = ArrayBuffer(0)
         private val EmptyDataView = DataView(EmptyBuffer)
         private val Empty8 = Int8Array(0)
+        private val Empty16 = Int16Array(0)
+        private val Empty32 = Int32Array(0)
+        private val EmptyF32 = Float32Array(0)
+        private val EmptyF64 = Float64Array(0)
 
         actual val Empty = BufferView(EmptyBuffer, null)
         actual val Pool: ObjectPool<BufferView> = object: DefaultPool<BufferView>(BUFFER_VIEW_POOL_SIZE) {
