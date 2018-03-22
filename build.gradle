@@ -70,26 +70,28 @@ allprojects {
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
 
-   /* publishing {
-        publications {
-            mavenProject(MavenPublication) {
-                from components.java
-                groupId project.group
-                artifactId project.name
-                version project.version
+    if (!name.contains('native')) {
+        publishing {
+            publications {
+                mavenProject(MavenPublication) {
+                    from components.java
+                    groupId project.group
+                    artifactId project.name
+                    version project.version
 
-                artifact sourceJar {
-                    classifier 'sources'
+                    artifact sourceJar {
+                        classifier 'sources'
+                    }
+
+                    artifact emptyJar {
+                        classifier 'javadoc'
+                    }
+
+                    withPom(pom)
                 }
-
-                artifact emptyJar {
-                    classifier 'javadoc'
-                }
-
-                withPom(pom)
             }
         }
-    } */
+    }
 }
 
 dependencies {
