@@ -1,5 +1,5 @@
 apply plugin: 'kotlin-platform-js'
-//apply plugin: 'org.jetbrains.kotlin.frontend'
+apply plugin: 'org.jetbrains.kotlin.frontend'
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
@@ -8,12 +8,12 @@ dependencies {
     expectedBy project(":")
 }
 
-/*kotlinFrontend {
+kotlinFrontend {
     downloadNodeJsVersion = 'latest'
 
     npm {
         dependency "text-encoding"
-        devDependency "webpack-cli"
+        devDependency "karma-qunit", "1.2.1"
     }
 
     webpackBundle {
@@ -24,7 +24,7 @@ dependencies {
         enableWebPack = true
     }
 }
-*/
+
 compileKotlin2Js {
     kotlinOptions.metaInfo = true
 //    kotlinOptions.outputFile = "$project.buildDir.path/js/${project.name}.js"
