@@ -136,7 +136,7 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: ShortArray, offset: Int, length: Int) {
-        if (writeRemaining < length * 2) throw IllegalStateException("Not enough space left to write a double")
+        if (writeRemaining < length * 2) throw IllegalStateException("Not enough space left to write a short array of length $length")
         var wp = writePosition
         val platformEndian = platformEndian
 
@@ -170,7 +170,7 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: IntArray, offset: Int, length: Int) {
-        if (writeRemaining < length * 4) throw IllegalStateException("Not enough space left to write a double")
+        if (writeRemaining < length * 4) throw IllegalStateException("Not enough space left to write an int array of length $length")
         var wp = writePosition
         val platformEndian = platformEndian
 
@@ -204,7 +204,7 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: LongArray, offset: Int, length: Int) {
-        if (writeRemaining < length * 8) throw IllegalStateException("Not enough space left to write a double")
+        if (writeRemaining < length * 8) throw IllegalStateException("Not enough space left to write a long array of length $length")
 
         for (i in offset .. offset + length - 1) {
             writeLong(src[i])
@@ -212,7 +212,7 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: FloatArray, offset: Int, length: Int) {
-        if (writeRemaining < length * 4) throw IllegalStateException("Not enough space left to write a double")
+        if (writeRemaining < length * 4) throw IllegalStateException("Not enough space left to write a float array of length $length")
         var wp = writePosition
         val platformEndian = platformEndian
 
@@ -246,7 +246,7 @@ actual class BufferView internal constructor(
     }
 
     actual final override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
-        if (writeRemaining < length * 8) throw IllegalStateException("Not enough space left to write a double")
+        if (writeRemaining < length * 8) throw IllegalStateException("Not enough space left to write a double array of length $length")
         var wp = writePosition
         val platformEndian = platformEndian
 
