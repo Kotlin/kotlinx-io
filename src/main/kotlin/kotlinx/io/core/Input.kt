@@ -10,21 +10,21 @@ expect interface Input {
     fun readFloat(): Float
     fun readDouble(): Double
 
-    fun readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size)
-    fun readFully(dst: ShortArray, offset: Int = 0, length: Int = dst.size)
-    fun readFully(dst: IntArray, offset: Int = 0, length: Int = dst.size)
-    fun readFully(dst: LongArray, offset: Int = 0, length: Int = dst.size)
-    fun readFully(dst: FloatArray, offset: Int = 0, length: Int = dst.size)
-    fun readFully(dst: DoubleArray, offset: Int = 0, length: Int = dst.size)
+    fun readFully(dst: ByteArray, offset: Int, length: Int)
+    fun readFully(dst: ShortArray, offset: Int, length: Int)
+    fun readFully(dst: IntArray, offset: Int, length: Int)
+    fun readFully(dst: LongArray, offset: Int, length: Int)
+    fun readFully(dst: FloatArray, offset: Int, length: Int)
+    fun readFully(dst: DoubleArray, offset: Int, length: Int)
     fun readFully(dst: BufferView, length: Int = dst.writeRemaining)
 
-    fun readAvailable(dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int
-    fun readAvailable(dst: ShortArray, offset: Int = 0, length: Int = dst.size): Int
-    fun readAvailable(dst: IntArray, offset: Int = 0, length: Int = dst.size): Int
-    fun readAvailable(dst: LongArray, offset: Int = 0, length: Int = dst.size): Int
-    fun readAvailable(dst: FloatArray, offset: Int = 0, length: Int = dst.size): Int
-    fun readAvailable(dst: DoubleArray, offset: Int = 0, length: Int = dst.size): Int
-    fun readAvailable(dst: BufferView, length: Int = dst.writeRemaining): Int
+    fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: IntArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: BufferView, length: Int): Int
 
     fun discard(n: Long): Long
 
@@ -36,6 +36,77 @@ expect interface Input {
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     fun `$prepareRead$`(minSize: Int): BufferView?
+}
+
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size) {
+    return readFully(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readFully(dst: ShortArray, offset: Int = 0, length: Int = dst.size) {
+    return readFully(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readFully(dst: IntArray, offset: Int = 0, length: Int = dst.size) {
+    return readFully(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readFully(dst: LongArray, offset: Int = 0, length: Int = dst.size) {
+    return readFully(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readFully(dst: FloatArray, offset: Int = 0, length: Int = dst.size) {
+    return readFully(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readFully(dst: DoubleArray, offset: Int = 0, length: Int = dst.size) {
+    return readFully(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readFully(dst: BufferView, length: Int = dst.writeRemaining) {
+    return readFully(dst, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readAvailable(dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int {
+    return readAvailable(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readAvailable(dst: ShortArray, offset: Int = 0, length: Int = dst.size): Int {
+    return readAvailable(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readAvailable(dst: IntArray, offset: Int = 0, length: Int = dst.size): Int {
+    return readAvailable(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readAvailable(dst: LongArray, offset: Int = 0, length: Int = dst.size): Int {
+    return readAvailable(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readAvailable(dst: FloatArray, offset: Int = 0, length: Int = dst.size): Int {
+    return readAvailable(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readAvailable(dst: DoubleArray, offset: Int = 0, length: Int = dst.size): Int {
+    return readAvailable(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readAvailable(dst: BufferView, length: Int = dst.writeRemaining): Int {
+    return readAvailable(dst, length)
 }
 
 fun Input.discardExact(n: Long) {
