@@ -1,3 +1,5 @@
+@file:Suppress("RedundantModalityModifier")
+
 package kotlinx.io.core
 
 import kotlinx.io.pool.*

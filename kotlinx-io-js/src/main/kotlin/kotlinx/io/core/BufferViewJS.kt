@@ -1,3 +1,5 @@
+@file:Suppress("ReplaceRangeToWithUntil", "RedundantModalityModifier")
+
 package kotlinx.io.core
 
 import kotlinx.io.js.*
