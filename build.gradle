@@ -8,6 +8,7 @@ buildscript {
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }
 
+        mavenLocal()
         mavenCentral()
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
@@ -70,25 +71,31 @@ allprojects {
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
 
-    if (!name.contains('native')) {
-        publishing {
-            publications {
-                mavenProject(MavenPublication) {
+    publishing {
+        publications {
+            mavenProject(MavenPublication) {
+                if (components.findByName('java')) {
                     from components.java
-                    groupId project.group
-                    artifactId project.name
-                    version project.version
-
-                    artifact sourceJar {
-                        classifier 'sources'
-                    }
-
-                    artifact emptyJar {
-                        classifier 'javadoc'
-                    }
-
-                    withPom(pom)
                 }
+                groupId project.group
+                artifactId project.name
+                version project.version
+
+                artifact sourceJar {
+                    classifier 'sources'
+                }
+
+                artifact emptyJar {
+                    classifier 'javadoc'
+                }
+
+                if (project.name == 'kotlinx-io-native') {
+                    artifact (new File(project.buildDir, "konan/libs/linux_x64/native.klib")) {
+                        classifier 'linux_x64'
+                    }
+                }
+
+                withPom(pom)
             }
         }
     }
