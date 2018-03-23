@@ -8,9 +8,9 @@ import platform.posix.memcpy
 import platform.posix.memset
 import platform.posix.size_t
 import platform.posix.size_tVar
-import platform.linux.iconv_open
-import platform.linux.iconv_close
-import platform.linux.iconv
+import platform.iconv.iconv_open
+import platform.iconv.iconv_close
+import platform.iconv.iconv
 
 import konan.SymbolName
 
