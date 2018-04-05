@@ -109,6 +109,10 @@ fun Input.readAvailable(dst: BufferView, length: Int = dst.writeRemaining): Int 
     return readAvailable(dst, length)
 }
 
+fun Input.discard(): Long {
+    return discard(Long.MAX_VALUE)
+}
+
 fun Input.discardExact(n: Long) {
     val discarded = discard(n)
     if (discarded != n) {
