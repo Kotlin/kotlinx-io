@@ -3,3 +3,5 @@ build
 *.iml
 .gradle
 *.swp
+
+kotlinx-io-native/repo/
