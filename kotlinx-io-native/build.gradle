@@ -1,17 +1,20 @@
 apply plugin: 'konan'
 
 konanArtifacts {
-    library('native') {
+    library('kotlinx_io_native') {
         enableMultiplatform true
     }
 
-    program('native-test') {
-        srcDir 'src/test/kotlin'
-        commonSourceSet 'test'
-        libraries {
-            artifact 'native'
+    if (!project.hasProperty("deploy")) {
+        program('native_test') {
+            srcDir 'src/test/kotlin'
+            enableMultiplatform true
+            commonSourceSet 'test'
+            libraries {
+                artifact 'kotlinx_io_native'
+            }
+            extraOpts '-tr'
         }
-        extraOpts '-tr'
     }
 }
 

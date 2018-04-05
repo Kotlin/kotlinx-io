@@ -38,9 +38,13 @@ allprojects {
 
     apply plugin: 'com.jfrog.bintray'
     apply plugin: 'maven'
-    apply plugin: 'maven-publish'
+
+    if (project.hasProperty("deploy")) {
+        apply plugin: 'maven-publish'
+        apply from: rootProject.file('bintray.gradle')
+    }
+
     apply from: rootProject.file('pom.gradle')
-    apply from: rootProject.file('bintray.gradle')
 
     repositories {
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
@@ -71,31 +75,33 @@ allprojects {
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
 
-    publishing {
-        publications {
-            mavenProject(MavenPublication) {
-                if (components.findByName('java')) {
-                    from components.java
-                }
-                groupId project.group
-                artifactId project.name
-                version project.version
-
-                artifact sourceJar {
-                    classifier 'sources'
-                }
-
-                artifact emptyJar {
-                    classifier 'javadoc'
-                }
-
-                if (project.name == 'kotlinx-io-native') {
-                    artifact (new File(project.buildDir, "konan/libs/linux_x64/native.klib")) {
-                        classifier 'linux_x64'
+    if (project.hasProperty("deploy")) {
+        publishing {
+            publications {
+                mavenProject(MavenPublication) {
+                    if (components.findByName('java')) {
+                        from components.java
                     }
-                }
+                    groupId project.group
+                    artifactId project.name
+                    version project.version
 
-                withPom(pom)
+                    artifact sourceJar {
+                        classifier 'sources'
+                    }
+
+                    artifact emptyJar {
+                        classifier 'javadoc'
+                    }
+
+                    //if (project.name == 'kotlinx-io-native') {
+                    //    artifact (new File(project.buildDir, "konan/libs/linux_x64/native.klib")) {
+                    //        classifier 'linux_x64'
+                    //    }
+                    //}
+
+                    withPom(pom)
+                }
             }
         }
     }
