@@ -1,0 +1,30 @@
+apply plugin: 'kotlin-platform-jvm'
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5'
+
+    compile "org.jetbrains.kotlinx:atomicfu:0.9.2"
+
+    testCompile "junit:junit:4.12"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
+    expectedBy project(":kotlinx-coroutines-io")
+    compile project(":kotlinx-io-jvm")
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.6"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.6"
+}
+
+sourceCompatibility = "1.6"
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
