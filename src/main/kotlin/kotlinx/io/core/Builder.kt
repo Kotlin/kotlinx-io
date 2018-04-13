@@ -114,15 +114,27 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
      * Builds byte packet instance and resets builder's state to be able to build another one packet if needed
      */
     fun build(): ByteReadPacket {
-        val head = this.head
         val size = size
+        val head = stealAll()
+
+        return when (head) {
+            null -> ByteReadPacket.Empty
+            else -> ByteReadPacket(head, size.toLong(), pool)
+        }
+    }
+
+    /**
+     * Detach all chunks and cleanup all internal state so builder could be reusable again
+     * @return a chain of buffer views or `null` of it is empty
+     */
+    internal fun stealAll(): BufferView? {
+        val head = this.head
 
         this.head = BufferView.Empty
         this.tail = BufferView.Empty
         this._size = 0
 
-        if (head === BufferView.Empty) return ByteReadPacket(head, 0L, EmptyBufferViewPool)
-        return ByteReadPacket(head, size.toLong(), pool)
+        return if (head === BufferView.Empty) null else head
     }
 
     /**
@@ -411,6 +423,46 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         while (true) {
             val buffer = p.steal() ?: break
             last(buffer)
+        }
+    }
+
+    /**
+     * Write exact [n] bytes from packet to the builder
+     */
+    fun writePacket(p: ByteReadPacket, n: Int) {
+        var remaining = n
+
+        while (true) {
+            val headRemaining = p.headRemaining
+            if (headRemaining <= remaining) {
+                remaining -= headRemaining
+                last(p.steal() ?: throw EOFException("Unexpected end of packet"))
+            } else {
+                p.readDirect { view ->
+                    writeFully(view, remaining)
+                }
+                break
+            }
+        }
+    }
+
+    /**
+     * Write exact [n] bytes from packet to the builder
+     */
+    fun writePacket(p: ByteReadPacket, n: Long) {
+        var remaining = n
+
+        while (true) {
+            val headRemaining = p.headRemaining.toLong()
+            if (headRemaining <= remaining) {
+                remaining -= headRemaining
+                last(p.steal() ?: throw EOFException("Unexpected end of packet"))
+            } else {
+                p.readDirect { view ->
+                    writeFully(view, remaining.toInt())
+                }
+                break
+            }
         }
     }
 

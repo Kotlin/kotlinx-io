@@ -16,6 +16,8 @@ actual class BufferView private constructor(
         private var content: ByteBuffer,
         internal actual val origin: BufferView?) : Input, Output {
 
+    constructor(external: ByteBuffer) : this(external, null)
+
     private var readBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
     private var writeBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
 

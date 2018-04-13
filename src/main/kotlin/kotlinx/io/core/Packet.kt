@@ -18,14 +18,26 @@ abstract class ByteReadPacketBase(private var head: BufferView,
      */
     val remaining: Long get() = headRemaining.toLong() + tailRemaining
 
-    private var headRemaining = head.readRemaining
+    /**
+     * @return `true` if there is at least one byte to read
+     */
+    fun canRead() = tailRemaining != 0L || head.canRead()
+
+    /**
+     * @return `true` if there are at least [n] bytes to read
+     */
+    fun hasBytes(n: Int) = headRemaining + tailRemaining >= n
+
+    internal var headRemaining = head.readRemaining
+        private set
+
     private var tailRemaining = remaining - headRemaining //head.next?.remainingAll() ?: 0
 
     /**
      * `true` if no bytes available for read
      */
     val isEmpty: Boolean
-        get() = headRemaining == 0 && tailRemaining == 0L
+        get() = !head.canRead() && tailRemaining == 0L
 
     /**
      * Returns a copy of the packet. The original packet and the copy could be used concurrently. Both need to be
@@ -582,6 +594,11 @@ abstract class ByteReadPacketBase(private var head: BufferView,
 
     private fun doFill(): BufferView? {
         val chunk = fill() ?: return null
+        appendView(chunk)
+        return chunk
+    }
+
+    internal fun appendView(chunk: BufferView) {
         val tail = head.findTail()
         if (tail === BufferView.Empty) {
             head = chunk
@@ -593,10 +610,7 @@ abstract class ByteReadPacketBase(private var head: BufferView,
             tail.next = chunk
             tailRemaining += chunk.remainingAll()
         }
-
-        return chunk
     }
-
 
     @Suppress("NOTHING_TO_INLINE")
     internal inline fun prepareRead(minSize: Int): BufferView? = prepareRead(minSize, head)
