@@ -372,16 +372,16 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
      */
     override fun append(c: Char): BytePacketBuilderBase {
         write(3) {
-            it.putUtf8Char(c.toInt() and 0xffff)
+            it.putUtf8Char(c.toInt())
         }
         return this
     }
 
     override fun append(csq: CharSequence?): BytePacketBuilderBase {
         if (csq == null) {
-            append("null")
+            appendChars("null", 0, 4)
         } else {
-            append(csq, 0, csq.length)
+            appendChars(csq, 0, csq.length)
         }
         return this
     }
@@ -391,7 +391,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
             return append("null", start, end)
         }
 
-        appendASCII(csq, start, end)
+        appendChars(csq, start, end)
+
         return this
     }
 
@@ -402,98 +403,49 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         }
     }
 
-    private tailrec fun appendASCII(csq: CharSequence, start: Int, end: Int) {
-        val bb = ensure()
-        val limitedEnd = minOf(end, start + bb.writeRemaining)
-
-        for (i in start until limitedEnd) {
-            val chi = csq[i].toInt() and 0xffff
-            if (chi >= 0x80) {
-                appendUTF8(csq, i, end, bb)
-                return
-            }
-
-            bb.writeByte(chi.toByte())
-            size++
-        }
-
-        if (limitedEnd < end) {
-            return appendASCII(csq, limitedEnd, end)
-        }
+    override fun append(csq: CharArray, start: Int, end: Int): Appendable {
+        appendChars(csq, start, end)
+        return this
     }
 
-    // expects at least one byte remaining in [bb]
-    private tailrec fun appendUTF8(csq: CharSequence, start: Int, end: Int, bb: BufferView) {
-        var rem = bb.writeRemaining
-        val limitedEnd = minOf(end, start + rem)
+    private fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
+        var idx = start
+        if (idx >= end) return idx
+        var buffer = ensure()
+        var size = buffer.writeRemaining
+        idx = buffer.appendChars(csq, idx, end)
+        size -= buffer.writeRemaining
 
-        for (i in start until limitedEnd) {
-            val chi = csq[i].toInt() and 0xffff
-            val requiredSize = when {
-                chi <= 0x7f -> 1
-                chi > 0x7ff -> 3
-                else -> 2
-            }
-
-            if (rem < requiredSize) {
-                return appendUTF8(csq, i, end, appendNewBuffer())
-            }
-
-            val chSize = bb.putUtf8Char(chi)
-            rem -= chSize
-            size += chSize
+        while (idx < end) {
+            buffer = appendNewBuffer()
+            val before = buffer.writeRemaining
+            idx = buffer.appendChars(csq, idx, end)
+            val after = buffer.writeRemaining
+            size += before - after
         }
 
-        if (limitedEnd < end) {
-            return appendUTF8(csq, limitedEnd, end, appendNewBuffer())
-        }
+        this.size += size
+        return idx
     }
 
-    internal fun appendChars(ca: CharArray, start: Int, end: Int) {
-        return appendASCII(ca, start, end)
-    }
+    private fun appendChars(csq: CharArray, start: Int, end: Int): Int {
+        var idx = start
+        if (idx >= end) return idx
+        var buffer = ensure()
+        var size = buffer.writeRemaining
+        idx = buffer.appendChars(csq, idx, end)
+        size -= buffer.writeRemaining
 
-    private tailrec fun appendASCII(csq: CharArray, start: Int, end: Int) {
-        val bb = ensure()
-        val limitedEnd = minOf(end, start + bb.writeRemaining)
-
-        for (i in start until limitedEnd) {
-            val chi = csq[i].toInt() and 0xffff
-            if (chi >= 0x80) {
-                appendUTF8(csq, i, end, bb)
-                return
-            }
-
-            bb.writeByte(chi.toByte())
-            size++
+        while (idx < end) {
+            buffer = appendNewBuffer()
+            val before = buffer.writeRemaining
+            idx = buffer.appendChars(csq, idx, end)
+            val after = buffer.writeRemaining
+            size += before - after
         }
 
-        if (limitedEnd < end) {
-            return appendASCII(csq, limitedEnd, end)
-        }
-    }
-
-    // expects at least one byte remaining in [bb]
-    private tailrec fun appendUTF8(csq: CharArray, start: Int, end: Int, bb: BufferView) {
-        val limitedEnd = minOf(end, start + bb.writeRemaining)
-        for (i in start until limitedEnd) {
-            val chi = csq[i].toInt() and 0xffff
-            val requiredSize = when {
-                chi <= 0x7f -> 1
-                chi > 0x7ff -> 3
-                else -> 2
-            }
-
-            if (bb.writeRemaining < requiredSize) {
-                return appendUTF8(csq, i, end, appendNewBuffer())
-            }
-
-            size += bb.putUtf8Char(chi)
-        }
-
-        if (limitedEnd < end) {
-            return appendUTF8(csq, limitedEnd, end, appendNewBuffer())
-        }
+        this.size += size
+        return idx
     }
 
     fun writeStringUtf8(s: String) {

@@ -220,6 +220,141 @@ actual class BufferView private constructor(
         afterWrite()
     }
 
+    actual final override fun append(csq: CharSequence?, start: Int, end: Int): Appendable {
+        val idx = appendChars(csq ?: "null", start, end)
+        if (idx != end) throw IllegalStateException("Not enough free space to append char sequence")
+        return this
+    }
+
+    actual final override fun append(csq: CharSequence?): Appendable {
+        return if (csq == null) append("null") else append(csq, 0, csq.length)
+    }
+
+    actual final override fun append(csq: CharArray, start: Int, end: Int): Appendable {
+        val idx = appendChars(csq, start, end)
+
+        if (idx != end) throw IllegalStateException("Not enough free space to append char sequence")
+        return this
+    }
+
+    actual override fun append(c: Char): Appendable {
+        val s = writeBuffer.putUtf8Char(c.toInt())
+        if (s == 0) notEnoughFreeSpace(c)
+        afterWrite()
+        return this
+    }
+
+    private fun notEnoughFreeSpace(c: Char): Nothing {
+        throw IllegalStateException("Not Enough free space to append character '$c', remaining $writeRemaining bytes")
+    }
+    actual fun appendChars(csq: CharArray, start: Int, end: Int): Int {
+        val buffer = writeBuffer
+
+        for (idx in start until end) {
+            val ch = csq[idx]
+            val size = buffer.putUtf8Char(ch.toInt())
+            if (size == 0) {
+                afterWrite()
+                return idx
+            }
+        }
+
+        afterWrite()
+        return end
+    }
+
+    actual fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
+        val buffer = writeBuffer
+        val idx = if (buffer.hasArray()) {
+            appendASCII_array(buffer, csq, start, end)
+        } else {
+            appendASCII_buffer(buffer, csq, start, end)
+        }
+
+        if (!buffer.hasRemaining() || idx == end) {
+            afterWrite()
+            return idx
+        }
+
+        return appendUTF8(buffer, csq, idx, end)
+    }
+
+    private fun appendUTF8(writeBuffer: ByteBuffer, csq: CharSequence, start: Int, end: Int): Int {
+        for (idx in start until end) {
+            val ch = csq[idx]
+            val size = writeBuffer.putUtf8Char(ch.toInt())
+            if (size == 0) {
+                afterWrite()
+                return idx
+            }
+        }
+
+        afterWrite()
+        return end
+    }
+
+    private fun appendASCII_buffer(writeBuffer: ByteBuffer, csq: CharSequence, start: Int, end: Int): Int {
+        var rc = end
+
+        for (idx in start until end) {
+            val ch = csq[idx].toInt()
+            if (ch > 0x7f || !writeBuffer.hasRemaining()) {
+                rc = idx
+                break
+            }
+            writeBuffer.put(ch.toByte())
+        }
+
+        return rc
+    }
+
+    private fun appendASCII_array(writeBuffer: ByteBuffer, csq: CharSequence, start: Int, end: Int): Int {
+        var rc = end
+        val array = writeBuffer.array()
+        val initialOffset = writeBuffer.arrayOffset() + writeBuffer.position()
+        var offset = initialOffset
+
+        for (idx in start until end) {
+            val ch = csq[idx].toInt()
+            if (ch > 0x7f || offset >= array.size || offset >= writeBuffer.limit()) {
+                rc = idx
+                break
+            }
+            array[offset++] = ch.toByte()
+        }
+
+        writeBuffer.position(offset - initialOffset)
+        return rc
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun ByteBuffer.putUtf8Char(v: Int): Int {
+        return when {
+            v in 1..0x7f -> {
+                if (remaining() < 1) return 0
+                put(v.toByte())
+                1
+            }
+            v > 0x7ff -> {
+                if (remaining() < 3) return 0
+                apply {
+                    put((0xe0 or ((v shr 12) and 0x0f)).toByte())
+                    put((0x80 or ((v shr  6) and 0x3f)).toByte())
+                    put((0x80 or ( v         and 0x3f)).toByte())
+                }
+                3
+            }
+            else -> {
+                if (remaining() < 2) return 0
+                apply {
+                    put((0xc0 or ((v shr  6) and 0x1f)).toByte())
+                    put((0x80 or ( v         and 0x3f)).toByte())
+                }
+                2
+            }
+        }
+    }
+
     actual final override fun fill(n: Long, v: Byte) {
         require(n <= writeRemaining) { "Not enough space to write $n bytes" }
 

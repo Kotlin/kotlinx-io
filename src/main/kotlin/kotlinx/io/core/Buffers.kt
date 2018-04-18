@@ -122,6 +122,14 @@ expect class BufferView : Input, Output {
     final override fun writeFully(src: DoubleArray, offset: Int, length: Int)
     final override fun writeFully(src: BufferView, length: Int)
 
+    fun appendChars(csq: CharArray, start: Int, end: Int): Int
+    fun appendChars(csq: CharSequence, start: Int, end: Int): Int
+
+    final override fun append(c: Char): Appendable
+    final override fun append(csq: CharSequence?): Appendable
+    final override fun append(csq: CharSequence?, start: Int, end: Int): Appendable
+    final override fun append(csq: CharArray, start: Int, end: Int): Appendable
+
     final override fun fill(n: Long, v: Byte)
 
     override fun close()

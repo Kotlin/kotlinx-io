@@ -1,6 +1,6 @@
 package kotlinx.io.core
 
-expect interface Output {
+expect interface Output : Appendable {
     var byteOrder: ByteOrder
 
     fun writeByte(v: Byte)
@@ -18,12 +18,23 @@ expect interface Output {
     fun writeFully(src: DoubleArray, offset: Int, length: Int)
     fun writeFully(src: BufferView, length: Int)
 
+    fun append(csq: CharArray, start: Int, end: Int): Appendable
+
     fun fill(n: Long, v: Byte)
 
     fun flush()
     fun close()
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Output.append(csq: CharSequence, start: Int = 0, end: Int = csq.length): Appendable {
+    return append(csq, start, end)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Output.append(csq: CharArray, start: Int = 0, end: Int = csq.size): Appendable {
+    return append(csq, start, end)
+}
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.writeFully(src: ByteArray, offset: Int = 0, length: Int = src.size) {

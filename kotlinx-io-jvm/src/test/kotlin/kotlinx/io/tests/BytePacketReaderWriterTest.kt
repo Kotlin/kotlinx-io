@@ -262,6 +262,7 @@ class BytePacketReaderWriterTest {
     fun testWritePacketSingle() {
         val inner = buildPacket {
             append("ABC")
+            assertEquals(3, size)
         }
 
         val outer = buildPacket {

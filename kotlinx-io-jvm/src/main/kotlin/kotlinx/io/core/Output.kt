@@ -2,7 +2,7 @@ package kotlinx.io.core
 
 import java.io.*
 
-actual interface Output : Closeable {
+actual interface Output : Closeable, Appendable {
     actual var byteOrder: ByteOrder
 
     actual fun writeByte(v: Byte)
@@ -19,6 +19,8 @@ actual interface Output : Closeable {
     actual fun writeFully(src: FloatArray, offset: Int, length: Int)
     actual fun writeFully(src: DoubleArray, offset: Int, length: Int)
     actual fun writeFully(src: BufferView, length: Int)
+
+    actual fun append(csq: CharArray, start: Int, end: Int): Appendable
 
     actual fun fill(n: Long, v: Byte)
     actual fun flush()

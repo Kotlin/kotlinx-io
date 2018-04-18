@@ -641,6 +641,147 @@ actual class BufferView internal constructor(
         readPosition += length
     }
 
+    actual final override fun append(csq: CharSequence?, start: Int, end: Int): Appendable {
+        val idx = appendChars(csq ?: "null", start, end)
+        if (idx != end) throw IllegalStateException("Not enough free space to append char sequence")
+        return this
+    }
+
+    actual final override fun append(csq: CharSequence?): Appendable {
+        return if (csq == null) append("null") else append(csq, 0, csq.length)
+    }
+
+    actual final override fun append(csq: CharArray, start: Int, end: Int): Appendable {
+        val idx = appendChars(csq, start, end)
+
+        if (idx != end) throw IllegalStateException("Not enough free space to append char sequence")
+        return this
+    }
+
+    actual override fun append(c: Char): Appendable {
+        val wp = writePosition
+        val s = i8.putUtf8Char(c.toInt(), limit - wp, wp)
+        if (s == 0) notEnoughFreeSpace(c)
+        writePosition = wp + s
+        return this
+    }
+
+    private fun notEnoughFreeSpace(c: Char): Nothing {
+        throw IllegalStateException("Not Enough free space to append character '$c', remaining $writeRemaining bytes")
+    }
+
+    actual fun appendChars(csq: CharArray, start: Int, end: Int): Int {
+        val i8 = i8
+        var wp = writePosition
+        val l = limit
+        var rc = end
+
+        for (idx in start until end) {
+            val ch = csq[idx].toInt()
+            if (ch > 0x7f || wp >= l) {
+                rc = idx
+                break
+            }
+
+            i8[wp++] = ch.toByte()
+        }
+
+        if (rc >= end || wp == l) {
+            writePosition = wp
+            return rc
+        }
+
+        return appendCharsUtf8(csq, start, end, wp)
+    }
+
+    private fun appendCharsUtf8(csq: CharArray, start: Int, end: Int, wp0: Int): Int {
+        val i8 = i8
+        val l = limit
+        var wp = wp0
+        var rc = end
+
+        for (idx in start until end) {
+            val ch = csq[idx].toInt()
+            val size = i8.putUtf8Char(ch, l - wp, wp)
+            if (size == 0) {
+                rc = idx
+                break
+            }
+            wp += size
+        }
+
+        writePosition = wp
+        return rc
+    }
+
+    actual fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
+        val i8 = i8
+        var wp = writePosition
+        val l = limit
+        var rc = end
+
+        for (idx in start until end) {
+            val ch = csq[idx].toInt()
+            if (ch > 0x7f || wp >= l) {
+                rc = idx
+                break
+            }
+
+            i8[wp++] = ch.toByte()
+        }
+
+        if (rc >= end || wp == limit) {
+            writePosition = wp
+            return rc
+        }
+
+        return appendCharsUtf8(csq, start, end, wp)
+    }
+
+    private fun appendCharsUtf8(csq: CharSequence, start: Int, end: Int, wp0: Int): Int {
+        val i8 = i8
+        val l = limit
+        var wp = wp0
+        var rc = end
+
+        for (idx in start until end) {
+            val ch = csq[idx].toInt()
+            val size = i8.putUtf8Char(ch, l - wp, wp)
+            if (size == 0) {
+                rc = idx
+                break
+            }
+            wp += size
+        }
+
+        writePosition = wp
+        return rc
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun Int8Array.putUtf8Char(v: Int, remaining: Int, wp: Int): Int {
+        return when {
+            v in 1..0x7f -> {
+                if (remaining < 1) return 0
+                this[wp] = v.toByte()
+                1
+            }
+            v > 0x7ff -> {
+                if (remaining < 3) return 0
+                this[wp    ] = (0xe0 or ((v shr 12) and 0x0f)).toByte()
+                this[wp + 1] = (0x80 or ((v shr  6) and 0x3f)).toByte()
+                this[wp + 2] = (0x80 or ( v         and 0x3f)).toByte()
+                3
+            }
+            else -> {
+                if (remaining < 2) return 0
+                this[wp    ] = (0xc0 or ((v shr  6) and 0x1f)).toByte()
+                this[wp + 1] = (0x80 or ( v         and 0x3f)).toByte()
+                2
+            }
+        }
+    }
+
     actual final override fun discard(n: Long): Long {
         val size = minOf(readRemaining.toLong(), n).toInt()
         readPosition += size

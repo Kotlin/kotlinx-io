@@ -144,8 +144,7 @@ fun BytePacketBuilder.outputStream(): OutputStream {
 fun BytePacketBuilder.writerUTF8(): Writer {
     return object : Writer() {
         override fun write(cbuf: CharArray, off: Int, len: Int) {
-            @Suppress("INVISIBLE_MEMBER")
-            appendChars(cbuf, off, off + len)
+            append(cbuf, off, off + len)
         }
 
         override fun flush() {
