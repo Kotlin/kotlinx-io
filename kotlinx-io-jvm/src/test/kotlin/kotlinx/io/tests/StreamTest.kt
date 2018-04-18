@@ -47,7 +47,7 @@ class StreamTest {
         }
 
         val failed = AtomicReference<Throwable?>()
-        th.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { t, e ->
+        th.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e ->
             failed.set(e)
         }
 

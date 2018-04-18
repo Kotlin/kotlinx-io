@@ -265,6 +265,7 @@ actual class BufferView private constructor(
 
     actual fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
         val buffer = writeBuffer
+        if (!buffer.hasRemaining()) return start
         val idx = if (buffer.hasArray()) {
             appendASCII_array(buffer, csq, start, end)
         } else {

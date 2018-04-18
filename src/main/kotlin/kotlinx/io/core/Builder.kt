@@ -44,6 +44,18 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
 
+    /**
+     * Number of bytes written to the builder
+     */
+    val size: Int get() {
+        val size = _size
+        if (size == -1) {
+            _size = head.remainingAll().toInt()
+            return _size
+        }
+        return size
+    }
+
     private var head: BufferView = BufferView.Empty
 
     override fun append(c: Char): BytePacketBuilder {
@@ -69,7 +81,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
             this.head = empty
             this.tail = empty
             head.releaseAll(pool)
-            size = 0
+            _size = 0
         }
     }
 
@@ -107,7 +119,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
 
         this.head = BufferView.Empty
         this.tail = BufferView.Empty
-        this.size = 0
+        this._size = 0
 
         if (head === BufferView.Empty) return ByteReadPacket(head, 0L, EmptyBufferViewPool)
         return ByteReadPacket(head, size.toLong(), pool)
@@ -127,7 +139,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
         if (tail === BufferView.Empty) {
             head = foreignStolen
             this.tail = foreignStolen.findTail()
-            size = foreignStolen.remainingAll().toInt()
+            _size = foreignStolen.remainingAll().toInt()
             return
         }
 
@@ -147,14 +159,14 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
             // simply enqueue
             tail.next = foreignStolen
             this.tail = foreignStolen.findTail()
-            size = head.remainingAll().toInt()
+            _size = head.remainingAll().toInt()
         } else if (prependSize == -1 || appendSize <= prependSize) {
             // do append
             tail.writeBufferAppend(foreignStolen, tail.writeRemaining + tail.endGap)
             tail.next = foreignStolen.next
             this.tail = foreignStolen.findTail().takeUnless { it === foreignStolen } ?: tail
             foreignStolen.release(p.pool)
-            size = head.remainingAll().toInt()
+            _size = head.remainingAll().toInt()
         } else if (appendSize == -1 || prependSize < appendSize) {
             // do prepend
             foreignStolen.writeBufferPrepend(tail)
@@ -174,7 +186,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
             tail.release(pool)
 
             this.tail = foreignStolen.findTail()
-            size = head.remainingAll().toInt()
+            _size = head.remainingAll().toInt()
         } else {
             throw IllegalStateException("prep = $prependSize, app = $appendSize")
         }
@@ -195,10 +207,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
 abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<BufferView>) : Appendable, Output {
 
     /**
-     * Number of bytes currently buffered
+     * Number of bytes currently buffered or -1 if not known (need to be recomputed)
      */
-    var size: Int = 0
-        protected set
+    protected var _size: Int = 0
 
     /**
      * Byte order (Endianness) to be used by future write functions calls on this builder instance. Doesn't affect any
@@ -411,40 +422,26 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     private fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
         var idx = start
         if (idx >= end) return idx
-        var buffer = ensure()
-        var size = buffer.writeRemaining
-        idx = buffer.appendChars(csq, idx, end)
-        size -= buffer.writeRemaining
+        idx = tail.appendChars(csq, idx, end)
 
         while (idx < end) {
-            buffer = appendNewBuffer()
-            val before = buffer.writeRemaining
-            idx = buffer.appendChars(csq, idx, end)
-            val after = buffer.writeRemaining
-            size += before - after
+            idx = appendNewBuffer().appendChars(csq, idx, end)
         }
 
-        this.size += size
+        this._size = -1
         return idx
     }
 
     private fun appendChars(csq: CharArray, start: Int, end: Int): Int {
         var idx = start
         if (idx >= end) return idx
-        var buffer = ensure()
-        var size = buffer.writeRemaining
-        idx = buffer.appendChars(csq, idx, end)
-        size -= buffer.writeRemaining
+        idx = tail.appendChars(csq, idx, end)
 
         while (idx < end) {
-            buffer = appendNewBuffer()
-            val before = buffer.writeRemaining
-            idx = buffer.appendChars(csq, idx, end)
-            val after = buffer.writeRemaining
-            size += before - after
+            idx = appendNewBuffer().appendChars(csq, idx, end)
         }
 
-        this.size += size
+        this._size = -1
         return idx
     }
 
@@ -492,16 +489,24 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     }
 
     internal inline fun write(size: Int, block: (BufferView) -> Int) {
-        val buffer = lastOrNull()?.takeIf { it.writeRemaining >= size }
+        val buffer = tail
 
-        this.size += if (buffer == null) {
+        val rc = if (buffer.writeRemaining < size) {
             block(appendNewBuffer())
         } else {
             block(buffer)
         }
+
+        addSize(rc)
     }
 
-    private fun ensure(): BufferView = lastOrNull()?.takeIf { it.writeRemaining > 0 } ?: appendNewBuffer()
+    @Suppress("NOTHING_TO_INLINE")
+    protected inline fun addSize(n: Int) {
+        val size = _size
+        if (size != -1) {
+            _size = size + n
+        }
+    }
 
     protected abstract fun last(buffer: BufferView)
 
@@ -514,8 +519,6 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
         return new
     }
-
-    protected fun lastOrNull(): BufferView? = tail.takeIf { it !== BufferView.Empty }
 }
 
 private inline fun <T> T.takeIf(predicate: (T) -> Boolean): T? {
