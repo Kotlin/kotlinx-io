@@ -798,16 +798,21 @@ actual class BufferView private constructor(
     }
 
     actual companion object {
-        val EmptyBuffer: ByteBuffer = ByteBuffer.allocateDirect(0)
+        private val EmptyBuffer: ByteBuffer = ByteBuffer.allocateDirect(0)
         private val RefCount = AtomicLongFieldUpdater.newUpdater(BufferView::class.java, BufferView::refCount.name)!!
 
         private val DEFAULT_BUFFER_SIZE = getIOIntProperty("buffer.size", 4096)
         private val DEFAULT_BUFFER_POOL_SIZE = getIOIntProperty("buffer.pool.size", 100)
+        private val DEFAULT_BUFFER_POOL_DIRECT = getIOIntProperty("buffer.pool.direct", 1)
 
         actual val Empty = BufferView(EmptyBuffer, null)
         actual val Pool: ObjectPool<BufferView> = object : DefaultPool<BufferView>(DEFAULT_BUFFER_POOL_SIZE) {
             override fun produceInstance(): BufferView {
-                return BufferView(ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE), null)
+                val buffer = when (DEFAULT_BUFFER_POOL_DIRECT) {
+                    0 -> ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
+                    else -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
+                }
+                return BufferView(buffer, null)
             }
 
             override fun disposeInstance(instance: BufferView) {
