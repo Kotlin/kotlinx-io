@@ -310,21 +310,21 @@ actual class BufferView private constructor(
     }
 
     private fun appendASCII_array(writeBuffer: ByteBuffer, csq: CharSequence, start: Int, end: Int): Int {
-        var rc = end
-        val array = writeBuffer.array()
-        val initialOffset = writeBuffer.arrayOffset() + writeBuffer.position()
-        var offset = initialOffset
+        val array = writeBuffer.array()!!
+        var offset = writeBuffer.arrayOffset() + writeBuffer.position()
+        val limitedEnd = minOf(end, start + writeBuffer.remaining())
+        var rc = limitedEnd
 
-        for (idx in start until end) {
+        for (idx in start until limitedEnd) {
             val ch = csq[idx].toInt()
-            if (ch > 0x7f || offset >= array.size || offset >= writeBuffer.limit()) {
+            if (ch > 0x7f || offset >= array.size) {
                 rc = idx
                 break
             }
             array[offset++] = ch.toByte()
         }
 
-        writeBuffer.position(offset - initialOffset)
+        writeBuffer.position(offset - writeBuffer.arrayOffset())
         return rc
     }
 
