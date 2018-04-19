@@ -2,10 +2,10 @@ package kotlinx.coroutines.experimental.io
 
 import kotlinx.io.core.*
 
-internal class ByteChannelImpl(initial: BufferView) : ByteChannel, ByteReadChannel, ByteWriteChannel {
+internal class ByteChannelImpl(initial: BufferView, override val autoFlush: Boolean) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
     private var closed = false
     private val writable = BytePacketBuilder(0)
-    private var readable = ByteReadPacket(BufferView.Empty, BufferView.Pool)
+    private var readable = ByteReadPacket(initial, BufferView.Pool)
 
     private val notFull = Condition { readable.remaining < 4088L }
     private var waitingForSize = 1
@@ -24,22 +24,21 @@ internal class ByteChannelImpl(initial: BufferView) : ByteChannel, ByteReadChann
     override var writeByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
 
     override val isClosedForRead: Boolean
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = closed && readable.isEmpty
     override val isClosedForWrite: Boolean
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = closed
 
     override val totalBytesRead: Long
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = 0L
+
     override val totalBytesWritten: Long
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = 0L
 
     override var closedCause: Throwable? = null
         private set
 
-    @Suppress("INVISIBLE_MEMBER") // TODO!!!
     override fun flush() {
-        val chain = writable.stealAll() ?: return
-        readable.appendView(chain)
+        writable.writePacket(readable)
         atLeastNBytesAvailableForRead.signal()
     }
 
@@ -338,45 +337,120 @@ internal class ByteChannelImpl(initial: BufferView) : ByteChannel, ByteReadChann
         return readBoolean()
     }
 
-    override fun read(consumer: ReadSession.() -> Unit) {
-        val session = object : ReadSession {
-            override val availableForRead: Int
-                get() = this@ByteChannelImpl.availableForRead
+    override suspend fun await(atLeast: Int): Boolean {
+        require(atLeast >= 0) { "atLeast parameter shouldn't be negative: $atLeast"}
 
-            override fun discard(n: Int): Int {
-                return readable.discard(n)
-            }
+        return if (availableForRead < atLeast) {
+            awaitSuspend(atLeast)
+        } else !isClosedForRead
+    }
 
-            override fun request(atLeast: Int): BufferView? {
-                return readable.head.takeIf { it.readRemaining >= atLeast }
-            }
+    private suspend fun awaitSuspend(atLeast: Int): Boolean {
+        waitingForRead = atLeast
+        atLeastNBytesAvailableForRead.await()
+        return !isClosedForRead
+    }
+
+    override fun discard(n: Int): Int {
+        return readable.discard(n)
+    }
+
+    override fun request(atLeast: Int): BufferView? {
+        @Suppress("DEPRECATION_ERROR")
+        return readable.`$prepareRead$`(atLeast)
+    }
+
+    override suspend fun discard(max: Long): Long {
+        var discarded = 0L
+        while (discarded <= max && !isClosedForRead) {
+            discarded += readable.discard(max - discarded)
+            await(1)
         }
 
-        consumer(session)
+        return discarded
+    }
+
+    override fun read(consumer: ReadSession.() -> Unit) {
+        consumer(this)
     }
 
     override suspend fun readSuspendable(consumer: SuspendableReadSession.() -> Unit) {
-        val session = object : SuspendableReadSession {
-            override val availableForRead: Int
-                get() = this@ByteChannelImpl.availableForRead
+        consumer(this)
+    }
 
-            override fun discard(n: Int): Int {
-                return readable.discard(n)
-            }
+    override suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean {
+        if (isClosedForRead) return false
+        var decoded = 0
+        var size = 1
+        var cr = false
+        var end = false
 
-            override fun request(atLeast: Int): BufferView? {
-                return readable.head.takeIf { it.readRemaining >= atLeast }
-            }
+        while (!end && size != 0) {
+            if (!await(1)) break
+            readable.takeWhileSize { buffer ->
+                var skip = 0
+                size = buffer.decodeUTF8 { ch ->
+                    when (ch) {
+                        '\r' -> {
+                            if (cr) {
+                                end = true
+                                return@decodeUTF8 false
+                            }
+                            cr = true
+                            true
+                        }
+                        '\n' -> {
+                            end = true
+                            skip = 1
+                            false
+                        }
+                        else -> {
+                            if (cr) {
+                                end = true
+                                return@decodeUTF8 false
+                            }
 
-            override suspend fun await(atLeast: Int): Boolean {
-                require(atLeast >= 0)
-
-                if (availableForRead < atLeast) {
-                    waitingForRead = atLeast
-                    atLeastNBytesAvailableForRead.await()
+                            if (decoded == limit) {
+                                throw BufferLimitExceededException("Too many characters in line: limit $limit exceeded")
+                            }
+                            decoded++
+                            out.append(ch)
+                            true
+                        }
+                    }
                 }
+
+                if (skip > 0) {
+                    buffer.discardExact(skip)
+                }
+
+                if (end) 0 else size.coerceAtLeast(1)
             }
         }
+
+        if (size > 1) prematureEndOfStreamUtf(size)
+
+        return decoded > 0 || end
+    }
+
+    private fun prematureEndOfStreamUtf(size: Int): Nothing = throw EOFException("Premature end of stream: expected $size bytes to decode UTF-8 char")
+
+    override fun cancel(cause: Throwable?): Boolean {
+        if (closedCause != null || closed) return false
+        return close(cause ?: CancellationException("Channel cancelled"))
+    }
+
+    override fun close(cause: Throwable?): Boolean {
+        if (closed || closedCause != null) return false
+        closedCause = cause
+        closed = true
+        if (cause != null) {
+            readable.release()
+            writable.release()
+        }
+        atLeastNBytesAvailableForRead.signal()
+        atLeastNBytesAvailableForWrite.signal()
+        return true
     }
 
     private suspend inline fun readNSlow(n: Int, block: () -> Nothing): Nothing {
@@ -401,13 +475,14 @@ internal class ByteChannelImpl(initial: BufferView) : ByteChannel, ByteReadChann
     private suspend fun awaitFreeSpace() {
         if (closed) {
             writable.release()
-            throw ClosedWriteChannelException("Channel is already closed")
+            throw closedCause ?: ClosedWriteChannelException("Channel is already closed")
+        }
+        if (autoFlush) {
+            flush()
+            // TODO: avoid stealing for every byte
         }
 
         return notFull.await { flush() }
     }
 
-    private fun ensureWritable(n: Int): BufferView {
-
-    }
 }
