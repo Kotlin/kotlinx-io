@@ -295,11 +295,12 @@ actual class BufferView private constructor(
     }
 
     private fun appendASCII_buffer(writeBuffer: ByteBuffer, csq: CharSequence, start: Int, end: Int): Int {
-        var rc = end
+        val limitedEnd = minOf(end, start + writeBuffer.remaining())
+        var rc = limitedEnd
 
-        for (idx in start until end) {
+        for (idx in start until limitedEnd) {
             val ch = csq[idx].toInt()
-            if (ch > 0x7f || !writeBuffer.hasRemaining()) {
+            if (ch > 0x7f) {
                 rc = idx
                 break
             }
@@ -803,14 +804,14 @@ actual class BufferView private constructor(
 
         private val DEFAULT_BUFFER_SIZE = getIOIntProperty("buffer.size", 4096)
         private val DEFAULT_BUFFER_POOL_SIZE = getIOIntProperty("buffer.pool.size", 100)
-        private val DEFAULT_BUFFER_POOL_DIRECT = getIOIntProperty("buffer.pool.direct", 1)
+        private val DEFAULT_BUFFER_POOL_DIRECT = getIOIntProperty("buffer.pool.direct", 0)
 
         actual val Empty = BufferView(EmptyBuffer, null)
         actual val Pool: ObjectPool<BufferView> = object : DefaultPool<BufferView>(DEFAULT_BUFFER_POOL_SIZE) {
             override fun produceInstance(): BufferView {
                 val buffer = when (DEFAULT_BUFFER_POOL_DIRECT) {
-                    0 -> ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
-                    else -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
+                    0 -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
+                    else -> ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
                 }
                 return BufferView(buffer, null)
             }
@@ -838,7 +839,11 @@ actual class BufferView private constructor(
 
         actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
             override fun borrow(): BufferView {
-                return BufferView(ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE), null)
+                val buffer = when (DEFAULT_BUFFER_POOL_DIRECT) {
+                    0 -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
+                    else -> ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
+                }
+                return BufferView(buffer, null)
             }
         }
     }
