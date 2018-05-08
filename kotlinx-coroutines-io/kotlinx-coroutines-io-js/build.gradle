@@ -1,4 +1,5 @@
 apply plugin: 'kotlin-platform-js'
+apply plugin: 'org.jetbrains.kotlin.frontend'
 
 dependencies {
     expectedBy project(":kotlinx-coroutines-io")
@@ -6,6 +7,36 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     compile project(":kotlinx-io-js")
     testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+}
+
+kotlinFrontend {
+    downloadNodeJsVersion = 'latest'
+
+    npm {
+        devDependency "karma-qunit", "1.2.1"
+    }
+
+    webpackBundle {
+        bundleName = "test"
+    }
+
+    karma {
+        enableWebPack = true
+    }
+}
+
+compileKotlin2Js {
+    kotlinOptions.metaInfo = true
+    kotlinOptions.sourceMap = true
+    kotlinOptions.moduleKind = 'commonjs'
+    kotlinOptions.main = "noCall"
+}
+
+compileTestKotlin2Js {
+    kotlinOptions.metaInfo = true
+    kotlinOptions.sourceMap = true
+    kotlinOptions.moduleKind = 'commonjs'
+    kotlinOptions.main = "call"
 }
 
 kotlin {
