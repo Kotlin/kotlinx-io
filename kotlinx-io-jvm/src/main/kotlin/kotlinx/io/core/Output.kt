@@ -25,5 +25,11 @@ actual interface Output : Closeable, Appendable {
     actual fun fill(n: Long, v: Byte)
     actual fun flush()
     actual override fun close()
+
+    @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
+    actual fun `$prepareWrite$`(n: Int): BufferView
+
+    @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
+    actual fun `$afterWrite$`()
 }
 

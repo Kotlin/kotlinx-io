@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
 /**
@@ -478,7 +479,9 @@ abstract class ByteReadPacketBase(private var head: BufferView,
 
     private fun minShouldBeLess(min: Int, max: Int): Nothing = throw IllegalArgumentException("min should be less or equal to max but min = $min, max = $max")
 
-    private fun prematureEndOfStreamChars(min: Int, copied: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected at least $min chars but had only $copied")
+    private fun prematureEndOfStreamChars(min: Int, copied: Int): Nothing = throw MalformedUTF8InputException(
+        "Premature end of stream: expected at least $min chars but had only $copied"
+    )
     private fun prematureEndOfStream(size: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
 
     private fun readUtf8(out: Appendable, min: Int, max: Int): Int {

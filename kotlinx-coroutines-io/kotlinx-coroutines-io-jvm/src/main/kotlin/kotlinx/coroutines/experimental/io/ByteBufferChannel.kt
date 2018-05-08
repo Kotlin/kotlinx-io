@@ -369,7 +369,7 @@ internal class ByteBufferChannel(
         val current = joining?.let { resolveDelegation(this, it) } ?: this
         val buffer = current.setupStateForWrite() ?: return
         val capacity = current.state.capacity
-        val before = current.totalBytesWritten
+        val before = @Suppress("DEPRECATION") current.totalBytesWritten
 
         try {
             current.closed?.let { throw it.sendException }
@@ -377,6 +377,7 @@ internal class ByteBufferChannel(
         } finally {
             if (capacity.isFull() || current.autoFlush) current.flush()
             if (current !== this) {
+                @Suppress("DEPRECATION")
                 totalBytesWritten += current.totalBytesWritten - before
             }
             current.restoreStateAfterWrite()
@@ -830,6 +831,7 @@ internal class ByteBufferChannel(
 
         writePosition = carryIndex(writePosition + n)
         c.completeWrite(n)
+        @Suppress("DEPRECATION")
         totalBytesWritten += n
     }
 
@@ -838,6 +840,7 @@ internal class ByteBufferChannel(
 
         readPosition = carryIndex(readPosition + n)
         c.completeRead(n)
+        @Suppress("DEPRECATION")
         totalBytesRead += n
         resumeWriteOp()
     }
@@ -1370,7 +1373,7 @@ internal class ByteBufferChannel(
                 val possibleSize = state.tryWriteAtMost(minOf(srcSize, dst.remaining()))
                 if (possibleSize == 0) break
 
-                src.read(dst, possibleSize)
+                src.readFully(dst, possibleSize)
 
                 written += possibleSize
 
@@ -1623,7 +1626,7 @@ internal class ByteBufferChannel(
         }
     }
 
-    override suspend fun read(min: Int, block: (ByteBuffer) -> Unit) {
+    override suspend fun read(min: Int, consumer: (ByteBuffer) -> Unit) {
         require(min >= 0) { "min should be positive or zero" }
 
         val read = reading {
@@ -1631,7 +1634,7 @@ internal class ByteBufferChannel(
             if (av > 0 && av >= min) {
                 val position = this.position()
                 val l = this.limit()
-                block(this)
+                consumer(this)
                 if (l != this.limit()) throw IllegalStateException("buffer limit modified")
                 val delta = position() - position
                 if (delta < 0) throw IllegalStateException("position has been moved backward: pushback is not supported")
@@ -1644,7 +1647,7 @@ internal class ByteBufferChannel(
 
         if (!read) {
             if (isClosedForRead) return
-            return readBlockSuspend(min, block)
+            return readBlockSuspend(min, consumer)
         }
     }
 
@@ -2031,7 +2034,37 @@ internal class ByteBufferChannel(
     override suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: Int) = readUTF8LineToAscii(out, limit)
 
     override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (isClosedForWrite) {
+            return buildPacket(headerSizeHint) {
+                var remaining = limit
+                writeWhile { buffer ->
+                    if (buffer.writeRemaining.toLong() > remaining) {
+                        buffer.resetForWrite(remaining.toInt())
+                    }
+
+                    val rc = readAsMuchAsPossible(buffer)
+                    remaining -= rc
+                    remaining > 0L
+                }
+            }
+        }
+
+        return readRemainingSuspend(limit, headerSizeHint)
+    }
+
+    private suspend fun readRemainingSuspend(limit: Long, headerSizeHint: Int): ByteReadPacket {
+        return buildPacket(headerSizeHint) {
+            var remaining = limit
+            writeWhile { buffer ->
+                if (buffer.writeRemaining.toLong() > remaining) {
+                    buffer.resetForWrite(remaining.toInt())
+                }
+
+                val rc = readAsMuchAsPossible(buffer)
+                remaining -= rc
+                remaining > 0L && awaitAtLeast(1)
+            }
+        }
     }
 
     private fun resumeReadOp() {

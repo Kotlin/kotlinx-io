@@ -800,7 +800,7 @@ actual class BufferView internal constructor(
         writePosition = wp + length
     }
 
-    internal fun writeFully(src: ArrayBufferView, offset: Int, length: Int) {
+    fun writeFully(src: ArrayBufferView, offset: Int, length: Int) {
         if (writeRemaining < length) throw IllegalStateException("Not enough space left ($writeRemaining) to write $length bytes")
         val wp = writePosition
         val rem = limit - wp
@@ -941,6 +941,15 @@ actual class BufferView internal constructor(
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     actual final override fun `$prepareRead$`(minSize: Int): BufferView? {
         return this.takeIf { it.readRemaining >= minSize }
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$afterWrite$`() {
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$prepareWrite$`(n: Int): BufferView {
+        return takeIf { it.writeRemaining >= n } ?: throw IllegalArgumentException("Not enough space in the chunk")
     }
 
     actual final override fun flush() {

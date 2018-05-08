@@ -1,6 +1,7 @@
 package kotlinx.io.charsets
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import java.nio.*
 
 private const val DECODE_CHAR_BUFFER_SIZE = 8192

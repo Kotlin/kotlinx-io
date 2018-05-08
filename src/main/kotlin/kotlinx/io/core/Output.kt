@@ -24,6 +24,12 @@ expect interface Output : Appendable {
 
     fun flush()
     fun close()
+
+    @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
+    fun `$prepareWrite$`(n: Int): BufferView
+
+    @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
+    fun `$afterWrite$`()
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
@@ -74,4 +80,17 @@ fun Output.writeFully(src: BufferView, length: Int = src.readRemaining) {
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.fill(n: Long, v: Byte = 0) {
     fill(n, v)
+}
+
+inline fun Output.writeWhile(block: (BufferView) -> Boolean) {
+    try {
+        var tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(1)
+
+        while (true) {
+            if (!block(tail)) break
+            tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(1)
+        }
+    } finally {
+        @Suppress("DEPRECATION_ERROR") `$afterWrite$`()
+    }
 }

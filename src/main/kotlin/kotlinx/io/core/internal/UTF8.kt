@@ -1,5 +1,6 @@
-package kotlinx.io.core
+package kotlinx.io.core.internal
 
+import kotlinx.io.core.*
 
 internal inline fun BufferView.decodeASCII(consumer: (Char) -> Boolean): Boolean {
     for (i in 0 until readRemaining) {
@@ -12,6 +13,62 @@ internal inline fun BufferView.decodeASCII(consumer: (Char) -> Boolean): Boolean
 
     return true
 }
+
+suspend fun decodeUTF8LineLoopSuspend(out: Appendable, limit: Int, nextChunk: suspend () -> ByteReadPacket?): Boolean {
+    var decoded = 0
+    var size = 1
+    var cr = false
+    var end = false
+
+    while (!end && size != 0) {
+        val chunk = nextChunk() ?: break
+        chunk.takeWhileSize { buffer ->
+            var skip = 0
+            size = buffer.decodeUTF8 { ch ->
+                when (ch) {
+                    '\r' -> {
+                        if (cr) {
+                            end = true
+                            return@decodeUTF8 false
+                        }
+                        cr = true
+                        true
+                    }
+                    '\n' -> {
+                        end = true
+                        skip = 1
+                        false
+                    }
+                    else -> {
+                        if (cr) {
+                            end = true
+                            return@decodeUTF8 false
+                        }
+
+                        if (decoded == limit) {
+                            throw BufferLimitExceededException("Too many characters in line: limit $limit exceeded")
+                        }
+                        decoded++
+                        out.append(ch)
+                        true
+                    }
+                }
+            }
+
+            if (skip > 0) {
+                buffer.discardExact(skip)
+            }
+
+            if (end) 0 else size.coerceAtLeast(1)
+        }
+    }
+
+    if (size > 1) prematureEndOfStreamUtf(size)
+
+    return decoded > 0 || end
+}
+
+private fun prematureEndOfStreamUtf(size: Int): Nothing = throw EOFException("Premature end of stream: expected $size bytes to decode UTF-8 char")
 
 /**
  * Decodes all the bytes to utf8 applying every character on [consumer] until or consumer return `false`.
@@ -92,7 +149,7 @@ internal inline fun BufferView.decodeUTF8(consumer: (Char) -> Boolean): Int {
 private fun malformedByteCount(byteCount: Int): Nothing = throw MalformedUTF8InputException("Expected $byteCount more character bytes")
 private fun malformedCodePoint(value: Int): Nothing = throw IllegalArgumentException("Malformed code-point $value found")
 
-private const val MaxCodePoint = 0X10ffff
+private const val MaxCodePoint = 0x10ffff
 private const val MinLowSurrogate = 0xdc00
 private const val MinHighSurrogate = 0xd800
 private const val MinSupplementary = 0x10000

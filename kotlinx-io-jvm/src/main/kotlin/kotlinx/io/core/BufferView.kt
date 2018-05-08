@@ -692,6 +692,15 @@ actual class BufferView private constructor(
         return this.takeIf { readRemaining >= minSize }
     }
 
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$afterWrite$`() {
+    }
+
+    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    actual final override fun `$prepareWrite$`(n: Int): BufferView {
+        return takeIf { it.writeRemaining >= n } ?: throw IllegalArgumentException("Not enough space in the chunk")
+    }
+
     actual final override fun flush() {
     }
 

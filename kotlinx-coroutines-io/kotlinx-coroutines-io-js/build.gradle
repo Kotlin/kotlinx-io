@@ -1,0 +1,15 @@
+apply plugin: 'kotlin-platform-js'
+
+dependencies {
+    expectedBy project(":kotlinx-coroutines-io")
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile project(":kotlinx-io-js")
+    testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}

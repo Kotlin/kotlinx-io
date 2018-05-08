@@ -1,8 +1,7 @@
 package kotlinx.coroutines.experimental.io
 
 import kotlinx.io.core.*
-import kotlinx.io.core.ByteOrder
-import java.nio.*
+import org.khronos.webgl.*
 
 /**
  * Channel for asynchronous reading of sequences of bytes.
@@ -43,7 +42,10 @@ actual interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+
     actual suspend fun readAvailable(dst: BufferView): Int
+
+    suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
@@ -51,9 +53,11 @@ actual interface ByteReadChannel {
      */
     actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
 
+    suspend fun readFully(dst: ArrayBuffer, offset: Int, length: Int)
+
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
-     * and not enough bytes available. Accepts [headerSizeHint] to be provided, see [WritePacket].
+     * and not enough bytes available. Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
      */
     actual suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket
 
@@ -105,10 +109,6 @@ actual interface ByteReadChannel {
      */
     actual suspend fun readFloat(): Float
 
-    /**
-     * For every available bytes range invokes [visitor] function until it return false or end of stream encountered
-     */
-    suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor)
 
     /**
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
@@ -122,9 +122,6 @@ actual interface ByteReadChannel {
      */
     actual suspend fun readSuspendable(consumer: SuspendableReadSession.() -> Unit)
 
-    fun <R> lookAhead(visitor: LookAheadSession.() -> R): R
-    suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R
-
     /**
      * Reads a line of UTF-8 characters to the specified [out] buffer up to [limit] characters.
      * Supports both CR-LF and LF line endings.
@@ -133,31 +130,7 @@ actual interface ByteReadChannel {
      * @return `true` if line has been read (possibly empty) or `false` if channel has been closed
      * and no characters were read.
      */
-    actual suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
-
-    /**
-     * Invokes [consumer] when it will be possible to read at least [min] bytes
-     * providing byte buffer to it so lambda can read from the buffer
-     * up to [ByteBuffer.remaining] bytes. If there are no [min] bytes available then the invocation could
-     * suspend until the requirement will be met.
-     *
-     * If [min] is zero then the invocation will suspend until at least one byte available.
-     *
-     * Warning: it is not guaranteed that all of remaining bytes will be represented as a single byte buffer
-     * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 remaining bytes:
-     * in this case you have to invoke read again (with decreased [min] accordingly).
-     *
-     * It will fail with [EOFException] if not enough bytes ([availableForRead] < [min]) available
-     * in the channel after it is closed.
-     *
-     * [consumer] lambda should modify buffer's position accordingly. It also could temporarily modify limit however
-     * it should restore it before return. It is not recommended to access any bytes of the buffer outside of the
-     * provided byte range [position(); limit()) as there could be any garbage or incomplete data.
-     *
-     * @param min amount of bytes available for read, should be positive or zero
-     * @param consumer to be invoked when at least [min] bytes available for read
-     */
-    suspend fun read(min: Int = 1, consumer: (ByteBuffer) -> Unit)
+    actual suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
 
     /**
      * Close channel with optional [cause] cancellation. Unlike [ByteWriteChannel.close] that could close channel
@@ -179,108 +152,10 @@ actual interface ByteReadChannel {
     actual suspend fun discard(max: Long): Long
 
     actual companion object {
-        actual val Empty: ByteReadChannel = EmptyByteReadChannel
-    }
-}
-
-typealias ConsumeEachBufferVisitor = (buffer: ByteBuffer, last: Boolean) -> Boolean
-
-actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
-    require(dst !== this)
-
-    if (this is ByteBufferChannel && dst is ByteBufferChannel) {
-        return dst.joinFrom(this, closeOnEnd)
-    }
-
-    return joinToImplSuspend(dst, closeOnEnd)
-}
-
-private suspend fun ByteReadChannel.joinToImplSuspend(dst: ByteWriteChannel, close: Boolean) {
-    copyToImpl(dst, Long.MAX_VALUE)
-    if (close) {
-        dst.close()
-    } else {
-        dst.flush()
-    }
-}
-
-/**
- * Reads up to [limit] bytes from receiver channel and writes them to [dst] channel.
- * Closes [dst] channel if fails to read or write with cause exception.
- * @return a number of copied bytes
- */
-actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
-    require(this !== dst)
-    require(limit >= 0L)
-
-    if (this is ByteBufferChannel && dst is ByteBufferChannel) {
-        return dst.copyDirect(this, limit, null)
-    }
-
-    return copyToImpl(dst, limit)
-}
-
-private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Long): Long {
-    val buffer = BufferView.Pool.borrow()
-    val dstNeedsFlush = !dst.autoFlush
-
-    try {
-        var copied = 0L
-
-        while (true) {
-            val remaining = limit - copied
-            if (remaining == 0L) break
-            buffer.resetForWrite(minOf(buffer.capacity.toLong(), remaining).toInt())
-
-            val size = readAvailable(buffer)
-            if (size == -1) break
-
-            dst.writeFully(buffer)
-            copied += size
-
-            if (dstNeedsFlush && availableForRead == 0) {
-                dst.flush()
+        actual val Empty: ByteReadChannel
+            get() = ByteChannelJS(BufferView.Empty, false).apply {
+                close()
             }
-        }
-        return copied
-    } catch (t: Throwable) {
-        dst.close(t)
-        throw t
-    } finally {
-        BufferView.Pool.recycle(buffer)
     }
+
 }
-
-/**
- * TODO
- * Reads all the bytes from receiver channel and builds a packet that is returned unless the specified [limit] exceeded.
- * It will simply stop reading and return packet of size [limit] in this case
- */
-/*suspend fun ByteReadChannel.readRemaining(limit: Int = Int.MAX_VALUE): ByteReadPacket {
-    val buffer = JavaNioAccess.BufferPool.borrow()
-    val packet = WritePacket()
-
-    try {
-        var copied = 0L
-
-        while (copied < limit) {
-            buffer.clear()
-            if (limit - copied < buffer.limit()) {
-                buffer.limit((limit - copied).toInt())
-            }
-            val size = readAvailable(buffer)
-            if (size == -1) break
-
-            buffer.flip()
-            packet.writeFully(buffer)
-            copied += size
-        }
-
-        return packet.build()
-    } catch (t: Throwable) {
-        packet.release()
-        throw t
-    } finally {
-        JavaNioAccess.BufferPool.recycle(buffer)
-    }
-}*/

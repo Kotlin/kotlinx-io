@@ -533,6 +533,14 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
      */
     abstract fun release()
 
+    override fun `$prepareWrite$`(n: Int): BufferView {
+        if (tail.writeRemaining >= n) return tail
+        return appendNewBuffer()
+    }
+
+    override fun `$afterWrite$`() {
+    }
+
     /**
      * Discard all written bytes and prepare to build another packet.
      */
