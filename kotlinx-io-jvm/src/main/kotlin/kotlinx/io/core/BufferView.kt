@@ -2,6 +2,7 @@
 
 package kotlinx.io.core
 
+import kotlinx.io.internal.jvm.*
 import kotlinx.io.pool.*
 import kotlinx.io.utils.*
 import java.nio.*
@@ -382,29 +383,39 @@ actual class BufferView private constructor(
         afterWrite()
     }
 
-    internal inline fun readDirect(block: (ByteBuffer) -> Unit) {
-        val bb = readBuffer
+    // NOTE: these are part of public ABI so need to have stable signatures
+    @Deprecated("Use readDirect instead", level = DeprecationLevel.ERROR)
+    fun `$currentReadBufferInternal$`(): ByteBuffer = readBuffer
+
+    @Deprecated("Use writeDirect instead", level = DeprecationLevel.ERROR)
+    fun `$currentWriteBufferInternal$`(): ByteBuffer = writeBuffer
+
+    @Deprecated("Use writeDirect instead", level = DeprecationLevel.ERROR)
+    fun `$afterWriteInternal$`() {
+        afterWrite()
+    }
+
+    inline fun readDirect(block: (ByteBuffer) -> Unit) {
+        val bb = @Suppress("DEPRECATION_ERROR") `$currentReadBufferInternal$`()
         val positionBefore = bb.position()
         val limit = bb.limit()
         block(bb)
         val delta = bb.position() - positionBefore
-        if (delta < 0) negativeShift(delta)
-        if (bb.limit() != limit) limitChange()
+        if (delta < 0) negativeShiftError(delta)
+        if (bb.limit() != limit) limitChangeError()
     }
 
-    private fun negativeShift(delta: Int): Nothing = throw IllegalStateException("Wrong buffer position change: negative shift $delta")
-    private fun limitChange(): Nothing = throw IllegalStateException("Limit change is now allowed")
-
-    internal inline fun writeDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
+    inline fun writeDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
         val rem = writeRemaining
         require (size <= rem) { "size $size is greater than buffer's remaining capacity $rem" }
-        val buffer = writeBuffer
+        val buffer = @Suppress("DEPRECATION_ERROR") `$currentWriteBufferInternal$`()
         val positionBefore = buffer.position()
         block(buffer)
         val delta = buffer.position() - positionBefore
-        if (delta < 0 || delta > rem) throw IllegalStateException("Wrong buffer position change: $delta (position should be moved forward only by at most size bytes (size =  $size)")
+        if (delta < 0 || delta > rem) wrongBufferPositionChangeError(delta, size)
 
-        readBuffer.limit(buffer.position())
+        @Suppress("DEPRECATION_ERROR")
+        `$afterWriteInternal$`()
         return delta
     }
 
