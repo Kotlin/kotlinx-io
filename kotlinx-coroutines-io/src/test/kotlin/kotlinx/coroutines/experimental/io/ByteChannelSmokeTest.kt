@@ -5,7 +5,7 @@ import kotlin.test.*
 class ByteChannelSmokeTest {
     @Test
     fun simpleSmokeTest() {
-        val bc = ByteChannel()
+        val bc = ByteChannel(false)
         bc.close()
     }
 }

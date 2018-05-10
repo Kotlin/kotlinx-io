@@ -41,5 +41,6 @@ expect fun ByteReadChannel(content: ByteArray): ByteReadChannel
 /**
  * Byte channel that is always empty.
  */
-val EmptyByteReadChannel: ByteReadChannel = ByteReadChannel(ByteArray(0))
+@Deprecated("Use ByteReadChannel.Empty instead", ReplaceWith("ByteReadChannel.Empty"))
+val EmptyByteReadChannel: ByteReadChannel get() = ByteReadChannel.Empty
 

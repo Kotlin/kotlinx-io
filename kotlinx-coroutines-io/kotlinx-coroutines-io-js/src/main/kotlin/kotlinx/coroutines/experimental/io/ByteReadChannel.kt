@@ -152,10 +152,10 @@ actual interface ByteReadChannel {
     actual suspend fun discard(max: Long): Long
 
     actual companion object {
-        actual val Empty: ByteReadChannel
-            get() = ByteChannelJS(BufferView.Empty, false).apply {
-                close()
+        actual val Empty: ByteReadChannel by lazy {
+            ByteChannelJS(BufferView.Empty, false).apply {
+                close(null)
             }
+        }
     }
-
 }

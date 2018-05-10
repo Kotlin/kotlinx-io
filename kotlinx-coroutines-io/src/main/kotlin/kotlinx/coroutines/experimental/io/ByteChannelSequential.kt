@@ -422,7 +422,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return close(cause ?: CancellationException("Channel cancelled"))
     }
 
-    override fun close(cause: Throwable?): Boolean {
+    final override fun close(cause: Throwable?): Boolean {
         if (closed || closedCause != null) return false
         closedCause = cause
         closed = true
