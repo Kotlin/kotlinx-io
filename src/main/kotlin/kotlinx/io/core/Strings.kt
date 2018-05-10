@@ -110,6 +110,12 @@ fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE):
     return readText(charset.newDecoder(), max)
 }
 
+fun Input.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): String {
+    val s = readText(charset.newDecoder(), n)
+    if (s.length < n) throw EOFException("Not enough data available to read $n characters")
+    return s
+}
+
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [encoder]
  */
