@@ -50,10 +50,17 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
-fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    @Suppress("INVISIBLE_MEMBER")
+inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
     write(size) { buffer: BufferView ->
         buffer.writeDirect(size, block)
+    }
+}
+
+inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+    read(size) { view ->
+        view.readDirect {
+            block(it)
+        }
     }
 }
 

@@ -30,7 +30,7 @@ fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
             var rc = 0
 
             @Suppress("INVISIBLE_MEMBER")
-            p.readDirect { node : BufferView ->
+            p.read { node : BufferView ->
                 node.readDirect {
                     rc = write(it)
                 }

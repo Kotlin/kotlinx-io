@@ -107,7 +107,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                 break
             }
 
-            dst.writeWhile(writeSize) { dstBuffer ->
+            dst.writeWhileSize(writeSize) { dstBuffer ->
                 var written: Int = 0
 
                 dstBuffer.writeDirect { buffer ->
@@ -146,7 +146,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                         writeSize = 1
                     }
 
-                    written > 0 && srcView.canRead()
+                    if (written > 0 && srcView.canRead()) writeSize else 0
                 }
                 written
             }

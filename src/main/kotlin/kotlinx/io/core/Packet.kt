@@ -8,7 +8,7 @@ import kotlinx.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
-abstract class ByteReadPacketBase(private var head: BufferView,
+abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
                                   remaining: Long = head.remainingAll(),
                                   val pool: ObjectPool<BufferView>) : Input {
 
@@ -29,8 +29,8 @@ abstract class ByteReadPacketBase(private var head: BufferView,
      */
     fun hasBytes(n: Int) = headRemaining + tailRemaining >= n
 
+    @PublishedApi
     internal var headRemaining = head.readRemaining
-        private set
 
     private var tailRemaining = remaining - headRemaining //head.next?.remainingAll() ?: 0
 
@@ -184,11 +184,17 @@ abstract class ByteReadPacketBase(private var head: BufferView,
         if (discard(n) != n) throw EOFException("Unable to discard $n bytes due to end of packet")
     }
 
-    internal inline fun readDirect(block: (BufferView) -> Unit) {
+    @PublishedApi
+    internal inline fun read(block: (BufferView) -> Unit) {
+        read(1, block)
+    }
+
+    @PublishedApi
+    internal inline fun read(n: Int, block: (BufferView) -> Unit) {
         val head = head
         var before = head.readRemaining
-        val buffer = if (before == 0) {
-            ensureNext(head).also { before = it?.readRemaining ?: 0 }
+        val buffer = if (before < n) {
+            prepareRead(n, head).also { before = it?.readRemaining ?: 0 }
         } else {
             head
         }
@@ -513,7 +519,8 @@ abstract class ByteReadPacketBase(private var head: BufferView,
     @Deprecated("Non public API", level = DeprecationLevel.ERROR)
     final override fun `$ensureNext$`(current: BufferView): BufferView? = ensureNext(current)
 
-    private fun ensureNext(current: BufferView) = ensureNext(current, BufferView.Empty)
+    @PublishedApi
+    internal fun ensureNext(current: BufferView) = ensureNext(current, BufferView.Empty)
 
     private tailrec fun ensureNext(current: BufferView, empty: BufferView): BufferView? {
         val next = if (current === empty) {
@@ -574,6 +581,7 @@ abstract class ByteReadPacketBase(private var head: BufferView,
     @Suppress("NOTHING_TO_INLINE")
     internal inline fun prepareRead(minSize: Int): BufferView? = prepareRead(minSize, head)
 
+    @PublishedApi
     internal tailrec fun prepareRead(minSize: Int, head: BufferView): BufferView? {
         val headSize = headRemaining
         if (headSize >= minSize) return head

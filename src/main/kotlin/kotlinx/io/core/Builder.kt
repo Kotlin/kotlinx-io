@@ -234,7 +234,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
             tail.byteOrder = value
         }
 
-    protected var tail: BufferView = BufferView.Empty
+    @PublishedApi
+    internal var tail: BufferView = BufferView.Empty
 
     final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
         var copied = 0
@@ -438,7 +439,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
                 remaining -= headRemaining
                 last(p.steal() ?: throw EOFException("Unexpected end of packet"))
             } else {
-                p.readDirect { view ->
+                p.read { view ->
                     writeFully(view, remaining)
                 }
                 break
@@ -458,7 +459,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
                 remaining -= headRemaining
                 last(p.steal() ?: throw EOFException("Unexpected end of packet"))
             } else {
-                p.readDirect { view ->
+                p.read { view ->
                     writeFully(view, remaining.toInt())
                 }
                 break
@@ -549,6 +550,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         release()
     }
 
+    @PublishedApi
     internal inline fun write(size: Int, block: (BufferView) -> Int) {
         val buffer = tail
 
@@ -561,8 +563,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         addSize(rc)
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    protected inline fun addSize(n: Int) {
+    @PublishedApi
+    internal fun addSize(n: Int) {
         val size = _size
         if (size != -1) {
             _size = size + n
@@ -571,7 +573,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
     protected abstract fun last(buffer: BufferView)
 
-    private fun appendNewBuffer(): BufferView {
+    @PublishedApi
+    internal fun appendNewBuffer(): BufferView {
         val new = pool.borrow()
         new.reserveEndGap(ByteReadPacket.ReservedSize)
         new.byteOrder = byteOrder
