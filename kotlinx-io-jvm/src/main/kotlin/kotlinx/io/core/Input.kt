@@ -4,6 +4,7 @@ import java.nio.*
 
 actual interface Input {
     actual var byteOrder: ByteOrder
+    actual val endOfInput: Boolean
 
     actual fun readByte(): Byte
     actual fun readShort(): Short

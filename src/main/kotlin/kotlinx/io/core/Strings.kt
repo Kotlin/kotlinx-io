@@ -1,6 +1,7 @@
 package kotlinx.io.core
 
 import kotlinx.io.charsets.*
+import kotlinx.io.core.internal.*
 
 /**
  * Read a string line considering optionally specified [estimate] but up to optional [limit] characters length
@@ -13,6 +14,64 @@ fun ByteReadPacket.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_VALUE):
 }
 
 /**
+ * Read UTF-8 line and append all line characters to [out] except line endings. Does support CR, LF and CR+LF
+ * @return `true` if some characters were appended or line ending reached (empty line) or `false` if packet
+ * if empty
+ */
+fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
+    var decoded = 0
+    var size = 1
+    var cr = false
+    var end = false
+
+    takeWhileSize { buffer ->
+        var skip = 0
+        size = buffer.decodeUTF8 { ch ->
+            when (ch) {
+                '\r' -> {
+                    if (cr) {
+                        end = true
+                        return@decodeUTF8 false
+                    }
+                    cr = true
+                    true
+                }
+                '\n' -> {
+                    end = true
+                    skip = 1
+                    false
+                }
+                else -> {
+                    if (cr) {
+                        end = true
+                        return@decodeUTF8 false
+                    }
+
+                    if (decoded == limit) {
+                        throw BufferLimitExceededException("Too many characters in line: limit $limit exceeded")
+                    }
+                    decoded++
+                    out.append(ch)
+                    true
+                }
+            }
+        }
+
+        if (skip > 0) {
+            buffer.discardExact(skip)
+        }
+
+        if (end) 0 else size.coerceAtLeast(1)
+    }
+
+    if (size > 1) prematureEndOfStream(size)
+
+    return decoded > 0 || !endOfInput
+}
+
+private fun prematureEndOfStream(size: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
+
+/**
  * Read exactly [n] bytes (consumes all remaining if [n] is not specified). Does fail if not enough bytes remaining
  */
 fun ByteReadPacket.readBytes(n: Int = remaining.coerceAtMostMaxInt()): ByteArray = ByteArray(n).also { readFully(it, 0, n) }
@@ -21,7 +80,7 @@ fun ByteReadPacket.readBytes(n: Int = remaining.coerceAtMostMaxInt()): ByteArray
  * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
  * @return number of characters copied to [out]
  */
-fun ByteReadPacket.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): Int {
+fun Input.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): Int {
     return decoder.decode(this, out, max)
 }
 
@@ -29,7 +88,7 @@ fun ByteReadPacket.readText(out: Appendable, decoder: CharsetDecoder, max: Int =
  * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
  * @return number of characters copied to [out]
  */
-fun ByteReadPacket.readText(out: Appendable, charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): Int {
+fun Input.readText(out: Appendable, charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): Int {
     return readText(out, charset.newDecoder(), max)
 }
 
@@ -37,8 +96,8 @@ fun ByteReadPacket.readText(out: Appendable, charset: Charset = Charsets.UTF_8, 
  * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
  * @return a decoded string
  */
-fun ByteReadPacket.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String {
-    return buildString(minOf(remaining, max.toLong()).toInt()) {
+fun Input.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String {
+    return buildString(minOf(sizeEstimate(), max.toLong()).toInt()) {
         readText(this, decoder, max)
     }
 }
@@ -47,7 +106,7 @@ fun ByteReadPacket.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): 
  * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
  * @return a decoded string
  */
-fun ByteReadPacket.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String {
+fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String {
     return readText(charset.newDecoder(), max)
 }
 

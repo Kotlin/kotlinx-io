@@ -114,7 +114,7 @@ internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean {
 actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
 actual val CharsetDecoder.charset: Charset get() = charset()!!
 
-actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable, max: Int): Int  {
+actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int  {
     var copied = 0
     val cb = CharBuffer.allocate(DECODE_CHAR_BUFFER_SIZE)
 

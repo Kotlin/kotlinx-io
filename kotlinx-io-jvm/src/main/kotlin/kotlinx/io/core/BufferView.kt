@@ -77,6 +77,9 @@ actual class BufferView private constructor(
      */
     actual val capacity: Int get() = writeBuffer.capacity()
 
+    override val endOfInput: Boolean
+        get() = !canRead()
+
     /**
      * Number of bytes available for read
      */

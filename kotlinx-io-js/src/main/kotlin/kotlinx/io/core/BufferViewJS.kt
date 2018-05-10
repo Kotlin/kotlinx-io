@@ -28,6 +28,7 @@ actual class BufferView internal constructor(
 
     actual var attachment: Any? = null
     actual var next: BufferView? = null
+    override val endOfInput: Boolean get() = writePosition == readPosition
 
     /**
      * Backing buffer capacity. Value for released buffer is unspecified

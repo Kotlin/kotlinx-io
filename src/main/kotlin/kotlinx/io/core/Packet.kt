@@ -40,6 +40,10 @@ abstract class ByteReadPacketBase(private var head: BufferView,
     val isEmpty: Boolean
         get() = !head.canRead() && tailRemaining == 0L
 
+    private var noMoreChunksAvailable = false
+    override val endOfInput: Boolean
+        get() = isEmpty && (noMoreChunksAvailable || doFill() == null)
+
     /**
      * Returns a copy of the packet. The original packet and the copy could be used concurrently. Both need to be
      * either completely consumed or released via [release]
@@ -178,62 +182,6 @@ abstract class ByteReadPacketBase(private var head: BufferView,
      */
     fun discardExact(n: Int) {
         if (discard(n) != n) throw EOFException("Unable to discard $n bytes due to end of packet")
-    }
-
-    /**
-     * Read UTF-8 line and append all line characters to [out] except line endings. Does support CR, LF and CR+LF
-     * @return `true` if some characters were appended or line ending reached (empty line) or `false` if packet
-     * if empty
-     */
-    fun readUTF8LineTo(out: Appendable, limit: Int): Boolean {
-        var decoded = 0
-        var size = 1
-        var cr = false
-        var end = false
-
-        takeWhileSize { buffer ->
-            var skip = 0
-            size = buffer.decodeUTF8 { ch ->
-                when (ch) {
-                    '\r' -> {
-                        if (cr) {
-                            end = true
-                            return@decodeUTF8 false
-                        }
-                        cr = true
-                        true
-                    }
-                    '\n' -> {
-                        end = true
-                        skip = 1
-                        false
-                    }
-                    else -> {
-                        if (cr) {
-                            end = true
-                            return@decodeUTF8 false
-                        }
-
-                        if (decoded == limit) {
-                            throw BufferLimitExceededException("Too many characters in line: limit $limit exceeded")
-                        }
-                        decoded++
-                        out.append(ch)
-                        true
-                    }
-                }
-            }
-
-            if (skip > 0) {
-                buffer.discardExact(skip)
-            }
-
-            if (end) 0 else size.coerceAtLeast(1)
-        }
-
-        if (size > 1) prematureEndOfStream(size)
-
-        return decoded > 0 || !isEmpty
     }
 
     internal inline fun readDirect(block: (BufferView) -> Unit) {
@@ -593,10 +541,18 @@ abstract class ByteReadPacketBase(private var head: BufferView,
         }
     }
 
+    /**
+     * Reads the next chunk suitable for reading or `null` if no more chunks available
+     */
     protected abstract fun fill(): BufferView?
 
     private fun doFill(): BufferView? {
-        val chunk = fill() ?: return null
+        if (noMoreChunksAvailable) return null
+        val chunk = fill()
+        if (chunk == null) {
+            noMoreChunksAvailable = true
+            return null
+        }
         appendView(chunk)
         return chunk
     }

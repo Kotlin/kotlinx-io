@@ -167,7 +167,7 @@ actual val CharsetDecoder.charset: Charset get() = _charset
 
 private val platformUtf16: String by lazy { if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE" }
 
-actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable, max: Int): Int {
+actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     val cd = iconv_open(platformUtf16, charset.name)
     //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
     val chars = CharArray(8192)

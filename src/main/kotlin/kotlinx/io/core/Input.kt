@@ -2,6 +2,7 @@ package kotlinx.io.core
 
 expect interface Input {
     var byteOrder: ByteOrder
+    val endOfInput: Boolean
 
     fun readByte(): Byte
     fun readShort(): Short
@@ -143,6 +144,14 @@ inline fun Input.takeWhile(block: (BufferView) -> Boolean) {
     } while (continueFlag)
 }
 
+/**
+ * Invoke [block] function for every chunk until end of input or block return 0
+ * [block] function returns number of bytes required to read next primitive and shouldn't require too many bytes at once
+ * otherwise it could fail with an exception.
+ * It is not guaranteed that every chunk will have fixed size but it will be always at least requested bytes length.
+ * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
+ * could be observed
+ */
 inline fun Input.takeWhileSize(block: (BufferView) -> Int) {
     var current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(1) ?: return
     var size = 1

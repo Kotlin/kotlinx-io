@@ -28,6 +28,8 @@ actual class BufferView internal constructor(
     actual fun canRead() = writePosition > readPosition
     actual fun canWrite() = writePosition < limit
 
+    override val endOfInput: Boolean get() = !canRead()
+
     actual final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {
             field = newOrder

@@ -63,19 +63,16 @@ actual abstract class CharsetDecoder(internal val _charset: Charset)
 private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDecoder(charset)
 actual val CharsetDecoder.charset: Charset get() = _charset
 
-actual fun CharsetDecoder.decode(input: ByteReadPacket, dst: Appendable, max: Int): Int {
+actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     val decoder = TextDecoderFatal(charset.name, true)
     var copied = 0
 
-    while (true) {
+    input.takeWhileSize { buffer ->
         val rem = max - copied
-        if (rem == 0) break
+        if (rem == 0) return@takeWhileSize 0
 
-        input.readDirect { buffer: BufferView ->
-            copied += buffer.readText(decoder, dst, buffer.next == null, rem)
-        }
-
-        if (input.isEmpty) break
+        copied += buffer.readText(decoder, dst, buffer.next == null, rem)
+        1
     }
 
     if (copied < max) {
