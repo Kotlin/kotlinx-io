@@ -55,7 +55,7 @@ private inline fun <P : CVariable> Pinned<*>.addressOfElement(index: Int): CPoin
 
 private fun Pinned<CharArray>.addressOf(index: Int): CPointer<ByteVar> = this.addressOfElement(index)
 
-internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
+internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     val length = toIndex - fromIndex
     val chars = CharArray(length) { input[fromIndex + it] }
     val cd = iconv_open(_charset.name, "UTF-16")
@@ -92,7 +92,7 @@ internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, t
     }
 }
 
-actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuilder) {
+actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     val cd = iconv_open(charset.name, "UTF-8")
     //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
 
@@ -107,7 +107,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuild
                 break
             }
 
-            dst.write(writeSize) { dstBuffer ->
+            dst.writeWhile(writeSize) { dstBuffer ->
                 var written: Int = 0
 
                 dstBuffer.writeDirect { buffer ->
@@ -146,7 +146,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuild
                         writeSize = 1
                     }
 
-                    written
+                    written > 0 && srcView.canRead()
                 }
                 written
             }

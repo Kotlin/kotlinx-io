@@ -24,7 +24,7 @@ actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
 actual val CharsetEncoder.charset: Charset get() = _charset
 
-internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
+internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     require(fromIndex <= toIndex)
     require(charset === Charsets.UTF_8)
 
@@ -49,7 +49,7 @@ internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, t
     return start - fromIndex
 }
 
-actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuilder) {
+actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     require(charset === Charsets.UTF_8)
     // we only support UTF-8 so as far as input is UTF-8 encoded string then we simply copy bytes
     dst.writePacket(input)

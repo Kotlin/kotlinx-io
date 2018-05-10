@@ -8,12 +8,14 @@ private const val DECODE_CHAR_BUFFER_SIZE = 8192
 
 @Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
 actual typealias Charset = java.nio.charset.Charset
+
 actual val Charset.name: String get() = name()
 
 actual typealias CharsetEncoder = java.nio.charset.CharsetEncoder
+
 actual val CharsetEncoder.charset: Charset get() = charset()
 
-internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
+internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     val cb = CharBuffer.wrap(input, fromIndex, toIndex)
     val before = cb.remaining()
 
@@ -25,7 +27,7 @@ internal actual fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, t
     return before - cb.remaining()
 }
 
-actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuilder) {
+actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     if (charset === Charsets.UTF_8) {
         dst.writePacket(input)
         return
@@ -62,12 +64,15 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuild
                 cb.flip()
 
                 var writeSize = 1
-                while (cb.hasRemaining()) {
-                    dst.writeDirect(writeSize) { to ->
-                        val cr = encode(cb, to, false)
-                        if (cr.isUnmappable || cr.isMalformed) cr.throwException()
-                        if (cr.isOverflow && to.hasRemaining()) writeSize ++
-                        else writeSize = 1
+                if (cb.hasRemaining()) {
+                    dst.writeWhileSize { view ->
+                        view.writeDirect(writeSize) { to ->
+                            val cr = encode(cb, to, false)
+                            if (cr.isUnmappable || cr.isMalformed) cr.throwException()
+                            if (cr.isOverflow && to.hasRemaining()) writeSize++
+                            else writeSize = 1
+                        }
+                        if (cb.hasRemaining()) writeSize else 0
                     }
                 }
 
@@ -81,13 +86,15 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuild
             cb.flip()
 
             var completeSize = 1
-            while (completeSize > 0) {
-                dst.writeDirect(completeSize) { to ->
+            dst.writeWhileSize { chunk ->
+                chunk.writeDirect(completeSize) { to ->
                     val cr = encode(cb, to, true)
                     if (cr.isMalformed || cr.isUnmappable) cr.throwException()
                     if (cr.isOverflow) completeSize++
                     else completeSize = 0
                 }
+
+                completeSize
             }
         }
     } finally {
@@ -112,9 +119,10 @@ internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean {
 // -----------------------
 
 actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
+
 actual val CharsetDecoder.charset: Charset get() = charset()!!
 
-actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int  {
+actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     var copied = 0
     val cb = CharBuffer.allocate(DECODE_CHAR_BUFFER_SIZE)
 

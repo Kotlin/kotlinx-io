@@ -125,6 +125,14 @@ fun Input.discardExact(n: Int) {
     discardExact(n.toLong())
 }
 
+/**
+ * Invoke [block] function for every chunk until end of input or [block] function return `false`
+ * [block] function returns `true` to request more chunks or `false` to stop loop
+ *
+ * It is not guaranteed that every chunk will have fixed size but it will be never empty.
+ * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
+ * could be observed
+ */
 inline fun Input.takeWhile(block: (BufferView) -> Boolean) {
     var current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(1) ?: return
     var continueFlag = true
@@ -145,16 +153,16 @@ inline fun Input.takeWhile(block: (BufferView) -> Boolean) {
 }
 
 /**
- * Invoke [block] function for every chunk until end of input or block return 0
+ * Invoke [block] function for every chunk until end of input or [block] function return zero
  * [block] function returns number of bytes required to read next primitive and shouldn't require too many bytes at once
  * otherwise it could fail with an exception.
  * It is not guaranteed that every chunk will have fixed size but it will be always at least requested bytes length.
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
-inline fun Input.takeWhileSize(block: (BufferView) -> Int) {
+inline fun Input.takeWhileSize(initialSize: Int = 1, block: (BufferView) -> Int) {
     var current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(1) ?: return
-    var size = 1
+    var size = initialSize
 
     do {
         val before = current.readRemaining

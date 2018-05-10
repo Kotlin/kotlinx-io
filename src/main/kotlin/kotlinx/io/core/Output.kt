@@ -94,3 +94,30 @@ inline fun Output.writeWhile(block: (BufferView) -> Boolean) {
         @Suppress("DEPRECATION_ERROR") `$afterWrite$`()
     }
 }
+
+inline fun Output.writeWhileSize(initialSize: Int = 1, block: (BufferView) -> Int) {
+    try {
+        var tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(initialSize)
+
+        var size: Int
+        while (true) {
+            size = block(tail)
+            if (size <= 0) break
+            tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(size)
+        }
+    } finally {
+        @Suppress("DEPRECATION_ERROR") `$afterWrite$`()
+    }
+}
+
+fun Output.writePacket(packet: ByteReadPacket) {
+    if (this is BytePacketBuilderBase) {
+        writePacket(packet)
+        return
+    }
+
+    packet.takeWhile { from ->
+        writeFully(from)
+        true
+    }
+}

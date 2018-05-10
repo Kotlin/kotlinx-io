@@ -19,8 +19,13 @@ actual class BufferView private constructor(
 
     constructor(external: ByteBuffer) : this(external, null)
 
-    private var readBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
-    private var writeBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
+    @PublishedApi
+    @JvmField
+    internal var readBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
+
+    @PublishedApi
+    @JvmField
+    internal var writeBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()
 
     @Volatile
     private var refCount = 1L
@@ -31,7 +36,8 @@ actual class BufferView private constructor(
             readBuffer.position(value)
         }
 
-    private inline var writePosition: Int
+    @PublishedApi
+    internal inline var writePosition: Int
         get() = writeBuffer.position()
         set(value) {
             writeBuffer.position(value)
@@ -386,20 +392,8 @@ actual class BufferView private constructor(
         afterWrite()
     }
 
-    // NOTE: these are part of public ABI so need to have stable signatures
-    @Deprecated("Use readDirect instead", level = DeprecationLevel.ERROR)
-    fun `$currentReadBufferInternal$`(): ByteBuffer = readBuffer
-
-    @Deprecated("Use writeDirect instead", level = DeprecationLevel.ERROR)
-    fun `$currentWriteBufferInternal$`(): ByteBuffer = writeBuffer
-
-    @Deprecated("Use writeDirect instead", level = DeprecationLevel.ERROR)
-    fun `$afterWriteInternal$`() {
-        afterWrite()
-    }
-
     inline fun readDirect(block: (ByteBuffer) -> Unit) {
-        val bb = @Suppress("DEPRECATION_ERROR") `$currentReadBufferInternal$`()
+        val bb = readBuffer
         val positionBefore = bb.position()
         val limit = bb.limit()
         block(bb)
@@ -411,14 +405,13 @@ actual class BufferView private constructor(
     inline fun writeDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
         val rem = writeRemaining
         require (size <= rem) { "size $size is greater than buffer's remaining capacity $rem" }
-        val buffer = @Suppress("DEPRECATION_ERROR") `$currentWriteBufferInternal$`()
+        val buffer = writeBuffer
         val positionBefore = buffer.position()
         block(buffer)
         val delta = buffer.position() - positionBefore
         if (delta < 0 || delta > rem) wrongBufferPositionChangeError(delta, size)
 
-        @Suppress("DEPRECATION_ERROR")
-        `$afterWriteInternal$`()
+        afterWrite()
         return delta
     }
 
@@ -818,8 +811,9 @@ actual class BufferView private constructor(
         }
     }
 
+    @PublishedApi
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun afterWrite() {
+    internal inline fun afterWrite() {
         readBuffer.limit(writePosition)
     }
 

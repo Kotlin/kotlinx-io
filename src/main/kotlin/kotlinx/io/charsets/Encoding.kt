@@ -18,39 +18,37 @@ expect abstract class CharsetEncoder
 
 expect val CharsetEncoder.charset: Charset
 
-fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BytePacketBuilder) {
+fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Output) {
     var start = fromIndex
-    var size = 1
 
-    while (start < toIndex) {
-        dst.write(size) { view ->
-            val before = view.writeRemaining
-            val rc = encode(input, start, toIndex, view)
-            start += rc
-            size = if (rc == 0) 8 else 1
-            before - view.writeRemaining
-        }
+    if (start >= toIndex) return
+    dst.writeWhileSize(1) { view: BufferView ->
+        val before = view.writeRemaining
+        val rc = encodeImpl(input, start, toIndex, view)
+        start += rc
+        val size = if (rc == 0) 8 else 1
+        before - view.writeRemaining
+        if (start < toIndex) size else 0
     }
 
     encodeCompleteImpl(dst)
 }
 
-expect fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: BytePacketBuilder)
+expect fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output)
 
-private fun CharsetEncoder.encodeCompleteImpl(dst: BytePacketBuilder) {
+private fun CharsetEncoder.encodeCompleteImpl(dst: Output) {
     var size = 1
-    while (size > 0) {
-        dst.write(size) { view ->
-            val before = view.readRemaining
+    dst.writeWhile { view ->
+        val before = view.readRemaining
 
-            if (encodeComplete(view)) {
-                size = 0
-            } else {
-                size++
-            }
-
-            before - view.readRemaining
+        if (encodeComplete(view)) {
+            size = 0
+        } else {
+            size++
         }
+
+        before - view.readRemaining
+        size > 0
     }
 }
 
@@ -62,7 +60,7 @@ fun CharsetEncoder.encodeUTF8(input: ByteReadPacket) = buildPacket {
     encodeUTF8(input, this)
 }
 
-internal expect fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int
+internal expect fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int
 internal expect fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean
 
 // ----------------------------- DECODER -------------------------------------------------------------------------------
