@@ -539,6 +539,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     }
 
     override fun `$afterWrite$`() {
+        _size = -1
     }
 
     /**

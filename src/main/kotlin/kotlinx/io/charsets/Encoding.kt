@@ -39,15 +39,11 @@ expect fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output)
 private fun CharsetEncoder.encodeCompleteImpl(dst: Output) {
     var size = 1
     dst.writeWhile { view ->
-        val before = view.readRemaining
-
         if (encodeComplete(view)) {
             size = 0
         } else {
             size++
         }
-
-        before - view.readRemaining
         size > 0
     }
 }
