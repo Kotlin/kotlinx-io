@@ -77,6 +77,41 @@ private fun prematureEndOfStream(size: Int): Nothing = throw MalformedUTF8InputE
 fun ByteReadPacket.readBytes(n: Int = remaining.coerceAtMostMaxInt()): ByteArray = ByteArray(n).also { readFully(it, 0, n) }
 
 /**
+ * Reads exactly [n] bytes from the input or fails if not enough bytes available.
+ */
+fun Input.readBytes(n: Int): ByteArray = readBytesOf(n, n)
+
+/**
+ * Reads all remaining bytes from the input
+ */
+fun Input.readBytes(): ByteArray = readBytesOf()
+
+/**
+ * Reads at least [min] but no more than [max] bytes from the input to a new byte array
+ * @throws EOFException if not enough bytes available to get [min] bytes
+ */
+fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (min == max) {
+    ByteArray(min).also { readFully(it, 0, min) }
+} else {
+    var array = ByteArray(max.toLong().coerceAtMost(sizeEstimate()).coerceAtLeast(min.toLong()).toInt())
+    var size = 0
+
+    while (size < max) {
+        val partSize = minOf(max, array.size) - size
+        val rc = readAvailable(array, size, partSize)
+        if (rc <= 0) break
+        size += rc
+        if (array.size == size) {
+            array = array.copyOf(size * 2)
+        }
+    }
+
+    if (size < min) throw EOFException("Not enough bytes available to read $min bytes: ${min - size} more required")
+
+    if (size == array.size) array else array.copyOf(size)
+}
+
+/**
  * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
  * @return number of characters copied to [out]
  */
