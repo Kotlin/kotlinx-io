@@ -1,6 +1,5 @@
 package kotlinx.io.core
 
-import kotlinx.io.charsets.sizeEstimate
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
@@ -39,7 +38,10 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
      * `true` if no bytes available for read
      */
     val isEmpty: Boolean
-        get() = !head.canRead() && tailRemaining == 0L
+        get() = headRemaining == 0 && tailRemaining == 0L
+
+    val isNotEmpty: Boolean
+        get() = headRemaining > 0 || tailRemaining > 0L
 
     private var noMoreChunksAvailable = false
     override val endOfInput: Boolean
