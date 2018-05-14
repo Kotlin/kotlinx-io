@@ -118,7 +118,7 @@ expect interface ByteWriteChannel {
      * coroutine then the corresponding coroutine will be cancelled with [cause]. If no [cause] provided then no
      * cancellation will be propagated.
      */
-    fun close(cause: Throwable? = null): Boolean
+    fun close(cause: Throwable?): Boolean
 
     /**
      * Flushes all pending write bytes making them available for read.
@@ -144,6 +144,11 @@ suspend fun ByteWriteChannel.writeByte(b: Int) {
 suspend fun ByteWriteChannel.writeInt(i: Long) {
     return writeInt(i.toInt())
 }
+
+/**
+ * Closes this channel with no failure (successfully)
+ */
+fun ByteWriteChannel.close(): Boolean = close(null)
 
 suspend fun ByteWriteChannel.writeStringUtf8(s: CharSequence) {
     val packet = buildPacket {
