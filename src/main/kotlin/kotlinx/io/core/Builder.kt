@@ -56,6 +56,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
         return size
     }
 
+    val isEmpty: Boolean get() = head === BufferView.Empty || _size == 0 || (_size == -1 && size == 0)
+    val isNotEmpty: Boolean get() = head !== BufferView.Empty || _size > 0 || (size == -1 && (head.canRead() || size > 0))
+
     private var head: BufferView = BufferView.Empty
 
     override fun append(c: Char): BytePacketBuilder {
