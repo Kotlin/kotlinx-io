@@ -30,6 +30,10 @@ private class ChannelAsInput(private val channel: ReadableByteChannel, pool: Obj
             throw t
         }
     }
+
+    override fun closeSource() {
+        channel.close()
+    }
 }
 
 fun ReadableByteChannel.asInput(pool: ObjectPool<BufferView> = BufferView.Pool): Input = ChannelAsInput(this, pool)

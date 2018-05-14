@@ -1,8 +1,9 @@
 package kotlinx.io.core
 
+import java.io.*
 import java.nio.*
 
-actual interface Input {
+actual interface Input : Closeable {
     actual var byteOrder: ByteOrder
     actual val endOfInput: Boolean
 
@@ -32,6 +33,7 @@ actual interface Input {
     fun readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int
 
     actual fun discard(n: Long): Long
+    actual override fun close()
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     actual fun `$updateRemaining$`(remaining: Int)

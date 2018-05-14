@@ -69,6 +69,12 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         }
     }
 
+    override fun close() {
+        release()
+        noMoreChunksAvailable = true
+        closeSource()
+    }
+
     internal fun stealAll(): BufferView? {
         val head = head
         val empty = BufferView.Empty
@@ -569,6 +575,8 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
      * Reads the next chunk suitable for reading or `null` if no more chunks available
      */
     protected abstract fun fill(): BufferView?
+
+    protected abstract fun closeSource()
 
     private fun doFill(): BufferView? {
         if (noMoreChunksAvailable) return null

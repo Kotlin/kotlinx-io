@@ -33,6 +33,8 @@ internal actual constructor(head: BufferView, remaining: Long, pool: ObjectPool<
     actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : this(head, @Suppress("INVISIBLE_MEMBER") head.remainingAll(), pool)
 
     final override fun fill() = null
+    override fun closeSource() {
+    }
 
     actual companion object {
         actual val Empty: ByteReadPacket = ByteReadPacketBase.Empty

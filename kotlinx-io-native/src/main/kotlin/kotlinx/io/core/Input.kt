@@ -34,6 +34,7 @@ actual interface Input {
     fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int
 
     actual fun discard(n: Long): Long
+    actual fun close()
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     actual fun `$updateRemaining$`(remaining: Int)

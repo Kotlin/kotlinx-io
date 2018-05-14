@@ -38,6 +38,7 @@ actual interface Input {
     fun readAvailable(dst: ArrayBufferView, offset: Int, length: Int): Int
 
     actual fun discard(n: Long): Long
+    actual fun close()
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     actual fun `$updateRemaining$`(remaining: Int)

@@ -28,6 +28,7 @@ expect interface Input {
     fun readAvailable(dst: BufferView, length: Int): Int
 
     fun discard(n: Long): Long
+    fun close()
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     fun `$updateRemaining$`(remaining: Int)

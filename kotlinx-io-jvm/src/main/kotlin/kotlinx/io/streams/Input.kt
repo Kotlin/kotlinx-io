@@ -20,6 +20,10 @@ internal class InputStreamAsInput(private val stream: InputStream, pool: ObjectP
             throw t
         }
     }
+
+    override fun closeSource() {
+        stream.close()
+    }
 }
 
 fun InputStream.asInput(pool: ObjectPool<BufferView> = BufferView.Pool): Input = InputStreamAsInput(this, pool)
