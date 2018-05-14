@@ -20,13 +20,13 @@ private class ChannelAsInput(private val channel: ReadableByteChannel, pool: Obj
             }
 
             if (rc == -1) {
-                pool.recycle(buffer)
+                buffer.release(pool)
                 return null
             }
 
             return buffer
         } catch (t: Throwable) {
-            pool.recycle(buffer)
+            buffer.release(pool)
             throw t
         }
     }
