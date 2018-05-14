@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.charsets.sizeEstimate
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
@@ -88,6 +89,20 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         this.tailRemaining -= head.readRemaining
 
         return head
+    }
+
+    internal fun append(chain: BufferView) {
+        if (chain === BufferView.Empty) return
+
+        val size = chain.remainingAll()
+        if (head === BufferView.Empty) {
+            head = chain
+            headRemaining = chain.readRemaining
+            tailRemaining = size - headRemaining
+        } else {
+            head.findTail().next = chain
+            tailRemaining += size
+        }
     }
 
     final override fun readByte(): Byte {
