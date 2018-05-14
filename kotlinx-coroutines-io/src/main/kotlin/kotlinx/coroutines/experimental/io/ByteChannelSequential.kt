@@ -80,8 +80,11 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         private set
 
     override fun flush() {
-        writable.writePacket(readable)
-        atLeastNBytesAvailableForRead.signal()
+        if (writable.isNotEmpty) {
+            @Suppress("DEPRECATION_ERROR")
+            readable.`$unsafeAppend$`(writable)
+            atLeastNBytesAvailableForRead.signal()
+        }
     }
 
     private fun ensureNotClosed() {
