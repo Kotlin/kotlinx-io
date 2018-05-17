@@ -124,7 +124,7 @@ expect interface ByteReadChannel {
      * @return `true` if line has been read (possibly empty) or `false` if channel has been closed
      * and no characters were read.
      */
-    suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int = Int.MAX_VALUE): Boolean
+    suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
 
     /**
      * Close channel with optional [cause] cancellation. Unlike [ByteWriteChannel.close] that could close channel
@@ -148,6 +148,10 @@ expect interface ByteReadChannel {
     companion object {
         val Empty: ByteReadChannel
     }
+}
+
+suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable): Boolean {
+    return readUTF8LineTo(out, Int.MAX_VALUE)
 }
 
 fun ByteReadChannel.cancel(): Boolean = cancel(null)
