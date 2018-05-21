@@ -58,7 +58,7 @@ private fun Pinned<CharArray>.addressOf(index: Int): CPointer<ByteVar> = this.ad
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     val length = toIndex - fromIndex
     val chars = CharArray(length) { input[fromIndex + it] }
-    val cd = iconv_open(_charset.name, "UTF-16")
+    val cd = iconv_open(_charset.name, platformUtf16)
     //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
     var charsConsumed = 0
 
