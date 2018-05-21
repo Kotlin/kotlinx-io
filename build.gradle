@@ -3,6 +3,7 @@ buildscript {
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap' }
         }
         if (kotlin_version.contains("dev")) {
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
@@ -16,7 +17,7 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.30"
+        classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.31"
         classpath ("org.jetbrains.kotlin:kotlin-native-gradle-plugin:$kotlin_native_version") {
             exclude group: 'org.jetbrains.kotlin', module: 'kotlin-gradle-plugin'
         }
@@ -50,6 +51,7 @@ allprojects {
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
             maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap' }
         }
         if (kotlin_version.contains("dev")) {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
