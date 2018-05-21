@@ -4,15 +4,12 @@ import kotlinx.io.core.*
 
 import kotlinx.cinterop.*
 import kotlinx.io.pool.*
-import platform.posix.memcpy
-import platform.posix.memset
-import platform.posix.size_t
-import platform.posix.size_tVar
 import platform.iconv.iconv_open
 import platform.iconv.iconv_close
 import platform.iconv.iconv
 
 import konan.SymbolName
+import platform.posix.*
 
 actual abstract class Charset(internal val _name: String) {
     actual abstract fun newEncoder(): CharsetEncoder
@@ -29,7 +26,7 @@ actual abstract class Charset(internal val _name: String) {
 private class CharsetImpl(name: String) : Charset(name) {
     init {
         val v = iconv_open(name, "UTF-8")
-        //if (v == -1) throw IllegalArgumentException("Charset $name is not supported")
+        checkErrors(v, "UTF-8")
         iconv_close(v)
     }
 
@@ -60,11 +57,19 @@ private fun iconvCharsetName(name: String) = when (name) {
     else -> name
 }
 
+private fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
+    @Suppress("UNCHECKED_CAST")
+    val error = (iconvOpenResults!! as CPointer<IntVar>).pointed
+    if (error.value == -1) throw IllegalArgumentException("Failed to open iconv for charset $charset with error ${posix_errno()}")
+}
+
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     val length = toIndex - fromIndex
     val chars = CharArray(length) { input[fromIndex + it] }
-    val cd = iconv_open(iconvCharsetName(_charset._name), platformUtf16)
-    //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
+    val charset = iconvCharsetName(_charset._name)
+    val cd: COpaquePointer? = iconv_open(charset, platformUtf16)
+    checkErrors(cd, charset)
+
     var charsConsumed = 0
 
     try {
@@ -82,10 +87,11 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
                     inbytesleft.value = (length * 2).toLong()
                     outbytesleft.value = dstRemaining
 
-                    iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
+                    if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
+                        throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
+                    }
 
                     charsConsumed = (length * 2 - inbytesleft.value).toInt() / 2
-
                     (dstRemaining - outbytesleft.value).toInt()
                 }
             }
@@ -99,7 +105,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 
 actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     val cd = iconv_open(charset.name, "UTF-8")
-    //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
+    checkErrors(cd, "UTF-8")
 
     try {
         var readSize = 1
@@ -132,7 +138,9 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                             inbytesleft.value = length
                             outbytesleft.value = dstRemaining
 
-                            iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
+                            if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
+                                throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
+                            }
 
                             read = (length - inbytesleft.value).toInt()
                             written = (dstRemaining - outbytesleft.value).toInt()
@@ -173,8 +181,9 @@ actual val CharsetDecoder.charset: Charset get() = _charset
 private val platformUtf16: String by lazy { if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE" }
 
 actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
-    val cd = iconv_open(platformUtf16, iconvCharsetName(charset.name))
-    //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
+    val charset = iconvCharsetName(charset.name)
+    val cd = iconv_open(platformUtf16, charset)
+    checkErrors(cd, charset)
     val chars = CharArray(8192)
     var copied = 0
 
@@ -206,7 +215,9 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
                         inbytesleft.value = length
                         outbytesleft.value = dstRemaining
 
-                        iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
+                        if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
+                            throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
+                        }
 
                         read = (length - inbytesleft.value).toInt()
                         written = (dstRemaining - outbytesleft.value).toInt() / 2
