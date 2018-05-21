@@ -139,7 +139,10 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                             outbytesleft.value = dstRemaining
 
                             if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
-                                throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
+                                val errno = posix_errno()
+                                if (errno != EINVAL && errno != E2BIG) {
+                                    throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
+                                }
                             }
 
                             read = (length - inbytesleft.value).toInt()
@@ -216,7 +219,10 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
                         outbytesleft.value = dstRemaining
 
                         if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
-                            throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
+                            val errno = posix_errno()
+                            if (errno != EINVAL && errno != E2BIG) {
+                                throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
+                            }
                         }
 
                         read = (length - inbytesleft.value).toInt()
