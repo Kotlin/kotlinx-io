@@ -55,10 +55,15 @@ private inline fun <P : CVariable> Pinned<*>.addressOfElement(index: Int): CPoin
 
 private fun Pinned<CharArray>.addressOf(index: Int): CPointer<ByteVar> = this.addressOfElement(index)
 
+private fun iconvCharsetName(name: String) = when (name) {
+    "UTF-16" -> platformUtf16
+    else -> name
+}
+
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     val length = toIndex - fromIndex
     val chars = CharArray(length) { input[fromIndex + it] }
-    val cd = iconv_open(_charset.name, platformUtf16)
+    val cd = iconv_open(iconvCharsetName(_charset._name), platformUtf16)
     //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
     var charsConsumed = 0
 
@@ -168,7 +173,7 @@ actual val CharsetDecoder.charset: Charset get() = _charset
 private val platformUtf16: String by lazy { if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE" }
 
 actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
-    val cd = iconv_open(platformUtf16, charset.name)
+    val cd = iconv_open(platformUtf16, iconvCharsetName(charset.name))
     //if (cd.reinterpret<Int> == -1) throw IllegalArgumentException("failed to open iconv")
     val chars = CharArray(8192)
     var copied = 0
