@@ -813,8 +813,9 @@ internal class ByteBufferChannel(
 
     private fun ByteBuffer.rollBytes(n: Int) {
         val rem = remaining()
+
         limit(position() + n)
-        for (i in 1..n - rem) {
+        for (i in 0 until n - rem) {
             put(capacity() + ReservedLongIndex + i, get(i))
         }
     }
