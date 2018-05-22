@@ -449,6 +449,15 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         }
     }
 
+    override suspend fun readUTF8Line(limit: Int): String? {
+        val sb = StringBuilder()
+        if (!readUTF8LineTo(sb, limit)) {
+            return null
+        }
+
+        return sb.toString()
+    }
+
     override fun cancel(cause: Throwable?): Boolean {
         if (closedCause != null || closed) return false
         return close(cause ?: CancellationException("Channel cancelled"))

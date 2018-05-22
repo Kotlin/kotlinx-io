@@ -2034,6 +2034,15 @@ internal class ByteBufferChannel(
 
     override suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: Int) = readUTF8LineToAscii(out, limit)
 
+    override suspend fun readUTF8Line(limit: Int): String? {
+        val sb = StringBuilder()
+        if (!readUTF8LineTo(sb, limit)) {
+            return null
+        }
+
+        return sb.toString()
+    }
+
     override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket {
         if (isClosedForWrite) {
             return buildPacket(headerSizeHint) {

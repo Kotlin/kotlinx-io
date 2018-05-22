@@ -136,6 +136,16 @@ actual interface ByteReadChannel {
     actual suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
 
     /**
+     * Reads a line of UTF-8 characters up to [limit] characters.
+     * Supports both CR-LF and LF line endings.
+     * Throws an exception if the specified [limit] has been exceeded.
+     *
+     * @return a line string with no line endings or `null` of channel has been closed
+     * and no characters were read.
+     */
+    actual suspend fun readUTF8Line(limit: Int): String?
+
+    /**
      * Invokes [consumer] when it will be possible to read at least [min] bytes
      * providing byte buffer to it so lambda can read from the buffer
      * up to [ByteBuffer.remaining] bytes. If there are no [min] bytes available then the invocation could

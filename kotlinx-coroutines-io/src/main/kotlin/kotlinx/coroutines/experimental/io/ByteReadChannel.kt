@@ -53,13 +53,13 @@ expect interface ByteReadChannel {
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
      * and not enough bytes available. Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
      */
-    suspend fun readPacket(size: Int, headerSizeHint: Int = 0): ByteReadPacket
+    suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket
 
     /**
      * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
      * Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
      */
-    suspend fun readRemaining(limit: Long, headerSizeHint: Int = 0): ByteReadPacket
+    suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket
 
     /**
      * Reads a long number (suspending if not enough bytes available) or fails if channel has been closed
@@ -118,13 +118,23 @@ expect interface ByteReadChannel {
 
     /**
      * Reads a line of UTF-8 characters to the specified [out] buffer up to [limit] characters.
-     * Supports both CR-LF and LF line endings.
+     * Supports both CR-LF and LF line endings. No line ending characters will be appended to [out] buffer.
      * Throws an exception if the specified [limit] has been exceeded.
      *
      * @return `true` if line has been read (possibly empty) or `false` if channel has been closed
      * and no characters were read.
      */
     suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
+
+    /**
+     * Reads a line of UTF-8 characters up to [limit] characters.
+     * Supports both CR-LF and LF line endings.
+     * Throws an exception if the specified [limit] has been exceeded.
+     *
+     * @return a line string with no line endings or `null` of channel has been closed
+     * and no characters were read.
+     */
+    suspend fun readUTF8Line(limit: Int): String?
 
     /**
      * Close channel with optional [cause] cancellation. Unlike [ByteWriteChannel.close] that could close channel
@@ -150,8 +160,23 @@ expect interface ByteReadChannel {
     }
 }
 
+/**
+ * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
+ * and not enough bytes available.
+ */
+suspend fun ByteReadChannel.readPacket(size: Int): ByteReadPacket = readPacket(size, 0)
+
+/**
+ * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
+ */
+suspend fun ByteReadChannel.readRemaining(limit: Long): ByteReadPacket = readRemaining(limit, 0)
+
 suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable): Boolean {
     return readUTF8LineTo(out, Int.MAX_VALUE)
+}
+
+suspend fun ByteReadChannel.readUTF8Line(): String? {
+    return readUTF8Line(Int.MAX_VALUE)
 }
 
 fun ByteReadChannel.cancel(): Boolean = cancel(null)
