@@ -436,7 +436,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     fun writePacket(p: ByteReadPacket, n: Int) {
         var remaining = n
 
-        while (true) {
+        while (remaining > 0) {
             val headRemaining = p.headRemaining
             if (headRemaining <= remaining) {
                 remaining -= headRemaining
@@ -456,7 +456,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     fun writePacket(p: ByteReadPacket, n: Long) {
         var remaining = n
 
-        while (true) {
+        while (remaining > 0L) {
             val headRemaining = p.headRemaining.toLong()
             if (headRemaining <= remaining) {
                 remaining -= headRemaining
