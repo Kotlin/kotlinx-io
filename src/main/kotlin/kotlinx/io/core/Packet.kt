@@ -111,6 +111,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
             head.findTail().next = chain
             tailRemaining += size
         }
+        chain.byteOrder = byteOrder
     }
 
     final override fun readByte(): Byte {
@@ -181,7 +182,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
     final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(length >= 0) { "length shouldn't be negative: $length" }
-        require(offset + length <= dst.size) { throw IllegalArgumentException() }
+        require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
         return readAsMuchAsPossible(dst, offset, length, 0)
     }
