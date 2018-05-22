@@ -20,7 +20,7 @@ fun OutputStream.writePacket(packet: ByteReadPacket) {
     val buffer = ByteArray(s.coerceAtMost(4096L).toInt())
 
     try {
-        while (!packet.isEmpty) {
+        while (packet.isNotEmpty) {
             val size = packet.readAvailable(buffer)
             write(buffer, 0, size)
         }

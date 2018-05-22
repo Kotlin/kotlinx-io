@@ -1703,7 +1703,7 @@ internal class ByteBufferChannel(
         joining?.let { resolveDelegation(this, it)?.let { return it.writePacket(packet) } }
 
         try {
-            while (!packet.isEmpty) {
+            while (packet.isNotEmpty) {
                 if (tryWritePacketPart(packet) == 0) break
             }
         } catch (t: Throwable) {
@@ -1719,7 +1719,7 @@ internal class ByteBufferChannel(
 
     private suspend fun writePacketSuspend(packet: ByteReadPacket) {
         try {
-            while (!packet.isEmpty) {
+            while (packet.isNotEmpty) {
                 writeSuspend(1)
 
                 joining?.let { resolveDelegation(this, it)?.let { return it.writePacket(packet) } }

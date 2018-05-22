@@ -197,7 +197,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     }
 
     override suspend fun readByte(): Byte {
-        return if (!readable.isEmpty) {
+        return if (readable.isNotEmpty) {
             readable.readByte()
         } else {
             readByteSlow()
@@ -215,7 +215,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
             waitingForRead = 1
             atLeastNBytesAvailableForRead.await()
 
-            if (!readable.isEmpty) return readable.readByte()
+            if (readable.isNotEmpty) return readable.readByte()
             checkClosed(1)
         } while (true)
     }
