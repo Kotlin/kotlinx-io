@@ -209,7 +209,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
 
     override fun last(buffer: BufferView) {
         if (head === BufferView.Empty) {
-            buffer.reserveStartGap(headerSizeHint)
+            if (buffer.isEmpty()) { // headerSize is just a hint so we shouldn't force to reserve space
+                buffer.reserveStartGap(headerSizeHint) // it will always fail for non-empty buffer
+            }
             tail = buffer
             head = buffer
         } else {
