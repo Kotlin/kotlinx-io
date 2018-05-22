@@ -63,7 +63,19 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         get() = maxOf(0L, 4088 - readable.remaining).toInt()
 
     override var readByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
+        set(newOrder) {
+            if (field != newOrder) {
+                field = newOrder
+                readable.byteOrder = newOrder
+            }
+        }
     override var writeByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
+        set(newOrder) {
+            if (field != newOrder) {
+                field = newOrder
+                writable.byteOrder = newOrder
+            }
+        }
 
     override val isClosedForRead: Boolean
         get() = closed && readable.isEmpty
