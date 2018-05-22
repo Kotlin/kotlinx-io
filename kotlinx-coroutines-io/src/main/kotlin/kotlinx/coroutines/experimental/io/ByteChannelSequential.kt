@@ -508,7 +508,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return writeAvailable(src, offset, length)
     }
 
-    private suspend fun awaitFreeSpace() {
+    protected final suspend fun awaitFreeSpace() {
         if (closed) {
             writable.release()
             throw closedCause ?: ClosedWriteChannelException("Channel is already closed")

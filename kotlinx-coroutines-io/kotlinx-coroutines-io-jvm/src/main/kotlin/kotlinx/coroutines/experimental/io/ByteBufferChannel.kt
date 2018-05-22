@@ -494,7 +494,7 @@ internal class ByteBufferChannel(
         }
     }
 
-    final suspend fun readFully(dst: ByteBuffer): Int {
+    final override suspend fun readFully(dst: ByteBuffer): Int {
         val rc = readAsMuchAsPossible(dst)
         if (!dst.hasRemaining()) return rc
 
@@ -536,7 +536,7 @@ internal class ByteBufferChannel(
         return readAvailableSuspend(dst, offset, length)
     }
 
-    suspend fun readAvailable(dst: ByteBuffer): Int {
+    override suspend fun readAvailable(dst: ByteBuffer): Int {
         val consumed = readAsMuchAsPossible(dst)
 
         if (consumed == 0 && closed != null) {
@@ -1088,15 +1088,15 @@ internal class ByteBufferChannel(
         }
     }
 
-    suspend override fun writeDouble(d: Double) {
+    override suspend fun writeDouble(d: Double) {
         return writeLong(java.lang.Double.doubleToRawLongBits(d))
     }
 
-    suspend override fun writeFloat(f: Float) {
+    override suspend fun writeFloat(f: Float) {
         return writeInt(java.lang.Float.floatToRawIntBits(f))
     }
 
-    suspend fun writeAvailable(src: ByteBuffer): Int {
+    override suspend fun writeAvailable(src: ByteBuffer): Int {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeAvailable(src) } }
 
         val copied = writeAsMuchAsPossible(src)
@@ -1106,7 +1106,7 @@ internal class ByteBufferChannel(
         return writeAvailableSuspend(src)
     }
 
-    suspend override fun writeAvailable(src: BufferView): Int {
+    override suspend fun writeAvailable(src: BufferView): Int {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeAvailable(src) } }
 
         val copied = writeAsMuchAsPossible(src)
@@ -1132,7 +1132,7 @@ internal class ByteBufferChannel(
         return writeAvailable(src)
     }
 
-    suspend fun writeFully(src: ByteBuffer) {
+    override suspend fun writeFully(src: ByteBuffer) {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeFully(src) } }
 
         writeAsMuchAsPossible(src)
@@ -1141,7 +1141,7 @@ internal class ByteBufferChannel(
         return writeFullySuspend(src)
     }
 
-    suspend override fun writeFully(src: BufferView) {
+    override suspend fun writeFully(src: BufferView) {
         writeAsMuchAsPossible(src)
         if (!src.canRead()) return
 

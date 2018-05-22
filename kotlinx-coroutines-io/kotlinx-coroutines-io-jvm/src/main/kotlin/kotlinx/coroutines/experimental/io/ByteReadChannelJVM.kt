@@ -44,12 +44,14 @@ actual interface ByteReadChannel {
      */
     actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
     actual suspend fun readAvailable(dst: BufferView): Int
+    suspend fun readAvailable(dst: ByteBuffer): Int
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
     actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
+    suspend fun readFully(dst: ByteBuffer): Int
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed

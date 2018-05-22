@@ -52,6 +52,7 @@ actual interface ByteWriteChannel {
      */
     actual suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
     actual suspend fun writeAvailable(src: BufferView): Int
+    suspend fun writeAvailable(src: ByteBuffer): Int
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
@@ -59,6 +60,7 @@ actual interface ByteWriteChannel {
      */
     actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
     actual suspend fun writeFully(src: BufferView)
+    suspend fun writeFully(src: ByteBuffer)
 
     /**
      * Invokes [block] when it will be possible to write at least [min] bytes
