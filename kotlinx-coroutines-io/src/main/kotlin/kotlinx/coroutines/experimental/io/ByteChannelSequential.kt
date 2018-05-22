@@ -204,12 +204,19 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         }
     }
 
+    private fun checkClosed(n: Int) {
+        if (closed) {
+            throw closedCause ?: EOFException("$n bytes required but EOF reached")
+        }
+    }
+
     private suspend fun readByteSlow(): Byte {
         do {
             waitingForRead = 1
             atLeastNBytesAvailableForRead.await()
 
             if (!readable.isEmpty) return readable.readByte()
+            checkClosed(1)
         } while (true)
     }
 
@@ -300,9 +307,9 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         val builder = BytePacketBuilder(headerSizeHint)
 
         var remaining = size
-            val partSize = minOf(remaining.toLong(), readable.remaining).toInt()
-            remaining -= partSize
-            builder.writePacket(readable, partSize)
+        val partSize = minOf(remaining.toLong(), readable.remaining).toInt()
+        remaining -= partSize
+        builder.writePacket(readable, partSize)
 
         return if (remaining > 0) readPacketSuspend(builder, remaining)
         else builder.build()
@@ -324,34 +331,40 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return builder.build()
     }
 
+    private fun readAvailableClosed(): Int {
+        closedCause?.let { throw it }
+        -1
+        return -1
+    }
+
     override suspend fun readAvailable(dst: BufferView): Int {
         return if (readable.canRead()) {
             val size = minOf(dst.writeRemaining.toLong(), readable.remaining).toInt()
             readable.readFully(dst, size)
             size
-        } else if (closed) -1
+        } else if (closed) readAvailableClosed()
         else readAvailableSuspend(dst)
     }
 
     private suspend fun readAvailableSuspend(dst: BufferView): Int {
         waitingForSize = 1
         atLeastNBytesAvailableForRead.await()
-        return readAvailableSuspend(dst)
+        return readAvailable(dst)
     }
 
     override suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
         return if (readable.canRead()) {
             val size = minOf(length.toLong(), readable.remaining).toInt()
-            readable.readFully(dst, size)
+            readable.readFully(dst, 0, size)
             size
-        } else if (closed) -1
+        } else if (closed) readAvailableClosed()
         else readAvailableSuspend(dst, offset, length)
     }
 
     private suspend fun readAvailableSuspend(dst: ByteArray, offset: Int, length: Int): Int {
         waitingForSize = 1
         atLeastNBytesAvailableForRead.await()
-        return readAvailableSuspend(dst, offset, length)
+        return readAvailable(dst, offset, length)
     }
 
     override suspend fun readFully(dst: ByteArray, offset: Int, length: Int) {
@@ -380,6 +393,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     private suspend fun readBooleanSlow(): Boolean {
         waitingForRead = 1
         atLeastNBytesAvailableForRead.await()
+        checkClosed(1)
         return readBoolean()
     }
 
@@ -394,14 +408,17 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     private suspend fun awaitSuspend(atLeast: Int): Boolean {
         waitingForRead = atLeast
         atLeastNBytesAvailableForRead.await()
+        closedCause?.let { throw it }
         return !isClosedForRead
     }
 
     override fun discard(n: Int): Int {
+        closedCause?.let { throw it }
         return readable.discard(n)
     }
 
     override fun request(atLeast: Int): BufferView? {
+        closedCause?.let { throw it }
         @Suppress("DEPRECATION_ERROR")
         return readable.`$prepareRead$`(atLeast)
     }
@@ -466,6 +483,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
             atLeastNBytesAvailableForRead.await()
 
             if (readable.hasBytes(n)) block()
+            checkClosed(n)
         } while (true)
     }
 
