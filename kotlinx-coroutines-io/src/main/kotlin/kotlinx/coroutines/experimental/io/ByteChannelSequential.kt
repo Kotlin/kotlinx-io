@@ -470,6 +470,8 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         if (cause != null) {
             readable.release()
             writable.release()
+        } else {
+            flush()
         }
         atLeastNBytesAvailableForRead.signal()
         atLeastNBytesAvailableForWrite.signal()
