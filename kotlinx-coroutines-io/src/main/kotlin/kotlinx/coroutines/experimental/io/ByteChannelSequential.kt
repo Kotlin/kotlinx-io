@@ -44,6 +44,7 @@ suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, lim
 /**
  * Sequential (non-concurrent) byte channel implementation
  */
+@Suppress("OverridingDeprecatedMember")
 abstract class ByteChannelSequentialBase(initial: BufferView, override val autoFlush: Boolean) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
     protected var closed = false
     protected val writable = BytePacketBuilder(0)

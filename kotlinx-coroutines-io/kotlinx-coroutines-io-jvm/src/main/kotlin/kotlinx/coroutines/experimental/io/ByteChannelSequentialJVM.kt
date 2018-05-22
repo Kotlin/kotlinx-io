@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.channels.*
 import kotlinx.io.core.*
 import java.nio.ByteBuffer
 
+@Suppress("EXPERIMENTAL_FEATURE_WARNING")
 class ByteChannelSequentialJVM(initial: BufferView, autoFlush: Boolean)
     : ByteChannelSequentialBase(initial, autoFlush) {
 
@@ -71,7 +72,7 @@ class ByteChannelSequentialJVM(initial: BufferView, autoFlush: Boolean)
 
     override suspend fun readFully(dst: ByteBuffer): Int {
         val rc = tryReadAvailable(dst)
-        if (rc == -1) throw EOFException("Channel clolsed")
+        if (rc == -1) throw EOFException("Channel closed")
         if (!dst.hasRemaining()) return rc
 
         return readFullySuspend(dst, rc)
