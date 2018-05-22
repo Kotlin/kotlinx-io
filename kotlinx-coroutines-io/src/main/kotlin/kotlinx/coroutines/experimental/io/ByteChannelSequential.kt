@@ -21,7 +21,7 @@ suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, lim
         if (!await(1)) break
         val transferred = transferTo(dst, limit)
 
-        if (transferred == 0L) {
+        val copied = if (transferred == 0L) {
             val lastPiece = BufferView.Pool.borrow()
             lastPiece.resetForWrite(remainingLimit.toInt())
             val rc = readAvailable(lastPiece)
@@ -32,10 +32,12 @@ suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, lim
 
             dst.writeFully(lastPiece)
             lastPiece.release(BufferView.Pool)
-            remainingLimit -= rc
+            rc.toLong()
         } else {
-            remainingLimit -= transferred
+            transferred
         }
+
+        remainingLimit -= copied
     }
 
     return limit - remainingLimit
@@ -80,6 +82,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
 
     override val isClosedForRead: Boolean
         get() = closed && readable.isEmpty
+
     override val isClosedForWrite: Boolean
         get() = closed
 
@@ -161,9 +164,8 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     }
 
     override suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int {
-        val srcRemaining = length
-        if (srcRemaining == 0) return 0
-        val size = minOf(srcRemaining, availableForWrite)
+        if (length == 0) return 0
+        val size = minOf(length, availableForWrite)
 
         return if (size == 0) writeAvailableSuspend(src, offset, length)
         else {
@@ -339,12 +341,15 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     }
 
     override suspend fun readAvailable(dst: BufferView): Int {
-        return if (readable.canRead()) {
-            val size = minOf(dst.writeRemaining.toLong(), readable.remaining).toInt()
-            readable.readFully(dst, size)
-            size
-        } else if (closed) readAvailableClosed()
-        else readAvailableSuspend(dst)
+        return when {
+            readable.canRead() -> {
+                val size = minOf(dst.writeRemaining.toLong(), readable.remaining).toInt()
+                readable.readFully(dst, size)
+                size
+            }
+            closed -> readAvailableClosed()
+            else -> readAvailableSuspend(dst)
+        }
     }
 
     private suspend fun readAvailableSuspend(dst: BufferView): Int {
@@ -354,12 +359,15 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     }
 
     override suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
-        return if (readable.canRead()) {
-            val size = minOf(length.toLong(), readable.remaining).toInt()
-            readable.readFully(dst, 0, size)
-            size
-        } else if (closed) readAvailableClosed()
-        else readAvailableSuspend(dst, offset, length)
+        return when {
+            readable.canRead() -> {
+                val size = minOf(length.toLong(), readable.remaining).toInt()
+                readable.readFully(dst, 0, size)
+                size
+            }
+            closed -> readAvailableClosed()
+            else -> readAvailableSuspend(dst, offset, length)
+        }
     }
 
     private suspend fun readAvailableSuspend(dst: ByteArray, offset: Int, length: Int): Int {
@@ -387,8 +395,8 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     }
 
     override suspend fun readBoolean(): Boolean {
-        if (readable.canRead()) return readable.readByte() == 1.toByte()
-        else return readBooleanSlow()
+        return if (readable.canRead()) readable.readByte() == 1.toByte()
+        else readBooleanSlow()
     }
 
     private suspend fun readBooleanSlow(): Boolean {
@@ -509,7 +517,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return writeAvailable(src, offset, length)
     }
 
-    protected final suspend fun awaitFreeSpace() {
+    protected suspend fun awaitFreeSpace() {
         if (closed) {
             writable.release()
             throw closedCause ?: ClosedWriteChannelException("Channel is already closed")
