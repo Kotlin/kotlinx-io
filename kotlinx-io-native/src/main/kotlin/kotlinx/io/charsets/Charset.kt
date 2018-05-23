@@ -88,7 +88,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
                     outbytesleft.value = dstRemaining
 
                     if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
-                        throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
+                        checkIconvResult(posix_errno())
                     }
 
                     charsConsumed = (length * 2 - inbytesleft.value).toInt() / 2
@@ -139,10 +139,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                             outbytesleft.value = dstRemaining
 
                             if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
-                                val errno = posix_errno()
-                                if (errno != EINVAL && errno != E2BIG) {
-                                    throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
-                                }
+                                checkIconvResult(posix_errno())
                             }
 
                             read = (length - inbytesleft.value).toInt()
@@ -170,6 +167,14 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     } finally {
         iconv_close(cd)
     }
+}
+
+private fun checkIconvResult(errno: Int) {
+    if (errno == EILSEQ) throw MalformedInputException("Malformed or unmappable bytes at input")
+    if (errno == EINVAL) return // too few input bytes
+    if (errno == E2BIG) return // too few output buffer bytes
+
+    throw IllegalStateException("Failed to call 'iconv' with error code ${errno}")
 }
 
 internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean = true
@@ -219,10 +224,7 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
                         outbytesleft.value = dstRemaining
 
                         if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
-                            val errno = posix_errno()
-                            if (errno != EINVAL && errno != E2BIG) {
-                                throw IllegalStateException("Failed to call 'iconv' with error code ${posix_errno()}")
-                            }
+                            checkIconvResult(posix_errno())
                         }
 
                         read = (length - inbytesleft.value).toInt()

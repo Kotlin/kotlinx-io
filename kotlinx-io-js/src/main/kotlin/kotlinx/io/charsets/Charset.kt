@@ -76,7 +76,7 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     }
 
     if (copied < max) {
-        val s = decoder.decode()
+        val s = decodeWrap { decoder.decode() }
         if (s.length > max - copied) {
             throw UnsupportedOperationException("Partial trailing characters are not supported")
         }

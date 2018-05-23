@@ -984,7 +984,7 @@ actual class BufferView internal constructor(
             }
 
             if (subDecoded < max) {
-                subDecoded += subDecoder.decode().length
+                subDecoded += decodeWrap { subDecoder.decode().length }
 
                 if (subDecoded >= max) {
                     readPosition = writePosition

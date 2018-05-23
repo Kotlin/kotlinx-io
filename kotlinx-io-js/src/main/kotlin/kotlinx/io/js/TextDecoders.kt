@@ -51,18 +51,29 @@ internal fun TextDecoderFatal(encoding: String, fatal: Boolean = true): TextDeco
 }
 
 internal inline fun TextDecoder.decodeStream(buffer: ArrayBufferView, stream: Boolean): String {
-    return if (stream) {
-        decode(buffer, STREAM_TRUE)
-    } else {
-        decode(buffer)
+    decodeWrap {
+        return if (stream) {
+            decode(buffer, STREAM_TRUE)
+        } else {
+            decode(buffer)
+        }
     }
 }
 
-
 internal inline fun TextDecoder.decodeStream(buffer: ArrayBuffer, stream: Boolean): String {
-    return if (stream) {
-        decode(buffer, STREAM_TRUE)
-    } else {
-        decode(buffer)
+    decodeWrap {
+        return if (stream) {
+            decode(buffer, STREAM_TRUE)
+        } else {
+            decode(buffer)
+        }
+    }
+}
+
+internal inline fun <R> decodeWrap(block: () -> R): R {
+    try {
+        return block()
+    } catch (t: Throwable) {
+        throw MalformedInputException("Failed to decode bytes: ${t.message ?: "no cause provided"}")
     }
 }

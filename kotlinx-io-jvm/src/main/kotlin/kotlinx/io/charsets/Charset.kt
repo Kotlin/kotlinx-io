@@ -3,6 +3,7 @@ package kotlinx.io.charsets
 import kotlinx.io.core.*
 import kotlinx.io.core.internal.*
 import java.nio.*
+import java.nio.charset.*
 
 private const val DECODE_CHAR_BUFFER_SIZE = 8192
 
@@ -21,7 +22,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 
     dst.writeDirect(0) { bb ->
         val result = encode(cb, bb, false)
-        if (result.isMalformed || result.isUnmappable) result.throwException()
+        if (result.isMalformed || result.isUnmappable) result.throwExceptionWrapped()
     }
 
     return before - cb.remaining()
@@ -68,7 +69,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                     dst.writeWhileSize { view ->
                         view.writeDirect(writeSize) { to ->
                             val cr = encode(cb, to, false)
-                            if (cr.isUnmappable || cr.isMalformed) cr.throwException()
+                            if (cr.isUnmappable || cr.isMalformed) cr.throwExceptionWrapped()
                             if (cr.isOverflow && to.hasRemaining()) writeSize++
                             else writeSize = 1
                         }
@@ -89,7 +90,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
             dst.writeWhileSize { chunk ->
                 chunk.writeDirect(completeSize) { to ->
                     val cr = encode(cb, to, true)
-                    if (cr.isMalformed || cr.isUnmappable) cr.throwException()
+                    if (cr.isMalformed || cr.isUnmappable) cr.throwExceptionWrapped()
                     if (cr.isOverflow) completeSize++
                     else completeSize = 0
                 }
@@ -107,7 +108,7 @@ internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean {
 
     dst.writeDirect(0) { bb ->
         val result = encode(EmptyCharBuffer, bb, true)
-        if (result.isMalformed || result.isUnmappable) result.throwException()
+        if (result.isMalformed || result.isUnmappable) result.throwExceptionWrapped()
         if (result.isUnderflow) {
             completed = true
         }
@@ -142,7 +143,7 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
             copied += cb.remaining()
             dst.append(cb)
 
-            if (rc.isMalformed || rc.isUnmappable) rc.throwException()
+            if (rc.isMalformed || rc.isUnmappable) rc.throwExceptionWrapped()
             if (rc.isUnderflow && bb.hasRemaining()) {
                 readSize++
             } else {
@@ -164,12 +165,20 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
         copied += cb.remaining()
         dst.append(cb)
 
-        if (cr.isUnmappable || cr.isMalformed) cr.throwException()
+        if (cr.isUnmappable || cr.isMalformed) cr.throwExceptionWrapped()
         if (cr.isOverflow) continue
         break
     }
 
     return copied
+}
+
+private fun CoderResult.throwExceptionWrapped() {
+    try {
+        throwException()
+    } catch (original: java.nio.charset.MalformedInputException) {
+        throw MalformedInputException(original.message ?: "Failed to decode bytes")
+    }
 }
 
 // ----------------------------------

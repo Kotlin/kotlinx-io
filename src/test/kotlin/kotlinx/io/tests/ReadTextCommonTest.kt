@@ -198,6 +198,28 @@ class ReadTextCommonTest {
         assertTrue { packet.isEmpty }
     }
 
+    @Test
+    fun testReadTextChainWithDecoderBadChar() {
+        val segment1 = pool.borrow()
+        val segment2 = pool.borrow()
+        segment1.next = segment2
+        segment1.reserveEndGap(8)
+
+        segment1.writeByte(0xc0.toByte()) // overlong illegal utf8 sequence
+        segment2.writeByte(0x81.toByte())
+
+        val packet = ByteReadPacket(segment1, pool)
+
+        try {
+            packet.readText(decoder = Charsets.UTF_8.newDecoder())
+            fail("Decode illegal characters should fail")
+        } catch (expected: MalformedInputException) {
+            assertEquals(2, packet.remaining)
+        } finally {
+            packet.release()
+        }
+    }
+
     private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(startGap, pool)
         try {
