@@ -5,10 +5,10 @@
 
 kotlinx-io is a multiplatform library suitable for I/O primitives building and manipulations
 
-![Experimental](https://img.shields.io/badge/kotlinx-experimental-orange.svg?style=flat) 
+![Experimental](https://img.shields.io/badge/kotlinx-experimental-orange.svg?style=flat)
 
 Please note that this library is experimental. Any API is a subject to change.
- 
+
 Best with [kotlinx.coroutines-io](https://github.com/Kotlin/kotlinx.coroutines)
 
 # Setup

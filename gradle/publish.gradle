@@ -1,0 +1,10 @@
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+publishing {
+    repositories {
+        maven {
+            url  = 'https://dl.bintray.com/kotlin/kotlinx'
+        }
+    }
+}

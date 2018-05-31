@@ -1,12 +1,12 @@
 buildscript {
     repositories {
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
-            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
-            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
         }
         if (kotlin_version.contains("dev")) {
-            maven {     url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }
 
         mavenLocal()
@@ -18,58 +18,68 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.31"
-        classpath ("org.jetbrains.kotlin:kotlin-native-gradle-plugin:$kotlin_native_version") {
+        classpath("org.jetbrains.kotlin:kotlin-native-gradle-plugin:$kotlin_native_version") {
             exclude group: 'org.jetbrains.kotlin', module: 'kotlin-gradle-plugin'
         }
         classpath group: 'net.rubygrapefruit', name: 'native-platform', version: '0.10'
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintray_plugin_version"
+        classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicFU_version"
     }
 }
 
 plugins {
-    id "com.jfrog.bintray" version "1.8.0"
     id 'net.researchgate.release' version '2.6.0'
 }
 
-apply plugin: 'kotlin-platform-common'
+
+static def platformOf(project) {
+    if (project.name.endsWith("-common")) return "common"
+    if (project.name.endsWith("-js")) return "js"
+    if (project.name.endsWith("-native")) return "native"
+    if (project.name.endsWith("-jvm")) return "jvm"
+    // todo: fix
+    if (project.name.endsWith("benchmarks")) return "jvm"
+    return "common"
+}
 
 allprojects {
+    def platform = platformOf(project)
+    if (platform == 'native') {
+        apply plugin: "konan"
+    } else {
+        apply plugin: "kotlin-platform-$platform"
+    }
+
+    kotlin.experimental.coroutines "enable"
+
     if (project.hasProperty('releaseVersion')) {
         project.version = project.releaseVersion
     }
 
-    apply plugin: 'com.jfrog.bintray'
     apply plugin: 'maven'
-
-    if (project.hasProperty("deploy")) {
-        apply plugin: 'maven-publish'
-        apply from: rootProject.file('bintray.gradle')
-    }
-
-    apply from: rootProject.file('pom.gradle')
 
     repositories {
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
-            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
-            maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
         }
         if (kotlin_version.contains("dev")) {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }
+
         mavenCentral()
-        maven {     url 'https://kotlin.bintray.com/kotlinx' }
+        maven { url 'https://kotlin.bintray.com/kotlinx' }
         mavenLocal()
     }
 
-    afterEvaluate {
-        task sourceJar(type: Jar, dependsOn: classes) {
-            classifier 'sources'
-            from sourceSets.main.kotlin
-            duplicatesStrategy DuplicatesStrategy.EXCLUDE
-            def platformSrc = sourceSets.main.allSource
-            def commonSrc = project(':').sourceSets.main.allSource
-            from (platformSrc + commonSrc)
-        }
+    task sourceJar(type: Jar, dependsOn: classes) {
+        classifier 'sources'
+        from sourceSets.main.kotlin
+        duplicatesStrategy DuplicatesStrategy.EXCLUDE
+        def platformSrc = sourceSets.main.allSource
+        def commonSrc = rootProject.sourceSets.main.allSource
+        from(platformSrc + commonSrc)
     }
 
     task emptyJar(type: Jar) {
@@ -78,42 +88,44 @@ allprojects {
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
 
-    kotlin {
-        experimental {
-            coroutines "enable"
-        }
-    }
+    kotlin.experimental.coroutines "enable"
+}
+configure(allprojects) {
+    def platform = platformOf(project)
+    apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
+}
 
-    if (project.hasProperty("deploy")) {
+def skipPublish = ["benchmarks"]
+configure(allprojects.findAll { !skipPublish.contains(it.name) }) {
+    apply from: rootProject.file('pom.gradle')
+
+    apply plugin: 'com.jfrog.bintray'
+    if (!project.name.contains("native")) {
+        apply plugin: 'maven-publish'
+        apply from: rootProject.file('gradle/bintray.gradle')
+
         publishing {
             publications {
                 mavenProject(MavenPublication) {
-                    if (components.findByName('java')) {
-                        from components.java
-                    }
+                    from components.java
+
                     groupId project.group
                     artifactId project.name
                     version project.version
 
-                    artifact sourceJar {
-                        classifier 'sources'
-                    }
+                    artifact sourceJar
 
                     artifact emptyJar {
                         classifier 'javadoc'
                     }
-
-                    //if (project.name == 'kotlinx-io-native') {
-                    //    artifact (new File(project.buildDir, "konan/libs/linux_x64/native.klib")) {
-                    //        classifier 'linux_x64'
-                    //    }
-                    //}
 
                     withPom(pom)
                 }
             }
         }
     }
+
+    afterReleaseBuild.dependsOn bintrayUpload
 }
 
 dependencies {
@@ -123,5 +135,4 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
 }
 
-afterReleaseBuild.dependsOn bintrayUpload
 

@@ -10,9 +10,4 @@ dependencies {
     compile project(":")
 }
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
-}
-
+kotlin.experimental.coroutines "enable"

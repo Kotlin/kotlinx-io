@@ -1,3 +1,4 @@
+
 bintray {
     user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
     key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
@@ -8,7 +9,7 @@ bintray {
         repo = 'kotlinx'
         name = 'kotlinx.io'
         licenses = ['Apache-2.0']
-        publications = ['mavenProject', 'kotlinx_io_native_linux_x64']
+        publications = ['mavenProject']
 
         version {
             name = project.version
@@ -16,4 +17,8 @@ bintray {
             vcsTag = project.version
         }
     }
+}
+
+bintrayUpload.doFirst{
+    publications = project.publishing.publications
 }

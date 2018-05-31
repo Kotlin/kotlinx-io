@@ -2,7 +2,6 @@ plugins {
     id 'me.champeau.gradle.jmh' version '0.4.5'
 }
 
-apply plugin: 'kotlin-platform-jvm'
 apply plugin: 'kotlin-allopen'
 
 

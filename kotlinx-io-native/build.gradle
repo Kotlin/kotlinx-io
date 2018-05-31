@@ -1,5 +1,3 @@
-apply plugin: 'konan'
-
 konanArtifacts {
     library('kotlinx_io_native') {
         enableMultiplatform true
@@ -19,7 +17,14 @@ konanArtifacts {
 }
 
 dependencies {
-    expectedBy project(':')
+    expectedBy rootProject
 }
+
+
+afterEvaluate {
+    apply from: rootProject.file('gradle/publish.gradle')
+}
+
+apply from: rootProject.file('gradle/bintray.gradle')
 
 task test(dependsOn: run)
