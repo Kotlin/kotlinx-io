@@ -19,6 +19,9 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
      */
     val remaining: Long get() = headRemaining.toLong() + tailRemaining
 
+    @Deprecated("For compatibility purpose", level = DeprecationLevel.HIDDEN)
+    final fun getRemaining(): Int = remaining.coerceAtMostMaxInt()
+
     /**
      * @return `true` if there is at least one byte to read
      */
@@ -32,7 +35,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
     @PublishedApi
     internal var headRemaining = head.readRemaining
 
-    private var tailRemaining = remaining - headRemaining //head.next?.remainingAll() ?: 0
+    private var tailRemaining: Long = remaining - headRemaining //head.next?.remainingAll() ?: 0
 
     /**
      * `true` if no bytes available for read
