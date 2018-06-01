@@ -111,3 +111,19 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
     return ByteReadPacket(head, pool)
 }
 
+/**
+ * Does the same as [ReadableByteChannel.read] but to a [BufferView] instance
+ */
+fun ReadableByteChannel.read(buffer: BufferView): Int {
+    if (buffer.writeRemaining == 0) return 0
+    val rc = read(buffer.writeBuffer)
+    buffer.afterWrite()
+    return rc
+}
+
+/**
+ * Does the same as [WritableByteChannel.write] but from a [BufferView] instance
+ */
+fun WritableByteChannel.write(buffer: BufferView): Int {
+    return write(buffer.readBuffer)
+}
