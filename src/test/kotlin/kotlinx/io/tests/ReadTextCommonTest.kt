@@ -155,8 +155,49 @@ class ReadTextCommonTest {
         segment2.writeByte(0x86.toByte())
 
         val packet = ByteReadPacket(segment1, pool)
+        assertEquals(2, packet.remaining)
 
         assertEquals("\u0186", packet.readText())
+        assertTrue { packet.isEmpty }
+    }
+
+    @Test
+    fun testReadTextChain2() {
+        val segment1 = pool.borrow()
+        val segment2 = pool.borrow()
+        segment1.next = segment2
+        segment1.reserveEndGap(8)
+
+        segment1.writeByte(0xe2.toByte())
+        segment2.writeByte(0x82.toByte())
+        segment2.writeByte(0xac.toByte())
+
+        val packet = ByteReadPacket(segment1, pool)
+        assertEquals(3, packet.remaining)
+
+        assertEquals("\u20ac", packet.readText())
+        assertTrue { packet.isEmpty }
+    }
+
+    @Test
+    fun testReadTextChain3() {
+        val segment1 = pool.borrow()
+        val segment2 = pool.borrow()
+        segment1.next = segment2
+        segment1.reserveEndGap(8)
+
+        segment1.writeByte(0xc6.toByte())
+        segment1.writeByte(0x86.toByte())
+
+        segment1.writeByte(0xe2.toByte())
+        segment2.writeByte(0x82.toByte())
+        segment2.writeByte(0xac.toByte())
+
+        val packet = ByteReadPacket(segment1, pool)
+
+        assertEquals(5, packet.remaining)
+
+        assertEquals("\u0186\u20ac", packet.readText())
         assertTrue { packet.isEmpty }
     }
 

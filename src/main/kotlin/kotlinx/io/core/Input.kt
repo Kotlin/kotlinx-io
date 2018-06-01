@@ -182,6 +182,7 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (BufferView) -> Int)
         if (after == 0) {
             current = @Suppress("DEPRECATION_ERROR") `$ensureNext$`(current) ?: break
         } else if (after < size) {
+            @Suppress("DEPRECATION_ERROR") `$updateRemaining$`(after)
             current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(size) ?: break
         } else {
             @Suppress("DEPRECATION_ERROR") `$updateRemaining$`(after)
