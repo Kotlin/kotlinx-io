@@ -6,7 +6,7 @@ bintray {
     pkg {
         userOrg = 'kotlin'
         repo = 'kotlinx'
-        name = 'kotlinx-io'
+        name = 'kotlinx.io'
         licenses = ['Apache-2.0']
         publications = ['mavenProject', 'kotlinx_io_native_linux_x64']
 
