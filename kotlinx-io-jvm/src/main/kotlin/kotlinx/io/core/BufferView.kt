@@ -223,11 +223,10 @@ actual class BufferView private constructor(
             writeBuffer.put(src.readBuffer)
         } else {
             val bb = src.readBuffer
-            bb.mark()
+            val limit = bb.limit()
             bb.limit(bb.position() + length)
             writeBuffer.put(bb)
-            bb.reset()
-            bb.position(bb.position() + length)
+            bb.limit(limit)
         }
         afterWrite()
     }
