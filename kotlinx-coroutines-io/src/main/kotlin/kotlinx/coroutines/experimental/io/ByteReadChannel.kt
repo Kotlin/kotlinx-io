@@ -180,7 +180,18 @@ suspend fun ByteReadChannel.readUTF8Line(): String? {
 }
 
 fun ByteReadChannel.cancel(): Boolean = cancel(null)
-fun ByteReadPacket.discard(): Long = discard(Long.MAX_VALUE)
+
+/**
+ * Discards all bytes in the channel and suspends until end of stream.
+ */
+suspend fun ByteReadChannel.discard(): Long = discard(Long.MAX_VALUE)
+
+/**
+ * Discards exactly [n] bytes or fails if not enough bytes in the channel
+ */
+suspend inline fun ByteReadChannel.discardExact(n: Long) {
+    if (discard(n) != n) throw EOFException("Unable to discard $n bytes")
+}
 
 suspend fun ByteReadChannel.readAvailable(dst: ByteArray) = readAvailable(dst, 0, dst.size)
 suspend fun ByteReadChannel.readFully(dst: ByteArray) = readFully(dst, 0, dst.size)
