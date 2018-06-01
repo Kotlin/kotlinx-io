@@ -86,6 +86,7 @@ class BytePacketReadTest {
         segment2.writeByte(0x86.toByte())
 
         val packet = ByteReadPacket(segment1, pool)
+        assertEquals(2, packet.remaining)
 
         assertEquals("\u0186", packet.readText(decoder = Charsets.UTF_8.newDecoder()))
         assertTrue { packet.isEmpty }
