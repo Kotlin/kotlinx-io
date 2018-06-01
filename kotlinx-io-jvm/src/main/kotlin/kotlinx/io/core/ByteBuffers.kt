@@ -34,6 +34,8 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
         readAsMuchAsPossible(bb, copied + available)
     } else {
         current.readFully(bb, destinationCapacity)
+        @Suppress("DEPRECATION_ERROR")
+        `$updateRemaining$`(current.readRemaining)
         copied + destinationCapacity
     }
 }
