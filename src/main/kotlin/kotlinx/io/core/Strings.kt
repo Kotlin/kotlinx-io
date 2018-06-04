@@ -14,6 +14,15 @@ fun ByteReadPacket.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_VALUE):
 }
 
 /**
+ * Read a string line considering optionally specified [estimate] but up to optional [limit] characters length
+ * (does fail once limit exceeded) or return `null` if the packet is empty
+ */
+fun Input.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_VALUE): String? {
+    val sb = StringBuilder(estimate)
+    return if (readUTF8LineTo(sb, limit)) sb.toString() else null
+}
+
+/**
  * Read UTF-8 line and append all line characters to [out] except line endings. Does support CR, LF and CR+LF
  * @return `true` if some characters were appended or line ending reached (empty line) or `false` if packet
  * if empty
