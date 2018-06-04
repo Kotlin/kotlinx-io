@@ -2,10 +2,11 @@ package kotlinx.coroutines.experimental.io
 
 import kotlin.test.*
 
-abstract class ByteChannelTestBase {
+abstract class ByteChannelTestBase(autoFlush: Boolean = false) {
     protected val coroutines = DummyCoroutines()
-    protected val ch: ByteChannel by lazy { ByteChannel(false) }
+    protected val ch: ByteChannel by lazy { ByteChannel(autoFlush) }
     protected val Size = 4096 - 8
+    private var current = 0
 
     @AfterTest
     fun finish() {
@@ -23,5 +24,21 @@ abstract class ByteChannelTestBase {
 
     protected fun launch(block: suspend () -> Unit) {
         coroutines.schedule(block)
+    }
+
+    protected suspend fun yield() {
+        return coroutines.yield()
+    }
+
+    protected fun expect(n: Int) {
+        val next = current + 1
+        assertNotEquals(0, next, "Already finished")
+        assertEquals(n, next, "Invalid test state")
+        current = next
+    }
+
+    protected fun finish(n: Int) {
+        expect(n)
+        current = -1
     }
 }

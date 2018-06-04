@@ -34,12 +34,22 @@ class DummyCoroutines {
         schedule(block.createCoroutine(completion))
     }
 
+    suspend fun yield() {
+        return suspendCoroutine { c ->
+            ensureNotFailed()
+            queue += Task.Resume(c, Unit)
+        }
+    }
+
     fun run() {
         if (liveCoroutines == 0) throw IllegalStateException("No coroutines has been scheduled")
         ensureNotFailed()
 
         process()
-        if (liveCoroutines > 0) throw IllegalStateException("There are suspended coroutines remaining")
+        failure?.let { throw it }
+        if (liveCoroutines > 0) {
+            throw IllegalStateException("There are suspended coroutines remaining: $liveCoroutines")
+        }
     }
 
     private fun process() {
