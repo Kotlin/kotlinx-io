@@ -427,6 +427,7 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
                 ch.readByte()
                 fail()
             } catch (expected: EOFException) {
+            } catch (expected: NoSuchElementException) {
             }
         }
     }
@@ -458,6 +459,7 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
                 ch.readFully(dst)
                 fail("")
             } catch (expected: EOFException) {
+            } catch (expected: NoSuchElementException) {
             }
         }
     }
