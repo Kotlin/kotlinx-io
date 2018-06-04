@@ -97,7 +97,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
 
         this.head = next ?: empty
         this.headRemaining = next?.readRemaining ?: 0
-        this.tailRemaining -= head.readRemaining
+        this.tailRemaining -= next?.readRemaining ?: 0
 
         return head
     }
