@@ -2083,7 +2083,7 @@ internal class ByteBufferChannel(
 
                     val rc = readAsMuchAsPossible(buffer)
                     remaining -= rc
-                    remaining > 0L
+                    remaining > 0L && !isClosedForRead
                 }
             }
         }
