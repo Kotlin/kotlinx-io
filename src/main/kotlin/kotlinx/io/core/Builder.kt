@@ -214,9 +214,11 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
             }
             tail = buffer
             head = buffer
+            _size = buffer.remainingAll().toInt()
         } else {
             tail.next = buffer
             tail = buffer
+            _size = -1
         }
     }
 }

@@ -95,9 +95,12 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         val empty = BufferView.Empty
         if (head === empty) return null
 
+        val nextRemaining = next?.readRemaining ?: 0
+
         this.head = next ?: empty
-        this.headRemaining = next?.readRemaining ?: 0
-        this.tailRemaining -= next?.readRemaining ?: 0
+        this.headRemaining = nextRemaining
+        this.tailRemaining -= nextRemaining
+        head.next = null
 
         return head
     }
