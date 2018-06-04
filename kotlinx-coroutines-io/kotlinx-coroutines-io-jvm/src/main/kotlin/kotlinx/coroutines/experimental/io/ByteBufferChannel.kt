@@ -2024,7 +2024,7 @@ internal class ByteBufferChannel(
 
         lookAhead {
             eol = readLineLoop(out, ca, cb,
-                await = { false },
+                await = { expected -> availableForRead >= expected },
                 addConsumed = { consumed += it },
                 decode = { it.decodeASCIILine(ca, 0, minOf(ca.size, limit - consumed)) })
         }
@@ -2063,14 +2063,15 @@ internal class ByteBufferChannel(
             val rcRequired = (rc and 0xffffffffL).toInt()
 
             if (rcRequired == -1) { // EOL
-                return true
+                required = 0
             } else if (rcRequired == 0 && buffer.hasRemaining()) {
                 // no EOL, no demands but untouched bytes
                 // for ascii decoder that could mean that there was non-ASCII character encountered
                 break
+            } else {
+                required = maxOf(1, rcRequired)
             }
 
-            required = maxOf(1, rcRequired)
             addConsumed(decoded)
 
             if (out is StringBuilder) {
@@ -2078,6 +2079,8 @@ internal class ByteBufferChannel(
             } else {
                 out.append(cb, 0, decoded)
             }
+
+            if (required == 0) return true
         }
 
         return false
