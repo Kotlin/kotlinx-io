@@ -2139,7 +2139,7 @@ internal class ByteBufferChannel(
 
                 val rc = readAsMuchAsPossible(buffer)
                 remaining -= rc
-                remaining > 0L && awaitAtLeast(1)
+                remaining > 0L && readSuspend(1)
             }
         }
     }
