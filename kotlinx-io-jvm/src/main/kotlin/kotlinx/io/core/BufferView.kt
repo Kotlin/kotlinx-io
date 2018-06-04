@@ -485,6 +485,7 @@ actual class BufferView private constructor(
         require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
 
         readFully(dst.writeBuffer, length)
+        dst.afterWrite()
     }
 
     actual final override fun readAvailable(dst: BufferView, length: Int): Int {
@@ -493,6 +494,7 @@ actual class BufferView private constructor(
         if (readRemaining == 0) return -1
 
         readFully(dst.writeBuffer, size)
+        dst.afterWrite()
         return size
     }
 
