@@ -48,6 +48,7 @@ expect interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
+    suspend fun readFully(dst: BufferView, n: Int)
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
@@ -108,13 +109,13 @@ expect interface ByteReadChannel {
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * event if there are no bytes available for read yet.
      */
-    fun read(consumer: ReadSession.() -> Unit)
+    fun readSession(consumer: ReadSession.() -> Unit)
 
     /**
      * Starts a suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * even if there are no bytes available for read yet. [consumer] lambda could suspend as much as needed.
      */
-    suspend fun readSuspendable(consumer: SuspendableReadSession.() -> Unit)
+    suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
 
     /**
      * Reads a line of UTF-8 characters to the specified [out] buffer up to [limit] characters.
@@ -170,6 +171,13 @@ suspend fun ByteReadChannel.readPacket(size: Int): ByteReadPacket = readPacket(s
  * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
  */
 suspend fun ByteReadChannel.readRemaining(limit: Long): ByteReadPacket = readRemaining(limit, 0)
+
+/**
+ * Reads all remaining bytes and makes a byte packet
+ */
+suspend fun ByteReadChannel.readRemaining(): ByteReadPacket = readRemaining(Long.MAX_VALUE, 0)
+
+suspend fun ByteReadChannel.readFully(dst: BufferView) = readFully(dst, dst.writeRemaining)
 
 suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable): Boolean {
     return readUTF8LineTo(out, Int.MAX_VALUE)

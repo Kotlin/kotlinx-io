@@ -52,6 +52,7 @@ actual interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
+    actual suspend fun readFully(dst: BufferView, n: Int)
 
     suspend fun readFully(dst: ArrayBuffer, offset: Int, length: Int)
 
@@ -114,13 +115,13 @@ actual interface ByteReadChannel {
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * event if there are no bytes available for read yet.
      */
-    actual fun read(consumer: ReadSession.() -> Unit)
+    actual fun readSession(consumer: ReadSession.() -> Unit)
 
     /**
      * Starts a suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * even if there are no bytes available for read yet. [consumer] lambda could suspend as much as needed.
      */
-    actual suspend fun readSuspendable(consumer: SuspendableReadSession.() -> Unit)
+    actual suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
 
     /**
      * Reads a line of UTF-8 characters to the specified [out] buffer up to [limit] characters.

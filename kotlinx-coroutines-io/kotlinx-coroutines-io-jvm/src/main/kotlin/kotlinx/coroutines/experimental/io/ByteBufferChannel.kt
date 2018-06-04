@@ -429,12 +429,12 @@ internal class ByteBufferChannel(
         return consumed
     }
 
-    private tailrec fun readAsMuchAsPossible(dst: BufferView, consumed0: Int = 0): Int {
+    private tailrec fun readAsMuchAsPossible(dst: BufferView, consumed0: Int = 0, max: Int = dst.writeRemaining): Int {
         var consumed = 0
 
         val rc = reading {
             val dstSize = dst.writeRemaining
-            val part = it.tryReadAtMost(minOf(remaining(), dstSize))
+            val part = it.tryReadAtMost(minOf(remaining(), dstSize, max))
             if (part > 0) {
                 consumed += part
 
@@ -451,7 +451,7 @@ internal class ByteBufferChannel(
         }
 
         return if (rc && dst.canWrite() && state.capacity.availableForRead > 0)
-            readAsMuchAsPossible(dst, consumed0 + consumed)
+            readAsMuchAsPossible(dst, consumed0 + consumed, max - consumed)
         else consumed + consumed0
     }
 
@@ -510,6 +510,21 @@ internal class ByteBufferChannel(
         }
 
         return copied
+    }
+
+    override suspend fun readFully(dst: BufferView, n: Int) {
+        val rc = readAsMuchAsPossible(dst, max = n)
+        if (rc == n) return
+        return readFullySuspend(dst, n - rc)
+    }
+
+    private suspend fun readFullySuspend(dst: BufferView, n: Int) {
+        var copied = 0
+
+        while (dst.canWrite() && copied < n) {
+            if (!readSuspend(1)) throw ClosedReceiveChannelException("Unexpected EOF: expected ${n - copied} more bytes")
+            copied += readAsMuchAsPossible(dst, max = n - copied)
+        }
     }
 
     private tailrec suspend fun readFullySuspend(dst: ByteArray, offset: Int, length: Int) {
@@ -1575,7 +1590,7 @@ internal class ByteBufferChannel(
         return continueWriting
     }
 
-    override fun read(consumer: ReadSession.() -> Unit) {
+    override fun readSession(consumer: ReadSession.() -> Unit) {
         lookAhead {
             consumer(object : ReadSession {
                 override val availableForRead: Int
@@ -1599,7 +1614,7 @@ internal class ByteBufferChannel(
         }
     }
 
-    override suspend fun readSuspendable(consumer: SuspendableReadSession.() -> Unit) {
+    override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         lookAheadSuspend {
             consumer(object : SuspendableReadSession {
                 override val availableForRead: Int

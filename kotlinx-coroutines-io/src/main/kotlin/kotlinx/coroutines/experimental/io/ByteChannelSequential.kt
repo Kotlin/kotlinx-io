@@ -342,6 +342,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
 
     override suspend fun readAvailable(dst: BufferView): Int {
         return when {
+            closedCause != null -> throw closedCause!!
             readable.canRead() -> {
                 val size = minOf(dst.writeRemaining.toLong(), readable.remaining).toInt()
                 readable.readFully(dst, size)
@@ -356,6 +357,24 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         waitingForSize = 1
         atLeastNBytesAvailableForRead.await()
         return readAvailable(dst)
+    }
+
+    override suspend fun readFully(dst: BufferView, n: Int) {
+        require(n <= dst.writeRemaining) { "Not enough space in the destination buffer to write $n bytes" }
+        require(n >= 0) { "n shouldn't be negative" }
+
+        return when {
+            closedCause != null -> throw closedCause!!
+            readable.remaining >= n -> readable.readFully(dst, n)
+            closed -> throw EOFException("Channel is closed and not enough bytes available: required $n but $availableForRead available")
+            else -> readFullySuspend(dst, n)
+        }
+    }
+
+    private suspend fun readFullySuspend(dst: BufferView, n: Int) {
+        waitingForSize = n
+        atLeastNBytesAvailableForRead.await()
+        return readFullySuspend(dst, n)
     }
 
     override suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
@@ -442,11 +461,11 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return discarded
     }
 
-    override fun read(consumer: ReadSession.() -> Unit) {
+    override fun readSession(consumer: ReadSession.() -> Unit) {
         consumer(this)
     }
 
-    override suspend fun readSuspendable(consumer: SuspendableReadSession.() -> Unit) {
+    override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         consumer(this)
     }
 
