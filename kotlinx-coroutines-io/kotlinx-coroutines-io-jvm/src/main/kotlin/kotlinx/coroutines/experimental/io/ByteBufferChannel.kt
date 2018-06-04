@@ -1608,7 +1608,7 @@ internal class ByteBufferChannel(
                 }
 
                 override fun request(atLeast: Int): BufferView? {
-                    return request(0, atLeast)?.let { BufferView(it) }
+                    return request(0, atLeast)?.let { BufferView(it).also { it.resetForRead() } }
                 }
             })
         }
@@ -1632,7 +1632,7 @@ internal class ByteBufferChannel(
                 }
 
                 override fun request(atLeast: Int): BufferView? {
-                    return request(0, atLeast)?.let { BufferView(it) }
+                    return request(0, atLeast)?.let { BufferView(it).also { it.resetForRead() } }
                 }
 
                 override suspend fun await(atLeast: Int): Boolean {
