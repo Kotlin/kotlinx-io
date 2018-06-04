@@ -504,11 +504,19 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     }
 
     override suspend fun discard(max: Long): Long {
-        var discarded = 0L
-        while (discarded <= max && !isClosedForRead) {
+        val discarded = readable.discard(max)
+
+        return if (discarded == max || isClosedForRead) return discarded
+        else discardSuspend(max, discarded)
+    }
+
+    private suspend fun discardSuspend(max: Long, discarded0: Long): Long {
+        var discarded = discarded0
+
+        do {
+            if (!await(1)) break
             discarded += readable.discard(max - discarded)
-            await(1)
-        }
+        } while (discarded < max && !isClosedForRead)
 
         return discarded
     }
