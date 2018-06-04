@@ -1616,11 +1616,25 @@ internal class ByteBufferChannel(
 
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         lookAheadSuspend {
+            var lastAvailable = 0
+            var lastView: BufferView = BufferView.Empty
+
+            fun completed(newView: BufferView) {
+                val delta = lastAvailable - lastView.readRemaining
+                if (delta > 0) {
+                    consumed(delta)
+                }
+                lastView = newView
+                lastAvailable = newView.readRemaining
+            }
+
             consumer(object : SuspendableReadSession {
                 override val availableForRead: Int
                     get() = this@ByteBufferChannel.availableForRead
 
                 override fun discard(n: Int): Int {
+                    completed(BufferView.Empty)
+
                     var result = 0
                     reading {
                         val size = availableForRead
@@ -1632,13 +1646,16 @@ internal class ByteBufferChannel(
                 }
 
                 override fun request(atLeast: Int): BufferView? {
-                    return request(0, atLeast)?.let { BufferView(it).also { it.resetForRead() } }
+                    return request(0, atLeast)?.let { BufferView(it).also { it.resetForRead(); completed(it) } }
                 }
 
                 override suspend fun await(atLeast: Int): Boolean {
+                    completed(BufferView.Empty)
                     return awaitAtLeast(atLeast)
                 }
             })
+
+            completed(BufferView.Empty)
         }
     }
 
@@ -1922,7 +1939,10 @@ internal class ByteBufferChannel(
             val rp = readPosition
 
             if (available < atLeast + skip) return null
-            if (s.idle || (s !is ReadWriteBufferState.Reading && s !is ReadWriteBufferState.ReadingWriting)) return null
+            if (s.idle || (s !is ReadWriteBufferState.Reading && s !is ReadWriteBufferState.ReadingWriting)) {
+                setupStateForRead() ?: return null
+                return request(skip, atLeast)
+            }
 
             val buffer = s.readBuffer
 
