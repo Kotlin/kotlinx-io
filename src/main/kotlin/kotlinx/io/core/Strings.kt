@@ -97,13 +97,9 @@ fun Input.readUTF8UntilDelimiter(delimiters: String, limit: Int = Int.MAX_VALUE)
  */
 fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     var decoded = 0
-    var size = 1
-
     var delimiter = false
 
     takeWhile { buffer ->
-        var skip = 0
-
         buffer.decodeASCII { ch ->
             if (ch in delimiters) {
                 delimiter = true
@@ -118,7 +114,7 @@ fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, limit: I
     }
 
     if (!delimiter) {
-        decoded += readUTF8UntilDelimiterToSlow(out, delimiters, limit, decoded)
+        decoded = readUTF8UntilDelimiterToSlow(out, delimiters, limit, decoded)
     }
 
     return decoded
@@ -129,12 +125,8 @@ private fun Input.readUTF8UntilDelimiterToSlow(out: Appendable, delimiters: Stri
     var size = 1
 
     takeWhileSize { buffer ->
-        var skip = 0
-        var delimiter = false
-
         size = buffer.decodeUTF8 { ch ->
             if (ch in delimiters) {
-                delimiter = true
                 false
             } else {
                 if (decoded == limit) {
