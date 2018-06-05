@@ -21,7 +21,7 @@ actual fun ByteReadChannel(content: ByteArray): ByteReadChannel {
     var start = 0
     while (true) {
         tail.reserveEndGap(8)
-        val size = minOf(content.size, - start, tail.writeRemaining)
+        val size = minOf(content.size - start, tail.writeRemaining)
         tail.writeFully(content, start, size)
         start += size
 
