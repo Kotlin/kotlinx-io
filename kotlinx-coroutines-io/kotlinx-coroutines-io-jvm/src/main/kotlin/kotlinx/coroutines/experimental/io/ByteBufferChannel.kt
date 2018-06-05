@@ -2032,7 +2032,7 @@ internal class ByteBufferChannel(
         if (eol) return true
         if (consumed == 0 && isClosedForRead) return false
 
-        return readUTF8LineToUtf8Suspend(out, limit - consumed, ca, cb)
+        return readUTF8LineToUtf8Suspend(out, limit - consumed, ca, cb, consumed)
     }
 
     private inline fun LookAheadSession.readLineLoop(
@@ -2086,17 +2086,36 @@ internal class ByteBufferChannel(
         return false
     }
 
-    private suspend fun readUTF8LineToUtf8Suspend(out: Appendable, limit: Int, ca: CharArray, cb: CharBuffer): Boolean {
+    private suspend fun readUTF8LineToUtf8Suspend(out: Appendable, limit: Int, ca: CharArray, cb: CharBuffer, consumed0: Int): Boolean {
         var consumed1 = 0
+        var result = true
 
         lookAheadSuspend {
-            readLineLoop(out, ca, cb,
+            val rc = readLineLoop(out, ca, cb,
                 await = { awaitAtLeast(it) },
                 addConsumed = { consumed1 += it },
                 decode = { it.decodeUTF8Line(ca, 0, minOf(ca.size, limit - consumed1))})
+
+            if (!rc && isClosedForWrite) {
+                val buffer = request(0, 1)
+                if (buffer != null) {
+                    if (buffer.get() == '\r'.toByte()) {
+                        consumed(1)
+
+                        if (buffer.hasRemaining()) {
+                            throw MalformedInputException("Illegal trailing bytes: ${buffer.remaining()}")
+                        }
+                    } else {
+                        buffer.position(buffer.position() - 1)
+                        throw MalformedInputException("Illegal trailing byte")
+                    }
+                } else if (consumed1 == 0 && consumed0 == 0) {
+                    result = false
+                }
+            }
         }
 
-        return true
+        return result
     }
 
     override suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: Int) = readUTF8LineToAscii(out, limit)

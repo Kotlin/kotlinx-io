@@ -168,7 +168,7 @@ private inline fun ByteBuffer.decodeASCII3_array(
     val srcEnd = srcPos + remaining()
 
     if (end <= out.size && srcEnd <= array.size) {
-        while (srcPos < srcEnd && pos < end) {
+        while (srcPos < srcEnd) {
             val b = array[srcPos]
             if (b < 0) break
 
@@ -177,6 +177,10 @@ private inline fun ByteBuffer.decodeASCII3_array(
                 position(srcPos - arrayOffset() - 1)
                 return decodeUtf8Result(pos - offset, -1)
             }
+            if (pos >= end) {
+                break
+            }
+
             out[pos] = ch
 
             pos++
@@ -208,14 +212,16 @@ private inline fun ByteBuffer.decodeASCII3_buffer(
                 pushBack = true
                 break
             }
-            if (pos >= end) {
-                pushBack = true
-                break
-            }
+
             val ch = b.toChar()
             if (!predicate(ch)) {
                 pushBack = true
                 predicateFailed = true
+                break
+            }
+
+            if (pos >= end) {
+                pushBack = true
                 break
             }
 

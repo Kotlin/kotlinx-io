@@ -2,17 +2,6 @@ package kotlinx.io.charsets
 
 import java.nio.*
 
-fun main(args: Array<String>) {
-    val bb = ByteBuffer.wrap("Проба пера\n".toByteArray())
-    val ca = CharArray(1000)
-    val line = bb.decodeUTF8Line(ca)
-    val chars = (line shr 32).toInt()
-
-    println(line.toString())
-    println(chars.toString())
-    println("Line: |${String(ca, 0, chars)}|")
-}
-
 fun decodeUtf8Result(numberOfChars: Int, requireBytes: Int): Long =
     numberOfChars.toLong() shl 32 or (requireBytes.toLong() and 0xffffffffL)
 
@@ -69,7 +58,6 @@ private fun ByteBuffer.decodeUTF8Line_array(out: CharArray, offset: Int, length:
         val decoded = (rc shr 32).toInt()
         // found EOL
         if (cr) {
-            position(position() - 1) // push back a character after CR
             return decodeUtf8Result(decoded - 1, -1) // don't return CR
         }
 
@@ -77,6 +65,11 @@ private fun ByteBuffer.decodeUTF8Line_array(out: CharArray, offset: Int, length:
         if (decoded > 0 && out[decoded - 1] == '\r') {
             return decodeUtf8Result(decoded - 1, -1) // don't return CR followed by LF
         }
+    } else if (required == 0 && cr) {
+        // got CR but the next character is unknown
+        val decoded = (rc shr 32).toInt()
+        position(position() - 1) // push back CR
+        return decodeUtf8Result(decoded - 1, 2) // 2 because we need CR + one more character
     }
 
     return rc
@@ -108,7 +101,6 @@ private fun ByteBuffer.decodeUTF8Line_buffer(out: CharArray, offset: Int, length
         val decoded = (rc shr 32).toInt()
         // found EOL
         if (cr) {
-            position(position() - 1) // push back a character after CR
             return decodeUtf8Result(decoded - 1, -1) // don't return CR
         }
 
@@ -116,6 +108,11 @@ private fun ByteBuffer.decodeUTF8Line_buffer(out: CharArray, offset: Int, length
         if (decoded > 0 && out[decoded - 1] == '\r') {
             return decodeUtf8Result(decoded - 1, -1) // don't return CR followed by LF
         }
+    } else if (required == 0 && cr) {
+        // got CR but the next character is unknown
+        val decoded = (rc shr 32).toInt()
+        position(position() - 1) // push back CR
+        return decodeUtf8Result(decoded - 1, 2) // 2 because we need CR + one more character
     }
 
     return rc
@@ -451,7 +448,7 @@ private inline fun ByteBuffer.decodeUTF8_buffer(
             vi and 0xe0 == 0xc0 -> {
                 // 2 bytes, always valid
 
-                if (hasRemaining()) {
+                if (!hasRemaining()) {
                     position(position() - 1)
                     return decodeUtf8Result(outPos - offset, 2)
                 }
