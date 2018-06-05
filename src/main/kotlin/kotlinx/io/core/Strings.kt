@@ -56,9 +56,7 @@ fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
                         return@decodeUTF8 false
                     }
 
-                    if (decoded == limit) {
-                        throw BufferLimitExceededException("Too many characters in line: limit $limit exceeded")
-                    }
+                    if (decoded == limit) bufferLimitExceeded(limit)
                     decoded++
                     out.append(ch)
                     true
@@ -76,6 +74,89 @@ fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
     if (size > 1) prematureEndOfStream(size)
 
     return decoded > 0 || !endOfInput
+}
+
+/**
+ * Reads UTF-8 characters until one of the specified [delimiters] found, [limit] exceeded or end of stream encountered
+ *
+ * @throws BufferLimitExceededException
+ * @returns a string of characters read before delimiter
+ */
+fun Input.readUTF8UntilDelimiter(delimiters: String, limit: Int = Int.MAX_VALUE): String {
+    return buildString {
+        readUTF8UntilDelimiterTo(this, delimiters, limit)
+    }
+}
+
+/**
+ * Reads UTF-8 characters to [out] buffer until one of the specified [delimiters] found, [limit] exceeded
+ * or end of stream encountered
+ *
+ * @throws BufferLimitExceededException
+ * @returns number of characters copied (possibly zero)
+ */
+fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
+    var decoded = 0
+    var size = 1
+
+    var delimiter = false
+
+    takeWhile { buffer ->
+        var skip = 0
+
+        buffer.decodeASCII { ch ->
+            if (ch in delimiters) {
+                delimiter = true
+                false
+            } else {
+                if (decoded == limit) bufferLimitExceeded(limit)
+                decoded++
+                out.append(ch)
+                true
+            }
+        }
+    }
+
+    if (!delimiter) {
+        decoded += readUTF8UntilDelimiterToSlow(out, delimiters, limit, decoded)
+    }
+
+    return decoded
+}
+
+private fun Input.readUTF8UntilDelimiterToSlow(out: Appendable, delimiters: String, limit: Int, decoded0: Int): Int {
+    var decoded = decoded0
+    var size = 1
+
+    takeWhileSize { buffer ->
+        var skip = 0
+        var delimiter = false
+
+        size = buffer.decodeUTF8 { ch ->
+            if (ch in delimiters) {
+                delimiter = true
+                false
+            } else {
+                if (decoded == limit) {
+                    bufferLimitExceeded(limit)
+                }
+                decoded++
+                out.append(ch)
+                true
+            }
+        }
+
+        size = if (size == -1) 0 else size.coerceAtLeast(1)
+        size
+    }
+
+    if (size > 1) prematureEndOfStream(size)
+
+    return decoded
+}
+
+private fun bufferLimitExceeded(limit: Int): Nothing {
+    throw BufferLimitExceededException("Too many characters before delimiter: limit $limit exceeded")
 }
 
 private fun prematureEndOfStream(size: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")

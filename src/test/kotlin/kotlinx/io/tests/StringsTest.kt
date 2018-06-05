@@ -116,6 +116,57 @@ open class StringsTest {
         assertTrue { byteArrayOf(0xd0.toByte(), 0xa2.toByte(), 0x41, 0xd0.toByte(), 0xb8.toByte()).contentEquals(Charsets.UTF_8.newEncoder().encode("\u0422A\u0438").readBytes()) }
     }
 
+    @Test
+    fun testReadUntilDelimiter() {
+        val p = buildPacket {
+            append("1,2|3")
+        }
+
+        val sb = StringBuilder()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, "|,.")
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("123", sb.toString())
+    }
+
+    @Test
+    fun testReadUntilDelimiterMultibyte() {
+        val p = buildPacket {
+            append("\u0422,\u0423|\u0424")
+        }
+
+        val sb = StringBuilder()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, "|,.")
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("\u0422\u0423\u0424", sb.toString())
+    }
+
+    @Test
+    fun testReadUntilDelimiterMultibyteDelimiter() {
+        val p = buildPacket {
+            append("1\u04222")
+        }
+
+        val sb = StringBuilder()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, "\u0422")
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("12", sb.toString())
+    }
+
     private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(startGap, pool)
         try {
