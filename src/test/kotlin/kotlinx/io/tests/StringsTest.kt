@@ -54,6 +54,15 @@ open class StringsTest {
     }
 
     @Test
+    fun testSingleBufferMultibyteReadText() {
+        val p = buildPacket {
+            append("ABC\u0422")
+        }
+
+        assertEquals("ABC\u0422", p.readText().toString())
+    }
+
+    @Test
     fun testMultiBufferReadText() {
         val size = 100000
         val ba = ByteArray(size) {
@@ -123,14 +132,37 @@ open class StringsTest {
         }
 
         val sb = StringBuilder()
+        val counts = mutableListOf<Int>()
 
         while (true) {
             val rc = p.readUTF8UntilDelimiterTo(sb, "|,.")
+            counts.add(rc)
             if (p.isEmpty) break
             p.discardExact(1)
         }
 
         assertEquals("123", sb.toString())
+        assertEquals(listOf(1, 1, 1), counts)
+    }
+
+    @Test
+    fun testReadUntilDelimiterDifferentLength() {
+        val p = buildPacket {
+            append("1,23|,4")
+        }
+
+        val sb = StringBuilder()
+        val counts = mutableListOf<Int>()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, "|,.")
+            counts.add(rc)
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("1234", sb.toString())
+        assertEquals(listOf(1, 2, 0, 1), counts)
     }
 
     @Test
@@ -140,14 +172,17 @@ open class StringsTest {
         }
 
         val sb = StringBuilder()
+        val counts = mutableListOf<Int>()
 
         while (true) {
             val rc = p.readUTF8UntilDelimiterTo(sb, "|,.")
+            counts.add(rc)
             if (p.isEmpty) break
             p.discardExact(1)
         }
 
         assertEquals("\u0422\u0423\u0424", sb.toString())
+        assertEquals(listOf(1, 1, 1), counts)
     }
 
     @Test
@@ -157,13 +192,16 @@ open class StringsTest {
         }
 
         val sb = StringBuilder()
+        val counts = mutableListOf<Int>()
 
         while (true) {
             val rc = p.readUTF8UntilDelimiterTo(sb, "\u0422")
+            counts.add(rc)
             if (p.isEmpty) break
             p.discardExact(1)
         }
 
+        assertEquals(listOf(1, 1), counts)
         assertEquals("12", sb.toString())
     }
 
