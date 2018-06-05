@@ -692,7 +692,7 @@ actual class BufferView internal constructor(
             return rc
         }
 
-        return appendCharsUtf8(csq, start, end, wp)
+        return appendCharsUtf8(csq, rc, end, wp)
     }
 
     private fun appendCharsUtf8(csq: CharArray, start: Int, end: Int, wp0: Int): Int {
@@ -736,7 +736,7 @@ actual class BufferView internal constructor(
             return rc
         }
 
-        return appendCharsUtf8(csq, start, end, wp)
+        return appendCharsUtf8(csq, rc, end, wp)
     }
 
     private fun appendCharsUtf8(csq: CharSequence, start: Int, end: Int, wp0: Int): Int {
