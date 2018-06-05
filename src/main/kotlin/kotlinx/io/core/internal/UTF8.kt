@@ -14,14 +14,14 @@ internal inline fun BufferView.decodeASCII(consumer: (Char) -> Boolean): Boolean
     return true
 }
 
-suspend fun decodeUTF8LineLoopSuspend(out: Appendable, limit: Int, nextChunk: suspend () -> ByteReadPacket?): Boolean {
+suspend fun decodeUTF8LineLoopSuspend(out: Appendable, limit: Int, nextChunk: suspend (Int) -> ByteReadPacket?): Boolean {
     var decoded = 0
     var size = 1
     var cr = false
     var end = false
 
     while (!end && size != 0) {
-        val chunk = nextChunk() ?: break
+        val chunk = nextChunk(size) ?: break
         chunk.takeWhileSize { buffer ->
             var skip = 0
             size = buffer.decodeUTF8 { ch ->
@@ -59,11 +59,16 @@ suspend fun decodeUTF8LineLoopSuspend(out: Appendable, limit: Int, nextChunk: su
                 buffer.discardExact(skip)
             }
 
-            if (end) 0 else size.coerceAtLeast(1)
+            size = if (end) 0 else size.coerceAtLeast(1)
+
+            size
         }
     }
 
     if (size > 1) prematureEndOfStreamUtf(size)
+    if (cr) {
+        end = true
+    }
 
     return decoded > 0 || end
 }

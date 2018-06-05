@@ -539,9 +539,9 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
 
     override suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean {
         if (isClosedForRead) return false
-        return decodeUTF8LineLoopSuspend(out, limit) {
+        return decodeUTF8LineLoopSuspend(out, limit) { size ->
             afterRead()
-            if (await(1)) readable
+            if (await(size)) readable
             else null
         }
     }
