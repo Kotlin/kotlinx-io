@@ -5,6 +5,10 @@ import kotlin.coroutines.experimental.*
 internal actual class Condition actual constructor(val predicate: () -> Boolean) {
     private var cont: Continuation<Unit>? = null
 
+    actual fun check(): Boolean {
+        return predicate()
+    }
+
     actual fun signal() {
         val cont = cont
         if (cont != null && predicate()) {

@@ -8,6 +8,10 @@ internal actual class Condition actual constructor(val predicate: () -> Boolean)
     @Volatile
     private var cond: Continuation<Unit>? = null
 
+    actual fun check(): Boolean {
+        return predicate()
+    }
+
     actual fun signal() {
         val cond = cond
         if (cond != null && predicate()) {
