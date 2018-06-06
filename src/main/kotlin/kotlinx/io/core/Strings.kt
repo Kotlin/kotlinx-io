@@ -7,6 +7,8 @@ import kotlinx.io.core.internal.*
 inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray
         = charset.newEncoder().encodeToByteArray(this, 0, length)
 
+expect fun String(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, charset: Charset = Charsets.UTF_8): String
+
 /**
  * Read a string line considering optionally specified [estimate] but up to optional [limit] characters length
  * (does fail once limit exceeded) or return `null` if the packet is empty

@@ -940,6 +940,19 @@ actual class BufferView internal constructor(
                 require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
                 nativeHeap.free(instance.content)
+                instance.content = EmptyBuffer
+            }
+        }
+
+        internal val NoPoolForManaged: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
+            override fun borrow(): BufferView {
+                error("You can't borrow an instance from this pool: use it only for manually created")
+            }
+
+            override fun recycle(instance: BufferView) {
+                require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
+                require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
+                instance.content = EmptyBuffer
             }
         }
     }

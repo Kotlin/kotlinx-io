@@ -252,6 +252,14 @@ open class StringsTest {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun stringCtor() {
+        val bytes = byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte())
+        val actual = String(bytes)
+
+        assertEquals("\uD858\uDE18", actual)
+    }
+
     private fun longMultibyteString() = StringBuilder().apply {
         repeat(10_000) {
             append("\uD858\uDE18")
