@@ -253,14 +253,14 @@ open class StringsTest {
     }
 
     private fun longMultibyteString() = StringBuilder().apply {
-        repeat(1_000) {
+        repeat(10_000) {
             append("\uD858\uDE18")
         }
     }
 
     private fun longMultibyteStringBytes() = buildPacket {
         val bytes = byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte())
-        repeat(1_000) {
+        repeat(10_000) {
             writeFully(bytes)
         }
     }.readBytes()
