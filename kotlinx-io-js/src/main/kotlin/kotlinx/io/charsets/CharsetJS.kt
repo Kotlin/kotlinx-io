@@ -26,24 +26,26 @@ actual val CharsetEncoder.charset: Charset get() = _charset
 
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     require(fromIndex <= toIndex)
-    require(charset === Charsets.UTF_8)
+    require(charset === Charsets.UTF_8) { "Only UTF-8 encoding is supported in JS" }
 
     val encoder = TextEncoderCtor()  // Only UTF-8 is supported so we know that at most 6 bytes per character is used
     var start = fromIndex
+    var dstRemaining = dst.writeRemaining
 
-    while (start < toIndex) {
-        val minChars = minOf(toIndex - start, dst.writeRemaining / 6)
-
-        if (minChars == 0) {
-            val array1 = encoder.encode(input.substring(start, start + 1))
-            if (array1.length > dst.writeRemaining) break
-            dst.writeFully(array1, 0, array1.length)
-            start++
-        } else {
-            val array1 = encoder.encode(input.substring(start, start + minChars))
-            dst.writeFully(array1, 0, array1.length)
-            start += minChars
+    while (start < toIndex && dstRemaining > 0) {
+        val numChars = minOf(toIndex - start, dstRemaining / 6).coerceAtLeast(1)
+        val dropLastChar = input[start + numChars - 1].isHighSurrogate()
+        val endIndexExclusive = when {
+            dropLastChar && numChars == 1 -> start + 2
+            dropLastChar -> start + numChars - 1
+            else -> start + numChars
         }
+
+        val array1 = encoder.encode(input.substring(start, endIndexExclusive))
+        if (array1.length > dst.writeRemaining) break
+        dst.writeFully(array1, 0, array1.length)
+        start = endIndexExclusive
+        dstRemaining -= array1.length
     }
 
     return start - fromIndex
