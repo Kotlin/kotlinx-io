@@ -1833,8 +1833,9 @@ internal class ByteBufferChannel(
 
         var current = joining?.let { resolveDelegation(this, it) } ?: this
         var byteBuffer = current.setupStateForWrite() ?: return writeSuspendSession(visitor)
-        var view = BufferView(byteBuffer)
+        var view = BufferView(current.state.backingBuffer)
         var ringBufferCapacity = current.state.capacity
+        view.byteOrder = writeByteOrder
 
         val session = object : WriterSuspendSession {
             override fun request(min: Int): BufferView? {
@@ -1843,6 +1844,8 @@ internal class ByteBufferChannel(
                 byteBuffer.prepareBuffer(writeByteOrder, writePosition, locked)
                 if (byteBuffer.remaining() < min) return null
                 if (current.joining != null) return null
+                @Suppress("DEPRECATION")
+                view.resetFromContentToWrite(byteBuffer)
 
                 return view
             }
@@ -1882,7 +1885,10 @@ internal class ByteBufferChannel(
                     current.tryWriteSuspend(n)
                     current = resolveDelegation(current, joining) ?: continue
                     byteBuffer = current.setupStateForWrite() ?: continue
-                    view = BufferView(byteBuffer)
+                    view = BufferView(current.state.backingBuffer)
+                    view.byteOrder = writeByteOrder
+                    @Suppress("DEPRECATION")
+                    view.resetFromContentToWrite(byteBuffer)
                     ringBufferCapacity = current.state.capacity
                 } while (false)
             }

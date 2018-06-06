@@ -180,6 +180,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = object : WriterSuspendSession {
             override fun request(min: Int): BufferView? {
+                if (availableForWrite == 0) return null
                 @Suppress("DEPRECATION_ERROR")
                 return writable.`$prepareWrite$`(min)
             }
@@ -398,7 +399,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return when {
             readable.canRead() -> {
                 val size = minOf(length.toLong(), readable.remaining).toInt()
-                readable.readFully(dst, 0, size)
+                readable.readFully(dst, offset, size)
                 afterRead()
                 size
             }

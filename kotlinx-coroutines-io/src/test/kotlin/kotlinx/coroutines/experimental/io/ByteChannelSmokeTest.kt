@@ -540,4 +540,84 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
 
         assertEquals("abc", ch.readUTF8Line())
     }
+
+    @Test
+    fun testWriteSuspendable() = runTest {
+        launch {
+            expect(2)
+            val bytes = ByteArray(10)
+            ch.readFully(bytes, 0, 3)
+            assertEquals("1 2 3 0 0 0 0 0 0 0", bytes.joinToString(separator = " ") { it.toString() })
+            expect(3)
+
+            ch.readFully(bytes, 3, 3)
+            assertEquals("1 2 3 4 5 6 0 0 0 0", bytes.joinToString(separator = " ") { it.toString() })
+
+            expect(5)
+        }
+
+        ch.writeSuspendSession {
+            expect(1)
+            val b1 = request(1)!!
+            b1.writeFully(byteArrayOf(1, 2, 3))
+            written(3)
+            flush()
+
+            yield()
+
+            expect(4)
+            val b2 = request(1)!!
+            b2.writeFully(byteArrayOf(4, 5, 6))
+            written(3)
+            flush()
+            yield()
+        }
+
+        finish(6)
+    }
+
+    @Test
+    fun testWriteSuspendableWrap() = runTest {
+        var read = 0
+        var written = 0
+
+        launch {
+            val bytes = ByteArray(10)
+
+            while (true) {
+                val rc = ch.readAvailable(bytes)
+                if (rc == -1) break
+                read += rc
+            }
+        }
+
+        ch.writeSuspendSession {
+            val b1 = request(1)!!
+            val size1 = b1.writeRemaining
+            val ba = ByteArray(size1)
+            repeat(size1) {
+                ba[it] = (it % 64).toByte()
+            }
+            written = size1
+            b1.writeFully(ba)
+            written(size1)
+            flush()
+
+            assertNull(request(1))
+
+            tryAwait(3)
+
+            val b2 = request(3)!!
+            b2.writeFully(byteArrayOf(1, 2, 3))
+            written(3)
+            written += 3
+            flush()
+            yield()
+        }
+
+        ch.close()
+        yield()
+
+        assertEquals(written, read)
+    }
 }

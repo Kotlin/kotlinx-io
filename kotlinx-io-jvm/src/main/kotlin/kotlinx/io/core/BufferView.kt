@@ -626,6 +626,15 @@ actual class BufferView private constructor(
     }
 
     /**
+     * Reset read/write position to original's content pos/limit. May not work due to slicing.
+     */
+    @Deprecated("Unstable API. Could be changed or removed without notice.")
+    fun resetFromContentToWrite(child: ByteBuffer) {
+        writeBuffer.limit(child.limit())
+        writeBuffer.position(child.position())
+    }
+
+    /**
      * Marks the whole buffer available for read and no for write
      */
     actual fun resetForRead() {
