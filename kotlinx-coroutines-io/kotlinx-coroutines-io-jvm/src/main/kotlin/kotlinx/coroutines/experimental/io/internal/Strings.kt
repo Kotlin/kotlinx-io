@@ -2,6 +2,7 @@ package kotlinx.coroutines.experimental.io.internal
 
 import kotlinx.io.charsets.*
 import java.nio.*
+import kotlin.math.*
 
 internal fun ByteBuffer.decodeASCII(out: CharArray, offset: Int = 0, length: Int = out.size): Int {
     return if (hasArray()) {
@@ -37,12 +38,12 @@ private fun ByteBuffer.decodeASCIILine_array(out: CharArray, offset: Int, length
     }
 
     val required = (rc and 0xffffffffL).toInt()
-
     if (required == -1) {
         val decoded = (rc shr 32).toInt()
         // found EOL
         if (cr) {
-            position(position() - 1) // push back a character after CR
+//            done by decodeASCII3_array
+//            position(position() - 1) // push back a character after CR
             return decodeUtf8Result(decoded - 1, -1) // don't return CR
         }
 
@@ -174,7 +175,7 @@ private inline fun ByteBuffer.decodeASCII3_array(
 
             val ch = b.toChar()
             if (!predicate(ch)) {
-                position(srcPos - arrayOffset() - 1)
+                position(srcPos - arrayOffset())
                 return decodeUtf8Result(pos - offset, -1)
             }
             if (pos >= end) {
