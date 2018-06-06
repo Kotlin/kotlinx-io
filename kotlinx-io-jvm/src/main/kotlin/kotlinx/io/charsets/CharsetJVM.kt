@@ -16,6 +16,20 @@ actual typealias CharsetEncoder = java.nio.charset.CharsetEncoder
 
 actual val CharsetEncoder.charset: Charset get() = charset()
 
+actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray {
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    if (input is String) return (input as java.lang.String).getBytes(charset())
+
+    val result = encode(CharBuffer.wrap(input))
+
+    val existingArray = when {
+        result.hasArray() && result.arrayOffset() == 0 -> result.array()?.takeIf { it.size == result.remaining() }
+        else -> null
+    }
+
+    return existingArray ?: ByteArray(result.remaining()).also { result.get(it) }
+}
+
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     val cb = CharBuffer.wrap(input, fromIndex, toIndex)
     val before = cb.remaining()

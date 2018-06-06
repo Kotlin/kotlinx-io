@@ -578,7 +578,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         }
     }
 
-    protected abstract fun last(buffer: BufferView)
+    internal abstract fun last(buffer: BufferView)
 
     @PublishedApi
     internal fun appendNewBuffer(): BufferView {

@@ -205,6 +205,66 @@ open class StringsTest {
         assertEquals("12", sb.toString())
     }
 
+    @Test
+    fun testToByteArray() {
+        assertEquals(
+                byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
+                "\uD858\uDE18".toByteArray().hexdump())
+    }
+
+    @Test
+    fun testEncodeToByteArraySequence() {
+        assertEquals(
+                byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
+                Charsets.UTF_8.newEncoder().encodeToByteArray(
+                        StringBuilder().apply { append("\uD858\uDE18") }).hexdump())
+    }
+
+    @Test
+    fun testEncodeToByteArrayCommonImpl() {
+        val encoder = Charsets.UTF_8.newEncoder()
+        assertEquals(byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
+                encoder.encodeToByteArrayImpl("\uD858\uDE18").hexdump())
+    }
+
+    @Test
+    fun testEncodeToByteArrayCommonImplCharSequence() {
+        val encoder = Charsets.UTF_8.newEncoder()
+        assertEquals(byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
+                encoder.encodeToByteArrayImpl(StringBuilder().apply { append("\uD858\uDE18") }).hexdump())
+    }
+
+    @Test
+    fun testToByteArrayLong() {
+        val expected = longMultibyteStringBytes().hexdump()
+        val actual = longMultibyteString().toString().toByteArray(Charsets.UTF_8).hexdump()
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testEncodeToByteArrayCommonImplCharSequenceLong() {
+        val expected = longMultibyteStringBytes().hexdump()
+        val actual = Charsets.UTF_8.newEncoder().encodeToByteArrayImpl(
+                longMultibyteString()
+        ).hexdump()
+
+        assertEquals(expected, actual)
+    }
+
+    private fun longMultibyteString() = StringBuilder().apply {
+        repeat(1_000) {
+            append("\uD858\uDE18")
+        }
+    }
+
+    private fun longMultibyteStringBytes() = buildPacket {
+        val bytes = byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte())
+        repeat(1_000) {
+            writeFully(bytes)
+        }
+    }.readBytes()
+
     private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(startGap, pool)
         try {
@@ -215,4 +275,6 @@ open class StringsTest {
             throw t
         }
     }
+
+    private fun ByteArray.hexdump() = joinToString(separator = " ") { (it.toInt() and 0xff).toString(16) }
 }

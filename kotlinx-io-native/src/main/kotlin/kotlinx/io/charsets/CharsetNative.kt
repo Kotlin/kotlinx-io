@@ -63,6 +63,9 @@ private fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
     if (error.value == -1) throw IllegalArgumentException("Failed to open iconv for charset $charset with error ${posix_errno()}")
 }
 
+actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray
+        = encodeToByteArrayImpl(input, fromIndex, toIndex)
+
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     val length = toIndex - fromIndex
     val chars = CharArray(length) { input[fromIndex + it] }

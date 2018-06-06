@@ -3,6 +3,10 @@ package kotlinx.io.core
 import kotlinx.io.charsets.*
 import kotlinx.io.core.internal.*
 
+@Suppress("NOTHING_TO_INLINE")
+inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray
+        = charset.newEncoder().encodeToByteArray(this, 0, length)
+
 /**
  * Read a string line considering optionally specified [estimate] but up to optional [limit] characters length
  * (does fail once limit exceeded) or return `null` if the packet is empty

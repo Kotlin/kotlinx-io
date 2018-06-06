@@ -24,6 +24,9 @@ actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
 actual val CharsetEncoder.charset: Charset get() = _charset
 
+actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray
+        = encodeToByteArrayImpl(input, fromIndex, toIndex)
+
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
     require(fromIndex <= toIndex)
     require(charset === Charsets.UTF_8) { "Only UTF-8 encoding is supported in JS" }
