@@ -4,6 +4,7 @@ buildscript {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }
         if (kotlin_version.contains("dev")) {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
@@ -63,6 +64,7 @@ allprojects {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }
         if (kotlin_version.contains("dev")) {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
