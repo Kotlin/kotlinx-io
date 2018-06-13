@@ -6,27 +6,43 @@ import kotlinx.cinterop.*
  * Read at most [limit] bytes to the specified [dst] address
  * @return number of bytes copied
  */
-fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Int) = readAsMuchAsPossible(dst, limit, 0)
+fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Int) = readAsMuchAsPossible(dst, limit.toLong(), 0L).toInt()
+
+/**
+ * Read at most [limit] bytes to the specified [dst] address
+ * @return number of bytes copied
+ */
+fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Long) = readAsMuchAsPossible(dst, limit, 0L)
 
 /**
  * Read exactly [size] bytes to the specified [dst] address
  * @return number of bytes copied
  */
 fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Int): Int {
-    val rc = readAsMuchAsPossible(dst, size, 0)
+    val rc = readAsMuchAsPossible(dst, size.toLong(), 0L)
+    if (rc != size.toLong()) throw EOFException("Not enough data in packet to fill buffer: ${size.toLong() - rc} more bytes required")
+    return rc.toInt()
+}
+
+/**
+ * Read exactly [size] bytes to the specified [dst] address
+ * @return number of bytes copied
+ */
+fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Long): Long {
+    val rc = readAsMuchAsPossible(dst, size, 0L)
     if (rc != size) throw EOFException("Not enough data in packet to fill buffer: ${size - rc} more bytes required")
     return rc
 }
 
-private tailrec fun ByteReadPacket.readAsMuchAsPossible(buffer: CPointer<ByteVar>, destinationCapacity: Int, copied: Int): Int {
-    if (destinationCapacity == 0) return copied
+private tailrec fun ByteReadPacket.readAsMuchAsPossible(buffer: CPointer<ByteVar>, destinationCapacity: Long, copied: Long): Long {
+    if (destinationCapacity == 0L) return copied
     @Suppress("INVISIBLE_MEMBER")
     val current: BufferView = prepareRead(1) ?: return copied
 
-    val available = current.readRemaining
+    val available = current.readRemaining.toLong()
 
     return if (destinationCapacity >= available) {
-        current.readFully(buffer, 0, available)
+        current.readFully(buffer, 0L, available)
         @Suppress("INVISIBLE_MEMBER")
         releaseHead(current)
 

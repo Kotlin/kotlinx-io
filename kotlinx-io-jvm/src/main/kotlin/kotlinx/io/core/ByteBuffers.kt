@@ -69,23 +69,8 @@ inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
 /**
  * Write all [src] buffer remaining bytes and change it's position accordingly
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated("Should be resolved to member function instead", level = DeprecationLevel.HIDDEN)
 fun BytePacketBuilder.writeFully(src: ByteBuffer) {
-    while (src.hasRemaining()) {
-        @Suppress("INVISIBLE_MEMBER")
-        write(1) { buffer: BufferView ->
-            val srcSize = src.remaining()
-            val capacity = buffer.writeRemaining
-
-            if (capacity >= srcSize) {
-                buffer.write(src)
-                srcSize
-            } else {
-                val lim = src.limit()
-                src.limit(src.position() + capacity)
-                buffer.write(src)
-                src.limit(lim)
-                capacity
-            }
-        }
-    }
+    writeFully(src)
 }

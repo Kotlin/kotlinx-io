@@ -231,6 +231,13 @@ actual class BufferView private constructor(
         afterWrite()
     }
 
+    override fun writeFully(bb: ByteBuffer) {
+        require(bb.remaining() <= writeRemaining) { "Not enough space to write ${bb.remaining()} bytes" }
+
+        writeBuffer.put(bb)
+        afterWrite()
+    }
+
     actual final override fun append(csq: CharSequence?, start: Int, end: Int): Appendable {
         val idx = appendChars(csq ?: "null", start, end)
         if (idx != end) throw IllegalStateException("Not enough free space to append char sequence")
@@ -381,14 +388,14 @@ actual class BufferView private constructor(
     /**
      * Writes exactly [length] bytes of [array] starting from [offset] position or fails if not enough free space
      */
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(array, offset, length)"))
     actual fun write(array: ByteArray, offset: Int, length: Int) {
-        writeBuffer.put(array, offset, length)
-        afterWrite()
+        writeFully(array, offset, length)
     }
 
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(buffer)"))
     fun write(buffer: ByteBuffer) {
-        writeBuffer.put(buffer)
-        afterWrite()
+        writeFully(buffer)
     }
 
     inline fun readDirect(block: (ByteBuffer) -> Unit) {

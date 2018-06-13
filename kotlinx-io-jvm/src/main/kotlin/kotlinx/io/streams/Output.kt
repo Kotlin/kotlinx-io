@@ -4,7 +4,7 @@ import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.io.*
 
-private class OutputStreamAdapter(pool: ObjectPool<BufferView>, private val stream: OutputStream): BytePacketBuilderBase(pool) {
+private class OutputStreamAdapter(pool: ObjectPool<BufferView>, private val stream: OutputStream): BytePacketBuilderPlatformBase(pool) {
     override fun release() {
         flush()
         stream.close()

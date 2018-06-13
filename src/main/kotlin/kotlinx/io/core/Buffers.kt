@@ -137,6 +137,7 @@ expect class BufferView : Input, Output {
     /**
      * Writes exactly [length] bytes of [array] starting from [offset] position or fails if not enough free space
      */
+    @Deprecated("Use writeFully instead")
     fun write(array: ByteArray, offset: Int, length: Int)
 
     /**

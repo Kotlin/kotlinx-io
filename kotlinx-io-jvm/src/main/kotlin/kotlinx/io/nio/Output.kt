@@ -5,7 +5,7 @@ import kotlinx.io.pool.*
 import java.nio.channels.*
 
 private class ChannelAsOutput(pool: ObjectPool<BufferView>,
-                              val channel: WritableByteChannel) : BytePacketBuilderBase(pool) {
+                              val channel: WritableByteChannel) : BytePacketBuilderPlatformBase(pool) {
     override fun release() {
         flush()
         channel.close()

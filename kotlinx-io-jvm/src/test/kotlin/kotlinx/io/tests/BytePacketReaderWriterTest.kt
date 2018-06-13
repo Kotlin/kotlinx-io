@@ -400,7 +400,7 @@ class BytePacketReaderWriterTest {
         val builder = BytePacketBuilder(startGap, pool)
         try {
             block(builder)
-            return builder.build()!!
+            return builder.build()
         } catch (t: Throwable) {
             builder.release()
             throw t

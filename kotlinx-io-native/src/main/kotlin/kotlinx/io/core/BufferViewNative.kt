@@ -126,6 +126,15 @@ actual class BufferView internal constructor(
         writePosition += 8
     }
 
+    final override fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
+        require(length <= readRemaining.toLong())
+        require(length >= 0L) { "length shouldn't be negative: $length" }
+        require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
+
+        memcpy(dst + offset, content + readPosition, length.toLong())
+        readPosition += length.toInt()
+    }
+
     final override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
@@ -134,12 +143,20 @@ actual class BufferView internal constructor(
         readPosition += length
     }
 
-    fun writeFully(array: CPointer<ByteVar>, offset: Int, length: Int) {
+    final override fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= writeRemaining) { "Not enough space available to write $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
 
-        memcpy(content + writePosition, array + offset, length.toLong())
+        memcpy(content + writePosition, src + offset, length.toLong())
         writePosition += length
+    }
+
+    final override fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
+        require(length <= writeRemaining.toLong()) { "Not enough space available to write $length bytes" }
+        require(length >= 0) { "length shouldn't be negative: $length" }
+
+        memcpy(content + writePosition, src + offset, length.toLong())
+        writePosition += length.toInt()
     }
 
     @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
@@ -413,6 +430,17 @@ actual class BufferView internal constructor(
         val copySize = minOf(length, readRemaining)
         memcpy(dst + offset, content + readPosition, copySize.toLong())
         readPosition += length
+
+        return copySize
+    }
+
+    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long {
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
+
+        val copySize = minOf(length, readRemaining.toLong())
+        memcpy(dst + offset, content + readPosition, copySize.toLong())
+        readPosition += length.toInt()
 
         return copySize
     }

@@ -39,7 +39,7 @@ expect fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder
  * }
  * ```
  */
-class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<BufferView>): BytePacketBuilderBase(pool) {
+class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<BufferView>): BytePacketBuilderPlatformBase(pool) {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
@@ -222,6 +222,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
         }
     }
 }
+
+expect abstract class BytePacketBuilderPlatformBase
+    internal constructor(pool: ObjectPool<BufferView>) : BytePacketBuilderBase
 
 abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<BufferView>) : Appendable, Output {
 

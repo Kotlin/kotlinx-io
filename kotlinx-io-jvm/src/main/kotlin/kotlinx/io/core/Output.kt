@@ -1,6 +1,7 @@
 package kotlinx.io.core
 
 import java.io.*
+import java.nio.*
 
 actual interface Output : Closeable, Appendable {
     actual var byteOrder: ByteOrder
@@ -21,6 +22,8 @@ actual interface Output : Closeable, Appendable {
     actual fun writeFully(src: BufferView, length: Int)
 
     actual fun append(csq: CharArray, start: Int, end: Int): Appendable
+
+    fun writeFully(bb: ByteBuffer)
 
     actual fun fill(n: Long, v: Byte)
     actual fun flush()
