@@ -199,6 +199,26 @@ open class BytePacketBuildTest {
         assertEquals(777, p.readInt())
     }
 
+    @Test
+    fun testReadByteEmptyPacket() {
+        assertFailsWith<EOFException> {
+            ByteReadPacket.Empty.readByte()
+        }
+
+        assertFailsWith<EOFException> {
+            val p = buildPacket {
+                writeInt(1)
+            }
+
+            try {
+                p.readInt()
+                p.readByte()
+            } finally {
+                p.release()
+            }
+        }
+    }
+
     private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(0, pool)
         try {

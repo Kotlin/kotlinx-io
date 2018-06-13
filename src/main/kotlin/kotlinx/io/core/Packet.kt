@@ -143,7 +143,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
     }
 
     private fun readByteSlow(head: BufferView): Byte {
-        ensureNext(head)
+        ensureNext(head) ?: throw EOFException("One more byte required but reached end of input")
         return readByte()
     }
 
