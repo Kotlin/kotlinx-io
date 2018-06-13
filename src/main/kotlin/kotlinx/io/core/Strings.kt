@@ -153,6 +153,82 @@ private fun Input.readUTF8UntilDelimiterToSlow(out: Appendable, delimiters: Stri
     return decoded
 }
 
+/**
+ * Reads UTF-8 characters to [out] buffer until one of the specified [delimiters] found, [limit] exceeded
+ * or end of stream encountered
+ *
+ * @throws BufferLimitExceededException
+ * @returns number of characters copied (possibly zero)
+ */
+fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
+    var decoded = 0
+    var delimiter = false
+
+    takeWhile { buffer ->
+        val before = buffer.readRemaining
+
+        val rc = buffer.decodeASCII { ch ->
+            if (ch in delimiters) {
+                delimiter = true
+                false
+            } else {
+                if (decoded == limit) bufferLimitExceeded(limit)
+                decoded++
+                true
+            }
+        }
+
+        val delta = before - buffer.readRemaining
+        if (delta > 0) {
+            buffer.pushBack(delta)
+            out.writeFully(buffer, delta)
+        }
+
+        rc
+    }
+
+    if (!delimiter && !endOfInput) {
+        decoded = readUTF8UntilDelimiterToSlow(out, delimiters, limit, decoded)
+    }
+
+    return decoded
+}
+
+private fun Input.readUTF8UntilDelimiterToSlow(out: BytePacketBuilderBase, delimiters: String, limit: Int, decoded0: Int): Int {
+    var decoded = decoded0
+    var size = 1
+
+    takeWhileSize { buffer ->
+        val before = buffer.readRemaining
+
+        size = buffer.decodeUTF8 { ch ->
+            if (ch in delimiters) {
+                false
+            } else {
+                if (decoded == limit) {
+                    bufferLimitExceeded(limit)
+                }
+                decoded++
+                true
+            }
+        }
+
+        val delta = before - buffer.readRemaining
+        if (delta > 0) {
+            buffer.pushBack(delta)
+            out.writeFully(buffer, delta)
+        }
+
+        size = if (size == -1) 0 else size.coerceAtLeast(1)
+        size
+    }
+
+    if (size > 1) prematureEndOfStream(size)
+
+    return decoded
+}
+
+
 private fun bufferLimitExceeded(limit: Int): Nothing {
     throw BufferLimitExceededException("Too many characters before delimiter: limit $limit exceeded")
 }

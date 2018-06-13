@@ -22,6 +22,8 @@ inline fun buildPacket(headerSizeHint: Int = 0, block: BytePacketBuilder.() -> U
 
 expect fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder
 
+fun BytePacketBuilder(): BytePacketBuilder = BytePacketBuilder(0)
+
 /**
  * A builder that provides ability to build byte packets with no knowledge of it's size.
  * Unlike Java's ByteArrayOutputStream it doesn't copy the whole content every time it's internal buffer overflows
@@ -378,10 +380,12 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(length <= src.readRemaining) { "Not enough bytes available in src buffer to read $length bytes" }
 
-        while (src.readRemaining > 0) {
+        var remaining = length
+        while (remaining > 0) {
             write(1) { v ->
-                val size = minOf(v.writeRemaining, src.readRemaining)
+                val size = minOf(v.writeRemaining, src.readRemaining, remaining)
                 v.writeFully(src, size)
+                remaining -= size
                 size
             }
         }

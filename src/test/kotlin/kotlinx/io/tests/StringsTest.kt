@@ -146,6 +146,26 @@ open class StringsTest {
     }
 
     @Test
+    fun testReadUntilDelimiterToPacket() {
+        val p = buildPacket {
+            append("1,2|3")
+        }
+
+        val sb = BytePacketBuilder()
+        val counts = mutableListOf<Int>()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, "|,.")
+            counts.add(rc)
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("123", sb.build().readText())
+        assertEquals(listOf(1, 1, 1), counts)
+    }
+
+    @Test
     fun testReadUntilDelimiterDifferentLength() {
         val p = buildPacket {
             append("1,23|,4")
@@ -162,6 +182,26 @@ open class StringsTest {
         }
 
         assertEquals("1234", sb.toString())
+        assertEquals(listOf(1, 2, 0, 1), counts)
+    }
+
+    @Test
+    fun testReadUntilDelimiterDifferentLengthToBuilder() {
+        val p = buildPacket {
+            append("1,23|,4")
+        }
+
+        val sb = BytePacketBuilder()
+        val counts = mutableListOf<Int>()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, "|,.")
+            counts.add(rc)
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("1234", sb.build().readText())
         assertEquals(listOf(1, 2, 0, 1), counts)
     }
 
@@ -186,6 +226,26 @@ open class StringsTest {
     }
 
     @Test
+    fun testReadUntilDelimiterMultibyteToBuilder() {
+        val p = buildPacket {
+            append("\u0422,\u0423|\u0424")
+        }
+
+        val sb = BytePacketBuilder()
+        val counts = mutableListOf<Int>()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, "|,.")
+            counts.add(rc)
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("\u0422\u0423\u0424", sb.build().readText())
+        assertEquals(listOf(1, 1, 1), counts)
+    }
+
+    @Test
     fun testReadUntilDelimiterMultibyteDelimiter() {
         val p = buildPacket {
             append("1\u04222")
@@ -203,6 +263,26 @@ open class StringsTest {
 
         assertEquals(listOf(1, 1), counts)
         assertEquals("12", sb.toString())
+    }
+
+    @Test
+    fun testReadUntilDelimiterMultibyteDelimiterToBuilder() {
+        val p = buildPacket {
+            append("1\u04222")
+        }
+
+        val sb = BytePacketBuilder()
+        val counts = mutableListOf<Int>()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, "\u0422")
+            counts.add(rc)
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals(listOf(1, 1), counts)
+        assertEquals("12", sb.build().readText())
     }
 
     @Test

@@ -6,7 +6,6 @@ import java.nio.charset.*
 
 actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
 
-fun BytePacketBuilder() = BytePacketBuilder(0)
 actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder = BytePacketBuilder(headerSizeHint, BufferView.Pool)
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
