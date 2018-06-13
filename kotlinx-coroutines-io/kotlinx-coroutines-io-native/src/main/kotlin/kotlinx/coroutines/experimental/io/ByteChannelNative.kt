@@ -75,7 +75,7 @@ internal class ByteChannelNative(initial: BufferView, autoFlush: Boolean) : Byte
     }
 
     override suspend fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
-        return readFully(dst, offset, length)
+        return readFully(dst, offset.toLong(), length.toLong())
     }
 
     override suspend fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
