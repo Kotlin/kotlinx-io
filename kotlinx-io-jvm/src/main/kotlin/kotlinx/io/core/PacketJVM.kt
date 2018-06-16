@@ -8,6 +8,8 @@ actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
 
 actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder = BytePacketBuilder(headerSizeHint, BufferView.Pool)
 
+actual fun BytePacketBuilder(): BytePacketBuilder = BytePacketBuilder(0)
+
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 actual typealias EOFException = java.io.EOFException
 

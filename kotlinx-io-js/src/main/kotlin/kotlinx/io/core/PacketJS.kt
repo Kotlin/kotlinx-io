@@ -6,4 +6,6 @@ internal const val BUFFER_VIEW_SIZE = 4096
 
 actual fun BytePacketBuilder(headerSizeHint: Int) = BytePacketBuilder(headerSizeHint, BufferView.Pool)
 
+actual fun BytePacketBuilder() = BytePacketBuilder(0)
+
 actual class EOFException actual constructor(message: String) : Exception(message)
