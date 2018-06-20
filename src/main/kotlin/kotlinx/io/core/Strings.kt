@@ -4,8 +4,7 @@ import kotlinx.io.charsets.*
 import kotlinx.io.core.internal.*
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray
-        = charset.newEncoder().encodeToByteArray(this, 0, length)
+inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray = charset.newEncoder().encodeToByteArray(this, 0, length)
 
 expect fun String(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, charset: Charset = Charsets.UTF_8): String
 
@@ -279,6 +278,8 @@ fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (m
  * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
  * @return number of characters copied to [out]
  */
+@Deprecated("Use CharsetDecoder.decode instead",
+        ReplaceWith("decoder.decode(this, out, max)", "kotlinx.io.charsets.decode"))
 fun Input.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): Int {
     return decoder.decode(this, out, max)
 }
@@ -288,17 +289,17 @@ fun Input.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_
  * @return number of characters copied to [out]
  */
 fun Input.readText(out: Appendable, charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): Int {
-    return readText(out, charset.newDecoder(), max)
+    return charset.newDecoder().decode(this, out, max)
 }
 
 /**
  * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
  * @return a decoded string
  */
+@Deprecated("Use CharetDecoder.decode instead",
+        ReplaceWith("decoder.decode(this, max)", "kotlinx.io.charsets.decode"))
 fun Input.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String {
-    return buildString(minOf(sizeEstimate(), max.toLong()).toInt()) {
-        readText(this, decoder, max)
-    }
+    return decoder.decode(this, max)
 }
 
 /**
@@ -306,11 +307,11 @@ fun Input.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String {
  * @return a decoded string
  */
 fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String {
-    return readText(charset.newDecoder(), max)
+    return charset.newDecoder().decode(this, max)
 }
 
 fun Input.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): String {
-    val s = readText(charset.newDecoder(), n)
+    val s = readText(charset, n)
     if (s.length < n) throw EOFException("Not enough data available to read $n characters")
     return s
 }

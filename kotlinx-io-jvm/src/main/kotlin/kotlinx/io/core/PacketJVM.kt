@@ -1,8 +1,9 @@
 package kotlinx.io.core
 
+import kotlinx.io.charsets.*
 import kotlinx.io.utils.*
 import java.nio.*
-import java.nio.charset.*
+import java.nio.charset.CharsetDecoder
 
 actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
 
@@ -24,5 +25,5 @@ fun ByteReadPacket.readByteBuffer(n: Int = remaining.coerceAtMostMaxInt(), direc
 
 @Deprecated("Migrate parameters order", ReplaceWith("readText(out, decoder, max)"))
 fun ByteReadPacket.readText(decoder: CharsetDecoder, out: Appendable, max: Int = Int.MAX_VALUE): Int {
-    return readText(out, decoder, max)
+    return decoder.decode(this, out, max)
 }

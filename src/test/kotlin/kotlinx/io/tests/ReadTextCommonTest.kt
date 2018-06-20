@@ -126,7 +126,7 @@ class ReadTextCommonTest {
             writeByte(0x86.toByte())
         }
 
-        assertEquals("\u0186", packet.readText(decoder = Charsets.UTF_8.newDecoder()))
+        assertEquals("\u0186", packet.readText(charset = Charsets.UTF_8))
         assertEquals(0, packet.remaining)
     }
 
@@ -139,7 +139,7 @@ class ReadTextCommonTest {
             writeByte(0x86.toByte())
         }
 
-        assertEquals("\u0186", packet.readText(decoder = Charsets.UTF_8.newDecoder(), max = 1))
+        assertEquals("\u0186", packet.readText(charset = Charsets.UTF_8, max = 1))
         assertEquals(2, packet.remaining)
         packet.release()
     }
@@ -235,7 +235,7 @@ class ReadTextCommonTest {
 
         val packet = ByteReadPacket(segment1, pool)
 
-        assertEquals("\u0186", packet.readText(decoder = Charsets.UTF_8.newDecoder()))
+        assertEquals("\u0186", packet.readText(charset = Charsets.UTF_8))
         assertTrue { packet.isEmpty }
     }
 
@@ -252,7 +252,7 @@ class ReadTextCommonTest {
         val packet = ByteReadPacket(segment1, pool)
 
         try {
-            packet.readText(decoder = Charsets.UTF_8.newDecoder())
+            packet.readText(charset = Charsets.UTF_8)
             fail("Decode illegal characters should fail")
         } catch (expected: MalformedInputException) {
             assertEquals(2, packet.remaining)
