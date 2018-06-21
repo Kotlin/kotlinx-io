@@ -823,8 +823,8 @@ actual class BufferView internal constructor(
     }
 
     actual fun pushBack(n: Int) {
-        if (readPosition == 0) throw IllegalStateException("Nothing to push back")
-        readPosition--
+        if (readPosition < n) throw IllegalStateException("Nothing to push back")
+        readPosition -= n
     }
 
     internal fun unlink() {
