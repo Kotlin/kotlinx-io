@@ -187,6 +187,93 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     return copied
 }
 
+actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
+    if (inputLength == 0) return ""
+    if (input is ByteReadPacketBase && input.headRemaining >= inputLength) {
+        // if we have a packet or a buffered input with the first head containing enough bytes
+        // then we can try fast-path
+        if (input.head.readBuffer.hasArray()) {
+            // the most performant way is to use String ctor of ByteArray
+            // on JVM9+ with string compression enabled it will do System.arraycopy and lazy decoding that is blazing fast
+            // on older JVMs it is still the fastest way
+            val bb = input.head.readBuffer
+            val text = String(bb.array(), bb.arrayOffset() + bb.position(), inputLength, charset())
+            input.discardExact(inputLength)
+            return text
+        }
+
+        // the second fast-path is slower however it is still faster than general way
+        return decodeImplByteBuffer(input, inputLength)
+    }
+
+    return decodeImplSlow(input, inputLength)
+}
+
+private fun CharsetDecoder.decodeImplByteBuffer(input: ByteReadPacketBase, inputLength: Int): String {
+    val cb = CharBuffer.allocate(inputLength)
+    val bb = input.head.readBuffer
+    val limit = bb.limit()
+    bb.limit(bb.position() + inputLength)
+
+    val rc = decode(input.head.readBuffer, cb, true)
+    if (rc.isMalformed || rc.isUnmappable) rc.throwExceptionWrapped()
+
+    bb.limit(limit)
+    cb.flip()
+    return cb.toString()
+}
+
+private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): String {
+    val cb = CharBuffer.allocate(inputLength)
+    var remainingInputBytes = inputLength
+    var lastChunk = false
+
+    input.takeWhileSize { buffer: BufferView ->
+        if (!cb.hasRemaining() || remainingInputBytes == 0) return@takeWhileSize 0
+
+        var readSize = 1
+
+        buffer.readDirect { bb: ByteBuffer ->
+            val limitBefore = bb.limit()
+            val positionBefore = bb.position()
+
+            lastChunk = limitBefore - positionBefore >= remainingInputBytes
+
+            if (lastChunk) {
+                bb.limit(positionBefore + remainingInputBytes)
+            }
+            val rc = decode(bb, cb, lastChunk)
+
+            if (rc.isMalformed || rc.isUnmappable) rc.throwExceptionWrapped()
+            if (rc.isUnderflow && bb.hasRemaining()) {
+                readSize++
+            } else {
+                readSize = 1
+            }
+
+            bb.limit(limitBefore)
+            remainingInputBytes -= bb.position() - positionBefore
+        }
+        readSize
+    }
+
+    if (cb.hasRemaining() && !lastChunk) {
+        val rc = decode(EmptyByteBuffer, cb, true)
+
+        if (rc.isMalformed || rc.isUnmappable) rc.throwExceptionWrapped()
+    }
+
+    if (remainingInputBytes > 0) {
+        throw EOFException("Not enough bytes available: had only ${inputLength - remainingInputBytes} instead of $inputLength")
+    }
+    if (remainingInputBytes < 0) {
+        throw AssertionError("remainingInputBytes < 0")
+    }
+
+    cb.flip()
+    return cb.toString()
+}
+
 private fun CoderResult.throwExceptionWrapped() {
     try {
         throwException()

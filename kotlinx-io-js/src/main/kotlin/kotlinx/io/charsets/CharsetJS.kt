@@ -2,6 +2,7 @@ package kotlinx.io.charsets
 
 import kotlinx.io.core.*
 import kotlinx.io.js.*
+import org.khronos.webgl.*
 
 actual abstract class Charset(internal val _name: String) {
     actual abstract fun newEncoder(): CharsetEncoder
@@ -91,6 +92,54 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     }
 
     return copied
+}
+
+actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
+    if (inputLength == 0) return ""
+    if (input is ByteReadPacketBase && input.headRemaining >= inputLength) {
+        val decoder = TextDecoderFatal(charset._name, true)
+
+        val head = input.head
+        val text = decodeWrap {
+            when {
+                head.readPosition == 0 && inputLength == head.content.byteLength -> decoder.decode(head.content)
+                else -> decoder.decode(Int8Array(head.content, head.readPosition, inputLength))
+            }
+        }
+
+        input.discardExact(inputLength)
+
+        return text
+    }
+
+    return decodeExactBytesSlow(input, inputLength)
+}
+
+private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
+    val decoder = TextDecoderFatal(charset.name, true)
+    var inputRemaining = inputLength
+    val sb = StringBuilder()
+
+    decodeWrap {
+        input.takeWhileSize { buffer ->
+            val chunkSize = buffer.readRemaining
+            val size = minOf(chunkSize, inputRemaining)
+            val text = when {
+                buffer.readPosition == 0 && buffer.content.byteLength == size -> decoder.decode(buffer.content)
+                else -> decoder.decode(Int8Array(buffer.content, buffer.readPosition, size))
+            }
+            sb.append(text)
+
+            buffer.discardExact(size)
+            inputRemaining -= size
+
+            if (inputRemaining > 0) 8 else 0
+        }
+
+        sb.append(decoder.decode())
+    }
+
+    return sb.toString()
 }
 
 // -----------------------------------------------------------

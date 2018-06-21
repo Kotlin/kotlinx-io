@@ -340,6 +340,78 @@ open class StringsTest {
         assertEquals("\uD858\uDE18", actual)
     }
 
+    @Test
+    fun testReadTextExactBytes() {
+        var packet = buildPacket {
+            append("\u0422e\u0438")
+        }
+
+        try {
+            assertEquals("\u0422", packet.readTextExactBytes(bytes = 2))
+        } finally {
+            packet.release()
+        }
+
+        packet = buildPacket {
+            append("\u0422e\u0438")
+        }
+
+        try {
+            assertEquals("\u0422e", packet.readTextExactBytes(bytes = 3))
+        } finally {
+            packet.release()
+        }
+
+        packet = buildPacket {
+            append("\u0422e\u0438")
+        }
+
+        try {
+            assertFails {
+                assertEquals("\u0422", packet.readTextExactBytes(bytes = 4))
+            }
+        } finally {
+            packet.release()
+        }
+
+        packet = buildPacket {
+            append("\u0422e\u0438")
+        }
+
+        try {
+            val text = packet.readTextExactBytes(bytes = 5)
+            assertEquals(3, text.length)
+            assertEquals("\u0422e\u0438", text)
+        } finally {
+            packet.release()
+        }
+
+        val longLine = buildString {
+            repeat(8192) {
+                append((it and 0xf).toString(16))
+            }
+        }
+        val big = buildPacket {
+            append(longLine)
+        }
+
+        try {
+            for (i in listOf(4088, 4089, 4095, 4096, 4097, 4098, 8176, 8192)) {
+                packet = big.copy()
+
+                try {
+                    val actual = packet.readTextExactBytes(bytes = i)
+                    assertEquals(i, actual.length)
+                    assertTrue { longLine.substring(0, i) == actual }
+                } finally {
+                    packet.release()
+                }
+            }
+        } finally {
+            big.release()
+        }
+    }
+
     private fun longMultibyteString() = StringBuilder().apply {
         repeat(10_000) {
             append("\uD858\uDE18")

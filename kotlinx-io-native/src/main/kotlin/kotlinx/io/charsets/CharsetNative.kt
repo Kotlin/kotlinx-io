@@ -258,6 +258,76 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     }
 }
 
+actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
+    if (inputLength == 0) return ""
+
+    val charset = iconvCharsetName(charset.name)
+    val cd = iconv_open(platformUtf16, charset)
+    checkErrors(cd, charset)
+
+    val chars = CharArray(inputLength)
+    var charsCopied = 0
+    var bytesConsumed = 0
+
+    try {
+        var readSize = 1
+
+        chars.usePinned { pinned ->
+            memScoped {
+                val inbuf = alloc<CPointerVar<ByteVar>>()
+                val outbuf = alloc<CPointerVar<ByteVar>>()
+                val inbytesleft = alloc<size_tVar>()
+                val outbytesleft = alloc<size_tVar>()
+
+                input.takeWhileSize { srcView ->
+                    val rem = inputLength - charsCopied
+                    if (rem == 0) return@takeWhileSize 0
+
+                    var written: Int = 0
+                    var read = 0
+
+                    srcView.readDirect { src ->
+                        val length = minOf(srcView.readRemaining, inputLength - bytesConsumed).toLong()
+                        val dstRemaining = rem * 2L
+
+                        inbuf.value = src
+                        outbuf.value = pinned.addressOf(charsCopied)
+                        inbytesleft.value = length
+                        outbytesleft.value = dstRemaining
+
+                        if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
+                            checkIconvResult(posix_errno())
+                        }
+
+                        read = (length - inbytesleft.value).toInt()
+                        written = (dstRemaining - outbytesleft.value).toInt() / 2
+
+                        read
+                    }
+
+                    bytesConsumed += read
+
+                    if (read == 0) {
+                        readSize++
+                    } else {
+                        readSize = 1
+                        charsCopied += written
+                    }
+
+                    if (bytesConsumed < inputLength) readSize else 0
+                }
+            }
+        }
+
+        return fromCharArray(chars, 0, charsCopied)
+    } finally {
+        iconv_close(cd)
+    }
+}
+
+@SymbolName("Kotlin_String_fromCharArray")
+private external fun fromCharArray(array: CharArray, start: Int, size: Int) : String
+
 // -----------------------------------------------------------
 
 actual object Charsets {

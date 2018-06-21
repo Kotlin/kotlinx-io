@@ -7,13 +7,13 @@ import kotlinx.io.pool.*
 import org.khronos.webgl.*
 
 actual class BufferView internal constructor(
-        private var content: ArrayBuffer,
+        internal var content: ArrayBuffer,
         internal actual val origin: BufferView?
 ) : Input, Output {
     private var refCount = 1
 
-    private var readPosition = 0
-    private var writePosition = 0
+    internal var readPosition = 0
+    internal var writePosition = 0
     private var limit = content.byteLength
 
     private var view = if (content === EmptyBuffer) EmptyDataView else DataView(content)

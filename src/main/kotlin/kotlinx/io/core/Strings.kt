@@ -316,6 +316,10 @@ fun Input.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): String {
     return s
 }
 
+fun Input.readTextExactBytes(charset: Charset = Charsets.UTF_8, bytes: Int): String {
+    return charset.newDecoder().decodeExactBytes(this, inputLength = bytes)
+}
+
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [encoder]
  */

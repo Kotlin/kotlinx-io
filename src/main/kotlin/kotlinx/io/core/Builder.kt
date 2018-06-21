@@ -20,9 +20,7 @@ inline fun buildPacket(headerSizeHint: Int = 0, block: BytePacketBuilder.() -> U
     }
 }
 
-expect fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder
-
-fun BytePacketBuilder(): BytePacketBuilder = BytePacketBuilder(0)
+expect fun BytePacketBuilder(headerSizeHint: Int = 0): BytePacketBuilder
 
 /**
  * A builder that provides ability to build byte packets with no knowledge of it's size.

@@ -112,6 +112,8 @@ internal fun Input.sizeEstimate(): Long = when (this) {
 
 expect fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int
 
+expect fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String
+
 // ----------------------------- REGISTRY ------------------------------------------------------------------------------
 expect object Charsets {
     val UTF_8: Charset
