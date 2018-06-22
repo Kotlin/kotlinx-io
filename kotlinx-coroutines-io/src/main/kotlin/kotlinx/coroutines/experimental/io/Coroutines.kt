@@ -31,22 +31,27 @@ interface WriterScope : CoroutineScope {
     val channel: ByteWriteChannel
 }
 
-expect fun reader(coroutineContext: CoroutineContext,
-                      channel: ByteChannel,
-                      parent: Job? = null,
-                      block: suspend ReaderScope.() -> Unit): ReaderJob
+expect fun reader(
+    coroutineContext: CoroutineContext,
+    channel: ByteChannel,
+    parent: Job? = null,
+    block: suspend ReaderScope.() -> Unit
+): ReaderJob
 
-expect fun reader(coroutineContext: CoroutineContext,
-                  autoFlush: Boolean = false,
-                  parent: Job? = null,
-                  block: suspend ReaderScope.() -> Unit): ReaderJob
+expect fun reader(
+    coroutineContext: CoroutineContext,
+    autoFlush: Boolean = false, parent: Job? = null,
+    block: suspend ReaderScope.() -> Unit
+): ReaderJob
 
-expect fun writer(coroutineContext: CoroutineContext,
-                      channel: ByteChannel,
-                      parent: Job? = null,
-                      block: suspend WriterScope.() -> Unit): WriterJob
+expect fun writer(
+    coroutineContext: CoroutineContext,
+    channel: ByteChannel, parent: Job? = null,
+    block: suspend WriterScope.() -> Unit
+): WriterJob
 
-expect fun writer(coroutineContext: CoroutineContext,
-                  autoFlush: Boolean = false,
-                  parent: Job? = null,
-                  block: suspend WriterScope.() -> Unit): WriterJob
+expect fun writer(
+    coroutineContext: CoroutineContext,
+    autoFlush: Boolean = false, parent: Job? = null,
+    block: suspend WriterScope.() -> Unit
+): WriterJob
