@@ -31,27 +31,54 @@ interface WriterScope : CoroutineScope {
     val channel: ByteWriteChannel
 }
 
-expect fun reader(
+fun reader(
     coroutineContext: CoroutineContext,
     channel: ByteChannel,
     parent: Job? = null,
     block: suspend ReaderScope.() -> Unit
-): ReaderJob
+): ReaderJob {
+    val newContext = newCoroutineContext(coroutineContext, parent)
+    return ReaderCoroutine(newContext, channel).apply {
+        start(CoroutineStart.DEFAULT, this, block)
+    }
+}
 
-expect fun reader(
+fun reader(
     coroutineContext: CoroutineContext,
     autoFlush: Boolean = false, parent: Job? = null,
     block: suspend ReaderScope.() -> Unit
-): ReaderJob
+): ReaderJob {
+    val channel = ByteChannel(autoFlush)
+    return reader(coroutineContext, channel, parent, block).also {
+        channel.attachJob(it)
+    }
+}
 
-expect fun writer(
+fun writer(
     coroutineContext: CoroutineContext,
     channel: ByteChannel, parent: Job? = null,
     block: suspend WriterScope.() -> Unit
-): WriterJob
+): WriterJob {
+    val newContext = newCoroutineContext(coroutineContext, parent)
+    return WriterCoroutine(newContext, channel).apply {
+        start(CoroutineStart.DEFAULT, this, block)
+    }
+}
 
-expect fun writer(
+fun writer(
     coroutineContext: CoroutineContext,
     autoFlush: Boolean = false, parent: Job? = null,
     block: suspend WriterScope.() -> Unit
-): WriterJob
+): WriterJob {
+    val channel = ByteChannel(autoFlush)
+    return writer(coroutineContext, channel, parent, block).also {
+        channel.attachJob(it)
+    }
+}
+
+internal class ReaderCoroutine(context: CoroutineContext, channel: ByteChannel) :
+    ByteChannelCoroutine(context, channel), ReaderJob, ReaderScope
+
+internal class WriterCoroutine(ctx: CoroutineContext, channel: ByteChannel) : ByteChannelCoroutine(ctx, channel),
+    WriterScope, WriterJob
+

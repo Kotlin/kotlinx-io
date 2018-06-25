@@ -22,6 +22,3 @@ actual fun reader(coroutineContext: CoroutineContext,
 //    channel.attachJob(job) // TODO !!!
     return job
 }
-
-private class ReaderCoroutine(context: CoroutineContext, channel: ByteChannel)
-    : ByteChannelCoroutine(context, channel), ReaderJob, ReaderScope

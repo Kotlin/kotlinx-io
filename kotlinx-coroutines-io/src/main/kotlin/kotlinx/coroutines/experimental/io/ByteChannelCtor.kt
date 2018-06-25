@@ -16,6 +16,8 @@
 
 package kotlinx.coroutines.experimental.io
 
+import kotlinx.coroutines.experimental.*
+
 /**
  * Channel for asynchronous reading and writing of sequences of bytes.
  * This is a buffered **single-reader single-writer channel**.
@@ -24,7 +26,9 @@ package kotlinx.coroutines.experimental.io
  * cannot be invoked concurrently with themselves. Exceptions are [close] and [flush] which can be invoked
  * concurrently with any other operations and between themselves at any time.
  */
-interface ByteChannel : ByteReadChannel, ByteWriteChannel
+interface ByteChannel : ByteReadChannel, ByteWriteChannel {
+    fun attachJob(job: Job)
+}
 
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.

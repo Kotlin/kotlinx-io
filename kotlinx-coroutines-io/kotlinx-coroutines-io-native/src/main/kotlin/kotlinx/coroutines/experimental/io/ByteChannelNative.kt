@@ -2,7 +2,7 @@ package kotlinx.coroutines.experimental.io
 
 import kotlinx.io.core.*
 import kotlinx.cinterop.*
-import kotlinx.io.pool.*
+import kotlin.coroutines.experimental.*
 
 
 /**
@@ -48,6 +48,18 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
 }
 
 internal class ByteChannelNative(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
+
+    @Volatile
+    private var attachedJob: Job? = null
+
+    override fun attachJob(job: Job) {
+        attachedJob?.cancel()
+        attachedJob = job
+        job.invokeOnCompletion(onCancelling = true) { cause ->
+            attachedJob = null
+            if (cause != null) cancel(cause)
+        }
+    }
     override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
         return readAvailable(dst, offset.toLong(), length.toLong())
     }
