@@ -574,15 +574,12 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
     @PublishedApi
     internal inline fun write(size: Int, block: (BufferView) -> Int) {
-        val buffer = tail
-
-        val rc = if (buffer.writeRemaining < size) {
-            block(appendNewBuffer())
-        } else {
-            block(buffer)
+        var buffer = tail
+        if (buffer.writeRemaining < size) {
+            buffer = appendNewBuffer()
         }
 
-        addSize(rc)
+        addSize(block(buffer))
     }
 
     @PublishedApi
@@ -605,10 +602,6 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
         return new
     }
-}
-
-private inline fun <T> T.takeIf(predicate: (T) -> Boolean): T? {
-    return if (predicate(this)) this else null
 }
 
 private inline fun <T> T.takeUnless(predicate: (T) -> Boolean): T? {
