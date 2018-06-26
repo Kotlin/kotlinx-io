@@ -378,15 +378,25 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(length <= src.readRemaining) { "Not enough bytes available in src buffer to read $length bytes" }
 
-        var remaining = length
-        while (remaining > 0) {
-            write(1) { v ->
-                val size = minOf(v.writeRemaining, src.readRemaining, remaining)
-                v.writeFully(src, size)
-                remaining -= size
-                size
-            }
+        val totalSize = minOf(src.readRemaining, length)
+        if (totalSize == 0) return
+        var remaining = totalSize
+
+        var tail = tail
+        if (!tail.canWrite()) {
+            tail = appendNewBuffer()
         }
+
+        do {
+            val size = minOf(tail.writeRemaining, remaining)
+            tail.writeFully(src, size)
+            remaining -= size
+
+            if (remaining == 0) break
+            tail = appendNewBuffer()
+        } while (true)
+
+        addSize(totalSize)
     }
 
     override fun fill(n: Long, v: Byte) {
