@@ -248,15 +248,15 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     internal var tail: BufferView = BufferView.Empty
 
     final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
+        if (length == 0) return
+
         var copied = 0
 
-        while (copied < length) {
-            write(1) { buffer ->
-                val size = minOf(buffer.writeRemaining, length - copied)
-                buffer.writeFully(src, offset + copied, size)
-                copied += size
-                size
-            }
+        writeLoop(1, { copied < length }) { buffer, bufferRemaining ->
+            val size = minOf(bufferRemaining, length - copied)
+            buffer.writeFully(src, offset + copied, size)
+            copied += size
+            size
         }
     }
 
@@ -288,17 +288,17 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
 
+        if (length == 0) return
+
         var start = offset
         var remaining = length
 
-        while (remaining > 0) {
-            write(2) { v ->
-                val qty = minOf(v.writeRemaining shr 1, remaining)
-                v.writeFully(src, start, qty)
-                start += qty
-                remaining -= qty
-                qty * 2
-            }
+        writeLoop(2, { remaining > 0 }) { buffer, chunkRemaining ->
+            val qty = minOf(chunkRemaining shr 1, remaining)
+            buffer.writeFully(src, start, qty)
+            start += qty
+            remaining -= qty
+            qty * 2
         }
     }
 
@@ -309,14 +309,12 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         var start = offset
         var remaining = length
 
-        while (remaining > 0) {
-            write(4) { v ->
-                val qty = minOf(v.writeRemaining shr 2, remaining)
-                v.writeFully(src, start, qty)
-                start += qty
-                remaining -= qty
-                qty * 4
-            }
+        writeLoop(4, { remaining > 0 }) { buffer, chunkRemaining ->
+            val qty = minOf(chunkRemaining shr 2, remaining)
+            buffer.writeFully(src, start, qty)
+            start += qty
+            remaining -= qty
+            qty * 4
         }
     }
 
@@ -327,14 +325,12 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         var start = offset
         var remaining = length
 
-        while (remaining > 0) {
-            write(8) { v ->
-                val qty = minOf(v.writeRemaining shr 3, remaining)
-                v.writeFully(src, start, qty)
-                start += qty
-                remaining -= qty
-                qty * 8
-            }
+        writeLoop(8, { remaining > 0 }) { buffer, chunkRemaining ->
+            val qty = minOf(chunkRemaining shr 3, remaining)
+            buffer.writeFully(src, start, qty)
+            start += qty
+            remaining -= qty
+            qty * 8
         }
     }
 
@@ -345,14 +341,12 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         var start = offset
         var remaining = length
 
-        while (remaining > 0) {
-            write(4) { v ->
-                val qty = minOf(v.writeRemaining shr 2, remaining)
-                v.writeFully(src, start, qty)
-                start += qty
-                remaining -= qty
-                qty * 4
-            }
+        writeLoop(4, { remaining > 0 }) { buffer, chunkRemaining ->
+            val qty = minOf(chunkRemaining shr 2, remaining)
+            buffer.writeFully(src, start, qty)
+            start += qty
+            remaining -= qty
+            qty * 4
         }
     }
 
@@ -363,14 +357,12 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         var start = offset
         var remaining = length
 
-        while (remaining > 0) {
-            write(8) { v ->
-                val qty = minOf(v.writeRemaining shr 3, remaining)
-                v.writeFully(src, start, qty)
-                start += qty
-                remaining -= qty
-                qty * 8
-            }
+        writeLoop(8, { remaining > 0 }) { buffer, chunkRemaining ->
+            val qty = minOf(chunkRemaining shr 3, remaining)
+            buffer.writeFully(src, start, qty)
+            start += qty
+            remaining -= qty
+            qty * 8
         }
     }
 
@@ -403,13 +395,11 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         require(n >= 0L) { "n shouldn't be negative: $n" }
 
         var rem = n
-        while (rem > 0L) {
-            write(1) { buffer ->
-                val size = minOf(buffer.writeRemaining.toLong(), n).toInt()
-                buffer.fill(size.toLong(), v)
-                rem -= size
-                size
-            }
+        writeLoop(1, { rem > 0L }) { buffer, chunkRemaining ->
+            val size = minOf(chunkRemaining.toLong(), n).toInt()
+            buffer.fill(size.toLong(), v)
+            rem -= size
+            size
         }
     }
 
@@ -580,6 +570,26 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         }
 
         addSize(block(buffer))
+    }
+
+    private inline fun writeLoop(size: Int, predicate: () -> Boolean, block: (BufferView, Int) -> Int) {
+        if (!predicate()) return
+        var written = 0
+        var buffer = tail
+        var rem = buffer.writeRemaining
+
+        do {
+            if (rem < size) {
+                buffer = appendNewBuffer()
+                rem = buffer.writeRemaining
+            }
+
+            val result = block(buffer, rem)
+            written += result
+            rem -= result
+        } while (predicate())
+
+        addSize(written)
     }
 
     @PublishedApi
