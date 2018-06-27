@@ -1,6 +1,7 @@
 package kotlinx.io.core
 
 import kotlinx.io.pool.*
+import kotlinx.io.core.internal.require
 
 expect val PACKET_MAX_COPY_SIZE: Int
 
