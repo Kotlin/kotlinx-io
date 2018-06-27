@@ -136,21 +136,18 @@ fun Input.discardExact(n: Int) {
  */
 inline fun Input.takeWhile(block: (BufferView) -> Boolean) {
     var current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(1) ?: return
-    var continueFlag = true
 
     do {
-        val before = current.readRemaining
-        val after = if (before > 0) {
-            continueFlag = block(current)
-            current.readRemaining
-        } else before
+        val continueFlag = block(current)
+        val after = current.readRemaining
 
         if (after == 0) {
             current = @Suppress("DEPRECATION_ERROR") `$ensureNext$`(current) ?: break
-        } else {
+        } else if (!continueFlag) {
             @Suppress("DEPRECATION_ERROR") `$updateRemaining$`(after)
+            break
         }
-    } while (continueFlag)
+    } while (true)
 }
 
 /**
