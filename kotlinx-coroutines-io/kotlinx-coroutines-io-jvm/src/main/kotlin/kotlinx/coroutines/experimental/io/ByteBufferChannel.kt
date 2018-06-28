@@ -55,7 +55,7 @@ internal class ByteBufferChannel(
     @Volatile
     private var attachedJob: Job? = null
 
-    internal fun attachJob(job: Job) {
+    override fun attachJob(job: Job) {
         attachedJob?.cancel()
         attachedJob = job
         job.invokeOnCompletion(onCancelling = true) { cause ->

@@ -72,8 +72,6 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
 }
 
 internal class ByteChannelJS(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
-
-    @Volatile
     private var attachedJob: Job? = null
 
     override fun attachJob(job: Job) {
