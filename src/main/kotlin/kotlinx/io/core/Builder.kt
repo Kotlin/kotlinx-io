@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.IoBuffer.*
 import kotlinx.io.pool.*
 import kotlinx.io.core.internal.require
 
@@ -104,7 +105,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
      */
     fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
         val head = head.copyAll()
-        val pool = if (head === IoBuffer.Empty) EmptyBufferViewPool else pool
+        val pool = if (head === IoBuffer.Empty) IoBuffer.EmptyPool else pool
         val packet = ByteReadPacket(head, pool)
 
         return try {

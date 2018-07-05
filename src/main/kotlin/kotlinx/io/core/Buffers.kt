@@ -204,10 +204,15 @@ expect class IoBuffer : Input, Output {
         val Empty: IoBuffer
         val Pool: ObjectPool<IoBuffer>
         val NoPool: ObjectPool<IoBuffer>
+        val EmptyPool: ObjectPool<IoBuffer>
     }
 }
 
-object EmptyBufferViewPool : NoPoolImpl<IoBuffer>() {
+@Deprecated("Use IoBuffer.EmptyPool instead",
+        replaceWith = ReplaceWith("IoBuffer.EmptyPool", "kotlinx.io.core.IoBuffer"))
+val EmptyBufferViewPool get() = IoBuffer.EmptyPool
+
+internal object EmptyBufferViewPoolImpl : NoPoolImpl<IoBuffer>() {
     override fun borrow() = IoBuffer.Empty
 }
 

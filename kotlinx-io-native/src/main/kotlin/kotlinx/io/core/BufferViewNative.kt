@@ -983,5 +983,7 @@ actual class IoBuffer internal constructor(
                 instance.content = EmptyBuffer
             }
         }
+
+        actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferViewPoolImpl
     }
 }
