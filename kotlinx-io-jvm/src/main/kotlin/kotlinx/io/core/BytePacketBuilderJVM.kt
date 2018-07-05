@@ -4,7 +4,7 @@ import kotlinx.io.pool.*
 import java.nio.*
 
 actual abstract class BytePacketBuilderPlatformBase
-internal actual constructor(pool: ObjectPool<BufferView>) : BytePacketBuilderBase(pool) {
+internal actual constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase(pool) {
     override fun writeFully(bb: ByteBuffer) {
         val l = bb.limit()
 

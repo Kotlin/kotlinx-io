@@ -50,7 +50,7 @@ actual interface ByteWriteChannel {
      */
     actual suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
 
-    actual suspend fun writeAvailable(src: BufferView): Int
+    actual suspend fun writeAvailable(src: IoBuffer): Int
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
@@ -58,7 +58,7 @@ actual interface ByteWriteChannel {
      */
     actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
 
-    actual suspend fun writeFully(src: BufferView)
+    actual suspend fun writeFully(src: IoBuffer)
 
     actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 

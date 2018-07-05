@@ -9,7 +9,7 @@ import kotlinx.io.pool.*
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
  */
 actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
-    return ByteChannelNative(BufferView.Empty, autoFlush)
+    return ByteChannelNative(IoBuffer.Empty, autoFlush)
 }
 
 /**
@@ -17,7 +17,7 @@ actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
  */
 actual fun ByteReadChannel(content: ByteArray): ByteReadChannel {
     if (content.isEmpty()) return ByteReadChannel.Empty
-    val head = BufferView.Pool.borrow()
+    val head = IoBuffer.Pool.borrow()
     var tail = head
 
     var start = 0
@@ -28,7 +28,7 @@ actual fun ByteReadChannel(content: ByteArray): ByteReadChannel {
         start += size
 
         if (start == content.size) break
-        tail = BufferView.Pool.borrow()
+        tail = IoBuffer.Pool.borrow()
     }
 
     return ByteChannelNative(head, false)
@@ -47,7 +47,7 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
     return (this as ByteChannelSequentialBase).copyTo((dst as ByteChannelSequentialBase))
 }
 
-internal class ByteChannelNative(initial: BufferView, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
+internal class ByteChannelNative(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
     override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
         return readAvailable(dst, offset.toLong(), length.toLong())
     }

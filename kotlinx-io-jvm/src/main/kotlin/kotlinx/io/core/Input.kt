@@ -20,7 +20,7 @@ actual interface Input : Closeable {
     actual fun readFully(dst: LongArray, offset: Int, length: Int)
     actual fun readFully(dst: FloatArray, offset: Int, length: Int)
     actual fun readFully(dst: DoubleArray, offset: Int, length: Int)
-    actual fun readFully(dst: BufferView, length: Int)
+    actual fun readFully(dst: IoBuffer, length: Int)
     fun readFully(dst: ByteBuffer, length: Int = dst.remaining())
 
     actual fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
@@ -29,7 +29,7 @@ actual interface Input : Closeable {
     actual fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
     actual fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
     actual fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
-    actual fun readAvailable(dst: BufferView, length: Int): Int
+    actual fun readAvailable(dst: IoBuffer, length: Int): Int
     fun readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int
 
     actual fun discard(n: Long): Long
@@ -39,8 +39,8 @@ actual interface Input : Closeable {
     actual fun `$updateRemaining$`(remaining: Int)
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual fun `$ensureNext$`(current: BufferView): BufferView?
+    actual fun `$ensureNext$`(current: IoBuffer): IoBuffer?
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual fun `$prepareRead$`(minSize: Int): BufferView?
+    actual fun `$prepareRead$`(minSize: Int): IoBuffer?
 }

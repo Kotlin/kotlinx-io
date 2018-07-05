@@ -27,9 +27,9 @@ Use `kotlinx-io-js` with Kotlin JavaScript and `kotlin-io` for common code if yo
 
 # Basic concepts
 
-## BufferView
+## IoBuffer
 
-A buffer view is a view to byte buffer (in JVM it could be direct `ByteBuffer`, on JS it could be `ArrayBuffer`). Comparing to java's NIO `ByteBuffer`, `BufferView` ...
+A buffer view is a view to byte buffer (in JVM it could be direct `ByteBuffer`, on JS it could be `ArrayBuffer`). Comparing to java's NIO `ByteBuffer`, `IoBuffer` ...
 
 - should be released via `release()` invocation
 - could be copied via `copy()` that actually doesn't copy any bytes but makes a new view
@@ -38,7 +38,7 @@ A buffer view is a view to byte buffer (in JVM it could be direct `ByteBuffer`, 
 - has a `next` property so it is suitable to make chains of buffer views with no need to allocate any lists or extra arrays
 - designed to work with buffer view pool
 
-Note that `BufferView` is not concurrent safe however it is safe to do `copy()` and `release()` concurrently (when this makes sense).
+Note that `IoBuffer` is not concurrent safe however it is safe to do `copy()` and `release()` concurrently (when this makes sense).
 
 
 ## ByteReadPacket
@@ -48,7 +48,7 @@ Note that `BufferView` is not concurrent safe however it is safe to do `copy()` 
 - byte packet is read only
 - there is no way to reset/pushback already readen bytes
 - every buffer view will be released once it becomes empty
-- does support `copy()`, similar to `BufferView.copy()` it doesn't copy bytes
+- does support `copy()`, similar to `IoBuffer.copy()` it doesn't copy bytes
 - not reusable - once all bytes were read there is no way to reset it to read bytes again - make a copy instead
 - supports start gap hint (see byte packet builder)
 - provides `java.io.Reader` (reads characters as UTF-8) and `java.io.InputStream` compatibility

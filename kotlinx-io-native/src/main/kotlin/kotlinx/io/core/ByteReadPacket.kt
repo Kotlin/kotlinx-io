@@ -3,7 +3,7 @@ package kotlinx.io.core
 import kotlinx.io.pool.*
 import kotlinx.cinterop.*
 
-actual abstract class ByteReadPacketPlatformBase protected actual constructor(head: BufferView, remaining: Long, pool: ObjectPool<BufferView>) : ByteReadPacketBase(head, remaining, pool), Input {
+actual abstract class ByteReadPacketPlatformBase protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketBase(head, remaining, pool), Input {
 
     override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
         return readFully(dst, offset.toLong(), length.toLong())
@@ -16,7 +16,7 @@ actual abstract class ByteReadPacketPlatformBase protected actual constructor(he
         var copied = 0L
 
         @Suppress("INVISIBLE_MEMBER")
-        takeWhile { buffer: BufferView ->
+        takeWhile { buffer: IoBuffer ->
             val rc = buffer.readAvailable(dst, copied, length - copied)
             if (rc > 0) copied += rc
             copied < length
@@ -37,8 +37,8 @@ actual abstract class ByteReadPacketPlatformBase protected actual constructor(he
 }
 
 actual class ByteReadPacket
-internal actual constructor(head: BufferView, remaining: Long, pool: ObjectPool<BufferView>) : ByteReadPacketPlatformBase(head, remaining, pool), Input {
-    actual constructor(head: BufferView, pool: ObjectPool<BufferView>) : this(head, @Suppress("INVISIBLE_MEMBER") head.remainingAll(), pool)
+internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketPlatformBase(head, remaining, pool), Input {
+    actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(head, @Suppress("INVISIBLE_MEMBER") head.remainingAll(), pool)
 
     final override fun fill() = null
     override fun closeSource() {

@@ -5,7 +5,7 @@ import kotlinx.io.core.*
 import kotlin.test.*
 
 class ReadTextCommonTest {
-    private val pool: VerifyingObjectPool<BufferView> = VerifyingObjectPool(BufferView.NoPool)
+    private val pool: VerifyingObjectPool<IoBuffer> = VerifyingObjectPool(IoBuffer.NoPool)
 
     @AfterTest
     fun verifyPool() {

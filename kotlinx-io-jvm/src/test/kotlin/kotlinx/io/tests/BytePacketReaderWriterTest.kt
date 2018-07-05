@@ -9,7 +9,7 @@ import kotlin.test.*
 
 class BytePacketReaderWriterTest {
     @get:Rule
-    internal val pool = VerifyingObjectPool(BufferView.Pool)
+    internal val pool = VerifyingObjectPool(IoBuffer.Pool)
 
     @Test
     fun testReaderEmpty() {

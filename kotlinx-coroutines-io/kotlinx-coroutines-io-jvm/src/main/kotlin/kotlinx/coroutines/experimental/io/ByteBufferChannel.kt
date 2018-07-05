@@ -429,7 +429,7 @@ internal class ByteBufferChannel(
         return consumed
     }
 
-    private tailrec fun readAsMuchAsPossible(dst: BufferView, consumed0: Int = 0, max: Int = dst.writeRemaining): Int {
+    private tailrec fun readAsMuchAsPossible(dst: IoBuffer, consumed0: Int = 0, max: Int = dst.writeRemaining): Int {
         var consumed = 0
 
         val rc = reading {
@@ -512,13 +512,13 @@ internal class ByteBufferChannel(
         return copied
     }
 
-    override suspend fun readFully(dst: BufferView, n: Int) {
+    override suspend fun readFully(dst: IoBuffer, n: Int) {
         val rc = readAsMuchAsPossible(dst, max = n)
         if (rc == n) return
         return readFullySuspend(dst, n - rc)
     }
 
-    private suspend fun readFullySuspend(dst: BufferView, n: Int) {
+    private suspend fun readFullySuspend(dst: IoBuffer, n: Int) {
         var copied = 0
 
         while (dst.canWrite() && copied < n) {
@@ -565,7 +565,7 @@ internal class ByteBufferChannel(
         return readAvailableSuspend(dst)
     }
 
-    suspend override fun readAvailable(dst: BufferView): Int {
+    suspend override fun readAvailable(dst: IoBuffer): Int {
         val consumed = readAsMuchAsPossible(dst)
 
         if (consumed == 0 && closed != null) {
@@ -589,7 +589,7 @@ internal class ByteBufferChannel(
         return readAvailable(dst)
     }
 
-    private suspend fun readAvailableSuspend(dst: BufferView): Int {
+    private suspend fun readAvailableSuspend(dst: IoBuffer): Int {
         if (!readSuspend(1)) return -1
         return readAvailable(dst)
     }
@@ -1121,7 +1121,7 @@ internal class ByteBufferChannel(
         return writeAvailableSuspend(src)
     }
 
-    override suspend fun writeAvailable(src: BufferView): Int {
+    override suspend fun writeAvailable(src: IoBuffer): Int {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeAvailable(src) } }
 
         val copied = writeAsMuchAsPossible(src)
@@ -1139,7 +1139,7 @@ internal class ByteBufferChannel(
         return writeAvailable(src)
     }
 
-    private suspend fun writeAvailableSuspend(src: BufferView): Int {
+    private suspend fun writeAvailableSuspend(src: IoBuffer): Int {
         writeSuspend(1)
 
         joining?.let { resolveDelegation(this, it)?.let { return it.writeAvailableSuspend(src) } }
@@ -1156,7 +1156,7 @@ internal class ByteBufferChannel(
         return writeFullySuspend(src)
     }
 
-    override suspend fun writeFully(src: BufferView) {
+    override suspend fun writeFully(src: IoBuffer) {
         writeAsMuchAsPossible(src)
         if (!src.canRead()) return
 
@@ -1173,7 +1173,7 @@ internal class ByteBufferChannel(
         }
     }
 
-    private suspend fun writeFullySuspend(src: BufferView) {
+    private suspend fun writeFullySuspend(src: IoBuffer) {
         while (src.canRead()) {
             tryWriteSuspend(1)
 
@@ -1380,7 +1380,7 @@ internal class ByteBufferChannel(
         return 0
     }
 
-    private fun writeAsMuchAsPossible(src: BufferView): Int {
+    private fun writeAsMuchAsPossible(src: IoBuffer): Int {
         writing { dst, state ->
             var written = 0
 
@@ -1607,8 +1607,8 @@ internal class ByteBufferChannel(
                     return result
                 }
 
-                override fun request(atLeast: Int): BufferView? {
-                    return request(0, atLeast)?.let { BufferView(it).also { it.resetForRead() } }
+                override fun request(atLeast: Int): IoBuffer? {
+                    return request(0, atLeast)?.let { IoBuffer(it).also { it.resetForRead() } }
                 }
             })
         }
@@ -1617,9 +1617,9 @@ internal class ByteBufferChannel(
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         lookAheadSuspend {
             var lastAvailable = 0
-            var lastView: BufferView = BufferView.Empty
+            var lastView: IoBuffer = IoBuffer.Empty
 
-            fun completed(newView: BufferView) {
+            fun completed(newView: IoBuffer) {
                 val delta = lastAvailable - lastView.readRemaining
                 if (delta > 0) {
                     consumed(delta)
@@ -1633,7 +1633,7 @@ internal class ByteBufferChannel(
                     get() = this@ByteBufferChannel.availableForRead
 
                 override fun discard(n: Int): Int {
-                    completed(BufferView.Empty)
+                    completed(IoBuffer.Empty)
 
                     var result = 0
                     reading {
@@ -1645,17 +1645,17 @@ internal class ByteBufferChannel(
                     return result
                 }
 
-                override fun request(atLeast: Int): BufferView? {
-                    return request(0, atLeast)?.let { BufferView(it).also { it.resetForRead(); completed(it) } }
+                override fun request(atLeast: Int): IoBuffer? {
+                    return request(0, atLeast)?.let { IoBuffer(it).also { it.resetForRead(); completed(it) } }
                 }
 
                 override suspend fun await(atLeast: Int): Boolean {
-                    completed(BufferView.Empty)
+                    completed(IoBuffer.Empty)
                     return awaitAtLeast(atLeast)
                 }
             })
 
-            completed(BufferView.Empty)
+            completed(IoBuffer.Empty)
         }
     }
 
@@ -1833,12 +1833,12 @@ internal class ByteBufferChannel(
 
         var current = joining?.let { resolveDelegation(this, it) } ?: this
         var byteBuffer = current.setupStateForWrite() ?: return writeSuspendSession(visitor)
-        var view = BufferView(current.state.backingBuffer)
+        var view = IoBuffer(current.state.backingBuffer)
         var ringBufferCapacity = current.state.capacity
         view.byteOrder = writeByteOrder
 
         val session = object : WriterSuspendSession {
-            override fun request(min: Int): BufferView? {
+            override fun request(min: Int): IoBuffer? {
                 locked += ringBufferCapacity.tryWriteAtLeast(0)
                 if (locked < min) return null
                 byteBuffer.prepareBuffer(writeByteOrder, writePosition, locked)
@@ -1885,7 +1885,7 @@ internal class ByteBufferChannel(
                     current.tryWriteSuspend(n)
                     current = resolveDelegation(current, joining) ?: continue
                     byteBuffer = current.setupStateForWrite() ?: continue
-                    view = BufferView(current.state.backingBuffer)
+                    view = IoBuffer(current.state.backingBuffer)
                     view.byteOrder = writeByteOrder
                     @Suppress("DEPRECATION")
                     view.resetFromContentToWrite(byteBuffer)

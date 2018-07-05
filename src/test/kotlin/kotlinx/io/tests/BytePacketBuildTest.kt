@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.*
 
 open class BytePacketBuildTest {
-    open val pool: VerifyingObjectPool<BufferView> = VerifyingObjectPool(BufferView.NoPool)
+    open val pool: VerifyingObjectPool<IoBuffer> = VerifyingObjectPool(IoBuffer.NoPool)
 
     @AfterTest
     fun verifyPool() {

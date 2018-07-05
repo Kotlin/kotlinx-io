@@ -14,7 +14,7 @@ inline fun WebSocket.sendPacket(block: BytePacketBuilder.() -> Unit) {
 
 inline fun MessageEvent.packet(): ByteReadPacket {
     @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
-    return ByteReadPacket(BufferView(data.asDynamic(), null), BufferView.NoPool)
+    return ByteReadPacket(IoBuffer(data.asDynamic(), null), IoBuffer.NoPool)
 }
 
 

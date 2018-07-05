@@ -13,9 +13,9 @@ import kotlin.jvm.*
 /**
  * A read-write facade to actual buffer of fixed size. Multiple views could share the same actual buffer.
  */
-actual class BufferView private constructor(
+actual class IoBuffer private constructor(
         private var content: ByteBuffer,
-        internal actual val origin: BufferView?) : Input, Output {
+        internal actual val origin: IoBuffer?) : Input, Output {
 
     constructor(external: ByteBuffer) : this(external, null)
 
@@ -51,7 +51,7 @@ actual class BufferView private constructor(
     /**
      * Mutable reference to next buffer view. Useful to chain multiple views
      */
-    actual var next: BufferView? = null
+    actual var next: IoBuffer? = null
 
     /**
      * User data: could be a session, connection or anything useful
@@ -214,7 +214,7 @@ actual class BufferView private constructor(
         afterWrite()
     }
 
-    actual final override fun writeFully(src: BufferView, length: Int) {
+    actual final override fun writeFully(src: IoBuffer, length: Int) {
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(length <= src.readRemaining) { "length is bigger than src buffer size: $length > ${src.readRemaining}" }
         require(length <= writeRemaining) { "Not enough space to write $length bytes" }
@@ -425,12 +425,12 @@ actual class BufferView private constructor(
      * Writes [length] bytes of [src] buffer or fails if not enough free space available
      */
     @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
-    actual fun writeBuffer(src: BufferView, length: Int): Int {
+    actual fun writeBuffer(src: IoBuffer, length: Int): Int {
         writeFully(src, length)
         return length
     }
 
-    internal actual fun writeBufferPrepend(other: BufferView) {
+    internal actual fun writeBufferPrepend(other: IoBuffer) {
         val size = other.readRemaining
         val rp = readPosition
 
@@ -447,7 +447,7 @@ actual class BufferView private constructor(
         writePosition = pos
     }
 
-    internal actual fun writeBufferAppend(other: BufferView, maxSize: Int) {
+    internal actual fun writeBufferAppend(other: IoBuffer, maxSize: Int) {
         val rem = writeBuffer.remaining()
         val size = minOf(maxSize, other.readRemaining)
 
@@ -486,7 +486,7 @@ actual class BufferView private constructor(
         return size
     }
 
-    actual final override fun readFully(dst: BufferView, length: Int) {
+    actual final override fun readFully(dst: IoBuffer, length: Int) {
         val readRemaining = readRemaining
         require(length <= dst.writeRemaining) { "Not enough space in the destination buffer to write $length bytes" }
         require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
@@ -495,7 +495,7 @@ actual class BufferView private constructor(
         dst.afterWrite()
     }
 
-    actual final override fun readAvailable(dst: BufferView, length: Int): Int {
+    actual final override fun readAvailable(dst: IoBuffer, length: Int): Int {
         val readRemaining = readRemaining
         val size = minOf(length, readRemaining)
         if (readRemaining == 0) return -1
@@ -660,11 +660,11 @@ actual class BufferView private constructor(
     /**
      * Creates a new view to the same actual buffer with independant read and write positions and gaps
      */
-    actual fun makeView(): BufferView {
+    actual fun makeView(): IoBuffer {
         val newOrigin = origin ?: this
         newOrigin.acquire()
 
-        val view = BufferView(content, newOrigin)
+        val view = IoBuffer(content, newOrigin)
         view.attachment = attachment
         view.writePosition = writePosition
         view.writeBuffer.limit(writeBuffer.limit())
@@ -677,7 +677,7 @@ actual class BufferView private constructor(
      * releases buffer view and returns it to the [pool] if there are no more usages. Based on simple ref-counting so
      * it is very fragile.
      */
-    actual fun release(pool: ObjectPool<BufferView>) {
+    actual fun release(pool: ObjectPool<IoBuffer>) {
         if (releaseRefCount()) {
             resetForWrite()
 
@@ -707,12 +707,12 @@ actual class BufferView private constructor(
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$ensureNext$`(current: BufferView): BufferView? {
+    actual final override fun `$ensureNext$`(current: IoBuffer): IoBuffer? {
         return null
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$prepareRead$`(minSize: Int): BufferView? {
+    actual final override fun `$prepareRead$`(minSize: Int): IoBuffer? {
         return this.takeIf { readRemaining >= minSize }
     }
 
@@ -721,7 +721,7 @@ actual class BufferView private constructor(
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$prepareWrite$`(n: Int): BufferView {
+    actual final override fun `$prepareWrite$`(n: Int): IoBuffer {
         return takeIf { it.writeRemaining >= n } ?: throw IllegalArgumentException("Not enough space in the chunk")
     }
 
@@ -836,27 +836,27 @@ actual class BufferView private constructor(
 
     actual companion object {
         private val EmptyBuffer: ByteBuffer = ByteBuffer.allocateDirect(0)
-        private val RefCount = AtomicLongFieldUpdater.newUpdater(BufferView::class.java, BufferView::refCount.name)!!
+        private val RefCount = AtomicLongFieldUpdater.newUpdater(IoBuffer::class.java, IoBuffer::refCount.name)!!
 
         private val DEFAULT_BUFFER_SIZE = getIOIntProperty("buffer.size", 4096)
         private val DEFAULT_BUFFER_POOL_SIZE = getIOIntProperty("buffer.pool.size", 100)
         private val DEFAULT_BUFFER_POOL_DIRECT = getIOIntProperty("buffer.pool.direct", 0)
 
-        actual val Empty = BufferView(EmptyBuffer, null)
-        actual val Pool: ObjectPool<BufferView> = object : DefaultPool<BufferView>(DEFAULT_BUFFER_POOL_SIZE) {
-            override fun produceInstance(): BufferView {
+        actual val Empty = IoBuffer(EmptyBuffer, null)
+        actual val Pool: ObjectPool<IoBuffer> = object : DefaultPool<IoBuffer>(DEFAULT_BUFFER_POOL_SIZE) {
+            override fun produceInstance(): IoBuffer {
                 val buffer = when (DEFAULT_BUFFER_POOL_DIRECT) {
                     0 -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
                     else -> ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
                 }
-                return BufferView(buffer, null)
+                return IoBuffer(buffer, null)
             }
 
-            override fun disposeInstance(instance: BufferView) {
+            override fun disposeInstance(instance: IoBuffer) {
                 instance.unlink()
             }
 
-            override fun clearInstance(instance: BufferView): BufferView {
+            override fun clearInstance(instance: IoBuffer): IoBuffer {
                 return instance.apply {
                     next = null
                     attachment = null
@@ -867,19 +867,19 @@ actual class BufferView private constructor(
                 }
             }
 
-            override fun validateInstance(instance: BufferView) {
+            override fun validateInstance(instance: IoBuffer) {
                 require(instance.refCount == 0L) { "Buffer is not yet released but tried to recycle" }
                 require(instance.origin == null) { "Unable to recycle buffer view, only origin buffers are applicable" }
             }
         }
 
-        actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
-            override fun borrow(): BufferView {
+        actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
+            override fun borrow(): IoBuffer {
                 val buffer = when (DEFAULT_BUFFER_POOL_DIRECT) {
                     0 -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
                     else -> ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
                 }
-                return BufferView(buffer, null)
+                return IoBuffer(buffer, null)
             }
         }
     }

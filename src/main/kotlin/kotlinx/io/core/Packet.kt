@@ -8,9 +8,9 @@ import kotlinx.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
-abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
+abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
                                   remaining: Long = head.remainingAll(),
-                                  val pool: ObjectPool<BufferView>) : Input {
+                                  val pool: ObjectPool<IoBuffer>) : Input {
 
     final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
 
@@ -62,7 +62,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
      */
     fun release() {
         val head = head
-        val empty = BufferView.Empty
+        val empty = IoBuffer.Empty
 
         if (head !== empty) {
             this.head = empty
@@ -78,9 +78,9 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         closeSource()
     }
 
-    internal fun stealAll(): BufferView? {
+    internal fun stealAll(): IoBuffer? {
         val head = head
-        val empty = BufferView.Empty
+        val empty = IoBuffer.Empty
 
         if (head === empty) return null
         this.head = empty
@@ -89,10 +89,10 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         return head
     }
 
-    internal fun steal(): BufferView? {
+    internal fun steal(): IoBuffer? {
         val head = head
         val next = head.next
-        val empty = BufferView.Empty
+        val empty = IoBuffer.Empty
         if (head === empty) return null
 
         val nextRemaining = next?.readRemaining ?: 0
@@ -105,11 +105,11 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         return head
     }
 
-    internal fun append(chain: BufferView) {
-        if (chain === BufferView.Empty) return
+    internal fun append(chain: IoBuffer) {
+        if (chain === IoBuffer.Empty) return
 
         val size = chain.remainingAll()
-        if (head === BufferView.Empty) {
+        if (head === IoBuffer.Empty) {
             head = chain
             headRemaining = chain.readRemaining
             tailRemaining = size - headRemaining
@@ -142,7 +142,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         }
     }
 
-    private fun readByteSlow(head: BufferView): Byte {
+    private fun readByteSlow(head: IoBuffer): Byte {
         ensureNext(head) ?: throw EOFException("One more byte required but reached end of input")
         return readByte()
     }
@@ -215,12 +215,12 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
     }
 
     @PublishedApi
-    internal inline fun read(block: (BufferView) -> Unit) {
+    internal inline fun read(block: (IoBuffer) -> Unit) {
         read(1, block)
     }
 
     @PublishedApi
-    internal inline fun read(n: Int, block: (BufferView) -> Unit) {
+    internal inline fun read(n: Int, block: (IoBuffer) -> Unit) {
         val head = head
         var before = head.readRemaining
         val buffer = if (before < n) {
@@ -342,7 +342,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         return size
     }
 
-    final override fun readFully(dst: BufferView, length: Int) {
+    final override fun readFully(dst: IoBuffer, length: Int) {
         if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
         require(length <= dst.writeRemaining) { "Not enough free space in destination buffer to write $length bytes" }
 
@@ -354,7 +354,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         }
     }
 
-    final override fun readAvailable(dst: BufferView, length: Int): Int {
+    final override fun readAvailable(dst: IoBuffer, length: Int): Int {
         val remaining = remaining
         if (remaining == 0L) return -1
         val size = minOf(remaining, length.toLong(), dst.writeRemaining.toLong()).toInt()
@@ -520,7 +520,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         }
     }
 
-    private inline fun <R> readN(n: Int, block: BufferView.() -> R): R {
+    private inline fun <R> readN(n: Int, block: IoBuffer.() -> R): R {
         val bb = prepareRead(n) ?: notEnoughBytesAvailable(n)
         val rc = block(bb)
 
@@ -544,15 +544,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
     }
 
     @Deprecated("Non-public API", level = DeprecationLevel.ERROR)
-    final override fun `$prepareRead$`(minSize: Int): BufferView? = prepareRead(minSize, head)
+    final override fun `$prepareRead$`(minSize: Int): IoBuffer? = prepareRead(minSize, head)
 
     @Deprecated("Non public API", level = DeprecationLevel.ERROR)
-    final override fun `$ensureNext$`(current: BufferView): BufferView? = ensureNext(current)
+    final override fun `$ensureNext$`(current: IoBuffer): IoBuffer? = ensureNext(current)
 
     @PublishedApi
-    internal fun ensureNext(current: BufferView) = ensureNext(current, BufferView.Empty)
+    internal fun ensureNext(current: IoBuffer) = ensureNext(current, IoBuffer.Empty)
 
-    private tailrec fun ensureNext(current: BufferView, empty: BufferView): BufferView? {
+    private tailrec fun ensureNext(current: IoBuffer, empty: IoBuffer): IoBuffer? {
         val next = if (current === empty) {
             doFill()
         } else {
@@ -581,11 +581,11 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
     /**
      * Reads the next chunk suitable for reading or `null` if no more chunks available
      */
-    protected abstract fun fill(): BufferView?
+    protected abstract fun fill(): IoBuffer?
 
     protected abstract fun closeSource()
 
-    private fun doFill(): BufferView? {
+    private fun doFill(): IoBuffer? {
         if (noMoreChunksAvailable) return null
         val chunk = fill()
         if (chunk == null) {
@@ -596,9 +596,9 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         return chunk
     }
 
-    internal fun appendView(chunk: BufferView) {
+    internal fun appendView(chunk: IoBuffer) {
         val tail = head.findTail()
-        if (tail === BufferView.Empty) {
+        if (tail === IoBuffer.Empty) {
             head = chunk
             chunk.byteOrder = byteOrder
             require(tailRemaining == 0L) { throw IllegalStateException("It should be no tail remaining bytes if current tail is EmptyBuffer") }
@@ -611,10 +611,10 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    internal inline fun prepareRead(minSize: Int): BufferView? = prepareRead(minSize, head)
+    internal inline fun prepareRead(minSize: Int): IoBuffer? = prepareRead(minSize, head)
 
     @PublishedApi
-    internal tailrec fun prepareRead(minSize: Int, head: BufferView): BufferView? {
+    internal tailrec fun prepareRead(minSize: Int, head: IoBuffer): IoBuffer? {
         val headSize = headRemaining
         if (headSize >= minSize) return head
 
@@ -622,7 +622,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         next.byteOrder = byteOrder
 
         if (headSize == 0) {
-            if (head !== BufferView.Empty) {
+            if (head !== IoBuffer.Empty) {
                 releaseHead(head)
             }
 
@@ -656,8 +656,8 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
         }
     }
 
-    internal fun releaseHead(head: BufferView) {
-        val next = head.next ?: BufferView.Empty
+    internal fun releaseHead(head: IoBuffer) {
+        val next = head.next ?: IoBuffer.Empty
         this.head = next
         val nextRemaining = next.readRemaining
         this.headRemaining = nextRemaining
@@ -666,8 +666,8 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: BufferView,
     }
 
     companion object {
-        val Empty: ByteReadPacket = ByteReadPacket(BufferView.Empty, object : NoPoolImpl<BufferView>() {
-            override fun borrow() = BufferView.Empty
+        val Empty: ByteReadPacket = ByteReadPacket(IoBuffer.Empty, object : NoPoolImpl<IoBuffer>() {
+            override fun borrow() = IoBuffer.Empty
         })
 
         val ReservedSize = 8

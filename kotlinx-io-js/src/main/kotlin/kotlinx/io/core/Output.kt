@@ -16,7 +16,7 @@ actual interface Output : Appendable {
     actual fun writeFully(src: LongArray, offset: Int, length: Int)
     actual fun writeFully(src: FloatArray, offset: Int, length: Int)
     actual fun writeFully(src: DoubleArray, offset: Int, length: Int)
-    actual fun writeFully(src: BufferView, length: Int)
+    actual fun writeFully(src: IoBuffer, length: Int)
 
     actual fun append(csq: CharArray, start: Int, end: Int): Appendable
 
@@ -25,7 +25,7 @@ actual interface Output : Appendable {
     actual fun close()
 
     @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
-    actual fun `$prepareWrite$`(n: Int): BufferView
+    actual fun `$prepareWrite$`(n: Int): IoBuffer
 
     @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
     actual fun `$afterWrite$`()

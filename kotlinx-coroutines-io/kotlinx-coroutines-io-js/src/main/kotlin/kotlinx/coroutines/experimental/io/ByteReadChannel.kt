@@ -43,7 +43,7 @@ actual interface ByteReadChannel {
      */
     actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
 
-    actual suspend fun readAvailable(dst: BufferView): Int
+    actual suspend fun readAvailable(dst: IoBuffer): Int
 
     suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int
 
@@ -52,7 +52,7 @@ actual interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
-    actual suspend fun readFully(dst: BufferView, n: Int)
+    actual suspend fun readFully(dst: IoBuffer, n: Int)
 
     suspend fun readFully(dst: ArrayBuffer, offset: Int, length: Int)
 
@@ -164,7 +164,7 @@ actual interface ByteReadChannel {
 
     actual companion object {
         actual val Empty: ByteReadChannel by lazy {
-            ByteChannelJS(BufferView.Empty, false).apply {
+            ByteChannelJS(IoBuffer.Empty, false).apply {
                 close(null)
             }
         }

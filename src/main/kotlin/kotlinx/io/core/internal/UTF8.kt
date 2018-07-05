@@ -2,7 +2,7 @@ package kotlinx.io.core.internal
 
 import kotlinx.io.core.*
 
-internal inline fun BufferView.decodeASCII(consumer: (Char) -> Boolean): Boolean {
+internal inline fun IoBuffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
     for (i in 0 until readRemaining) {
         val v = readByte().toInt() and 0xff
         if (v and 0x80 != 0 || !consumer(v.toChar())) {
@@ -82,7 +82,7 @@ private fun prematureEndOfStreamUtf(size: Int): Nothing = throw EOFException("Pr
  * @return number of bytes required to decode incomplete utf8 character or 0 if all bytes were processed
  * or -1 if consumer rejected loop
  */
-internal inline fun BufferView.decodeUTF8(consumer: (Char) -> Boolean): Int {
+internal inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0
     var lastByteCount = 0

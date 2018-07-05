@@ -8,7 +8,7 @@ import kotlin.test.*
 
 class BytePacketBuildTestExtended : BytePacketBuildTest() {
     @get:Rule
-    override val pool = VerifyingObjectPool(BufferView.Pool)
+    override val pool = VerifyingObjectPool(IoBuffer.Pool)
 
     @Test
     fun smokeSingleBufferTestExtended() {

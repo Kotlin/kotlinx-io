@@ -40,7 +40,7 @@ expect fun BytePacketBuilder(headerSizeHint: Int = 0): BytePacketBuilder
  * }
  * ```
  */
-class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<BufferView>): BytePacketBuilderPlatformBase(pool) {
+class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuffer>): BytePacketBuilderPlatformBase(pool) {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
@@ -57,10 +57,10 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
         return size
     }
 
-    val isEmpty: Boolean get() = head === BufferView.Empty || _size == 0 || (_size == -1 && size == 0)
-    val isNotEmpty: Boolean get() = head !== BufferView.Empty || _size > 0 || (size == -1 && (head.canRead() || size > 0))
+    val isEmpty: Boolean get() = head === IoBuffer.Empty || _size == 0 || (_size == -1 && size == 0)
+    val isNotEmpty: Boolean get() = head !== IoBuffer.Empty || _size > 0 || (size == -1 && (head.canRead() || size > 0))
 
-    private var head: BufferView = BufferView.Empty
+    private var head: IoBuffer = IoBuffer.Empty
 
     override fun append(c: Char): BytePacketBuilder {
         return super.append(c) as BytePacketBuilder
@@ -79,7 +79,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
      */
     override fun release() {
         val head = this.head
-        val empty = BufferView.Empty
+        val empty = IoBuffer.Empty
 
         if (head !== empty) {
             this.head = empty
@@ -104,7 +104,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
      */
     fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
         val head = head.copyAll()
-        val pool = if (head === BufferView.Empty) EmptyBufferViewPool else pool
+        val pool = if (head === IoBuffer.Empty) EmptyBufferViewPool else pool
         val packet = ByteReadPacket(head, pool)
 
         return try {
@@ -131,14 +131,14 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
      * Detach all chunks and cleanup all internal state so builder could be reusable again
      * @return a chain of buffer views or `null` of it is empty
      */
-    internal fun stealAll(): BufferView? {
+    internal fun stealAll(): IoBuffer? {
         val head = this.head
 
-        this.head = BufferView.Empty
-        this.tail = BufferView.Empty
+        this.head = IoBuffer.Empty
+        this.tail = IoBuffer.Empty
         this._size = 0
 
-        return if (head === BufferView.Empty) null else head
+        return if (head === IoBuffer.Empty) null else head
     }
 
     /**
@@ -152,7 +152,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
         }
 
         val tail = tail
-        if (tail === BufferView.Empty) {
+        if (tail === IoBuffer.Empty) {
             head = foreignStolen
             this.tail = foreignStolen.findTail()
             _size = foreignStolen.remainingAll().toInt()
@@ -208,8 +208,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
         }
     }
 
-    override fun last(buffer: BufferView) {
-        if (head === BufferView.Empty) {
+    override fun last(buffer: IoBuffer) {
+        if (head === IoBuffer.Empty) {
             if (buffer.isEmpty()) { // headerSize is just a hint so we shouldn't force to reserve space
                 buffer.reserveStartGap(headerSizeHint) // it will always fail for non-empty buffer
             }
@@ -225,9 +225,9 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<Buffer
 }
 
 expect abstract class BytePacketBuilderPlatformBase
-    internal constructor(pool: ObjectPool<BufferView>) : BytePacketBuilderBase
+    internal constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase
 
-abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<BufferView>) : Appendable, Output {
+abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<IoBuffer>) : Appendable, Output {
 
     /**
      * Number of bytes currently buffered or -1 if not known (need to be recomputed)
@@ -246,7 +246,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         }
 
     @PublishedApi
-    internal var tail: BufferView = BufferView.Empty
+    internal var tail: IoBuffer = IoBuffer.Empty
 
     final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
         if (length == 0) return
@@ -367,7 +367,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         }
     }
 
-    override fun writeFully(src: BufferView, length: Int) {
+    override fun writeFully(src: IoBuffer, length: Int) {
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(length <= src.readRemaining) { "Not enough bytes available in src buffer to read $length bytes" }
 
@@ -524,7 +524,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 //    }
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun BufferView.putUtf8Char(v: Int) = when {
+    private inline fun IoBuffer.putUtf8Char(v: Int) = when {
         v in 1..0x7f -> {
             writeByte(v.toByte())
             1
@@ -547,7 +547,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
      */
     abstract fun release()
 
-    override fun `$prepareWrite$`(n: Int): BufferView {
+    override fun `$prepareWrite$`(n: Int): IoBuffer {
         if (tail.writeRemaining >= n) return tail
         return appendNewBuffer()
     }
@@ -564,7 +564,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     }
 
     @PublishedApi
-    internal inline fun write(size: Int, block: (BufferView) -> Int) {
+    internal inline fun write(size: Int, block: (IoBuffer) -> Int) {
         var buffer = tail
         if (buffer.writeRemaining < size) {
             buffer = appendNewBuffer()
@@ -573,7 +573,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         addSize(block(buffer))
     }
 
-    private inline fun writeLoop(size: Int, predicate: () -> Boolean, block: (BufferView, Int) -> Int) {
+    private inline fun writeLoop(size: Int, predicate: () -> Boolean, block: (IoBuffer, Int) -> Int) {
         if (!predicate()) return
         var written = 0
         var buffer = tail
@@ -601,10 +601,10 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         }
     }
 
-    internal abstract fun last(buffer: BufferView)
+    internal abstract fun last(buffer: IoBuffer)
 
     @PublishedApi
-    internal fun appendNewBuffer(): BufferView {
+    internal fun appendNewBuffer(): IoBuffer {
         val new = pool.borrow()
         new.reserveEndGap(ByteReadPacket.ReservedSize)
         new.byteOrder = byteOrder

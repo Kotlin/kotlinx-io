@@ -6,9 +6,9 @@ import kotlinx.io.js.*
 import kotlinx.io.pool.*
 import org.khronos.webgl.*
 
-actual class BufferView internal constructor(
+actual class IoBuffer internal constructor(
         internal var content: ArrayBuffer,
-        internal actual val origin: BufferView?
+        internal actual val origin: IoBuffer?
 ) : Input, Output {
     private var refCount = 1
 
@@ -27,7 +27,7 @@ actual class BufferView internal constructor(
     private var platformEndian = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN
 
     actual var attachment: Any? = null
-    actual var next: BufferView? = null
+    actual var next: IoBuffer? = null
     override val endOfInput: Boolean get() = writePosition == readPosition
 
     /**
@@ -282,7 +282,7 @@ actual class BufferView internal constructor(
         }
     }
 
-    actual final override fun writeFully(src: BufferView, length: Int) {
+    actual final override fun writeFully(src: IoBuffer, length: Int) {
         require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
         require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
 
@@ -572,7 +572,7 @@ actual class BufferView internal constructor(
         return size
     }
 
-    actual final override fun readAvailable(dst: BufferView, length: Int): Int {
+    actual final override fun readAvailable(dst: IoBuffer, length: Int): Int {
         val readRemaining = readRemaining
         if (readRemaining == 0) return -1
         val size = minOf(dst.writeRemaining, readRemaining, length)
@@ -630,7 +630,7 @@ actual class BufferView internal constructor(
         return size
     }
 
-    actual final override fun readFully(dst: BufferView, length: Int) {
+    actual final override fun readFully(dst: IoBuffer, length: Int) {
         if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
         if (dst.writeRemaining < length) throw IllegalArgumentException("Not enough free space in dst buffer to write $length bytes")
 
@@ -898,11 +898,11 @@ actual class BufferView internal constructor(
 
     actual fun isExclusivelyOwned(): Boolean = refCount == 1
 
-    actual fun makeView(): BufferView {
+    actual fun makeView(): IoBuffer {
         val o = origin ?: this
         o.acquire()
 
-        val view = BufferView(content, o)
+        val view = IoBuffer(content, o)
         view.attachment = attachment
         view.readPosition = readPosition
         view.writePosition = writePosition
@@ -911,7 +911,7 @@ actual class BufferView internal constructor(
         return view
     }
 
-    actual fun release(pool: ObjectPool<BufferView>) {
+    actual fun release(pool: ObjectPool<IoBuffer>) {
         if (release()) {
             resetForWrite()
 
@@ -925,7 +925,7 @@ actual class BufferView internal constructor(
     }
 
     @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
-    actual fun writeBuffer(src: BufferView, length: Int): Int {
+    actual fun writeBuffer(src: IoBuffer, length: Int): Int {
         writeFully(src, length)
         return length
     }
@@ -935,12 +935,12 @@ actual class BufferView internal constructor(
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$ensureNext$`(current: BufferView): BufferView? {
+    actual final override fun `$ensureNext$`(current: IoBuffer): IoBuffer? {
         return null
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$prepareRead$`(minSize: Int): BufferView? {
+    actual final override fun `$prepareRead$`(minSize: Int): IoBuffer? {
         return this.takeIf { it.readRemaining >= minSize }
     }
 
@@ -949,7 +949,7 @@ actual class BufferView internal constructor(
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$prepareWrite$`(n: Int): BufferView {
+    actual final override fun `$prepareWrite$`(n: Int): IoBuffer {
         return takeIf { it.writeRemaining >= n } ?: throw IllegalArgumentException("Not enough space in the chunk")
     }
 
@@ -1013,7 +1013,7 @@ actual class BufferView internal constructor(
         readPosition += rc
     }
 
-    internal actual fun writeBufferPrepend(other: BufferView) {
+    internal actual fun writeBufferPrepend(other: IoBuffer) {
         val size = other.readRemaining
         require(size <= startGap) { "size should be greater than startGap (size = $size, startGap = $startGap)" }
 
@@ -1025,7 +1025,7 @@ actual class BufferView internal constructor(
         other.readPosition += size
     }
 
-    internal actual fun writeBufferAppend(other: BufferView, maxSize: Int) {
+    internal actual fun writeBufferAppend(other: IoBuffer, maxSize: Int) {
         val size = minOf(other.readRemaining, maxSize)
         require(size <= writeRemaining + endGap) { "should should be greater than write space + end gap (size = $size, " +
                 "writeRemaining = $writeRemaining, endGap = $endGap, rem+gap = ${writeRemaining + endGap}" }
@@ -1056,7 +1056,7 @@ actual class BufferView internal constructor(
     }
 
     private fun release(): Boolean {
-        if (this === Empty) throw IllegalStateException("attempted to release BufferView.Empty")
+        if (this === Empty) throw IllegalStateException("attempted to release IoBuffer.Empty")
 
         val v = refCount
         if (v == 0) throw IllegalStateException("Unable to release: buffer has been already released")
@@ -1078,13 +1078,13 @@ actual class BufferView internal constructor(
         private val EmptyF32 = Float32Array(0)
         private val EmptyF64 = Float64Array(0)
 
-        actual val Empty = BufferView(EmptyBuffer, null)
-        actual val Pool: ObjectPool<BufferView> = object: DefaultPool<BufferView>(BUFFER_VIEW_POOL_SIZE) {
-            override fun produceInstance(): BufferView {
-                return BufferView(ArrayBuffer(BUFFER_VIEW_SIZE), null)
+        actual val Empty = IoBuffer(EmptyBuffer, null)
+        actual val Pool: ObjectPool<IoBuffer> = object: DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
+            override fun produceInstance(): IoBuffer {
+                return IoBuffer(ArrayBuffer(BUFFER_VIEW_SIZE), null)
             }
 
-            override fun clearInstance(instance: BufferView): BufferView {
+            override fun clearInstance(instance: IoBuffer): IoBuffer {
                 return super.clearInstance(instance).apply {
                     instance.resetForWrite()
                     instance.next = null
@@ -1095,21 +1095,21 @@ actual class BufferView internal constructor(
                 }
             }
 
-            override fun validateInstance(instance: BufferView) {
+            override fun validateInstance(instance: IoBuffer) {
                 super.validateInstance(instance)
 
                 require(instance.refCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.refCount})"}
                 require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
             }
 
-            override fun disposeInstance(instance: BufferView) {
+            override fun disposeInstance(instance: IoBuffer) {
                 instance.unlink()
             }
         }
 
-        actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
-            override fun borrow(): BufferView {
-                return BufferView(ArrayBuffer(4096), null)
+        actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
+            override fun borrow(): IoBuffer {
+                return IoBuffer(ArrayBuffer(4096), null)
             }
         }
     }

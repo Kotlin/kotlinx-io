@@ -4,6 +4,6 @@ import kotlinx.io.core.*
 
 class StringsSequentialTest : StringsTest() {
     override fun ByteChannel(autoFlush: Boolean): ByteChannel {
-        return ByteChannelSequentialJVM(BufferView.Empty, autoFlush)
+        return ByteChannelSequentialJVM(IoBuffer.Empty, autoFlush)
     }
 }

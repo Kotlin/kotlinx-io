@@ -30,7 +30,7 @@ actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int,
     return existingArray ?: ByteArray(result.remaining()).also { result.get(it) }
 }
 
-internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
+internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int {
     val cb = CharBuffer.wrap(input, fromIndex, toIndex)
     val before = cb.remaining()
 
@@ -48,7 +48,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
         return
     }
 
-    val tmp = BufferView.Pool.borrow()
+    val tmp = IoBuffer.Pool.borrow()
     var readSize = 1
 
     try {
@@ -113,11 +113,11 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
             }
         }
     } finally {
-        tmp.release(BufferView.Pool)
+        tmp.release(IoBuffer.Pool)
     }
 }
 
-internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean {
+internal actual fun CharsetEncoder.encodeComplete(dst: IoBuffer): Boolean {
     var completed = false
 
     dst.writeDirect(0) { bb ->
@@ -141,7 +141,7 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     var copied = 0
     val cb = CharBuffer.allocate(DECODE_CHAR_BUFFER_SIZE)
 
-    input.takeWhileSize { buffer: BufferView ->
+    input.takeWhileSize { buffer: IoBuffer ->
         val rem = max - copied
         if (rem == 0) return@takeWhileSize 0
 
@@ -228,7 +228,7 @@ private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): Strin
     var remainingInputBytes = inputLength
     var lastChunk = false
 
-    input.takeWhileSize { buffer: BufferView ->
+    input.takeWhileSize { buffer: IoBuffer ->
         if (!cb.hasRemaining() || remainingInputBytes == 0) return@takeWhileSize 0
 
         var readSize = 1

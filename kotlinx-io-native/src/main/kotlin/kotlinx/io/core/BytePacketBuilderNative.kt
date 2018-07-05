@@ -4,7 +4,7 @@ import kotlinx.io.pool.*
 import kotlinx.cinterop.*
 
 actual abstract class BytePacketBuilderPlatformBase
-internal actual constructor(pool: ObjectPool<BufferView>) : BytePacketBuilderBase(pool) {
+internal actual constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase(pool) {
     final override fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
         writeFully(src, offset.toLong(), length.toLong())
     }

@@ -5,7 +5,7 @@ import kotlinx.io.core.*
 import java.nio.ByteBuffer
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
-class ByteChannelSequentialJVM(initial: BufferView, autoFlush: Boolean)
+class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
     : ByteChannelSequentialBase(initial, autoFlush) {
 
     override suspend fun writeAvailable(src: ByteBuffer): Int {

@@ -16,7 +16,7 @@ expect interface Output : Appendable {
     fun writeFully(src: LongArray, offset: Int, length: Int)
     fun writeFully(src: FloatArray, offset: Int, length: Int)
     fun writeFully(src: DoubleArray, offset: Int, length: Int)
-    fun writeFully(src: BufferView, length: Int)
+    fun writeFully(src: IoBuffer, length: Int)
 
     fun append(csq: CharArray, start: Int, end: Int): Appendable
 
@@ -26,7 +26,7 @@ expect interface Output : Appendable {
     fun close()
 
     @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
-    fun `$prepareWrite$`(n: Int): BufferView
+    fun `$prepareWrite$`(n: Int): IoBuffer
 
     @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
     fun `$afterWrite$`()
@@ -73,7 +73,7 @@ fun Output.writeFully(src: DoubleArray, offset: Int = 0, length: Int = src.size)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Output.writeFully(src: BufferView, length: Int = src.readRemaining) {
+fun Output.writeFully(src: IoBuffer, length: Int = src.readRemaining) {
     writeFully(src, length)
 }
 
@@ -82,7 +82,7 @@ fun Output.fill(n: Long, v: Byte = 0) {
     fill(n, v)
 }
 
-inline fun Output.writeWhile(block: (BufferView) -> Boolean) {
+inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
     try {
         var tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(1)
 
@@ -95,7 +95,7 @@ inline fun Output.writeWhile(block: (BufferView) -> Boolean) {
     }
 }
 
-inline fun Output.writeWhileSize(initialSize: Int = 1, block: (BufferView) -> Int) {
+inline fun Output.writeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     try {
         var tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(initialSize)
 

@@ -2,21 +2,24 @@ package kotlinx.io.core
 
 import kotlinx.io.pool.*
 
+@Deprecated("Use IoBuffer instead", replaceWith = ReplaceWith("IoBuffer", "kotlinx.io.core.IoBuffer"))
+typealias BufferView = IoBuffer
+
 /**
  * A read-write facade to actual buffer of fixed size. Multiple views could share the same actual buffer.
  * Concurrent unsafe. The only concurrent-safe operation is [release].
  * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
  */
-expect class BufferView : Input, Output {
+expect class IoBuffer : Input, Output {
     /**
      * Reference to an origin buffer view this was copied from
      */
-    internal val origin: BufferView?
+    internal val origin: IoBuffer?
 
     /**
      * Mutable reference to next buffer view. Useful to chain multiple views
      */
-    var next: BufferView?
+    var next: IoBuffer?
 
     /**
      * User data: could be a session, connection or anything useful
@@ -89,7 +92,7 @@ expect class BufferView : Input, Output {
     final override fun readFully(dst: LongArray, offset: Int, length: Int)
     final override fun readFully(dst: FloatArray, offset: Int, length: Int)
     final override fun readFully(dst: DoubleArray, offset: Int, length: Int)
-    final override fun readFully(dst: BufferView, length: Int)
+    final override fun readFully(dst: IoBuffer, length: Int)
 
     final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
     final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
@@ -97,7 +100,7 @@ expect class BufferView : Input, Output {
     final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
     final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
     final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
-    final override fun readAvailable(dst: BufferView, length: Int): Int
+    final override fun readAvailable(dst: IoBuffer, length: Int): Int
 
     final override fun discard(n: Long): Long
 
@@ -120,7 +123,7 @@ expect class BufferView : Input, Output {
     final override fun writeFully(src: LongArray, offset: Int, length: Int)
     final override fun writeFully(src: FloatArray, offset: Int, length: Int)
     final override fun writeFully(src: DoubleArray, offset: Int, length: Int)
-    final override fun writeFully(src: BufferView, length: Int)
+    final override fun writeFully(src: IoBuffer, length: Int)
 
     fun appendChars(csq: CharArray, start: Int, end: Int): Int
     fun appendChars(csq: CharSequence, start: Int, end: Int): Int
@@ -144,10 +147,10 @@ expect class BufferView : Input, Output {
      * Writes [length] bytes of [src] buffer or fails if not enough free space available
      */
     @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
-    fun writeBuffer(src: BufferView, length: Int): Int
+    fun writeBuffer(src: IoBuffer, length: Int): Int
 
-    internal fun writeBufferPrepend(other: BufferView)
-    internal fun writeBufferAppend(other: BufferView, maxSize: Int)
+    internal fun writeBufferPrepend(other: IoBuffer)
+    internal fun writeBufferAppend(other: IoBuffer, maxSize: Int)
 
     /**
      * Push back [n] bytes: only possible if there were at least [n] bytes read before this operation.
@@ -180,35 +183,35 @@ expect class BufferView : Input, Output {
     /**
      * Creates a new view to the same actual buffer with independent read and write positions and gaps
      */
-    fun makeView(): BufferView
+    fun makeView(): IoBuffer
 
     /**
      * releases buffer view and returns it to the [pool] if there are no more usages. Based on simple ref-couting so
      * it is very fragile.
      */
-    fun release(pool: ObjectPool<BufferView>)
+    fun release(pool: ObjectPool<IoBuffer>)
 
     final override fun `$updateRemaining$`(remaining: Int)
-    final override fun `$ensureNext$`(current: BufferView): BufferView?
-    final override fun `$prepareRead$`(minSize: Int): BufferView?
+    final override fun `$ensureNext$`(current: IoBuffer): IoBuffer?
+    final override fun `$prepareRead$`(minSize: Int): IoBuffer?
 
     final override fun `$afterWrite$`()
-    final override fun `$prepareWrite$`(n: Int): BufferView
+    final override fun `$prepareWrite$`(n: Int): IoBuffer
 
     final override fun flush()
 
     companion object {
-        val Empty: BufferView
-        val Pool: ObjectPool<BufferView>
-        val NoPool: ObjectPool<BufferView>
+        val Empty: IoBuffer
+        val Pool: ObjectPool<IoBuffer>
+        val NoPool: ObjectPool<IoBuffer>
     }
 }
 
-object EmptyBufferViewPool : NoPoolImpl<BufferView>() {
-    override fun borrow() = BufferView.Empty
+object EmptyBufferViewPool : NoPoolImpl<IoBuffer>() {
+    override fun borrow() = IoBuffer.Empty
 }
 
-internal tailrec fun BufferView?.releaseAll(pool: ObjectPool<BufferView>) {
+internal tailrec fun IoBuffer?.releaseAll(pool: ObjectPool<IoBuffer>) {
     if (this == null) return
     release(pool)
     next.releaseAll(pool)
@@ -217,14 +220,14 @@ internal tailrec fun BufferView?.releaseAll(pool: ObjectPool<BufferView>) {
 /**
  * Copy every element of the chain starting from this and setup next links.
  */
-internal fun BufferView.copyAll(): BufferView {
+internal fun IoBuffer.copyAll(): IoBuffer {
     val copied = makeView()
     val next = this.next ?: return copied
 
     return next.copyAll(copied, copied)
 }
 
-private tailrec fun BufferView.copyAll(head: BufferView, prev: BufferView): BufferView {
+private tailrec fun IoBuffer.copyAll(head: IoBuffer, prev: IoBuffer): IoBuffer {
     val copied = makeView()
     prev.next = copied
 
@@ -233,7 +236,7 @@ private tailrec fun BufferView.copyAll(head: BufferView, prev: BufferView): Buff
     return next.copyAll(head, copied)
 }
 
-internal tailrec fun BufferView.findTail(): BufferView {
+internal tailrec fun IoBuffer.findTail(): IoBuffer {
     val next = this.next ?: return this
     return next.findTail()
 }
@@ -241,16 +244,16 @@ internal tailrec fun BufferView.findTail(): BufferView {
 /**
  * Summarize remainings of all elements of the chain
  */
-internal fun BufferView.remainingAll(): Long = remainingAll(0L)
+internal fun IoBuffer.remainingAll(): Long = remainingAll(0L)
 
-private tailrec fun BufferView.remainingAll(n: Long): Long {
+private tailrec fun IoBuffer.remainingAll(n: Long): Long {
     val rem = readRemaining.toLong() + n
     val next = this.next ?: return rem
 
     return next.remainingAll(rem)
 }
 
-internal tailrec fun BufferView.isEmpty(): Boolean {
+internal tailrec fun IoBuffer.isEmpty(): Boolean {
     if (readRemaining > 0) return false
     val next = this.next ?: return true
     return next.isEmpty()

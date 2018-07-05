@@ -43,7 +43,7 @@ actual interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
-    actual suspend fun readAvailable(dst: BufferView): Int
+    actual suspend fun readAvailable(dst: IoBuffer): Int
     suspend fun readAvailable(dst: ByteBuffer): Int
 
     /**
@@ -51,7 +51,7 @@ actual interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
-    actual suspend fun readFully(dst: BufferView, n: Int)
+    actual suspend fun readFully(dst: IoBuffer, n: Int)
     suspend fun readFully(dst: ByteBuffer): Int
 
     /**
@@ -234,7 +234,7 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
 }
 
 private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Long): Long {
-    val buffer = BufferView.Pool.borrow()
+    val buffer = IoBuffer.Pool.borrow()
     val dstNeedsFlush = !dst.autoFlush
 
     try {
@@ -260,7 +260,7 @@ private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Lon
         dst.close(t)
         throw t
     } finally {
-        BufferView.Pool.recycle(buffer)
+        IoBuffer.Pool.recycle(buffer)
     }
 }
 

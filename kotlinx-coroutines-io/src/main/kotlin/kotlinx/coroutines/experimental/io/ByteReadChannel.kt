@@ -41,14 +41,14 @@ expect interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
-    suspend fun readAvailable(dst: BufferView): Int
+    suspend fun readAvailable(dst: IoBuffer): Int
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
     suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
-    suspend fun readFully(dst: BufferView, n: Int)
+    suspend fun readFully(dst: IoBuffer, n: Int)
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
@@ -177,7 +177,7 @@ suspend fun ByteReadChannel.readRemaining(limit: Long): ByteReadPacket = readRem
  */
 suspend fun ByteReadChannel.readRemaining(): ByteReadPacket = readRemaining(Long.MAX_VALUE, 0)
 
-suspend fun ByteReadChannel.readFully(dst: BufferView) = readFully(dst, dst.writeRemaining)
+suspend fun ByteReadChannel.readFully(dst: IoBuffer) = readFully(dst, dst.writeRemaining)
 
 suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable): Boolean {
     return readUTF8LineTo(out, Int.MAX_VALUE)
