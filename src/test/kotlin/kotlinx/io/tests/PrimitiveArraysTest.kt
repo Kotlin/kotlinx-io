@@ -4,7 +4,7 @@ import kotlinx.io.core.*
 import kotlin.test.*
 
 class PrimitiveArraysTest {
-    private val pool = VerifyingObjectPool(BufferView.NoPool)
+    private val pool = VerifyingObjectPool(IoBuffer.NoPool)
     private val view = pool.borrow()
 
     private val i8 = byteArrayOf(-15, 0, 1, -1, 127)
@@ -609,7 +609,7 @@ class PrimitiveArraysTest {
         compareSubRange(tmp)
     }
 
-    private fun BufferView.readHex() = buildString(readRemaining * 2) {
+    private fun IoBuffer.readHex() = buildString(readRemaining * 2) {
         repeat(readRemaining) {
             val i = readByte().toInt() and 0xff
             val l = i shr 4
@@ -628,7 +628,7 @@ class PrimitiveArraysTest {
         else append('a' + (d - 10))
     }
 
-    private fun BufferView.writeHex(hex: CharSequence) {
+    private fun IoBuffer.writeHex(hex: CharSequence) {
         for (idx in 0..hex.length - 2 step 2) {
             val l = unhex(hex[idx])
             val r = unhex(hex[idx + 1])

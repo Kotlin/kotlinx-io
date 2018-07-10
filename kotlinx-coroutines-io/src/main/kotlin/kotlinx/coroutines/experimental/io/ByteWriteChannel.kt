@@ -49,14 +49,14 @@ expect interface ByteWriteChannel {
      * Writes as much as possible and only suspends if buffer is full
      */
     suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
-    suspend fun writeAvailable(src: BufferView): Int
+    suspend fun writeAvailable(src: IoBuffer): Int
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
      * Crashes if channel get closed while writing.
      */
     suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
-    suspend fun writeFully(src: BufferView)
+    suspend fun writeFully(src: IoBuffer)
 
     suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 

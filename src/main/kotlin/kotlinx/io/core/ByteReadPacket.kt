@@ -2,8 +2,8 @@ package kotlinx.io.core
 
 import kotlinx.io.pool.*
 
-expect class ByteReadPacket internal constructor(head: BufferView, remaining: Long, pool: ObjectPool<BufferView>): ByteReadPacketPlatformBase {
-    constructor(head: BufferView, pool: ObjectPool<BufferView>)
+expect class ByteReadPacket internal constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>): ByteReadPacketPlatformBase {
+    constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>)
 
     companion object {
         val Empty: ByteReadPacket
@@ -11,5 +11,5 @@ expect class ByteReadPacket internal constructor(head: BufferView, remaining: Lo
     }
 }
 
-expect abstract class ByteReadPacketPlatformBase protected constructor(head: BufferView, remaining: Long, pool: ObjectPool<BufferView>) : ByteReadPacketBase {
+expect abstract class ByteReadPacketPlatformBase protected constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketBase {
 }

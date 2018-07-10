@@ -28,7 +28,7 @@ fun BytePacketBuilder.writeFully(src: Int8Array, offset: Int = 0, length: Int = 
 
     while (rem > 0) {
         @Suppress("INVISIBLE_MEMBER")
-        write(1) { bb: BufferView ->
+        write(1) { bb: IoBuffer ->
             val size = minOf(bb.writeRemaining, rem)
             bb.write(src, written + offset, size)
             written += size

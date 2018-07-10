@@ -6,15 +6,15 @@ import kotlin.test.*
 class BufferViewTest {
     @Test
     fun smokeTest() {
-        assertEquals(0, BufferView.Empty.capacity)
-        assertEquals(0, BufferView.Empty.readRemaining)
-        assertEquals(0, BufferView.Empty.writeRemaining)
-        assertEquals(0, BufferView.Empty.startGap)
-        assertEquals(0, BufferView.Empty.endGap)
-        assertFalse(BufferView.Empty.canRead())
-        assertFalse(BufferView.Empty.canWrite())
+        assertEquals(0, IoBuffer.Empty.capacity)
+        assertEquals(0, IoBuffer.Empty.readRemaining)
+        assertEquals(0, IoBuffer.Empty.writeRemaining)
+        assertEquals(0, IoBuffer.Empty.startGap)
+        assertEquals(0, IoBuffer.Empty.endGap)
+        assertFalse(IoBuffer.Empty.canRead())
+        assertFalse(IoBuffer.Empty.canWrite())
 
-        val buffer = BufferView.Pool.borrow()
+        val buffer = IoBuffer.Pool.borrow()
         try {
             assertNotEquals(0, buffer.writeRemaining)
             assertEquals(buffer.capacity, buffer.writeRemaining)
@@ -24,13 +24,13 @@ class BufferViewTest {
             assertEquals(0x11223344, buffer.readInt())
             assertEquals(0, buffer.readRemaining)
         } finally {
-            buffer.release(BufferView.Pool)
+            buffer.release(IoBuffer.Pool)
         }
     }
 
     @Test
     fun testResetForWrite() {
-        val buffer = BufferView.Pool.borrow()
+        val buffer = IoBuffer.Pool.borrow()
         try {
             val capacity = buffer.capacity
 
@@ -42,20 +42,20 @@ class BufferViewTest {
             assertEquals(capacity, buffer.writeRemaining)
             assertEquals(0, buffer.readRemaining)
         } finally {
-            buffer.release(BufferView.Pool)
+            buffer.release(IoBuffer.Pool)
         }
     }
 
     @Test
     fun testWriteWhenImpossible() {
-        val buffer = BufferView.Pool.borrow()
+        val buffer = IoBuffer.Pool.borrow()
         try {
             buffer.resetForRead()
             assertFails {
                 buffer.writeInt(1)
             }
         } finally {
-            buffer.release(BufferView.Pool)
+            buffer.release(IoBuffer.Pool)
         }
     }
 }

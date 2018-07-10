@@ -17,7 +17,7 @@ expect interface Input {
     fun readFully(dst: LongArray, offset: Int, length: Int)
     fun readFully(dst: FloatArray, offset: Int, length: Int)
     fun readFully(dst: DoubleArray, offset: Int, length: Int)
-    fun readFully(dst: BufferView, length: Int = dst.writeRemaining)
+    fun readFully(dst: IoBuffer, length: Int = dst.writeRemaining)
 
     fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
     fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
@@ -25,7 +25,7 @@ expect interface Input {
     fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
     fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
     fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: BufferView, length: Int): Int
+    fun readAvailable(dst: IoBuffer, length: Int): Int
 
     fun discard(n: Long): Long
     fun close()
@@ -34,10 +34,10 @@ expect interface Input {
     fun `$updateRemaining$`(remaining: Int)
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    fun `$ensureNext$`(current: BufferView): BufferView?
+    fun `$ensureNext$`(current: IoBuffer): IoBuffer?
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    fun `$prepareRead$`(minSize: Int): BufferView?
+    fun `$prepareRead$`(minSize: Int): IoBuffer?
 }
 
 
@@ -72,7 +72,7 @@ fun Input.readFully(dst: DoubleArray, offset: Int = 0, length: Int = dst.size) {
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: BufferView, length: Int = dst.writeRemaining) {
+fun Input.readFully(dst: IoBuffer, length: Int = dst.writeRemaining) {
     return readFully(dst, length)
 }
 
@@ -107,7 +107,7 @@ fun Input.readAvailable(dst: DoubleArray, offset: Int = 0, length: Int = dst.siz
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: BufferView, length: Int = dst.writeRemaining): Int {
+fun Input.readAvailable(dst: IoBuffer, length: Int = dst.writeRemaining): Int {
     return readAvailable(dst, length)
 }
 
@@ -134,7 +134,7 @@ fun Input.discardExact(n: Int) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
-inline fun Input.takeWhile(block: (BufferView) -> Boolean) {
+inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
     var current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(1) ?: return
 
     do {
@@ -158,7 +158,7 @@ inline fun Input.takeWhile(block: (BufferView) -> Boolean) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
-inline fun Input.takeWhileSize(initialSize: Int = 1, block: (BufferView) -> Int) {
+inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     var current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(1) ?: return
     var size = initialSize
 

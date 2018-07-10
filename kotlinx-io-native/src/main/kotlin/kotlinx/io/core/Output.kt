@@ -18,7 +18,7 @@ actual interface Output : Appendable {
     actual fun writeFully(src: LongArray, offset: Int, length: Int)
     actual fun writeFully(src: FloatArray, offset: Int, length: Int)
     actual fun writeFully(src: DoubleArray, offset: Int, length: Int)
-    actual fun writeFully(src: BufferView, length: Int)
+    actual fun writeFully(src: IoBuffer, length: Int)
 
     fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
     fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
@@ -30,7 +30,7 @@ actual interface Output : Appendable {
     actual fun close()
 
     @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
-    actual fun `$prepareWrite$`(n: Int): BufferView
+    actual fun `$prepareWrite$`(n: Int): IoBuffer
 
     @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
     actual fun `$afterWrite$`()
@@ -60,7 +60,7 @@ fun Output.writeFully(src: DoubleArray) {
     writeFully(src, 0, src.size)
 }
 
-fun Output.writeFully(src: BufferView) {
+fun Output.writeFully(src: IoBuffer) {
     writeFully(src, src.readRemaining)
 }
 

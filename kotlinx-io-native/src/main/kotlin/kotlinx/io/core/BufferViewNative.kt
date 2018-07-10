@@ -5,10 +5,10 @@ import kotlinx.io.pool.*
 import platform.posix.memcpy
 import platform.posix.memset
 
-actual class BufferView internal constructor(
+actual class IoBuffer internal constructor(
         private var content: CPointer<ByteVar>,
         private val contentCapacity: Int,
-        internal actual val origin: BufferView?
+        internal actual val origin: IoBuffer?
 ) : Input, Output {
     private var refCount = 1
 
@@ -19,7 +19,7 @@ actual class BufferView internal constructor(
     private var platformEndian = ByteOrder.BIG_ENDIAN === ByteOrder.nativeOrder()
 
     actual var attachment: Any? = null
-    actual var next: BufferView? = null
+    actual var next: IoBuffer? = null
 
     actual val capacity: Int get() = contentCapacity
     actual val readRemaining: Int get() = writePosition - readPosition
@@ -273,7 +273,7 @@ actual class BufferView internal constructor(
         readPosition += length * 8
     }
 
-    actual final override fun readFully(dst: BufferView, length: Int) {
+    actual final override fun readFully(dst: IoBuffer, length: Int) {
         require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
         require(length <= dst.writeRemaining) { "Not enough space in the destination buffer to read $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
@@ -412,7 +412,7 @@ actual class BufferView internal constructor(
         return copySize
     }
 
-    actual final override fun readAvailable(dst: BufferView, length: Int): Int {
+    actual final override fun readAvailable(dst: IoBuffer, length: Int): Int {
         require(length <= dst.writeRemaining) { "Not enough space in the dst buffer to write $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
 
@@ -578,7 +578,7 @@ actual class BufferView internal constructor(
         writePosition += length * 8
     }
 
-    actual final override fun writeFully(src: BufferView, length: Int) {
+    actual final override fun writeFully(src: IoBuffer, length: Int) {
         require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
         require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
 
@@ -766,12 +766,12 @@ actual class BufferView internal constructor(
     }
 
     @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
-    actual fun writeBuffer(src: BufferView, length: Int): Int {
+    actual fun writeBuffer(src: IoBuffer, length: Int): Int {
         writeFully(src, length)
         return length
     }
 
-    internal actual fun writeBufferPrepend(other: BufferView) {
+    internal actual fun writeBufferPrepend(other: IoBuffer) {
         val size = other.readRemaining
         require(size <= startGap) { "size should be greater than startGap (size = $size, startGap = $startGap)" }
 
@@ -781,7 +781,7 @@ actual class BufferView internal constructor(
         other.readPosition += size
     }
 
-    internal actual fun writeBufferAppend(other: BufferView, maxSize: Int) {
+    internal actual fun writeBufferAppend(other: IoBuffer, maxSize: Int) {
         val size = minOf(other.readRemaining, maxSize)
         require(size <= writeRemaining + endGap) { "size should be greater than write space + end gap (size = $size, " +
                 "writeRemaining = $writeRemaining, endGap = $endGap, rem+gap = ${writeRemaining + endGap}" }
@@ -840,7 +840,7 @@ actual class BufferView internal constructor(
     }
 
     private fun release(): Boolean {
-        if (this === Empty) throw IllegalStateException("attempted to release BufferView.Empty")
+        if (this === Empty) throw IllegalStateException("attempted to release IoBuffer.Empty")
 
         val v = refCount
         if (v == 0) throw IllegalStateException("Unable to release: buffer has been already released")
@@ -851,11 +851,11 @@ actual class BufferView internal constructor(
 
     actual fun isExclusivelyOwned(): Boolean = refCount == 1
 
-    actual fun makeView(): BufferView {
+    actual fun makeView(): IoBuffer {
         val o = origin ?: this
         o.acquire()
 
-        val view = BufferView(content, contentCapacity, o)
+        val view = IoBuffer(content, contentCapacity, o)
         view.attachment = attachment
         view.readPosition = readPosition
         view.writePosition = writePosition
@@ -864,7 +864,7 @@ actual class BufferView internal constructor(
         return view
     }
 
-    actual fun release(pool: ObjectPool<BufferView>) {
+    actual fun release(pool: ObjectPool<IoBuffer>) {
         if (release()) {
             resetForWrite()
 
@@ -882,12 +882,12 @@ actual class BufferView internal constructor(
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$ensureNext$`(current: BufferView): BufferView? {
+    actual final override fun `$ensureNext$`(current: IoBuffer): IoBuffer? {
         return null
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$prepareRead$`(minSize: Int): BufferView? {
+    actual final override fun `$prepareRead$`(minSize: Int): IoBuffer? {
         return if (readRemaining >= minSize) this else null
     }
 
@@ -896,7 +896,7 @@ actual class BufferView internal constructor(
     }
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
-    actual final override fun `$prepareWrite$`(n: Int): BufferView {
+    actual final override fun `$prepareWrite$`(n: Int): IoBuffer {
         if (writeRemaining >= n) return this
         throw IllegalArgumentException("Not enough space in the chunk")
     }
@@ -924,15 +924,15 @@ actual class BufferView internal constructor(
     actual companion object {
         private val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
 
-        actual val Empty = BufferView(EmptyBuffer, 0, null)
+        actual val Empty = IoBuffer(EmptyBuffer, 0, null)
 
-        actual val Pool: ObjectPool<BufferView> = object: DefaultPool<BufferView>(BUFFER_VIEW_POOL_SIZE) {
-            override fun produceInstance(): BufferView {
+        actual val Pool: ObjectPool<IoBuffer> = object: DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
+            override fun produceInstance(): IoBuffer {
                 val buffer = nativeHeap.allocArray<ByteVar>(BUFFER_VIEW_SIZE)
-                return BufferView(buffer, BUFFER_VIEW_SIZE, null)
+                return IoBuffer(buffer, BUFFER_VIEW_SIZE, null)
             }
 
-            override fun clearInstance(instance: BufferView): BufferView {
+            override fun clearInstance(instance: IoBuffer): IoBuffer {
                 return super.clearInstance(instance).apply {
                     instance.resetForWrite()
                     instance.next = null
@@ -943,14 +943,14 @@ actual class BufferView internal constructor(
                 }
             }
 
-            override fun validateInstance(instance: BufferView) {
+            override fun validateInstance(instance: IoBuffer) {
                 super.validateInstance(instance)
 
                 require(instance.refCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.refCount})"}
                 require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
             }
 
-            override fun disposeInstance(instance: BufferView) {
+            override fun disposeInstance(instance: IoBuffer) {
                 require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
 
@@ -958,13 +958,13 @@ actual class BufferView internal constructor(
             }
         }
 
-        actual val NoPool: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
-            override fun borrow(): BufferView {
+        actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
+            override fun borrow(): IoBuffer {
                 val content = nativeHeap.allocArray<ByteVar>(BUFFER_VIEW_SIZE)
-                return BufferView(content, BUFFER_VIEW_SIZE, null)
+                return IoBuffer(content, BUFFER_VIEW_SIZE, null)
             }
 
-            override fun recycle(instance: BufferView) {
+            override fun recycle(instance: IoBuffer) {
                 require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
                 nativeHeap.free(instance.content)
@@ -972,16 +972,18 @@ actual class BufferView internal constructor(
             }
         }
 
-        internal val NoPoolForManaged: ObjectPool<BufferView> = object : NoPoolImpl<BufferView>() {
-            override fun borrow(): BufferView {
+        internal val NoPoolForManaged: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
+            override fun borrow(): IoBuffer {
                 error("You can't borrow an instance from this pool: use it only for manually created")
             }
 
-            override fun recycle(instance: BufferView) {
+            override fun recycle(instance: IoBuffer) {
                 require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
                 instance.content = EmptyBuffer
             }
         }
+
+        actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferViewPoolImpl
     }
 }

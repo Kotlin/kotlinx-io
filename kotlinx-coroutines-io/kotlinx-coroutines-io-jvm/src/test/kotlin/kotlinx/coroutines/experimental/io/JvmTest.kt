@@ -68,6 +68,6 @@ open class JvmByteChannelSmokeTest : ByteChannelSmokeTest() {
     }
 
     override fun ByteChannel(autoFlush: Boolean): ByteChannel {
-        return ByteChannelSequentialJVM(BufferView.Empty, autoFlush)
+        return ByteChannelSequentialJVM(IoBuffer.Empty, autoFlush)
     }
 }

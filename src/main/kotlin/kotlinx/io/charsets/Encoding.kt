@@ -22,7 +22,7 @@ fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst
     var start = fromIndex
 
     if (start >= toIndex) return
-    dst.writeWhileSize(1) { view: BufferView ->
+    dst.writeWhileSize(1) { view: IoBuffer ->
         val rc = encodeImpl(input, start, toIndex, view)
         check(rc >= 0)
         start += rc
@@ -49,10 +49,10 @@ fun CharsetEncoder.encodeToByteArrayImpl(input: CharSequence,
                                                   toIndex: Int = input.length): ByteArray {
     var start = fromIndex
     if (start >= toIndex) return EmptyByteArray
-    val single = BufferView.Pool.borrow()
+    val single = IoBuffer.Pool.borrow()
 
     try {
-        BufferView.NoPool
+        IoBuffer.NoPool
         val rc = encodeImpl(input, start, toIndex, single)
         start += rc
         if (start == toIndex) {
@@ -61,12 +61,12 @@ fun CharsetEncoder.encodeToByteArrayImpl(input: CharSequence,
             return result
         }
 
-        val builder = BytePacketBuilder(0, BufferView.Pool)
+        val builder = BytePacketBuilder(0, IoBuffer.Pool)
         builder.last(single.makeView())
         encode(input, start, toIndex, builder)
         return builder.build().readBytes()
     } finally {
-        single.release(BufferView.Pool)
+        single.release(IoBuffer.Pool)
     }
 }
 
@@ -92,8 +92,8 @@ fun CharsetEncoder.encodeUTF8(input: ByteReadPacket) = buildPacket {
     encodeUTF8(input, this)
 }
 
-internal expect fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int
-internal expect fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean
+internal expect fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int
+internal expect fun CharsetEncoder.encodeComplete(dst: IoBuffer): Boolean
 
 // ----------------------------- DECODER -------------------------------------------------------------------------------
 

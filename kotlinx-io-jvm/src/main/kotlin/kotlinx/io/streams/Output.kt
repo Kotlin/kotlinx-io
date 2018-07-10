@@ -4,17 +4,17 @@ import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.io.*
 
-private class OutputStreamAdapter(pool: ObjectPool<BufferView>, private val stream: OutputStream): BytePacketBuilderPlatformBase(pool) {
+private class OutputStreamAdapter(pool: ObjectPool<IoBuffer>, private val stream: OutputStream): BytePacketBuilderPlatformBase(pool) {
     override fun release() {
         flush()
         stream.close()
     }
 
-    override fun last(buffer: BufferView) {
+    override fun last(buffer: IoBuffer) {
         val current = tail
         tail = buffer
 
-        if (current === BufferView.Empty) return
+        if (current === IoBuffer.Empty) return
 
         val array = ByteArrayPool.borrow()
         try {
@@ -31,7 +31,7 @@ private class OutputStreamAdapter(pool: ObjectPool<BufferView>, private val stre
     }
 
     override fun flush() {
-        last(BufferView.Empty)
+        last(IoBuffer.Empty)
     }
 
     override fun close() {
@@ -40,4 +40,4 @@ private class OutputStreamAdapter(pool: ObjectPool<BufferView>, private val stre
     }
 }
 
-fun OutputStream.asOutput(): Output = OutputStreamAdapter(BufferView.Pool, this)
+fun OutputStream.asOutput(): Output = OutputStreamAdapter(IoBuffer.Pool, this)

@@ -47,6 +47,7 @@ allprojects {
     def platform = platformOf(project)
     if (platform == 'native') {
         apply plugin: "konan"
+        konan.targets = ['ios_x64', 'ios_arm64', 'macos']
     } else {
         apply plugin: "kotlin-platform-$platform"
     }
@@ -70,9 +71,10 @@ allprojects {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }
 
-        mavenCentral()
+        maven { url 'https://dl.bintray.com/e5l/kotlinx' }
+        maven { url 'https://dl.bintray.com/qwwdfsad/kotlinx' }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
-        mavenLocal()
+        mavenCentral()
     }
 
     task sourceJar(type: Jar, dependsOn: classes) {

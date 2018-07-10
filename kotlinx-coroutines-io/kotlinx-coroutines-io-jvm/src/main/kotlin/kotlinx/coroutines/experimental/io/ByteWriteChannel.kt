@@ -51,7 +51,7 @@ actual interface ByteWriteChannel {
      * Writes as much as possible and only suspends if buffer is full
      */
     actual suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
-    actual suspend fun writeAvailable(src: BufferView): Int
+    actual suspend fun writeAvailable(src: IoBuffer): Int
     suspend fun writeAvailable(src: ByteBuffer): Int
 
     /**
@@ -59,7 +59,7 @@ actual interface ByteWriteChannel {
      * Crashes if channel get closed while writing.
      */
     actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
-    actual suspend fun writeFully(src: BufferView)
+    actual suspend fun writeFully(src: IoBuffer)
     suspend fun writeFully(src: ByteBuffer)
 
     /**

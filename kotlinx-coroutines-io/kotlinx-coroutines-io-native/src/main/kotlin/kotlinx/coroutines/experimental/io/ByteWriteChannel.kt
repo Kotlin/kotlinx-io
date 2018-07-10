@@ -51,7 +51,7 @@ actual interface ByteWriteChannel {
      */
     actual suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
 
-    actual suspend fun writeAvailable(src: BufferView): Int
+    actual suspend fun writeAvailable(src: IoBuffer): Int
 
     suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Int, length: Int): Int
     suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Long, length: Long): Int
@@ -62,7 +62,7 @@ actual interface ByteWriteChannel {
      */
     actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
 
-    actual suspend fun writeFully(src: BufferView)
+    actual suspend fun writeFully(src: IoBuffer)
 
     suspend fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
     suspend fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)

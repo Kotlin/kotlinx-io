@@ -5,7 +5,7 @@ import kotlin.math.*
 import kotlin.test.*
 
 class PrimitiveCodecTest {
-    val pool = VerifyingObjectPool(BufferView.Pool)
+    val pool = VerifyingObjectPool(IoBuffer.Pool)
     val builder = BytePacketBuilder(0, pool)
 
     @AfterTest

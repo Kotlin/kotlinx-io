@@ -22,16 +22,16 @@ suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, lim
         val transferred = transferTo(dst, limit)
 
         val copied = if (transferred == 0L) {
-            val lastPiece = BufferView.Pool.borrow()
+            val lastPiece = IoBuffer.Pool.borrow()
             lastPiece.resetForWrite(remainingLimit.toInt())
             val rc = readAvailable(lastPiece)
             if (rc == -1) {
-                lastPiece.release(BufferView.Pool)
+                lastPiece.release(IoBuffer.Pool)
                 break
             }
 
             dst.writeFully(lastPiece)
-            lastPiece.release(BufferView.Pool)
+            lastPiece.release(IoBuffer.Pool)
             rc.toLong()
         } else {
             transferred
@@ -47,10 +47,10 @@ suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, lim
  * Sequential (non-concurrent) byte channel implementation
  */
 @Suppress("OverridingDeprecatedMember")
-abstract class ByteChannelSequentialBase(initial: BufferView, override val autoFlush: Boolean) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
+abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlush: Boolean) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
     protected var closed = false
     protected val writable = BytePacketBuilder(0)
-    protected var readable = ByteReadPacket(initial, BufferView.Pool)
+    protected var readable = ByteReadPacket(initial, IoBuffer.Pool)
 
     internal val notFull = Condition { readable.remaining <= 4088L }
     private var waitingForSize = 1
@@ -142,7 +142,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return awaitFreeSpace()
     }
 
-    override suspend fun writeFully(src: BufferView) {
+    override suspend fun writeFully(src: IoBuffer) {
         writable.writeFully(src)
         return awaitFreeSpace()
     }
@@ -152,7 +152,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         awaitFreeSpace()
     }
 
-    override suspend fun writeAvailable(src: BufferView): Int {
+    override suspend fun writeAvailable(src: IoBuffer): Int {
         val srcRemaining = src.readRemaining
         if (srcRemaining == 0) return 0
         val size = minOf(srcRemaining, availableForWrite)
@@ -179,7 +179,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
 
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = object : WriterSuspendSession {
-            override fun request(min: Int): BufferView? {
+            override fun request(min: Int): IoBuffer? {
                 if (availableForWrite == 0) return null
                 @Suppress("DEPRECATION_ERROR")
                 return writable.`$prepareWrite$`(min)
@@ -353,7 +353,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return -1
     }
 
-    override suspend fun readAvailable(dst: BufferView): Int {
+    override suspend fun readAvailable(dst: IoBuffer): Int {
         return when {
             closedCause != null -> throw closedCause!!
             readable.canRead() -> {
@@ -368,12 +368,12 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         }
     }
 
-    private suspend fun readAvailableSuspend(dst: BufferView): Int {
+    private suspend fun readAvailableSuspend(dst: IoBuffer): Int {
         awaitSuspend(1)
         return readAvailable(dst)
     }
 
-    override suspend fun readFully(dst: BufferView, n: Int) {
+    override suspend fun readFully(dst: IoBuffer, n: Int) {
         require(n <= dst.writeRemaining) { "Not enough space in the destination buffer to write $n bytes" }
         require(n >= 0) { "n shouldn't be negative" }
 
@@ -385,7 +385,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         }
     }
 
-    private suspend fun readFullySuspend(dst: BufferView, n: Int) {
+    private suspend fun readFullySuspend(dst: IoBuffer, n: Int) {
         awaitSuspend(n)
         return readFully(dst, n)
     }
@@ -438,12 +438,12 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
     }
 
     private var lastReadAvailable = 0
-    private var lastReadView = BufferView.Empty
+    private var lastReadView = IoBuffer.Empty
 
     private fun completeReading() {
         val remaining = lastReadView.readRemaining
         val delta = lastReadAvailable - remaining
-        if (lastReadView !== BufferView.Empty) {
+        if (lastReadView !== IoBuffer.Empty) {
             @Suppress("DEPRECATION_ERROR")
             readable.`$updateRemaining$`(remaining)
         }
@@ -451,7 +451,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
             afterRead()
         }
         lastReadAvailable = 0
-        lastReadView = BufferView.Empty
+        lastReadView = IoBuffer.Empty
     }
 
     override suspend fun await(atLeast: Int): Boolean {
@@ -477,7 +477,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         return readable.discard(n).also { afterRead() }
     }
 
-    override fun request(atLeast: Int): BufferView? {
+    override fun request(atLeast: Int): IoBuffer? {
         closedCause?.let { throw it }
 
         completeReading()
@@ -486,7 +486,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         val view = readable.`$prepareRead$`(atLeast)
 
         if (view == null) {
-            lastReadView = BufferView.Empty
+            lastReadView = IoBuffer.Empty
             lastReadAvailable = 0
         } else {
             lastReadView = view
@@ -591,7 +591,7 @@ abstract class ByteChannelSequentialBase(initial: BufferView, override val autoF
         } while (true)
     }
 
-    private suspend fun writeAvailableSuspend(src: BufferView): Int {
+    private suspend fun writeAvailableSuspend(src: IoBuffer): Int {
         awaitFreeSpace()
         return writeAvailable(src)
     }

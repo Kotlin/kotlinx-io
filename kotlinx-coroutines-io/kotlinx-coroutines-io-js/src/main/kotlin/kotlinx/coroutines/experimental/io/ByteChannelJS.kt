@@ -1,13 +1,15 @@
 package kotlinx.coroutines.experimental.io
 
+import kotlinx.coroutines.experimental.*
 import kotlinx.io.core.*
 import org.khronos.webgl.*
+import kotlin.jvm.Volatile
 
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
  */
 actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
-    return ByteChannelJS(BufferView.Empty, autoFlush)
+    return ByteChannelJS(IoBuffer.Empty, autoFlush)
 }
 
 /**
@@ -15,7 +17,7 @@ actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
  */
 actual fun ByteReadChannel(content: ByteArray): ByteReadChannel {
     if (content.isEmpty()) return ByteReadChannel.Empty
-    val head = BufferView.Pool.borrow()
+    val head = IoBuffer.Pool.borrow()
     var tail = head
 
     var start = 0
@@ -26,7 +28,7 @@ actual fun ByteReadChannel(content: ByteArray): ByteReadChannel {
         start += size
 
         if (start == content.size) break
-        tail = BufferView.Pool.borrow()
+        tail = IoBuffer.Pool.borrow()
     }
 
     return ByteChannelJS(head, false)
@@ -37,7 +39,7 @@ actual fun ByteReadChannel(content: ByteArray): ByteReadChannel {
  */
 fun ByteReadChannel(content: ArrayBufferView): ByteReadChannel {
     if (content.byteLength == 0) return ByteReadChannel.Empty
-    val head = BufferView.Pool.borrow()
+    val head = IoBuffer.Pool.borrow()
     var tail = head
 
     var start = 0
@@ -50,7 +52,7 @@ fun ByteReadChannel(content: ArrayBufferView): ByteReadChannel {
         remaining -= size
 
         if (remaining == 0) break
-        tail = BufferView.Pool.borrow()
+        tail = IoBuffer.Pool.borrow()
     }
 
     return ByteChannelJS(head, false)
@@ -69,7 +71,17 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
     return (this as ByteChannelSequentialBase).copyTo((dst as ByteChannelSequentialBase))
 }
 
-internal class ByteChannelJS(initial: BufferView, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
+internal class ByteChannelJS(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
+    private var attachedJob: Job? = null
+
+    override fun attachJob(job: Job) {
+        attachedJob?.cancel()
+        attachedJob = job
+        job.invokeOnCompletion(onCancelling = true) { cause ->
+            attachedJob = null
+            if (cause != null) cancel(cause)
+        }
+    }
     override suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int {
         return if (readable.isEmpty) {
             readAvailableSuspend(dst, offset, length)

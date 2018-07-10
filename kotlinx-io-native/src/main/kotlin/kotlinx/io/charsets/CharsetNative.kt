@@ -66,7 +66,7 @@ private fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
 actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray
         = encodeToByteArrayImpl(input, fromIndex, toIndex)
 
-internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: BufferView): Int {
+internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int {
     val length = toIndex - fromIndex
     val chars = CharArray(length) { input[fromIndex + it] }
     val charset = iconvCharsetName(_charset._name)
@@ -180,7 +180,7 @@ private fun checkIconvResult(errno: Int) {
     throw IllegalStateException("Failed to call 'iconv' with error code ${errno}")
 }
 
-internal actual fun CharsetEncoder.encodeComplete(dst: BufferView): Boolean = true
+internal actual fun CharsetEncoder.encodeComplete(dst: IoBuffer): Boolean = true
 
 // ----------------------------------------------------------------------
 

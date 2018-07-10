@@ -21,7 +21,7 @@ fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
 private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: Int): Int {
     if (!bb.hasRemaining()) return copied
     @Suppress("INVISIBLE_MEMBER")
-    val current: BufferView = prepareRead(1) ?: return copied
+    val current: IoBuffer = prepareRead(1) ?: return copied
 
     val destinationCapacity = bb.remaining()
     val available = current.readRemaining
@@ -53,7 +53,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * is at least 8 bytes long (long integer bytes length)
  */
 inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    write(size) { buffer: BufferView ->
+    write(size) { buffer: IoBuffer ->
         buffer.writeDirect(size, block)
     }
 }

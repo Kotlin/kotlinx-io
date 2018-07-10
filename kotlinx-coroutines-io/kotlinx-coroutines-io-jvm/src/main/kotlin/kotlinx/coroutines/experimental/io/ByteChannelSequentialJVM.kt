@@ -1,12 +1,25 @@
 package kotlinx.coroutines.experimental.io
 
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.io.core.*
 import java.nio.ByteBuffer
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
-class ByteChannelSequentialJVM(initial: BufferView, autoFlush: Boolean)
+class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
     : ByteChannelSequentialBase(initial, autoFlush) {
+
+    @Volatile
+    private var attachedJob: Job? = null
+
+    override fun attachJob(job: Job) {
+        attachedJob?.cancel()
+        attachedJob = job
+        job.invokeOnCompletion(onCancelling = true) { cause ->
+            attachedJob = null
+            if (cause != null) cancel(cause)
+        }
+    }
 
     override suspend fun writeAvailable(src: ByteBuffer): Int {
         val rc = tryWriteAvailable(src)

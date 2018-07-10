@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.*
 
 class BytePacketBuildTestExtended : BytePacketBuildTest() {
-    override val pool = VerifyingObjectPool(BufferView.Pool)
+    override val pool = VerifyingObjectPool(IoBuffer.Pool)
 
     private val buffer = nativeHeap.allocArray<ByteVar>(8888)
 

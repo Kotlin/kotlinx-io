@@ -30,7 +30,7 @@ fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
             var rc = 0
 
             @Suppress("INVISIBLE_MEMBER")
-            p.read { node : BufferView ->
+            p.read { node : IoBuffer ->
                 node.readDirect {
                     rc = write(it)
                 }
@@ -68,10 +68,10 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
 
     if (max == 0L) return ByteReadPacket.Empty
 
-    val pool = BufferView.Pool
-    val empty = BufferView.Empty
-    var head: BufferView = empty
-    var tail: BufferView = empty
+    val pool = IoBuffer.Pool
+    val empty = IoBuffer.Empty
+    var head: IoBuffer = empty
+    var tail: IoBuffer = empty
 
     var read = 0L
 
@@ -112,9 +112,9 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
 }
 
 /**
- * Does the same as [ReadableByteChannel.read] but to a [BufferView] instance
+ * Does the same as [ReadableByteChannel.read] but to a [IoBuffer] instance
  */
-fun ReadableByteChannel.read(buffer: BufferView): Int {
+fun ReadableByteChannel.read(buffer: IoBuffer): Int {
     if (buffer.writeRemaining == 0) return 0
     val rc = read(buffer.writeBuffer)
     buffer.afterWrite()
@@ -122,8 +122,8 @@ fun ReadableByteChannel.read(buffer: BufferView): Int {
 }
 
 /**
- * Does the same as [WritableByteChannel.write] but from a [BufferView] instance
+ * Does the same as [WritableByteChannel.write] but from a [IoBuffer] instance
  */
-fun WritableByteChannel.write(buffer: BufferView): Int {
+fun WritableByteChannel.write(buffer: IoBuffer): Int {
     return write(buffer.readBuffer)
 }

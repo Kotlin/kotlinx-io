@@ -1,8 +1,16 @@
+
+repositories {
+    maven { url 'https://dl.bintray.com/e5l/kotlinx' }
+}
+
 konanArtifacts {
     library('kotlinx_coroutines_io_native') {
         enableMultiplatform true
         libraries {
             artifact project(":kotlinx-io-native"), 'kotlinx_io_native'
+        }
+        dependencies {
+            artifactkotlinx_coroutines_io_native "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$kotlinx_coroutines_version"
         }
     }
 
