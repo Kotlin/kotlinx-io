@@ -23,6 +23,25 @@ class ReadUntilDelimiterTest {
     }
 
     @Test
+    fun discardSmoke() {
+        testDiscard(0x10, src = "00 01 02 10 03", remaining = "10 03")
+        testDiscard(0x10, src = "00 01 02 10", remaining = "10")
+        testDiscard(0x10, src = "00 01 02 03", remaining = "")
+        testDiscard(0x10, src = "", remaining = "")
+    }
+
+    @Test
+    fun discardSmokeTwoDelimiters() {
+        testDiscard(0x10,0x20, src = "00 01 02 10 03", remaining = "10 03")
+        testDiscard(0x20,0x10, src = "00 01 02 10 03", remaining = "10 03")
+        testDiscard(0x10,0x20, src = "00 01 02 20 03", remaining = "20 03")
+        testDiscard(0x20,0x10, src = "00 01 02 20 03", remaining = "20 03")
+
+        testDiscard(0x10,0x20, src = "10 20", remaining = "10 20")
+        testDiscard(0x10,0x20, src = "20 10", remaining = "20 10")
+    }
+
+    @Test
     fun smokeTest() {
         test(0x10, src = "00", copied = "00", remaining = "")
         test(0x10, src = "00 10", copied = "00", remaining = "10")
@@ -133,6 +152,32 @@ class ReadUntilDelimiterTest {
             } finally {
                 copiedPacket.release()
             }
+        } finally {
+            packet.release()
+        }
+    }
+
+    private fun testDiscard(delimiter: Byte, src: String, remaining: String) {
+        builder.reset()
+        val packet = src.unhex()
+        val size = packet.remaining
+        try {
+            val rc = packet.discardUntilDelimiter(delimiter)
+            assertEquals(size - rc, packet.remaining)
+            assertEquals(remaining, packet.readBytes().hexdump())
+        } finally {
+            packet.release()
+        }
+    }
+
+    private fun testDiscard(delimiter1: Byte, delimiter2: Byte, src: String, remaining: String) {
+        builder.reset()
+        val packet = src.unhex()
+        val size = packet.remaining
+        try {
+            val rc = packet.discardUntilDelimiters(delimiter1, delimiter2)
+            assertEquals(size - rc, packet.remaining)
+            assertEquals(remaining, packet.readBytes().hexdump())
         } finally {
             packet.release()
         }

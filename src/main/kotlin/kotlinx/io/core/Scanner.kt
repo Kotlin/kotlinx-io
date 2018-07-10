@@ -17,6 +17,22 @@ fun Input.discardUntilDelimiter(delimiter: Byte): Long {
 }
 
 /**
+ * Discards bytes until of of the specified delimiters [delimiter1] or [delimiter2] occurred
+ * @return number of bytes discarded
+ */
+fun Input.discardUntilDelimiters(delimiter1: Byte, delimiter2: Byte): Long {
+    var discardedTotal = 0L
+
+    takeWhile { chunk ->
+        val discarded = chunk.discardUntilDelimitersImpl(delimiter1, delimiter2)
+        discardedTotal += discarded
+        discarded > 0 && !chunk.canRead()
+    }
+
+    return discardedTotal
+}
+
+/**
  * Copies to [dst] array at [offset] at most [length] bytes or until the specified [delimiter] occurred.
  * @return number of bytes copied
  */

@@ -38,9 +38,41 @@ private fun ByteBuffer.discardUntilDelimiterImplDirect(delimiter: Byte): Int {
 }
 
 internal actual fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
-    TODO()
+    val bb = readBuffer
+    return if (bb.hasArray()) bb.discardUntilDelimitersImplArrays(delimiter1, delimiter2)
+        else bb.discardUntilDelimitersImplDirect(delimiter1, delimiter2)
 }
 
+private fun ByteBuffer.discardUntilDelimitersImplArrays(delimiter1: Byte, delimiter2: Byte): Int {
+    val array = array()!!
+    val start = arrayOffset() + position()
+    var i = start
+    val end = i + remaining()
+    if (end <= array.size) {
+        while (i < end) {
+            val v = array[i]
+            if (v == delimiter1 || v == delimiter2) break
+            i++
+        }
+    }
+
+    position(i - arrayOffset())
+    return i - start
+}
+
+private fun ByteBuffer.discardUntilDelimitersImplDirect(delimiter1: Byte, delimiter2: Byte): Int {
+    val start = position()
+    var i = start
+
+    while (i < limit()) {
+        val v = this[i]
+        if (v == delimiter1 || v == delimiter2) break
+        i++
+    }
+
+    position(i)
+    return i - start
+}
 
 internal actual fun IoBuffer.readUntilDelimiter(delimiter: Byte,
                                                 dst: ByteArray, offset: Int, length: Int): Int {
