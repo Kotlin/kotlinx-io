@@ -6,14 +6,14 @@ import platform.posix.memcpy
 import platform.posix.memset
 
 actual class IoBuffer internal constructor(
-        private var content: CPointer<ByteVar>,
+        internal var content: CPointer<ByteVar>,
         private val contentCapacity: Int,
         internal actual val origin: IoBuffer?
 ) : Input, Output {
     private var refCount = 1
 
-    private var readPosition = 0
-    private var writePosition = 0
+    internal var readPosition = 0
+    internal var writePosition = 0
     private var limit = contentCapacity
 
     private var platformEndian = ByteOrder.BIG_ENDIAN === ByteOrder.nativeOrder()
