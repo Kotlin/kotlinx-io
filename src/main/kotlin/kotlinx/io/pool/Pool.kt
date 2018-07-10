@@ -70,3 +70,15 @@ expect abstract class DefaultPool<T : Any> : ObjectPool<T> {
      */
     protected open fun validateInstance(instance: T)
 }
+
+/**
+ * Borrows and instance of [T] from the pool, invokes [block] with it and finally recycles it
+ */
+inline fun <T : Any, R> ObjectPool<T>.useBorrowed(block: (T) -> R): R {
+    val instance = borrow()
+    try {
+        return block(instance)
+    } finally {
+        recycle(instance)
+    }
+}
