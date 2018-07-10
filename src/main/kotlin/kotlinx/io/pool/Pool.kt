@@ -1,6 +1,8 @@
 package kotlinx.io.pool
 
-interface ObjectPool<T : Any> {
+import kotlinx.io.core.*
+
+interface ObjectPool<T : Any> : Closeable {
     /**
      * Pool capacity
      */
@@ -21,6 +23,11 @@ interface ObjectPool<T : Any> {
      * otherwise it can result in undefined behaviour
      */
     fun dispose()
+
+    /**
+     * Does pool dispose
+     */
+    override fun close() = dispose()
 }
 
 /**

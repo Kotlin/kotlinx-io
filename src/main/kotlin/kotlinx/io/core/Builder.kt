@@ -1,6 +1,5 @@
 package kotlinx.io.core
 
-import kotlinx.io.core.IoBuffer.*
 import kotlinx.io.pool.*
 import kotlinx.io.core.internal.require
 

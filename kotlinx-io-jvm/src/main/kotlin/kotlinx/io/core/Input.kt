@@ -1,6 +1,5 @@
 package kotlinx.io.core
 
-import java.io.*
 import java.nio.*
 
 actual interface Input : Closeable {

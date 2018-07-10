@@ -1,6 +1,6 @@
 package kotlinx.io.core
 
-expect interface Input {
+expect interface Input : Closeable {
     var byteOrder: ByteOrder
     val endOfInput: Boolean
 
@@ -28,7 +28,7 @@ expect interface Input {
     fun readAvailable(dst: IoBuffer, length: Int): Int
 
     fun discard(n: Long): Long
-    fun close()
+    override fun close()
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     fun `$updateRemaining$`(remaining: Int)

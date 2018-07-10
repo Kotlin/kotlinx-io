@@ -1,6 +1,6 @@
 package kotlinx.io.core
 
-expect interface Output : Appendable {
+expect interface Output : Appendable, Closeable {
     var byteOrder: ByteOrder
 
     fun writeByte(v: Byte)
@@ -23,7 +23,7 @@ expect interface Output : Appendable {
     fun fill(n: Long, v: Byte)
 
     fun flush()
-    fun close()
+    override fun close()
 
     @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
     fun `$prepareWrite$`(n: Int): IoBuffer

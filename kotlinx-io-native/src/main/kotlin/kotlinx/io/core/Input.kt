@@ -2,7 +2,7 @@ package kotlinx.io.core
 
 import kotlinx.cinterop.*
 
-actual interface Input {
+actual interface Input : Closeable {
     actual var byteOrder: ByteOrder
     actual val endOfInput: Boolean
 
@@ -36,7 +36,7 @@ actual interface Input {
     fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long
 
     actual fun discard(n: Long): Long
-    actual fun close()
+    actual override fun close()
 
     @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
     actual fun `$updateRemaining$`(remaining: Int)

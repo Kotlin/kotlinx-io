@@ -31,15 +31,15 @@ actual abstract class DefaultPool<T : Any>(actual final override val capacity: I
     private val instances = AtomicReferenceArray<T?>(maxIndex + 1)
     private val next = IntArray(maxIndex + 1)
 
-    override fun borrow(): T =
+    final override fun borrow(): T =
             tryPop()?.let { clearInstance(it) } ?: produceInstance()
 
-    override fun recycle(instance: T) {
+    final override fun recycle(instance: T) {
         validateInstance(instance)
         if (!tryPush(instance)) disposeInstance(instance)
     }
 
-    override fun dispose() {
+    final override fun dispose() {
         while (true) {
             val instance = tryPop() ?: return
             disposeInstance(instance)

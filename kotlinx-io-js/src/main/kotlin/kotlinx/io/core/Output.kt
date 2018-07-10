@@ -1,6 +1,6 @@
 package kotlinx.io.core
 
-actual interface Output : Appendable {
+actual interface Output : Appendable, Closeable {
     actual var byteOrder: ByteOrder
 
     actual fun writeByte(v: Byte)
@@ -22,7 +22,7 @@ actual interface Output : Appendable {
 
     actual fun fill(n: Long, v: Byte)
     actual fun flush()
-    actual fun close()
+    actual override fun close()
 
     @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
     actual fun `$prepareWrite$`(n: Int): IoBuffer
