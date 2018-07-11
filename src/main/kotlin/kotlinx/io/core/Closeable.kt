@@ -4,9 +4,9 @@ expect interface Closeable {
     fun close()
 }
 
-inline fun <R> Closeable.use(block: () -> R): R {
+inline fun <C : Closeable, R> C.use(block: (C) -> R): R {
     try {
-        val result = block()
+        val result = block(this)
         close()
         return result
     } catch (first: Throwable) {
