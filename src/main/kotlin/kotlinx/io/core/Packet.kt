@@ -585,7 +585,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
 
     protected abstract fun closeSource()
 
-    private fun doFill(): IoBuffer? {
+    protected fun doFill(): IoBuffer? {
         if (noMoreChunksAvailable) return null
         val chunk = fill()
         if (chunk == null) {

@@ -40,6 +40,12 @@ actual class ByteReadPacket
 internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketPlatformBase(head, remaining, pool), Input {
     actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(head, @Suppress("INVISIBLE_MEMBER") head.remainingAll(), pool)
 
+    init {
+        if (remaining == 0L) {
+            doFill()
+        }
+    }
+
     final override fun fill() = null
     override fun closeSource() {
     }
