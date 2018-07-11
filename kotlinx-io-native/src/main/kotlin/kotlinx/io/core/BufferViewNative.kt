@@ -170,6 +170,8 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return
+
         dst.usePinned {
             val address = it.addressOf(offset)
             memcpy(address, content + readPosition, length.toLong())
@@ -183,6 +185,8 @@ actual class IoBuffer internal constructor(
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
+
+        if (length == 0) return
 
         if (platformEndian) {
             dst.usePinned {
@@ -203,6 +207,8 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return
+
         if (platformEndian) {
             dst.usePinned {
                 memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 4L)
@@ -221,6 +227,8 @@ actual class IoBuffer internal constructor(
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
+
+        if (length == 0) return
 
         if (platformEndian) {
             dst.usePinned {
@@ -241,6 +249,8 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return
+
         if (platformEndian) {
             dst.usePinned {
                 memcpy(it.addressOf(offset), content + readPosition, length.toLong() * 4L)
@@ -259,6 +269,8 @@ actual class IoBuffer internal constructor(
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
+
+        if (length == 0) return
 
         if (platformEndian) {
             dst.usePinned {
@@ -289,6 +301,8 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return 0
+
         return dst.usePinned {
             val copySize = minOf(length, readRemaining)
             memcpy(it.addressOf(offset), content + readPosition, copySize.toLong())
@@ -302,6 +316,7 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return 0
         val copySize = minOf(length, readRemaining shr 1)
 
         if (platformEndian) {
@@ -325,6 +340,7 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return 0
         val copySize = minOf(length, readRemaining shr 2)
 
         if (platformEndian) {
@@ -348,6 +364,7 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return 0
         val copySize = minOf(length, readRemaining shr 3)
 
         if (platformEndian) {
@@ -371,6 +388,7 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return 0
         val copySize = minOf(length, readRemaining shr 2)
 
         if (platformEndian) {
@@ -394,6 +412,7 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= dst.size) { "offset ($offset) + length ($length) > dst.size (${dst.size})" }
 
+        if (length == 0) return 0
         val copySize = minOf(length, readRemaining shr 3)
 
         if (platformEndian) {
@@ -470,6 +489,8 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
+        if (length == 0) return
+
         src.usePinned {
             val address = it.addressOf(offset)
             memcpy(content + writePosition, address, length.toLong())
@@ -483,6 +504,8 @@ actual class IoBuffer internal constructor(
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
+
+        if (length == 0) return
 
         if (platformEndian) {
             src.usePinned {
@@ -504,6 +527,8 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
+        if (length == 0) return
+
         if (platformEndian) {
             src.usePinned {
                 memcpy(content + writePosition, it.addressOf(offset), length.toLong() * 4L)
@@ -523,6 +548,8 @@ actual class IoBuffer internal constructor(
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
+
+        if (length == 0) return
 
         if (platformEndian) {
             src.usePinned {
@@ -544,6 +571,8 @@ actual class IoBuffer internal constructor(
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
+        if (length == 0) return
+
         if (platformEndian) {
             src.usePinned {
                 memcpy(content + writePosition, it.addressOf(offset), length.toLong() * 4L)
@@ -563,6 +592,8 @@ actual class IoBuffer internal constructor(
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
+
+        if (length == 0) return
 
         if (platformEndian) {
             src.usePinned {

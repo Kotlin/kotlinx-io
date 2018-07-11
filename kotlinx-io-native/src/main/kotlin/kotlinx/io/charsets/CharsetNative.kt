@@ -68,6 +68,8 @@ actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int,
 
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int {
     val length = toIndex - fromIndex
+    if (length == 0) return 0
+
     val chars = CharArray(length) { input[fromIndex + it] }
     val charset = iconvCharsetName(_charset._name)
     val cd: COpaquePointer? = iconv_open(charset, platformUtf16)

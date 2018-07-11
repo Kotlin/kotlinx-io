@@ -341,6 +341,12 @@ open class StringsTest {
     }
 
     @Test
+    fun stringCtorEmpty() {
+        val actual = String(ByteArray(0))
+        assertEquals("", actual)
+    }
+
+    @Test
     fun testReadTextExactBytes() {
         var packet = buildPacket {
             append("\u0422e\u0438")
