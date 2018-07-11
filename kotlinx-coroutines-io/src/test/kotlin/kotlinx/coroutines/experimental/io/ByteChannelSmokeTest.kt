@@ -620,4 +620,21 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
 
         assertEquals(written, read)
     }
+
+    @Test
+    fun testBigTransfer(): Unit = runTest {
+        val size = 262144 + 512
+
+        launch {
+            ch.writeFully(ByteArray(size))
+            ch.close()
+        }
+
+        val packet = ch.readRemaining()
+        try {
+            assertEquals(size.toLong(), packet.remaining)
+        } finally {
+            packet.release()
+        }
+    }
 }
