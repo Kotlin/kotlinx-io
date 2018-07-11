@@ -10,7 +10,7 @@ actual class IoBuffer internal constructor(
         private val contentCapacity: Int,
         internal actual val origin: IoBuffer?
 ) : Input, Output {
-    private var refCount = 1
+    internal var refCount = 1
 
     internal var readPosition = 0
     internal var writePosition = 0
@@ -953,41 +953,11 @@ actual class IoBuffer internal constructor(
     private inline fun swap(s: Double): Double = Double.fromBits(swap(s.bits()))
 
     actual companion object {
-        private val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
+        internal val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
 
         actual val Empty = IoBuffer(EmptyBuffer, 0, null)
 
-        actual val Pool: ObjectPool<IoBuffer> = object: DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
-            override fun produceInstance(): IoBuffer {
-                val buffer = nativeHeap.allocArray<ByteVar>(BUFFER_VIEW_SIZE)
-                return IoBuffer(buffer, BUFFER_VIEW_SIZE, null)
-            }
-
-            override fun clearInstance(instance: IoBuffer): IoBuffer {
-                return super.clearInstance(instance).apply {
-                    instance.resetForWrite()
-                    instance.next = null
-                    instance.attachment = null
-
-                    if (instance.refCount != 0) throw IllegalStateException("Unable to clear instance: refCount is ${instance.refCount} != 0")
-                    instance.refCount = 1
-                }
-            }
-
-            override fun validateInstance(instance: IoBuffer) {
-                super.validateInstance(instance)
-
-                require(instance.refCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.refCount})"}
-                require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
-            }
-
-            override fun disposeInstance(instance: IoBuffer) {
-                require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
-                require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
-
-                nativeHeap.free(instance.content)
-            }
-        }
+        actual val Pool: ObjectPool<IoBuffer> = BufferPoolNativeWorkaround
 
         actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
             override fun borrow(): IoBuffer {
@@ -1016,5 +986,37 @@ actual class IoBuffer internal constructor(
         }
 
         actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferViewPoolImpl
+    }
+}
+
+private val BufferPoolNativeWorkaround: ObjectPool<IoBuffer> = object: DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
+    override fun produceInstance(): IoBuffer {
+        val buffer = nativeHeap.allocArray<ByteVar>(BUFFER_VIEW_SIZE)
+        return IoBuffer(buffer, BUFFER_VIEW_SIZE, null)
+    }
+
+    override fun clearInstance(instance: IoBuffer): IoBuffer {
+        return super.clearInstance(instance).apply {
+            instance.resetForWrite()
+            instance.next = null
+            instance.attachment = null
+
+            if (instance.refCount != 0) throw IllegalStateException("Unable to clear instance: refCount is ${instance.refCount} != 0")
+            instance.refCount = 1
+        }
+    }
+
+    override fun validateInstance(instance: IoBuffer) {
+        super.validateInstance(instance)
+
+        require(instance.refCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.refCount})"}
+        require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
+    }
+
+    override fun disposeInstance(instance: IoBuffer) {
+        require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
+        require(instance.content !== IoBuffer.EmptyBuffer) { "Couldn't dispose empty buffer" }
+
+        nativeHeap.free(instance.content)
     }
 }
