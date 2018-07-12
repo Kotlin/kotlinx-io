@@ -56,7 +56,6 @@ allprojects {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }
 
-        maven { url 'https://dl.bintray.com/qwwdfsad/kotlinx' }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
         mavenCentral()
     }

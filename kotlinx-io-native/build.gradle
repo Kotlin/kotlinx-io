@@ -1,25 +1,7 @@
-//konanArtifacts {
-//    library('kotlinx_io_native') {
-//        enableMultiplatform true
-//    }
-//
-//    if (!project.hasProperty("deploy")) {
-//        program('native_test') {
-//            srcDir 'src/test/kotlin'
-//            enableMultiplatform true
-//            commonSourceSet 'test'
-//            libraries {
-//                artifact 'kotlinx_io_native'
-//            }
-//            extraOpts '-tr'
-//        }
-//    }
-//}
 
 dependencies {
     expectedBy rootProject
 }
-
 
 afterEvaluate {
     apply from: rootProject.file('gradle/publish.gradle')
