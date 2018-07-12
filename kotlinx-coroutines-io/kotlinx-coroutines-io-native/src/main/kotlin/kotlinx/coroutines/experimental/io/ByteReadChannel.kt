@@ -165,10 +165,9 @@ actual interface ByteReadChannel {
     actual suspend fun discard(max: Long): Long
 
     actual companion object {
-        actual val Empty: ByteReadChannel by lazy {
+        actual val Empty: ByteReadChannel =
             ByteChannelNative(IoBuffer.Empty, false).apply {
                 close(null)
             }
-        }
     }
 }
