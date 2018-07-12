@@ -690,6 +690,8 @@ actual class IoBuffer internal constructor(
         val l = limit
         var rc = end
 
+        if (start == end || wp == l) return start
+
         for (idx in start until end) {
             val ch = csq[idx].toInt()
             if (ch > 0x7f || wp >= l) {
@@ -733,6 +735,8 @@ actual class IoBuffer internal constructor(
         var wp = writePosition
         val l = limit
         var rc = end
+
+        if (start == end || wp == l) return start
 
         for (idx in start until end) {
             val ch = csq[idx].toInt()
