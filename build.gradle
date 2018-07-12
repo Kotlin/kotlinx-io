@@ -58,6 +58,7 @@ allprojects {
 
         maven { url 'https://kotlin.bintray.com/kotlinx' }
         mavenCentral()
+        mavenLocal()
     }
 
     def platform = platformOf(project)
