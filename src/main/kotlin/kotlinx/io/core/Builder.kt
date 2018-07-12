@@ -242,7 +242,11 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(value) {
             field = value
-            tail.byteOrder = value
+            val tail = tail
+            if (tail.canWrite()) {
+                // it is important to not set byte order for IoBuffer.Empty as it will crash on native
+                tail.byteOrder = value
+            }
         }
 
     @PublishedApi
