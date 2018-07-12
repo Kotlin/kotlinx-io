@@ -560,9 +560,12 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         }
 
         if (next == null) {
-            head = empty
-            headRemaining = 0
-            tailRemaining = 0L
+            if (head !== empty) {
+                head = empty
+                headRemaining = 0
+                tailRemaining = 0L
+            }
+
             return null
         }
 
