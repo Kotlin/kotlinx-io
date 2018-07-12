@@ -47,7 +47,8 @@ allprojects {
     def platform = platformOf(project)
     if (platform == 'native') {
         apply plugin: "konan"
-        konan.targets = ['ios_x64', 'ios_arm64', 'macos']
+//        konan.targets = ['ios_x64', 'ios_arm64', 'macos']
+        konan.targets = ['macos']
     } else {
         apply plugin: "kotlin-platform-$platform"
     }
