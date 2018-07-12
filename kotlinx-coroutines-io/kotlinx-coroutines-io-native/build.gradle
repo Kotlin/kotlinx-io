@@ -1,34 +1,32 @@
 
-repositories {
-    maven { url 'https://dl.bintray.com/e5l/kotlinx' }
-}
-
-konanArtifacts {
-    library('kotlinx_coroutines_io_native') {
-        enableMultiplatform true
-        libraries {
-            artifact project(":kotlinx-io-native"), 'kotlinx_io_native'
-        }
-        dependencies {
-            artifactkotlinx_coroutines_io_native "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$kotlinx_coroutines_version"
-        }
-    }
-
-    if (!project.hasProperty("deploy")) {
-        program('native_test') {
-            srcDir 'src/test/kotlin'
-            enableMultiplatform true
-            commonSourceSet 'test'
-            libraries {
-                artifact 'kotlinx_coroutines_io_native'
-            }
-            extraOpts '-tr'
-        }
-    }
-}
+//konanArtifacts {
+//    library('kotlinx_coroutines_io_native') {
+//        enableMultiplatform true
+//        libraries {
+//            artifact project(":kotlinx-io-native"), 'kotlinx_io_native'
+//        }
+//        dependencies {
+//            artifactkotlinx_coroutines_io_native "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$kotlinx_coroutines_version"
+//        }
+//    }
+//
+//    if (!project.hasProperty("deploy")) {
+//        program('native_test') {
+//            srcDir 'src/test/kotlin'
+//            enableMultiplatform true
+//            commonSourceSet 'test'
+//            libraries {
+//                artifact 'kotlinx_coroutines_io_native'
+//            }
+//            extraOpts '-tr'
+//        }
+//    }
+//}
 
 dependencies {
     expectedBy project(":kotlinx-coroutines-io")
+    implementation project(":kotlinx-io-native")
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$kotlinx_coroutines_version"
 }
 
 afterEvaluate {
@@ -36,5 +34,3 @@ afterEvaluate {
 }
 
 apply from: rootProject.file('gradle/bintray.gradle')
-
-task test(dependsOn: run)

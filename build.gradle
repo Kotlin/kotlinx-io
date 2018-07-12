@@ -14,6 +14,7 @@ buildscript {
         mavenCentral()
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
+        maven { url 'https://dl.bintray.com/qwwdfsad/kotlinx' }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -44,23 +45,6 @@ static def platformOf(project) {
 }
 
 allprojects {
-    def platform = platformOf(project)
-    if (platform == 'native') {
-        apply plugin: "konan"
-//        konan.targets = ['ios_x64', 'ios_arm64', 'macos']
-        konan.targets = ['macos']
-    } else {
-        apply plugin: "kotlin-platform-$platform"
-    }
-
-    kotlin.experimental.coroutines "enable"
-
-    if (project.hasProperty('releaseVersion')) {
-        project.version = project.releaseVersion
-    }
-
-    apply plugin: 'maven'
-
     repositories {
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
@@ -72,19 +56,31 @@ allprojects {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }
 
-        maven { url 'https://dl.bintray.com/e5l/kotlinx' }
         maven { url 'https://dl.bintray.com/qwwdfsad/kotlinx' }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
         mavenCentral()
     }
 
+    def platform = platformOf(project)
+    apply plugin: "kotlin-platform-$platform"
+
+    kotlin.experimental.coroutines "enable"
+
+    if (project.hasProperty('releaseVersion')) {
+        project.version = project.releaseVersion
+    }
+
+    apply plugin: 'maven'
+
     task sourceJar(type: Jar, dependsOn: classes) {
         classifier 'sources'
-        from sourceSets.main.kotlin
-        duplicatesStrategy DuplicatesStrategy.EXCLUDE
-        def platformSrc = sourceSets.main.allSource
-        def commonSrc = rootProject.sourceSets.main.allSource
-        from(platformSrc + commonSrc)
+        if (platform != 'native') {
+            from sourceSets.main.kotlin
+            duplicatesStrategy DuplicatesStrategy.EXCLUDE
+            def platformSrc = sourceSets.main.allSource
+            def commonSrc = rootProject.sourceSets.main.allSource
+            from(platformSrc + commonSrc)
+        }
     }
 
     task emptyJar(type: Jar) {
