@@ -74,7 +74,9 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
 
     override fun close() {
         release()
-        noMoreChunksAvailable = true
+        if (!noMoreChunksAvailable) {
+            noMoreChunksAvailable = true
+        }
         closeSource()
     }
 
