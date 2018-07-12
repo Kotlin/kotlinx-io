@@ -488,7 +488,10 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     private fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
         var idx = start
         if (idx >= end) return idx
-        idx = tail.appendChars(csq, idx, end)
+        val tail = tail
+        if (tail.canWrite()) {
+            idx = tail.appendChars(csq, idx, end)
+        }
 
         while (idx < end) {
             idx = appendNewBuffer().appendChars(csq, idx, end)
@@ -501,7 +504,10 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     private fun appendChars(csq: CharArray, start: Int, end: Int): Int {
         var idx = start
         if (idx >= end) return idx
-        idx = tail.appendChars(csq, idx, end)
+        val tail = tail
+        if (tail.canWrite()) {
+            idx = tail.appendChars(csq, idx, end)
+        }
 
         while (idx < end) {
             idx = appendNewBuffer().appendChars(csq, idx, end)
