@@ -27,6 +27,11 @@ expect interface Input : Closeable {
     fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
     fun readAvailable(dst: IoBuffer, length: Int): Int
 
+    /*
+     * Returns next byte (unsigned) or `-1` if no more bytes available
+     */
+    fun tryPeek(): Int
+
     fun discard(n: Long): Long
     override fun close()
 

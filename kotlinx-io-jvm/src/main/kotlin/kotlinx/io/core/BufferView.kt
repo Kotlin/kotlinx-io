@@ -600,6 +600,11 @@ actual class IoBuffer private constructor(
         }
     }
 
+    actual final override fun tryPeek(): Int {
+        val bb = readBuffer
+        return if (bb.hasRemaining()) bb.get().toInt() and 0xff else -1
+    }
+
     actual final override fun discard(n: Long): Long {
         require(n >= 0L) { "Negative discard quantity $n" }
         val size = minOf(readRemaining.toLong(), n).toInt()

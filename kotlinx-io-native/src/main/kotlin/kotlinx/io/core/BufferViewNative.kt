@@ -54,8 +54,9 @@ actual class IoBuffer internal constructor(
 
     actual final override fun readByte(): Byte {
         if (readRemaining < 0) throw IllegalStateException("No bytes available for read")
+        val readPosition = readPosition
         val value = content[readPosition]
-        readPosition++
+        this.readPosition = readPosition + 1
         return value
     }
 
@@ -828,6 +829,15 @@ actual class IoBuffer internal constructor(
             limit = writePosition
         }
         other.readPosition += size
+    }
+
+    actual final override fun tryPeek(): Int {
+        val readPosition = readPosition
+        val writePosition = writePosition
+        if (readPosition == writePosition) return -1
+
+        this.readPosition = readPosition + 1
+        return content[readPosition].toInt() and 0xff
     }
 
     actual fun discardExact(n: Int) {

@@ -102,6 +102,8 @@ expect class IoBuffer : Input, Output {
     final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
     final override fun readAvailable(dst: IoBuffer, length: Int): Int
 
+    final override fun tryPeek(): Int
+
     final override fun discard(n: Long): Long
 
     /**

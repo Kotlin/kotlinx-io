@@ -224,6 +224,32 @@ class BytePacketReadTest {
         }
     }
 
+    @Test
+    fun tryPeekTest() {
+        buildPacket {
+            writeByte(1)
+            writeByte(2)
+        }.use { pkt ->
+            assertEquals(1, pkt.tryPeek())
+            assertEquals(2, pkt.tryPeek())
+            assertEquals(-1, pkt.tryPeek())
+        }
+
+        assertEquals(-1, ByteReadPacket.Empty.tryPeek())
+
+        val segment1 = pool.borrow()
+        val segment2 = pool.borrow()
+        segment1.resetForWrite()
+        segment2.resetForWrite()
+        segment1.next = segment2
+        segment2.writeByte(1)
+
+        ByteReadPacket(segment1, pool).use { pkt ->
+            assertEquals(1, pkt.tryPeek())
+            assertEquals(-1, pkt.tryPeek())
+        }
+    }
+
     private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(startGap, pool)
         try {

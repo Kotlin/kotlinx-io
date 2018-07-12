@@ -35,6 +35,11 @@ actual interface Input : Closeable {
     fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int
     fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long
 
+    /*
+     * Returns next byte (unsigned) or `-1` if no more bytes available
+     */
+    actual fun tryPeek(): Int
+
     actual fun discard(n: Long): Long
     actual override fun close()
 

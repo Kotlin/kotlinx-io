@@ -362,6 +362,20 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         return size
     }
 
+    /*
+     * Returns next byte (unsigned) or `-1` if no more bytes available
+     */
+    final override fun tryPeek(): Int {
+        val head = head
+        if (headRemaining > 0) {
+            return head.tryPeek()
+        }
+
+        if (tailRemaining == 0L && noMoreChunksAvailable) return -1
+
+        return prepareRead(1, head)?.tryPeek() ?: -1
+    }
+
     final override fun discard(n: Long): Long {
         return discardAsMuchAsPossible(minOf(Int.MAX_VALUE.toLong(), n).toInt(), 0).toLong()
     }

@@ -37,6 +37,11 @@ actual interface Input : Closeable {
     fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int
     fun readAvailable(dst: ArrayBufferView, offset: Int, length: Int): Int
 
+    /*
+     * Returns next byte (unsigned) or `-1` if no more bytes available
+     */
+    actual fun tryPeek(): Int
+
     actual fun discard(n: Long): Long
     actual override fun close()
 

@@ -783,6 +783,15 @@ actual class IoBuffer internal constructor(
         }
     }
 
+    actual final override fun tryPeek(): Int {
+        val readPosition = readPosition
+        val writePosition = writePosition
+        if (readPosition == writePosition) return -1
+
+        this.readPosition = readPosition + 1
+        return i8[readPosition].toInt() and 0xff
+    }
+
     actual final override fun discard(n: Long): Long {
         val size = minOf(readRemaining.toLong(), n).toInt()
         readPosition += size
