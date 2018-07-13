@@ -278,7 +278,7 @@ open class StringsTest {
             val rc = p.readUTF8UntilDelimiterTo(sb, "\u0422")
             counts.add(rc)
             if (p.isEmpty) break
-            p.discardExact(1)
+            p.discardExact(2)
         }
 
         assertEquals(listOf(1, 1), counts)
