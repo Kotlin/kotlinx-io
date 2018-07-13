@@ -228,10 +228,10 @@ private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): Strin
     var remainingInputBytes = inputLength
     var lastChunk = false
 
+    var readSize = 1
+
     input.takeWhileSize { buffer: IoBuffer ->
         if (!cb.hasRemaining() || remainingInputBytes == 0) return@takeWhileSize 0
-
-        var readSize = 1
 
         buffer.readDirect { bb: ByteBuffer ->
             val limitBefore = bb.limit()
