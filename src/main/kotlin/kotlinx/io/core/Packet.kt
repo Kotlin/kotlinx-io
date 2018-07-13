@@ -394,7 +394,17 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             }
 
             override fun append(csq: CharSequence?): Appendable {
-                throw UnsupportedOperationException()
+                if (csq is String) {
+                    csq.getCharsInternal(cbuf, idx)
+                    idx += csq.length
+                }
+                else if (csq != null) {
+                    for (i in 0 until csq.length) {
+                        cbuf[idx++] = csq[i]
+                    }
+                }
+
+                return this
             }
 
             override fun append(csq: CharSequence?, start: Int, end: Int): Appendable {
@@ -410,6 +420,11 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
      * @return number of characters appended
      */
     fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
+        if (max.toLong() >= remaining) {
+            val s = readTextExactBytes(bytes = remaining.toInt())
+            out.append(s)
+            return s.length
+        }
         return readASCII(out, min, max)
     }
 
@@ -425,6 +440,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
      */
     fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
         if (min == 0 && (max == 0 || isEmpty)) return ""
+        if (max.toLong() >= remaining) return readTextExactBytes(bytes = remaining.toInt())
 
         return buildString(min.coerceAtLeast(16).coerceAtMost(max)) {
             readASCII(this, min, max)

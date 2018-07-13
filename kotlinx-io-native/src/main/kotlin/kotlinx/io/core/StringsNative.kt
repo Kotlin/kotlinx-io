@@ -16,4 +16,13 @@ actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset):
     }
 }
 
+internal actual fun String.getCharsInternal(dst: CharArray, dstOffset: Int) {
+    val length = length
+    require(dstOffset + length <= dst.size)
+
+    var dstIndex = dstOffset
+    for (srcIndex in 0 until length) {
+        dst[dstIndex++] = this[srcIndex]
+    }
+}
 

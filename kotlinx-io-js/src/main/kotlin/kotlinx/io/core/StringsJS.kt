@@ -15,3 +15,12 @@ actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset):
     return charset.newDecoder().decode(packet, Int.MAX_VALUE)
 }
 
+internal actual fun String.getCharsInternal(dst: CharArray, dstOffset: Int) {
+    val length = length
+    require(dstOffset + length <= dst.size)
+
+    var dstIndex = dstOffset
+    for (srcIndex in 0 until length) {
+        dst[dstIndex++] = this[srcIndex]
+    }
+}
