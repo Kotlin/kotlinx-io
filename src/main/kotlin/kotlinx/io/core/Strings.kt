@@ -160,6 +160,20 @@ private fun Input.readUTF8UntilDelimiterToSlow(out: Appendable, delimiters: Stri
  * @returns number of characters copied (possibly zero)
  */
 fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
+    val delimitersCount = delimiters.length
+    if (delimitersCount == 1 && delimiters[0].isAsciiChar()) {
+        return readUntilDelimiter(delimiters[0].toByte(), out).toInt()
+    } else if (delimitersCount == 2 && delimiters[0].isAsciiChar() && delimiters[1].isAsciiChar()) {
+        return readUntilDelimiters(delimiters[0].toByte(), delimiters[1].toByte(), out).toInt()
+    }
+
+    return readUTFUntilDelimiterToSlow1(delimiters, limit, out)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun Char.isAsciiChar() = toInt() <= 0x7f
+
+fun Input.readUTFUntilDelimiterToSlow1(delimiters: String, limit: Int, out: BytePacketBuilderBase): Int {
     var decoded = 0
     var delimiter = false
 
@@ -333,3 +347,5 @@ fun BytePacketBuilder.writeText(text: CharSequence, fromIndex: Int = 0, toIndex:
 fun BytePacketBuilder.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, charset: Charset = Charsets.UTF_8) {
     writeText(text, fromIndex, toIndex, charset.newEncoder())
 }
+
+internal expect fun String.getCharsInternal(dst: CharArray, dstOffset: Int)

@@ -166,6 +166,46 @@ open class StringsTest {
     }
 
     @Test
+    fun testReadUntilDelimiterToPacketSingleDelimiterAscii() {
+        val p = buildPacket {
+            append("1,2,3")
+        }
+
+        val sb = BytePacketBuilder()
+        val counts = mutableListOf<Int>()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, ",")
+            counts.add(rc)
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("123", sb.build().readText())
+        assertEquals(listOf(1, 1, 1), counts)
+    }
+
+    @Test
+    fun testReadUntilDelimiterToPacketTwoDelimitersAscii() {
+        val p = buildPacket {
+            append("1,2|3")
+        }
+
+        val sb = BytePacketBuilder()
+        val counts = mutableListOf<Int>()
+
+        while (true) {
+            val rc = p.readUTF8UntilDelimiterTo(sb, ",|")
+            counts.add(rc)
+            if (p.isEmpty) break
+            p.discardExact(1)
+        }
+
+        assertEquals("123", sb.build().readText())
+        assertEquals(listOf(1, 1, 1), counts)
+    }
+
+    @Test
     fun testReadUntilDelimiterDifferentLength() {
         val p = buildPacket {
             append("1,23|,4")
