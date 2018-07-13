@@ -17,6 +17,8 @@
 package kotlinx.coroutines.experimental.io
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.io.charsets.*
+import kotlinx.io.core.*
 
 /**
  * Channel for asynchronous reading and writing of sequences of bytes.
@@ -37,14 +39,19 @@ expect fun ByteChannel(autoFlush: Boolean = false): ByteChannel
 
 
 /**
- * Creates channel for reading from the specified byte array.
+ * Creates channel for reading from the specified byte array. Please note that it could use [content] directly
+ * or copy it's bytes depending on the platform
  */
-expect fun ByteReadChannel(content: ByteArray): ByteReadChannel
+expect fun ByteReadChannel(content: ByteArray, offset: Int = 0, length: Int = content.size): ByteReadChannel
+
+fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): ByteReadChannel =
+        ByteReadChannel(text.toByteArray(charset)) // TODO optimize to encode parts on demand
 
 
 /**
  * Byte channel that is always empty.
  */
 @Deprecated("Use ByteReadChannel.Empty instead", ReplaceWith("ByteReadChannel.Empty"))
-val EmptyByteReadChannel: ByteReadChannel get() = ByteReadChannel.Empty
+val EmptyByteReadChannel: ByteReadChannel
+    get() = ByteReadChannel.Empty
 

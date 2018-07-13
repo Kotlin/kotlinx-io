@@ -16,19 +16,20 @@ actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
 /**
  * Creates channel for reading from the specified byte array.
  */
-actual fun ByteReadChannel(content: ByteArray): ByteReadChannel {
+actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel {
     if (content.isEmpty()) return ByteReadChannel.Empty
     val head = IoBuffer.Pool.borrow()
     var tail = head
 
-    var start = 0
+    var start = offset
+    val end = start + length
     while (true) {
         tail.reserveEndGap(8)
-        val size = minOf(content.size - start, tail.writeRemaining)
+        val size = minOf(end - start, tail.writeRemaining)
         tail.writeFully(content, start, size)
         start += size
 
-        if (start == content.size) break
+        if (start == end) break
         tail = IoBuffer.Pool.borrow()
     }
 

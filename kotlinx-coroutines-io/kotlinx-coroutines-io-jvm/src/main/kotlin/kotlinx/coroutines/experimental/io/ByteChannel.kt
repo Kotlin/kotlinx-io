@@ -16,5 +16,6 @@ actual fun ByteChannel(autoFlush: Boolean): ByteChannel = ByteBufferChannel(auto
 /**
  * Creates channel for reading from the specified byte array.
  */
-actual fun ByteReadChannel(content: ByteArray): ByteReadChannel = ByteBufferChannel(ByteBuffer.wrap(content))
+actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel =
+        ByteBufferChannel(ByteBuffer.wrap(content, offset, length))
 

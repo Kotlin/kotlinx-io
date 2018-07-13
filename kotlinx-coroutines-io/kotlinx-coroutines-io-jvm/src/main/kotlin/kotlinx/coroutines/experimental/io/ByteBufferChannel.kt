@@ -441,7 +441,7 @@ internal class ByteBufferChannel(
                 if (dstSize < remaining()) {
                     limit(position() + dstSize)
                 }
-                dst.write(this)
+                dst.writeFully(this)
 
                 bytesRead(it, part)
                 true
