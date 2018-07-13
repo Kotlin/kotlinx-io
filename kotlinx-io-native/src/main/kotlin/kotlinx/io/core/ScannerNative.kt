@@ -82,7 +82,8 @@ private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
     val copied = i - start
     dst.usePinned { pinned ->
         val dstPointer = pinned.addressOf(offset)
-        memcpy(dstPointer, content, copied.toLong())
+        val srcPointer = (content + start)!!
+        memcpy(dstPointer, srcPointer, copied.toLong())
     }
 
     readPosition = i
@@ -109,7 +110,8 @@ private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
         val size = i - start
 
         val dstPointer = (chunk.content + chunk.writePosition)!!
-        memcpy(dstPointer, content, size.toLong())
+        val srcPointer = (content + start)!!
+        memcpy(dstPointer, srcPointer, size.toLong())
         chunk.writePosition += size
         copiedTotal += size
 

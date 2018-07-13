@@ -83,6 +83,31 @@ class ReadUntilDelimiterTest {
     }
 
     @Test
+    fun testContinuous() {
+        "11 77 22 77 33 77".unhex().use { packet ->
+            var i = 0
+            while (packet.isNotEmpty) {
+                i += packet.readUntilDelimiter(0x77, small, i, small.size - i)
+                packet.discardExact(1)
+            }
+
+            assertEquals("11 22 33", small.hexdump())
+        }
+    }
+
+    @Test
+    fun testContinuousToOutput() {
+        "11 77 22 77 33 77".unhex().use { packet ->
+            while (packet.isNotEmpty) {
+                packet.readUntilDelimiter(0x77, builder)
+                packet.discardExact(1)
+            }
+
+            assertEquals("11 22 33", builder.build().readBytes().hexdump())
+        }
+    }
+
+    @Test
     fun multiPageTest() {
         val size = 65536
         repeat(size - 1) {
