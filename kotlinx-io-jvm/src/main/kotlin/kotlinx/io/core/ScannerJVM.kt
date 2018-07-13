@@ -74,8 +74,8 @@ private fun ByteBuffer.discardUntilDelimitersImplDirect(delimiter1: Byte, delimi
     return i - start
 }
 
-internal actual fun IoBuffer.readUntilDelimiter(delimiter: Byte,
-                                                dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
+                                                    dst: ByteArray, offset: Int, length: Int): Int {
     assert(offset >= 0)
     assert(length >= 0)
     assert(offset + length <= dst.size)
@@ -95,8 +95,8 @@ private fun ByteBuffer.readUntilDelimiterArrays(delimiter: Byte,
     return copyUntilArrays({ it == delimiter }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
-                                                 dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
+                                                     dst: ByteArray, offset: Int, length: Int): Int {
     assert(offset >= 0)
     assert(length >= 0)
     assert(offset + length <= dst.size)
@@ -117,7 +117,7 @@ private fun ByteBuffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: B
     return copyUntilArrays({ it == delimiter1 || it == delimiter2 }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimiter(delimiter: Byte, dst: Output): Int {
+internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
     val bb = readBuffer
     return if (bb.hasArray()) bb.readUntilDelimiterArrays(delimiter, dst)
     else bb.readUntilDelimiterDirect(delimiter, dst)
@@ -131,7 +131,7 @@ internal fun ByteBuffer.readUntilDelimiterArrays(delimiter: Byte, dst: Output): 
     return copyUntilArrays({ it == delimiter }, dst)
 }
 
-internal actual fun IoBuffer.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
+internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     assert(delimiter1 != delimiter2)
 
     val bb = readBuffer

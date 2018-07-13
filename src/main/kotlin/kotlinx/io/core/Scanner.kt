@@ -41,7 +41,7 @@ fun Input.readUntilDelimiter(delimiter: Byte, dst: ByteArray, offset: Int = 0, l
     var dstRemaining = length
 
     takeWhile { chunk ->
-        val copied = chunk.readUntilDelimiter(delimiter, dst, currentOffset, dstRemaining)
+        val copied = chunk.readUntilDelimiterImpl(delimiter, dst, currentOffset, dstRemaining)
         currentOffset += copied
         dstRemaining -= copied
         dstRemaining > 0 && !chunk.canRead()
@@ -63,7 +63,7 @@ fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
     var dstRemaining = length
 
     takeWhile {  chunk ->
-        val copied = chunk.readUntilDelimiters(delimiter1, delimiter2, dst, currentOffset, dstRemaining)
+        val copied = chunk.readUntilDelimitersImpl(delimiter1, delimiter2, dst, currentOffset, dstRemaining)
         currentOffset += copied
         dstRemaining -= copied
         !chunk.canRead() && dstRemaining > 0
@@ -78,8 +78,8 @@ fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
  */
 fun Input.readUntilDelimiter(delimiter: Byte, dst: Output): Long {
     var copiedTotal = 0L
-    takeWhile {  chunk ->
-        val copied = chunk.readUntilDelimiter(delimiter, dst)
+    takeWhile { chunk ->
+        val copied = chunk.readUntilDelimiterImpl(delimiter, dst)
         copiedTotal += copied
         !chunk.canRead()
     }
@@ -96,7 +96,7 @@ fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte, dst: Output): 
     var copiedTotal = 0L
 
     takeWhile {  chunk ->
-        val copied = chunk.readUntilDelimiters(delimiter1, delimiter2, dst)
+        val copied = chunk.readUntilDelimitersImpl(delimiter1, delimiter2, dst)
         copiedTotal += copied
         !chunk.canRead()
     }
@@ -109,15 +109,15 @@ internal expect fun IoBuffer.discardUntilDelimiterImpl(delimiter: Byte): Int
 internal expect fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int
 
 
-internal expect fun IoBuffer.readUntilDelimiter(delimiter: Byte,
-                                                dst: ByteArray, offset: Int, length: Int): Int
+internal expect fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
+                                                    dst: ByteArray, offset: Int, length: Int): Int
 
-internal expect fun IoBuffer.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
-                                                 dst: ByteArray, offset: Int, length: Int): Int
+internal expect fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
+                                                     dst: ByteArray, offset: Int, length: Int): Int
 
-internal expect fun IoBuffer.readUntilDelimiter(delimiter: Byte,
-                                                dst: Output): Int
+internal expect fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
+                                                    dst: Output): Int
 
-internal expect fun IoBuffer.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
-                                                 dst: Output): Int
+internal expect fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
+                                                     dst: Output): Int
 

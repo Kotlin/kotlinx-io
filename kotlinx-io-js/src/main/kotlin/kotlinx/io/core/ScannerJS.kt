@@ -34,8 +34,8 @@ internal actual fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimi
 }
 
 
-internal actual fun IoBuffer.readUntilDelimiter(delimiter: Byte,
-                                                dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
+                                                    dst: ByteArray, offset: Int, length: Int): Int {
     check(offset >= 0)
     check(length >= 0)
     check(offset + length <= dst.size)
@@ -43,8 +43,8 @@ internal actual fun IoBuffer.readUntilDelimiter(delimiter: Byte,
     return readUntilImpl({ it == delimiter }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
-                                                 dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
+                                                     dst: ByteArray, offset: Int, length: Int): Int {
     check(offset >= 0)
     check(length >= 0)
     check(offset + length <= dst.size)
@@ -53,11 +53,11 @@ internal actual fun IoBuffer.readUntilDelimiters(delimiter1: Byte, delimiter2: B
     return readUntilImpl({ it == delimiter1 || it == delimiter2 }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimiter(delimiter: Byte, dst: Output): Int {
+internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
     return readUntilImpl({ it == delimiter }, dst)
 }
 
-internal actual fun IoBuffer.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
+internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     check(delimiter1 != delimiter2)
 
     return readUntilImpl({ it == delimiter1 || it == delimiter2 }, dst)
