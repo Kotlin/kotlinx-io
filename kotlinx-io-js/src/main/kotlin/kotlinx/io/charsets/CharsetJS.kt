@@ -108,7 +108,6 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
         }
 
         input.discardExact(inputLength)
-
         return text
     }
 
@@ -118,22 +117,37 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
     val decoder = TextDecoderFatal(charset.name, true)
     var inputRemaining = inputLength
-    val sb = StringBuilder()
+    val sb = StringBuilder(inputLength)
 
     decodeWrap {
-        input.takeWhileSize { buffer ->
+        input.takeWhileSize(6) { buffer ->
             val chunkSize = buffer.readRemaining
             val size = minOf(chunkSize, inputRemaining)
             val text = when {
-                buffer.readPosition == 0 && buffer.content.byteLength == size -> decoder.decode(buffer.content)
-                else -> decoder.decode(Int8Array(buffer.content, buffer.readPosition, size))
+                buffer.readPosition == 0 && buffer.content.byteLength == size -> decoder.decodeStream(buffer.content, true)
+                else -> decoder.decodeStream(Int8Array(buffer.content, buffer.readPosition, size), true)
             }
             sb.append(text)
 
             buffer.discardExact(size)
             inputRemaining -= size
 
-            if (inputRemaining > 0) 8 else 0
+            if (inputRemaining > 0) 6 else 0
+        }
+
+        if (inputRemaining > 0) {
+            input.takeWhile { buffer ->
+                val chunkSize = buffer.readRemaining
+                val size = minOf(chunkSize, inputRemaining)
+                val text = when {
+                    buffer.readPosition == 0 && buffer.content.byteLength == size -> decoder.decode(buffer.content)
+                    else -> decoder.decodeStream(Int8Array(buffer.content, buffer.readPosition, size), true)
+                }
+                sb.append(text)
+                buffer.discardExact(size)
+                inputRemaining -= size
+                true
+            }
         }
 
         sb.append(decoder.decode())
