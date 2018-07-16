@@ -46,6 +46,8 @@ static def platformOf(project) {
 
 allprojects {
     repositories {
+        maven { url 'https://dl.bintray.com/qwwdfsad/kotlinx' }
+
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
@@ -63,6 +65,17 @@ allprojects {
 
     def platform = platformOf(project)
     apply plugin: "kotlin-platform-$platform"
+
+    if (platform == 'native') {
+        sourceSets {
+            main {
+                component {
+                    target 'ios_arm64', 'ios_x64', 'macos'
+                    outputKinds = [KLIBRARY]
+                }
+            }
+        }
+    }
 
     kotlin.experimental.coroutines "enable"
 
@@ -91,6 +104,7 @@ allprojects {
 
     kotlin.experimental.coroutines "enable"
 }
+
 configure(allprojects) {
     def platform = platformOf(project)
     apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
