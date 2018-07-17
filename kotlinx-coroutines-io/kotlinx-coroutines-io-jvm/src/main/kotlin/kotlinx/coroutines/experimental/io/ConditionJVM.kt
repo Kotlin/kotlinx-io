@@ -1,7 +1,7 @@
 package kotlinx.coroutines.experimental.io
 
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 import kotlin.jvm.*
 
 internal actual class Condition actual constructor(val predicate: () -> Boolean) {

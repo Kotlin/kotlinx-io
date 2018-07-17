@@ -16,7 +16,7 @@
 
 package kotlinx.coroutines.experimental.io
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 

@@ -1,6 +1,6 @@
 package kotlinx.coroutines.experimental.io
 
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 internal actual class Condition actual constructor(val predicate: () -> Boolean) {
     private var cont: Continuation<Unit>? = null

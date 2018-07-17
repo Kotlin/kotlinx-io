@@ -2,7 +2,7 @@ package kotlinx.coroutines.experimental.io
 
 import kotlinx.io.core.*
 import kotlinx.cinterop.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlin.jvm.*
 
 

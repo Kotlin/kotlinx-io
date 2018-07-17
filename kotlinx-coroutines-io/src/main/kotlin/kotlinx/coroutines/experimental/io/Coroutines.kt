@@ -1,7 +1,7 @@
 package kotlinx.coroutines.experimental.io
 
-import kotlinx.coroutines.experimental.*
-import kotlin.coroutines.experimental.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
  * A coroutine job that is reading from a byte channel

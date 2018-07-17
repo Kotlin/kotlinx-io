@@ -1,6 +1,6 @@
 package kotlinx.coroutines.experimental.io
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 import kotlin.jvm.Volatile

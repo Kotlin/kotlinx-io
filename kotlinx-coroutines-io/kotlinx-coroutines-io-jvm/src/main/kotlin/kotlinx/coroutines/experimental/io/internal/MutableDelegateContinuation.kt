@@ -1,9 +1,9 @@
 package kotlinx.coroutines.experimental.io.internal
 
 import kotlinx.atomicfu.*
-import kotlinx.coroutines.experimental.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 
 /**
  * Semi-cancellable reusable continuation. Unlike regular continuation this implementation has limitations:
@@ -72,59 +72,33 @@ internal class MutableDelegateContinuation<T : Any> : Continuation<T>, Dispatche
     override val context: CoroutineContext
         get() = (state.value as? Continuation<*>)?.context ?: EmptyCoroutineContext
 
-    override fun resume(value: T) {
-        loop@while(true) {
-            val before = state.value
-
+    override fun resumeWith(result: SuccessOrFailure<T>) {
+        val value = result.toState()
+        val before = state.getAndUpdate { before ->
             when (before) {
-                null -> {
-                    if (!state.compareAndSet(null, value)) continue@loop
-                    return
-                }
-                is Continuation<*> -> {
-                    if (!state.compareAndSet(before, value)) continue@loop
-                    @Suppress("UNCHECKED_CAST")
-                    val cont = before as Continuation<T>
-                    _delegate = cont
-                    return dispatch(1)
-                }
+                null -> value
+                is Continuation<*> -> value
                 else -> return
             }
         }
-    }
 
-    override fun resumeWithException(exception: Throwable) {
-        loop@while(true) {
-            val before = state.value
-
-            when (before) {
-                null -> {
-                    if (!state.compareAndSet(null, exception)) continue@loop
-                    return
-                }
-                is Continuation<*> -> {
-                    if (!state.compareAndSet(before, CompletedExceptionally(exception))) continue@loop
-                    @Suppress("UNCHECKED_CAST")
-                    val cont = before as Continuation<T>
-                    _delegate = cont
-                    return dispatch(1)
-                }
-                else -> return
-            }
+        if (before != null) {
+            @Suppress("UNCHECKED_CAST")
+            val cont = before as Continuation<T>
+            _delegate = cont
+            dispatch(1)
         }
     }
 
     private fun resumeWithExceptionContinuationOnly(job: Job, exception: Throwable) {
-        var c: Continuation<*>? = null
-
-        state.update {
+        @Suppress("UNCHECKED_CAST")
+        val c = state.getAndUpdate {
             if (it !is Continuation<*>) return
             if (it.context[Job] !== job) return
-            c = it
             null
-        }
+        } as Continuation<T>
 
-        c!!.resumeWithException(exception)
+        c.resumeWith(SuccessOrFailure.failure(exception))
     }
 
     private inner class JobRelation(val job: Job) : CompletionHandler, DisposableHandle {

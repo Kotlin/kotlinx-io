@@ -1,13 +1,13 @@
 package kotlinx.coroutines.experimental.io.jvm.javaio
 
 import kotlinx.atomicfu.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.CancellationException
+import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.util.concurrent.locks.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
+import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 
 /**
  * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read
@@ -125,49 +125,23 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
         override val context: CoroutineContext
             get() = if (parent != null) Unconfined + parent else EmptyCoroutineContext
 
-        override fun resume(value: Unit) {
-            var thread: Thread? = null
-            result.value = -1
-            state.update { current ->
+        override fun resumeWith(result: SuccessOrFailure<Unit>) {
+            val value = result.toState()!!
+
+            val before = state.getAndUpdate { current ->
                 when (current) {
-                    is Thread -> {
-                        thread = current
-                        Unit
-                    }
-                    this -> Unit
+                    is Thread, is Continuation<*>, this -> value
                     else -> return
                 }
             }
 
-            thread?.let { LockSupport.unpark(it) }
-            disposable?.dispose()
-        }
-
-        override fun resumeWithException(exception: Throwable) {
-            var thread: Thread? = null
-            var continuation: Continuation<*>? = null
-
-            result.value = -1
-            state.update { current ->
-                when (current) {
-                    is Thread -> {
-                        thread = current
-                        exception
-                    }
-                    is Continuation<*> -> {
-                        continuation = current
-                        exception
-                    }
-                    this -> exception
-                    else -> return
-                }
+            when (before) {
+                is Thread -> LockSupport.unpark(before)
+                is Continuation<*> -> result.exceptionOrNull()?.let { before.resumeWithException(it) }
             }
 
-            thread?.let { LockSupport.unpark(it) }
-            continuation?.resumeWithException(exception)
-
-            if (exception !is CancellationException) {
-                parent?.cancel(exception)
+            if (result.isFailure && result.exceptionOrNull() !is CancellationException) {
+                parent?.cancel(result.exceptionOrNull())
             }
 
             disposable?.dispose()
@@ -250,7 +224,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
     protected suspend inline fun rendezvous(rc: Int): Any {
         result.value = rc
 
-        return suspendCoroutineOrReturn { c ->
+        return suspendCoroutineUninterceptedOrReturn { c ->
             var thread: Thread? = null
 
             state.update { value ->

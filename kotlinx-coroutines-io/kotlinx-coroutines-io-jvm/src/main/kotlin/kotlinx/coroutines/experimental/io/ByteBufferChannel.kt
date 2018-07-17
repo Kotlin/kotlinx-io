@@ -1,8 +1,8 @@
 package kotlinx.coroutines.experimental.io
 
 import kotlinx.atomicfu.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.internal.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
@@ -11,8 +11,8 @@ import kotlinx.io.pool.*
 import java.io.EOFException
 import java.nio.*
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
+import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 import kotlin.jvm.*
 
 internal const val DEFAULT_CLOSE_MESSAGE = "Byte channel was closed"
@@ -2282,7 +2282,7 @@ internal class ByteBufferChannel(
     private suspend fun readSuspendImpl(size: Int): Boolean {
         if (!readSuspendPredicate(size)) return true
 
-        return suspendCoroutineOrReturn { raw ->
+        return suspendCoroutineUninterceptedOrReturn { raw ->
             val c = readSuspendContinuationCache
             suspensionForSize(size, c)
             c.swap(raw)
@@ -2335,10 +2335,10 @@ internal class ByteBufferChannel(
 
         writeSuspensionSize = size
         if (attachedJob != null) {
-            return suspendCoroutineOrReturn(writeSuspension)
+            return suspendCoroutineUninterceptedOrReturn(writeSuspension)
         }
 
-        return suspendCoroutineOrReturn { raw ->
+        return suspendCoroutineUninterceptedOrReturn { raw ->
             val c = writeSuspendContinuationCache
             writeSuspension(c)
             c.swap(raw)

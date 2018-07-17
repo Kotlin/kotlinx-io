@@ -1,7 +1,7 @@
 package kotlinx.coroutines.experimental.io
 
-import kotlinx.coroutines.experimental.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 internal open class ByteChannelCoroutine(
     parentContext: CoroutineContext,

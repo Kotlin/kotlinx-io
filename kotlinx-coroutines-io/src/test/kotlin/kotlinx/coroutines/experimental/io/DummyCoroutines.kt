@@ -1,6 +1,6 @@
 package kotlinx.coroutines.experimental.io
 
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 class DummyCoroutines {
     private var failure: Throwable? = null
@@ -11,14 +11,12 @@ class DummyCoroutines {
         override val context: CoroutineContext
             get() = EmptyCoroutineContext
 
-        override fun resume(value: Unit) {
+        override fun resumeWith(result: SuccessOrFailure<Unit>) {
             liveCoroutines--
-            process()
-        }
-
-        override fun resumeWithException(exception: Throwable) {
-            liveCoroutines--
-            failure = exception
+            failure = result.exceptionOrNull()
+            if (result.isSuccess) {
+                process()
+            }
         }
     }
 
@@ -65,18 +63,12 @@ class DummyCoroutines {
         failure?.let { throw it }
     }
 
-    sealed class Task<T>(val c: Continuation<T>) {
+    private sealed class Task<T>(val c: Continuation<T>) {
         abstract fun run()
 
         class Resume<T>(c: Continuation<T>, val value: T) : Task<T>(c) {
             override fun run() {
                 c.resume(value)
-            }
-        }
-
-        class ResumeExceptionally(c: Continuation<*>, val t: Throwable) : Task<Nothing>(c) {
-            override fun run() {
-                c.resumeWithException(t)
             }
         }
     }

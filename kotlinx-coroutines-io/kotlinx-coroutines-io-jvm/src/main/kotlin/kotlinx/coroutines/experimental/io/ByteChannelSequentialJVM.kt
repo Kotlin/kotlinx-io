@@ -1,7 +1,7 @@
 package kotlinx.coroutines.experimental.io
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
 import java.nio.ByteBuffer
 
