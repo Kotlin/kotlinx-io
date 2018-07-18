@@ -14,7 +14,6 @@ buildscript {
         mavenCentral()
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
-        maven { url 'https://dl.bintray.com/qwwdfsad/kotlinx' }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -46,8 +45,6 @@ static def platformOf(project) {
 
 allprojects {
     repositories {
-        maven { url 'https://dl.bintray.com/qwwdfsad/kotlinx' }
-
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-")) {
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
@@ -74,10 +71,15 @@ allprojects {
                     outputKinds = [KLIBRARY]
                 }
             }
+            test {
+                component {
+                    target 'macos'
+                }
+            }
         }
     }
 
-    kotlin.experimental.coroutines "enable"
+    kotlin.experimental.coroutines 'enable'
 
     if (project.hasProperty('releaseVersion')) {
         project.version = project.releaseVersion
@@ -101,8 +103,6 @@ allprojects {
     }
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
-
-    kotlin.experimental.coroutines "enable"
 }
 
 configure(allprojects) {
@@ -110,12 +110,12 @@ configure(allprojects) {
     apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
 }
 
-def skipPublish = ["benchmarks"]
+def skipPublish = ['benchmarks']
 configure(allprojects.findAll { !skipPublish.contains(it.name) }) {
     apply from: rootProject.file('pom.gradle')
 
     apply plugin: 'com.jfrog.bintray'
-    if (!project.name.contains("native")) {
+    if (!project.name.contains('native')) {
         apply plugin: 'maven-publish'
         apply from: rootProject.file('gradle/bintray.gradle')
 
@@ -149,5 +149,3 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
 }
-
-

@@ -1,7 +1,9 @@
 build
+bin
 .idea
 *.iml
 .gradle
 *.swp
+.project
 
 kotlinx-io-native/repo/
