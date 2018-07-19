@@ -3,7 +3,7 @@ package kotlinx.io.tests
 import kotlinx.io.core.*
 import kotlin.test.*
 
-class BufferViewTest {
+class IoBufferTest {
     @Test
     fun smokeTest() {
         assertEquals(0, IoBuffer.Empty.capacity)

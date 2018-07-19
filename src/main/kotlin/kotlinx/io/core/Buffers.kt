@@ -214,7 +214,7 @@ expect class IoBuffer : Input, Output {
         replaceWith = ReplaceWith("IoBuffer.EmptyPool", "kotlinx.io.core.IoBuffer"))
 val EmptyBufferViewPool get() = IoBuffer.EmptyPool
 
-internal object EmptyBufferViewPoolImpl : NoPoolImpl<IoBuffer>() {
+internal object EmptyBufferPoolImpl : NoPoolImpl<IoBuffer>() {
     override fun borrow() = IoBuffer.Empty
 }
 

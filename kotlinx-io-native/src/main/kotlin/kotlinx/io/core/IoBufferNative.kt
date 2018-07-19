@@ -999,7 +999,7 @@ actual class IoBuffer internal constructor(
             }
         }
 
-        actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferViewPoolImpl
+        actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferPoolImpl
     }
 }
 
