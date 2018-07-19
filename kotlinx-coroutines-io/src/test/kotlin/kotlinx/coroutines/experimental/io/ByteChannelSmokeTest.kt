@@ -1,6 +1,7 @@
 package kotlinx.coroutines.experimental.io
 
 import kotlinx.io.core.*
+import kotlin.math.*
 import kotlin.test.*
 
 open class ByteChannelSmokeTest : ByteChannelTestBase() {
@@ -635,6 +636,12 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
             assertEquals(size.toLong(), packet.remaining)
         } finally {
             packet.release()
+        }
+    }
+
+    private fun assertEquals(expected: Float, actual: Float) {
+        if (abs(expected - actual) > 0.000001f) {
+            kotlin.test.assertEquals(expected, actual)
         }
     }
 }
