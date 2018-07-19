@@ -6,6 +6,10 @@ dependencies {
 
 afterEvaluate {
     apply from: rootProject.file('gradle/publish.gradle')
+
+    if (System.getProperties().keySet().any { it.startsWith("teamcity") }) {
+        tasks.findByName("runTestDebug")?.args("--ktest_logger=TEAMCITY")
+    }
 }
 
 apply from: rootProject.file('gradle/bintray.gradle')
