@@ -971,7 +971,7 @@ actual class IoBuffer internal constructor(
 
         actual val Empty = IoBuffer(EmptyBuffer, 0, null)
 
-        actual val Pool: ObjectPool<IoBuffer> get() = NoPool //BufferPoolNativeWorkaround
+        actual val Pool: ObjectPool<IoBuffer> get() = BufferPoolNativeWorkaround
 
         actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
             override fun borrow(): IoBuffer {
@@ -1003,7 +1003,8 @@ actual class IoBuffer internal constructor(
     }
 }
 
-private val BufferPoolNativeWorkaround: ObjectPool<IoBuffer> = object: DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
+@ThreadLocal
+private object BufferPoolNativeWorkaround : DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
     override fun produceInstance(): IoBuffer {
         val buffer = nativeHeap.allocArray<ByteVar>(BUFFER_VIEW_SIZE)
         return IoBuffer(buffer, BUFFER_VIEW_SIZE, null)
