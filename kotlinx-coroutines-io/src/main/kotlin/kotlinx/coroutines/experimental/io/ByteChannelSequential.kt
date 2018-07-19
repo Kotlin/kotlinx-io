@@ -50,7 +50,7 @@ suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, lim
 abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlush: Boolean) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
     protected var closed = false
     protected val writable = BytePacketBuilder(0)
-    protected var readable = ByteReadPacket(initial, IoBuffer.Pool)
+    protected val readable = ByteReadPacket(initial, IoBuffer.Pool)
 
     internal val notFull = Condition { readable.remaining <= 4088L }
     private var waitingForSize = 1
