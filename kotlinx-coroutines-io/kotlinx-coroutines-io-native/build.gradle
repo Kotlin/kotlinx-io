@@ -7,7 +7,7 @@ dependencies {
 afterEvaluate {
     apply from: rootProject.file('gradle/publish.gradle')
 
-    if (project.teamcity != null) {
+    if (project.hasProperty("teamcity")) {
         runTestDebug {
             args "--ktest_logger=TEAMCITY"
         }
