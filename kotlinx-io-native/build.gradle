@@ -16,7 +16,3 @@ afterEvaluate {
 
 apply from: rootProject.file('gradle/bintray.gradle')
 
-//tasks.withType(KonanTest).forEach { 
-//    it.runnerLogger = "TEAMCITY"
-//}
-
