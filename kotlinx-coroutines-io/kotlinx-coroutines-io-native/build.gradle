@@ -4,14 +4,13 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$kotlinx_coroutines_version"
 }
 
-afterEvaluate {
-    apply from: rootProject.file('gradle/publish.gradle')
+apply from: rootProject.file('gradle/bintray.gradle')
+apply from: rootProject.file('gradle/publish.gradle')
 
-    if (project.hasProperty("teamcity")) {
+if (project.hasProperty("teamcity")) {
+    afterEvaluate {
         runTestDebug {
             args "--ktest_logger=TEAMCITY"
         }
     }
 }
-
-apply from: rootProject.file('gradle/bintray.gradle')

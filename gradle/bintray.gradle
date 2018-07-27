@@ -18,7 +18,3 @@ bintray {
         }
     }
 }
-
-bintrayUpload.doFirst{
-    publications = project.publishing.publications
-}

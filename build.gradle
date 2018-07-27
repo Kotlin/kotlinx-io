@@ -63,17 +63,16 @@ allprojects {
     def platform = platformOf(project)
     apply plugin: "kotlin-platform-$platform"
 
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
+
     if (platform == 'native') {
         sourceSets {
             main {
                 component {
-                    target 'ios_arm64', 'ios_x64', 'macos'
+                    target 'ios_arm64', 'ios_arm32', 'ios_x64', 'macos_x64', 'linux_x64', 'mingw_x64'
                     outputKinds = [KLIBRARY]
-                }
-            }
-            test {
-                component {
-                    target 'macos'
                 }
             }
         }
@@ -114,9 +113,7 @@ def skipPublish = ['benchmarks']
 configure(allprojects.findAll { !skipPublish.contains(it.name) }) {
     apply from: rootProject.file('pom.gradle')
 
-    apply plugin: 'com.jfrog.bintray'
     if (!project.name.contains('native')) {
-        apply plugin: 'maven-publish'
         apply from: rootProject.file('gradle/bintray.gradle')
 
         publishing {
