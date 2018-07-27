@@ -2,6 +2,7 @@ package kotlinx.io.core
 
 import kotlinx.cinterop.*
 import platform.posix.memcpy
+import platform.posix.size_t
 
 internal actual fun IoBuffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     val content = content
@@ -83,7 +84,7 @@ private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
     dst.usePinned { pinned ->
         val dstPointer = pinned.addressOf(offset)
         val srcPointer = (content + start)!!
-        memcpy(dstPointer, srcPointer, copied.toLong())
+        memcpy(dstPointer, srcPointer, copied.signExtend<size_t>())
     }
 
     readPosition = i
@@ -110,7 +111,7 @@ private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
 
         val dstPointer = (chunk.content + chunk.writePosition)!!
         val srcPointer = (content + start)!!
-        memcpy(dstPointer, srcPointer, size.toLong())
+        memcpy(dstPointer, srcPointer, size.signExtend<size_t>())
         chunk.writePosition += size
         copiedTotal += size
 

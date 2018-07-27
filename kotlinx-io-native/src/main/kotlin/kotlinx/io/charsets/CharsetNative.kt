@@ -85,14 +85,14 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
                     val outbuf = alloc<CPointerVar<ByteVar>>()
                     val inbytesleft = alloc<size_tVar>()
                     val outbytesleft = alloc<size_tVar>()
-                    val dstRemaining = dst.writeRemaining.toLong()
+                    val dstRemaining = dst.writeRemaining.signExtend<size_t>()
 
                     inbuf.value = pinned.addressOf(0)
                     outbuf.value = buffer
-                    inbytesleft.value = (length * 2).toLong()
+                    inbytesleft.value = (length * 2).signExtend<size_t>()
                     outbytesleft.value = dstRemaining
 
-                    if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
+                    if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == MAX_SIZE) {
                         checkIconvResult(posix_errno())
                     }
 
@@ -131,19 +131,19 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
 
                     srcView.readDirect { src ->
                         memScoped {
-                            val length = srcView.readRemaining.toLong()
+                            val length = srcView.readRemaining.signExtend<size_t>()
                             val inbuf = alloc<CPointerVar<ByteVar>>()
                             val outbuf = alloc<CPointerVar<ByteVar>>()
                             val inbytesleft = alloc<size_tVar>()
                             val outbytesleft = alloc<size_tVar>()
-                            val dstRemaining = dstBuffer.writeRemaining.toLong()
+                            val dstRemaining = dstBuffer.writeRemaining.signExtend<size_t>()
 
                             inbuf.value = src
                             outbuf.value = buffer
                             inbytesleft.value = length
                             outbytesleft.value = dstRemaining
 
-                            if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
+                            if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == MAX_SIZE) {
                                 checkIconvResult(posix_errno())
                             }
 
@@ -220,15 +220,15 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
                     var read = 0
 
                     srcView.readDirect { src ->
-                        val length = srcView.readRemaining.toLong()
-                        val dstRemaining = minOf(chars.size, rem).toLong() * 2L
+                        val length = srcView.readRemaining.signExtend<size_t>()
+                        val dstRemaining = minOf(chars.size, rem).signExtend<size_t>() * 2
 
                         inbuf.value = src
                         outbuf.value = buffer
                         inbytesleft.value = length
                         outbytesleft.value = dstRemaining
 
-                        if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
+                        if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == MAX_SIZE) {
                             checkIconvResult(posix_errno())
                         }
 
@@ -289,15 +289,15 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
                     var read = 0
 
                     srcView.readDirect { src ->
-                        val length = minOf(srcView.readRemaining, inputLength - bytesConsumed).toLong()
-                        val dstRemaining = rem * 2L
+                        val length = minOf(srcView.readRemaining, inputLength - bytesConsumed).signExtend<size_t>()
+                        val dstRemaining = rem.signExtend<size_t>() * 2
 
                         inbuf.value = src
                         outbuf.value = pinned.addressOf(charsCopied)
                         inbytesleft.value = length
                         outbytesleft.value = dstRemaining
 
-                        if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == -1L) {
+                        if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == MAX_SIZE) {
                             checkIconvResult(posix_errno())
                         }
 
