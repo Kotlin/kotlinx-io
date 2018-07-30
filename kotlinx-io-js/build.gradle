@@ -13,7 +13,7 @@ kotlinFrontend {
     npm {
         dependency "text-encoding"
         devDependency "karma-qunit", "1.2.1"
-        devDependency "karma", "2.0.2"
+        devDependency "karma", "2.0.5"
     }
 
     webpackBundle {
