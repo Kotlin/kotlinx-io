@@ -18,7 +18,7 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.35"
+        classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.36"
         classpath("org.jetbrains.kotlin:kotlin-native-gradle-plugin:$kotlin_native_version") {
             exclude group: 'org.jetbrains.kotlin', module: 'kotlin-gradle-plugin'
         }
