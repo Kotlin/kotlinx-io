@@ -36,7 +36,7 @@ actual class ByteReadPacket
     }
 
     actual companion object {
-        actual val Empty = ByteReadPacketBase.Empty
-        actual val ReservedSize = ByteReadPacketBase.ReservedSize
+        actual val Empty get() = ByteReadPacketBase.Empty
+        actual val ReservedSize get() = ByteReadPacketBase.ReservedSize
     }
 }

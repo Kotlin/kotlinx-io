@@ -51,7 +51,7 @@ internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<Io
     }
 
     actual companion object {
-        actual val Empty: ByteReadPacket = ByteReadPacketBase.Empty
-        actual val ReservedSize = ByteReadPacketBase.ReservedSize
+        actual val Empty: ByteReadPacket get() = ByteReadPacketBase.Empty
+        actual val ReservedSize get() = ByteReadPacketBase.ReservedSize
     }
 }
