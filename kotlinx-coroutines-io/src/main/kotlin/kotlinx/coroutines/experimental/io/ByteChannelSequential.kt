@@ -52,7 +52,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
     protected val writable = BytePacketBuilder(0)
     protected val readable = ByteReadPacket(initial, IoBuffer.Pool)
 
-    private val notFull = Condition { totalPending() <= 4088L }
+    internal val notFull = Condition { totalPending() <= 4088L }
 
     private var waitingForSize = 1
     private val atLeastNBytesAvailableForWrite = Condition { availableForWrite >= waitingForSize || closed }
