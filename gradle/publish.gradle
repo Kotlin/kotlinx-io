@@ -1,5 +1,3 @@
-apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
 
 publishing {
     repositories {

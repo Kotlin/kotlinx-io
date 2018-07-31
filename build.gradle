@@ -113,27 +113,26 @@ configure(allprojects) {
 def skipPublish = ['benchmarks']
 configure(allprojects.findAll { !skipPublish.contains(it.name) }) {
     apply from: rootProject.file('pom.gradle')
+    apply from: rootProject.file('gradle/bintray.gradle')
 
-    if (!project.name.contains('native')) {
-        apply from: rootProject.file('gradle/bintray.gradle')
-
-        publishing {
-            publications {
-                mavenProject(MavenPublication) {
+    publishing {
+        publications {
+            mavenProject(MavenPublication) {
+                if (!project.name.contains('native')) {
                     from components.java
-
-                    groupId project.group
-                    artifactId project.name
-                    version project.version
-
-                    artifact sourceJar
-
-                    artifact emptyJar {
-                        classifier 'javadoc'
-                    }
-
-                    withPom(pom)
                 }
+
+                groupId project.group
+                artifactId project.name
+                version project.version
+
+                artifact sourceJar
+
+                artifact emptyJar {
+                    classifier 'javadoc'
+                }
+
+                withPom(pom)
             }
         }
     }
