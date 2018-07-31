@@ -419,6 +419,31 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         finish(7)
     }
 
+    @Test
+    fun testWriteByteByByte() = runTest {
+        ch.writeByte(1)
+        ch.flush()
+        ch.writeByte(2)
+        ch.flush()
+
+        assertEquals(2, ch.availableForRead)
+        ch.discardExact(2)
+    }
+
+    @Test
+    fun testWriteByteByByteLong() = runTest {
+        launch {
+            repeat(16384) {
+                ch.writeByte(it and 0x0f)
+                ch.flush()
+            }
+            ch.close()
+        }
+
+        yield()
+        ch.discardExact(16384)
+    }
+
     private fun debug(p: ByteReadPacket) {
         p.release()
     }

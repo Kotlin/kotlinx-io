@@ -57,10 +57,30 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
         return size
     }
 
-    val isEmpty: Boolean get() = head === IoBuffer.Empty || _size == 0 || (_size == -1 && size == 0)
-    val isNotEmpty: Boolean get() = head !== IoBuffer.Empty || _size > 0 || (size == -1 && (head.canRead() || size > 0))
+    val isEmpty: Boolean get() {
+        val _size = _size
+        return when {
+            _size > 0 -> false
+            _size == 0 -> true
+            head.canRead() -> false
+            size == 0 -> true
+            else -> false
+        }
+    }
 
-    private var head: IoBuffer = IoBuffer.Empty
+    val isNotEmpty: Boolean get() {
+        val _size = _size
+        return when {
+            _size > 0 -> true
+            _size == 0 -> false
+            head.canRead() -> true
+            size > 0 -> true
+            else -> false
+        }
+    }
+
+    @PublishedApi
+    internal var head: IoBuffer = IoBuffer.Empty
 
     override fun append(c: Char): BytePacketBuilder {
         return super.append(c) as BytePacketBuilder
@@ -139,6 +159,15 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
         this._size = 0
 
         return if (head === IoBuffer.Empty) null else head
+    }
+
+    internal fun afterBytesStolen() {
+        val head = head
+        check(head.next == null)
+        _size = 0
+        head.resetForWrite()
+        head.reserveStartGap(headerSizeHint)
+        head.reserveEndGap(ByteReadPacketBase.ReservedSize)
     }
 
     /**

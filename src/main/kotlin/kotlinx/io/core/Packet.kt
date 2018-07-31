@@ -35,7 +35,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     @PublishedApi
     internal var headRemaining = head.readRemaining
 
-    private var tailRemaining: Long = remaining - headRemaining //head.next?.remainingAll() ?: 0
+    private var tailRemaining: Long = remaining - headRemaining
 
     /**
      * `true` if no bytes available for read
@@ -120,6 +120,22 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             tailRemaining += size
         }
         chain.byteOrder = byteOrder
+    }
+
+    internal fun tryWriteAppend(chain: IoBuffer): Boolean {
+        val tail = head.findTail()
+        val size = chain.readRemaining
+
+        if (size == 0 || tail.writeRemaining < size) return false
+        tail.writeBufferAppend(chain, size)
+
+        if (head === tail) {
+            headRemaining += size
+        } else {
+            tailRemaining += size
+        }
+
+        return true
     }
 
     final override fun readByte(): Byte {
@@ -705,7 +721,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             override fun borrow() = IoBuffer.Empty
         })
 
-        val ReservedSize = 8
+        val ReservedSize: Int = 8
     }
 }
 

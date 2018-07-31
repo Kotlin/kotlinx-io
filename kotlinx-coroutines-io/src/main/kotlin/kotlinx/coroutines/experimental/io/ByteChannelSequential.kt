@@ -52,18 +52,22 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
     protected val writable = BytePacketBuilder(0)
     protected val readable = ByteReadPacket(initial, IoBuffer.Pool)
 
-    internal val notFull = Condition { readable.remaining <= 4088L }
+    private val notFull = Condition { totalPending() <= 4088L }
+
     private var waitingForSize = 1
     private val atLeastNBytesAvailableForWrite = Condition { availableForWrite >= waitingForSize || closed }
 
     private var waitingForRead = 1
     private val atLeastNBytesAvailableForRead = Condition { availableForRead >= waitingForRead || closed }
 
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun totalPending() = readable.remaining.toInt() + writable.size
+
     override val availableForRead: Int
         get() = readable.remaining.toInt()
 
     override val availableForWrite: Int
-        get() = maxOf(0L, 4088 - readable.remaining).toInt()
+        get() = maxOf(0, 4088 - totalPending())
 
     override var readByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {
@@ -186,7 +190,9 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
             }
 
             override fun written(n: Int) {
-                atLeastNBytesAvailableForRead.signal()
+                @Suppress("DEPRECATION_ERROR")
+                writable.`$afterWrite$`()
+                afterWrite()
             }
 
             override fun flush() {
@@ -467,7 +473,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
     protected suspend fun awaitSuspend(atLeast: Int): Boolean {
         require(atLeast >= 0)
         waitingForRead = atLeast
-        atLeastNBytesAvailableForRead.await()
+        atLeastNBytesAvailableForRead.await { afterRead() }
         closedCause?.let { throw it }
         return !isClosedForRead
     }
@@ -606,12 +612,9 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
             writable.release()
             throw closedCause ?: ClosedWriteChannelException("Channel is already closed")
         }
-        if (autoFlush) {
+        if (autoFlush || availableForWrite == 0) {
             flush()
-            // TODO: avoid stealing for every byte
         }
-
-        atLeastNBytesAvailableForRead.signal()
     }
 
     protected suspend fun awaitFreeSpace() {
