@@ -337,14 +337,14 @@ fun Input.readTextExactBytes(charset: Charset = Charsets.UTF_8, bytes: Int): Str
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [encoder]
  */
-fun BytePacketBuilder.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, encoder: CharsetEncoder) {
+fun Output.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, encoder: CharsetEncoder) {
     encoder.encode(text, fromIndex, toIndex, this)
 }
 
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]
  */
-fun BytePacketBuilder.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, charset: Charset = Charsets.UTF_8) {
+fun Output.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, charset: Charset = Charsets.UTF_8) {
     writeText(text, fromIndex, toIndex, charset.newEncoder())
 }
 
