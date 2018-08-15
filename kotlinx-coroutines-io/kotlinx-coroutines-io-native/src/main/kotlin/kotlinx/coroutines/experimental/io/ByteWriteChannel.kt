@@ -53,8 +53,8 @@ actual interface ByteWriteChannel {
 
     actual suspend fun writeAvailable(src: IoBuffer): Int
 
-    suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Int, length: Int): Int
-    suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Long, length: Long): Int
+//    suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Int, length: Int): Int
+//    suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Long, length: Long): Int
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
@@ -64,8 +64,8 @@ actual interface ByteWriteChannel {
 
     actual suspend fun writeFully(src: IoBuffer)
 
-    suspend fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
-    suspend fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
+//    suspend fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
+//    suspend fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
 
     actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 

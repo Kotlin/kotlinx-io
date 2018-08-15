@@ -6,7 +6,7 @@ import kotlinx.cinterop.*
 import kotlin.test.*
 
 class ByteChannelNativeTests : ByteChannelTestBase(true) {
-    @Test
+    /*@Test
     fun testCPointersReadWriteFully() = runTest {
         val array = ByteArray(4)
         for (i in 0..3) {
@@ -71,5 +71,5 @@ class ByteChannelNativeTests : ByteChannelTestBase(true) {
         }
 
         assertTrue { array.contentEquals(result.copyOf(size)) }
-    }
+    }*/
 }

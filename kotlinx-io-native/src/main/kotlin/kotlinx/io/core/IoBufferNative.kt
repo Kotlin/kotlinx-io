@@ -131,7 +131,7 @@ actual class IoBuffer internal constructor(
         writePosition += 8
     }
 
-    final override fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
+    final internal fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
         require(length <= readRemaining.toLong())
         require(length >= 0L) { "length shouldn't be negative: $length" }
         require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
@@ -140,15 +140,15 @@ actual class IoBuffer internal constructor(
         readPosition += length.toInt()
     }
 
-    final override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
+    final internal fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
-        
+
         memcpy(dst + offset, content + readPosition, length.signExtend<size_t>())
         readPosition += length
     }
 
-    final override fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
+    final internal fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= writeRemaining) { "Not enough space available to write $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
 
@@ -156,7 +156,7 @@ actual class IoBuffer internal constructor(
         writePosition += length
     }
 
-    final override fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
+    final internal fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
         require(length <= writeRemaining.toLong()) { "Not enough space available to write $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(length <= size_t.MAX_VALUE) { "length shouldn't be greater than ${size_t.MAX_VALUE}" }
@@ -449,26 +449,26 @@ actual class IoBuffer internal constructor(
         return copySize
     }
 
-    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
-        require(length >= 0) { "length shouldn't be negative: $length" }
-
-        val copySize = minOf(length, readRemaining)
-        memcpy(dst + offset, content + readPosition, copySize.signExtend<size_t>())
-        readPosition += length
-
-        return copySize
-    }
-
-    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long {
-        require(length >= 0) { "length shouldn't be negative: $length" }
-        require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
-
-        val copySize = minOf(length, readRemaining.toLong())
-        memcpy(dst + offset, content + readPosition, copySize.narrow<size_t>())
-        readPosition += length.toInt()
-
-        return copySize
-    }
+//    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
+//        require(length >= 0) { "length shouldn't be negative: $length" }
+//
+//        val copySize = minOf(length, readRemaining)
+//        memcpy(dst + offset, content + readPosition, copySize.signExtend<size_t>())
+//        readPosition += length
+//
+//        return copySize
+//    }
+//
+//    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long {
+//        require(length >= 0) { "length shouldn't be negative: $length" }
+//        require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
+//
+//        val copySize = minOf(length, readRemaining.toLong())
+//        memcpy(dst + offset, content + readPosition, copySize.narrow<size_t>())
+//        readPosition += length.toInt()
+//
+//        return copySize
+//    }
 
     internal fun writeDirect(block: (CPointer<ByteVar>) -> Int) {
         val rc = block((content + writePosition)!!)

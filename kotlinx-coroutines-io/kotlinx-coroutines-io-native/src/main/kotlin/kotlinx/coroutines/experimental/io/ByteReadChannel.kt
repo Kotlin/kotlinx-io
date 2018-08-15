@@ -45,8 +45,8 @@ actual interface ByteReadChannel {
 
     actual suspend fun readAvailable(dst: IoBuffer): Int
 
-    suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int
-    suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Int
+//    suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int
+//    suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Int
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
@@ -55,8 +55,8 @@ actual interface ByteReadChannel {
     actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
     actual suspend fun readFully(dst: IoBuffer, n: Int)
 
-    suspend fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int)
-    suspend fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long)
+//    suspend fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int)
+//    suspend fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long)
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed

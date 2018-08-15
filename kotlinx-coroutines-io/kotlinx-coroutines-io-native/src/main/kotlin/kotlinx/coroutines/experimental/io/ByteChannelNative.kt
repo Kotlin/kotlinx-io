@@ -62,6 +62,8 @@ internal class ByteChannelNative(initial: IoBuffer, autoFlush: Boolean) : ByteCh
             if (cause != null) cancel(cause)
         }
     }
+
+    /*
     override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
         return readAvailable(dst, offset.toLong(), length.toLong())
     }
@@ -189,5 +191,5 @@ internal class ByteChannelNative(initial: IoBuffer, autoFlush: Boolean) : ByteCh
         val ptr: CPointer<ByteVar> = (dst + offset)!!
         readable.readFully(ptr, 0, size)
         return size
-    }
+    }*/
 }
