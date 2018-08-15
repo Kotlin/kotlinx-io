@@ -18,9 +18,17 @@ actual val CharsetEncoder.charset: Charset get() = charset()
 
 actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray {
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-    if (input is String) return (input as java.lang.String).getBytes(charset())
+    if (input is String) {
+        if (fromIndex == 0 && toIndex == input.length)
+            return (input as java.lang.String).getBytes(charset())
+        return (input.substring(fromIndex, toIndex) as java.lang.String).getBytes(charset())
+    }
 
-    val result = encode(CharBuffer.wrap(input))
+    return encodeToByteArraySlow(input, fromIndex, toIndex)
+}
+
+private fun CharsetEncoder.encodeToByteArraySlow(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray {
+    val result = encode(CharBuffer.wrap(input, fromIndex, toIndex))
 
     val existingArray = when {
         result.hasArray() && result.arrayOffset() == 0 -> result.array()?.takeIf { it.size == result.remaining() }
