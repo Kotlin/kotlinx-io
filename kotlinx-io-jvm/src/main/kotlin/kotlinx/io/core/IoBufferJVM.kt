@@ -267,13 +267,15 @@ actual class IoBuffer private constructor(
     }
     actual fun appendChars(csq: CharArray, start: Int, end: Int): Int {
         val buffer = writeBuffer
+        var idx = start
 
-        for (idx in start until end) {
-            val ch = csq[idx]
-            val size = buffer.putUtf8Char(ch.toInt())
+        while (idx < end) {
+            val ch = csq[idx++]
+            val size = if (ch.isSurrogate()) buffer.putUtf8CharSurrogate(ch.toInt(), csq[idx++].toInt())
+            else buffer.putUtf8Char(ch.toInt())
+
             if (size == 0) {
-                afterWrite()
-                return idx
+                return appendCharFailed(ch, idx)
             }
         }
 
@@ -299,17 +301,27 @@ actual class IoBuffer private constructor(
     }
 
     private fun appendUTF8(writeBuffer: ByteBuffer, csq: CharSequence, start: Int, end: Int): Int {
-        for (idx in start until end) {
-            val ch = csq[idx]
-            val size = writeBuffer.putUtf8Char(ch.toInt())
+        var idx = start
+        while (idx < end) {
+            val ch = csq[idx++]
+            val size = if (ch.isSurrogate()) {
+                writeBuffer.putUtf8CharSurrogate(ch.toInt(), csq[idx++].toInt())
+            } else {
+                writeBuffer.putUtf8Char(ch.toInt())
+            }
+
             if (size == 0) {
-                afterWrite()
-                return idx
+                return appendCharFailed(ch, idx)
             }
         }
 
         afterWrite()
         return end
+    }
+
+    private fun appendCharFailed(ch: Char, idx: Int): Int {
+        afterWrite()
+        return if (ch.isSurrogate()) idx - 2 else idx - 1
     }
 
     private fun appendASCII_buffer(writeBuffer: ByteBuffer, csq: CharSequence, start: Int, end: Int): Int {
@@ -355,6 +367,16 @@ actual class IoBuffer private constructor(
                 put(v.toByte())
                 1
             }
+            v > 0xffff -> {
+                if (remaining() < 4) return 0
+                apply {
+                    put((0xf0 or ((v shr 18) and 0x3f)).toByte())
+                    put((0x80 or ((v shr 12) and 0x3f)).toByte())
+                    put((0x80 or ((v shr  6) and 0x3f)).toByte())
+                    put((0x80 or ( v         and 0x3f)).toByte())
+                }
+                4
+            }
             v > 0x7ff -> {
                 if (remaining() < 3) return 0
                 apply {
@@ -373,6 +395,15 @@ actual class IoBuffer private constructor(
                 2
             }
         }
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private fun ByteBuffer.putUtf8CharSurrogate(high: Int, low: Int): Int {
+        val highValue = (high and 0x7ff) shl 10
+        val lowValue = (low and 0x3ff)
+        val value = 0x010000 or (highValue or lowValue)
+
+        return putUtf8Char(value)
     }
 
     actual final override fun fill(n: Long, v: Byte) {

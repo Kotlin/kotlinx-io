@@ -695,24 +695,30 @@ actual class IoBuffer internal constructor(
         return appendCharsUtf8(csq, rc, end, wp)
     }
 
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun Int.isSurrogateCodePoint() = this in 55296..57343
+
     private fun appendCharsUtf8(csq: CharArray, start: Int, end: Int, wp0: Int): Int {
         val i8 = i8
         val l = limit
         var wp = wp0
-        var rc = end
+        var idx = start
 
-        for (idx in start until end) {
-            val ch = csq[idx].toInt()
-            val size = i8.putUtf8Char(ch, l - wp, wp)
+        while (idx < end) {
+            val ch = csq[idx++].toInt()
+
+            val size = if (ch.isSurrogateCodePoint()) i8.putUtf8CharSurrogate(ch, csq[idx++].toInt(), l - wp, wp)
+            else i8.putUtf8Char(ch, l - wp, wp)
+
             if (size == 0) {
-                rc = idx
-                break
+                return appendCharFailed(ch, idx, wp)
             }
+
             wp += size
         }
 
         writePosition = wp
-        return rc
+        return end
     }
 
     actual fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
@@ -743,20 +749,28 @@ actual class IoBuffer internal constructor(
         val i8 = i8
         val l = limit
         var wp = wp0
-        var rc = end
+        var idx = start
 
-        for (idx in start until end) {
-            val ch = csq[idx].toInt()
-            val size = i8.putUtf8Char(ch, l - wp, wp)
+        while (idx < end) {
+            val ch = csq[idx++].toInt()
+            val remaining = l - wp
+            val size = if (ch.isSurrogateCodePoint()) i8.putUtf8CharSurrogate(ch, csq[idx++].toInt(), remaining, wp)
+                else i8.putUtf8Char(ch, remaining, wp)
+
             if (size == 0) {
-                rc = idx
-                break
+                return appendCharFailed(ch, idx, wp)
             }
+
             wp += size
         }
 
         writePosition = wp
-        return rc
+        return end
+    }
+
+    private fun appendCharFailed(ch: Int, idx: Int, wp: Int): Int {
+        writePosition = wp
+        return if (ch.isSurrogateCodePoint()) idx - 2 else idx - 1
     }
 
     @Suppress("NOTHING_TO_INLINE")
@@ -766,6 +780,14 @@ actual class IoBuffer internal constructor(
                 if (remaining < 1) return 0
                 this[wp] = v.toByte()
                 1
+            }
+            v > 0xffff -> {
+                if (remaining < 4) return 0
+                this[wp    ] = (0xf0 or ((v shr 18) and 0x3f)).toByte()
+                this[wp + 1] = (0x80 or ((v shr 12) and 0x3f)).toByte()
+                this[wp + 2] = (0x80 or ((v shr  6) and 0x3f)).toByte()
+                this[wp + 3] = (0x80 or ( v         and 0x3f)).toByte()
+                4
             }
             v > 0x7ff -> {
                 if (remaining < 3) return 0
@@ -781,6 +803,14 @@ actual class IoBuffer internal constructor(
                 2
             }
         }
+    }
+
+    private fun Int8Array.putUtf8CharSurrogate(high: Int, low: Int, remaining: Int, wp: Int): Int {
+        val highValue = (high and 0x7ff) shl 10
+        val lowValue = (low and 0x3ff)
+        val value = 0x010000 or (highValue or lowValue)
+
+        return putUtf8Char(value, remaining, wp)
     }
 
     actual final override fun tryPeek(): Int {
