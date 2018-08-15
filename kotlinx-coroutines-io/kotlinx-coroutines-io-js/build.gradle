@@ -39,3 +39,7 @@ compileTestKotlin2Js {
     kotlinOptions.moduleKind = 'commonjs'
     kotlinOptions.main = "call"
 }
+
+project.afterEvaluate {
+    project.tasks.findByName("webpack-bundle").dependsOn(project.tasks.compileKotlin2Js)
+}
