@@ -42,7 +42,7 @@ private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) :
     @Synchronized
     override fun read(): Int {
         val buffer = single ?: ByteArray(1).also { single = it }
-        loop.submitAndAwait(buffer, 0, 1)
+        if (loop.submitAndAwait(buffer, 0, 1) == -1) return -1
         return buffer[0].toInt() and 0xff
     }
 
