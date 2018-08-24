@@ -22,19 +22,3 @@ compileTestKotlin {
 }
 
 sourceCompatibility = "1.6"
-
-atomicFU {
-    inputFiles = sourceSets.main.output.classesDirs
-    outputDir = file("$buildDir/classes-post-atomicfu/main")
-    classPath = sourceSets.main.runtimeClasspath
-    variant = 'BOTH'
-}
-
-atomicFU.dependsOn compileKotlin
-testClasses.dependsOn atomicFU
-jar.dependsOn atomicFU
-
-jar {
-    mainSpec.sourcePaths.clear()
-    from atomicFU.outputDir
-}
