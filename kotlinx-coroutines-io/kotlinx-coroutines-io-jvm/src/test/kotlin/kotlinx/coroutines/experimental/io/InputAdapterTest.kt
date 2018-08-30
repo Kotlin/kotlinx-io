@@ -1,6 +1,6 @@
 package kotlinx.coroutines.experimental.io
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import kotlin.test.*
 
@@ -83,3 +83,4 @@ class InputAdapterTest {
         assertEquals(-1, s.read(array))
     }
 }
+
