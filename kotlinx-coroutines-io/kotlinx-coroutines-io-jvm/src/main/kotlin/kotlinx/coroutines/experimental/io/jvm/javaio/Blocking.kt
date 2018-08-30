@@ -30,6 +30,7 @@ private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) :
                 rc = channel.readAvailable(buffer, offset, length)
                 if (rc == -1) break
             }
+            finish(rc)
         }
     }
 
@@ -42,7 +43,9 @@ private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) :
     @Synchronized
     override fun read(): Int {
         val buffer = single ?: ByteArray(1).also { single = it }
-        if (loop.submitAndAwait(buffer, 0, 1) == -1) return -1
+        val rc = loop.submitAndAwait(buffer, 0, 1)
+        if (rc == -1) return -1
+        if (rc != 1) error("rc should be 1 or -1 but got $rc")
         return buffer[0].toInt() and 0xff
     }
 
@@ -244,5 +247,9 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
 
             COROUTINE_SUSPENDED
         }
+    }
+
+    protected fun finish(rc: Int) {
+        result.value = rc
     }
 }
