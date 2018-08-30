@@ -7,7 +7,7 @@ import platform.posix.memset
 import platform.posix.size_t
 
 @PublishedApi
-internal val MAX_SIZE: size_t = (-1).convert<size_t>()
+internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 actual class IoBuffer internal constructor(
         internal var content: CPointer<ByteVar>,
