@@ -8,7 +8,6 @@ import platform.iconv.iconv_open
 import platform.iconv.iconv_close
 import platform.iconv.iconv
 
-import konan.SymbolName
 import platform.posix.*
 
 actual abstract class Charset(internal val _name: String) {
@@ -85,18 +84,18 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
                     val outbuf = alloc<CPointerVar<ByteVar>>()
                     val inbytesleft = alloc<size_tVar>()
                     val outbytesleft = alloc<size_tVar>()
-                    val dstRemaining = dst.writeRemaining.signExtend<size_t>()
+                    val dstRemaining = dst.writeRemaining.convert<size_t>()
 
                     inbuf.value = pinned.addressOf(0)
                     outbuf.value = buffer
-                    inbytesleft.value = (length * 2).signExtend<size_t>()
+                    inbytesleft.value = (length * 2).convert<size_t>()
                     outbytesleft.value = dstRemaining
 
                     if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == MAX_SIZE) {
                         checkIconvResult(posix_errno())
                     }
 
-                    charsConsumed = (length * 2 - inbytesleft.value).toInt() / 2
+                    charsConsumed = ((length * 2).convert<size_t>() - inbytesleft.value).toInt() / 2
                     (dstRemaining - outbytesleft.value).toInt()
                 }
             }
@@ -131,12 +130,12 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
 
                     srcView.readDirect { src ->
                         memScoped {
-                            val length = srcView.readRemaining.signExtend<size_t>()
+                            val length = srcView.readRemaining.convert<size_t>()
                             val inbuf = alloc<CPointerVar<ByteVar>>()
                             val outbuf = alloc<CPointerVar<ByteVar>>()
                             val inbytesleft = alloc<size_tVar>()
                             val outbytesleft = alloc<size_tVar>()
-                            val dstRemaining = dstBuffer.writeRemaining.signExtend<size_t>()
+                            val dstRemaining = dstBuffer.writeRemaining.convert<size_t>()
 
                             inbuf.value = src
                             outbuf.value = buffer
@@ -220,8 +219,8 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
                     var read = 0
 
                     srcView.readDirect { src ->
-                        val length = srcView.readRemaining.signExtend<size_t>()
-                        val dstRemaining = minOf(chars.size, rem).signExtend<size_t>() * 2
+                        val length = srcView.readRemaining.convert<size_t>()
+                        val dstRemaining = minOf(chars.size, rem).convert<size_t>() * 2
 
                         inbuf.value = src
                         outbuf.value = buffer
@@ -289,8 +288,8 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
                     var read = 0
 
                     srcView.readDirect { src ->
-                        val length = minOf(srcView.readRemaining, inputLength - bytesConsumed).signExtend<size_t>()
-                        val dstRemaining = rem.signExtend<size_t>() * 2
+                        val length = minOf(srcView.readRemaining, inputLength - bytesConsumed).convert<size_t>()
+                        val dstRemaining = rem.convert<size_t>() * 2
 
                         inbuf.value = src
                         outbuf.value = pinned.addressOf(charsCopied)

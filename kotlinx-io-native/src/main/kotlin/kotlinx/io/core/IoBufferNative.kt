@@ -7,7 +7,7 @@ import platform.posix.memset
 import platform.posix.size_t
 
 @PublishedApi
-internal val MAX_SIZE: size_t = (-1).signExtend<size_t>()
+internal val MAX_SIZE: size_t = (-1).convert<size_t>()
 
 actual class IoBuffer internal constructor(
         internal var content: CPointer<ByteVar>,
@@ -136,7 +136,7 @@ actual class IoBuffer internal constructor(
         require(length >= 0L) { "length shouldn't be negative: $length" }
         require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
 
-        memcpy(dst + offset, content + readPosition, length.narrow<size_t>())
+        memcpy(dst + offset, content + readPosition, length.convert<size_t>())
         readPosition += length.toInt()
     }
 
@@ -144,7 +144,7 @@ actual class IoBuffer internal constructor(
         require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
 
-        memcpy(dst + offset, content + readPosition, length.signExtend<size_t>())
+        memcpy(dst + offset, content + readPosition, length.convert<size_t>())
         readPosition += length
     }
 
@@ -152,16 +152,16 @@ actual class IoBuffer internal constructor(
         require(length <= writeRemaining) { "Not enough space available to write $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
 
-        memcpy(content + writePosition, src + offset, length.signExtend<size_t>())
+        memcpy(content + writePosition, src + offset, length.convert<size_t>())
         writePosition += length
     }
 
     final internal fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
         require(length <= writeRemaining.toLong()) { "Not enough space available to write $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
-        require(length <= size_t.MAX_VALUE) { "length shouldn't be greater than ${size_t.MAX_VALUE}" }
+        require(length.convert<size_t>() <= size_t.MAX_VALUE) { "length shouldn't be greater than ${size_t.MAX_VALUE}" }
 
-        memcpy(content + writePosition, src + offset, length.narrow<size_t>())
+        memcpy(content + writePosition, src + offset, length.convert<size_t>())
         writePosition += length.toInt()
     }
 
@@ -180,7 +180,7 @@ actual class IoBuffer internal constructor(
 
         dst.usePinned {
             val address = it.addressOf(offset)
-            memcpy(address, content + readPosition, length.signExtend<size_t>())
+            memcpy(address, content + readPosition, length.convert<size_t>())
         }
 
         readPosition += length
@@ -196,7 +196,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.signExtend<size_t>() * 2)
+                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 2)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<ShortVar>()
@@ -217,7 +217,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.signExtend<size_t>() * 4)
+                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 4)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<IntVar>()
@@ -238,7 +238,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.signExtend<size_t>() * 8)
+                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 8)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<LongVar>()
@@ -259,7 +259,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.signExtend<size_t>() * 4)
+                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 4)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<FloatVar>()
@@ -280,7 +280,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.signExtend<size_t>() * 8)
+                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 8)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
@@ -296,7 +296,7 @@ actual class IoBuffer internal constructor(
         require(length <= dst.writeRemaining) { "Not enough space in the destination buffer to read $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
 
-        memcpy(dst.content + dst.writePosition, content + readPosition, length.signExtend<size_t>())
+        memcpy(dst.content + dst.writePosition, content + readPosition, length.convert<size_t>())
         readPosition += length
         dst.writePosition += length
     }
@@ -311,7 +311,7 @@ actual class IoBuffer internal constructor(
 
         return dst.usePinned {
             val copySize = minOf(length, readRemaining)
-            memcpy(it.addressOf(offset), content + readPosition, copySize.signExtend<size_t>())
+            memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>())
             readPosition += copySize
             copySize
         }
@@ -327,7 +327,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.signExtend<size_t>() * 2)
+                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 2)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<ShortVar>()
@@ -351,7 +351,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.signExtend<size_t>() * 4)
+                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 4)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<IntVar>()
@@ -375,7 +375,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.signExtend<size_t>() * 8)
+                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 8)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<LongVar>()
@@ -399,7 +399,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.signExtend<size_t>() * 4)
+                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 4)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<FloatVar>()
@@ -423,7 +423,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.signExtend<size_t>() * 8)
+                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 8)
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
@@ -442,7 +442,7 @@ actual class IoBuffer internal constructor(
         require(length >= 0) { "length shouldn't be negative: $length" }
 
         val copySize = minOf(length, readRemaining)
-        memcpy(dst.content + dst.writePosition, content + readPosition, copySize.signExtend<size_t>())
+        memcpy(dst.content + dst.writePosition, content + readPosition, copySize.convert<size_t>())
         readPosition += length
         dst.writePosition += length
 
@@ -453,7 +453,7 @@ actual class IoBuffer internal constructor(
 //        require(length >= 0) { "length shouldn't be negative: $length" }
 //
 //        val copySize = minOf(length, readRemaining)
-//        memcpy(dst + offset, content + readPosition, copySize.signExtend<size_t>())
+//        memcpy(dst + offset, content + readPosition, copySize.convert<size_t>())
 //        readPosition += length
 //
 //        return copySize
@@ -464,7 +464,7 @@ actual class IoBuffer internal constructor(
 //        require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
 //
 //        val copySize = minOf(length, readRemaining.toLong())
-//        memcpy(dst + offset, content + readPosition, copySize.narrow<size_t>())
+//        memcpy(dst + offset, content + readPosition, copySize.convert<size_t>())
 //        readPosition += length.toInt()
 //
 //        return copySize
@@ -499,7 +499,7 @@ actual class IoBuffer internal constructor(
 
         src.usePinned {
             val address = it.addressOf(offset)
-            memcpy(content + writePosition, address, length.signExtend<size_t>())
+            memcpy(content + writePosition, address, length.convert<size_t>())
         }
 
         writePosition += length
@@ -515,7 +515,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.signExtend<size_t>() * 2)
+                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 2)
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<ShortVar>()
@@ -537,7 +537,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.signExtend<size_t>() * 4)
+                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 4)
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<IntVar>()
@@ -559,7 +559,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.signExtend<size_t>() * 8)
+                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 8)
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<LongVar>()
@@ -581,7 +581,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.signExtend<size_t>() * 4)
+                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 4)
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<FloatVar>()
@@ -603,7 +603,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.signExtend<size_t>() * 8)
+                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 8)
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<DoubleVar>()
@@ -619,7 +619,7 @@ actual class IoBuffer internal constructor(
         require(length <= src.readRemaining) { "length is too large: not enough bytes to read $length > ${src.readRemaining}"}
         require(length <= writeRemaining) { "length is too large: not enough room to write $length > $writeRemaining" }
 
-        memcpy(content + writePosition, src.content + src.readPosition, length.signExtend<size_t>())
+        memcpy(content + writePosition, src.content + src.readPosition, length.convert<size_t>())
 
         src.readPosition += length
         writePosition += length
@@ -630,8 +630,8 @@ actual class IoBuffer internal constructor(
         require(n >= 0) { "n shouldn't be negative: $n" }
         require(n < Int.MAX_VALUE)
 
-        memset(content + writePosition, v.toInt() and 0xff, n.narrow<size_t>())
-        writePosition += n.narrow<Int>()
+        memset(content + writePosition, v.toInt() and 0xff, n.convert<size_t>())
+        writePosition += n.convert<Int>()
     }
 
     actual final override fun readLong(): Long {
@@ -847,7 +847,7 @@ actual class IoBuffer internal constructor(
         val size = other.readRemaining
         require(size <= startGap) { "size should be greater than startGap (size = $size, startGap = $startGap)" }
 
-        memcpy(content + (readPosition - size), other.content + other.readPosition, size.signExtend<size_t>())
+        memcpy(content + (readPosition - size), other.content + other.readPosition, size.convert<size_t>())
 
         readPosition -= size
         other.readPosition += size
@@ -858,7 +858,7 @@ actual class IoBuffer internal constructor(
         require(size <= writeRemaining + endGap) { "size should be greater than write space + end gap (size = $size, " +
                 "writeRemaining = $writeRemaining, endGap = $endGap, rem+gap = ${writeRemaining + endGap}" }
 
-        memcpy(content + writePosition, other.content + other.readPosition, size.signExtend<size_t>())
+        memcpy(content + writePosition, other.content + other.readPosition, size.convert<size_t>())
 
         writePosition += size
         if (writePosition > limit) {
@@ -997,10 +997,10 @@ actual class IoBuffer internal constructor(
     private inline fun swap(s: Long): Long = (swap((s and 0xffffffff).toInt()).toLong() shl 32) or (swap((s ushr 32).toInt()).toLong() and 0xffffffff)
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun swap(s: Float): Float = Float.fromBits(swap(s.bits()))
+    private inline fun swap(s: Float): Float = Float.fromBits(swap(s.toRawBits()))
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun swap(s: Double): Double = Double.fromBits(swap(s.bits()))
+    private inline fun swap(s: Double): Double = Double.fromBits(swap(s.toRawBits()))
 
     actual companion object {
         internal val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
