@@ -105,12 +105,15 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
     }
 
     private fun tryReadAvailable(dst: ByteBuffer): Int {
+        val closed = closed
+        val closedCause = closedCause
+
         return when {
+            closedCause != null -> throw closedCause
             closed -> {
-                closedCause?.let { throw it }
-                -1
+                readable.readAvailable(dst).takeIf { it != 0 }.also { afterRead() } ?: -1
             }
-            else -> readable.readAvailable(dst)
+            else -> readable.readAvailable(dst).also { afterRead() }
         }
     }
 
