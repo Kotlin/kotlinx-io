@@ -1,6 +1,12 @@
 apply plugin: 'kotlinx-atomicfu'
 
 dependencies {
-    compileOnly "org.jetbrains.kotlinx:atomicfu:$atomicFU_version"
-    testCompile "org.jetbrains.kotlinx:atomicfu:$atomicFU_version"
+    compileOnly ("org.jetbrains.kotlinx:atomicfu:$atomicFU_version") {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-common'
+    }
+    testCompile ("org.jetbrains.kotlinx:atomicfu:$atomicFU_version") {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-common'
+    }
 }
