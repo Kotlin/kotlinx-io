@@ -41,6 +41,10 @@ internal actual class Condition actual constructor(val predicate: () -> Boolean)
         }
     }
 
+    override fun toString(): String {
+        return "Condition(cond=$cond)"
+    }
+
     companion object {
         @Suppress("UNCHECKED_CAST")
         private val updater = AtomicReferenceFieldUpdater.newUpdater<Condition, Continuation<*>>(Condition::class.java,
