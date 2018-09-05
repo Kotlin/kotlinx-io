@@ -15,25 +15,22 @@ suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, clo
  * @return a number of copied bytes
  */
 suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, limit: Long = Long.MAX_VALUE): Long {
+    require(this !== dst)
+
     var remainingLimit = limit
 
     while (true) {
-        if (!await(1)) break
-        val transferred = transferTo(dst, limit)
+        if (!awaitInternalAtLeast1()) break
+        val transferred = transferTo(dst, remainingLimit)
 
         val copied = if (transferred == 0L) {
-            val lastPiece = IoBuffer.Pool.borrow()
-            lastPiece.resetForWrite(remainingLimit.toInt())
-            val rc = readAvailable(lastPiece)
-            if (rc == -1) {
-                lastPiece.release(IoBuffer.Pool)
-                break
-            }
-
-            dst.writeFully(lastPiece)
-            lastPiece.release(IoBuffer.Pool)
-            rc.toLong()
+            val tail = copyToTail(dst, remainingLimit)
+            if (tail == 0L) break
+            tail
         } else {
+            if (dst.availableForWrite == 0) {
+                dst.notFull.await()
+            }
             transferred
         }
 
@@ -41,6 +38,23 @@ suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, lim
     }
 
     return limit - remainingLimit
+}
+
+private suspend fun ByteChannelSequentialBase.copyToTail(dst: ByteChannelSequentialBase, limit: Long): Long {
+    val lastPiece = IoBuffer.Pool.borrow()
+    try {
+        lastPiece.resetForWrite(limit.coerceAtMost(lastPiece.capacity.toLong()).toInt())
+        val rc = readAvailable(lastPiece)
+        if (rc == -1) {
+            lastPiece.release(IoBuffer.Pool)
+            return 0
+        }
+
+        dst.writeFully(lastPiece)
+        return rc.toLong()
+    } finally {
+        lastPiece.release(IoBuffer.Pool)
+    }
 }
 
 /**
@@ -465,9 +479,15 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
         completeReading()
 
-        return if (availableForRead < atLeast) {
-            awaitSuspend(atLeast)
-        } else !isClosedForRead
+        if (atLeast == 0) return !isClosedForRead
+        if (availableForRead >= atLeast) return true
+
+        return awaitSuspend(atLeast)
+    }
+
+    internal suspend fun awaitInternalAtLeast1(): Boolean {
+        if (readable.isNotEmpty) return true
+        return awaitSuspend(1)
     }
 
     protected suspend fun awaitSuspend(atLeast: Int): Boolean {
@@ -578,10 +598,10 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
     internal fun transferTo(dst: ByteChannelSequentialBase, limit: Long): Long {
         val size = readable.remaining
-        return if (readable.remaining <= limit) {
+        return if (size <= limit) {
             dst.writable.writePacket(readable)
-            afterRead()
             dst.afterWrite()
+            afterRead()
             size
         } else {
             0

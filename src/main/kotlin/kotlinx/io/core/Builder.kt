@@ -153,12 +153,13 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
      */
     internal fun stealAll(): IoBuffer? {
         val head = this.head
+        val empty = IoBuffer.Empty
 
-        this.head = IoBuffer.Empty
-        this.tail = IoBuffer.Empty
+        this.head = empty
+        this.tail = empty
         this._size = 0
 
-        return if (head === IoBuffer.Empty) null else head
+        return if (head === empty) null else head
     }
 
     internal fun afterBytesStolen() {
@@ -188,6 +189,10 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
             return
         }
 
+        writePacketSlow(tail, foreignStolen, p)
+    }
+
+    private fun writePacketSlow(tail: IoBuffer, foreignStolen: IoBuffer, p: ByteReadPacket) {
         val lastSize = tail.readRemaining
         val nextSize = foreignStolen.readRemaining
 
@@ -213,28 +218,32 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
             foreignStolen.release(p.pool)
             _size = head.remainingAll().toInt()
         } else if (appendSize == -1 || prependSize < appendSize) {
-            // do prepend
-            foreignStolen.writeBufferPrepend(tail)
-
-            if (head === tail) {
-                head = foreignStolen
-            } else {
-                var pre = head
-                while (true) {
-                    val next = pre.next!!
-                    if (next === tail) break
-                    pre = next
-                }
-
-                pre.next = foreignStolen
-            }
-            tail.release(pool)
-
-            this.tail = foreignStolen.findTail()
-            _size = head.remainingAll().toInt()
+            writePacketSlowPrepend(foreignStolen, tail)
         } else {
             throw IllegalStateException("prep = $prependSize, app = $appendSize")
         }
+    }
+
+    private fun writePacketSlowPrepend(foreignStolen: IoBuffer, tail: IoBuffer) {
+        // do prepend
+        foreignStolen.writeBufferPrepend(tail)
+
+        if (head === tail) {
+            head = foreignStolen
+        } else {
+            var pre = head
+            while (true) {
+                val next = pre.next!!
+                if (next === tail) break
+                pre = next
+            }
+
+            pre.next = foreignStolen
+        }
+        tail.release(pool)
+
+        this.tail = foreignStolen.findTail()
+        _size = head.remainingAll().toInt()
     }
 
     override fun last(buffer: IoBuffer) {
