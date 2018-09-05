@@ -209,7 +209,7 @@ actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boo
 }
 
 private suspend fun ByteReadChannel.joinToImplSuspend(dst: ByteWriteChannel, close: Boolean) {
-    copyToImpl(dst, Long.MAX_VALUE)
+    copyTo(dst, Long.MAX_VALUE)
     if (close) {
         dst.close()
     } else {
@@ -228,6 +228,8 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
 
     if (this is ByteBufferChannel && dst is ByteBufferChannel) {
         return dst.copyDirect(this, limit, null)
+    } else if (this is ByteChannelSequentialBase && dst is ByteChannelSequentialBase) {
+        return copyTo(dst) // more specialized extension function
     }
 
     return copyToImpl(dst, limit)
@@ -260,7 +262,7 @@ private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Lon
         dst.close(t)
         throw t
     } finally {
-        IoBuffer.Pool.recycle(buffer)
+        buffer.release(IoBuffer.Pool)
     }
 }
 
