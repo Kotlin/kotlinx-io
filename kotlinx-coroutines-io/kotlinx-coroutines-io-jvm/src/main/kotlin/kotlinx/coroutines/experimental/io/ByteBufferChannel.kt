@@ -2282,10 +2282,10 @@ internal class ByteBufferChannel(
     private suspend fun readSuspendImpl(size: Int): Boolean {
         if (!readSuspendPredicate(size)) return true
 
-        return suspendCoroutineUninterceptedOrReturn { raw ->
+        return suspendCoroutineUninterceptedOrReturn { ucont ->
             val c = readSuspendContinuationCache
             suspensionForSize(size, c)
-            c.swap(raw)
+            c.swap(ucont.intercepted())
         }
     }
 
@@ -2307,16 +2307,16 @@ internal class ByteBufferChannel(
     private val writeSuspendContinuationCache = MutableDelegateContinuation<Unit>()
     @Volatile
     private var writeSuspensionSize: Int = 0
-    private val writeSuspension = { c: Continuation<Unit> ->
+    private val writeSuspension = { ucont: Continuation<Unit> ->
         val size = writeSuspensionSize
 
         do {
             closed?.sendException?.let { throw it }
             if (!writeSuspendPredicate(size)) {
-                c.resume(Unit)
+                ucont.resume(Unit)
                 break
             }
-        } while (!setContinuation({ writeOp }, WriteOp, c, { writeSuspendPredicate(size) }))
+        } while (!setContinuation({ writeOp }, WriteOp, ucont.intercepted(), { writeSuspendPredicate(size) }))
 
         flushImpl(1, minWriteSize = size)
 
@@ -2341,7 +2341,7 @@ internal class ByteBufferChannel(
         return suspendCoroutineUninterceptedOrReturn { raw ->
             val c = writeSuspendContinuationCache
             writeSuspension(c)
-            c.swap(raw)
+            c.swap(raw.intercepted())
         }
     }
 
