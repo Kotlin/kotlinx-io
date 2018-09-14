@@ -11,7 +11,7 @@ class DummyCoroutines {
         override val context: CoroutineContext
             get() = EmptyCoroutineContext
 
-        override fun resumeWith(result: SuccessOrFailure<Unit>) {
+        override fun resumeWith(result: Result<Unit>) {
             liveCoroutines--
             failure = result.exceptionOrNull()
             if (result.isSuccess) {

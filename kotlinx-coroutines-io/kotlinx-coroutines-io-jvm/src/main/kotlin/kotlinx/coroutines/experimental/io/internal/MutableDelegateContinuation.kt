@@ -72,7 +72,7 @@ internal class MutableDelegateContinuation<T : Any> : Continuation<T>, Dispatche
     override val context: CoroutineContext
         get() = (state.value as? Continuation<*>)?.context ?: EmptyCoroutineContext
 
-    override fun resumeWith(result: SuccessOrFailure<T>) {
+    override fun resumeWith(result: Result<T>) {
         val value = result.toState()
         val before = state.getAndUpdate { before ->
             when (before) {
@@ -98,7 +98,7 @@ internal class MutableDelegateContinuation<T : Any> : Continuation<T>, Dispatche
             null
         } as Continuation<T>
 
-        c.resumeWith(SuccessOrFailure.failure(exception))
+        c.resumeWith(Result.failure(exception))
     }
 
     private inner class JobRelation(val job: Job) : CompletionHandler, DisposableHandle {

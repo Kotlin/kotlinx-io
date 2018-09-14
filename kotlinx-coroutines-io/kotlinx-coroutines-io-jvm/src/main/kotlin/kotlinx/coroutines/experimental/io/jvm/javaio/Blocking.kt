@@ -126,9 +126,9 @@ private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel)
 private abstract class BlockingAdapter(val parent: Job? = null) {
     private val end: Continuation<Unit> = object : Continuation<Unit> {
         override val context: CoroutineContext
-            get() = if (parent != null) Unconfined + parent else EmptyCoroutineContext
+            get() = if (parent != null) Dispatchers.Unconfined + parent else EmptyCoroutineContext
 
-        override fun resumeWith(result: SuccessOrFailure<Unit>) {
+        override fun resumeWith(result: Result<Unit>) {
             val value = result.toState()!!
 
             val before = state.getAndUpdate { current ->

@@ -16,12 +16,12 @@ dependencies {
 
 compileKotlin {
     kotlinOptions.jvmTarget = "1.6"
-    kotlinOptions.freeCompilerArgs = [ '-Xskip-metadata-version-check', '-Xskip-runtime-version-check']
+    kotlinOptions.freeCompilerArgs += [ '-Xskip-metadata-version-check', '-Xskip-runtime-version-check']
 
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.6"
-    kotlinOptions.freeCompilerArgs = [ '-Xskip-metadata-version-check', '-Xskip-runtime-version-check']
+    kotlinOptions.freeCompilerArgs += [ '-Xskip-metadata-version-check', '-Xskip-runtime-version-check']
 }
 
 sourceCompatibility = "1.6"

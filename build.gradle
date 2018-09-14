@@ -79,8 +79,6 @@ allprojects {
         }
     }
 
-    kotlin.experimental.coroutines 'enable'
-
     if (project.hasProperty('releaseVersion')) {
         project.version = project.releaseVersion
     }

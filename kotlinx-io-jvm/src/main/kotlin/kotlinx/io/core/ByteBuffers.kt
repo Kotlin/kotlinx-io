@@ -58,7 +58,7 @@ inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit)
     }
 }
 
-inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     read(size) { view ->
         view.readDirect {
             block(it)
