@@ -1,7 +1,7 @@
 dependencies {
     expectedBy project(":kotlinx-coroutines-io")
     implementation project(":kotlinx-io-native")
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$kotlinx_coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:0.26.0-eap13"
 }
 
 apply from: rootProject.file('gradle/bintray.gradle')
