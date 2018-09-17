@@ -149,11 +149,12 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     var copied = 0
     val cb = CharBuffer.allocate(DECODE_CHAR_BUFFER_SIZE)
 
+    var readSize = 1
+
     input.takeWhileSize { buffer: IoBuffer ->
         val rem = max - copied
         if (rem == 0) return@takeWhileSize 0
 
-        var readSize = 1
 
         buffer.readDirect { bb: ByteBuffer ->
             cb.clear()

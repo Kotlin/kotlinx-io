@@ -261,6 +261,63 @@ class ReadTextCommonTest {
         }
     }
 
+    @Test
+    fun testDecodeWrapped2Bytes() {
+        val first = IoBuffer.NoPool.borrow()
+        val second = IoBuffer.NoPool.borrow()
+
+        first.resetForWrite()
+        second.resetForWrite()
+        first.next = second
+
+        first.writeByte(0xce.toByte())
+        second.writeByte(0x9b.toByte())
+
+        val pkt = ByteReadPacket(first, IoBuffer.NoPool)
+
+        val text = pkt.readText(Charsets.UTF_8)
+        assertEquals("\u039b", text)
+    }
+
+    @Test
+    fun testDecodeWrapped3bytes1() {
+        val first = IoBuffer.NoPool.borrow()
+        val second = IoBuffer.NoPool.borrow()
+
+        first.resetForWrite()
+        second.resetForWrite()
+        first.next = second
+
+        first.writeByte(0xe0.toByte())
+        second.writeByte(0xaf.toByte())
+        second.writeByte(0xb5.toByte())
+
+        val pkt = ByteReadPacket(first, IoBuffer.NoPool)
+
+        val text = pkt.readText(Charsets.UTF_8)
+        assertEquals("\u0BF5", text)
+    }
+
+    @Test
+    fun testDecodeWrapped3bytes2() {
+        // the same but we have 2 bytes in the first chunk
+        val first = IoBuffer.NoPool.borrow()
+        val second = IoBuffer.NoPool.borrow()
+
+        first.resetForWrite()
+        second.resetForWrite()
+        first.next = second
+
+        first.writeByte(0xe0.toByte())
+        first.writeByte(0xaf.toByte())
+        second.writeByte(0xb5.toByte())
+
+        val pkt = ByteReadPacket(first, IoBuffer.NoPool)
+
+        val text = pkt.readText(Charsets.UTF_8)
+        assertEquals("\u0BF5", text)
+    }
+
     private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(startGap, pool)
         try {
