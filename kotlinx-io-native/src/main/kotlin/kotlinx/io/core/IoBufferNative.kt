@@ -196,7 +196,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 2)
+                memcpy(it.addressOf(offset), content + readPosition, (length * 2).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<ShortVar>()
@@ -217,7 +217,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 4)
+                memcpy(it.addressOf(offset), content + readPosition, (length * 4).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<IntVar>()
@@ -238,7 +238,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 8)
+                memcpy(it.addressOf(offset), content + readPosition, (length * 8).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<LongVar>()
@@ -259,7 +259,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 4)
+                memcpy(it.addressOf(offset), content + readPosition, (length * 4).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<FloatVar>()
@@ -280,7 +280,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, length.convert<size_t>() * 8)
+                memcpy(it.addressOf(offset), content + readPosition, (length * 8).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
@@ -327,7 +327,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 2)
+                memcpy(it.addressOf(offset), content + readPosition, (copySize * 2).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<ShortVar>()
@@ -351,7 +351,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 4)
+                memcpy(it.addressOf(offset), content + readPosition, (copySize * 4).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<IntVar>()
@@ -375,7 +375,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 8)
+                memcpy(it.addressOf(offset), content + readPosition, (copySize * 8).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<LongVar>()
@@ -399,7 +399,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 4)
+                memcpy(it.addressOf(offset), content + readPosition, (copySize * 4).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<FloatVar>()
@@ -423,7 +423,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             dst.usePinned {
-                memcpy(it.addressOf(offset), content + readPosition, copySize.convert<size_t>() * 8)
+                memcpy(it.addressOf(offset), content + readPosition, (copySize * 8).convert<size_t>())
             }
         } else {
             val ptr = (content + readPosition)!!.reinterpret<DoubleVar>()
@@ -515,7 +515,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 2)
+                memcpy(content + writePosition, it.addressOf(offset), (length * 2).convert<size_t>())
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<ShortVar>()
@@ -537,7 +537,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 4)
+                memcpy(content + writePosition, it.addressOf(offset), (length * 4).convert<size_t>())
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<IntVar>()
@@ -559,7 +559,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 8)
+                memcpy(content + writePosition, it.addressOf(offset), (length * 8).convert<size_t>())
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<LongVar>()
@@ -581,7 +581,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 4)
+                memcpy(content + writePosition, it.addressOf(offset), (length * 4).convert<size_t>())
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<FloatVar>()
@@ -603,7 +603,7 @@ actual class IoBuffer internal constructor(
 
         if (platformEndian) {
             src.usePinned {
-                memcpy(content + writePosition, it.addressOf(offset), length.convert<size_t>() * 8)
+                memcpy(content + writePosition, it.addressOf(offset), (length * 8).convert<size_t>())
             }
         } else {
             val buffer = (content + writePosition)!!.reinterpret<DoubleVar>()

@@ -220,7 +220,7 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
 
                     srcView.readDirect { src ->
                         val length = srcView.readRemaining.convert<size_t>()
-                        val dstRemaining = minOf(chars.size, rem).convert<size_t>() * 2
+                        val dstRemaining = (minOf(chars.size, rem) * 2).convert<size_t>()
 
                         inbuf.value = src
                         outbuf.value = buffer
@@ -289,7 +289,7 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
 
                     srcView.readDirect { src ->
                         val length = minOf(srcView.readRemaining, inputLength - bytesConsumed).convert<size_t>()
-                        val dstRemaining = rem.convert<size_t>() * 2
+                        val dstRemaining = (rem * 2).convert<size_t>()
 
                         inbuf.value = src
                         outbuf.value = pinned.addressOf(charsCopied)
