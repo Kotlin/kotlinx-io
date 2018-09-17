@@ -3,7 +3,11 @@ package kotlinx.io.core
 import kotlinx.io.pool.*
 import java.nio.*
 
-actual abstract class ByteReadPacketPlatformBase protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketBase(head, remaining, pool), Input {
+actual abstract class ByteReadPacketPlatformBase protected actual constructor(
+    head: IoBuffer,
+    remaining: Long,
+    pool: ObjectPool<IoBuffer>
+) : ByteReadPacketBase(head, remaining, pool), Input {
 
     override fun readFully(dst: ByteBuffer, length: Int) {
         require(length <= remaining) { "Not enough bytes available ($remaining) to read $length bytes" }
@@ -28,8 +32,13 @@ actual abstract class ByteReadPacketPlatformBase protected actual constructor(he
 }
 
 actual class ByteReadPacket
-    internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketPlatformBase(head, remaining, pool), Input {
-    actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(head, @Suppress("INVISIBLE_MEMBER") head.remainingAll(), pool)
+internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) :
+    ByteReadPacketPlatformBase(head, remaining, pool), Input {
+    actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(
+        head,
+        @Suppress("INVISIBLE_MEMBER") head.remainingAll(),
+        pool
+    )
 
     final override fun fill() = null
     override fun closeSource() {

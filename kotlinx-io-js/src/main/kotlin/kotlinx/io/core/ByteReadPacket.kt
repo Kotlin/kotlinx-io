@@ -81,3 +81,23 @@ actual class ByteReadPacket
         actual val ReservedSize get() = ByteReadPacketBase.ReservedSize
     }
 }
+
+actual fun ByteReadPacket(array: ByteArray, offset: Int, length: Int, block: (ByteArray) -> Unit): ByteReadPacket {
+    val content = array as Int8Array
+    val sub = when {
+        offset == 0 && length == array.size -> content.buffer
+        else -> content.buffer.slice(offset, offset + length)
+    }
+
+    val pool = object : SingleInstancePool<IoBuffer>() {
+        override fun produceInstance(): IoBuffer {
+            return IoBuffer(sub, null)
+        }
+
+        override fun disposeInstance(instance: IoBuffer) {
+            block(array)
+        }
+    }
+
+    return ByteReadPacket(pool.borrow().apply { resetForRead() }, pool)
+}

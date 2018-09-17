@@ -55,3 +55,25 @@ internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<Io
         actual val ReservedSize get() = ByteReadPacketBase.ReservedSize
     }
 }
+
+actual fun ByteReadPacket(array: ByteArray, offset: Int, length: Int, block: (ByteArray) -> Unit): ByteReadPacket {
+    if (length == 0) {
+        block(array)
+        return ByteReadPacket(IoBuffer.Empty, IoBuffer.NoPool)
+    }
+
+    val pool = object : SingleInstancePool<IoBuffer>() {
+        override fun produceInstance(): IoBuffer {
+            val content = array.pin()
+            val base = content.addressOf(offset)
+
+            return IoBuffer(base, length, null)
+        }
+
+        override fun disposeInstance(instance: IoBuffer) {
+            block(array)
+        }
+    }
+
+    return ByteReadPacket(pool.borrow().apply { resetForRead() }, pool)
+}
