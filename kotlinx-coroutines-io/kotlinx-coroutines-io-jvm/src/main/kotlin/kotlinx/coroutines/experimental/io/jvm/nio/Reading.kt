@@ -1,6 +1,6 @@
-package kotlinx.coroutines.experimental.io.jvm.nio
+package kotlinx.coroutines.io.jvm.nio
 
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.nio.*
 import java.nio.channels.*
 

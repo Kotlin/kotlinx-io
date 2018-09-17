@@ -1,6 +1,6 @@
-package kotlinx.coroutines.experimental.io.jvm.javaio
+package kotlinx.coroutines.io.jvm.javaio
 
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.io.*
 
 /**

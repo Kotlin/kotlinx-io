@@ -1,6 +1,6 @@
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
-import kotlinx.coroutines.experimental.io.internal.*
+import kotlinx.coroutines.io.internal.*
 import java.io.*
 import java.nio.*
 

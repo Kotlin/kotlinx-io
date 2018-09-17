@@ -1,9 +1,9 @@
-package kotlinx.coroutines.experimental.io.jvm.javaio
+package kotlinx.coroutines.io.jvm.javaio
 
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.io.*
 import java.util.concurrent.locks.*
 import kotlin.coroutines.*

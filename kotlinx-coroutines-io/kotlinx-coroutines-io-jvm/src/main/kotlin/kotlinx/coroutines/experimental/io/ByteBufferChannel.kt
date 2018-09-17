@@ -1,9 +1,9 @@
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.experimental.io.internal.*
+import kotlinx.coroutines.io.internal.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder

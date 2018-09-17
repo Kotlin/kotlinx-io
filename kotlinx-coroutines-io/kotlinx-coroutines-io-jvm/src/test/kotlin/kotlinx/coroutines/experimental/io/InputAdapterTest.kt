@@ -1,7 +1,7 @@
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import kotlin.test.*
 
 class InputAdapterTest {

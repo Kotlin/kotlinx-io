@@ -1,4 +1,4 @@
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
 import kotlinx.io.core.*
 import kotlin.math.*

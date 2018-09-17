@@ -1,4 +1,4 @@
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
 internal expect class Condition(predicate: () -> Boolean) {
     fun check(): Boolean

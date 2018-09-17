@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
 import kotlinx.coroutines.*
 import kotlinx.io.charsets.*

@@ -1,4 +1,4 @@
-package kotlinx.coroutines.experimental.io.jvm.javaio
+package kotlinx.coroutines.io.jvm.javaio
 
 import kotlinx.io.pool.*
 

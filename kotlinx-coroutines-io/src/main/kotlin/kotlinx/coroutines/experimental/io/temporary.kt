@@ -1,5 +1,5 @@
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
-open class CancellationException(message: String?) : IllegalStateException(message)
+import kotlinx.coroutines.CancellationException
 
-
+typealias CancellationException = CancellationException

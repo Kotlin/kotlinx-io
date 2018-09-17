@@ -1,4 +1,4 @@
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
 import kotlin.test.*
 
@@ -14,7 +14,7 @@ abstract class ByteChannelTestBase(autoFlush: Boolean = false) {
     }
 
     protected open fun ByteChannel(autoFlush: Boolean): ByteChannel {
-        return kotlinx.coroutines.experimental.io.ByteChannel(autoFlush)
+        return kotlinx.coroutines.io.ByteChannel(autoFlush)
     }
 
     protected fun runTest(block: suspend () -> Unit) {

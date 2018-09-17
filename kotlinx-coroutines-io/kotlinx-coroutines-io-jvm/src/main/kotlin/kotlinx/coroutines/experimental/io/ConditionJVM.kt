@@ -1,4 +1,4 @@
-package kotlinx.coroutines.experimental.io
+package kotlinx.coroutines.io
 
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
