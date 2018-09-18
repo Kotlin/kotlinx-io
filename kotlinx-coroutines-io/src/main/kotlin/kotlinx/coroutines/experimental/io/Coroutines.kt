@@ -48,7 +48,7 @@ fun CoroutineScope.reader(
     block: suspend ReaderScope.() -> Unit
 ): ReaderJob {
     val channel = ByteChannel(autoFlush)
-    return reader(coroutineContext, channel, block)
+    return reader(coroutineContext, channel, block).also { channel.attachJob(it) }
 }
 
 @Deprecated("Use scope.reader instead")
