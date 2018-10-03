@@ -2347,7 +2347,7 @@ internal class ByteBufferChannel(
 
     private suspend fun writeSuspend(size: Int) {
         while (writeSuspendPredicate(size)) {
-            suspendCancellableCoroutine<Unit>(holdCancellability = true) { c ->
+            suspendCancellableCoroutine<Unit> { c ->
                 do {
                     closed?.sendException?.let { throw it }
                     if (!writeSuspendPredicate(size)) {
@@ -2383,9 +2383,9 @@ internal class ByteBufferChannel(
 
             if (updater.compareAndSet(this, null, continuation)) {
                 if (predicate() || !updater.compareAndSet(this, continuation, null)) {
-                    if (attachedJob == null && continuation is CancellableContinuation<*>) {
-                        continuation.initCancellability()
-                    }
+                    //if (attachedJob == null && continuation is CancellableContinuation<*>) {
+                        // continuation.initCancellability()
+                    //}
                     return true
                 }
 
