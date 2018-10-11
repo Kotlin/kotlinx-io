@@ -30,14 +30,14 @@ kotlinFrontend {
 compileKotlin2Js {
     kotlinOptions.metaInfo = true
     kotlinOptions.sourceMap = true
-    kotlinOptions.moduleKind = 'commonjs'
+    kotlinOptions.moduleKind = 'umd'
     kotlinOptions.main = "noCall"
 }
 
 compileTestKotlin2Js {
     kotlinOptions.metaInfo = true
     kotlinOptions.sourceMap = true
-    kotlinOptions.moduleKind = 'commonjs'
+    kotlinOptions.moduleKind = 'umd'
     kotlinOptions.main = "call"
 }
 
