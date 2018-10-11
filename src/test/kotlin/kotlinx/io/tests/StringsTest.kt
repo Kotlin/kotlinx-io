@@ -381,6 +381,17 @@ open class StringsTest {
     }
 
     @Test
+    fun stringConstructorFromSlice() {
+        val helloString = "Hello, world"
+        val helloBytes = helloString.toByteArray()
+
+        assertEquals("Hello", String(helloBytes, 0, 5))
+        assertEquals("ello", String(helloBytes, 1, 4))
+        assertEquals("ello, ", String(helloBytes, 1, 6))
+        assertEquals("world", String(helloBytes, 7, 5))
+    }
+
+    @Test
     fun stringCtorEmpty() {
         val actual = String(ByteArray(0))
         assertEquals("", actual)
