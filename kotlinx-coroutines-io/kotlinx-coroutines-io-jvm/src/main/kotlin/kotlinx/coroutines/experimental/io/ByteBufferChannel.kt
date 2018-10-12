@@ -55,12 +55,14 @@ internal class ByteBufferChannel(
     @Volatile
     private var attachedJob: Job? = null
 
+    @UseExperimental(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
+        // TODO actually it looks like one-direction attachChild API
         attachedJob?.cancel()
         attachedJob = job
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
-            if (cause != null) cancel(cause)
+            if (cause != null) cancel()
         }
     }
 
@@ -96,7 +98,7 @@ internal class ByteBufferChannel(
     override val closedCause: Throwable?
         get() = closed?.cause
 
-    final override fun close(cause: Throwable?): Boolean {
+    override fun close(cause: Throwable?): Boolean {
         if (closed != null) return false
         val newClosed = if (cause == null) ClosedElement.EmptyCause else ClosedElement(cause)
         state.capacity.flush()
@@ -109,7 +111,7 @@ internal class ByteBufferChannel(
             joining?.let { ensureClosedJoined(it) }
         }
 
-        if (cause != null) attachedJob?.cancel(cause)
+        if (cause != null) attachedJob?.cancel()
 //        readSuspendContinuationCache.close()
 //        writeSuspendContinuationCache.close()
 
@@ -537,7 +539,7 @@ internal class ByteBufferChannel(
         }
     }
 
-    suspend override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
+    override suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
         val consumed = readAsMuchAsPossible(dst, offset, length)
 
         if (consumed == 0 && closed != null) {
@@ -565,7 +567,7 @@ internal class ByteBufferChannel(
         return readAvailableSuspend(dst)
     }
 
-    suspend override fun readAvailable(dst: IoBuffer): Int {
+    override suspend fun readAvailable(dst: IoBuffer): Int {
         val consumed = readAsMuchAsPossible(dst)
 
         if (consumed == 0 && closed != null) {
@@ -594,7 +596,7 @@ internal class ByteBufferChannel(
         return readAvailable(dst)
     }
 
-    final override suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket {
+    override suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket {
         closed?.cause?.let { throw it }
 
         if (size == 0) return ByteReadPacket.Empty
@@ -884,7 +886,7 @@ internal class ByteBufferChannel(
         }
     }
 
-    suspend override fun writeByte(b: Byte) {
+    override suspend fun writeByte(b: Byte) {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeByte(b) } }
 
         val buffer = setupStateForWrite() ?: return delegateByte(b)
@@ -932,7 +934,7 @@ internal class ByteBufferChannel(
         return delegateSuspend(joined) { writeShort(s) }
     }
 
-    suspend override fun writeShort(s: Short) {
+    override suspend fun writeShort(s: Short) {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeShort(s) } }
 
         val buffer = setupStateForWrite() ?: return delegateShort(s)
@@ -1010,7 +1012,7 @@ internal class ByteBufferChannel(
         return false
     }
 
-    suspend override fun writeInt(i: Int) {
+    override suspend fun writeInt(i: Int) {
         val buffer = setupStateForWrite()
         if (buffer == null) {
             val delegation = resolveDelegation(this, joining!!)
@@ -1072,7 +1074,7 @@ internal class ByteBufferChannel(
         return false
     }
 
-    suspend override fun writeLong(l: Long) {
+    override suspend fun writeLong(l: Long) {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeLong(l) } }
 
         val buffer = setupStateForWrite() ?: return delegateLong(l)
@@ -1427,7 +1429,7 @@ internal class ByteBufferChannel(
         return 0
     }
 
-    suspend override fun writeFully(src: ByteArray, offset: Int, length: Int) {
+    override suspend fun writeFully(src: ByteArray, offset: Int, length: Int) {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeFully(src, offset, length) } }
 
         var rem = length
@@ -1452,7 +1454,7 @@ internal class ByteBufferChannel(
         return writeFullySuspend(src, offset + copied, length - copied)
     }
 
-    suspend override fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int {
+    override suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeAvailable(src, offset, length) } }
 
         val size = writeAsMuchAsPossible(src, offset, length)
@@ -2450,7 +2452,7 @@ internal class ByteBufferChannel(
             if (n > 0) throw IllegalStateException("Unable to mark $n bytes consumed for already terminated channel")
         }
 
-        override fun request(skip: Int, atLeast: Int) = null
+        override fun request(skip: Int, atLeast: Int): ByteBuffer? = null
 
         override suspend fun awaitAtLeast(n: Int): Boolean {
             return false

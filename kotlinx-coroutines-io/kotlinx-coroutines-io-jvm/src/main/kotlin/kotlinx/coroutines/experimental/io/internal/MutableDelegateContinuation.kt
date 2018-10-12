@@ -11,6 +11,8 @@ import kotlin.coroutines.intrinsics.*
  * - [T] should be neither [Throwable] nor [Continuation]
  * - value shouldn't be null
  */
+@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "CANNOT_OVERRIDE_INVISIBLE_MEMBER") // yay, performance!
+@UseExperimental(InternalCoroutinesApi::class)
 internal class MutableDelegateContinuation<T : Any> : Continuation<T>, DispatchedTask<T> {
     private var _delegate: Continuation<T>? = null
     private val state = atomic<Any?>(null)

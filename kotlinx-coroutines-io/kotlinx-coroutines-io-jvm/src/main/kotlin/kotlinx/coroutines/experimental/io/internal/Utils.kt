@@ -1,5 +1,6 @@
 package kotlinx.coroutines.io.internal
 
+import kotlinx.coroutines.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 import kotlin.reflect.*
@@ -22,6 +23,10 @@ internal fun getIOIntProperty(name: String, default: Int): Int =
     try { System.getProperty("kotlinx.coroutines.io.$name") }
     catch (e: SecurityException) { null }
         ?.toIntOrNull() ?: default
+
+@Suppress("INVISIBLE_MEMBER")
+internal fun <T> Result<T>.toState(): Any? =
+    if (isSuccess) getOrThrow() else CompletedExceptionally(exceptionOrNull()!!)
 
 
 @Suppress("LoopToCallChain")
