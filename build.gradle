@@ -1,8 +1,6 @@
 buildscript {
     repositories {
         if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-") || kotlin_version.contains("-M")) {
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
             maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
             maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
         }

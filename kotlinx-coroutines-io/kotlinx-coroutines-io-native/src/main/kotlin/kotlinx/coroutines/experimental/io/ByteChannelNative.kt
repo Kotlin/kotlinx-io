@@ -54,6 +54,7 @@ internal class ByteChannelNative(initial: IoBuffer, autoFlush: Boolean) : ByteCh
     @Volatile
     private var attachedJob: Job? = null
 
+    @UseExperimental(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
         attachedJob?.cancel()
         attachedJob = job

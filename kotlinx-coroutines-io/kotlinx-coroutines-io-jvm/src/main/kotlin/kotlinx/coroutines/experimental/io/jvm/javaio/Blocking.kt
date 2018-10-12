@@ -4,6 +4,7 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.internal.*
 import java.io.*
 import java.util.concurrent.locks.*
 import kotlin.coroutines.*
@@ -124,7 +125,10 @@ private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel)
 }
 
 private abstract class BlockingAdapter(val parent: Job? = null) {
+
+    @UseExperimental(ExperimentalCoroutinesApi::class)
     private val end: Continuation<Unit> = object : Continuation<Unit> {
+        // TODO 1) excess allocation 2) Unconfined should be present in both code paths?
         override val context: CoroutineContext
             get() = if (parent != null) Dispatchers.Unconfined + parent else EmptyCoroutineContext
 
