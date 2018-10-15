@@ -33,7 +33,7 @@ A buffer view is a view to byte buffer (in JVM it could be direct `ByteBuffer`, 
 
 - should be released via `release()` invocation
 - could be copied via `makeView()` that actually doesn't copy any bytes but makes a new view
-  - copy should be released as well
+  - a copy should be released as well
 - could be used to read and write, no need to do `flip`
 - has a `next` property so it is suitable to make chains of buffer views with no need to allocate any lists or extra arrays
 - designed to work with buffer view pool
