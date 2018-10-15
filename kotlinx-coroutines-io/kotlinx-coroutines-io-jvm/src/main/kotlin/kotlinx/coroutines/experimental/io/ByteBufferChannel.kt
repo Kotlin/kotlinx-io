@@ -1592,6 +1592,7 @@ internal class ByteBufferChannel(
         return continueWriting
     }
 
+    @ExperimentalIoApi
     override fun readSession(consumer: ReadSession.() -> Unit) {
         lookAhead {
             consumer(object : ReadSession {
@@ -1616,6 +1617,7 @@ internal class ByteBufferChannel(
         }
     }
 
+    @ExperimentalIoApi
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         lookAheadSuspend {
             var lastAvailable = 0
@@ -1830,6 +1832,7 @@ internal class ByteBufferChannel(
         return result!!
     }
 
+    @ExperimentalIoApi
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         var locked = 0
 

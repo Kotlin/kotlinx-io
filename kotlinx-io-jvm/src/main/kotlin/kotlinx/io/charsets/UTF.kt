@@ -1,16 +1,21 @@
 package kotlinx.io.charsets
 
+import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import java.nio.*
 
+@DangerousInternalIoApi
 fun decodeUtf8Result(numberOfChars: Int, requireBytes: Int): Long =
     numberOfChars.toLong() shl 32 or (requireBytes.toLong() and 0xffffffffL)
 
 internal fun decodeUtf8ResultAcc(predecoded: Int, result: Long): Long =
     decodeUtf8Result(predecoded + (result shr 32).toInt(), (result and 0xffffffffL).toInt())
 
+@DangerousInternalIoApi
 fun decodeUtf8ResultCombine(prev: Long, next: Long): Long =
     ((prev and 0xffffffffL.inv()) + (next and 0xffffffffL.inv())) or (next and 0xffffffffL)
 
+@ExperimentalIoApi
 fun ByteBuffer.decodeUTF(out: CharArray, offset: Int, length: Int): Long {
     val decoded = decodeASCII(out, offset, length)
 
@@ -25,6 +30,7 @@ fun ByteBuffer.decodeUTF(out: CharArray, offset: Int, length: Int): Long {
  * @return packed number of decoded characters to [out] buffer (highest 32 bits) and number of bytes required
  * to decode the next character, or 0 if buffer has been decoded completely or -1 if end of line has been encountered
  */
+@ExperimentalIoApi
 fun ByteBuffer.decodeUTF8Line(out: CharArray, offset: Int = 0, length: Int = out.size): Long {
     return when {
         hasArray() -> decodeUTF8Line_array(out, offset, length)

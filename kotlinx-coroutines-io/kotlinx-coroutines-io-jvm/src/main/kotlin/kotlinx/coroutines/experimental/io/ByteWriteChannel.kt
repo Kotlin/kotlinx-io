@@ -85,6 +85,7 @@ actual interface ByteWriteChannel {
      */
     suspend fun writeWhile(block: (ByteBuffer) -> Boolean)
 
+    @ExperimentalIoApi
     actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**

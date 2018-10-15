@@ -58,6 +58,7 @@ expect interface ByteWriteChannel {
     suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
     suspend fun writeFully(src: IoBuffer)
 
+    @ExperimentalIoApi
     suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**

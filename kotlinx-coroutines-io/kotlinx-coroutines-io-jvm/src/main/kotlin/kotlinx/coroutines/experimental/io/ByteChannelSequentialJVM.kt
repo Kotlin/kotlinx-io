@@ -6,6 +6,7 @@ import kotlinx.io.core.*
 import java.nio.ByteBuffer
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
+@ExperimentalIoApi
 class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
     : ByteChannelSequentialBase(initial, autoFlush) {
 

@@ -109,12 +109,14 @@ expect interface ByteReadChannel {
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * event if there are no bytes available for read yet.
      */
+    @ExperimentalIoApi
     fun readSession(consumer: ReadSession.() -> Unit)
 
     /**
      * Starts a suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * even if there are no bytes available for read yet. [consumer] lambda could suspend as much as needed.
      */
+    @ExperimentalIoApi
     suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
 
     /**

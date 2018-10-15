@@ -67,6 +67,7 @@ actual interface ByteWriteChannel {
 //    suspend fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
 //    suspend fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
 
+    @ExperimentalIoApi
     actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**

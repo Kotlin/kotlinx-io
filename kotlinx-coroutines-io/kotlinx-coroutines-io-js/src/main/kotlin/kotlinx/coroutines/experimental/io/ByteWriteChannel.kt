@@ -60,6 +60,7 @@ actual interface ByteWriteChannel {
 
     actual suspend fun writeFully(src: IoBuffer)
 
+    @ExperimentalIoApi
     actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**

@@ -1,7 +1,9 @@
 package kotlinx.coroutines.io
 
+import kotlinx.io.core.*
 import java.nio.*
 
+@ExperimentalIoApi
 interface LookAheadSession {
     /**
      * Marks [n] bytes as consumed so the corresponding range becomes available for writing
@@ -21,6 +23,7 @@ interface LookAheadSession {
     fun request(skip: Int, atLeast: Int): ByteBuffer?
 }
 
+@ExperimentalIoApi
 interface LookAheadSuspendSession : LookAheadSession {
     /**
      * Suspend until [n] bytes become available or end of stream encountered (possibly due to exceptional close)
@@ -28,6 +31,7 @@ interface LookAheadSuspendSession : LookAheadSession {
     suspend fun awaitAtLeast(n: Int): Boolean
 }
 
+@ExperimentalIoApi
 inline fun LookAheadSession.consumeEachRemaining(visitor: (ByteBuffer) -> Boolean) {
     do {
         val cont = request(0, 1)?.let {

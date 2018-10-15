@@ -6,7 +6,9 @@ import org.khronos.webgl.*
 /**
  * Read exactly [n] bytes to a new array buffer instance
  */
-fun ByteReadPacket.readArrayBuffer(n: Int = remaining.coerceAtMostMaxInt()): ArrayBuffer {
+fun ByteReadPacket.readArrayBuffer(
+    n: Int = remaining.coerceAtMostMaxIntOrFail("Unable to make a new ArrayBuffer: packet is too big")
+): ArrayBuffer {
     val buffer = ArrayBuffer(n)
     readFully(buffer, 0, n)
     return buffer

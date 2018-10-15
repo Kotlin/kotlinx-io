@@ -61,6 +61,7 @@ private suspend fun ByteChannelSequentialBase.copyToTail(dst: ByteChannelSequent
  * Sequential (non-concurrent) byte channel implementation
  */
 @Suppress("OverridingDeprecatedMember")
+@ExperimentalIoApi
 abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlush: Boolean) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
     protected var closed = false
     protected val writable = BytePacketBuilder(0)
@@ -195,6 +196,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         }
     }
 
+    @ExperimentalIoApi
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = object : WriterSuspendSession {
             override fun request(min: Int): IoBuffer? {
@@ -542,6 +544,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         return discarded
     }
 
+    @ExperimentalIoApi
     override fun readSession(consumer: ReadSession.() -> Unit) {
         try {
             consumer(this)
@@ -550,6 +553,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         }
     }
 
+    @ExperimentalIoApi
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         try {
             consumer(this)

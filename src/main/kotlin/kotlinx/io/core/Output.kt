@@ -87,6 +87,11 @@ fun Output.fill(n: Long, v: Byte = 0) {
     fill(n, v)
 }
 
+/**
+ * Append number of chunks invoking [block] function while the returned value is true.
+ * Depending on the output underlying implementation it could invoke [block] function with the same buffer several times
+ * however it is guaranteed that it is always non-empty.
+ */
 inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
     try {
         var tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(1)
@@ -100,6 +105,12 @@ inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
     }
 }
 
+/**
+ * Append number of chunks invoking [block] function while the returned value is positive.
+ * If returned value is positive then it will be invoked again with a buffer having at least requested number of
+ * bytes space (could be the same buffer as before if it complies to the restriction).
+ * @param initialSize for the first buffer passed to [block] function
+ */
 inline fun Output.writeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     try {
         var tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(initialSize)

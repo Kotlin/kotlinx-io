@@ -117,15 +117,20 @@ actual interface ByteReadChannel {
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * event if there are no bytes available for read yet.
      */
+    @ExperimentalIoApi
     actual fun readSession(consumer: ReadSession.() -> Unit)
 
     /**
      * Starts a suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * even if there are no bytes available for read yet. [consumer] lambda could suspend as much as needed.
      */
+    @ExperimentalIoApi
     actual suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
 
+    @ExperimentalIoApi
     fun <R> lookAhead(visitor: LookAheadSession.() -> R): R
+
+    @ExperimentalIoApi
     suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R
 
     /**

@@ -2,6 +2,7 @@ package kotlinx.coroutines.io
 
 import kotlinx.io.core.*
 
+@ExperimentalIoApi
 interface ReadSession {
     /**
      * Number of bytes available for read. However it doesn't necessarily means that all available bytes could be
@@ -29,6 +30,7 @@ interface ReadSession {
     fun request(atLeast: Int = 1): IoBuffer?
 }
 
+@ExperimentalIoApi
 interface SuspendableReadSession : ReadSession {
     /**
      * Suspend until [atLeast] bytes become available or end of stream encountered (possibly due to exceptional close)
