@@ -82,6 +82,11 @@ allprojects {
                     extraOpts useExperimentalOptionString
                 }
             }
+            test {
+                component {
+                    extraOpts useExperimentalOptionString
+                }
+            }
         }
     } else if (platform == 'common') {
         compileKotlinCommon {
