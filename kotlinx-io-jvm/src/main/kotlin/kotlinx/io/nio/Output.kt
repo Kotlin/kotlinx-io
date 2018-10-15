@@ -5,15 +5,16 @@ import kotlinx.io.pool.*
 import java.nio.channels.*
 
 private class ChannelAsOutput(pool: ObjectPool<IoBuffer>,
-                              val channel: WritableByteChannel) : BytePacketBuilderPlatformBase(pool) {
+                              val channel: WritableByteChannel
+) : AbstractOutput(pool) {
     override fun release() {
         flush()
         channel.close()
     }
 
     override fun last(buffer: IoBuffer) {
-        val current = tail
-        tail = buffer
+        val current = currentTail
+        currentTail = buffer
 
         if (current === IoBuffer.Empty) return
 

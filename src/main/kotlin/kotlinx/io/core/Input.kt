@@ -2,6 +2,9 @@ package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
 
+/**
+ * Shouldn't be implemented directly. Inherit [AbstractInput] instead.
+ */
 expect interface Input : Closeable {
     var byteOrder: ByteOrder
     val endOfInput: Boolean

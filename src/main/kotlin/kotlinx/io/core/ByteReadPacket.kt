@@ -19,6 +19,20 @@ expect abstract class ByteReadPacketPlatformBase protected constructor(
 ) : ByteReadPacketBase {
 }
 
+/**
+ * The default abstract base class for implementing [Input] interface.
+ * @see [ByteReadPacketBase.fill] amd [ByteReadPacketBase.closeSource]
+ */
+@ExperimentalIoApi
+abstract class AbstractInput(
+    head: IoBuffer = IoBuffer.Empty,
+    remaining: Long = head.remainingAll(),
+    pool: ObjectPool<IoBuffer> = IoBuffer.Pool
+) : ByteReadPacketPlatformBase(head, remaining, pool) {
+    abstract override fun fill(): IoBuffer?
+    abstract override fun closeSource()
+}
+
 expect fun ByteReadPacket(
     array: ByteArray, offset: Int = 0, length: Int = array.size,
     block: (ByteArray) -> Unit

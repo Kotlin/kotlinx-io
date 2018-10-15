@@ -2,6 +2,9 @@ package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
 
+/**
+ * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
+ */
 expect interface Output : Appendable, Closeable {
     var byteOrder: ByteOrder
 

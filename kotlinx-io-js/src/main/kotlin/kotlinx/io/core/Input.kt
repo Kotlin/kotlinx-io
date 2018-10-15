@@ -3,6 +3,9 @@ package kotlinx.io.core
 import kotlinx.io.core.internal.*
 import org.khronos.webgl.*
 
+/**
+ * Shouldn't be implemented directly. Inherit [AbstractInput] instead.
+ */
 actual interface Input : Closeable {
     actual var byteOrder: ByteOrder
     actual val endOfInput: Boolean

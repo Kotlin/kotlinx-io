@@ -3,6 +3,9 @@ package kotlinx.io.core
 import kotlinx.io.core.internal.*
 import java.nio.*
 
+/**
+ * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
+ */
 actual interface Output : Closeable, Appendable {
     actual var byteOrder: ByteOrder
 

@@ -265,6 +265,39 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
 expect abstract class BytePacketBuilderPlatformBase
     internal constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase
 
+/**
+ * This is the default [Output] implementation
+ */
+@ExperimentalIoApi
+abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) : BytePacketBuilderPlatformBase(pool) {
+    protected var currentTail: IoBuffer
+        get() = this.tail
+        set(newValue) {
+            this.tail = newValue
+        }
+
+    /**
+     * Invoked when a new [buffer] is appended for writing (usually it's empty)
+     */
+    abstract override fun last(buffer: IoBuffer)
+
+    open override fun release() {
+        if (currentTail != IoBuffer.Empty) {
+            currentTail.release(pool)
+            currentTail = IoBuffer.Empty
+        }
+    }
+
+    abstract override fun flush()
+
+    /**
+     * Should flush and close the destination
+     */
+    open override fun close() {
+        flush()
+    }
+}
+
 abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<IoBuffer>) : Appendable, Output {
 
     /**

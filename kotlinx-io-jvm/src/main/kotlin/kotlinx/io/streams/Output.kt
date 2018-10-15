@@ -4,15 +4,15 @@ import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.io.*
 
-private class OutputStreamAdapter(pool: ObjectPool<IoBuffer>, private val stream: OutputStream): BytePacketBuilderPlatformBase(pool) {
+private class OutputStreamAdapter(pool: ObjectPool<IoBuffer>, private val stream: OutputStream) : AbstractOutput(pool) {
     override fun release() {
         flush()
         stream.close()
     }
 
     override fun last(buffer: IoBuffer) {
-        val current = tail
-        tail = buffer
+        val current = currentTail
+        currentTail = buffer
 
         if (current === IoBuffer.Empty) return
 
