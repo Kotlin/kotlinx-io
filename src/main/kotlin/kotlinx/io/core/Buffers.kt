@@ -286,4 +286,10 @@ internal tailrec fun IoBuffer.isEmpty(): Boolean {
 @Suppress("NOTHING_TO_INLINE")
 internal inline fun Long.coerceAtMostMaxInt(): Int = minOf(this, Int.MAX_VALUE.toLong()).toInt()
 
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun Long.coerceAtMostMaxIntOrFail(message: String): Int {
+    if (this > Int.MAX_VALUE.toLong()) throw IllegalArgumentException(message)
+    return this.toInt()
+}
+
 class BufferLimitExceededException(message: String) : Exception(message)

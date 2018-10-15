@@ -119,13 +119,18 @@ fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, limit: I
     }
 
     if (!delimiter) {
-        decoded = readUTF8UntilDelimiterToSlow(out, delimiters, limit, decoded)
+        decoded = readUTF8UntilDelimiterToSlowUtf8(out, delimiters, limit, decoded)
     }
 
     return decoded
 }
 
-private fun Input.readUTF8UntilDelimiterToSlow(out: Appendable, delimiters: String, limit: Int, decoded0: Int): Int {
+private fun Input.readUTF8UntilDelimiterToSlowUtf8(
+    out: Appendable,
+    delimiters: String,
+    limit: Int,
+    decoded0: Int
+): Int {
     var decoded = decoded0
     var size = 1
 
@@ -167,13 +172,13 @@ fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: Strin
         return readUntilDelimiters(delimiters[0].toByte(), delimiters[1].toByte(), out).toInt()
     }
 
-    return readUTFUntilDelimiterToSlow1(delimiters, limit, out)
+    return readUTFUntilDelimiterToSlowAscii(delimiters, limit, out)
 }
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Char.isAsciiChar() = toInt() <= 0x7f
 
-fun Input.readUTFUntilDelimiterToSlow1(delimiters: String, limit: Int, out: BytePacketBuilderBase): Int {
+private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: Int, out: BytePacketBuilderBase): Int {
     var decoded = 0
     var delimiter = false
 
@@ -201,13 +206,18 @@ fun Input.readUTFUntilDelimiterToSlow1(delimiters: String, limit: Int, out: Byte
     }
 
     if (!delimiter && !endOfInput) {
-        decoded = readUTF8UntilDelimiterToSlow(out, delimiters, limit, decoded)
+        decoded = readUTF8UntilDelimiterToSlowUtf8(out, delimiters, limit, decoded)
     }
 
     return decoded
 }
 
-private fun Input.readUTF8UntilDelimiterToSlow(out: BytePacketBuilderBase, delimiters: String, limit: Int, decoded0: Int): Int {
+private fun Input.readUTF8UntilDelimiterToSlowUtf8(
+    out: BytePacketBuilderBase,
+    delimiters: String,
+    limit: Int,
+    decoded0: Int
+): Int {
     var decoded = decoded0
     var size = 1
 
@@ -249,9 +259,13 @@ private fun bufferLimitExceeded(limit: Int): Nothing {
 private fun prematureEndOfStream(size: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
 
 /**
- * Read exactly [n] bytes (consumes all remaining if [n] is not specified). Does fail if not enough bytes remaining
+ * Read exactly [n] bytes (consumes all remaining if [n] is not specified but up to [Int.MAX_VALUE] bytes).
+ * Does fail if not enough bytes remaining.
  */
-fun ByteReadPacket.readBytes(n: Int = remaining.coerceAtMostMaxInt()): ByteArray = ByteArray(n).also { readFully(it, 0, n) }
+fun ByteReadPacket.readBytes(
+    n: Int = remaining.coerceAtMostMaxIntOrFail("Unable to convert to a ByteArray: packet is too big")
+): ByteArray =
+    ByteArray(n).also { readFully(it, 0, n) }
 
 /**
  * Reads exactly [n] bytes from the input or fails if not enough bytes available.
