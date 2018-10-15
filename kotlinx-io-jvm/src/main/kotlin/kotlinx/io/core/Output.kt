@@ -1,6 +1,6 @@
 package kotlinx.io.core
 
-import java.io.*
+import kotlinx.io.core.internal.*
 import java.nio.*
 
 actual interface Output : Closeable, Appendable {
@@ -29,10 +29,10 @@ actual interface Output : Closeable, Appendable {
     actual fun flush()
     actual override fun close()
 
-    @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual fun `$prepareWrite$`(n: Int): IoBuffer
 
-    @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual fun `$afterWrite$`()
 }
 

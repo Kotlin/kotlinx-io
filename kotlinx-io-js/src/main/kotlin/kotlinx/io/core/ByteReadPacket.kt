@@ -83,7 +83,7 @@ actual class ByteReadPacket
 }
 
 actual fun ByteReadPacket(array: ByteArray, offset: Int, length: Int, block: (ByteArray) -> Unit): ByteReadPacket {
-    val content = array as Int8Array
+    val content = array.asDynamic() as Int8Array
     val sub = when {
         offset == 0 && length == array.size -> content.buffer
         else -> content.buffer.slice(offset, offset + length)

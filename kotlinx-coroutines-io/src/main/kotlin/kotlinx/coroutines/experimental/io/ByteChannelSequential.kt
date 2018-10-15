@@ -560,6 +560,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
     override suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean {
         if (isClosedForRead) return false
+        @UseExperimental(DangerousInternalIoApi::class)
         return decodeUTF8LineLoopSuspend(out, limit) { size ->
             afterRead()
             if (await(size)) readable
@@ -578,7 +579,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
     override fun cancel(cause: Throwable?): Boolean {
         if (closedCause != null || closed) return false
-        return close(cause ?: CancellationException("Channel cancelled"))
+        return close(cause ?: kotlinx.coroutines.io.CancellationException("Channel cancelled"))
     }
 
     final override fun close(cause: Throwable?): Boolean {

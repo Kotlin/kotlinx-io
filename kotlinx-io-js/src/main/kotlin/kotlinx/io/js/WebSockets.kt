@@ -13,7 +13,7 @@ inline fun WebSocket.sendPacket(block: BytePacketBuilder.() -> Unit) {
 }
 
 inline fun MessageEvent.packet(): ByteReadPacket {
-    @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
+    @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE", "UnsafeCastFromDynamic")
     return ByteReadPacket(IoBuffer(data.asDynamic(), null), IoBuffer.NoPool)
 }
 

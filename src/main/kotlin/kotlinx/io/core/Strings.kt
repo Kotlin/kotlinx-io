@@ -310,7 +310,8 @@ fun Input.readText(out: Appendable, charset: Charset = Charsets.UTF_8, max: Int 
  * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
  * @return a decoded string
  */
-@Deprecated("Use CharetDecoder.decode instead",
+@Deprecated(
+    "Use CharsetDecoder.decode instead",
         ReplaceWith("decoder.decode(this, max)", "kotlinx.io.charsets.decode"))
 fun Input.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String {
     return decoder.decode(this, max)

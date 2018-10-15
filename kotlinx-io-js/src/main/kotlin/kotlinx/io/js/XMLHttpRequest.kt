@@ -11,6 +11,7 @@ fun XMLHttpRequest.sendPacket(packet: ByteReadPacket) {
     send(packet.readArrayBuffer())
 }
 
+@Suppress("UnsafeCastFromDynamic")
 fun XMLHttpRequest.responsePacket(): ByteReadPacket = when (responseType) {
     XMLHttpRequestResponseType.ARRAYBUFFER -> ByteReadPacket(IoBuffer(response.asDynamic(), null), IoBuffer.NoPool)
     XMLHttpRequestResponseType.EMPTY -> ByteReadPacket.Empty

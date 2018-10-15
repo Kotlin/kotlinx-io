@@ -30,7 +30,7 @@ typealias CancellationException = CancellationException
     ReplaceWith("kotlinx.coroutines.io.ByteChannel(false)", "kotlinx.coroutines.io.ByteChannel")
 )
 fun ByteChannel(autoFlush: Boolean = false): kotlinx.coroutines.io.ByteChannel =
-    kotlinx.coroutines.io.ByteChannel(false)
+    kotlinx.coroutines.io.ByteChannel(autoFlush)
 
 @Deprecated(
     "Use the same function from different package",

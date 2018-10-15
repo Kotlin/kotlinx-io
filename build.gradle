@@ -65,6 +65,13 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'
 
+    def useExperimentalAnnotations = [
+            'kotlin.Experimental',
+            'kotlinx.io.core.internal.DangerousInternalIoApi',
+            'kotlinx.io.core.ExperimentalIoApi'
+    ]
+    def useExperimentalOptionString = "-Xuse-experimental=${useExperimentalAnnotations.join(",")}"
+
     if (platform == 'native') {
         sourceSets {
             main {
@@ -72,8 +79,30 @@ allprojects {
                     targets = [ 'ios_arm64', 'ios_arm32', 'ios_x64', 'macos_x64', 'linux_x64', 'mingw_x64' ]
 //                    target 'ios_arm64', 'ios_arm32', 'ios_x64', 'macos_x64', 'linux_x64'
                     outputKinds = [KLIBRARY]
+                    extraOpts useExperimentalOptionString
                 }
             }
+        }
+    } else if (platform == 'common') {
+        compileKotlinCommon {
+            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
+        }
+        compileTestKotlinCommon {
+            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
+        }
+    } else if (platform == 'jvm') {
+        compileKotlin {
+            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
+        }
+        compileTestKotlin {
+            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
+        }
+    } else if (platform == 'js') {
+        compileKotlin2Js {
+            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
+        }
+        compileTestKotlin2Js {
+            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
         }
     }
 

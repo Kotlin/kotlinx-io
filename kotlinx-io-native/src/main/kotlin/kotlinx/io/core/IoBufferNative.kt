@@ -5,6 +5,7 @@ import kotlinx.io.pool.*
 import platform.posix.memcpy
 import platform.posix.memset
 import platform.posix.size_t
+import kotlinx.io.core.internal.*
 
 @PublishedApi
 internal val MAX_SIZE: size_t = size_t.MAX_VALUE
@@ -22,6 +23,7 @@ actual class IoBuffer internal constructor(
 
     private var platformEndian = ByteOrder.BIG_ENDIAN === ByteOrder.nativeOrder()
 
+    @ExperimentalIoApi
     actual var attachment: Any? = null
     actual var next: IoBuffer? = null
 
@@ -891,7 +893,9 @@ actual class IoBuffer internal constructor(
     }
 
     actual fun resetForWrite(limit: Int) {
+        require(limit >= 0) { "Limit shouldn't be negative: $limit" }
         require(limit <= contentCapacity) { "Limit shouldn't be greater than buffers capacity" }
+
         readPosition = 0
         writePosition = 0
         this.limit = limit
@@ -930,6 +934,7 @@ actual class IoBuffer internal constructor(
         return newCount == 0
     }
 
+    @ExperimentalIoApi
     actual fun isExclusivelyOwned(): Boolean = refCount == 1
 
     actual fun makeView(): IoBuffer {
@@ -958,25 +963,25 @@ actual class IoBuffer internal constructor(
         }
     }
 
-    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual final override fun `$updateRemaining$`(remaining: Int) {
     }
 
-    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual final override fun `$ensureNext$`(current: IoBuffer): IoBuffer? {
         return null
     }
 
-    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual final override fun `$prepareRead$`(minSize: Int): IoBuffer? {
         return if (readRemaining >= minSize) this else null
     }
 
-    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual final override fun `$afterWrite$`() {
     }
 
-    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual final override fun `$prepareWrite$`(n: Int): IoBuffer {
         if (writeRemaining >= n) return this
         throw IllegalArgumentException("Not enough space in the chunk")

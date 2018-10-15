@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.*
 import kotlin.jvm.*
 
 private const val MULTIPLIER = 4
-private const val PROBE_COUNT = 8 // number of attepts to find a slot
+private const val PROBE_COUNT = 8 // number of attempts to find a slot
 private const val MAGIC = 2654435769.toInt() // fractional part of golden ratio
 private const val MAX_CAPACITY = Int.MAX_VALUE / MULTIPLIER
 

@@ -1,5 +1,7 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
+
 expect interface Input : Closeable {
     var byteOrder: ByteOrder
     val endOfInput: Boolean
@@ -35,13 +37,13 @@ expect interface Input : Closeable {
     fun discard(n: Long): Long
     override fun close()
 
-    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     fun `$updateRemaining$`(remaining: Int)
 
-    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     fun `$ensureNext$`(current: IoBuffer): IoBuffer?
 
-    @Deprecated("Non-public API. Use takeWhile or takeWhileSize instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     fun `$prepareRead$`(minSize: Int): IoBuffer?
 }
 

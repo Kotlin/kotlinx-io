@@ -1,5 +1,7 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
+
 actual interface Output : Appendable, Closeable {
     actual var byteOrder: ByteOrder
 
@@ -24,9 +26,9 @@ actual interface Output : Appendable, Closeable {
     actual fun flush()
     actual override fun close()
 
-    @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual fun `$prepareWrite$`(n: Int): IoBuffer
 
-    @Deprecated("Non-public API. Use writeWhile instead", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     actual fun `$afterWrite$`()
 }

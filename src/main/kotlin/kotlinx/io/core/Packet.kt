@@ -507,14 +507,18 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         return copied
     }
 
-    private fun atLeastMinCharactersRequire(min: Int): Nothing = throw EOFException("at least $min characters required but no bytes available")
+    private fun atLeastMinCharactersRequire(min: Int): Nothing =
+        throw EOFException("at least $min characters required but no bytes available")
 
-    private fun minShouldBeLess(min: Int, max: Int): Nothing = throw IllegalArgumentException("min should be less or equal to max but min = $min, max = $max")
+    private fun minShouldBeLess(min: Int, max: Int): Nothing =
+        throw IllegalArgumentException("min should be less or equal to max but min = $min, max = $max")
 
     private fun prematureEndOfStreamChars(min: Int, copied: Int): Nothing = throw MalformedUTF8InputException(
         "Premature end of stream: expected at least $min chars but had only $copied"
     )
-    private fun prematureEndOfStream(size: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
+
+    private fun prematureEndOfStream(size: Int): Nothing =
+        throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
 
     private fun readUtf8(out: Appendable, min: Int, max: Int): Int {
         var copied = 0
@@ -586,15 +590,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         throw EOFException("Not enough data in packet ($remaining) to read $n byte(s)")
     }
 
-    @Deprecated("Non-public API. Do not use otherwise packet could be damaged", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     final override fun `$updateRemaining$`(remaining: Int) {
         headRemaining = remaining
     }
 
-    @Deprecated("Non-public API", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     final override fun `$prepareRead$`(minSize: Int): IoBuffer? = prepareRead(minSize, head)
 
-    @Deprecated("Non public API", level = DeprecationLevel.ERROR)
+    @DangerousInternalIoApi
     final override fun `$ensureNext$`(current: IoBuffer): IoBuffer? = ensureNext(current)
 
     @PublishedApi

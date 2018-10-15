@@ -24,6 +24,7 @@ expect class IoBuffer : Input, Output {
     /**
      * User data: could be a session, connection or anything useful
      */
+    @ExperimentalIoApi
     var attachment: Any?
 
     /**
@@ -180,6 +181,7 @@ expect class IoBuffer : Input, Output {
      * One can instantiate multiple buffers with the same buffer and this function will return `true` in spite of
      * the fact that the buffer is actually shared.
      */
+    @ExperimentalIoApi
     fun isExclusivelyOwned(): Boolean
 
     /**
@@ -203,9 +205,24 @@ expect class IoBuffer : Input, Output {
     final override fun flush()
 
     companion object {
+        /**
+         * The empty buffer singleton: it has zero capacity for read and write.
+         */
         val Empty: IoBuffer
+
+        /**
+         * The default buffer pool
+         */
         val Pool: ObjectPool<IoBuffer>
+
+        /**
+         * Pool that always instantiates new buffers instead of reusing it
+         */
         val NoPool: ObjectPool<IoBuffer>
+
+        /**
+         * A pool that always returns [IoBuffer.Empty]
+         */
         val EmptyPool: ObjectPool<IoBuffer>
     }
 }
@@ -267,6 +284,6 @@ internal tailrec fun IoBuffer.isEmpty(): Boolean {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun Long.coerceAtMostMaxInt(): Int = minOf(this, Int.MAX_VALUE.toLong()).toInt()
+internal inline fun Long.coerceAtMostMaxInt(): Int = minOf(this, Int.MAX_VALUE.toLong()).toInt()
 
 class BufferLimitExceededException(message: String) : Exception(message)

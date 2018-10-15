@@ -4,7 +4,6 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.internal.*
 import java.io.*
 import java.util.concurrent.locks.*
 import kotlin.coroutines.*
@@ -128,9 +127,11 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
     private val end: Continuation<Unit> = object : Continuation<Unit> {
-        // TODO 1) excess allocation 2) Unconfined should be present in both code paths?
-        override val context: CoroutineContext
-            get() = if (parent != null) Dispatchers.Unconfined + parent else EmptyCoroutineContext
+        override val context: CoroutineContext =
+            if (parent != null) Dispatchers.Unconfined + parent else Dispatchers.Unconfined
+
+        private fun <T> Result<T>.toState(): Any? =
+            if (this@toState.isSuccess) this@toState.getOrThrow() else CompletedExceptionally(this@toState.exceptionOrNull()!!)
 
         override fun resumeWith(result: Result<Unit>) {
             val value = result.toState()!!
