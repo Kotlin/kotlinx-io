@@ -7,3 +7,9 @@ bin
 .project
 
 kotlinx-io-native/repo/
+
+!.idea/vcs.xml
+!.idea/dictionaries
+!.idea/dictionaries/*
+!.idea/codeStyles
+!.idea/codeStyles/*
