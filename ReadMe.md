@@ -32,7 +32,7 @@ Use `kotlinx-io-js` with Kotlin JavaScript and `kotlin-io` for common code if yo
 A buffer view is a view to byte buffer (in JVM it could be direct `ByteBuffer`, on JS it could be `ArrayBuffer`). Comparing to java's NIO `ByteBuffer`, `IoBuffer` ...
 
 - should be released via `release()` invocation
-- could be copied via `copy()` that actually doesn't copy any bytes but makes a new view
+- could be copied via `makeView()` that actually doesn't copy any bytes but makes a new view
   - copy should be released as well
 - could be used to read and write, no need to do `flip`
 - has a `next` property so it is suitable to make chains of buffer views with no need to allocate any lists or extra arrays
