@@ -5,7 +5,7 @@ import java.lang.reflect.*
 actual typealias Closeable = java.io.Closeable
 
 @PublishedApi
-internal actual fun Throwable.addSuppressedInt(other: Throwable) {
+internal actual fun Throwable.addSuppressedInternal(other: Throwable) {
     AddSuppressedMethod?.invoke(this, other)
 }
 

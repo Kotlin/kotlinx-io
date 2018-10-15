@@ -13,11 +13,11 @@ inline fun <C : Closeable, R> C.use(block: (C) -> R): R {
         try {
             close()
         } catch (second: Throwable) {
-            first.addSuppressedInt(second)
+            first.addSuppressedInternal(second)
         }
         throw first
     }
 }
 
 @PublishedApi
-internal expect fun Throwable.addSuppressedInt(other: Throwable)
+internal expect fun Throwable.addSuppressedInternal(other: Throwable)
