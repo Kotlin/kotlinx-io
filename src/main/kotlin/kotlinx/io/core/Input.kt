@@ -52,32 +52,32 @@ expect interface Input : Closeable {
 
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size) {
+fun Input.readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset) {
     return readFully(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: ShortArray, offset: Int = 0, length: Int = dst.size) {
+fun Input.readFully(dst: ShortArray, offset: Int = 0, length: Int = dst.size - offset) {
     return readFully(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: IntArray, offset: Int = 0, length: Int = dst.size) {
+fun Input.readFully(dst: IntArray, offset: Int = 0, length: Int = dst.size - offset) {
     return readFully(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: LongArray, offset: Int = 0, length: Int = dst.size) {
+fun Input.readFully(dst: LongArray, offset: Int = 0, length: Int = dst.size - offset) {
     return readFully(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: FloatArray, offset: Int = 0, length: Int = dst.size) {
+fun Input.readFully(dst: FloatArray, offset: Int = 0, length: Int = dst.size - offset) {
     return readFully(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: DoubleArray, offset: Int = 0, length: Int = dst.size) {
+fun Input.readFully(dst: DoubleArray, offset: Int = 0, length: Int = dst.size - offset) {
     return readFully(dst, offset, length)
 }
 
@@ -87,32 +87,32 @@ fun Input.readFully(dst: IoBuffer, length: Int = dst.writeRemaining) {
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int {
+fun Input.readAvailable(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailable(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: ShortArray, offset: Int = 0, length: Int = dst.size): Int {
+fun Input.readAvailable(dst: ShortArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailable(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: IntArray, offset: Int = 0, length: Int = dst.size): Int {
+fun Input.readAvailable(dst: IntArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailable(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: LongArray, offset: Int = 0, length: Int = dst.size): Int {
+fun Input.readAvailable(dst: LongArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailable(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: FloatArray, offset: Int = 0, length: Int = dst.size): Int {
+fun Input.readAvailable(dst: FloatArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailable(dst, offset, length)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: DoubleArray, offset: Int = 0, length: Int = dst.size): Int {
+fun Input.readAvailable(dst: DoubleArray, offset: Int = 0, length: Int = dst.size - offset): Int {
     return readAvailable(dst, offset, length)
 }
 
