@@ -128,7 +128,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
     @UseExperimental(ExperimentalCoroutinesApi::class)
     private val end: Continuation<Unit> = object : Continuation<Unit> {
         override val context: CoroutineContext =
-            if (parent != null) Dispatchers.Unconfined + parent else Dispatchers.Unconfined
+            if (parent != null) UnsafeBlockingTrampoline + parent else UnsafeBlockingTrampoline
 
         @Suppress("INVISIBLE_MEMBER")
         private fun <T> Result<T>.toState(): Any? =
@@ -257,5 +257,14 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
 
     protected fun finish(rc: Int) {
         result.value = rc
+    }
+}
+
+@UseExperimental(ExperimentalCoroutinesApi::class)
+private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
+    override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        block.run()
     }
 }
