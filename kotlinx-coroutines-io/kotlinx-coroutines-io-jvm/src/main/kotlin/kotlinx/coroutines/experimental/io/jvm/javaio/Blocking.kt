@@ -130,6 +130,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
         override val context: CoroutineContext =
             if (parent != null) Dispatchers.Unconfined + parent else Dispatchers.Unconfined
 
+        @Suppress("INVISIBLE_MEMBER")
         private fun <T> Result<T>.toState(): Any? =
             if (this@toState.isSuccess) this@toState.getOrThrow() else CompletedExceptionally(this@toState.exceptionOrNull()!!)
 
