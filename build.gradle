@@ -1,15 +1,8 @@
 buildscript {
     repositories {
-        if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-") || kotlin_version.contains("-M")) {
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-        }
-        if (kotlin_version.contains("dev")) {
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-        }
-
         mavenLocal()
         mavenCentral()
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
     }
@@ -43,16 +36,8 @@ static def platformOf(project) {
 
 allprojects {
     repositories {
-        if (kotlin_version.contains("eap") || kotlin_version.contains("-rc-") || kotlin_version.contains("-M")) {
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-        }
-        if (kotlin_version.contains("dev")) {
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-        }
-
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
         mavenCentral()
         mavenLocal()
