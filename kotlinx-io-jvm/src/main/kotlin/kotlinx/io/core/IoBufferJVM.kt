@@ -867,6 +867,19 @@ actual class IoBuffer private constructor(
         }
     }
 
+    private fun clearInstanceInternal() {
+        next = null
+        attachment = null
+//        resetForWrite(capacity)
+        writeBuffer.limit(writeBuffer.capacity())
+        writeBuffer.position(0)
+        readBuffer.limit(0) // position will be set to 0 as well
+
+        if (!RefCount.compareAndSet(this, 0L, 1L)) {
+            throw IllegalStateException("Unable to prepare buffer: refCount is not zero (used while parked in the pool?)")
+        }
+    }
+
     @PublishedApi
     @Suppress("NOTHING_TO_INLINE")
     internal inline fun afterWrite() {
@@ -897,12 +910,7 @@ actual class IoBuffer private constructor(
 
             override fun clearInstance(instance: IoBuffer): IoBuffer {
                 return instance.apply {
-                    next = null
-                    attachment = null
-                    resetForWrite()
-                    if (!RefCount.compareAndSet(this, 0L, 1L)) {
-                        throw IllegalStateException("Unable to prepare buffer: refCount is not zero (used while parked in the pool?)")
-                    }
+                    clearInstanceInternal()
                 }
             }
 
