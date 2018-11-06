@@ -608,7 +608,13 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         val next = if (current === empty) {
             doFill()
         } else {
-            current.next.also { current.release(pool) } ?: doFill()
+            val next = current.next
+            current.release(pool)
+            if (next == null) {
+                this.head = empty
+                this.tailRemaining = 0L
+                doFill()
+            } else next
         }
 
         if (next == null) {

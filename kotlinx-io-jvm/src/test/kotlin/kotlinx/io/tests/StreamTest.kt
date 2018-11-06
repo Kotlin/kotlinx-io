@@ -2,8 +2,8 @@ package kotlinx.io.tests
 
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
-import org.junit.Test
 import java.io.*
+import java.util.*
 import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
 import kotlin.test.*
@@ -29,6 +29,23 @@ class StreamTest {
 
         input.byteOrder = ByteOrder.BIG_ENDIAN
         assertEquals(0x11223344, input.readInt())
+    }
+
+    @Test
+    fun testBigInput() {
+        val content = ByteArray(65535 * 4)
+        Random().nextBytes(content)
+        val input = ByteArrayInputStream(content).asInput()
+
+        val consumed = ByteArrayOutputStream()
+        val buffer = ByteArray(8192)
+        input.takeWhile { chunk ->
+            val size = chunk.readAvailable(buffer)
+            consumed.write(buffer, 0, size)
+            true
+        }
+
+        assertTrue { content.contentEquals(consumed.toByteArray()) }
     }
 
     @Test
