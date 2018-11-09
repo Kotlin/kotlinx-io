@@ -130,12 +130,8 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
         override val context: CoroutineContext =
             if (parent != null) UnsafeBlockingTrampoline + parent else UnsafeBlockingTrampoline
 
-        @Suppress("INVISIBLE_MEMBER")
-        private fun <T> Result<T>.toState(): Any? =
-            if (this@toState.isSuccess) this@toState.getOrThrow() else CompletedExceptionally(this@toState.exceptionOrNull()!!)
-
         override fun resumeWith(result: Result<Unit>) {
-            val value = result.toState()!!
+            val value = result.exceptionOrNull() ?: Unit
 
             val before = state.getAndUpdate { current ->
                 when (current) {
