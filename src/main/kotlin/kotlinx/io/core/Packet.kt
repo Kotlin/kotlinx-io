@@ -605,37 +605,29 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     internal fun ensureNext(current: IoBuffer) = ensureNext(current, IoBuffer.Empty)
 
     private tailrec fun ensureNext(current: IoBuffer, empty: IoBuffer): IoBuffer? {
-        val next = if (current === empty) {
-            doFill()
-        } else {
-            val next = current.next
-            current.release(pool)
-            if (next == null) {
-                this.head = empty
+        if (current === empty) {
+            return doFill()
+        }
+
+        val next = current.next
+        current.release(pool)
+
+        return when {
+            next == null -> {
+                this.headRemaining = 0
                 this.tailRemaining = 0L
-                doFill()
-            } else next
-        }
-
-        if (next == null) {
-            if (head !== empty) {
-                head = empty
-                headRemaining = 0
-                tailRemaining = 0L
+                this.head = empty
+                ensureNext(empty, empty)
             }
-
-            return null
-        }
-
-        if (next.canRead()) {
-            head = next
-            next.byteOrder = byteOrder
-            val nextRemaining = next.readRemaining
-            headRemaining = nextRemaining
-            tailRemaining -= nextRemaining
-            return next
-        } else {
-            return ensureNext(next, empty)
+            next.canRead() -> {
+                head = next
+                next.byteOrder = byteOrder
+                val nextRemaining = next.readRemaining
+                headRemaining = nextRemaining
+                tailRemaining -= nextRemaining
+                next
+            }
+            else -> ensureNext(next, empty)
         }
     }
 
@@ -717,13 +709,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         }
     }
 
-    internal fun releaseHead(head: IoBuffer) {
+    internal fun releaseHead(head: IoBuffer): IoBuffer {
         val next = head.next ?: IoBuffer.Empty
         this.head = next
         val nextRemaining = next.readRemaining
         this.headRemaining = nextRemaining
         this.tailRemaining -= nextRemaining
         head.release(pool)
+
+        return next
     }
 
     companion object {
