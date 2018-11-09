@@ -1,7 +1,13 @@
 package kotlinx.coroutines.io.jvm.javaio
 
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.internal.*
+import kotlinx.io.core.*
+import kotlinx.io.pool.*
 import java.io.*
+import java.nio.*
+import kotlin.coroutines.*
 
 /**
  * Copies up to [limit] bytes from [this] input stream to CIO byte [channel] blocking on reading [this] stream
@@ -30,3 +36,35 @@ suspend fun InputStream.copyTo(channel: ByteWriteChannel, limit: Long = Long.MAX
         ByteArrayPool.recycle(buffer)
     }
 }
+
+/**
+ * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
+ * Please note that it may block your async code when started on [Dispatchers.Unconfined]
+ * since [InputStream] is blocking on it's nature
+ */
+@ExperimentalIoApi
+@Suppress("BlockingMethodInNonBlockingContext")
+fun InputStream.toByteReadChannel(
+    context: CoroutineContext = Dispatchers.IO,
+    pool: ObjectPool<ByteBuffer> = BufferPool
+): ByteReadChannel = GlobalScope.writer(context, autoFlush = true) {
+    val buffer = pool.borrow()
+    try {
+        while (true) {
+            buffer.clear()
+            val readCount = read(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
+            if (readCount < 0) break
+            if (readCount == 0) continue
+
+            buffer.position(buffer.position() + readCount)
+            buffer.flip()
+            channel.writeFully(buffer)
+        }
+    } catch (cause: Throwable) {
+        channel.close(cause)
+    } finally {
+        pool.recycle(buffer)
+        close()
+    }
+}.channel
+
