@@ -13,7 +13,7 @@ import kotlin.coroutines.intrinsics.*
  */
 @Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "CANNOT_OVERRIDE_INVISIBLE_MEMBER") // yay, performance!
 @UseExperimental(InternalCoroutinesApi::class)
-internal class MutableDelegateContinuation<T : Any> : Continuation<T>, DispatchedTask<T> {
+internal class MutableDelegateContinuation<T : Any> : Continuation<T>, DispatchedTask<T>(0) {
     private var _delegate: Continuation<T>? = null
     private val state = atomic<Any?>(null)
     private val handler = atomic<JobRelation?>(null)
