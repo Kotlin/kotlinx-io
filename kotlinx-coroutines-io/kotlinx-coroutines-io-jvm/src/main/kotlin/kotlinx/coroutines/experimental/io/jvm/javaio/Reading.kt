@@ -46,7 +46,7 @@ suspend fun InputStream.copyTo(channel: ByteWriteChannel, limit: Long = Long.MAX
 @Suppress("BlockingMethodInNonBlockingContext")
 fun InputStream.toByteReadChannel(
     context: CoroutineContext = Dispatchers.IO,
-    pool: ObjectPool<ByteBuffer> = BufferPool
+    pool: ObjectPool<ByteBuffer>
 ): ByteReadChannel = GlobalScope.writer(context, autoFlush = true) {
     val buffer = pool.borrow()
     try {
