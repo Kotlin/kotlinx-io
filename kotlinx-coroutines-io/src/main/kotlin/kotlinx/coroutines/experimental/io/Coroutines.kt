@@ -32,7 +32,7 @@ interface WriterScope : CoroutineScope {
 }
 
 fun CoroutineScope.reader(
-    coroutineContext: CoroutineContext,
+    coroutineContext: CoroutineContext = EmptyCoroutineContext,
     channel: ByteChannel,
     block: suspend ReaderScope.() -> Unit
 ): ReaderJob {
@@ -43,8 +43,8 @@ fun CoroutineScope.reader(
 }
 
 fun CoroutineScope.reader(
-    coroutineContext: CoroutineContext,
-    autoFlush: Boolean,
+    coroutineContext: CoroutineContext = EmptyCoroutineContext,
+    autoFlush: Boolean = false,
     block: suspend ReaderScope.() -> Unit
 ): ReaderJob {
     val channel = ByteChannel(autoFlush)
@@ -80,7 +80,7 @@ fun reader(
 }
 
 fun CoroutineScope.writer(
-    coroutineContext: CoroutineContext,
+    coroutineContext: CoroutineContext = EmptyCoroutineContext,
     channel: ByteChannel,
     block: suspend WriterScope.() -> Unit
 ): WriterJob {
@@ -91,7 +91,7 @@ fun CoroutineScope.writer(
 }
 
 fun CoroutineScope.writer(
-    coroutineContext: CoroutineContext,
+    coroutineContext: CoroutineContext = EmptyCoroutineContext,
     autoFlush: Boolean = false,
     block: suspend WriterScope.() -> Unit
 ): WriterJob {
