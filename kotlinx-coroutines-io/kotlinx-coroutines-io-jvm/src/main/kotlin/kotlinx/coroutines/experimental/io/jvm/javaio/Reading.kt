@@ -68,3 +68,32 @@ fun InputStream.toByteReadChannel(
     }
 }.channel
 
+/**
+ * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
+ * Please note that it may block your async code when started on [Dispatchers.Unconfined]
+ * since [InputStream] is blocking on it's nature
+ */
+@ExperimentalIoApi
+@Suppress("BlockingMethodInNonBlockingContext")
+@JvmName("toByteReadChannelWithArrayPool")
+fun InputStream.toByteReadChannel(
+    context: CoroutineContext = Dispatchers.IO,
+    pool: ObjectPool<ByteArray> = ByteArrayPool
+): ByteReadChannel = GlobalScope.writer(context, autoFlush = true) {
+    val buffer = pool.borrow()
+    try {
+        while (true) {
+            val readCount = read(buffer, 0, buffer.size)
+            if (readCount < 0) break
+            if (readCount == 0) continue
+
+            channel.writeFully(buffer, 0, readCount)
+        }
+    } catch (cause: Throwable) {
+        channel.close(cause)
+    } finally {
+        pool.recycle(buffer)
+        close()
+    }
+}.channel
+
