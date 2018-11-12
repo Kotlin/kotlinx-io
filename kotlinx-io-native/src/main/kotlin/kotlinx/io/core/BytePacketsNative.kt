@@ -6,7 +6,8 @@ import kotlinx.cinterop.*
  * Read at most [limit] bytes to the specified [dst] address
  * @return number of bytes copied
  */
-fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Int) = readAsMuchAsPossible(dst, limit.toLong(), 0L).toInt()
+fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Int) =
+    readAsMuchAsPossible(dst, limit.toLong(), 0L).toInt()
 
 /**
  * Read at most [limit] bytes to the specified [dst] address
@@ -20,7 +21,8 @@ fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Long) = readAsMu
  */
 fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Int): Int {
     val rc = readAsMuchAsPossible(dst, size.toLong(), 0L)
-    if (rc != size.toLong()) throw EOFException("Not enough data in packet to fill buffer: ${size.toLong() - rc} more bytes required")
+    if (rc != size.toLong())
+        throw EOFException("Not enough data in packet to fill buffer: ${size.toLong() - rc} more bytes required")
     return rc.toInt()
 }
 
@@ -34,7 +36,11 @@ fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Long): Long {
     return rc
 }
 
-private tailrec fun ByteReadPacket.readAsMuchAsPossible(buffer: CPointer<ByteVar>, destinationCapacity: Long, copied: Long): Long {
+private tailrec fun ByteReadPacket.readAsMuchAsPossible(
+    buffer: CPointer<ByteVar>,
+    destinationCapacity: Long,
+    copied: Long
+): Long {
     if (destinationCapacity == 0L) return copied
     @Suppress("INVISIBLE_MEMBER")
     val current: IoBuffer = prepareRead(1) ?: return copied

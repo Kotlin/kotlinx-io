@@ -21,8 +21,8 @@ actual interface Output : Appendable, Closeable {
     actual fun writeFully(src: DoubleArray, offset: Int, length: Int)
     actual fun writeFully(src: IoBuffer, length: Int)
 
-//    fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
-//    fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
+    fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
+    fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
 
     actual fun append(csq: CharArray, start: Int, end: Int): Appendable
 

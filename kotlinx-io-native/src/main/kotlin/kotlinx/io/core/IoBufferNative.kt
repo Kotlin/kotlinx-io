@@ -133,7 +133,7 @@ actual class IoBuffer internal constructor(
         writePosition += 8
     }
 
-    final internal fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
+    final override fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
         require(length <= readRemaining.toLong())
         require(length >= 0L) { "length shouldn't be negative: $length" }
         require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
@@ -142,7 +142,7 @@ actual class IoBuffer internal constructor(
         readPosition += length.toInt()
     }
 
-    final internal fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
+    final override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= readRemaining) { "Not enough bytes available to read $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
 
@@ -150,7 +150,7 @@ actual class IoBuffer internal constructor(
         readPosition += length
     }
 
-    final internal fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
+    final override fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
         require(length <= writeRemaining) { "Not enough space available to write $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
 
@@ -158,7 +158,7 @@ actual class IoBuffer internal constructor(
         writePosition += length
     }
 
-    final internal fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
+    final override fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
         require(length <= writeRemaining.toLong()) { "Not enough space available to write $length bytes" }
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(length.convert<size_t>() <= size_t.MAX_VALUE) { "length shouldn't be greater than ${size_t.MAX_VALUE}" }
@@ -451,38 +451,44 @@ actual class IoBuffer internal constructor(
         return copySize
     }
 
-//    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
-//        require(length >= 0) { "length shouldn't be negative: $length" }
-//
-//        val copySize = minOf(length, readRemaining)
-//        memcpy(dst + offset, content + readPosition, copySize.convert<size_t>())
-//        readPosition += length
-//
-//        return copySize
-//    }
-//
-//    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long {
-//        require(length >= 0) { "length shouldn't be negative: $length" }
-//        require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
-//
-//        val copySize = minOf(length, readRemaining.toLong())
-//        memcpy(dst + offset, content + readPosition, copySize.convert<size_t>())
-//        readPosition += length.toInt()
-//
-//        return copySize
-//    }
+    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
+        require(length >= 0) { "length shouldn't be negative: $length" }
 
-    internal fun writeDirect(block: (CPointer<ByteVar>) -> Int) {
+        val copySize = minOf(length, readRemaining)
+        memcpy(dst + offset, content + readPosition, copySize.convert<size_t>())
+        readPosition += length
+
+        return copySize
+    }
+
+    final override fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long {
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(length <= Int.MAX_VALUE) { "length shouldn't be greater than Int.MAX_VALUE" }
+
+        val copySize = minOf(length, readRemaining.toLong())
+        memcpy(dst + offset, content + readPosition, copySize.convert<size_t>())
+        readPosition += length.toInt()
+
+        return copySize
+    }
+
+    /**
+     * Apply [block] to a native pointer for writing to the buffer. Lambda should return number of bytes were written.
+     */
+    fun writeDirect(block: (CPointer<ByteVar>) -> Int) {
         val rc = block((content + writePosition)!!)
-        check(rc >= 0)
+        check(rc >= 0) { "block function should return non-negative results: $rc" }
         check(rc <= writeRemaining)
         writePosition += rc
     }
 
-    internal fun readDirect(block: (CPointer<ByteVar>) -> Int) {
+    /**
+     * Apply [block] to a native pointer for reading from the buffer. Lambda should return number of bytes were read.
+     */
+    fun readDirect(block: (CPointer<ByteVar>) -> Int) {
         val rc = block((content + readPosition)!!)
-        check(rc >= 0)
-        check(rc <= readRemaining)
+        check(rc >= 0) { "block function should return non-negative results: $rc" }
+        check(rc <= readRemaining) { "result value is too large: $rc > $readRemaining" }
         readPosition += rc
     }
 

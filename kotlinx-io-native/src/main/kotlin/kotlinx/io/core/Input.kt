@@ -22,8 +22,8 @@ actual interface Input : Closeable {
     actual fun readFully(dst: DoubleArray, offset: Int, length: Int)
     actual fun readFully(dst: IoBuffer, length: Int)
 
-//    fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int)
-//    fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long)
+    fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int)
+    fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long)
 
     actual fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
     actual fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
@@ -33,8 +33,8 @@ actual interface Input : Closeable {
     actual fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
     actual fun readAvailable(dst: IoBuffer, length: Int): Int
 
-//    fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int
-//    fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long
+    fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int
+    fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long
 
     /*
      * Returns next byte (unsigned) or `-1` if no more bytes available
