@@ -13,16 +13,28 @@ import kotlinx.coroutines.io.WriterScope
 import kotlinx.io.charsets.*
 import kotlin.coroutines.*
 
-typealias ByteReadChannel = kotlinx.coroutines.io.ByteChannel
+@Deprecated("Use the same type from different package")
+typealias ByteReadChannel = kotlinx.coroutines.io.ByteReadChannel
+
+@Deprecated("Use the same type from different package")
 typealias ByteWriteChannel = kotlinx.coroutines.io.ByteWriteChannel
+
+@Deprecated("Use the same type from different package")
 typealias ByteChannel = kotlinx.coroutines.io.ByteChannel
 
+@Deprecated("Use the same type from different package")
 typealias ReaderJob = kotlinx.coroutines.io.ReaderJob
+
+@Deprecated("Use the same type from different package")
 typealias ReaderScope = kotlinx.coroutines.io.ReaderScope
 
+@Deprecated("Use the same type from different package")
 typealias WriterJob = kotlinx.coroutines.io.WriterJob
+
+@Deprecated("Use the same type from different package")
 typealias WriterScope = kotlinx.coroutines.io.WriterScope
 
+@Deprecated("Use the same type from different package")
 typealias CancellationException = CancellationException
 
 @Deprecated(
