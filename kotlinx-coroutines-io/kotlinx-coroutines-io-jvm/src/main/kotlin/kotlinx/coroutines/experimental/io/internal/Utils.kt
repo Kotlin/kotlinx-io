@@ -24,11 +24,6 @@ internal fun getIOIntProperty(name: String, default: Int): Int =
     catch (e: SecurityException) { null }
         ?.toIntOrNull() ?: default
 
-@Suppress("INVISIBLE_MEMBER")
-internal fun <T> Result<T>.toState(): Any? =
-    if (isSuccess) getOrThrow() else CompletedExceptionally(exceptionOrNull()!!)
-
-
 @Suppress("LoopToCallChain")
 internal fun ByteBuffer.indexOfPartial(sub: ByteBuffer): Int {
     val subPosition = sub.position()

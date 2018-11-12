@@ -2250,7 +2250,7 @@ internal class ByteBufferChannel(
         return readSuspendLoop(size)
     }
 
-    private val readSuspendContinuationCache = MutableDelegateContinuation<Boolean>()
+    private val readSuspendContinuationCache = CancellableReusableContinuation<Boolean>()
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun readSuspendPredicate(size: Int): Boolean {
@@ -2290,7 +2290,7 @@ internal class ByteBufferChannel(
         return suspendCoroutineUninterceptedOrReturn { ucont ->
             val c = readSuspendContinuationCache
             suspensionForSize(size, c)
-            c.swap(ucont.intercepted())
+            c.completeSuspendBlock(ucont.intercepted())
         }
     }
 
@@ -2309,7 +2309,7 @@ internal class ByteBufferChannel(
         }
     }
 
-    private val writeSuspendContinuationCache = MutableDelegateContinuation<Unit>()
+    private val writeSuspendContinuationCache = CancellableReusableContinuation<Unit>()
     @Volatile
     private var writeSuspensionSize: Int = 0
     private val writeSuspension = { ucont: Continuation<Unit> ->
@@ -2346,7 +2346,7 @@ internal class ByteBufferChannel(
         return suspendCoroutineUninterceptedOrReturn { raw ->
             val c = writeSuspendContinuationCache
             writeSuspension(c)
-            c.swap(raw.intercepted())
+            c.completeSuspendBlock(raw.intercepted())
         }
     }
 

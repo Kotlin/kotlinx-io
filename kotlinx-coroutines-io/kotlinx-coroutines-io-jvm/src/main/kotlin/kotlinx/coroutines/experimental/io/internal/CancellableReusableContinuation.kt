@@ -7,27 +7,19 @@ import kotlin.coroutines.intrinsics.*
 
 /**
  * Semi-cancellable reusable continuation. Unlike regular continuation this implementation has limitations:
- * - could be resumed only once per swap, undefined behaviour otherwise
+ * - could be resumed only once per [completeSuspendBlock], undefined behaviour otherwise
  * - [T] should be neither [Throwable] nor [Continuation]
  * - value shouldn't be null
  */
-@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "CANNOT_OVERRIDE_INVISIBLE_MEMBER") // yay, performance!
-@UseExperimental(InternalCoroutinesApi::class)
-internal class MutableDelegateContinuation<T : Any> : Continuation<T>, DispatchedTask<T>(0) {
-    private var _delegate: Continuation<T>? = null
+internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
     private val state = atomic<Any?>(null)
-    private val handler = atomic<JobRelation?>(null)
+    private val jobCancellationHandler = atomic<JobRelation?>(null)
 
-    override val delegate: Continuation<T>
-        get() = _delegate!!
-
-    override fun takeState(): Any? {
-        val value = state.getAndSet(null)
-        _delegate = null
-        return value
-    }
-
-    fun swap(actual: Continuation<T>): Any {
+    /**
+     * Remember [actual] continuation or return resumed value
+     * @return `COROUTINE_SUSPENDED` when remembered or return value if already resumed
+     */
+    fun completeSuspendBlock(actual: Continuation<T>): Any {
         loop@while (true) {
             val before = state.value
 
@@ -47,20 +39,15 @@ internal class MutableDelegateContinuation<T : Any> : Continuation<T>, Dispatche
         }
     }
 
-    fun close() {
-        resumeWithException(Cancellation)
-        handler.getAndSet(null)?.dispose()
-    }
-
     private fun parent(context: CoroutineContext) {
         val job = context[Job]
-        if (handler.value?.job === job) return
+        if (jobCancellationHandler.value?.job === job) return
 
         if (job == null) {
-            handler.getAndSet(null)?.dispose()
+            jobCancellationHandler.getAndSet(null)?.dispose()
         } else {
             val handler = JobRelation(job)
-            val old = this.handler.getAndUpdate { j ->
+            val old = this.jobCancellationHandler.getAndUpdate { j ->
                 when {
                     j == null -> handler
                     j.job === job -> return
@@ -75,20 +62,18 @@ internal class MutableDelegateContinuation<T : Any> : Continuation<T>, Dispatche
         get() = (state.value as? Continuation<*>)?.context ?: EmptyCoroutineContext
 
     override fun resumeWith(result: Result<T>) {
-        val value = result.toState()
         val before = state.getAndUpdate { before ->
             when (before) {
-                null -> value
-                is Continuation<*> -> value
+                null -> result.exceptionOrNull() ?: result.getOrThrow()
+                is Continuation<*> -> null
                 else -> return
             }
         }
 
-        if (before != null) {
+        if (before is Continuation<*>) {
             @Suppress("UNCHECKED_CAST")
             val cont = before as Continuation<T>
-            _delegate = cont
-            dispatch(1)
+            cont.resumeWith(result)
         }
     }
 
@@ -103,32 +88,33 @@ internal class MutableDelegateContinuation<T : Any> : Continuation<T>, Dispatche
         c.resumeWith(Result.failure(exception))
     }
 
-    private inner class JobRelation(val job: Job) : CompletionHandler, DisposableHandle {
-        private var handler: DisposableHandle = NonDisposableHandle
+    private inner class JobRelation(val job: Job) : CompletionHandler {
+        private var handler: DisposableHandle? = null
 
         init {
+            @UseExperimental(InternalCoroutinesApi::class)
             val h = job.invokeOnCompletion(onCancelling = true, handler = this)
+
             if (job.isActive) {
                 handler = h
             }
         }
 
         override fun invoke(cause: Throwable?) {
-            this@MutableDelegateContinuation.handler.compareAndSet(this, null)
-            dispose()
+            this@CancellableReusableContinuation.jobCancellationHandler.compareAndSet(this, null)
+
+            handler?.let {
+                this.handler = null
+                it.dispose()
+            }
 
             if (cause != null) {
                 resumeWithExceptionContinuationOnly(job, cause)
             }
         }
 
-        override fun dispose() {
-            handler.dispose()
-            handler = NonDisposableHandle
+        fun dispose() {
+            invoke(null)
         }
-    }
-
-    private companion object {
-        val Cancellation = CancellationException("Continuation terminated")
     }
 }
