@@ -114,7 +114,6 @@ fun ByteReadPacket.readerUTF8(): Reader {
             return skipped
         }
 
-        @Suppress("INVISIBLE_MEMBER")
         override fun read(cbuf: CharArray, off: Int, len: Int) = readCbuf(cbuf, off, len)
     }
 }

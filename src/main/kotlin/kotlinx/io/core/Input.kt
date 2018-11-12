@@ -145,16 +145,16 @@ fun Input.discardExact(n: Int) {
  * could be observed
  */
 inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
-    var current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(1) ?: return
+    var current = `$prepareRead$`(1) ?: return
 
     do {
         val continueFlag = block(current)
         val after = current.readRemaining
 
         if (after == 0) {
-            current = @Suppress("DEPRECATION_ERROR") `$ensureNext$`(current) ?: break
+            current = `$ensureNext$`(current) ?: break
         } else if (!continueFlag) {
-            @Suppress("DEPRECATION_ERROR") `$updateRemaining$`(after)
+            `$updateRemaining$`(after)
             break
         }
     } while (true)
@@ -169,7 +169,7 @@ inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
  * could be observed
  */
 inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
-    var current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(1) ?: return
+    var current = `$prepareRead$`(1) ?: return
     var size = initialSize
 
     do {
@@ -187,12 +187,12 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
         }
 
         if (after == 0) {
-            current = @Suppress("DEPRECATION_ERROR") `$ensureNext$`(current) ?: break
+            current = `$ensureNext$`(current) ?: break
         } else if (after < size) {
-            @Suppress("DEPRECATION_ERROR") `$updateRemaining$`(after)
-            current = @Suppress("DEPRECATION_ERROR") `$prepareRead$`(size) ?: break
+            `$updateRemaining$`(after)
+            current = `$prepareRead$`(size) ?: break
         } else {
-            @Suppress("DEPRECATION_ERROR") `$updateRemaining$`(after)
+            `$updateRemaining$`(after)
         }
     } while (size > 0)
 }

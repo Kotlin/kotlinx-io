@@ -116,7 +116,6 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
     override fun flush() {
         if (writable.isNotEmpty) {
-            @Suppress("DEPRECATION_ERROR")
             readable.`$unsafeAppend$`(writable)
             atLeastNBytesAvailableForRead.signal()
         }
@@ -201,12 +200,10 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         val session = object : WriterSuspendSession {
             override fun request(min: Int): IoBuffer? {
                 if (availableForWrite == 0) return null
-                @Suppress("DEPRECATION_ERROR")
                 return writable.`$prepareWrite$`(min)
             }
 
             override fun written(n: Int) {
-                @Suppress("DEPRECATION_ERROR")
                 writable.`$afterWrite$`()
                 afterWrite()
             }
@@ -466,7 +463,6 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         val remaining = lastReadView.readRemaining
         val delta = lastReadAvailable - remaining
         if (lastReadView !== IoBuffer.Empty) {
-            @Suppress("DEPRECATION_ERROR")
             readable.`$updateRemaining$`(remaining)
         }
         if (delta > 0) {
@@ -510,7 +506,6 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
         completeReading()
 
-        @Suppress("DEPRECATION_ERROR")
         val view = readable.`$prepareRead$`(atLeast)
 
         if (view == null) {

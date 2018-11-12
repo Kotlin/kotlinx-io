@@ -29,7 +29,6 @@ fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
         while (true) {
             var rc = 0
 
-            @Suppress("INVISIBLE_MEMBER")
             p.read { node : IoBuffer ->
                 node.readDirect {
                     rc = write(it)
@@ -103,7 +102,6 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
             }
         }
     } catch (t: Throwable) {
-        @Suppress("INVISIBLE_MEMBER")
         head.releaseAll(pool)
         throw t
     }

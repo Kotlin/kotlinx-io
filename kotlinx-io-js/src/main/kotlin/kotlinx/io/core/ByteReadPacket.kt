@@ -10,7 +10,6 @@ actual abstract class ByteReadPacketPlatformBase
         if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
         var copied = 0
 
-        @Suppress("INVISIBLE_MEMBER")
         takeWhile { buffer: IoBuffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
             if (rc > 0) copied += rc
@@ -22,7 +21,6 @@ actual abstract class ByteReadPacketPlatformBase
         if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
         var copied = 0
 
-        @Suppress("INVISIBLE_MEMBER")
         takeWhile { buffer: IoBuffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
             if (rc > 0) copied += rc
@@ -34,7 +32,6 @@ actual abstract class ByteReadPacketPlatformBase
         if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
         var copied = 0
 
-        @Suppress("INVISIBLE_MEMBER")
         takeWhile { buffer: IoBuffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
             if (rc > 0) copied += rc

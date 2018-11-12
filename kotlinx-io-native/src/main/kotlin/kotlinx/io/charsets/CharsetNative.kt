@@ -157,7 +157,6 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                         readSize++
                         writeSize = 8
                     } else {
-                        @Suppress("DEPRECATION_ERROR")
                         input.`$updateRemaining$`(srcView.readRemaining)
                         readSize = 1
                         writeSize = 1
