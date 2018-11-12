@@ -94,14 +94,14 @@ fun Output.fill(n: Long, v: Byte = 0) {
  */
 inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
     try {
-        var tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(1)
+        var tail = `$prepareWrite$`(1)
 
         while (true) {
             if (!block(tail)) break
-            tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(1)
+            tail = `$prepareWrite$`(1)
         }
     } finally {
-        @Suppress("DEPRECATION_ERROR") `$afterWrite$`()
+        `$afterWrite$`()
     }
 }
 
@@ -113,16 +113,16 @@ inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
  */
 inline fun Output.writeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     try {
-        var tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(initialSize)
+        var tail = `$prepareWrite$`(initialSize)
 
         var size: Int
         while (true) {
             size = block(tail)
             if (size <= 0) break
-            tail = @Suppress("DEPRECATION_ERROR") `$prepareWrite$`(size)
+            tail = `$prepareWrite$`(size)
         }
     } finally {
-        @Suppress("DEPRECATION_ERROR") `$afterWrite$`()
+        `$afterWrite$`()
     }
 }
 

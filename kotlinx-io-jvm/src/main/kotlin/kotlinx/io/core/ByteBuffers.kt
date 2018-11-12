@@ -20,7 +20,6 @@ fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
 
 private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: Int): Int {
     if (!bb.hasRemaining()) return copied
-    @Suppress("INVISIBLE_MEMBER")
     val current: IoBuffer = prepareRead(1) ?: return copied
 
     val destinationCapacity = bb.remaining()
@@ -28,13 +27,11 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
 
     return if (destinationCapacity >= available) {
         current.readFully(bb, available)
-        @Suppress("INVISIBLE_MEMBER")
         releaseHead(current)
 
         readAsMuchAsPossible(bb, copied + available)
     } else {
         current.readFully(bb, destinationCapacity)
-        @Suppress("DEPRECATION_ERROR")
         `$updateRemaining$`(current.readRemaining)
         copied + destinationCapacity
     }

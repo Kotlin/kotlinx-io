@@ -66,14 +66,12 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
             while (input.remaining > 0) {
                 cb.clear()
 
-                @Suppress("DEPRECATION_ERROR")
                 val chunk = input.`$prepareRead$`(readSize)
                 if (chunk == null) {
                     if (readSize != 1) throw MalformedInputException("...")
                     break
                 }
 
-                @Suppress("INVISIBLE_MEMBER")
                 val rc = chunk.decodeUTF8 { ch ->
                     if (cb.hasRemaining()) {
                         cb.put(ch)
@@ -81,7 +79,6 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                     } else false
                 }
 
-                @Suppress("DEPRECATION_ERROR")
                 input.`$updateRemaining$`(chunk.readRemaining)
 
                 cb.flip()

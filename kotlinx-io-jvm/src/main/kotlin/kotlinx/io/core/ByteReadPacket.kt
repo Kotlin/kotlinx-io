@@ -14,7 +14,6 @@ actual abstract class ByteReadPacketPlatformBase protected actual constructor(
         require(length <= dst.remaining()) { "Not enough free space in destination buffer to write $length bytes" }
         var copied = 0
 
-        @Suppress("INVISIBLE_MEMBER")
         takeWhile { buffer: IoBuffer ->
             val rc = buffer.readAvailable(dst, length - copied)
             if (rc > 0) copied += rc
@@ -36,7 +35,7 @@ internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<Io
     ByteReadPacketPlatformBase(head, remaining, pool), Input {
     actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(
         head,
-        @Suppress("INVISIBLE_MEMBER") head.remainingAll(),
+        head.remainingAll(),
         pool
     )
 

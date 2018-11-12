@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
 @Deprecated("Use IoBuffer instead", replaceWith = ReplaceWith("IoBuffer", "kotlinx.io.core.IoBuffer"))
@@ -268,7 +269,8 @@ internal tailrec fun IoBuffer.findTail(): IoBuffer {
 /**
  * Summarize remainings of all elements of the chain
  */
-internal fun IoBuffer.remainingAll(): Long = remainingAll(0L)
+@DangerousInternalIoApi
+fun IoBuffer.remainingAll(): Long = remainingAll(0L)
 
 private tailrec fun IoBuffer.remainingAll(n: Long): Long {
     val rem = readRemaining.toLong() + n

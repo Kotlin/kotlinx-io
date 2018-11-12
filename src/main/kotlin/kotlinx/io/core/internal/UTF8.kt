@@ -78,7 +78,8 @@ suspend fun decodeUTF8LineLoopSuspend(
     return decoded > 0 || end
 }
 
-private fun prematureEndOfStreamUtf(size: Int): Nothing = throw EOFException("Premature end of stream: expected $size bytes to decode UTF-8 char")
+private fun prematureEndOfStreamUtf(size: Int): Nothing =
+    throw EOFException("Premature end of stream: expected $size bytes to decode UTF-8 char")
 
 /**
  * Decodes all the bytes to utf8 applying every character on [consumer] until or consumer return `false`.
@@ -87,7 +88,8 @@ private fun prematureEndOfStreamUtf(size: Int): Nothing = throw EOFException("Pr
  * @return number of bytes required to decode incomplete utf8 character or 0 if all bytes were processed
  * or -1 if consumer rejected loop
  */
-internal inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
+@DangerousInternalIoApi
+inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0
     var lastByteCount = 0
@@ -156,8 +158,13 @@ internal inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     return 0
 }
 
-private fun malformedByteCount(byteCount: Int): Nothing = throw MalformedUTF8InputException("Expected $byteCount more character bytes")
-private fun malformedCodePoint(value: Int): Nothing = throw IllegalArgumentException("Malformed code-point $value found")
+@PublishedApi
+internal fun malformedByteCount(byteCount: Int): Nothing =
+    throw MalformedUTF8InputException("Expected $byteCount more character bytes")
+
+@PublishedApi
+internal fun malformedCodePoint(value: Int): Nothing =
+    throw IllegalArgumentException("Malformed code-point $value found")
 
 private const val MaxCodePoint = 0x10ffff
 private const val MinLowSurrogate = 0xdc00
@@ -165,9 +172,16 @@ private const val MinHighSurrogate = 0xd800
 private const val MinSupplementary = 0x10000
 private const val HighSurrogateMagic = MinHighSurrogate - (MinSupplementary ushr 10)
 
-private fun isBmpCodePoint(cp: Int) = cp ushr 16 == 0
-private fun isValidCodePoint(codePoint: Int) = codePoint <= MaxCodePoint
-private fun lowSurrogate(cp: Int) = (cp and 0x3ff) + MinLowSurrogate
-private fun highSurrogate(cp: Int) = (cp ushr 10) + HighSurrogateMagic
+@PublishedApi
+internal fun isBmpCodePoint(cp: Int) = cp ushr 16 == 0
+
+@PublishedApi
+internal fun isValidCodePoint(codePoint: Int) = codePoint <= MaxCodePoint
+
+@PublishedApi
+internal fun lowSurrogate(cp: Int) = (cp and 0x3ff) + MinLowSurrogate
+
+@PublishedApi
+internal fun highSurrogate(cp: Int) = (cp ushr 10) + HighSurrogateMagic
 
 class MalformedUTF8InputException(message: String) : Exception(message)
