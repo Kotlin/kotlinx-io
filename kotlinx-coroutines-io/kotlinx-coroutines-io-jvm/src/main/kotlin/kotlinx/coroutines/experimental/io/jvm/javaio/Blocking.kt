@@ -125,7 +125,6 @@ private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel)
 
 private abstract class BlockingAdapter(val parent: Job? = null) {
 
-    @UseExperimental(ExperimentalCoroutinesApi::class)
     private val end: Continuation<Unit> = object : Continuation<Unit> {
         override val context: CoroutineContext =
             if (parent != null) UnsafeBlockingTrampoline + parent else UnsafeBlockingTrampoline
@@ -146,7 +145,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
             }
 
             if (result.isFailure && result.exceptionOrNull() !is CancellationException) {
-                parent?.cancel(result.exceptionOrNull())
+                parent?.cancel()
             }
 
             disposable?.dispose()
@@ -256,8 +255,8 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
     }
 }
 
-@UseExperimental(ExperimentalCoroutinesApi::class)
 private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
+    @UseExperimental(ExperimentalCoroutinesApi::class)
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
