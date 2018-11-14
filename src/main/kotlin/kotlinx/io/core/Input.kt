@@ -41,13 +41,13 @@ expect interface Input : Closeable {
     override fun close()
 
     @DangerousInternalIoApi
-    fun `$updateRemaining$`(remaining: Int)
+    fun updateHeadRemaining(remaining: Int)
 
     @DangerousInternalIoApi
-    fun `$ensureNext$`(current: IoBuffer): IoBuffer?
+    fun ensureNextHead(current: IoBuffer): IoBuffer?
 
     @DangerousInternalIoApi
-    fun `$prepareRead$`(minSize: Int): IoBuffer?
+    fun prepareReadHead(minSize: Int): IoBuffer?
 }
 
 
@@ -145,16 +145,16 @@ fun Input.discardExact(n: Int) {
  * could be observed
  */
 inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
-    var current = `$prepareRead$`(1) ?: return
+    var current = prepareReadHead(1) ?: return
 
     do {
         val continueFlag = block(current)
         val after = current.readRemaining
 
         if (after == 0) {
-            current = `$ensureNext$`(current) ?: break
+            current = ensureNextHead(current) ?: break
         } else if (!continueFlag) {
-            `$updateRemaining$`(after)
+            updateHeadRemaining(after)
             break
         }
     } while (true)
@@ -169,7 +169,7 @@ inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
  * could be observed
  */
 inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
-    var current = `$prepareRead$`(1) ?: return
+    var current = prepareReadHead(1) ?: return
     var size = initialSize
 
     do {
@@ -187,12 +187,12 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
         }
 
         if (after == 0) {
-            current = `$ensureNext$`(current) ?: break
+            current = ensureNextHead(current) ?: break
         } else if (after < size) {
-            `$updateRemaining$`(after)
-            current = `$prepareRead$`(size) ?: break
+            updateHeadRemaining(after)
+            current = prepareReadHead(size) ?: break
         } else {
-            `$updateRemaining$`(after)
+            updateHeadRemaining(after)
         }
     } while (size > 0)
 }

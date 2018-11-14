@@ -31,10 +31,10 @@ expect interface Output : Appendable, Closeable {
     override fun close()
 
     @DangerousInternalIoApi
-    fun `$prepareWrite$`(n: Int): IoBuffer
+    fun prepareWriteHead(n: Int): IoBuffer
 
     @DangerousInternalIoApi
-    fun `$afterWrite$`()
+    fun afterHeadWrite()
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
@@ -94,14 +94,14 @@ fun Output.fill(n: Long, v: Byte = 0) {
  */
 inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
     try {
-        var tail = `$prepareWrite$`(1)
+        var tail = prepareWriteHead(1)
 
         while (true) {
             if (!block(tail)) break
-            tail = `$prepareWrite$`(1)
+            tail = prepareWriteHead(1)
         }
     } finally {
-        `$afterWrite$`()
+        afterHeadWrite()
     }
 }
 
@@ -113,16 +113,16 @@ inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
  */
 inline fun Output.writeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     try {
-        var tail = `$prepareWrite$`(initialSize)
+        var tail = prepareWriteHead(initialSize)
 
         var size: Int
         while (true) {
             size = block(tail)
             if (size <= 0) break
-            tail = `$prepareWrite$`(size)
+            tail = prepareWriteHead(size)
         }
     } finally {
-        `$afterWrite$`()
+        afterHeadWrite()
     }
 }
 

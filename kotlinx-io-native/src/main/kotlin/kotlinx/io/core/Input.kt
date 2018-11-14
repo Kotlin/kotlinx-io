@@ -45,13 +45,13 @@ actual interface Input : Closeable {
     actual override fun close()
 
     @DangerousInternalIoApi
-    actual fun `$updateRemaining$`(remaining: Int)
+    actual fun updateHeadRemaining(remaining: Int)
 
     @DangerousInternalIoApi
-    actual fun `$ensureNext$`(current: IoBuffer): IoBuffer?
+    actual fun ensureNextHead(current: IoBuffer): IoBuffer?
 
     @DangerousInternalIoApi
-    actual fun `$prepareRead$`(minSize: Int): IoBuffer?
+    actual fun prepareReadHead(minSize: Int): IoBuffer?
 }
 
 fun Input.readAvailable(dst: ByteArray): Int = readAvailable(dst, 0, dst.size)

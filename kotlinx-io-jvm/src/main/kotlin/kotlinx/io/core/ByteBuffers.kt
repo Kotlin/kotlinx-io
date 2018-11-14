@@ -32,7 +32,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
         readAsMuchAsPossible(bb, copied + available)
     } else {
         current.readFully(bb, destinationCapacity)
-        `$updateRemaining$`(current.readRemaining)
+        updateHeadRemaining(current.readRemaining)
         copied + destinationCapacity
     }
 }

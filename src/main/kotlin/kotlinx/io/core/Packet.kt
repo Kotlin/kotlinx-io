@@ -591,15 +591,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     }
 
     @DangerousInternalIoApi
-    final override fun `$updateRemaining$`(remaining: Int) {
+    final override fun updateHeadRemaining(remaining: Int) {
         headRemaining = remaining
     }
 
     @DangerousInternalIoApi
-    final override fun `$prepareRead$`(minSize: Int): IoBuffer? = prepareRead(minSize, head)
+    final override fun prepareReadHead(minSize: Int): IoBuffer? = prepareRead(minSize, head)
 
     @DangerousInternalIoApi
-    final override fun `$ensureNext$`(current: IoBuffer): IoBuffer? = ensureNext(current)
+    final override fun ensureNextHead(current: IoBuffer): IoBuffer? = ensureNext(current)
 
     @PublishedApi
     internal fun ensureNext(current: IoBuffer) = ensureNext(current, IoBuffer.Empty)
