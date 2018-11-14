@@ -119,21 +119,21 @@ private fun <S : CoroutineScope> CoroutineScope.launchChannel(
         if (attachJob) {
             channel.attachJob(coroutineContext[Job]!!)
         }
-        try {
-            @Suppress("UNCHECKED_CAST")
-            block(ChannelScope(this, channel) as S)
-        } catch (t: Throwable) {
-            channel.cancel(t)
-            throw CancellationException("Cancelled due to error $t")
-        } finally {
-            channel.close()
-        }
+        @Suppress("UNCHECKED_CAST")
+        block(ChannelScope(this, channel) as S)
     }
 
-    return ChannelJob(job, channel)
+    return ChannelJob(job, channel).also { job.invokeOnCompletion(it) }
 }
 
 private class ChannelScope(delegate: CoroutineScope,
                            override val channel: ByteChannel) : ReaderScope, WriterScope, CoroutineScope by delegate
 
-private class ChannelJob(delegate: Job, override val channel: ByteChannel) : ReaderJob, WriterJob, Job by delegate
+private class ChannelJob(
+    delegate: Job,
+    override val channel: ByteChannel
+) : ReaderJob, WriterJob, Job by delegate, CompletionHandler {
+    override fun invoke(cause: Throwable?) {
+        channel.close(cause)
+    }
+}
