@@ -17,6 +17,8 @@ actual class IoBuffer internal constructor(
 ) : Input, Output {
     internal var refCount = 1
 
+    constructor(content: CPointer<ByteVar>, contentCapacity: Int) : this(content, contentCapacity, null)
+
     internal var readPosition = 0
     internal var writePosition = 0
     private var limit = contentCapacity
