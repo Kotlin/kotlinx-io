@@ -123,7 +123,11 @@ private fun <S : CoroutineScope> CoroutineScope.launchChannel(
         block(ChannelScope(this, channel) as S)
     }
 
-    return ChannelJob(job, channel).also { job.invokeOnCompletion(it) }
+    job.invokeOnCompletion { cause ->
+        channel.close(cause)
+    }
+
+    return ChannelJob(job, channel)
 }
 
 private class ChannelScope(delegate: CoroutineScope,
@@ -132,8 +136,4 @@ private class ChannelScope(delegate: CoroutineScope,
 private class ChannelJob(
     delegate: Job,
     override val channel: ByteChannel
-) : ReaderJob, WriterJob, Job by delegate, CompletionHandler {
-    override fun invoke(cause: Throwable?) {
-        channel.close(cause)
-    }
-}
+) : ReaderJob, WriterJob, Job by delegate
