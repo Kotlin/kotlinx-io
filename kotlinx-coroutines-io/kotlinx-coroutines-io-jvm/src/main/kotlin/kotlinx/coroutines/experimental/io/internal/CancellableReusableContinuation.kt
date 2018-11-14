@@ -40,22 +40,29 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
     }
 
     private fun parent(context: CoroutineContext) {
-        val job = context[Job]
-        if (jobCancellationHandler.value?.job === job) return
+        val newJob = context[Job]
+        if (jobCancellationHandler.value?.job === newJob) return
 
-        if (job == null) {
+        if (newJob == null) {
             jobCancellationHandler.getAndSet(null)?.dispose()
         } else {
-            val handler = JobRelation(job)
-            val old = this.jobCancellationHandler.getAndUpdate { j ->
+            val newHandler = JobRelation(newJob)
+            val oldJob = this.jobCancellationHandler.getAndUpdate { relation ->
                 when {
-                    j == null -> handler
-                    j.job === job -> return
-                    else -> handler
+                    relation == null -> newHandler
+                    relation.job === newJob -> {
+                        newHandler.dispose()
+                        return
+                    }
+                    else -> newHandler
                 }
             }
-            old?.dispose()
+            oldJob?.dispose()
         }
+    }
+
+    private fun notParent(relation: JobRelation) {
+        jobCancellationHandler.compareAndSet(relation, null)
     }
 
     override val context: CoroutineContext
@@ -89,7 +96,7 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
     }
 
     private inner class JobRelation(val job: Job) : CompletionHandler {
-        private var handler: DisposableHandle? = null
+        private var handler: DisposableHandle? = null // not volatile as double removal is safe
 
         init {
             @UseExperimental(InternalCoroutinesApi::class)
@@ -101,12 +108,8 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
         }
 
         override fun invoke(cause: Throwable?) {
-            this@CancellableReusableContinuation.jobCancellationHandler.compareAndSet(this, null)
-
-            handler?.let {
-                this.handler = null
-                it.dispose()
-            }
+            notParent(this)
+            dispose()
 
             if (cause != null) {
                 resumeWithExceptionContinuationOnly(job, cause)
@@ -114,7 +117,10 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
         }
 
         fun dispose() {
-            invoke(null)
+            handler?.let {
+                this.handler = null
+                it.dispose()
+            }
         }
     }
 }
