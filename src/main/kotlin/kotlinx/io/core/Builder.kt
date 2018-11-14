@@ -628,12 +628,12 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
      */
     abstract fun release()
 
-    override fun `$prepareWrite$`(n: Int): IoBuffer {
+    override fun prepareWriteHead(n: Int): IoBuffer {
         if (tail.writeRemaining >= n) return tail
         return appendNewBuffer()
     }
 
-    override fun `$afterWrite$`() {
+    override fun afterHeadWrite() {
         _size = -1
     }
 

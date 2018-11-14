@@ -66,7 +66,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
             while (input.remaining > 0) {
                 cb.clear()
 
-                val chunk = input.`$prepareRead$`(readSize)
+                val chunk = input.prepareReadHead(readSize)
                 if (chunk == null) {
                     if (readSize != 1) throw MalformedInputException("...")
                     break
@@ -79,7 +79,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                     } else false
                 }
 
-                input.`$updateRemaining$`(chunk.readRemaining)
+                input.updateHeadRemaining(chunk.readRemaining)
 
                 cb.flip()
 

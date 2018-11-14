@@ -970,25 +970,25 @@ actual class IoBuffer internal constructor(
     }
 
     @DangerousInternalIoApi
-    actual final override fun `$updateRemaining$`(remaining: Int) {
+    actual final override fun updateHeadRemaining(remaining: Int) {
     }
 
     @DangerousInternalIoApi
-    actual final override fun `$ensureNext$`(current: IoBuffer): IoBuffer? {
+    actual final override fun ensureNextHead(current: IoBuffer): IoBuffer? {
         return null
     }
 
     @DangerousInternalIoApi
-    actual final override fun `$prepareRead$`(minSize: Int): IoBuffer? {
+    actual final override fun prepareReadHead(minSize: Int): IoBuffer? {
         return if (readRemaining >= minSize) this else null
     }
 
     @DangerousInternalIoApi
-    actual final override fun `$afterWrite$`() {
+    actual final override fun afterHeadWrite() {
     }
 
     @DangerousInternalIoApi
-    actual final override fun `$prepareWrite$`(n: Int): IoBuffer {
+    actual final override fun prepareWriteHead(n: Int): IoBuffer {
         if (writeRemaining >= n) return this
         throw IllegalArgumentException("Not enough space in the chunk")
     }

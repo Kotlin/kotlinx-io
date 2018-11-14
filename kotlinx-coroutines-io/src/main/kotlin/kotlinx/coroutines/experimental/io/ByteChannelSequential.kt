@@ -200,11 +200,11 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         val session = object : WriterSuspendSession {
             override fun request(min: Int): IoBuffer? {
                 if (availableForWrite == 0) return null
-                return writable.`$prepareWrite$`(min)
+                return writable.prepareWriteHead(min)
             }
 
             override fun written(n: Int) {
-                writable.`$afterWrite$`()
+                writable.afterHeadWrite()
                 afterWrite()
             }
 
@@ -463,7 +463,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         val remaining = lastReadView.readRemaining
         val delta = lastReadAvailable - remaining
         if (lastReadView !== IoBuffer.Empty) {
-            readable.`$updateRemaining$`(remaining)
+            readable.updateHeadRemaining(remaining)
         }
         if (delta > 0) {
             afterRead()
@@ -506,7 +506,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
         completeReading()
 
-        val view = readable.`$prepareRead$`(atLeast)
+        val view = readable.prepareReadHead(atLeast)
 
         if (view == null) {
             lastReadView = IoBuffer.Empty

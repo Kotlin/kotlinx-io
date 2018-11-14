@@ -196,12 +196,12 @@ expect class IoBuffer : Input, Output {
      */
     fun release(pool: ObjectPool<IoBuffer>)
 
-    final override fun `$updateRemaining$`(remaining: Int)
-    final override fun `$ensureNext$`(current: IoBuffer): IoBuffer?
-    final override fun `$prepareRead$`(minSize: Int): IoBuffer?
+    final override fun updateHeadRemaining(remaining: Int)
+    final override fun ensureNextHead(current: IoBuffer): IoBuffer?
+    final override fun prepareReadHead(minSize: Int): IoBuffer?
 
-    final override fun `$afterWrite$`()
-    final override fun `$prepareWrite$`(n: Int): IoBuffer
+    final override fun afterHeadWrite()
+    final override fun prepareWriteHead(n: Int): IoBuffer
 
     final override fun flush()
 

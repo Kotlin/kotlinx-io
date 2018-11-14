@@ -31,10 +31,10 @@ actual interface Output : Appendable, Closeable {
     actual override fun close()
 
     @DangerousInternalIoApi
-    actual fun `$prepareWrite$`(n: Int): IoBuffer
+    actual fun prepareWriteHead(n: Int): IoBuffer
 
     @DangerousInternalIoApi
-    actual fun `$afterWrite$`()
+    actual fun afterHeadWrite()
 }
 
 fun Output.writeFully(src: ByteArray) {

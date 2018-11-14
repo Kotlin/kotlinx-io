@@ -33,9 +33,9 @@ actual interface Output : Closeable, Appendable {
     actual override fun close()
 
     @DangerousInternalIoApi
-    actual fun `$prepareWrite$`(n: Int): IoBuffer
+    actual fun prepareWriteHead(n: Int): IoBuffer
 
     @DangerousInternalIoApi
-    actual fun `$afterWrite$`()
+    actual fun afterHeadWrite()
 }
 
