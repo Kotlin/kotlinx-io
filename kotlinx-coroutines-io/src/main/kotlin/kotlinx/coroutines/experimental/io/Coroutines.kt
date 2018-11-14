@@ -109,10 +109,12 @@ fun writer(
 /**
  * @param S not exactly safe (unchecked cast is used) so should be [ReaderScope] or [WriterScope]
  */
-private fun <S : CoroutineScope> CoroutineScope.launchChannel(context: CoroutineContext,
-                                                              channel: ByteChannel,
-                                                              attachJob: Boolean,
-                                                              block: suspend S.() -> Unit): ChannelJob {
+private fun <S : CoroutineScope> CoroutineScope.launchChannel(
+    context: CoroutineContext,
+    channel: ByteChannel,
+    attachJob: Boolean,
+    block: suspend S.() -> Unit): ChannelJob {
+
     val job = launch(context) {
         if (attachJob) {
             channel.attachJob(coroutineContext[Job]!!)
