@@ -638,6 +638,16 @@ actual class IoBuffer private constructor(
         return if (bb.hasRemaining()) bb.get().toInt() and 0xff else -1
     }
 
+    actual final override fun peekTo(buffer: IoBuffer): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+
+        val size = minOf(readRemaining, buffer.writeRemaining)
+        buffer.writeFully(this, size)
+
+        return size
+    }
+
     actual final override fun discard(n: Long): Long {
         require(n >= 0L) { "Negative discard quantity $n" }
         val size = minOf(readRemaining.toLong(), n).toInt()
@@ -739,20 +749,6 @@ actual class IoBuffer private constructor(
         }
 
         return readTextImpl(decoder, out, lastBuffer, max)
-    }
-
-    @DangerousInternalIoApi
-    actual final override fun updateHeadRemaining(remaining: Int) {
-    }
-
-    @DangerousInternalIoApi
-    actual final override fun ensureNextHead(current: IoBuffer): IoBuffer? {
-        return null
-    }
-
-    @DangerousInternalIoApi
-    actual final override fun prepareReadHead(minSize: Int): IoBuffer? {
-        return this.takeIf { readRemaining >= minSize }
     }
 
     @DangerousInternalIoApi

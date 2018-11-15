@@ -37,17 +37,20 @@ expect interface Input : Closeable {
      */
     fun tryPeek(): Int
 
+    /**
+     * Copy available bytes to the specified [buffer] but keep them available.
+     * If the underlying implementation could trigger
+     * bytes population from the underlying source and block until any bytes available
+     *
+     * Very similar to [readAvailable] but don't discard copied bytes.
+     *
+     * @return number of bytes were copied
+     */
+    fun peekTo(buffer: IoBuffer): Int
+
     fun discard(n: Long): Long
+
     override fun close()
-
-    @DangerousInternalIoApi
-    fun updateHeadRemaining(remaining: Int)
-
-    @DangerousInternalIoApi
-    fun ensureNextHead(current: IoBuffer): IoBuffer?
-
-    @DangerousInternalIoApi
-    fun prepareReadHead(minSize: Int): IoBuffer?
 }
 
 
@@ -145,19 +148,26 @@ fun Input.discardExact(n: Int) {
  * could be observed
  */
 inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
-    var current = prepareReadHead(1) ?: return
+    var release = true
+    var current = prepareReadFirstHead(1) ?: return
 
-    do {
-        val continueFlag = block(current)
-        val after = current.readRemaining
-
-        if (after == 0) {
-            current = ensureNextHead(current) ?: break
-        } else if (!continueFlag) {
-            updateHeadRemaining(after)
-            break
+    try {
+        do {
+            if (!block(current)) {
+                break
+            }
+            val next = prepareReadNextHead(current)
+            if (next == null) {
+                release = false
+                break
+            }
+            current = next
+        } while (true)
+    } finally {
+        if (release) {
+            completeReadHead(current)
         }
-    } while (true)
+    }
 }
 
 /**
@@ -169,31 +179,45 @@ inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
  * could be observed
  */
 inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
-    var current = prepareReadHead(1) ?: return
+    var release = true
+    var current = prepareReadFirstHead(1) ?: return
     var size = initialSize
 
-    do {
-        val before = current.readRemaining
-        val after: Int
+    try {
+        do {
+            val before = current.readRemaining
+            val after: Int
 
-        if (before >= size) {
-            try {
-                size = block(current)
-            } finally {
-                after = current.readRemaining
+            if (before >= size) {
+                try {
+                    size = block(current)
+                } finally {
+                    after = current.readRemaining
+                }
+            } else {
+                after = before
             }
-        } else {
-            after = before
-        }
 
-        if (after == 0) {
-            current = ensureNextHead(current) ?: break
-        } else if (after < size) {
-            updateHeadRemaining(after)
-            current = prepareReadHead(size) ?: break
-        } else {
-            updateHeadRemaining(after)
+            val next = when {
+                after == 0 -> prepareReadNextHead(current)
+                after < size -> {
+                    completeReadHead(current)
+                    prepareReadFirstHead(size)
+                }
+                else -> current
+            }
+
+            if (next == null) {
+                release = false
+                break
+            }
+
+            current = next
+        } while (size > 0)
+    } finally {
+        if (release) {
+            completeReadHead(current)
         }
-    } while (size > 0)
+    }
 }
 

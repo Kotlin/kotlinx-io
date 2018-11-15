@@ -40,15 +40,18 @@ actual interface Input : Closeable {
      */
     actual fun tryPeek(): Int
 
+    /**
+     * Copy available bytes to the specified [buffer] but keep them available.
+     * If the underlying implementation could trigger
+     * bytes population from the underlying source and block until any bytes available
+     *
+     * Very similar to [readAvailable] but don't discard copied bytes.
+     *
+     * @return number of bytes were copied
+     */
+    actual fun peekTo(buffer: IoBuffer): Int
+
     actual fun discard(n: Long): Long
+
     actual override fun close()
-
-    @DangerousInternalIoApi
-    actual fun updateHeadRemaining(remaining: Int)
-
-    @DangerousInternalIoApi
-    actual fun ensureNextHead(current: IoBuffer): IoBuffer?
-
-    @DangerousInternalIoApi
-    actual fun prepareReadHead(minSize: Int): IoBuffer?
 }

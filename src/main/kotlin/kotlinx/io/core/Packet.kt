@@ -394,6 +394,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         return prepareRead(1, head)?.tryPeek() ?: -1
     }
 
+    final override fun peekTo(buffer: IoBuffer): Int {
+        val head = prepareReadHead(1) ?: return -1
+
+        val size = minOf(buffer.writeRemaining, head.readRemaining)
+        buffer.writeFully(head, size)
+
+        return size
+    }
+
     final override fun discard(n: Long): Long {
         return discardAsMuchAsPossible(minOf(Int.MAX_VALUE.toLong(), n).toInt(), 0).toLong()
     }
@@ -591,15 +600,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     }
 
     @DangerousInternalIoApi
-    final override fun updateHeadRemaining(remaining: Int) {
+    fun updateHeadRemaining(remaining: Int) {
         headRemaining = remaining
     }
 
     @DangerousInternalIoApi
-    final override fun prepareReadHead(minSize: Int): IoBuffer? = prepareRead(minSize, head)
+    fun prepareReadHead(minSize: Int): IoBuffer? = prepareRead(minSize, head)
 
     @DangerousInternalIoApi
-    final override fun ensureNextHead(current: IoBuffer): IoBuffer? = ensureNext(current)
+    fun ensureNextHead(current: IoBuffer): IoBuffer? = ensureNext(current)
 
     @PublishedApi
     internal fun ensureNext(current: IoBuffer) = ensureNext(current, IoBuffer.Empty)

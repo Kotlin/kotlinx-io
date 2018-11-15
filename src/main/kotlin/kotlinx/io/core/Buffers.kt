@@ -106,6 +106,17 @@ expect class IoBuffer : Input, Output {
 
     final override fun tryPeek(): Int
 
+    /**
+     * Copy available bytes to the specified [buffer] but keep them available.
+     * If the underlying implementation could trigger
+     * bytes population from the underlying source and block until any bytes available
+     *
+     * Very similar to [readAvailable] but don't discard copied bytes.
+     *
+     * @return number of bytes were copied
+     */
+    final override fun peekTo(buffer: IoBuffer): Int
+
     final override fun discard(n: Long): Long
 
     /**
@@ -195,10 +206,6 @@ expect class IoBuffer : Input, Output {
      * it is very fragile.
      */
     fun release(pool: ObjectPool<IoBuffer>)
-
-    final override fun updateHeadRemaining(remaining: Int)
-    final override fun ensureNextHead(current: IoBuffer): IoBuffer?
-    final override fun prepareReadHead(minSize: Int): IoBuffer?
 
     final override fun afterHeadWrite()
     final override fun prepareWriteHead(n: Int): IoBuffer

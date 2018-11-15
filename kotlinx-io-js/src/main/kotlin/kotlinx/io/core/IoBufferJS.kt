@@ -826,6 +826,16 @@ actual class IoBuffer internal constructor(
         return i8[readPosition].toInt() and 0xff
     }
 
+    actual final override fun peekTo(buffer: IoBuffer): Int {
+        val readRemaining = readRemaining
+        if (readRemaining == 0) return -1
+
+        val size = minOf(readRemaining, buffer.writeRemaining)
+        buffer.writeFully(this, size)
+
+        return size
+    }
+
     actual final override fun discard(n: Long): Long {
         val size = minOf(readRemaining.toLong(), n).toInt()
         readPosition += size
@@ -973,20 +983,6 @@ actual class IoBuffer internal constructor(
     actual fun writeBuffer(src: IoBuffer, length: Int): Int {
         writeFully(src, length)
         return length
-    }
-
-    @DangerousInternalIoApi
-    actual final override fun updateHeadRemaining(remaining: Int) {
-    }
-
-    @DangerousInternalIoApi
-    actual final override fun ensureNextHead(current: IoBuffer): IoBuffer? {
-        return null
-    }
-
-    @DangerousInternalIoApi
-    actual final override fun prepareReadHead(minSize: Int): IoBuffer? {
-        return this.takeIf { it.readRemaining >= minSize }
     }
 
     @DangerousInternalIoApi

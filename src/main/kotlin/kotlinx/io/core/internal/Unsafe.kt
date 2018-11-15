@@ -24,3 +24,76 @@ fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
         append(chain)
     }
 }
+
+@DangerousInternalIoApi
+fun Input.prepareReadFirstHead(minSize: Int): IoBuffer? {
+    if (this is ByteReadPacketBase) {
+        return prepareReadHead(minSize)
+    }
+    if (this is IoBuffer) {
+        return if (canRead()) this else null
+    }
+
+    return prepareReadHeadFallback(minSize)
+}
+
+private fun Input.prepareReadHeadFallback(minSize: Int): IoBuffer? {
+    if (endOfInput) return null
+
+    val buffer = IoBuffer.Pool.borrow()
+
+    while (buffer.readRemaining < minSize) {
+        val rc = peekTo(buffer)
+        if (rc <= 0) {
+            buffer.release(IoBuffer.Pool)
+            return null
+        }
+    }
+
+    return buffer
+}
+
+@DangerousInternalIoApi
+fun Input.completeReadHead(current: IoBuffer) {
+    if (current === this) {
+        return
+    }
+    if (this is ByteReadPacketBase) {
+        val remaining = current.readRemaining
+        if (remaining == 0) {
+            ensureNext(current)
+        } else {
+            updateHeadRemaining(remaining)
+        }
+        return
+    }
+
+    val discardAmount = current.capacity - current.writeRemaining - current.readRemaining
+    discardExact(discardAmount)
+    current.release(IoBuffer.Pool)
+}
+
+@DangerousInternalIoApi
+fun Input.prepareReadNextHead(current: IoBuffer): IoBuffer? {
+    if (current === this) {
+        return if (canRead()) this else null
+    }
+    if (this is ByteReadPacketBase) {
+        return ensureNextHead(current)
+    }
+
+    return prepareNextReadHeadFallback(current)
+}
+
+private fun Input.prepareNextReadHeadFallback(current: IoBuffer): IoBuffer? {
+    val discardAmount = current.capacity - current.writeRemaining - current.readRemaining
+    discardExact(discardAmount)
+    current.resetForWrite()
+
+    if (endOfInput || peekTo(current) <= 0) {
+        current.release(IoBuffer.Pool)
+        return null
+    }
+
+    return current
+}
