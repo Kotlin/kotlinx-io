@@ -50,6 +50,8 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'
 
+    apply from: rootProject.file('pom.gradle')
+
     def useExperimentalAnnotations = [
             'kotlin.Experimental',
             'kotlinx.io.core.internal.DangerousInternalIoApi',
@@ -65,6 +67,9 @@ allprojects {
 //                    target 'ios_arm64', 'ios_arm32', 'ios_x64', 'macos_x64', 'linux_x64'
                     outputKinds = [KLIBRARY]
                     extraOpts useExperimentalOptionString
+                    pom {
+                        configurePom(it)
+                    }
                 }
             }
             test {
@@ -147,7 +152,7 @@ configure(allprojects.findAll { !skipPublish.contains(it.name) }) {
                     classifier 'javadoc'
                 }
 
-                withPom(pom)
+                configurePom(pom)
             }
         }
     }

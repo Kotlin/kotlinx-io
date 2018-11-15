@@ -30,4 +30,4 @@ def withPom = { pom ->
     }
 }
 
-ext.withPom = withPom
+project.ext.configurePom = withPom
