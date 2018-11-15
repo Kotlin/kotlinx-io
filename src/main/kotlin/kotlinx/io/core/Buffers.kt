@@ -207,9 +207,6 @@ expect class IoBuffer : Input, Output {
      */
     fun release(pool: ObjectPool<IoBuffer>)
 
-    final override fun afterHeadWrite()
-    final override fun prepareWriteHead(n: Int): IoBuffer
-
     final override fun flush()
 
     companion object {

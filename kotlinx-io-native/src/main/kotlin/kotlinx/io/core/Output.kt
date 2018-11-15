@@ -1,7 +1,6 @@
 package kotlinx.io.core
 
 import kotlinx.cinterop.*
-import kotlinx.io.core.internal.*
 
 actual interface Output : Appendable, Closeable {
     actual var byteOrder: ByteOrder
@@ -29,12 +28,6 @@ actual interface Output : Appendable, Closeable {
     actual fun fill(n: Long, v: Byte)
     actual fun flush()
     actual override fun close()
-
-    @DangerousInternalIoApi
-    actual fun prepareWriteHead(n: Int): IoBuffer
-
-    @DangerousInternalIoApi
-    actual fun afterHeadWrite()
 }
 
 fun Output.writeFully(src: ByteArray) {

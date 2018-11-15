@@ -97,3 +97,36 @@ private fun Input.prepareNextReadHeadFallback(current: IoBuffer): IoBuffer? {
 
     return current
 }
+
+@DangerousInternalIoApi
+fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
+    if (this is BytePacketBuilderBase) {
+        return prepareWriteHead(capacity)
+    }
+
+    return prepareWriteHeadFallback(current)
+}
+
+private fun Output.prepareWriteHeadFallback(current: IoBuffer?): IoBuffer {
+    if (current != null) {
+        writeFully(current)
+        current.resetForWrite()
+        return current
+    }
+
+    return IoBuffer.Pool.borrow()
+}
+
+@DangerousInternalIoApi
+fun Output.afterHeadWrite(current: IoBuffer) {
+    if (this is BytePacketBuilderBase) {
+        return afterHeadWrite()
+    }
+
+    afterWriteHeadFallback(current)
+}
+
+private fun Output.afterWriteHeadFallback(current: IoBuffer) {
+    writeFully(current)
+    current.release(IoBuffer.Pool)
+}

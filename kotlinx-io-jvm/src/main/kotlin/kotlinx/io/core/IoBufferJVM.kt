@@ -751,15 +751,6 @@ actual class IoBuffer private constructor(
         return readTextImpl(decoder, out, lastBuffer, max)
     }
 
-    @DangerousInternalIoApi
-    actual final override fun afterHeadWrite() {
-    }
-
-    @DangerousInternalIoApi
-    actual final override fun prepareWriteHead(n: Int): IoBuffer {
-        return takeIf { it.writeRemaining >= n } ?: throw IllegalArgumentException("Not enough space in the chunk")
-    }
-
     actual final override fun flush() {
     }
 

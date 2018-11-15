@@ -1,7 +1,7 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
-import kotlinx.io.core.internal.require
 
 expect val PACKET_MAX_COPY_SIZE: Int
 
@@ -628,12 +628,14 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
      */
     abstract fun release()
 
-    override fun prepareWriteHead(n: Int): IoBuffer {
+    @DangerousInternalIoApi
+    fun prepareWriteHead(n: Int): IoBuffer {
         if (tail.writeRemaining >= n) return tail
         return appendNewBuffer()
     }
 
-    override fun afterHeadWrite() {
+    @DangerousInternalIoApi
+    fun afterHeadWrite() {
         _size = -1
     }
 

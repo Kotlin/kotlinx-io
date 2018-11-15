@@ -979,16 +979,6 @@ actual class IoBuffer internal constructor(
         }
     }
 
-    @DangerousInternalIoApi
-    actual final override fun afterHeadWrite() {
-    }
-
-    @DangerousInternalIoApi
-    actual final override fun prepareWriteHead(n: Int): IoBuffer {
-        if (writeRemaining >= n) return this
-        throw IllegalArgumentException("Not enough space in the chunk")
-    }
-
     actual final override fun flush() {
     }
 

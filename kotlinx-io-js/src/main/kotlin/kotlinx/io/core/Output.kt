@@ -1,7 +1,5 @@
 package kotlinx.io.core
 
-import kotlinx.io.core.internal.*
-
 /**
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
@@ -28,10 +26,4 @@ actual interface Output : Appendable, Closeable {
     actual fun fill(n: Long, v: Byte)
     actual fun flush()
     actual override fun close()
-
-    @DangerousInternalIoApi
-    actual fun prepareWriteHead(n: Int): IoBuffer
-
-    @DangerousInternalIoApi
-    actual fun afterHeadWrite()
 }

@@ -28,13 +28,8 @@ expect interface Output : Appendable, Closeable {
     fun fill(n: Long, v: Byte)
 
     fun flush()
+
     override fun close()
-
-    @DangerousInternalIoApi
-    fun prepareWriteHead(n: Int): IoBuffer
-
-    @DangerousInternalIoApi
-    fun afterHeadWrite()
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
@@ -93,15 +88,14 @@ fun Output.fill(n: Long, v: Byte = 0) {
  * however it is guaranteed that it is always non-empty.
  */
 inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
+    var tail: IoBuffer = prepareWriteHead(1, null)
     try {
-        var tail = prepareWriteHead(1)
-
         while (true) {
             if (!block(tail)) break
-            tail = prepareWriteHead(1)
+            tail = prepareWriteHead(1, tail)
         }
     } finally {
-        afterHeadWrite()
+        afterHeadWrite(tail)
     }
 }
 
@@ -112,17 +106,17 @@ inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
  * @param initialSize for the first buffer passed to [block] function
  */
 inline fun Output.writeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
-    try {
-        var tail = prepareWriteHead(initialSize)
+    var tail = prepareWriteHead(initialSize, null)
 
+    try {
         var size: Int
         while (true) {
             size = block(tail)
             if (size <= 0) break
-            tail = prepareWriteHead(size)
+            tail = prepareWriteHead(size, tail)
         }
     } finally {
-        afterHeadWrite()
+        afterHeadWrite(tail)
     }
 }
 

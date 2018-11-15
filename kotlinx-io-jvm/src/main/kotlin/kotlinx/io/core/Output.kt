@@ -1,6 +1,5 @@
 package kotlinx.io.core
 
-import kotlinx.io.core.internal.*
 import java.nio.*
 
 /**
@@ -31,11 +30,5 @@ actual interface Output : Closeable, Appendable {
     actual fun fill(n: Long, v: Byte)
     actual fun flush()
     actual override fun close()
-
-    @DangerousInternalIoApi
-    actual fun prepareWriteHead(n: Int): IoBuffer
-
-    @DangerousInternalIoApi
-    actual fun afterHeadWrite()
 }
 
