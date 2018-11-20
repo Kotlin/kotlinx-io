@@ -31,6 +31,7 @@ static def platformOf(project) {
     if (project.name.endsWith("-jvm")) return "jvm"
     // todo: fix
     if (project.name.endsWith("benchmarks")) return "jvm"
+    if (project.name.endsWith("binary-compatibility-validator")) return "jvm"
     return "common"
 }
 
@@ -88,6 +89,9 @@ allprojects {
     } else if (platform == 'jvm') {
         compileKotlin {
             kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
+
+            // dump declarations from main JVM module for binary-compatibility-validator
+            kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
         }
         compileTestKotlin {
             kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]

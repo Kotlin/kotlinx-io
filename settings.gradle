@@ -5,6 +5,7 @@ include 'kotlinx-io-jvm'
 include 'kotlinx-io-js'
 include 'kotlinx-io-native'
 include 'benchmarks'
+include 'binary-compatibility-validator'
 
 //include 'kotlinx-io-sockets'
 include 'kotlinx-coroutines-io'
