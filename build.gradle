@@ -134,7 +134,7 @@ configure(allprojects) {
     apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
 }
 
-def skipPublish = ['benchmarks']
+def skipPublish = ['benchmarks', 'binary-compatibility-validator']
 configure(allprojects.findAll { !skipPublish.contains(it.name) }) {
     apply from: rootProject.file('pom.gradle')
     apply from: rootProject.file('gradle/bintray.gradle')
