@@ -558,5 +558,13 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         finish(5)
     }
 
+    @Test
+    fun testUnicode() = runTest {
+        ch.writeStringUtf8("test - \u0422")
+        ch.close()
+
+        assertEquals("test - \u0422", ch.readUTF8Line())
+    }
+
     class ExpectedException : Exception()
 }

@@ -2054,9 +2054,10 @@ internal class ByteBufferChannel(
         addConsumed: (Int) -> Unit,
         decode: (ByteBuffer) -> Long
     ): Boolean {
+        // number of bytes required for the next character, <= 0 when no characters required anymore (exit loop)
         var required = 1
 
-        while (true) {
+        do {
             if (!await(required)) break
             val buffer = request(0, 1) ?: break
 
@@ -2078,7 +2079,7 @@ internal class ByteBufferChannel(
             } else if (rcRequired == 0 && buffer.hasRemaining()) {
                 // no EOL, no demands but untouched bytes
                 // for ascii decoder that could mean that there was non-ASCII character encountered
-                break
+                required = -1
             } else {
                 required = maxOf(1, rcRequired)
             }
@@ -2090,11 +2091,12 @@ internal class ByteBufferChannel(
             } else {
                 out.append(cb, 0, decoded)
             }
+        } while (required > 0)
 
-            if (required == 0) return true
+        return when (required) {
+            0 -> true
+            else -> false
         }
-
-        return false
     }
 
     private suspend fun readUTF8LineToUtf8Suspend(out: Appendable, limit: Int, ca: CharArray, cb: CharBuffer, consumed0: Int): Boolean {
