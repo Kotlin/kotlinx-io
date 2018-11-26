@@ -81,9 +81,12 @@ internal class ByteChannelJS(initial: IoBuffer, autoFlush: Boolean) : ByteChanne
         attachedJob = job
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
-            if (cause != null) cancel()
+            if (cause != null) {
+                cancel(CancellationException("Channel closed due to job failure: $cause"))
+            }
         }
     }
+
     override suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int {
         return if (readable.isEmpty) {
             readAvailableSuspend(dst, offset, length)

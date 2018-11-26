@@ -62,7 +62,9 @@ internal class ByteBufferChannel(
         attachedJob = job
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
-            if (cause != null) cancel()
+            if (cause != null) {
+                cancel(CancellationException("Channel closed due to job failure").apply { initCause(cause) })
+            }
         }
     }
 
