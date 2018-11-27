@@ -1826,7 +1826,9 @@ internal class ByteBufferChannel(
             if (closed != null || state === ReadWriteBufferState.Terminated) return visitor(TerminatedLookAhead)
             result = visitor(this)
             if (!state.idle && state !== ReadWriteBufferState.Terminated) {
-                restoreStateAfterRead()
+                if (state is ReadWriteBufferState.Reading || state is ReadWriteBufferState.ReadingWriting) {
+                    restoreStateAfterRead()
+                }
                 tryTerminate()
             }
         }
