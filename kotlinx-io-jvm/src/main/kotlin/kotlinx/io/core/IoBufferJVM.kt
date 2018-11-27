@@ -46,6 +46,7 @@ actual class IoBuffer private constructor(
         }
 
     init {
+        require(origin !== this) { "origin shouldn't point to itself" }
         readBuffer.limit(0)
     }
 

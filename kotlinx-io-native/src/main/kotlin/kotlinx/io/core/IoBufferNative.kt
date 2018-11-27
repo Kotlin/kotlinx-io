@@ -38,6 +38,11 @@ actual class IoBuffer internal constructor(
 
     override val endOfInput: Boolean get() = !canRead()
 
+    init {
+        require(contentCapacity >= 0) { "contentCapacity shouln't be negative: $contentCapacity" }
+        require(this !== origin) { "origin shouldn't point to itself" }
+    }
+
     actual final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {
             field = newOrder

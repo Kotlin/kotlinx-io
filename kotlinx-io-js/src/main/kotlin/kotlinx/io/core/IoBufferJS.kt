@@ -27,6 +27,10 @@ actual class IoBuffer internal constructor(
     private var littleEndian = false
     private var platformEndian = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN
 
+    init {
+        require(origin !== this) { "origin shouldn't point to itself" }
+    }
+
     @ExperimentalIoApi
     actual var attachment: Any? = null
 
