@@ -62,12 +62,18 @@ fun Input.completeReadHead(current: IoBuffer) {
         val remaining = current.readRemaining
         if (remaining == 0) {
             ensureNext(current)
+        } else if (current.endGap < ByteReadPacketBase.ReservedSize) {
+            fixGapAfterRead(current)
         } else {
             updateHeadRemaining(remaining)
         }
         return
     }
 
+    completeReadHeadFallback(current)
+}
+
+private fun Input.completeReadHeadFallback(current: IoBuffer) {
     val discardAmount = current.capacity - current.writeRemaining - current.readRemaining
     discardExact(discardAmount)
     current.release(IoBuffer.Pool)

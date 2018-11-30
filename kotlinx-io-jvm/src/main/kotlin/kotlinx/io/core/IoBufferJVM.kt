@@ -464,18 +464,41 @@ actual class IoBuffer private constructor(
         return length
     }
 
+    internal actual fun restoreStartGap(n: Int) {
+        val rp = readPosition
+        if (rp < n) {
+            throw IllegalArgumentException("Can't restore start gap: $n bytes were not reserved before")
+        }
+
+        readPosition = rp - n
+    }
+
+    internal actual fun restoreEndGap(n: Int) {
+        val limit = writeBuffer.limit()
+        val newLimit = limit - n
+        writeBuffer.limit(newLimit) // position will be bumped as well
+
+        if (readBuffer.limit() > newLimit) {
+            readBuffer.limit(newLimit) // position will be bumped as well
+        }
+    }
+
     internal actual fun writeBufferPrepend(other: IoBuffer) {
         val size = other.readRemaining
         val rp = readPosition
 
-        if (size > rp) throw IllegalArgumentException("Can't prepend buffer: not enough free space in the beginning")
+        if (size > rp) {
+            throw IllegalArgumentException("Can't prepend buffer: not enough free space at the beginning")
+        }
 
         val to = writeBuffer
         val pos = writePosition
 
+        val limitBefore = to.limit()
         to.limit(rp)
         to.position(rp - size)
         to.put(other.readBuffer)
+        to.limit(limitBefore)
 
         readPosition = rp - size
         writePosition = pos
@@ -489,7 +512,9 @@ actual class IoBuffer private constructor(
             val requiredGap = size - rem
             val gap = endGap
 
-            if (requiredGap > gap) throw IllegalArgumentException("Can't append buffer: not enough free space in the end")
+            if (requiredGap > gap) {
+                throw IllegalArgumentException("Can't append buffer: not enough free space at the end")
+            }
             writeBuffer.limit(writeBuffer.limit() + requiredGap)
         }
 
@@ -873,6 +898,9 @@ actual class IoBuffer private constructor(
     internal inline fun afterWrite() {
         readBuffer.limit(writePosition)
     }
+
+    override fun toString(): String =
+        "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 
     actual companion object {
         private val EmptyBuffer: ByteBuffer = ByteBuffer.allocateDirect(0)

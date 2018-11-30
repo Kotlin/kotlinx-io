@@ -181,6 +181,7 @@ public abstract class kotlinx/io/core/ByteReadPacketBase : kotlinx/io/core/Input
 	public final fun ensureNext (Lkotlinx/io/core/IoBuffer;)Lkotlinx/io/core/IoBuffer;
 	public final fun ensureNextHead (Lkotlinx/io/core/IoBuffer;)Lkotlinx/io/core/IoBuffer;
 	protected abstract fun fill ()Lkotlinx/io/core/IoBuffer;
+	public final fun fixGapAfterRead (Lkotlinx/io/core/IoBuffer;)V
 	public final fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
 	public fun getEndOfInput ()Z
 	public final fun getPool ()Lkotlinx/io/pool/ObjectPool;
@@ -403,6 +404,7 @@ public final class kotlinx/io/core/IoBuffer : kotlinx/io/core/Input, kotlinx/io/
 	public final fun setAttachment (Ljava/lang/Object;)V
 	public final fun setByteOrder (Lkotlinx/io/core/ByteOrder;)V
 	public final fun setNext (Lkotlinx/io/core/IoBuffer;)V
+	public fun toString ()Ljava/lang/String;
 	public final fun tryPeek ()I
 	public final fun write (Ljava/nio/ByteBuffer;)V
 	public final fun write ([BII)V

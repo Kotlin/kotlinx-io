@@ -858,6 +858,26 @@ actual class IoBuffer internal constructor(
         return length
     }
 
+    internal actual fun restoreStartGap(n: Int) {
+        val rp = readPosition
+        if (rp < n) {
+            throw IllegalArgumentException("Can't restore start gap: $n bytes were not reserved before")
+        }
+
+        readPosition = rp - n
+    }
+
+    internal actual fun restoreEndGap(n: Int) {
+        val newLimit = limit - n
+        limit = newLimit
+        if (writePosition > newLimit) {
+            writePosition = newLimit
+        }
+        if (readPosition > newLimit) {
+            readPosition = newLimit
+        }
+    }
+
     internal actual fun writeBufferPrepend(other: IoBuffer) {
         val size = other.readRemaining
         require(size <= startGap) { "size should be greater than startGap (size = $size, startGap = $startGap)" }
@@ -992,6 +1012,9 @@ actual class IoBuffer internal constructor(
     actual override fun close() {
         throw UnsupportedOperationException("close for buffer view is not supported")
     }
+
+    override fun toString(): String =
+        "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or ((s.toInt() and 0xffff) ushr 8)).toShort()

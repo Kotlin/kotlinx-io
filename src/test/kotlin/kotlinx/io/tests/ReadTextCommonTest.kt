@@ -267,6 +267,7 @@ class ReadTextCommonTest {
         val second = IoBuffer.NoPool.borrow()
 
         first.resetForWrite()
+        first.reserveEndGap(8)
         second.resetForWrite()
         first.next = second
 
@@ -287,6 +288,7 @@ class ReadTextCommonTest {
         first.resetForWrite()
         second.resetForWrite()
         first.next = second
+        first.reserveEndGap(8)
 
         first.writeByte(0xe0.toByte())
         second.writeByte(0xaf.toByte())
@@ -307,6 +309,7 @@ class ReadTextCommonTest {
         first.resetForWrite()
         second.resetForWrite()
         first.next = second
+        first.reserveEndGap(8)
 
         first.writeByte(0xe0.toByte())
         first.writeByte(0xaf.toByte())

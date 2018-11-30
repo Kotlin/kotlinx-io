@@ -8,11 +8,13 @@ import java.nio.channels.*
 private class ChannelAsInput(private val channel: ReadableByteChannel, pool: ObjectPool<IoBuffer>) :
     AbstractInput(pool = pool), Input {
     init {
-        require(channel !is SelectableChannel || !channel.isBlocking) { "Non-blocking channels as not supported" }
+        require(channel !is SelectableChannel || !channel.isBlocking) { "Non-blocking channels are not supported" }
     }
 
     override fun fill(): IoBuffer? {
         val buffer: IoBuffer = pool.borrow()
+        buffer.reserveEndGap(ByteReadPacketBase.ReservedSize)
+
         try {
             var rc = -1
 

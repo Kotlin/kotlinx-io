@@ -180,7 +180,7 @@ inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
  */
 inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     var release = true
-    var current = prepareReadFirstHead(1) ?: return
+    var current = prepareReadFirstHead(initialSize) ?: return
     var size = initialSize
 
     try {
@@ -200,7 +200,7 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
 
             val next = when {
                 after == 0 -> prepareReadNextHead(current)
-                after < size -> {
+                after < size || current.endGap < ByteReadPacketBase.ReservedSize -> {
                     completeReadHead(current)
                     prepareReadFirstHead(size)
                 }

@@ -164,6 +164,9 @@ expect class IoBuffer : Input, Output {
     @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
     fun writeBuffer(src: IoBuffer, length: Int): Int
 
+    internal fun restoreStartGap(n: Int)
+    internal fun restoreEndGap(n: Int)
+
     internal fun writeBufferPrepend(other: IoBuffer)
     internal fun writeBufferAppend(other: IoBuffer, maxSize: Int)
 

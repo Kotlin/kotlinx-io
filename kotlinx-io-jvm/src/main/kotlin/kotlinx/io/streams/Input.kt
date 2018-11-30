@@ -9,9 +9,15 @@ internal class InputStreamAsInput(private val stream: InputStream, pool: ObjectP
     override fun fill(): IoBuffer? {
         val buffer = ByteArrayPool.borrow()
         try {
-            val rc = stream.read(buffer)
+            val rc = stream.read(buffer, 0, ByteArrayPoolBufferSize - ByteReadPacketBase.ReservedSize)
             val result = when {
-                rc >= 0 -> pool.borrow().also { it.writeFully(buffer, 0, rc) }
+                rc >= 0 -> pool.borrow().also {
+                    it.reserveEndGap(ByteReadPacketBase.ReservedSize); it.writeFully(
+                    buffer,
+                    0,
+                    rc
+                )
+                }
                 else -> null
             }
 

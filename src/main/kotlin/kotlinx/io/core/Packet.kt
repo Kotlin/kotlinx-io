@@ -613,6 +613,67 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     @PublishedApi
     internal fun ensureNext(current: IoBuffer) = ensureNext(current, IoBuffer.Empty)
 
+    @DangerousInternalIoApi
+    fun fixGapAfterRead(current: IoBuffer) {
+        val next = current.next ?: return fixGapAfterReadFallback(current)
+
+        val remaining = current.readRemaining
+        val overrunSize = minOf(remaining, ReservedSize - current.endGap)
+        next.restoreStartGap(overrunSize)
+
+        if (remaining > overrunSize) {
+            current.restoreEndGap(overrunSize)
+
+            this.headRemaining = remaining - overrunSize
+            this.tailRemaining += overrunSize
+        } else {
+            this.head = next
+            val nextSize = next.readRemaining
+            this.headRemaining = nextSize
+            this.tailRemaining -= nextSize - overrunSize
+
+            current.release(pool)
+        }
+    }
+
+    private fun fixGapAfterReadFallback(current: IoBuffer) {
+        val size = current.readRemaining
+        val overrun = minOf(size, ReservedSize - current.endGap)
+
+        if (size > overrun) {
+            fixGapAfterReadFallbackUnreserved(current, size, overrun)
+        } else {
+            val new = pool.borrow()
+            new.reserveEndGap(ReservedSize)
+
+            new.writeBufferAppend(current, size)
+            this.head = new
+            this.headRemaining = size
+            this.tailRemaining = 0L
+        }
+
+        current.release(pool)
+    }
+
+    private fun fixGapAfterReadFallbackUnreserved(current: IoBuffer, size: Int, overrun: Int) {
+        // if we have a chunk with no end reservation
+        // we can split it into two to fix it
+
+        val chunk1 = pool.borrow()
+        val chunk2 = pool.borrow()
+
+        chunk1.reserveEndGap(ByteReadPacketBase.ReservedSize)
+        chunk2.reserveEndGap(ByteReadPacketBase.ReservedSize)
+        chunk1.next = chunk2
+
+        chunk1.writeBufferAppend(current, size - overrun)
+        chunk2.writeBufferAppend(current, overrun)
+
+        this.head = chunk1
+        this.headRemaining = chunk1.readRemaining
+        this.tailRemaining = chunk2.readRemaining.toLong()
+    }
+
     private tailrec fun ensureNext(current: IoBuffer, empty: IoBuffer): IoBuffer? {
         if (current === empty) {
             return doFill()
