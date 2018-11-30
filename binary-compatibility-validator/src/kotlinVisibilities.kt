@@ -43,8 +43,8 @@ fun readKotlinVisibilities(declarationFile: File): Map<String, ClassVisibility> 
         while (jsonReader.hasNext()) {
             val classObject = Streams.parse(jsonReader).asJsonObject
             result += with(classObject) {
-                val name = getAsJsonPrimitive("class").asString
-                val visibility = getAsJsonPrimitive("visibility")?.asString
+                val className = getAsJsonPrimitive("class").asString
+                val classVisibility = getAsJsonPrimitive("visibility")?.asString
                 val members = getAsJsonArray("members").map { it ->
                     with(it.asJsonObject) {
                         val name = getAsJsonPrimitive("name").asString
@@ -54,7 +54,7 @@ fun readKotlinVisibilities(declarationFile: File): Map<String, ClassVisibility> 
                         MemberVisibility(MemberSignature(name, desc), declaration, visibility)
                     }
                 }
-                ClassVisibility(name, visibility, members.associateByTo(hashMapOf()) { it.member })
+                ClassVisibility(className, classVisibility, members.associateByTo(hashMapOf()) { it.member })
             }
         }
         jsonReader.endArray()
