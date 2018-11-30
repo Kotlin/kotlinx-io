@@ -81,6 +81,25 @@ suspend fun decodeUTF8LineLoopSuspend(
 private fun prematureEndOfStreamUtf(size: Int): Nothing =
     throw EOFException("Premature end of stream: expected $size bytes to decode UTF-8 char")
 
+@DangerousInternalIoApi
+internal fun byteCountUtf8(firstByte: Int): Int {
+    var byteCount = 0
+    var mask = 0x80
+    var value = firstByte
+
+    for (i in 1..6) {
+        if (value and mask != 0) {
+            value = value and mask.inv()
+            mask = mask shr 1
+            byteCount++
+        } else {
+            break
+        }
+    }
+
+    return byteCount
+}
+
 /**
  * Decodes all the bytes to utf8 applying every character on [consumer] until or consumer return `false`.
  * If a consumer returned false then a character will be pushed back (including all surrogates will be pushed back as well)

@@ -304,6 +304,7 @@ public final class kotlinx/io/core/InputKt {
 	public static final fun discard (Lkotlinx/io/core/Input;)J
 	public static final fun discardExact (Lkotlinx/io/core/Input;I)V
 	public static final fun discardExact (Lkotlinx/io/core/Input;J)V
+	public static final fun peekCharUtf8 (Lkotlinx/io/core/Input;)C
 	public static final fun readAvailable (Lkotlinx/io/core/Input;Lkotlinx/io/core/IoBuffer;I)I
 	public static final fun readAvailable (Lkotlinx/io/core/Input;[BII)I
 	public static final fun readAvailable (Lkotlinx/io/core/Input;[DII)I

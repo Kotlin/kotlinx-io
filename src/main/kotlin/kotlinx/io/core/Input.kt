@@ -221,3 +221,30 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     }
 }
 
+@ExperimentalIoApi
+fun Input.peekCharUtf8(): Char {
+    val rc = tryPeek()
+    if (rc and 0x80 == 0) return rc.toChar()
+    if (rc == -1) throw EOFException("Failed to peek a char: end of input")
+
+    return peekCharUtf8Impl(rc)
+}
+
+private fun Input.peekCharUtf8Impl(first: Int): Char {
+    var rc = '?'
+    var found = false
+
+    takeWhileSize(byteCountUtf8(first)) {
+        it.decodeUTF8 { ch ->
+            found = true
+            rc = ch
+            false
+        }
+    }
+
+    if (!found) {
+        throw MalformedUTF8InputException("No UTF-8 character found")
+    }
+
+    return rc
+}
