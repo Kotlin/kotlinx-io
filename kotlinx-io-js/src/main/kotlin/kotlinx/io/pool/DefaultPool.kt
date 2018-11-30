@@ -1,6 +1,6 @@
 package kotlinx.io.pool
 
-actual abstract class DefaultPool<T : Any>(actual final override val capacity: Int) : ObjectPool<T> {
+actual abstract class DefaultPool<T : Any> actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
     private val instances = arrayOfNulls<Any?>(capacity)
     private var size = 0
 
@@ -10,7 +10,7 @@ actual abstract class DefaultPool<T : Any>(actual final override val capacity: I
     protected actual open fun clearInstance(instance: T): T = instance
     protected actual open fun validateInstance(instance: T) {}
 
-    final override fun borrow(): T {
+    actual final override fun borrow(): T {
         if (size == 0) return produceInstance()
         val idx = --size
 
@@ -21,13 +21,13 @@ actual abstract class DefaultPool<T : Any>(actual final override val capacity: I
         return clearInstance(instance)
     }
 
-    final override fun recycle(instance: T) {
+    actual final override fun recycle(instance: T) {
         validateInstance(instance)
         if (size == capacity) disposeInstance(instance)
         instances[size++] = instance
     }
 
-    final override fun dispose() {
+    actual final override fun dispose() {
         for (i in 0 until size) {
             @Suppress("UNCHECKED_CAST")
             val instance = instances[i] as T

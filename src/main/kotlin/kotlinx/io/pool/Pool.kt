@@ -109,9 +109,12 @@ abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
 }
 
 /**
- * Default object pool implementation
+ * Default object pool implementation.
  */
-expect abstract class DefaultPool<T : Any> : ObjectPool<T> {
+expect abstract class DefaultPool<T : Any>(capacity: Int) : ObjectPool<T> {
+    /**
+     * Pool capacity.
+     */
     final override val capacity: Int
 
     /**
@@ -133,6 +136,12 @@ expect abstract class DefaultPool<T : Any> : ObjectPool<T> {
      * Validate [instance] of [T]. Could verify that the object has been borrowed from this pool
      */
     protected open fun validateInstance(instance: T)
+
+    final override fun borrow(): T
+
+    final override fun recycle(instance: T)
+
+    final override fun dispose()
 }
 
 /**

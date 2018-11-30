@@ -9,7 +9,7 @@ private const val PROBE_COUNT = 8 // number of attempts to find a slot
 private const val MAGIC = 2654435769.toInt() // fractional part of golden ratio
 private const val MAX_CAPACITY = Int.MAX_VALUE / MULTIPLIER
 
-actual abstract class DefaultPool<T : Any>(actual final override val capacity: Int) : ObjectPool<T> {
+actual abstract class DefaultPool<T : Any> actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
     init {
         require(capacity > 0) { "capacity should be positive but it is $capacity" }
         require(capacity <= MAX_CAPACITY) { "capacity should be less or equal to $MAX_CAPACITY but it is $capacity"}
@@ -31,15 +31,15 @@ actual abstract class DefaultPool<T : Any>(actual final override val capacity: I
     private val instances = AtomicReferenceArray<T?>(maxIndex + 1)
     private val next = IntArray(maxIndex + 1)
 
-    final override fun borrow(): T =
+    actual final override fun borrow(): T =
             tryPop()?.let { clearInstance(it) } ?: produceInstance()
 
-    final override fun recycle(instance: T) {
+    actual final override fun recycle(instance: T) {
         validateInstance(instance)
         if (!tryPush(instance)) disposeInstance(instance)
     }
 
-    final override fun dispose() {
+    actual final override fun dispose() {
         while (true) {
             val instance = tryPop() ?: return
             disposeInstance(instance)
