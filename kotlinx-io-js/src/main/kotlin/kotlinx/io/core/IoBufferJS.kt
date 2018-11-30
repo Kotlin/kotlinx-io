@@ -826,7 +826,6 @@ actual class IoBuffer internal constructor(
         val writePosition = writePosition
         if (readPosition == writePosition) return -1
 
-        this.readPosition = readPosition + 1
         return i8[readPosition].toInt() and 0xff
     }
 

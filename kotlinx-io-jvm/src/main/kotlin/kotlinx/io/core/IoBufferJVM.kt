@@ -659,9 +659,12 @@ actual class IoBuffer private constructor(
         }
     }
 
+    /*
+     * Returns next byte (unsigned) or `-1` if no more bytes available
+     */
     actual final override fun tryPeek(): Int {
         val bb = readBuffer
-        return if (bb.hasRemaining()) bb.get().toInt() and 0xff else -1
+        return if (bb.hasRemaining()) bb.get(bb.position()).toInt() and 0xff else -1
     }
 
     actual final override fun peekTo(buffer: IoBuffer): Int {

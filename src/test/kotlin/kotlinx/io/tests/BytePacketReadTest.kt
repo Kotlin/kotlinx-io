@@ -231,7 +231,9 @@ class BytePacketReadTest {
             writeByte(2)
         }.use { pkt ->
             assertEquals(1, pkt.tryPeek())
+            pkt.discardExact(1)
             assertEquals(2, pkt.tryPeek())
+            pkt.discardExact(1)
             assertEquals(-1, pkt.tryPeek())
         }
 
@@ -246,6 +248,7 @@ class BytePacketReadTest {
 
         ByteReadPacket(segment1, pool).use { pkt ->
             assertEquals(1, pkt.tryPeek())
+            pkt.discardExact(1)
             assertEquals(-1, pkt.tryPeek())
         }
     }
