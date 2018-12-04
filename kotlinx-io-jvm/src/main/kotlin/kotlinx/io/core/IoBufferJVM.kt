@@ -739,6 +739,8 @@ actual class IoBuffer private constructor(
      * Creates a new view to the same actual buffer with independant read and write positions and gaps
      */
     actual fun makeView(): IoBuffer {
+        if (this === Empty) return this
+
         val newOrigin = origin ?: this
         newOrigin.acquire()
 
@@ -863,12 +865,16 @@ actual class IoBuffer private constructor(
     }
 
     private fun releaseRefCount(): Boolean {
-        if (this === Empty) throw IllegalArgumentException("Attempted to release empty")
+        if (this === Empty) {
+            throw IllegalArgumentException("Attempted to release empty")
+        }
         while (true) {
             val value = refCount
             val newValue = value - 1
 
-            if (value == 0L) throw IllegalStateException("Unable to release: already released")
+            if (value == 0L) {
+                throw IllegalStateException("Unable to release: already released")
+            }
             if (RefCount.compareAndSet(this, value, newValue)) {
                 return newValue == 0L
             }

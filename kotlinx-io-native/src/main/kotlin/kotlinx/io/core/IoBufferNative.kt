@@ -980,6 +980,8 @@ actual class IoBuffer internal constructor(
     actual fun isExclusivelyOwned(): Boolean = refCount == 1
 
     actual fun makeView(): IoBuffer {
+        if (this === Empty) return this
+
         val o = origin ?: this
         o.acquire()
 

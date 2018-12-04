@@ -8,6 +8,8 @@
 - Added a cpointer constructor to native IoBuffer so that IoBuffer can be used to read AND write on a memory chunk 
 - Made ByteChannel pass original cause from the owner job
 - Fixed reading UTF-8 lines
+- Fixed empty chunk view creation
+- Utility functions takeWhile* improvements
 
 # 0.1.0
 > Published 15 Nov 2018
