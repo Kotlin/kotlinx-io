@@ -1,5 +1,5 @@
 # 0.1.1
-> Not published yet
+> Published 4 Dec 2018
 
 - Fixed ability to implement DefaultPool in common
 - Fixed error "Unable to stop reading in state Writing"
