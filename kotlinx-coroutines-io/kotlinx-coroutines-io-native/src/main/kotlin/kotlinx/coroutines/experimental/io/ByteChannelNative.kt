@@ -33,7 +33,7 @@ actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteRe
         tail = IoBuffer.Pool.borrow()
     }
 
-    return ByteChannelNative(head, false)
+    return ByteChannelNative(head, false).apply { close() }
 }
 
 actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
@@ -63,7 +63,6 @@ internal class ByteChannelNative(initial: IoBuffer, autoFlush: Boolean) : ByteCh
             if (cause != null) cancel(cause)
         }
     }
-
 
     override suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
         return readAvailable(dst, offset.toLong(), length.toLong())

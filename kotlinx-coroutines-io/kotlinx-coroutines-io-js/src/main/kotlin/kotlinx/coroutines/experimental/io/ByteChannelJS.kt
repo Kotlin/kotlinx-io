@@ -32,7 +32,7 @@ actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteRe
         tail = IoBuffer.Pool.borrow()
     }
 
-    return ByteChannelJS(head, false)
+    return ByteChannelJS(head, false).apply { close() }
 }
 
 /**
@@ -56,7 +56,7 @@ fun ByteReadChannel(content: ArrayBufferView): ByteReadChannel {
         tail = IoBuffer.Pool.borrow()
     }
 
-    return ByteChannelJS(head, false)
+    return ByteChannelJS(head, false).apply { close() }
 }
 
 actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
