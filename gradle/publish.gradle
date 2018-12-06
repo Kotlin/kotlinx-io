@@ -1,8 +1,86 @@
+// Configures publishing of Maven artifacts to Bintray
+
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+apply from: project.rootProject.file('gradle/pom.gradle')
+
+// ------------- tasks
+task stubSources(type: Jar) {
+    classifier = 'sources'
+}
+
+task stubJavadoc(type: Jar) {
+    classifier = 'javadoc'
+}
 
 publishing {
     repositories {
-        maven {
-            url  = 'https://dl.bintray.com/kotlin/kotlinx'
+        maven { url = 'https://kotlin.bintray.com/kotlinx' }
+    }
+    publications.all {
+        pom.withXml(configureMavenCentralMetadata)
+
+        switch (it.name) {
+            case 'kotlinMultiplatform':
+                task sourcesJar(type: Jar) {
+                    classifier 'sources'
+                    from kotlin.sourceSets.commonMain.kotlin
+                }
+
+                it.artifactId = "$project.name"
+                it.artifact stubJavadoc
+                it.artifact sourcesJar
+                break
+            default:
+                it.artifactId = "$project.name-$it.name"
+                break
         }
+    }
+
+    kotlin.targets.forEach { target ->
+        def publication = publications.findByName(target.name)
+        if (publication != null) {
+            publication.artifact stubJavadoc
+        }
+
+        if (target.platformType.name != 'native') {
+            publication.gradleModuleMetadataFile = null
+            tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
+                onlyIf { false }
+            }
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    publish = true
+    override = true // for multi-platform Kotlin/Native publishing
+
+    pkg {
+        userOrg = 'kotlin'
+        repo = 'kotlinx'
+        name = 'kotlinx.io'
+        licenses = ['Apache-2.0']
+
+        version {
+            name = project.version
+            vcsTag = project.version
+            released = new Date()
+        }
+    }
+}
+
+// TODO :kludge this is required for K/N publishing
+bintrayUpload.dependsOn publishToMavenLocal
+
+// This is for easier debugging of bintray uploading problems
+bintrayUpload.doFirst {
+    publications = project.publishing.publications.findAll { !it.name.contains('-test') }.collect {
+        println("Uploading artifact '$it.groupId:$it.artifactId:$it.version' from publication '$it.name'")
+        it
     }
 }

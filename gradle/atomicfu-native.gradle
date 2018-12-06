@@ -1,4 +1,0 @@
-
-dependencies {
-    implementation "org.jetbrains.kotlinx:atomicfu-native:$atomicFU_version"
-}

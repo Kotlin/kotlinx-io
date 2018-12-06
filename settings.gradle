@@ -1,18 +1,6 @@
 rootProject.name = 'kotlinx-io'
 enableFeaturePreview('GRADLE_METADATA')
 
-include 'kotlinx-io-jvm'
-include 'kotlinx-io-js'
-include 'kotlinx-io-native'
+include 'kotlinx-coroutines-io'
 include 'benchmarks'
 include 'binary-compatibility-validator'
-
-//include 'kotlinx-io-sockets'
-include 'kotlinx-coroutines-io'
-include 'kotlinx-coroutines-io:kotlinx-coroutines-io-jvm'
-include 'kotlinx-coroutines-io:kotlinx-coroutines-io-js'
-include 'kotlinx-coroutines-io:kotlinx-coroutines-io-native'
-
-findProject(':kotlinx-coroutines-io:kotlinx-coroutines-io-jvm')?.name = 'kotlinx-coroutines-io-jvm'
-findProject(':kotlinx-coroutines-io:kotlinx-coroutines-io-js')?.name = 'kotlinx-coroutines-io-js'
-findProject(':kotlinx-coroutines-io:kotlinx-coroutines-io-native')?.name = 'kotlinx-coroutines-io-native'

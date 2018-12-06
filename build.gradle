@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.konan.target.HostManager
+
 buildscript {
     repositories {
         mavenLocal()
@@ -5,168 +7,78 @@ buildscript {
         maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
+        maven { url 'https://plugins.gradle.org/m2/' }
+        jcenter()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.37"
-        classpath("org.jetbrains.kotlin:kotlin-native-gradle-plugin:$kotlin_native_version") {
-            exclude group: 'org.jetbrains.kotlin', module: 'kotlin-gradle-plugin'
-        }
         classpath group: 'net.rubygrapefruit', name: 'native-platform', version: '0.10'
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintray_plugin_version"
-        classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicFU_version"
+        classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
+        classpath "com.moowork.gradle:gradle-node-plugin:$gradle_node_version"
     }
 }
 
-plugins {
-    id 'net.researchgate.release' version '2.6.0'
-}
+def skipPublish = ['benchmarks', 'binary-compatibility-validator']
 
-
-static def platformOf(project) {
-    if (project.name.endsWith("-common")) return "common"
-    if (project.name.endsWith("-js")) return "js"
-    if (project.name.endsWith("-native")) return "native"
-    if (project.name.endsWith("-jvm")) return "jvm"
-    // todo: fix
-    if (project.name.endsWith("benchmarks")) return "jvm"
-    if (project.name.endsWith("binary-compatibility-validator")) return "jvm"
-    return "common"
-}
+apply from: "gradle/experimental.gradle"
 
 allprojects {
-    repositories {
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
-        maven { url 'https://kotlin.bintray.com/kotlinx' }
-        mavenCentral()
-        mavenLocal()
-    }
-
-    def platform = platformOf(project)
-    apply plugin: "kotlin-platform-$platform"
-
-    apply plugin: 'maven'
-    apply plugin: 'maven-publish'
-    apply plugin: 'com.jfrog.bintray'
-
-    apply from: rootProject.file('pom.gradle')
-
-    def useExperimentalAnnotations = [
-            'kotlin.Experimental',
-            'kotlinx.io.core.internal.DangerousInternalIoApi',
-            'kotlinx.io.core.ExperimentalIoApi'
-    ]
-    def useExperimentalOptionString = "-Xuse-experimental=${useExperimentalAnnotations.join(",")}"
-
-    if (platform == 'native') {
-        sourceSets {
-            main {
-                component {
-                    targets = [ 'ios_arm64', 'ios_arm32', 'ios_x64', 'macos_x64', 'linux_x64', 'mingw_x64' ]
-//                    target 'ios_arm64', 'ios_arm32', 'ios_x64', 'macos_x64', 'linux_x64'
-                    outputKinds = [KLIBRARY]
-                    extraOpts useExperimentalOptionString
-                    pom {
-                        configurePom(it)
-                    }
-                }
-            }
-            test {
-                component {
-                    extraOpts useExperimentalOptionString
-                }
-            }
-        }
-    } else if (platform == 'common') {
-        compileKotlinCommon {
-            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
-        }
-        compileTestKotlinCommon {
-            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
-        }
-    } else if (platform == 'jvm') {
-        compileKotlin {
-            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
-
-            // dump declarations from main JVM module for binary-compatibility-validator
-            kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
-        }
-        compileTestKotlin {
-            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
-        }
-    } else if (platform == 'js') {
-        compileKotlin2Js {
-            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
-        }
-        compileTestKotlin2Js {
-            kotlinOptions.freeCompilerArgs += [useExperimentalOptionString]
-        }
-    }
+    project.ext.hostManager = new HostManager()
 
     if (project.hasProperty('releaseVersion')) {
         project.version = project.releaseVersion
     }
 
-    apply plugin: 'maven'
+    repositories {
+        mavenLocal()
+        maven { url 'https://kotlin.bintray.com/kotlinx' }
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        jcenter()
+    }
 
-    task sourceJar(type: Jar, dependsOn: classes) {
-        classifier 'sources'
-        if (platform != 'native') {
-            from sourceSets.main.kotlin
-            duplicatesStrategy DuplicatesStrategy.EXCLUDE
-            def platformSrc = sourceSets.main.allSource
-            def commonSrc = rootProject.sourceSets.main.allSource
-            from(platformSrc + commonSrc)
+    apply plugin: 'kotlin-multiplatform'
+    apply plugin: 'kotlinx-atomicfu'
+
+    apply from: rootProject.file("gradle/utility.gradle")
+
+    apply from: rootProject.file("gradle/jvm.gradle")
+
+    if (!skipPublish.contains(project.name)) {
+        apply from: rootProject.file("gradle/common.gradle")
+        apply from: rootProject.file("gradle/js.gradle")
+        apply from: rootProject.file("gradle/native.gradle")
+
+        apply from: rootProject.file("gradle/publish.gradle")
+    }
+
+    kotlin {
+        configure(sourceSets) {
+            def srcDir = name.endsWith('Main') ? 'src' : 'test'
+            def platform = name[0..-5]
+
+            kotlin.srcDir "$platform/$srcDir"
+
+            if (!skipPublish.contains(project.name)) {
+                languageSettings {
+                    progressiveMode = true
+                    experimentalAnnotations.each { useExperimentalAnnotation(it) }
+                }
+            }
         }
-    }
 
-    task emptyJar(type: Jar) {
-        classifier 'javadoc'
-    }
-
-    tasks.build.dependsOn(['sourceJar', 'emptyJar'])
-}
-
-configure(allprojects) {
-    def platform = platformOf(project)
-    apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
-}
-
-def skipPublish = ['benchmarks', 'binary-compatibility-validator']
-configure(allprojects.findAll { !skipPublish.contains(it.name) }) {
-    apply from: rootProject.file('pom.gradle')
-    apply from: rootProject.file('gradle/bintray.gradle')
-
-    publishing {
-        publications {
-            mavenProject(MavenPublication) {
-                if (!project.name.contains('native')) {
-                    from components.java
+        configure(targets) {
+            def targetName = it.name
+            compilations.all { compilation ->
+                def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
+                compileTask.kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=" + experimentalAnnotations.join(",")]
+                if (targetName.contains("jvm") && compilation.compilationName == "main") {
+                    compileTask.kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
                 }
-
-                groupId project.group
-                artifactId project.name
-                version project.version
-
-                artifact sourceJar
-
-                artifact emptyJar {
-                    classifier 'javadoc'
-                }
-
-                configurePom(pom)
             }
         }
     }
-
-    afterReleaseBuild.dependsOn bintrayUpload
-}
-
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
-
-    testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
 }
