@@ -619,6 +619,8 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
 
         val remaining = current.readRemaining
         val overrunSize = minOf(remaining, ReservedSize - current.endGap)
+        if (next.startGap < overrunSize) return fixGapAfterReadFallback(current)
+
         next.restoreStartGap(overrunSize)
 
         if (remaining > overrunSize) {
@@ -637,6 +639,12 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     }
 
     private fun fixGapAfterReadFallback(current: IoBuffer) {
+        if (noMoreChunksAvailable) {
+            this.headRemaining = current.readRemaining
+            this.tailRemaining = 0
+            return
+        }
+
         val size = current.readRemaining
         val overrun = minOf(size, ReservedSize - current.endGap)
 
@@ -645,6 +653,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         } else {
             val new = pool.borrow()
             new.reserveEndGap(ReservedSize)
+            new.next = current.next
 
             new.writeBufferAppend(current, size)
             this.head = new
@@ -665,6 +674,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         chunk1.reserveEndGap(ByteReadPacketBase.ReservedSize)
         chunk2.reserveEndGap(ByteReadPacketBase.ReservedSize)
         chunk1.next = chunk2
+        chunk2.next = current.next
 
         chunk1.writeBufferAppend(current, size - overrun)
         chunk2.writeBufferAppend(current, overrun)
@@ -707,6 +717,12 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     protected abstract fun fill(): IoBuffer?
 
     protected abstract fun closeSource()
+
+    internal fun markNoMoreChunksAvailable() {
+        if (!noMoreChunksAvailable) {
+            noMoreChunksAvailable = true
+        }
+    }
 
     protected fun doFill(): IoBuffer? {
         if (noMoreChunksAvailable) return null

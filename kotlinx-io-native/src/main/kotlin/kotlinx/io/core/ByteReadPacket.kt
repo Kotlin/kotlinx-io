@@ -40,9 +40,7 @@ internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<Io
     actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(head, head.remainingAll(), pool)
 
     init {
-        if (remaining == 0L) {
-            doFill()
-        }
+        markNoMoreChunksAvailable()
     }
 
     final override fun fill() = null

@@ -39,7 +39,12 @@ internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<Io
         pool
     )
 
+    init {
+        markNoMoreChunksAvailable()
+    }
+
     final override fun fill() = null
+
     override fun closeSource() {
     }
 

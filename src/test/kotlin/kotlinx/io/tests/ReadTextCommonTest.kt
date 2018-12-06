@@ -321,6 +321,66 @@ class ReadTextCommonTest {
         assertEquals("\u0BF5", text)
     }
 
+    @Test
+    fun testReadTextAfterInt() {
+        buildPacket {
+            writeInt(5)
+            writeText("Hello")
+            writeInt(1)
+        }.use { packet ->
+            assertEquals(5, packet.readInt())
+            assertEquals("Hello", packet.readText(min = 5, max = 5))
+            assertEquals(1, packet.readInt())
+        }
+    }
+
+    @Test
+    fun testReadTextAfterIntFromInput() {
+        val content = buildPacket {
+            writeInt(5)
+            writeText("Hello")
+            writeInt(1)
+
+            writeFully(ByteArray(8192))
+        }.readBytes()
+
+        val input = object : AbstractInput() {
+            private var offset = 0
+
+            override fun fill(): IoBuffer? {
+                if (offset >= content.size) return null
+
+                val buffer = pool.borrow()
+                buffer.reserveEndGap(8)
+
+                val size = minOf(buffer.writeRemaining, content.size - offset)
+                buffer.writeFully(content, offset, size)
+                offset += size
+
+                return buffer
+            }
+
+            override fun closeSource() {
+                offset = Int.MAX_VALUE
+            }
+        }
+
+        try {
+            assertEquals(5, input.readInt())
+            assertEquals("Hello", input.readText(min = 5, max = 5))
+            assertEquals(1, input.readInt())
+        } finally {
+            input.close()
+        }
+    }
+
+    @Test
+    fun testReadTextFromPacketFromByteArray() {
+        val content = byteArrayOf(0x31, 0x32, 0x33, 0x00)
+        val packet = ByteReadPacket(content)
+        assertEquals("123", packet.readText(max = 3))
+    }
+
     private inline fun buildPacket(startGap: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(startGap, pool)
         try {

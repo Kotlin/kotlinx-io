@@ -69,7 +69,12 @@ actual class ByteReadPacket
     internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketPlatformBase(head, remaining, pool), Input {
     actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(head, head.remainingAll(), pool)
 
+    init {
+        markNoMoreChunksAvailable()
+    }
+
     final override fun fill() = null
+
     override fun closeSource() {
     }
 
