@@ -1,12 +1,22 @@
-apply plugin: 'kotlin-platform-common'
+kotlin.sourceSets {
+    commonMain.dependencies {
+        api rootProject
+        api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version
+    }
 
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
+    commonTest.dependencies {
+        api rootProject
+    }
 
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$kotlinx_coroutines_version"
+    jvmMain.dependencies {
+        api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: coroutines_version
+    }
 
-    compile project(":")
+    jsMain.dependencies {
+        api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-js', version: coroutines_version
+    }
+
+    nativeMain.dependencies {
+        api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
+    }
 }
-

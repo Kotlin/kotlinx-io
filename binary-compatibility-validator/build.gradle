@@ -5,41 +5,47 @@
 configurations {
     testArtifacts
 }
+kotlin {
+    sourceSets {
+        jvmMain {
+            dependencies {
+                api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+                api rootProject
+                api project(':kotlinx-coroutines-io')
+
+                api 'org.ow2.asm:asm-debug-all:5.2'
+                api 'com.google.code.gson:gson:2.6.2'
+            }
+        }
+        jvmTest {
+            dependencies {
+                api "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+                api "junit:junit:4.12"
+            }
+        }
+    }
+}
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-
-    compile project(":kotlinx-io-jvm")
-    compile 'org.ow2.asm:asm-debug-all:5.0.4'
-    compile 'com.google.code.gson:gson:2.6.2'
-
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    testCompile "junit:junit:4.12"
-
-    testArtifacts project(':kotlinx-io-jvm')
-    testArtifacts project(':kotlinx-coroutines-io:kotlinx-coroutines-io-jvm')
+    testArtifacts rootProject
+    testArtifacts project(':kotlinx-coroutines-io')
 }
 
-sourceSets {
-    main {
-        kotlin {
-            srcDir 'src'
-        }
+jvmTest {
+    dependencies {
     }
-    test {
-        kotlin {
-            srcDir 'test'
-        }
+
+    def modules = configurations.testArtifacts.dependencies.findAll { it instanceof ProjectDependency }.collect {
+        it.dependencyProject.projectDir
     }
-}
 
-test {
-    dependsOn cleanCompileTestKotlin
-    dependsOn configurations.testArtifacts
-
-    def modules = configurations.testArtifacts.dependencies.findAll { it instanceof ProjectDependency }.collect { it.dependencyProject.projectDir }
+    def artifactNames = configurations.testArtifacts.dependencies.findAll { it instanceof ProjectDependency }.collect {
+        it.dependencyProject.name
+    }
 
     systemProperty 'validator.input.modules', modules.join(File.pathSeparator)
+    systemProperty 'validator.input.artifactNames', artifactNames.join(File.pathSeparator)
     systemProperty 'overwrite.output', project.properties['overwrite.output']
     jvmArgs '-ea'
 }

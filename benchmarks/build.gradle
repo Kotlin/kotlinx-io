@@ -1,15 +1,33 @@
+
+
 plugins {
     id 'me.champeau.gradle.jmh' version '0.4.5'
 }
 
 apply plugin: 'kotlin-allopen'
 
-
-dependencies {
-    jmh project(':kotlinx-io-jvm')
-    jmh project(':kotlinx-io-jvm').sourceSets.test.output
+kotlin {
+    targets {
+        fromPreset(presets.jvmWithJava, 'jvmWithJava')
+    }
 }
 
+dependencies {
+    jmh rootProject
+    jmh rootProject.kotlin.targets.jvm.compilations.main.output.allOutputs
+    jmh rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
+    jmhCompile rootProject
+    jmhCompile rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
+
+    compile group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.21'
+
+    jmhCompileClasspath rootProject
+    jmhCompileClasspath rootProject.kotlin.targets.jvm.compilations.main.output.allOutputs
+    jmhCompileClasspath rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
+    jmhRuntimeClasspath rootProject
+    jmhRuntimeClasspath rootProject.kotlin.targets.jvm.compilations.main.output.allOutputs
+    jmhRuntimeClasspath rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
+}
 allOpen {
     annotation('org.openjdk.jmh.annotations.State')
 }
@@ -19,7 +37,6 @@ jmh {
     jmhJar {
         archiveName = 'benchmarks.jar'
     }
-
 //    include = ['.*.myInput2?$', '.*.bufferInputStream']
 //    exclude = ['.*Guice.*', '.*PingPong.*']
 }
