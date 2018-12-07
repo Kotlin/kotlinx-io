@@ -45,3 +45,21 @@ inline fun LookAheadSession.consumeEachRemaining(visitor: (ByteBuffer) -> Boolea
     } while (true)
 }
 
+@Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
+@ExperimentalIoApi
+suspend inline fun LookAheadSuspendSession.consumeEachRemaining(visitor: suspend (ByteBuffer) -> Boolean) {
+    do {
+        val buffer = request(0, 1)
+        if (buffer == null) {
+            if (!awaitAtLeast(1)) break
+            continue
+        }
+
+        val s = buffer.remaining()
+        val rc = visitor(buffer)
+        consumed(s)
+
+        if (!rc) break
+    } while (true)
+}
+

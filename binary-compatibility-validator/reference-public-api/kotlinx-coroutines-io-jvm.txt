@@ -262,6 +262,7 @@ public abstract interface class kotlinx/coroutines/io/LookAheadSession {
 
 public final class kotlinx/coroutines/io/LookAheadSessionKt {
 	public static final fun consumeEachRemaining (Lkotlinx/coroutines/io/LookAheadSession;Lkotlin/jvm/functions/Function1;)V
+	public static final fun consumeEachRemaining (Lkotlinx/coroutines/io/LookAheadSuspendSession;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class kotlinx/coroutines/io/LookAheadSuspendSession : kotlinx/coroutines/io/LookAheadSession {
