@@ -18,6 +18,7 @@ task stubJavadoc(type: Jar) {
 publishing {
     repositories {
         maven { url = 'https://kotlin.bintray.com/kotlinx' }
+        maven { name = "testLocal"; url = "$rootProject.buildDir/m2"}
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
