@@ -4,6 +4,8 @@ import org.xml.sax.ErrorHandler
 import org.xml.sax.SAXException
 import org.xml.sax.SAXParseException
 
+import java.util.regex.Matcher
+
 task cleanPublications(type: Delete) {
     delete new File(rootProject.buildDir, 'm2')
 }
@@ -122,7 +124,7 @@ task verifyPublications(dependsOn: { [cleanPublications] + kinds.collect { "publ
             validatePom(file)
         }
 
-        def groupDir = new File(m2, project.group.replaceAll(/\./, File.separator))
+        def groupDir = new File(m2, project.group.replaceAll(/\./, Matcher.quoteReplacement(File.separator)))
         def verified = 0
 
         groupDir.eachDir { artifactDir ->
