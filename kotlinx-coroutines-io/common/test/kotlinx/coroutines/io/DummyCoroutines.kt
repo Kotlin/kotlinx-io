@@ -13,7 +13,7 @@ class DummyCoroutines {
 
         override fun resumeWith(result: Result<Unit>) {
             liveCoroutines--
-            failure = result.exceptionOrNull()
+            failure = failure ?: result.exceptionOrNull()
             if (result.isSuccess) {
                 process()
             }
