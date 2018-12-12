@@ -18,7 +18,7 @@ task stubJavadoc(type: Jar) {
 publishing {
     repositories {
         maven { url = 'https://kotlin.bintray.com/kotlinx' }
-        maven { name = "testLocal"; url = "$rootProject.buildDir/m2"}
+        maven { name = "testLocal"; url = "$rootProject.buildDir/m2" }
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
@@ -30,7 +30,7 @@ publishing {
                     from kotlin.sourceSets.commonMain.kotlin
                 }
 
-                it.artifactId = "$project.name"
+                it.artifactId = "$project.name-native"
                 it.artifact stubJavadoc
                 it.artifact sourcesJar
                 break
@@ -40,16 +40,17 @@ publishing {
         }
     }
 
-    kotlin.targets.forEach { target ->
-        def publication = publications.findByName(target.name)
+    kotlin.targets.all { target ->
+        def publication = publishing.publications.findByName(target.name)
+
         if (publication != null) {
             publication.artifact stubJavadoc
-        }
 
-        if (target.platformType.name != 'native') {
-            publication.gradleModuleMetadataFile = null
-            tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
-                onlyIf { false }
+            if (target.platformType.name != 'native') {
+                publication.gradleModuleMetadataFile = null
+                tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
+                    onlyIf { false }
+                }
             }
         }
     }
