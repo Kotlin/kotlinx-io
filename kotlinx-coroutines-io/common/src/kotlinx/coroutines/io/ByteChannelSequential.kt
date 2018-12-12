@@ -493,7 +493,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         waitingForRead = atLeast
         atLeastNBytesAvailableForRead.await { afterRead() }
         closedCause?.let { throw it }
-        return !isClosedForRead
+        return !isClosedForRead && availableForRead >= atLeast
     }
 
     override fun discard(n: Int): Int {
