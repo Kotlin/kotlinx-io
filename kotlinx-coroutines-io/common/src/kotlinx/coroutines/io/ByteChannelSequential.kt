@@ -474,6 +474,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
     override suspend fun await(atLeast: Int): Boolean {
         require(atLeast >= 0) { "atLeast parameter shouldn't be negative: $atLeast"}
+        require(atLeast <= 4088) { "atLeast parameter shouldn't be larger than max buffer size of 4088: $atLeast" }
 
         completeReading()
 

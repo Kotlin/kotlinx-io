@@ -27,6 +27,7 @@ interface LookAheadSession {
 interface LookAheadSuspendSession : LookAheadSession {
     /**
      * Suspend until [n] bytes become available or end of stream encountered (possibly due to exceptional close)
+     * @see SuspendableReadSession.await
      */
     suspend fun awaitAtLeast(n: Int): Boolean
 }

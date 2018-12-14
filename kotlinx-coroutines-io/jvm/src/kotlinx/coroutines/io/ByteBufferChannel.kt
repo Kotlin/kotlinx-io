@@ -1930,6 +1930,9 @@ internal class ByteBufferChannel(
     }
 
     final override suspend fun awaitAtLeast(n: Int): Boolean {
+        require(n >= 0) { "atLeast parameter shouldn't be negative: $n" }
+        require(n <= 4088) { "atLeast parameter shouldn't be larger than max buffer size of 4088: $n" }
+
         if (state.capacity.availableForRead >= n) {
             if (state.idle || state is ReadWriteBufferState.Writing) setupStateForRead()
             return true
@@ -2464,6 +2467,9 @@ internal class ByteBufferChannel(
         override fun request(skip: Int, atLeast: Int): ByteBuffer? = null
 
         override suspend fun awaitAtLeast(n: Int): Boolean {
+            require(n >= 0) { "atLeast parameter shouldn't be negative: $n" }
+            require(n <= 4088) { "atLeast parameter shouldn't be larger than max buffer size of 4088: $n" }
+
             return false
         }
     }
