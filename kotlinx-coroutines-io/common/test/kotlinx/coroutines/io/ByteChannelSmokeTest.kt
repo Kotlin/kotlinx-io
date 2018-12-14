@@ -660,7 +660,7 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
         var result: Boolean? = null
         ch.readSuspendableSession {
             expect(1)
-            result = await(100000)
+            result = await(4000)
         }
 
         expect(4)
