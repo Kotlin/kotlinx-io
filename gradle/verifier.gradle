@@ -18,9 +18,9 @@ def isEmptyTagList(node) {
     return node == null || node.size() == 0
 }
 
-def verifyArtifact(File versionDir, List<File> files, String ext) {
+def verifyArtifact(File versionDir, List<File> files, String ext, String kind) {
     if (files.count { it.name.toLowerCase().endsWith(ext) } == 0) {
-        throw new GradleException("No $ext artifact found at $versionDir")
+        throw new GradleException("No $ext artifact found at $versionDir (kind $kind)")
     }
 }
 
@@ -98,9 +98,43 @@ String packaging(File moduleDir) {
     return packaing
 }
 
-def kinds = kotlin.targets.collect { it.name }
+def lookupTasks = {
+    def targetNames = kotlin.targets.collect { it.name }
+    def tasks = []
 
-task verifyPublications(dependsOn: { [cleanPublications] + kinds.collect { "publish${it.capitalize()}PublicationToTestLocalRepository" } }) {
+    allprojects {
+        tasks += targetNames.collect { project.tasks.findByName("publish${it.capitalize()}PublicationToTestLocalRepository") }
+            .findAll()
+    }
+
+    return [cleanPublications] + tasks
+}
+
+// returns jvm, js, native or some native target name
+String guessModuleKind(File dir, File pomFile) {
+    def artifactId_ = new XmlSlurper(false, true).parse(pomFile).artifactId.text()
+    def kind = null
+
+    allprojects {
+        project.publishing.publications.findAll { !it.name.contains('-test') && it.artifactId == artifactId_ }.each {
+            kind = it.name
+        }
+    }
+
+    if (!kind) {
+        allprojects { project ->
+            println "project $project.name"
+            project.publishing.publications.each {
+                println "publication $it.name with ${it.artifactId} (looking for $artifactId_, found = ${it.artifactId == artifactId_})"
+            }
+        }
+        throw new GradleException("Not found")
+    }
+
+    return kind
+}
+
+task verifyPublications(dependsOn: lookupTasks) {
     doLast {
         def m2 = new File(rootProject.buildDir, 'm2')
         def pomFiles = []
@@ -133,11 +167,16 @@ task verifyPublications(dependsOn: { [cleanPublications] + kinds.collect { "publ
             if (versionDir.exists()) {
                 def files = versionDir.listFiles()?.findAll { it.isFile() } ?: []
 
+                def moduleKind = guessModuleKind(versionDir, files.find { it.name.endsWith(".pom") })
+
                 def packaging = '.' + packaging(versionDir)
-                verifyArtifact(versionDir, files, packaging)
-                verifyArtifact(versionDir, files, '-javadoc.jar')
-                verifyArtifact(versionDir, files, '-sources.jar')
-                verifyArtifact(versionDir, files, '.module')
+                verifyArtifact(versionDir, files, packaging, moduleKind)
+                verifyArtifact(versionDir, files, '-javadoc.jar', moduleKind)
+                verifyArtifact(versionDir, files, '-sources.jar', moduleKind)
+
+                if (moduleKind != 'js' && moduleKind != 'jvm' && moduleKind != 'metadata') {
+                    verifyArtifact(versionDir, files, '.module', moduleKind)
+                }
 
                 verified ++
             }

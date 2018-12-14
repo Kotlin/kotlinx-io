@@ -24,6 +24,7 @@ buildscript {
 def skipPublish = ['benchmarks', 'binary-compatibility-validator']
 
 apply from: "gradle/experimental.gradle"
+apply from: rootProject.file('gradle/verifier.gradle')
 
 allprojects {
     project.ext.hostManager = new HostManager()
@@ -53,7 +54,7 @@ allprojects {
         apply from: rootProject.file("gradle/native.gradle")
 
         apply from: rootProject.file("gradle/publish.gradle")
-        apply from: rootProject.file('gradle/verifier.gradle')
+
     }
 
     kotlin {
