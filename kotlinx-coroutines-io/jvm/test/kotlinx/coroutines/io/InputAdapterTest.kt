@@ -1,8 +1,11 @@
 package kotlinx.coroutines.io
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.io.internal.*
 import kotlinx.coroutines.io.jvm.javaio.*
+import org.junit.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class InputAdapterTest {
     private val ch = ByteChannel(true)
@@ -81,6 +84,23 @@ class InputAdapterTest {
         assertEquals(0x33, array[0])
 
         assertEquals(-1, s.read(array))
+    }
+
+    @Test
+    fun testReadWithParking(): Unit = runBlocking {
+        Assume.assumeTrue(CoroutinesEventLoop.FutureReflectionImpl.isApplicable)
+
+        launch {
+            val bytes = ch.toInputStream().readBytes()
+            assertEquals(8, bytes.size)
+        }
+
+        yield()
+
+        ch.writeLong(1)
+        ch.close()
+
+        assertTrue { true }
     }
 }
 

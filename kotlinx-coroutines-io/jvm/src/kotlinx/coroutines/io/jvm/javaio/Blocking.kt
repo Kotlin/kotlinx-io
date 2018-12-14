@@ -4,6 +4,7 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.internal.*
 import java.io.*
 import java.util.concurrent.locks.*
 import kotlin.coroutines.*
@@ -211,9 +212,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
 
         cont!!.resume(jobToken)
 
-        while (state.value === thread) {
-            LockSupport.park()
-        }
+        parkingLoop(thread)
 
         state.value.let { state ->
             if (state is Throwable) {
@@ -222,6 +221,20 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
         }
 
         return result.value
+    }
+
+    private fun parkingLoop(thread: Thread) {
+        if (state.value !== thread) return
+        val eventLoop = detectEventLoop()
+
+        do {
+            val nextEventTimeNanos = eventLoop.processEventLoop()
+            if (state.value !== thread) break
+
+            if (nextEventTimeNanos > 0L) {
+                LockSupport.parkNanos(nextEventTimeNanos)
+            }
+        } while (true)
     }
 
     @Suppress("NOTHING_TO_INLINE")
