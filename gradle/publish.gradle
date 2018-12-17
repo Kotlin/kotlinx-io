@@ -41,7 +41,9 @@ publishing {
             case 'metadata':
                 it.artifactId = "$project.name"
                 break
-            default:
+            case 'jvm':
+            case 'js':
+            case 'native':
                 it.artifactId = "$project.name-$it.name"
                 break
         }
