@@ -15,6 +15,9 @@ task stubJavadoc(type: Jar) {
     classifier = 'javadoc'
 }
 
+task emptyJar(type: Jar) {
+}
+
 publishing {
     repositories {
         maven { url = 'https://kotlin.bintray.com/kotlinx' }
@@ -31,8 +34,12 @@ publishing {
                 }
 
                 it.artifactId = "$project.name-native"
+                it.artifact emptyJar
                 it.artifact stubJavadoc
                 it.artifact sourcesJar
+                break
+            case 'metadata':
+                it.artifactId = "$project.name"
                 break
             default:
                 it.artifactId = "$project.name-$it.name"
@@ -51,6 +58,8 @@ publishing {
                 tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
                     onlyIf { false }
                 }
+            } else {
+                publication.artifact emptyJar
             }
         }
     }
