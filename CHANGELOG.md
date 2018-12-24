@@ -1,3 +1,14 @@
+# 0.1.2
+> Published 24 Dec 2018
+
+- Fixed byte channel constructor from an array
+- Fixed endGap related errors (#23)
+- Introduced suspending consumeEachRemaining (#22)
+- Kotlin 1.3.11, kotlinx.coroutines 1.1.0
+- Fixed await returned wrong result in sequential implementation (#24)
+- `await` and `awaitAtLeast` contract clarified (#24)
+- Fixed blocking I/O adapter to use coroutine's event loop
+
 # 0.1.1
 > Published 4 Dec 2018
 
