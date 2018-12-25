@@ -26,7 +26,8 @@ publishing {
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
 
-        switch (it.name) {
+        def type = it.name
+        switch (type) {
             case 'kotlinMultiplatform':
                 task sourcesJar(type: Jar) {
                     classifier 'sources'
@@ -44,10 +45,33 @@ publishing {
             case 'jvm':
             case 'js':
             case 'native':
-                it.artifactId = "$project.name-$it.name"
+                it.artifactId = "$project.name-$type"
                 break
         }
+
+
+        pom.withXml { pom ->
+            def dependenciesNode = asNode().getAt("dependencies")[0]
+            if (dependenciesNode == null) return
+            dependenciesNode.dependency.each {
+                it.artifactId.each { node ->
+                    def artifactId = node.text()
+                    if (!artifactId.startsWith("kotlinx-io") || !artifactId.endsWith("native")) return
+
+                    switch (type) {
+                        case 'metadata':
+                            node.setValue("${artifactId[0..-8]}")
+                            break
+                        case 'jvm':
+                        case 'js':
+                            node.setValue("${artifactId[0..-8]}-$type")
+                            break
+                    }
+                }
+            }
+        }
     }
+
 
     kotlin.targets.all { target ->
         def publication = publishing.publications.findByName(target.name)
