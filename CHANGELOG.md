@@ -1,3 +1,8 @@
+# 0.1.3
+> Published 25 Dec 2018
+
+- Fixed wrong pom dependencies
+
 # 0.1.2
 > Published 24 Dec 2018
 
