@@ -37,7 +37,7 @@ private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEnc
 
 actual val CharsetEncoder.charset: Charset get() = _charset
 
-@SymbolName("Kotlin_Arrays_getAddressOfElement")
+@SymbolName("Kotlin_Arrays_getShortArrayAddressOfElement")
 private external fun getAddressOfElement(array: Any, index: Int): COpaquePointer
 
 @Suppress("NOTHING_TO_INLINE")
