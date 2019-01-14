@@ -219,6 +219,69 @@ open class BytePacketBuildTest {
         }
     }
 
+    @Test
+    fun testWriteShortWithEndian() {
+        buildPacket {
+            byteOrder = ByteOrder.BIG_ENDIAN
+            writeShort(0x0102)
+            byteOrder = ByteOrder.LITTLE_ENDIAN
+            writeShort(0x0102)
+        }.use { pkt ->
+            assertEquals(byteArrayOf(1, 2, 2, 1).toList(), pkt.readBytes().toList())
+        }
+    }
+
+    @Test
+    fun testWriteIntWithEndian() {
+        buildPacket {
+            byteOrder = ByteOrder.BIG_ENDIAN
+            writeInt(0x01020304)
+            byteOrder = ByteOrder.LITTLE_ENDIAN
+            writeInt(0x01020304)
+        }.use { pkt ->
+            assertEquals(byteArrayOf(1, 2, 3, 4, 4, 3, 2, 1).toList(), pkt.readBytes().toList())
+        }
+    }
+
+    @Test
+    fun testWriteLongWithEndian() {
+        buildPacket {
+            byteOrder = ByteOrder.BIG_ENDIAN
+            writeLong(0x0102030405060708L)
+            byteOrder = ByteOrder.LITTLE_ENDIAN
+            writeLong(0x0102030405060708L)
+        }.use { pkt ->
+            assertEquals(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1).toList(), pkt.readBytes().toList())
+        }
+    }
+
+    @Test
+    fun testWriteFloatWithEndian() {
+        buildPacket {
+            byteOrder = ByteOrder.BIG_ENDIAN
+            writeFloat(1.5f)
+            byteOrder = ByteOrder.LITTLE_ENDIAN
+            writeFloat(1.5f)
+        }.use { pkt ->
+            assertEquals(byteArrayOf(63, -64, 0, 0, 0, 0, -64, 63).toList(), pkt.readBytes().toList())
+        }
+    }
+
+    @Test
+    fun testWriteDoubleWithEndian() {
+        buildPacket {
+            byteOrder = ByteOrder.BIG_ENDIAN
+            writeDouble(1.5)
+            byteOrder = ByteOrder.LITTLE_ENDIAN
+            writeDouble(1.5)
+        }.use { pkt ->
+            assertEquals(
+                byteArrayOf(63, -8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, 63).toList(),
+                pkt.readBytes().toList()
+            )
+        }
+    }
+
     private inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
         val builder = BytePacketBuilder(0, pool)
         try {

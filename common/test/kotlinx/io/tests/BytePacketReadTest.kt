@@ -225,6 +225,128 @@ class BytePacketReadTest {
     }
 
     @Test
+    fun testReadShortWithEndian() {
+        val pkt = buildPacket {
+            writeFully(byteArrayOf(1, 2))
+        }
+
+        try {
+            pkt.copy().use { copy ->
+                copy.byteOrder = ByteOrder.BIG_ENDIAN
+                assertEquals(0x0102, copy.readShort())
+            }
+            pkt.copy().use { copy ->
+                copy.byteOrder = ByteOrder.LITTLE_ENDIAN
+                assertEquals(0x0201, copy.readShort())
+            }
+        } finally {
+            pkt.release()
+        }
+    }
+
+    @Test
+    fun testReadIntWithEndian() {
+        val pkt = buildPacket {
+            writeFully(byteArrayOf(1, 2, 3, 4))
+        }
+
+        try {
+            pkt.copy().use { copy ->
+                copy.byteOrder = ByteOrder.BIG_ENDIAN
+                assertEquals(0x01020304, copy.readInt())
+            }
+            pkt.copy().use { copy ->
+                copy.byteOrder = ByteOrder.LITTLE_ENDIAN
+                assertEquals(0x04030201, copy.readInt())
+            }
+        } finally {
+            pkt.release()
+        }
+    }
+
+    @Test
+    fun testReadLongWithEndian() {
+        val pkt = buildPacket {
+            writeFully(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8))
+        }
+
+        try {
+            pkt.copy().use { copy ->
+                copy.byteOrder = ByteOrder.BIG_ENDIAN
+                assertEquals(0x0102030405060708L, copy.readLong())
+            }
+            pkt.copy().use { copy ->
+                copy.byteOrder = ByteOrder.LITTLE_ENDIAN
+                assertEquals(0x0807060504030201, copy.readLong())
+            }
+        } finally {
+            pkt.release()
+        }
+    }
+
+    @Test
+    fun testReadFloatWithEndian() {
+        val pkt = buildPacket {
+            writeFully(byteArrayOf(63, -64, 0, 0))
+            writeFully(byteArrayOf(0, 0, -64, 63))
+        }
+
+        try {
+            pkt.byteOrder = ByteOrder.BIG_ENDIAN
+            assertEquals(1.5f, pkt.readFloat())
+            pkt.byteOrder = ByteOrder.LITTLE_ENDIAN
+            assertEquals(1.5f, pkt.readFloat())
+        } finally {
+            pkt.release()
+        }
+    }
+
+    @Test
+    fun testReadDoubleWithEndian() {
+        val pkt = buildPacket {
+            writeFully(byteArrayOf(63, -8, 0, 0, 0, 0, 0, 0))
+            writeFully(byteArrayOf(0, 0, 0, 0, 0, 0, -8, 63))
+        }
+
+        try {
+            pkt.byteOrder = ByteOrder.BIG_ENDIAN
+            assertEquals(1.5, pkt.readDouble())
+            pkt.byteOrder = ByteOrder.LITTLE_ENDIAN
+            assertEquals(1.5, pkt.readDouble())
+        } finally {
+            pkt.release()
+        }
+    }
+
+    @Test
+    fun testReadingFromExternallyCreatedPacket() {
+        ByteReadPacket(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8)).use { pkt ->
+            assertEquals(0x0102030405060708L, pkt.readLong())
+        }
+
+        // simulate segment reusing
+        val chunk = pool.borrow()
+        chunk.byteOrder = ByteOrder.LITTLE_ENDIAN
+        chunk.writeFully(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8))
+
+        ByteReadPacket(chunk, 8L, pool).use { pkt ->
+            // it is BIG_ENDIAN by default
+            assertEquals(ByteOrder.BIG_ENDIAN, pkt.byteOrder)
+            assertEquals(0x0102030405060708L, pkt.readLong())
+        }
+    }
+
+    @Test
+    fun switchingEmptyPacketByteOrder() {
+        buildPacket { writeByte(1) }.use { pkt ->
+            pkt.readByte()
+            // pkt is empty
+            pkt.byteOrder = ByteOrder.BIG_ENDIAN
+            pkt.byteOrder = ByteOrder.LITTLE_ENDIAN
+        }
+    }
+
+    @Test
     fun tryPeekTest() {
         buildPacket {
             writeByte(1)

@@ -12,7 +12,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
                                   remaining: Long = head.remainingAll(),
                                   val pool: ObjectPool<IoBuffer>) : Input {
 
+    init {
+        head.setByteOrderForNonEmpty(ByteOrder.BIG_ENDIAN)
+    }
+
     final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
+        set(newOrder) {
+            field = newOrder
+            head.setByteOrderForNonEmpty(newOrder)
+        }
 
     /**
      * Number of bytes available for read
@@ -20,7 +28,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     val remaining: Long get() = headRemaining.toLong() + tailRemaining
 
     @Deprecated("For compatibility purpose", level = DeprecationLevel.HIDDEN)
-    final fun getRemaining(): Int = remaining.coerceAtMostMaxInt()
+    fun getRemaining(): Int = remaining.coerceAtMostMaxInt()
 
     /**
      * @return `true` if there is at least one byte to read
@@ -816,3 +824,9 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
 }
 
 expect class EOFException(message: String) : Exception
+
+private fun IoBuffer.setByteOrderForNonEmpty(newByteOrder: ByteOrder) {
+    if (canRead()) {
+        byteOrder = newByteOrder
+    }
+}

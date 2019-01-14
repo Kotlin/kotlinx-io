@@ -68,6 +68,7 @@ class PrimitiveCodecTest {
         assertEquals(2, p.remaining)
         assertTrue { p.isNotEmpty }
 
+        p.byteOrder = ByteOrder.LITTLE_ENDIAN
         assertEquals(0x2211, p.readShort())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
@@ -134,6 +135,7 @@ class PrimitiveCodecTest {
         assertEquals(4, p.remaining)
         assertTrue { p.isNotEmpty }
 
+        p.byteOrder = ByteOrder.LITTLE_ENDIAN
         assertEquals(0x44332211, p.readInt())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
@@ -214,6 +216,7 @@ class PrimitiveCodecTest {
         assertEquals(8, p.remaining)
         assertTrue { p.isNotEmpty }
 
+        p.byteOrder = ByteOrder.LITTLE_ENDIAN
         assertEquals(0x0d0c0b0a44332211L, p.readLong())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
@@ -286,6 +289,7 @@ class PrimitiveCodecTest {
         assertEquals(4, p.remaining)
         assertTrue { p.isNotEmpty }
 
+        p.byteOrder = ByteOrder.LITTLE_ENDIAN
         assertEquals(5, (p.readFloat() * 100.0f).roundToInt())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
@@ -366,6 +370,7 @@ class PrimitiveCodecTest {
         assertEquals(8, p.remaining)
         assertTrue { p.isNotEmpty }
 
+        p.byteOrder = ByteOrder.LITTLE_ENDIAN
         assertEquals(0.05, p.readDouble())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
