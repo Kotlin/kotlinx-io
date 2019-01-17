@@ -80,10 +80,7 @@ publishing {
             publication.artifact stubJavadoc
 
             if (target.platformType.name != 'native') {
-                publication.gradleModuleMetadataFile = null
-                tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
-                    onlyIf { false }
-                }
+                publication.moduleDescriptorGenerator = null
             } else {
                 publication.artifact emptyJar
             }
