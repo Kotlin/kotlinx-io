@@ -1,0 +1,30 @@
+{
+  "name": "${project.name}",
+  "version" : "${project.version}",
+  "description" : "kotlinx-io is a multiplatform library suitable for I/O primitives building and manipulations",
+  "main" : "${project.name}.js",
+  "author": "JetBrains",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/Kotlin/kotlinx-io",
+  "bugs": {
+    "url": "https://github.com/Kotlin/kotlinx-io/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kotlin/kotlinx-io.git"
+  },
+  "keywords": [
+    "Kotlin",
+    "async",
+    "kotlinx",
+    "io",
+    "JavaScript",
+    "JetBrains"
+  ],
+  "peerDependencies": {
+    $kotlinDependency
+  },
+  "dependencies": {
+    $npmDependencies
+  }
+}

@@ -20,3 +20,5 @@ kotlin.sourceSets {
         api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
     }
 }
+
+project.ext.npmDependencies += """ "kotlinx-io": "${project.version}" """

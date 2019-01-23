@@ -18,6 +18,12 @@ kotlin {
     }
 }
 
+if (project.extensions.findByName("npmDependencies") == null) {
+    project.ext.npmDependencies = []
+}
+
+project.ext.npmDependencies += """ "kotlinx-coroutines-js": "${coroutines_version}" """
+
 compileKotlinJs {
     kotlinOptions.metaInfo = true
     kotlinOptions.sourceMap = true
@@ -100,6 +106,8 @@ task testMochaNode(type: NodeTask, dependsOn: prepareMocha) {
 
 npmInstall.dependsOn assembleWeb
 jsTest.dependsOn testMochaNode
+
+apply from: rootProject.file('gradle/publish-npm.gradle')
 
 if (!project.hasProperty("teamcity") || project.hasProperty("enable-js-tests")) {
     jsTest.dependsOn testMochaChrome

@@ -1,0 +1,31 @@
+
+static distTag(version) {
+    def i = version.indexOf('-')
+    if (i > 0) return version.substring(i + 1)
+    return "latest"
+}
+
+def npmTemplateDir = file("$rootDir/gradle/npm-template")
+def npmDeployDir = file("$buildDir/npm")
+def npmDeployTag = distTag(version)
+
+def authToken = project.hasProperty('NPM_TOKEN') ? project.property('NPM_TOKEN') : System.getenv('NPM_TOKEN')
+
+// Note: publish transformed files using dependency on sourceSets.main.output
+afterEvaluate {
+    task preparePublishNpm(type: Copy) {
+        from(npmTemplateDir) {
+            project.ext.npmDependencies = project.properties.npmDependencies.join(",\n")
+            expand(project.properties + [kotlinDependency: "\"kotlin\": \"$kotlin_version\""])
+        }
+        from(compileKotlinJs.destinationDir)
+        into npmDeployDir
+    }
+
+    preparePublishNpm.outputs.upToDateWhen { false }
+
+    task publishNpm(type: NpmTask, dependsOn: preparePublishNpm) {
+        workingDir = npmDeployDir
+        args = ['publish', "--//registry.npmjs.org/:_authToken=$authToken", "--tag=$npmDeployTag"]
+    }
+}
