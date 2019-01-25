@@ -45,10 +45,12 @@ public abstract class kotlinx/io/core/AbstractOutput : kotlinx/io/core/BytePacke
 	public fun <init> ()V
 	public fun <init> (Lkotlinx/io/pool/ObjectPool;)V
 	public synthetic fun <init> (Lkotlinx/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun close ()V
-	public abstract fun flush ()V
+	public final fun close ()V
+	protected abstract fun closeDestination ()V
+	public final fun flush ()V
+	protected abstract fun flush (Lkotlinx/io/core/IoBuffer;)V
 	protected final fun getCurrentTail ()Lkotlinx/io/core/IoBuffer;
-	public fun release ()V
+	public final fun release ()V
 	protected final fun setCurrentTail (Lkotlinx/io/core/IoBuffer;)V
 }
 
@@ -546,6 +548,33 @@ public final class kotlinx/io/core/StringsKt {
 	public static final fun writeText (Lkotlinx/io/core/Output;Ljava/lang/CharSequence;IILjava/nio/charset/CharsetEncoder;)V
 	public static synthetic fun writeText$default (Lkotlinx/io/core/Output;Ljava/lang/CharSequence;IILjava/nio/charset/Charset;ILjava/lang/Object;)V
 	public static synthetic fun writeText$default (Lkotlinx/io/core/Output;Ljava/lang/CharSequence;IILjava/nio/charset/CharsetEncoder;ILjava/lang/Object;)V
+}
+
+public final class kotlinx/io/core/UnsignedTypesKt {
+	public static final fun readFully-Hn3XiNM (Lkotlinx/io/core/Input;[JII)V
+	public static synthetic fun readFully-Hn3XiNM$default (Lkotlinx/io/core/Input;[JIIILjava/lang/Object;)V
+	public static final fun readFully-Yjx-SNk (Lkotlinx/io/core/Input;[BII)V
+	public static synthetic fun readFully-Yjx-SNk$default (Lkotlinx/io/core/Input;[BIIILjava/lang/Object;)V
+	public static final fun readFully-_44sl1A (Lkotlinx/io/core/Input;[SII)V
+	public static synthetic fun readFully-_44sl1A$default (Lkotlinx/io/core/Input;[SIIILjava/lang/Object;)V
+	public static final fun readFully-wOR3gME (Lkotlinx/io/core/Input;[III)V
+	public static synthetic fun readFully-wOR3gME$default (Lkotlinx/io/core/Input;[IIIILjava/lang/Object;)V
+	public static final fun readUByte (Lkotlinx/io/core/Input;)B
+	public static final fun readUInt (Lkotlinx/io/core/Input;)I
+	public static final fun readULong (Lkotlinx/io/core/Input;)J
+	public static final fun readUShort (Lkotlinx/io/core/Input;)S
+	public static final fun writeFully-5YrZhAk (Lkotlinx/io/core/Output;[III)V
+	public static synthetic fun writeFully-5YrZhAk$default (Lkotlinx/io/core/Output;[IIIILjava/lang/Object;)V
+	public static final fun writeFully-EgFVB10 (Lkotlinx/io/core/Output;[SII)V
+	public static synthetic fun writeFully-EgFVB10$default (Lkotlinx/io/core/Output;[SIIILjava/lang/Object;)V
+	public static final fun writeFully-HSHaXEY (Lkotlinx/io/core/Output;[BII)V
+	public static synthetic fun writeFully-HSHaXEY$default (Lkotlinx/io/core/Output;[BIIILjava/lang/Object;)V
+	public static final fun writeFully-OjWY3pY (Lkotlinx/io/core/Output;[JII)V
+	public static synthetic fun writeFully-OjWY3pY$default (Lkotlinx/io/core/Output;[JIIILjava/lang/Object;)V
+	public static final fun writeUByte-DNbBI8I (Lkotlinx/io/core/Output;B)V
+	public static final fun writeUInt-MK4Q_rY (Lkotlinx/io/core/Output;I)V
+	public static final fun writeULong-lectD24 (Lkotlinx/io/core/Output;J)V
+	public static final fun writeUShort-ONiEYYE (Lkotlinx/io/core/Output;S)V
 }
 
 public final class kotlinx/io/core/UseKt {
