@@ -469,6 +469,11 @@ open class StringsTest {
         }
     }
 
+    @Test
+    fun testStringCtorRange() {
+        assertEquals("@C", String(byteArrayOf(64, 64, 67, 67), length = 2, offset = 1))
+    }
+
     private fun longMultibyteString() = StringBuilder().apply {
         repeat(10_000) {
             append("\uD858\uDE18")
