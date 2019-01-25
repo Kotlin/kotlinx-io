@@ -270,6 +270,7 @@ expect abstract class BytePacketBuilderPlatformBase
  */
 @ExperimentalIoApi
 abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) : BytePacketBuilderPlatformBase(pool) {
+    @Deprecated("Will be removed. Override flush(buffer) properly.")
     protected var currentTail: IoBuffer
         get() = this.tail
         set(newValue) {
@@ -277,24 +278,51 @@ abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) : Byte
         }
 
     /**
+     * An implementation should write the whole [buffer] to the destination. It should never capture the [buffer] instance
+     * longer than this method execution since it will be disposed after return.
+     */
+    protected abstract fun flush(buffer: IoBuffer)
+
+    /**
+     * An implementation should only close the destination.
+     */
+    protected abstract fun closeDestination()
+
+    /**
      * Invoked when a new [buffer] is appended for writing (usually it's empty)
      */
-    abstract override fun last(buffer: IoBuffer)
+    final override fun last(buffer: IoBuffer) {
+        val current = tail
+        tail = buffer
 
-    open override fun release() {
-        if (currentTail != IoBuffer.Empty) {
-            currentTail.release(pool)
-            currentTail = IoBuffer.Empty
+        if (current === IoBuffer.Empty) return
+        try {
+            flush(current)
+        } finally {
+            current.release(pool)
         }
     }
 
-    abstract override fun flush()
+    final override fun release() {
+        val tail = tail
+        this.tail = IoBuffer.Empty
+        tail.release(pool)
+        closeDestination()
+    }
+
+    final override fun flush() {
+        last(IoBuffer.Empty)
+    }
 
     /**
      * Should flush and close the destination
      */
-    open override fun close() {
-        flush()
+    final override fun close() {
+        try {
+            flush()
+        } finally {
+            release()
+        }
     }
 }
 

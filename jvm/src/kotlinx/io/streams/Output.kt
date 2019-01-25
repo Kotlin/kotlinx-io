@@ -5,37 +5,21 @@ import kotlinx.io.pool.*
 import java.io.*
 
 private class OutputStreamAdapter(pool: ObjectPool<IoBuffer>, private val stream: OutputStream) : AbstractOutput(pool) {
-    override fun release() {
-        flush()
-        stream.close()
-    }
-
-    override fun last(buffer: IoBuffer) {
-        val current = currentTail
-        currentTail = buffer
-
-        if (current === IoBuffer.Empty) return
-
+    override fun flush(buffer: IoBuffer) {
         val array = ByteArrayPool.borrow()
         try {
-            while (current.canRead()) {
-                val rc = current.readAvailable(array)
+            while (buffer.canRead()) {
+                val rc = buffer.readAvailable(array)
                 if (rc > 0) {
                     stream.write(array, 0, rc)
                 }
             }
         } finally {
             ByteArrayPool.recycle(array)
-            current.release(pool)
         }
     }
 
-    override fun flush() {
-        last(IoBuffer.Empty)
-    }
-
-    override fun close() {
-        flush()
+    override fun closeDestination() {
         stream.close()
     }
 }
