@@ -5,7 +5,7 @@ task prepareIdeInterop(type: Copy) {
         from "build/classes/kotlin/macosX64"
     }
 
-    into "build/classes/kotlin/posix"
+    into "build/classes/kotlin/native"
 }
 
 configure([assemble]) {
