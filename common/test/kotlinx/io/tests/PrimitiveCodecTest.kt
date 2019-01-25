@@ -29,6 +29,14 @@ class PrimitiveCodecTest {
     }
 
     @Test
+    fun testUByte() {
+        builder.writeUByte(0xfeu)
+        assertEquals(1, builder.size)
+        val packet = builder.build()
+        assertEquals(0xfeu, packet.readUByte())
+    }
+
+    @Test
     fun testWriteShortLE() {
         builder.byteOrder = ByteOrder.LITTLE_ENDIAN
         builder.writeShort(0x1100)
@@ -87,6 +95,14 @@ class PrimitiveCodecTest {
         assertEquals(0x1122, p.readShort())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
+    }
+
+    @Test
+    fun testUShort() {
+        builder.byteOrder = ByteOrder.BIG_ENDIAN
+        builder.writeUShort(0xfefcu)
+        val packet = builder.build()
+        assertEquals(0xfefcu, packet.readUShort())
     }
 
     @Test
@@ -156,6 +172,14 @@ class PrimitiveCodecTest {
         assertEquals(0x11223344, p.readInt())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
+    }
+
+    @Test
+    fun testUInt() {
+        builder.byteOrder = ByteOrder.BIG_ENDIAN
+        builder.writeUInt(0xfefcfbfau)
+        val packet = builder.build()
+        assertEquals(0xfefcfbfau, packet.readUInt())
     }
 
     @Test
@@ -241,6 +265,14 @@ class PrimitiveCodecTest {
         assertEquals(0x112233440a0b0c0dL, p.readLong())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
+    }
+
+    @Test
+    fun testULong() {
+        builder.byteOrder = ByteOrder.BIG_ENDIAN
+        builder.writeULong(0xfffefdfcfbfaf9f8u)
+        val packet = builder.build()
+        assertEquals(0xfffefdfcfbfaf9f8u, packet.readULong())
     }
 
     @Test
