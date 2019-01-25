@@ -12,7 +12,10 @@ actual abstract class Charset(internal val _name: String) {
     actual companion object {
         actual fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
-            throw IllegalArgumentException("Charset $name is not supported")
+            if (name == "ISO-8859-1" || name == "iso-8859-1") return Charsets.ISO_8859_1
+            if (name == "UTF-16" || name == "utf-16" || name == "UTF16" || name == "utf16") return Charsets.UTF_16
+
+            return CharsetImpl(name)
         }
     }
 }
@@ -20,7 +23,7 @@ actual abstract class Charset(internal val _name: String) {
 private class CharsetImpl(name: String) : Charset(name) {
     init {
         val v = iconv_open(name, "UTF-8")
-        checkErrors(v, "UTF-8")
+        checkErrors(v, name)
         iconv_close(v)
     }
 
@@ -327,6 +330,8 @@ private external fun fromCharArray(array: CharArray, start: Int, size: Int): Str
 
 actual object Charsets {
     actual val UTF_8: Charset = CharsetImpl("UTF-8")
+    val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
+    internal val UTF_16: Charset = CharsetImpl(platformUtf16)
 }
 
 actual class MalformedInputException actual constructor(message: String) : Throwable(message)
