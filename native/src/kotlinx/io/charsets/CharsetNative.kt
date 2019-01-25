@@ -54,10 +54,12 @@ private fun iconvCharsetName(name: String) = when (name) {
     else -> name
 }
 
+private val negativePointer = (-1L).toCPointer<IntVar>()
+
 private fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
-    @Suppress("UNCHECKED_CAST")
-    val error = (iconvOpenResults!! as CPointer<IntVar>).pointed
-    if (error.value == -1) throw IllegalArgumentException("Failed to open iconv for charset $charset with error ${posix_errno()}")
+    if (iconvOpenResults == null || iconvOpenResults === negativePointer) {
+        throw IllegalArgumentException("Failed to open iconv for charset $charset with error code ${posix_errno()}")
+    }
 }
 
 actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =

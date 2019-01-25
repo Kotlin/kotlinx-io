@@ -18,4 +18,13 @@ class CharsetsTest {
     fun testLatin1() {
         Charset.forName("Latin1").newEncoder().encode("test").release()
     }
+
+    @Test
+    fun testNonExisting() {
+        try {
+            Charset.forName("abracadabra-encoding")
+            fail("abracadabra-encoding is not supported so should fail")
+        } catch (expected: IllegalArgumentException) {
+        }
+    }
 }
