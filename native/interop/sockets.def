@@ -11,8 +11,19 @@ int strerror_r(int error, void * buf, size_t buflen) {
     return strerror_s(buf, buflen, error);
 }
 
+int kx_internal_is_non_blocking(int fd) {
+    return 0;
+}
+
 #else
+#include <fcntl.h>
+
 typedef int KX_SOCKET;
 typedef unsigned int KX_SOCKADDR_LEN;
+
+int kx_internal_is_non_blocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    return flags & O_NONBLOCK;
+}
 
 #endif

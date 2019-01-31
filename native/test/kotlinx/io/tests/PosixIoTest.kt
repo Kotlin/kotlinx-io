@@ -54,6 +54,28 @@ class PosixIoTest {
     }
 
     @Test
+    fun testInputOutputForFileDescriptor() {
+        Output(open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")).use { out ->
+            out.append("test")
+        }
+
+        Input(open(filename, O_RDONLY).checkError("open(R)")).use { input ->
+            assertEquals("test", input.readText())
+        }
+    }
+
+    @Test
+    fun testInputOutputForFileInstance() {
+        Output(fopen(filename, "w")!!).use { out ->
+            out.append("test")
+        }
+
+        Input(fopen(filename, "r")!!).use { input ->
+            assertEquals("test", input.readText())
+        }
+    }
+
+    @Test
     fun testSendRecvFunctions(): Unit = memScoped {
         kx_init_sockets().let { rc ->
             if (rc == 0) {
