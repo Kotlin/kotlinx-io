@@ -81,6 +81,7 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
     class PosixErrnoException(errno: Int, message: String) : PosixException(errno, "$message ($errno)")
 
     companion object {
+        @ExperimentalIoApi
         fun forErrno(errno: Int = platform.posix.errno, action: String = ""): PosixException = memScoped {
             val message = strerror(errno) + ": " + action
             when (errno) {
