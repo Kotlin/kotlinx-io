@@ -156,12 +156,10 @@ inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
             if (!block(current)) {
                 break
             }
-            val next = prepareReadNextHead(current)
-            if (next == null) {
-                release = false
-                break
-            }
+            release = false
+            val next = prepareReadNextHead(current) ?: break
             current = next
+            release = true
         } while (true)
     } finally {
         if (release) {
@@ -198,6 +196,8 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
                 after = before
             }
 
+            release = false
+
             val next = when {
                 after == 0 -> prepareReadNextHead(current)
                 after < size || current.endGap < ByteReadPacketBase.ReservedSize -> {
@@ -213,6 +213,7 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
             }
 
             current = next
+            release = true
         } while (size > 0)
     } finally {
         if (release) {
