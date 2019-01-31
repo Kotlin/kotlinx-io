@@ -49,10 +49,10 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
      * `true` if no bytes available for read
      */
     val isEmpty: Boolean
-        get() = headRemaining == 0 && tailRemaining == 0L
+        get() = headRemaining == 0 && tailRemaining == 0L && noMoreChunksAvailable
 
     val isNotEmpty: Boolean
-        get() = headRemaining > 0 || tailRemaining > 0L
+        get() = headRemaining > 0 || tailRemaining > 0L || !noMoreChunksAvailable
 
     private var noMoreChunksAvailable = false
     override val endOfInput: Boolean
@@ -473,7 +473,8 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
      */
     fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
         if (min == 0 && (max == 0 || isEmpty)) return ""
-        if (max.toLong() >= remaining) return readTextExactBytes(bytes = remaining.toInt())
+        val remaining = remaining
+        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytes = remaining.toInt())
 
         return buildString(min.coerceAtLeast(16).coerceAtMost(max)) {
             readASCII(this, min, max)
