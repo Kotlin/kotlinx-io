@@ -72,6 +72,9 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
     class AddressAlreadyInUseException(message: String) : IOException(EADDRINUSE, message)
 
     @ExperimentalIoApi
+    class NoSuchFileException(message: String) : IOException(ENOENT, message)
+
+    @ExperimentalIoApi
     class OverflowException(message: String) : PosixException(EOVERFLOW, message)
 
     @ExperimentalIoApi
@@ -101,6 +104,7 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
                 ENOMEM -> NoMemoryException(message)
                 ENOTSOCK -> NotSocketException(message)
                 EADDRINUSE -> AddressAlreadyInUseException(message)
+                ENOENT -> NoSuchFileException(message)
                 else -> PosixErrnoException(errno, message)
             }
         }
