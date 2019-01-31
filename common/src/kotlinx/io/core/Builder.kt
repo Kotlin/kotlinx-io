@@ -306,7 +306,9 @@ abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) : Byte
     final override fun release() {
         val tail = tail
         this.tail = IoBuffer.Empty
-        tail.release(pool)
+        if (tail !== IoBuffer.Empty) {
+            tail.release(pool)
+        }
         closeDestination()
     }
 
