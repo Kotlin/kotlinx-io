@@ -20,6 +20,8 @@ fun Output(fileDescriptor: Int): Output = PosixFileDescriptorOutput(fileDescript
 fun Output(file: CPointer<FILE>): Output = PosixFileInstanceOutput(file)
 
 private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutput() {
+    private var closed = false
+
     init {
         check(fileDescriptor >= 0) { "Illegal fileDescriptor: $fileDescriptor" }
         check(kx_internal_is_non_blocking(fileDescriptor) == 0) { "File descriptor is in O_NONBLOCK mode." }
@@ -34,11 +36,21 @@ private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutpu
     }
 
     override fun closeDestination() {
-        close(fileDescriptor)
+        if (closed) return
+        closed = true
+
+        if (close(fileDescriptor) != 0) {
+            val error = errno
+            if (error != EBADF) { // EBADF is already closed or not opened
+                throw PosixException.forErrno(error)
+            }
+        }
     }
 }
 
 private class PosixFileInstanceOutput(val file: CPointer<FILE>) : AbstractOutput() {
+    private var closed = false
+
     override fun flush(buffer: IoBuffer) {
         while (buffer.canRead()) {
             if (fwrite(buffer, file) == ZERO) {
@@ -48,6 +60,11 @@ private class PosixFileInstanceOutput(val file: CPointer<FILE>) : AbstractOutput
     }
 
     override fun closeDestination() {
-        fclose(file)
+        if (closed) return
+        closed = true
+
+        if (fclose(file) != 0) {
+            throw PosixException.forErrno()
+        }
     }
 }

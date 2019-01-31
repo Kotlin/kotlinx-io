@@ -21,6 +21,7 @@ private const val SZERO: ssize_t = 0
 private const val ZERO: size_t = 0u
 
 private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInput() {
+    private var closed = false
     init {
         check(fileDescriptor >= 0) { "Illegal fileDescriptor: $fileDescriptor" }
         check(kx_internal_is_non_blocking(fileDescriptor) == 0) { "File descriptor is in O_NONBLOCK mode." }
@@ -44,11 +45,21 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
     }
 
     override fun closeSource() {
-        close(fileDescriptor)
+        if (closed) return
+        closed = true
+
+        if (close(fileDescriptor) != 0) {
+            val error = errno
+            if (error != EBADF) { // EBADF is already closed or not opened
+                throw PosixException.forErrno(error)
+            }
+        }
     }
 }
 
 private class PosixInputForFile(val file: CPointer<FILE>) : AbstractInput() {
+    private var closed = false
+
     override fun fill(): IoBuffer? {
         val buffer = pool.borrow()
         buffer.reserveEndGap(ReservedSize)
@@ -65,6 +76,11 @@ private class PosixInputForFile(val file: CPointer<FILE>) : AbstractInput() {
     }
 
     override fun closeSource() {
-        fclose(file)
+        if (closed) return
+        closed = true
+
+        if (fclose(file) != 0) {
+            throw PosixException.forErrno()
+        }
     }
 }

@@ -195,6 +195,52 @@ class PosixIoTest {
         close_socket(acceptor)
     }
 
+    @Test
+    fun testInputDoubleCloseFD() {
+        val fd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        val input = Input(fd)
+        close(fd)
+        input.close()
+    }
+
+    @Test
+    fun testInputDoubleCloseFD2() {
+        val fd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        val input = Input(fd)
+        input.close()
+        input.close()
+    }
+
+    @Test
+    fun testInputDoubleCloseFILE() {
+        val input = Input(fopen(filename, "w")!!)
+        input.close()
+        input.close()
+    }
+
+    @Test
+    fun testOutputDoubleCloseFD() {
+        val fd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        val output = Output(fd)
+        close(fd)
+        output.close()
+    }
+
+    @Test
+    fun testOutputDoubleCloseFD2() {
+        val fd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        val output = Output(fd)
+        output.close()
+        output.close()
+    }
+
+    @Test
+    fun testOutputDoubleCloseFILE() {
+        val output = Output(fopen(filename, "w")!!)
+        output.close()
+        output.close()
+    }
+
     private inline fun Int.use(block: (Int) -> Unit) {
         checkError()
         try {
