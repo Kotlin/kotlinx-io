@@ -280,6 +280,7 @@ abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) : Byte
     /**
      * An implementation should write the whole [buffer] to the destination. It should never capture the [buffer] instance
      * longer than this method execution since it will be disposed after return.
+     * There is no need to follow [buffer]'s next chunk: this function is invoked for every chunk.
      */
     protected abstract fun flush(buffer: IoBuffer)
 

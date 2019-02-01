@@ -8,6 +8,7 @@ import kotlinx.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
+@DangerousInternalIoApi
 abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
                                   remaining: Long = head.remainingAll(),
                                   val pool: ObjectPool<IoBuffer>) : Input {
@@ -752,10 +753,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     }
 
     /**
-     * Reads the next chunk suitable for reading or `null` if no more chunks available
+     * Reads the next chunk suitable for reading or `null` if no more chunks available. It is also allowed
+     * to return a chain of chunks linked through [IoBuffer.next]. The last chunk should have `null` next reference.
+     * Could rethrow exceptions from the underlying source.
      */
     protected abstract fun fill(): IoBuffer?
 
+    /**
+     * Should close the underlying bytes source. Could do nothing or throw exceptions.
+     */
     protected abstract fun closeSource()
 
     internal fun markNoMoreChunksAvailable() {

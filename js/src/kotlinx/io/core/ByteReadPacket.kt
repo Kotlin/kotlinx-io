@@ -1,10 +1,12 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 import org.khronos.webgl.*
 
+@DangerousInternalIoApi
 actual abstract class ByteReadPacketPlatformBase
-    protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketBase(head, remaining, pool), Input {
+protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketBase(head, remaining, pool), Input {
 
     override fun readFully(dst: Int8Array, offset: Int, length: Int) {
         if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")

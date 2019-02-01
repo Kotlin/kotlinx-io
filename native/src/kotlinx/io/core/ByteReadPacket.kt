@@ -2,7 +2,10 @@ package kotlinx.io.core
 
 import kotlinx.io.pool.*
 import kotlinx.cinterop.*
+import kotlinx.io.core.internal.*
+import kotlin.require
 
+@DangerousInternalIoApi
 actual abstract class ByteReadPacketPlatformBase protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketBase(head, remaining, pool), Input {
 
     override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {

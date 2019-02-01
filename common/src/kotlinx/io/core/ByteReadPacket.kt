@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
 expect class ByteReadPacket internal constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) :
@@ -12,12 +13,12 @@ expect class ByteReadPacket internal constructor(head: IoBuffer, remaining: Long
     }
 }
 
+@DangerousInternalIoApi
 expect abstract class ByteReadPacketPlatformBase protected constructor(
     head: IoBuffer,
     remaining: Long,
     pool: ObjectPool<IoBuffer>
-) : ByteReadPacketBase {
-}
+) : ByteReadPacketBase
 
 /**
  * The default abstract base class for implementing [Input] interface.
@@ -29,7 +30,16 @@ abstract class AbstractInput(
     remaining: Long = head.remainingAll(),
     pool: ObjectPool<IoBuffer> = IoBuffer.Pool
 ) : ByteReadPacketPlatformBase(head, remaining, pool) {
+    /**
+     * Reads the next chunk suitable for reading or `null` if no more chunks available. It is also allowed
+     * to return a chain of chunks linked through [IoBuffer.next]. The last chunk should have `null` next reference.
+     * Could rethrow exceptions from the underlying source.
+     */
     abstract override fun fill(): IoBuffer?
+
+    /**
+     * Should close the underlying bytes source. Could do nothing or throw exceptions.
+     */
     abstract override fun closeSource()
 }
 

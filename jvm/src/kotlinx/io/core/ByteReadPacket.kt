@@ -1,8 +1,11 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 import java.nio.*
+import kotlin.require
 
+@DangerousInternalIoApi
 actual abstract class ByteReadPacketPlatformBase protected actual constructor(
     head: IoBuffer,
     remaining: Long,
