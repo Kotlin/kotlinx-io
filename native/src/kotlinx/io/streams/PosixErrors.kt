@@ -6,15 +6,15 @@ import kotlinx.io.internal.utils.*
 import platform.posix.*
 
 private const val ZERO: size_t = 0u
-private val s: KX_SOCKET = 0.convert() // do not remove! This is required to hold star import
+private val s: KX_SOCKET = 0.convert() // do not remove! This is required to hold star import for strerror_r
 
 internal fun Int.checkError(action: String = ""): Int = when {
-    this < 0 -> memScoped { throw PosixException.forErrno(action = action) }
+    this < 0 -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
     else -> this
 }
 
 internal fun Long.checkError(action: String = ""): Long = when {
-    this < 0 -> memScoped { throw PosixException.forErrno(action = action) }
+    this < 0 -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
     else -> this
 }
 
@@ -22,13 +22,31 @@ internal fun size_t.checkError(action: String = ""): size_t = when (this) {
     ZERO -> errno.let { errno ->
         when (errno) {
             0 -> this
-            else -> memScoped { throw PosixException.forErrno(action = action) }
+            else -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
         }
     }
     else -> this
 }
 
-typealias IOException = PosixException.IOException
+private val KnownPosixErrors = mapOf<Int, String>(
+    EBADF to "EBADF",
+    EWOULDBLOCK to "EWOULDBLOCK",
+    EAGAIN to "EAGAIN",
+    EBADMSG to "EBADMSG",
+    EINTR to "EINTR",
+    EINVAL to "EINVAL",
+    EIO to "EIO",
+    ECONNREFUSED to "ECONNREFUSED",
+    ECONNABORTED to "ECONNABORTED",
+    ECONNRESET to "ECONNRESET",
+    ENOTCONN to "ENOTCONN",
+    ETIMEDOUT to "ETIMEDOUT",
+    EOVERFLOW to "EOVERFLOW",
+    ENOMEM to "ENOMEM",
+    ENOTSOCK to "ENOTSOCK",
+    EADDRINUSE to "EADDRINUSE",
+    ENOENT to "ENOENT"
+)
 
 @ExperimentalIoApi
 sealed class PosixException(val errno: Int, message: String) : Exception(message) {
@@ -85,8 +103,18 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
 
     companion object {
         @ExperimentalIoApi
-        fun forErrno(errno: Int = platform.posix.errno, action: String = ""): PosixException = memScoped {
-            val message = strerror(errno) + ": " + action
+        fun forErrno(errno: Int = platform.posix.errno, posixFunctionName: String? = null): PosixException = memScoped {
+            val posixConstantName = KnownPosixErrors[errno]
+            val posixErrorCodeMessage = when {
+                posixConstantName == null -> "POSIX error $errno"
+                else -> "$posixConstantName ($errno)"
+            }
+
+            val message = when {
+                posixFunctionName.isNullOrBlank() -> posixErrorCodeMessage + ": " + strerror(errno)
+                else -> "$posixFunctionName failed, $posixErrorCodeMessage: ${strerror(errno)}"
+            }
+
             when (errno) {
                 EBADF -> BadFileDescriptorException(message)
                 @Suppress("DUPLICATE_LABEL_IN_WHEN")
@@ -110,6 +138,9 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
         }
     }
 }
+
+internal fun PosixException.wrapIO(): IOException =
+    IOException("I/O operation failed due to posix error code $errno", this)
 
 private tailrec fun MemScope.strerror(errno: Int, size: size_t = 8192.convert()): String {
     val message = allocArray<ByteVar>(size.toLong())

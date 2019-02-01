@@ -30,7 +30,7 @@ private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutpu
     override fun flush(buffer: IoBuffer) {
         while (buffer.canRead()) {
             if (write(fileDescriptor, buffer) <= 0) {
-                throw PosixException.forErrno()
+                throw PosixException.forErrno(posixFunctionName = "write()").wrapIO()
             }
         }
     }
@@ -42,7 +42,7 @@ private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutpu
         if (close(fileDescriptor) != 0) {
             val error = errno
             if (error != EBADF) { // EBADF is already closed or not opened
-                throw PosixException.forErrno(error)
+                throw PosixException.forErrno(error, posixFunctionName = "close()").wrapIO()
             }
         }
     }
@@ -54,7 +54,7 @@ private class PosixFileInstanceOutput(val file: CPointer<FILE>) : AbstractOutput
     override fun flush(buffer: IoBuffer) {
         while (buffer.canRead()) {
             if (fwrite(buffer, file) == ZERO) {
-                throw PosixException.forErrno()
+                throw PosixException.forErrno(posixFunctionName = "fwrite()").wrapIO()
             }
         }
     }
@@ -64,7 +64,7 @@ private class PosixFileInstanceOutput(val file: CPointer<FILE>) : AbstractOutput
         closed = true
 
         if (fclose(file) != 0) {
-            throw PosixException.forErrno()
+            throw PosixException.forErrno(posixFunctionName = "fclose").wrapIO()
         }
     }
 }

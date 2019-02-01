@@ -38,7 +38,7 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
         }
         if (size < 0) {
             buffer.release(pool)
-            throw PosixException.forErrno()
+            throw PosixException.forErrno(posixFunctionName = "read()").wrapIO()
         }
 
         return buffer
@@ -51,7 +51,7 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
         if (close(fileDescriptor) != 0) {
             val error = errno
             if (error != EBADF) { // EBADF is already closed or not opened
-                throw PosixException.forErrno(error)
+                throw PosixException.forErrno(error, "close()").wrapIO()
             }
         }
     }
@@ -69,7 +69,7 @@ private class PosixInputForFile(val file: CPointer<FILE>) : AbstractInput() {
             buffer.release(pool)
 
             if (feof(file) != 0) return null
-            throw PosixException.forErrno(action = "read()")
+            throw PosixException.forErrno(posixFunctionName = "read()").wrapIO()
         }
 
         return buffer
@@ -80,7 +80,7 @@ private class PosixInputForFile(val file: CPointer<FILE>) : AbstractInput() {
         closed = true
 
         if (fclose(file) != 0) {
-            throw PosixException.forErrno()
+            throw PosixException.forErrno(posixFunctionName = "fclose()").wrapIO()
         }
     }
 }
