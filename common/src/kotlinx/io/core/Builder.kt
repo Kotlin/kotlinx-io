@@ -293,15 +293,27 @@ abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) : Byte
      * Invoked when a new [buffer] is appended for writing (usually it's empty)
      */
     final override fun last(buffer: IoBuffer) {
-        val current = tail
+        var current = tail
         tail = buffer
 
         if (current === IoBuffer.Empty) return
-        try {
-            flush(current)
-        } finally {
-            current.release(pool)
-        }
+
+        do {
+            val next = current.next
+            current.next = null
+
+            try {
+                flush(current)
+            } catch (t: Throwable) {
+                next?.releaseAll(pool)
+                throw t
+            } finally {
+                current.release(pool)
+            }
+
+            if (next == null) break
+            current = next
+        } while (true)
     }
 
     final override fun release() {
