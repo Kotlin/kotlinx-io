@@ -261,6 +261,10 @@ public final class kotlinx/io/core/CloseableKt {
 	public static final fun use (Ljava/io/Closeable;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class kotlinx/io/core/CopyKt {
+	public static final fun copyTo (Lkotlinx/io/core/Input;Lkotlinx/io/core/Output;)J
+}
+
 public abstract interface annotation class kotlinx/io/core/ExperimentalIoApi : java/lang/annotation/Annotation {
 }
 
