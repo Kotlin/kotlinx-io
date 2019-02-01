@@ -269,8 +269,6 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     }
 
     final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
-        if (remaining < length * 2) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length short integers")
-
         var copied = 0
         takeWhile { buffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
@@ -278,19 +276,24 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             copied += rc
             copied < length
         }
+
+        if (copied != length) {
+            throw EOFException("Not enough bytes available to read $length short integers, $copied were copied")
+        }
     }
 
     final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
         val remaining = remaining
-        if (remaining == 0L) return -1
+        if (remaining == 0L) {
+            if (doFill() == null) return -1
+            return readAvailable(dst, offset, length)
+        }
         val size = minOf(remaining, length.toLong()).toInt()
         readFully(dst, offset, size)
         return size
     }
 
     final override fun readFully(dst: IntArray, offset: Int, length: Int) {
-        if (remaining < length * 4) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length integers")
-
         var copied = 0
         takeWhile { buffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
@@ -298,19 +301,24 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             copied += rc
             copied < length
         }
+
+        if (copied != length) {
+            throw EOFException("Not enough bytes available to read $length integers, $copied were copied")
+        }
     }
 
     final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
         val remaining = remaining
-        if (remaining == 0L) return -1
+        if (remaining == 0L) {
+            if (doFill() == null) return -1
+            return readAvailable(dst, offset, length)
+        }
         val size = minOf(remaining, length.toLong()).toInt()
         readFully(dst, offset, size)
         return size
     }
 
     final override fun readFully(dst: LongArray, offset: Int, length: Int) {
-        if (remaining < length * 8) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length long integers")
-
         var copied = 0
         takeWhile { buffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
@@ -318,19 +326,24 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             copied += rc
             copied < length
         }
+
+        if (copied != length) {
+            throw EOFException("Not enough bytes available to read $length long integers, $copied were copied")
+        }
     }
 
     final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
         val remaining = remaining
-        if (remaining == 0L) return -1
+        if (remaining == 0L) {
+            if (doFill() == null) return -1
+            return readAvailable(dst, offset, length)
+        }
         val size = minOf(remaining, length.toLong()).toInt()
         readFully(dst, offset, size)
         return size
     }
 
     final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
-        if (remaining < length * 4) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length float numbers")
-
         var copied = 0
         takeWhile { buffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
@@ -338,19 +351,24 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             copied += rc
             copied < length
         }
+
+        if (copied != length) {
+            throw EOFException("Not enough bytes available to read $length float numbers, $copied were copied")
+        }
     }
 
     final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
         val remaining = remaining
-        if (remaining == 0L) return -1
+        if (remaining == 0L) {
+            if (doFill() == null) return -1
+            return readAvailable(dst, offset, length)
+        }
         val size = minOf(remaining, length.toLong()).toInt()
         readFully(dst, offset, size)
         return size
     }
 
     final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
-        if (remaining < length.toLong() * 8) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length double float numbers")
-
         var copied = 0
         takeWhile { buffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
@@ -358,18 +376,24 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             copied += rc
             copied < length
         }
+
+        if (copied != length) {
+            throw EOFException("Not enough bytes available to read $length double numbers, $copied were copied")
+        }
     }
 
     final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
         val remaining = remaining
-        if (remaining == 0L) return -1
+        if (remaining == 0L) {
+            if (doFill() == null) return -1
+            return readAvailable(dst, offset, length)
+        }
         val size = minOf(remaining, length.toLong()).toInt()
         readFully(dst, offset, size)
         return size
     }
 
     final override fun readFully(dst: IoBuffer, length: Int) {
-        if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
         require(length <= dst.writeRemaining) { "Not enough free space in destination buffer to write $length bytes" }
 
         var copied = 0
@@ -378,11 +402,18 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             if (rc > 0) copied += rc
             copied < length
         }
+
+        if (copied != length) {
+            throw EOFException("Not enough bytes available to read $length bytes, $copied were copied")
+        }
     }
 
     final override fun readAvailable(dst: IoBuffer, length: Int): Int {
         val remaining = remaining
-        if (remaining == 0L) return -1
+        if (remaining == 0L) {
+            if (doFill() == null) return -1
+            return readAvailable(dst, length)
+        }
         val size = minOf(remaining, length.toLong(), dst.writeRemaining.toLong()).toInt()
         readFully(dst, size)
         return size
