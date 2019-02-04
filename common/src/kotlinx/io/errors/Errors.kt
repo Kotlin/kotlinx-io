@@ -1,4 +1,4 @@
-package kotlinx.io.core
+package kotlinx.io.errors
 
 expect class IOException(message: String, cause: Throwable?) : Exception {
     constructor(message: String)
