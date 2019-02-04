@@ -52,7 +52,11 @@ internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<Io
     }
 
     actual companion object {
-        actual val Empty get() = ByteReadPacketBase.Empty
-        actual val ReservedSize get() = ByteReadPacketBase.ReservedSize
+        actual val Empty: ByteReadPacket
+            get() = ByteReadPacket(IoBuffer.Empty, object : NoPoolImpl<IoBuffer>() {
+                override fun borrow() = IoBuffer.Empty
+            })
+
+        actual inline val ReservedSize get() = IoBuffer.ReservedSize
     }
 }

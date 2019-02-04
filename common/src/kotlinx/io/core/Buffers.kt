@@ -214,6 +214,13 @@ expect class IoBuffer : Input, Output {
 
     companion object {
         /**
+         * Number of bytes usually reserved in the end of chunk
+         * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
+         * or [BytePacketBuilder])
+         */
+        val ReservedSize: Int
+
+        /**
          * The empty buffer singleton: it has zero capacity for read and write.
          */
         val Empty: IoBuffer

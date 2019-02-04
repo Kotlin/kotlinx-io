@@ -167,7 +167,7 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
         _size = 0
         head.resetForWrite()
         head.reserveStartGap(headerSizeHint)
-        head.reserveEndGap(ByteReadPacketBase.ReservedSize)
+        head.reserveEndGap(IoBuffer.ReservedSize)
     }
 
     /**
@@ -738,7 +738,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     @PublishedApi
     internal fun appendNewBuffer(): IoBuffer {
         val new = pool.borrow()
-        new.reserveEndGap(ByteReadPacket.ReservedSize)
+        new.reserveEndGap(IoBuffer.ReservedSize)
         new.byteOrder = byteOrder
 
         last(new)

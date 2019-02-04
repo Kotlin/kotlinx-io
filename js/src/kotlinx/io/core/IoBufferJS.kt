@@ -1130,6 +1130,13 @@ actual class IoBuffer internal constructor(
         "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 
     actual companion object {
+        /**
+         * Number of bytes usually reserved in the end of chunk
+         * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
+         * or [BytePacketBuilder])
+         */
+        actual val ReservedSize: Int = 8
+
         private val EmptyBuffer = ArrayBuffer(0)
         private val EmptyDataView = DataView(EmptyBuffer)
         private val Empty8 = Int8Array(0)

@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.IoBuffer.*
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
@@ -659,7 +660,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         val next = current.next ?: return fixGapAfterReadFallback(current)
 
         val remaining = current.readRemaining
-        val overrunSize = minOf(remaining, ReservedSize - current.endGap)
+        val overrunSize = minOf(remaining, IoBuffer.ReservedSize - current.endGap)
         if (next.startGap < overrunSize) return fixGapAfterReadFallback(current)
 
         next.restoreStartGap(overrunSize)
@@ -687,13 +688,13 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         }
 
         val size = current.readRemaining
-        val overrun = minOf(size, ReservedSize - current.endGap)
+        val overrun = minOf(size, IoBuffer.ReservedSize - current.endGap)
 
         if (size > overrun) {
             fixGapAfterReadFallbackUnreserved(current, size, overrun)
         } else {
             val new = pool.borrow()
-            new.reserveEndGap(ReservedSize)
+            new.reserveEndGap(IoBuffer.ReservedSize)
             new.next = current.next
 
             new.writeBufferAppend(current, size)
@@ -712,8 +713,8 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         val chunk1 = pool.borrow()
         val chunk2 = pool.borrow()
 
-        chunk1.reserveEndGap(ByteReadPacketBase.ReservedSize)
-        chunk2.reserveEndGap(ByteReadPacketBase.ReservedSize)
+        chunk1.reserveEndGap(IoBuffer.ReservedSize)
+        chunk2.reserveEndGap(IoBuffer.ReservedSize)
         chunk1.next = chunk2
         chunk2.next = current.next
 
@@ -825,13 +826,13 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         }
 
         if (head.readRemaining >= minSize) return head
-        if (minSize > ReservedSize) minSizeIsTooBig(minSize)
+        if (minSize > IoBuffer.ReservedSize) minSizeIsTooBig(minSize)
 
         return prepareRead(minSize, head)
     }
 
     private fun minSizeIsTooBig(minSize: Int): Nothing {
-        throw IllegalStateException("minSize of $minSize is too big (should be less than $ReservedSize")
+        throw IllegalStateException("minSize of $minSize is too big (should be less than ${IoBuffer.ReservedSize}")
     }
 
     private fun afterRead() {
@@ -853,11 +854,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     }
 
     companion object {
-        val Empty: ByteReadPacket = ByteReadPacket(IoBuffer.Empty, object : NoPoolImpl<IoBuffer>() {
-            override fun borrow() = IoBuffer.Empty
-        })
+        @Deprecated("Use ByteReadPacket.Empty instead", ReplaceWith("ByteReadPacket.Empty"))
+        val Empty: ByteReadPacket
+            get() = ByteReadPacket.Empty
 
-        val ReservedSize: Int = 8
+        @Deprecated(
+            "Use IoBuffer.ReservedSize instead",
+            replaceWith = ReplaceWith("IoBuffer.ReservedSize", "kotlinx.io.core.IoBuffer")
+        )
+        val ReservedSize: Int = IoBuffer.ReservedSize
     }
 }
 

@@ -2,6 +2,7 @@ package kotlinx.io.streams
 
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
+import kotlinx.io.core.IoBuffer.*
 import kotlinx.io.errors.*
 import kotlinx.io.internal.utils.*
 import platform.posix.*
@@ -30,7 +31,7 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
 
     override fun fill(): IoBuffer? {
         val buffer = pool.borrow()
-        buffer.reserveEndGap(ReservedSize)
+        buffer.reserveEndGap(IoBuffer.ReservedSize)
 
         val size = read(fileDescriptor, buffer)
         if (size == SZERO) { // EOF
@@ -63,7 +64,7 @@ private class PosixInputForFile(val file: CPointer<FILE>) : AbstractInput() {
 
     override fun fill(): IoBuffer? {
         val buffer = pool.borrow()
-        buffer.reserveEndGap(ReservedSize)
+        buffer.reserveEndGap(IoBuffer.ReservedSize)
 
         val size = fread(buffer, file)
         if (size == ZERO) {

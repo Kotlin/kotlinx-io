@@ -200,7 +200,7 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
 
             val next = when {
                 after == 0 -> prepareReadNextHead(current)
-                after < size || current.endGap < ByteReadPacketBase.ReservedSize -> {
+                after < size || current.endGap < IoBuffer.ReservedSize -> {
                     completeReadHead(current)
                     prepareReadFirstHead(size)
                 }

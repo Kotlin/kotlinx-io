@@ -1,6 +1,7 @@
 package kotlinx.io.nio
 
 import kotlinx.io.core.*
+import kotlinx.io.core.IoBuffer.*
 import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.channels.*
@@ -13,7 +14,7 @@ private class ChannelAsInput(private val channel: ReadableByteChannel, pool: Obj
 
     override fun fill(): IoBuffer? {
         val buffer: IoBuffer = pool.borrow()
-        buffer.reserveEndGap(ByteReadPacketBase.ReservedSize)
+        buffer.reserveEndGap(IoBuffer.ReservedSize)
 
         try {
             var rc = -1

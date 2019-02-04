@@ -912,6 +912,13 @@ actual class IoBuffer private constructor(
         "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 
     actual companion object {
+        /**
+         * Number of bytes usually reserved in the end of chunk
+         * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
+         * or [BytePacketBuilder])
+         */
+        actual val ReservedSize: Int = 8
+
         private val EmptyBuffer: ByteBuffer = ByteBuffer.allocateDirect(0)
         private val RefCount = AtomicLongFieldUpdater.newUpdater(IoBuffer::class.java, IoBuffer::refCount.name)!!
 

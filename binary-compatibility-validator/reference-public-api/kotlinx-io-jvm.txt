@@ -70,7 +70,9 @@ public final class kotlinx/io/core/BuilderKt {
 
 public final class kotlinx/io/core/ByteBuffersKt {
 	public static final fun readAvailable (Lkotlinx/io/core/ByteReadPacket;Ljava/nio/ByteBuffer;)I
-	public static final fun readDirect (Lkotlinx/io/core/ByteReadPacketBase;ILkotlin/jvm/functions/Function1;)V
+	public static final fun readDirect (Lkotlinx/io/core/AbstractInput;ILkotlin/jvm/functions/Function1;)V
+	public static final fun readDirect (Lkotlinx/io/core/ByteReadPacket;ILkotlin/jvm/functions/Function1;)V
+	public static final synthetic fun readDirect (Lkotlinx/io/core/ByteReadPacketBase;ILkotlin/jvm/functions/Function1;)V
 	public static final fun readFully (Lkotlinx/io/core/ByteReadPacket;Ljava/nio/ByteBuffer;)I
 	public static final fun writeDirect (Lkotlinx/io/core/BytePacketBuilder;ILkotlin/jvm/functions/Function1;)V
 	public static final synthetic fun writeFully (Lkotlinx/io/core/BytePacketBuilder;Ljava/nio/ByteBuffer;)V
@@ -438,6 +440,7 @@ public final class kotlinx/io/core/IoBuffer$Companion {
 	public final fun getEmptyPool ()Lkotlinx/io/pool/ObjectPool;
 	public final fun getNoPool ()Lkotlinx/io/pool/ObjectPool;
 	public final fun getPool ()Lkotlinx/io/pool/ObjectPool;
+	public final fun getReservedSize ()I
 }
 
 public abstract interface class kotlinx/io/core/Output : java/io/Closeable, java/lang/Appendable {
@@ -543,9 +546,11 @@ public final class kotlinx/io/core/StringsKt {
 	public static final fun readUTF8UntilDelimiter (Lkotlinx/io/core/Input;Ljava/lang/String;I)Ljava/lang/String;
 	public static synthetic fun readUTF8UntilDelimiter$default (Lkotlinx/io/core/Input;Ljava/lang/String;IILjava/lang/Object;)Ljava/lang/String;
 	public static final fun readUTF8UntilDelimiterTo (Lkotlinx/io/core/Input;Ljava/lang/Appendable;Ljava/lang/String;I)I
-	public static final fun readUTF8UntilDelimiterTo (Lkotlinx/io/core/Input;Lkotlinx/io/core/BytePacketBuilderBase;Ljava/lang/String;I)I
+	public static final synthetic fun readUTF8UntilDelimiterTo (Lkotlinx/io/core/Input;Lkotlinx/io/core/BytePacketBuilderBase;Ljava/lang/String;I)I
+	public static final fun readUTF8UntilDelimiterTo (Lkotlinx/io/core/Input;Lkotlinx/io/core/Output;Ljava/lang/String;I)I
 	public static synthetic fun readUTF8UntilDelimiterTo$default (Lkotlinx/io/core/Input;Ljava/lang/Appendable;Ljava/lang/String;IILjava/lang/Object;)I
 	public static synthetic fun readUTF8UntilDelimiterTo$default (Lkotlinx/io/core/Input;Lkotlinx/io/core/BytePacketBuilderBase;Ljava/lang/String;IILjava/lang/Object;)I
+	public static synthetic fun readUTF8UntilDelimiterTo$default (Lkotlinx/io/core/Input;Lkotlinx/io/core/Output;Ljava/lang/String;IILjava/lang/Object;)I
 	public static final fun toByteArray (Ljava/lang/String;Ljava/nio/charset/Charset;)[B
 	public static synthetic fun toByteArray$default (Ljava/lang/String;Ljava/nio/charset/Charset;ILjava/lang/Object;)[B
 	public static final fun writeText (Lkotlinx/io/core/Output;Ljava/lang/CharSequence;IILjava/nio/charset/Charset;)V

@@ -55,6 +55,24 @@ inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit)
     }
 }
 
+inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+    read(size) { view ->
+        view.readDirect {
+            block(it)
+        }
+    }
+}
+
+inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+    read(size) { view ->
+        view.readDirect {
+            block(it)
+        }
+    }
+}
+
+@Suppress("unused")
+@Deprecated("Removed", level = DeprecationLevel.HIDDEN)
 inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     read(size) { view ->
         view.readDirect {

@@ -22,7 +22,7 @@ expect abstract class ByteReadPacketPlatformBase protected constructor(
 
 /**
  * The default abstract base class for implementing [Input] interface.
- * @see [ByteReadPacketBase.fill] amd [ByteReadPacketBase.closeSource]
+ * @see [AbstractInput.fill] amd [AbstractInput.closeSource]
  */
 @ExperimentalIoApi
 abstract class AbstractInput(

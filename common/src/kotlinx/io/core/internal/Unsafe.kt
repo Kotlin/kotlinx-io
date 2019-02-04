@@ -1,6 +1,7 @@
 package kotlinx.io.core.internal
 
 import kotlinx.io.core.*
+import kotlinx.io.core.IoBuffer.*
 
 /**
  * API marked with this annotation is internal and extremely fragile and not intended to be used by library users.
@@ -62,7 +63,7 @@ fun Input.completeReadHead(current: IoBuffer) {
         val remaining = current.readRemaining
         if (remaining == 0) {
             ensureNext(current)
-        } else if (current.endGap < ByteReadPacketBase.ReservedSize) {
+        } else if (current.endGap < IoBuffer.ReservedSize) {
             fixGapAfterRead(current)
         } else {
             updateHeadRemaining(remaining)
