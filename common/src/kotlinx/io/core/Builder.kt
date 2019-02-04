@@ -5,8 +5,6 @@ import kotlinx.io.pool.*
 
 expect val PACKET_MAX_COPY_SIZE: Int
 
-//fun BytePacketBuilder() = BytePacketBuilder(0)
-
 /**
  * Build a byte packet in [block] lambda. Creates a temporary builder and releases it in case of failure
  */
@@ -40,7 +38,8 @@ expect fun BytePacketBuilder(headerSizeHint: Int = 0): BytePacketBuilder
  * }
  * ```
  */
-class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuffer>): BytePacketBuilderPlatformBase(pool) {
+class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuffer>) :
+    @Suppress("DEPRECATION") BytePacketBuilderPlatformBase(pool) {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
@@ -262,14 +261,18 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
     }
 }
 
+@DangerousInternalIoApi
+@Deprecated("Will be removed in future releases.")
+@Suppress("DEPRECATION")
 expect abstract class BytePacketBuilderPlatformBase
-    internal constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase
+internal constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase
 
 /**
  * This is the default [Output] implementation
  */
 @ExperimentalIoApi
-abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) : BytePacketBuilderPlatformBase(pool) {
+abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) :
+    @Suppress("DEPRECATION") BytePacketBuilderPlatformBase(pool) {
     @Deprecated("Will be removed. Override flush(buffer) properly.")
     protected var currentTail: IoBuffer
         get() = this.tail
@@ -341,6 +344,9 @@ abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) : Byte
     }
 }
 
+@DangerousInternalIoApi
+@Deprecated("Will be removed in future releases")
+@Suppress("DEPRECATION")
 abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<IoBuffer>) : Appendable, Output {
 
     /**

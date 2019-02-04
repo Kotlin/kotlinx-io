@@ -4,9 +4,15 @@ import kotlinx.io.charsets.*
 import kotlinx.io.core.internal.*
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray = charset.newEncoder().encodeToByteArray(this, 0, length)
+inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray =
+    charset.newEncoder().encodeToByteArray(this, 0, length)
 
-expect fun String(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, charset: Charset = Charsets.UTF_8): String
+expect fun String(
+    bytes: ByteArray,
+    offset: Int = 0,
+    length: Int = bytes.size,
+    charset: Charset = Charsets.UTF_8
+): String
 
 /**
  * Read a string line considering optionally specified [estimate] but up to optional [limit] characters length
@@ -164,7 +170,7 @@ private fun Input.readUTF8UntilDelimiterToSlowUtf8(
  * @throws BufferLimitExceededException
  * @returns number of characters copied (possibly zero)
  */
-fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
+fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     val delimitersCount = delimiters.length
     if (delimitersCount == 1 && delimiters[0].isAsciiChar()) {
         return readUntilDelimiter(delimiters[0].toByte(), out).toInt()
@@ -175,10 +181,16 @@ fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: Strin
     return readUTFUntilDelimiterToSlowAscii(delimiters, limit, out)
 }
 
+@Suppress("unused", "DEPRECATION")
+@Deprecated("Use Output version instead", level = DeprecationLevel.HIDDEN)
+fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
+    return readUTF8UntilDelimiterTo(out as Output, delimiters, limit)
+}
+
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Char.isAsciiChar() = toInt() <= 0x7f
 
-private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: Int, out: BytePacketBuilderBase): Int {
+private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: Int, out: Output): Int {
     var decoded = 0
     var delimiter = false
 
@@ -213,7 +225,7 @@ private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: In
 }
 
 private fun Input.readUTF8UntilDelimiterToSlowUtf8(
-    out: BytePacketBuilderBase,
+    out: Output,
     delimiters: String,
     limit: Int,
     decoded0: Int

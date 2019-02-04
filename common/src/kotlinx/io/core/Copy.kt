@@ -7,6 +7,7 @@ package kotlinx.io.core
  * are always optimized so no bytes will be copied.
  */
 fun Input.copyTo(output: Output): Long {
+    @Suppress("DEPRECATION")
     if (this !is ByteReadPacketBase || output !is BytePacketBuilderBase) {
         // slow-path
         return copyToFallback(output)

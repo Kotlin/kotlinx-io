@@ -106,6 +106,7 @@ private fun Input.prepareNextReadHeadFallback(current: IoBuffer): IoBuffer? {
 
 @DangerousInternalIoApi
 fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
+    @Suppress("DEPRECATION")
     if (this is BytePacketBuilderBase) {
         return prepareWriteHead(capacity)
     }
@@ -125,6 +126,7 @@ private fun Output.prepareWriteHeadFallback(current: IoBuffer?): IoBuffer {
 
 @DangerousInternalIoApi
 fun Output.afterHeadWrite(current: IoBuffer) {
+    @Suppress("DEPRECATION")
     if (this is BytePacketBuilderBase) {
         return afterHeadWrite()
     }
