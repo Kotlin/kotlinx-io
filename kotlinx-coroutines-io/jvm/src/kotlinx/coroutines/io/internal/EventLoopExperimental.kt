@@ -32,7 +32,7 @@ internal sealed class CoroutinesEventLoop {
             clazz?.methods?.singleOrNull {
                 it.name == "processNextEventInCurrentThread"
                     && it.returnType == Long::class.javaPrimitiveType
-                    && it.parameterCount == 0
+                    && it.parameterTypes.isEmpty()
                     && Modifier.isStatic(it.modifiers)
             }
 
