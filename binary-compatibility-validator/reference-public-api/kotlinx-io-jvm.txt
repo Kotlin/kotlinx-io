@@ -1,3 +1,17 @@
+public final class kotlinx/io/bits/ByteOrderJVMKt {
+	public static final fun reverseByteOrder (D)D
+	public static final fun reverseByteOrder (F)F
+	public static final fun reverseByteOrder (I)I
+	public static final fun reverseByteOrder (J)J
+	public static final fun reverseByteOrder (S)S
+}
+
+public final class kotlinx/io/bits/ByteOrderKt {
+	public static final fun reverseByteOrder-VKZWuLQ (J)J
+	public static final fun reverseByteOrder-WZ4Q5Ns (I)I
+	public static final fun reverseByteOrder-xj2QHRw (S)S
+}
+
 public final class kotlinx/io/charsets/CharsetJVMKt {
 	public static final fun decode (Ljava/nio/charset/CharsetDecoder;Lkotlinx/io/core/Input;Ljava/lang/Appendable;I)I
 	public static final fun decodeExactBytes (Ljava/nio/charset/CharsetDecoder;Lkotlinx/io/core/Input;I)Ljava/lang/String;
