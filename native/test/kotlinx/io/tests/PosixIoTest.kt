@@ -2,6 +2,7 @@ package kotlinx.io.tests
 
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
+import kotlinx.io.errors.*
 import kotlinx.io.internal.utils.*
 import kotlinx.io.internal.utils.test.*
 import kotlinx.io.streams.*
@@ -258,4 +259,30 @@ class PosixIoTest {
         ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN -> value
         else -> swap(value.toShort()).toUShort()
     }
+
+    @Suppress("unused")
+    internal fun Int.checkError(action: String = ""): Int = when {
+        this < 0 -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
+        else -> this
+    }
+
+    @Suppress("unused")
+    internal fun Long.checkError(action: String = ""): Long = when {
+        this < 0 -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
+        else -> this
+    }
+
+    private val ZERO: size_t = 0u
+
+    @Suppress("unused")
+    internal fun size_t.checkError(action: String = ""): size_t = when (this) {
+        ZERO -> errno.let { errno ->
+            when (errno) {
+                0 -> this
+                else -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
+            }
+        }
+        else -> this
+    }
+
 }

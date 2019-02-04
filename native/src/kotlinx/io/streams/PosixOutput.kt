@@ -2,6 +2,7 @@ package kotlinx.io.streams
 
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
+import kotlinx.io.errors.*
 import kotlinx.io.internal.utils.*
 import platform.posix.*
 

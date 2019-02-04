@@ -1,32 +1,11 @@
-package kotlinx.io.streams
+package kotlinx.io.errors
 
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
 import kotlinx.io.internal.utils.*
 import platform.posix.*
 
-private const val ZERO: size_t = 0u
 private val s: KX_SOCKET = 0.convert() // do not remove! This is required to hold star import for strerror_r
-
-internal fun Int.checkError(action: String = ""): Int = when {
-    this < 0 -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
-    else -> this
-}
-
-internal fun Long.checkError(action: String = ""): Long = when {
-    this < 0 -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
-    else -> this
-}
-
-internal fun size_t.checkError(action: String = ""): size_t = when (this) {
-    ZERO -> errno.let { errno ->
-        when (errno) {
-            0 -> this
-            else -> memScoped { throw PosixException.forErrno(posixFunctionName = action) }
-        }
-    }
-    else -> this
-}
 
 private val KnownPosixErrors = mapOf<Int, String>(
     EBADF to "EBADF",
@@ -48,13 +27,18 @@ private val KnownPosixErrors = mapOf<Int, String>(
     ENOENT to "ENOENT"
 )
 
+/**
+ * Represents a POSIX error. Could be thrown when a POSIX function returns error code.
+ * @property errno error code that caused this exception
+ * @property message error text
+ */
 @ExperimentalIoApi
 sealed class PosixException(val errno: Int, message: String) : Exception(message) {
     @ExperimentalIoApi
     class BadFileDescriptorException(message: String) : PosixException(EBADF, message)
 
     @ExperimentalIoApi
-    class TryAgainException(message: String) : PosixException(EAGAIN, message)
+    class TryAgainException(errno: Int = EAGAIN, message: String) : PosixException(errno, message)
 
     @ExperimentalIoApi
     class BadMessageException(message: String) : PosixException(EBADMSG, message)
@@ -66,31 +50,28 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
     class InvalidArgumentException(message: String) : PosixException(EINVAL, message)
 
     @ExperimentalIoApi
-    open class IOException(errno: Int = EIO, message: String) : PosixException(errno, message)
+    class ConnectionResetException(message: String) : PosixException(ECONNRESET, message)
 
     @ExperimentalIoApi
-    class ConnectionResetException(message: String) : IOException(ECONNRESET, message)
+    class ConnectionRefusedException(message: String) : PosixException(ECONNREFUSED, message)
 
     @ExperimentalIoApi
-    class ConnectionRefusedException(message: String) : IOException(ECONNREFUSED, message)
+    class ConnectionAbortedException(message: String) : PosixException(ECONNABORTED, message)
 
     @ExperimentalIoApi
-    class ConnectionAbortedException(message: String) : IOException(ECONNABORTED, message)
+    class NotConnectedException(message: String) : PosixException(ENOTCONN, message)
 
     @ExperimentalIoApi
-    class NotConnectedException(message: String) : IOException(ENOTCONN, message)
+    class TimeoutIOException(message: String) : PosixException(ETIMEDOUT, message)
 
     @ExperimentalIoApi
-    class TimeoutIOException(message: String) : IOException(ETIMEDOUT, message)
+    class NotSocketException(message: String) : PosixException(ENOTSOCK, message)
 
     @ExperimentalIoApi
-    class NotSocketException(message: String) : IOException(ENOTSOCK, message)
+    class AddressAlreadyInUseException(message: String) : PosixException(EADDRINUSE, message)
 
     @ExperimentalIoApi
-    class AddressAlreadyInUseException(message: String) : IOException(EADDRINUSE, message)
-
-    @ExperimentalIoApi
-    class NoSuchFileException(message: String) : IOException(ENOENT, message)
+    class NoSuchFileException(message: String) : PosixException(ENOENT, message)
 
     @ExperimentalIoApi
     class OverflowException(message: String) : PosixException(EOVERFLOW, message)
@@ -102,6 +83,14 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
     class PosixErrnoException(errno: Int, message: String) : PosixException(errno, "$message ($errno)")
 
     companion object {
+        /**
+         * Create the corresponding instance of PosixException
+         * with error message provided by the underlying POSIX implementation.
+         *
+         * @param errno error code returned by [posix.platform.errno]
+         * @param posixFunctionName optional function name to be included to the exception message
+         * @return an instance of [PosixException] or it's subtype
+         */
         @ExperimentalIoApi
         fun forErrno(errno: Int = platform.posix.errno, posixFunctionName: String? = null): PosixException = memScoped {
             val posixConstantName = KnownPosixErrors[errno]
@@ -117,12 +106,15 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
 
             when (errno) {
                 EBADF -> BadFileDescriptorException(message)
+
+                // it is not guaranteed that these errors have identical numeric values
+                // so we need to specify both
                 @Suppress("DUPLICATE_LABEL_IN_WHEN")
-                EWOULDBLOCK, EAGAIN -> TryAgainException(message)
+                EWOULDBLOCK, EAGAIN -> TryAgainException(errno, message)
+
                 EBADMSG -> BadMessageException(message)
                 EINTR -> InterruptedException(message)
                 EINVAL -> InvalidArgumentException(message)
-                EIO -> IOException(errno, message)
                 ECONNREFUSED -> ConnectionRefusedException(message)
                 ECONNABORTED -> ConnectionAbortedException(message)
                 ECONNRESET -> ConnectionResetException(message)
