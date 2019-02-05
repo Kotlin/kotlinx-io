@@ -1,7 +1,7 @@
 # 0.1.5
 > Not yet published
 
-- AbstractOutput` is implementable, simplified API
+- `AbstractOutput` is implementable, simplified API
 - Fixed ISO-8859-1 and other character encodings on native
 - Fixed segfault caused by a wrong character encoding specified
 - Introduced initial unsigned types support (#28)
