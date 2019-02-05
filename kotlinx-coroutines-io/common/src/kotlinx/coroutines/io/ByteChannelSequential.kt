@@ -329,7 +329,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
             builder.writePacket(readable)
             afterRead()
 
-            if (writable.size == 0 && closed) break
+            if (readable.remaining == 0L && writable.size == 0 && closed) break
 
             awaitSuspend(1)
         }
