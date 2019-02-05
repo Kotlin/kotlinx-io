@@ -1,3 +1,29 @@
+# 0.1.5
+> Not yet published
+
+- AbstractOutput` is implementable, simplified API
+- Fixed ISO-8859-1 and other character encodings on native
+- Fixed segfault caused by a wrong character encoding specified
+- Introduced initial unsigned types support (#28)
+- Introduced initial POSIX synchronous support (#34):
+    - added `Input(fileDescriptor)` and `Output(fileDescriptor)`
+    - added `read`, `write`, `fread`, `fwrite`, `send`, `receive`, `sendto`, `recvfrom` 
+    with `IoBuffer` parameter
+- Introduced initial `PosixException` support
+- Strengthened internal API restrictions
+- Introduced `Input.copyTo(Output)` utility function
+- Introduced multiplatform `IOException`
+- Introduced `reverseByteOrder` for primitive numeric types
+- Fixed several memory management bugs
+- Eliminated accidentally used JDK8+ API (#35)
+
+# 0.1.4
+> Published 23 Jan 2019
+
+- Fixed byteOrder switch for packets (#30)
+- Upgrade to Gradle 4.10 with new metadata
+- Kotlin 1.3.20
+
 # 0.1.3
 > Published 25 Dec 2018
 
