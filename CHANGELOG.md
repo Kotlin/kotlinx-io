@@ -16,6 +16,10 @@
 - Introduced `reverseByteOrder` for primitive numeric types
 - Fixed several memory management bugs
 - Eliminated accidentally used JDK8+ API (#35)
+- Fixed loosing trailing bytes in byte channel on native and JS (
+    [ktor/787](https://github.com/ktorio/ktor/issues/787), 
+    [ktor/920](https://github.com/ktorio/ktor/issues/920) 
+    )
 
 # 0.1.4
 > Published 23 Jan 2019
