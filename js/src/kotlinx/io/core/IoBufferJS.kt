@@ -925,8 +925,13 @@ actual class IoBuffer internal constructor(
     }
 
     actual fun discardExact(n: Int) {
+        require(n >= 0) { "Number of bytes to be discarded shouldn't be negative: $n" }
+
         val rem = readRemaining
-        if (n > rem) throw IllegalArgumentException("Can't discard $n bytes: only $rem bytes available")
+        if (n > rem) {
+            throw IllegalArgumentException("Can't discard $n bytes: only $rem bytes available")
+        }
+
         readPosition += n
     }
 
@@ -1038,42 +1043,58 @@ actual class IoBuffer internal constructor(
         return result.length
     }
 
-    @ExperimentalIoApi
-    fun readDirect(block: (DataView) -> Int) {
+    @PublishedApi
+    internal fun readableView(): DataView {
         val readPosition = readPosition
         val writePosition = writePosition
 
-        val view = when {
+        return when {
+            readPosition == writePosition -> EmptyDataView
             readPosition == 0 && writePosition == content.byteLength -> view
             else -> DataView(content, readPosition, writePosition - readPosition)
         }
-
-        val rc = block(view)
-        check(rc >= 0) { "Return value from block shouldn't be negative: $rc" }
-
-        val newReadPosition = readPosition + rc
-        check(newReadPosition <= writePosition) { "Returned value from block is too big: $rc > $readRemaining" }
-
-        this.readPosition = newReadPosition
     }
 
-    @ExperimentalIoApi
-    fun writeDirect(block: (DataView) -> Int) {
+    @PublishedApi
+    internal fun writableView(): DataView {
         val writePosition = writePosition
         val limit = limit
 
-        val view = when {
+        return when {
+            writePosition == limit -> EmptyDataView
             writePosition == 0 && limit == content.byteLength -> view
             else -> DataView(content, readPosition, writePosition - readPosition)
         }
+    }
 
+    @PublishedApi
+    internal fun commitWritten(n: Int) {
+        writePosition += n
+    }
+
+    /**
+     * Apply [block] function on a [DataView] of readable bytes.
+     * The [block] function should return number of consumed bytes.
+     */
+    @ExperimentalIoApi
+    inline fun readDirect(block: (DataView) -> Int) {
+        val view = readableView()
         val rc = block(view)
-        check(rc >= 0) { "Returned value from block shouldn't be negative: $rc"}
+        check(rc >= 0) { "The returned value from block function shouldn't be negative: $rc" }
+        discardExact(rc)
+    }
 
-        val newWritePosition = writePosition + rc
-        check(newWritePosition <= limit) { "Returned value from block is too big: $rc > $writeRemaining" }
-
-        this.writePosition = newWritePosition
+    /**
+     * Apply [block] function on a [DataView] of the free space.
+     * The [block] function should return number of written bytes.
+     */
+    @ExperimentalIoApi
+    inline fun writeDirect(block: (DataView) -> Int) {
+        val view = writableView()
+        val rc = block(view)
+        check(rc >= 0) { "The returned value from block function shouldn't be negative: $rc"}
+        check(rc <= writeRemaining) { "The returned value from block function is too big: $rc > $writeRemaining" }
+        commitWritten(rc)
     }
 
     internal actual fun restoreEndGap(n: Int) {
