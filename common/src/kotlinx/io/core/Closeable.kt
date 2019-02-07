@@ -5,17 +5,23 @@ expect interface Closeable {
 }
 
 inline fun <C : Closeable, R> C.use(block: (C) -> R): R {
-    try {
-        val result = block(this)
-        close()
-        return result
+    var closed = false
+
+    return try {
+        block(this)
     } catch (first: Throwable) {
         try {
+            closed = true
             close()
         } catch (second: Throwable) {
             first.addSuppressedInternal(second)
         }
+
         throw first
+    } finally {
+        if (!closed) {
+            close()
+        }
     }
 }
 
