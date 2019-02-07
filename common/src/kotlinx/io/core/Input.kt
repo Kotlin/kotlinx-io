@@ -39,8 +39,8 @@ expect interface Input : Closeable {
 
     /**
      * Copy available bytes to the specified [buffer] but keep them available.
-     * If the underlying implementation could trigger
-     * bytes population from the underlying source and block until any bytes available
+     * The underlying implementation could trigger
+     * bytes population from the underlying source and block until any bytes available.
      *
      * Very similar to [readAvailable] but don't discard copied bytes.
      *
@@ -48,6 +48,9 @@ expect interface Input : Closeable {
      */
     fun peekTo(buffer: IoBuffer): Int
 
+    /**
+     * Discard at most [n] bytes
+     */
     fun discard(n: Long): Long
 
     override fun close()
