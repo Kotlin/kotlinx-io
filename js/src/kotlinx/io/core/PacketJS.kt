@@ -6,4 +6,5 @@ internal const val BUFFER_VIEW_SIZE = 4096
 
 actual fun BytePacketBuilder(headerSizeHint: Int) = BytePacketBuilder(headerSizeHint, IoBuffer.Pool)
 
-actual class EOFException actual constructor(message: String) : Exception(message)
+actual typealias EOFException = kotlinx.io.errors.EOFException
+

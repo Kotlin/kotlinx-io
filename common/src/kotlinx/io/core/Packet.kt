@@ -2,6 +2,7 @@ package kotlinx.io.core
 
 import kotlinx.io.core.IoBuffer.*
 import kotlinx.io.core.internal.*
+import kotlinx.io.errors.IOException
 import kotlinx.io.pool.*
 
 /**
@@ -866,7 +867,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     }
 }
 
-expect class EOFException(message: String) : Exception
+expect class EOFException(message: String) : IOException
 
 private fun IoBuffer.setByteOrderForNonEmpty(newByteOrder: ByteOrder) {
     if (canRead()) {
