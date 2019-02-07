@@ -1038,16 +1038,42 @@ actual class IoBuffer internal constructor(
         return result.length
     }
 
-    internal fun readDirect(block: (ArrayBuffer) -> Int) {
-        if (content === EmptyBuffer) {
-            require(block(content) == 0)
-            return
+    @ExperimentalIoApi
+    fun readDirect(block: (DataView) -> Int) {
+        val readPosition = readPosition
+        val writePosition = writePosition
+
+        val view = when {
+            readPosition == 0 && writePosition == content.byteLength -> view
+            else -> DataView(content, readPosition, writePosition - readPosition)
         }
 
-        val rc = block(content.slice(readPosition, writePosition))
-        require(rc >= 0)
+        val rc = block(view)
+        check(rc >= 0) { "Return value from block shouldn't be negative: $rc" }
 
-        readPosition += rc
+        val newReadPosition = readPosition + rc
+        check(newReadPosition <= writePosition) { "Returned value from block is too big: $rc > $readRemaining" }
+
+        this.readPosition = newReadPosition
+    }
+
+    @ExperimentalIoApi
+    fun writeDirect(block: (DataView) -> Int) {
+        val writePosition = writePosition
+        val limit = limit
+
+        val view = when {
+            writePosition == 0 && limit == content.byteLength -> view
+            else -> DataView(content, readPosition, writePosition - readPosition)
+        }
+
+        val rc = block(view)
+        check(rc >= 0) { "Returned value from block shouldn't be negative: $rc"}
+
+        val newWritePosition = writePosition + rc
+        check(newWritePosition <= limit) { "Returned value from block is too big: $rc > $writeRemaining" }
+
+        this.writePosition = newWritePosition
     }
 
     internal actual fun restoreEndGap(n: Int) {
