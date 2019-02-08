@@ -481,22 +481,26 @@ actual class IoBuffer internal constructor(
 
     /**
      * Apply [block] to a native pointer for writing to the buffer. Lambda should return number of bytes were written.
+     * @return number of bytes written
      */
-    fun writeDirect(block: (CPointer<ByteVar>) -> Int) {
+    fun writeDirect(block: (CPointer<ByteVar>) -> Int): Int {
         val rc = block((content + writePosition)!!)
         check(rc >= 0) { "block function should return non-negative results: $rc" }
         check(rc <= writeRemaining)
         writePosition += rc
+        return rc
     }
 
     /**
      * Apply [block] to a native pointer for reading from the buffer. Lambda should return number of bytes were read.
+     * @return number of bytes read
      */
-    fun readDirect(block: (CPointer<ByteVar>) -> Int) {
+    fun readDirect(block: (CPointer<ByteVar>) -> Int): Int {
         val rc = block((content + readPosition)!!)
         check(rc >= 0) { "block function should return non-negative results: $rc" }
         check(rc <= readRemaining) { "result value is too large: $rc > $readRemaining" }
         readPosition += rc
+        return rc
     }
 
     @Deprecated("Use writeFully instead")

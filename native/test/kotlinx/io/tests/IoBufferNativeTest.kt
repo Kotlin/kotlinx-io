@@ -19,6 +19,8 @@ class IoBufferNativeTest {
         buffer.readDirect { ptr ->
             invoked = true
             0
+        }.also {
+            assertEquals(0, it)
         }
         assertTrue(invoked)
     }
@@ -51,6 +53,8 @@ class IoBufferNativeTest {
         buffer.readDirect { ptr ->
             result = ptr[0].toInt()
             1
+        }.also {
+            assertEquals(1, it)
         }
         assertEquals(7, result)
         assertEquals(8, buffer.readByte().toInt())
@@ -62,12 +66,17 @@ class IoBufferNativeTest {
             buffer.writeByte(1)
         }
 
+        val size = buffer.readRemaining
         buffer.readDirect { ptr ->
             buffer.readRemaining
+        }.also {
+            assertEquals(size, it)
         }
 
         assertEquals(0, buffer.readRemaining)
-        buffer.readDirect { 0 }
+        buffer.readDirect { 0 }.also {
+            assertEquals(0, it)
+        }
     }
 
     @Test
@@ -76,6 +85,8 @@ class IoBufferNativeTest {
             ptr[0] = 1.toByte()
             ptr[1] = 2.toByte()
             2
+        }.also {
+            assertEquals(2, it)
         }
 
         assertEquals(2, buffer.readRemaining)
