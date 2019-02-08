@@ -401,7 +401,7 @@ public final class kotlinx/io/core/IoBuffer : kotlinx/io/core/Input, kotlinx/io/
 	public final fun readAvailable ([JII)I
 	public final fun readAvailable ([SII)I
 	public final fun readByte ()B
-	public final fun readDirect (Lkotlin/jvm/functions/Function1;)V
+	public final fun readDirect (Lkotlin/jvm/functions/Function1;)I
 	public final fun readDouble ()D
 	public final fun readFloat ()F
 	public final fun readFully (Ljava/nio/ByteBuffer;I)V

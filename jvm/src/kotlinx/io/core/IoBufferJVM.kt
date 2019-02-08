@@ -432,7 +432,12 @@ actual class IoBuffer private constructor(
         writeFully(buffer)
     }
 
-    inline fun readDirect(block: (ByteBuffer) -> Unit) {
+    /**
+     * Apply [block] function on a [ByteBuffer] of readable bytes.
+     * The [block] function should return number of consumed bytes.
+     * @return number of bytes consumed
+     */
+    inline fun readDirect(block: (ByteBuffer) -> Unit): Int {
         val bb = readBuffer
         val positionBefore = bb.position()
         val limit = bb.limit()
@@ -440,8 +445,15 @@ actual class IoBuffer private constructor(
         val delta = bb.position() - positionBefore
         if (delta < 0) negativeShiftError(delta)
         if (bb.limit() != limit) limitChangeError()
+
+        return delta
     }
 
+    /**
+     * Apply [block] function on a [ByteBuffer] of the free space.
+     * The [block] function should return number of written bytes.
+     * @return number of bytes written
+     */
     inline fun writeDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
         val rem = writeRemaining
         require (size <= rem) { "size $size is greater than buffer's remaining capacity $rem" }
