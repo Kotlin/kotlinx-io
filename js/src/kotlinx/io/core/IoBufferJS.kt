@@ -1063,7 +1063,7 @@ actual class IoBuffer internal constructor(
         return when {
             writePosition == limit -> EmptyDataView
             writePosition == 0 && limit == content.byteLength -> view
-            else -> DataView(content, readPosition, writePosition - readPosition)
+            else -> DataView(content, writePosition, limit - writePosition)
         }
     }
 

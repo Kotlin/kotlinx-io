@@ -56,6 +56,34 @@ class IoBufferNativeTest {
     }
 
     @Test
+    fun testReadDirectWithEndGap() {
+        var result = 0
+        buffer.reserveEndGap(8)
+        buffer.writeByte(9)
+        buffer.writeByte(10)
+        buffer.readDirect { ptr ->
+            result = ptr.getInt8(0).toInt()
+            1
+        }
+        assertEquals(9, result)
+        assertEquals(10, buffer.readByte().toInt())
+    }
+
+    @Test
+    fun testReadDirectWithStartGap() {
+        var result = 0
+        buffer.reserveStartGap(8)
+        buffer.writeByte(11)
+        buffer.writeByte(12)
+        buffer.readDirect { ptr ->
+            result = ptr.getInt8(0).toInt()
+            1
+        }
+        assertEquals(11, result)
+        assertEquals(12, buffer.readByte().toInt())
+    }
+
+    @Test
     fun testReadDirectAtEnd() {
         while (buffer.writeRemaining > 0) {
             buffer.writeByte(1)
@@ -80,6 +108,69 @@ class IoBufferNativeTest {
         assertEquals(2, buffer.readRemaining, "remaining")
         assertEquals(7, buffer.readByte().toInt(), "first byte")
         assertEquals(8, buffer.readByte().toInt(), "second byte")
+    }
+
+    @Test
+    fun testWriteDirectWithReserve() {
+        buffer.reserveEndGap(8)
+
+        buffer.writeDirect { ptr ->
+            ptr.setInt8(0, 5)
+            ptr.setInt8(1, 6)
+            2
+        }
+
+        assertEquals(2, buffer.readRemaining, "remaining")
+        assertEquals(5, buffer.readByte().toInt(), "first byte")
+        assertEquals(6, buffer.readByte().toInt(), "second byte")
+    }
+
+    @Test
+    fun testWriteDirectWithReservedStart() {
+        buffer.reserveStartGap(8)
+
+        buffer.writeDirect { ptr ->
+            ptr.setInt8(0, 3)
+            ptr.setInt8(1, 4)
+            2
+        }
+
+        assertEquals(2, buffer.readRemaining, "remaining")
+        assertEquals(3, buffer.readByte().toInt(), "first byte")
+        assertEquals(4, buffer.readByte().toInt(), "second byte")
+    }
+
+    @Test
+    fun testCombinedReadAndWrite() {
+        buffer.reserveStartGap(4)
+        buffer.reserveEndGap(1)
+
+        buffer.writeByte(2)
+        buffer.writeDirect { view ->
+            assertTrue { view.byteLength > 0 }
+            view.setInt8(0, 3)
+            1
+        }
+
+        var value = 0
+        buffer.readDirect { view  ->
+            assertEquals(2, view.byteLength)
+            value = view.getInt8(0).toInt()
+            1
+        }
+
+        assertEquals(2, value)
+        buffer.writeDirect { view ->
+            view.setInt8(0, 4)
+            1
+        }
+
+        buffer.readDirect { view ->
+            assertEquals(2, view.byteLength)
+            assertEquals(3, view.getInt8(0))
+            assertEquals(4, view.getInt8(1))
+            2
+        }
     }
 
     @Test
