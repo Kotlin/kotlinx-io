@@ -146,31 +146,40 @@ class IoBufferNativeTest {
         buffer.reserveEndGap(1)
 
         buffer.writeByte(2)
-        buffer.writeDirect { view ->
+        var rc = buffer.writeDirect { view ->
             assertTrue { view.byteLength > 0 }
             view.setInt8(0, 3)
             1
         }
+        assertEquals(1,  rc)
 
         var value = 0
-        buffer.readDirect { view  ->
+        rc = buffer.readDirect { view  ->
             assertEquals(2, view.byteLength)
             value = view.getInt8(0).toInt()
             1
         }
+        assertEquals(1, rc)
 
         assertEquals(2, value)
-        buffer.writeDirect { view ->
+        rc = buffer.writeDirect { view ->
             view.setInt8(0, 4)
             1
         }
+        assertEquals(1, rc)
 
-        buffer.readDirect { view ->
+        rc = buffer.readDirect { view ->
             assertEquals(2, view.byteLength)
             assertEquals(3, view.getInt8(0))
             assertEquals(4, view.getInt8(1))
             2
         }
+        assertEquals(2, rc)
+
+        rc = buffer.writeDirect { 0 }
+        assertEquals(0, rc)
+        rc = buffer.readDirect { 0 }
+        assertEquals(0, rc)
     }
 
     @Test

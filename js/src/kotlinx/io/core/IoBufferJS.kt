@@ -1075,26 +1075,30 @@ actual class IoBuffer internal constructor(
     /**
      * Apply [block] function on a [DataView] of readable bytes.
      * The [block] function should return number of consumed bytes.
+     * @return number of bytes consumed
      */
     @ExperimentalIoApi
-    inline fun readDirect(block: (DataView) -> Int) {
+    inline fun readDirect(block: (DataView) -> Int): Int {
         val view = readableView()
         val rc = block(view)
         check(rc >= 0) { "The returned value from block function shouldn't be negative: $rc" }
         discardExact(rc)
+        return rc
     }
 
     /**
      * Apply [block] function on a [DataView] of the free space.
      * The [block] function should return number of written bytes.
+     * @return number of bytes written
      */
     @ExperimentalIoApi
-    inline fun writeDirect(block: (DataView) -> Int) {
+    inline fun writeDirect(block: (DataView) -> Int): Int {
         val view = writableView()
         val rc = block(view)
         check(rc >= 0) { "The returned value from block function shouldn't be negative: $rc"}
         check(rc <= writeRemaining) { "The returned value from block function is too big: $rc > $writeRemaining" }
         commitWritten(rc)
+        return rc
     }
 
     internal actual fun restoreEndGap(n: Int) {
