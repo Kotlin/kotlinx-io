@@ -15,21 +15,22 @@ class TextDecodeBenchmark {
 
 
     /*
-# Run complete. Total time: 00:05:05
+# Results on unit 660
+# Run complete. Total time: 00:05:04
 
 Benchmark                                  Mode  Cnt      Score     Error   Units
-TextDecodeBenchmark.largeASCIIKt          thrpt   15      5,090 ±   0,186  ops/ms
-TextDecodeBenchmark.largeASCIIReader      thrpt   15     17,374 ±   0,769  ops/ms
-TextDecodeBenchmark.largeASCIIStringCtor  thrpt   15     49,870 ±   2,700  ops/ms
-TextDecodeBenchmark.largeMbKt             thrpt   15      3,146 ±   0,066  ops/ms
-TextDecodeBenchmark.largeMbReader         thrpt   15      6,137 ±   0,244  ops/ms
-TextDecodeBenchmark.largeMbStringCtor     thrpt   15      7,640 ±   0,541  ops/ms
-TextDecodeBenchmark.smallASCIIKt          thrpt   15  11766,753 ± 371,396  ops/ms
-TextDecodeBenchmark.smallASCIIReader      thrpt   15    584,426 ±  67,464  ops/ms
-TextDecodeBenchmark.smallASCIIStringCtor  thrpt   15  27157,153 ± 965,774  ops/ms
-TextDecodeBenchmark.smallMbKt             thrpt   15   9256,542 ± 478,120  ops/ms
-TextDecodeBenchmark.smallMbReader         thrpt   15    642,241 ±  48,872  ops/ms
-TextDecodeBenchmark.smallMbStringCtor     thrpt   15  19371,117 ± 437,930  ops/ms
+TextDecodeBenchmark.largeASCIIKt          thrpt   15     28,425 ±   1,776  ops/ms
+TextDecodeBenchmark.largeASCIIReader      thrpt   15     17,521 ±   0,638  ops/ms
+TextDecodeBenchmark.largeASCIIStringCtor  thrpt   15     50,847 ±   1,266  ops/ms
+TextDecodeBenchmark.largeMbKt             thrpt   15      8,586 ±   0,286  ops/ms
+TextDecodeBenchmark.largeMbReader         thrpt   15      5,752 ±   0,058  ops/ms
+TextDecodeBenchmark.largeMbStringCtor     thrpt   15      7,485 ±   0,154  ops/ms
+TextDecodeBenchmark.smallASCIIKt          thrpt   15   9708,667 ± 132,044  ops/ms
+TextDecodeBenchmark.smallASCIIReader      thrpt   15    583,049 ±   9,436  ops/ms
+TextDecodeBenchmark.smallASCIIStringCtor  thrpt   15  25704,755 ± 148,262  ops/ms
+TextDecodeBenchmark.smallMbKt             thrpt   15   8374,509 ± 108,271  ops/ms
+TextDecodeBenchmark.smallMbReader         thrpt   15    581,390 ±   6,250  ops/ms
+TextDecodeBenchmark.smallMbStringCtor     thrpt   15  18280,165 ± 167,847  ops/ms
      */
 
     @Benchmark
