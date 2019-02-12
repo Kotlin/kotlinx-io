@@ -1,5 +1,5 @@
 # 0.1.5
-> Not yet published
+> Published 12 Feb 2019
 
 - `AbstractOutput` is implementable, simplified API
 - Fixed ISO-8859-1 and other character encodings on native
@@ -20,6 +20,9 @@
     [ktor/787](https://github.com/ktorio/ktor/issues/787), 
     [ktor/920](https://github.com/ktorio/ktor/issues/920) 
     )
+- Improved `readDirect`/`writeDirect` functions on platforms.
+- Fixed non-local returns from `use {}` block.
+- Kotlin 1.3.21
 
 # 0.1.4
 > Published 23 Jan 2019
