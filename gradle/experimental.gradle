@@ -3,5 +3,6 @@ ext.experimentalAnnotations = [
     "kotlin.ExperimentalUnsignedTypes",
     "kotlinx.io.core.ExperimentalIoApi",
     "kotlinx.io.core.internal.DangerousInternalIoApi",
+    "kotlin.contracts.ExperimentalContracts"
 ]
 

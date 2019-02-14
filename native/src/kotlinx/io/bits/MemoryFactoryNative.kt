@@ -4,6 +4,7 @@ package kotlinx.io.bits
 
 import kotlinx.cinterop.*
 import platform.posix.*
+import kotlin.contracts.*
 
 /**
  * Execute [block] of code providing a temporary instance of [Memory] view of this byte array range
@@ -12,6 +13,10 @@ import platform.posix.*
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
 actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memory) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     return usePinned { pinned ->
         val memory = when {
             isEmpty() && offset == 0 && length == 0 -> Memory.Empty

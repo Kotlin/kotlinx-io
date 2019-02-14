@@ -1,6 +1,7 @@
 package kotlinx.io.bits
 
 import org.khronos.webgl.*
+import kotlin.contracts.*
 
 /**
  * Execute [block] of code providing a temporary instance of [Memory] view of this byte array range
@@ -9,6 +10,9 @@ import org.khronos.webgl.*
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
 actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memory) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     return Memory.of(this, offset, length).let(block)
 }
 
