@@ -4,6 +4,7 @@ package kotlinx.io.bits
 
 import kotlinx.io.core.internal.*
 import java.nio.*
+import java.util.*
 
 @Suppress("ACTUAL_WITHOUT_EXPECT", "EXPERIMENTAL_FEATURE_WARNING")
 actual inline class Memory @DangerousInternalIoApi constructor(val buffer: ByteBuffer) {
@@ -258,4 +259,20 @@ private inline fun ByteBuffer.suppressNullCheck(): ByteBuffer {
 
 private fun ByteBuffer.sliceSafe(offset: Int, length: Int): ByteBuffer {
     return myDuplicate().apply { position(offset); limit(offset + length) }.mySlice()
+}
+
+/**
+ * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ */
+actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
+    fill(offset.toIntOrFail("offset"), count.toIntOrFail("count"), value)
+}
+
+/**
+ * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ */
+actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
+    for (index in offset until offset + count) {
+        buffer.put(index, value)
+    }
 }

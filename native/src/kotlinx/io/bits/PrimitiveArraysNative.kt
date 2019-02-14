@@ -282,7 +282,7 @@ actual fun Memory.loadDoubleArray(
     }
 }
 
-private inline fun requirePositiveIndex(value: Int, name: String) {
+internal inline fun requirePositiveIndex(value: Int, name: String) {
     if (value < 0) {
         throw IndexOutOfBoundsException("$name shouldn't be negative: $value")
     }
@@ -294,13 +294,13 @@ internal inline fun requirePositiveIndex(value: Long, name: String) {
     }
 }
 
-private inline fun requireRange(offset: Int, length: Int, size: Int, name: String) {
+internal inline fun requireRange(offset: Int, length: Int, size: Int, name: String) {
     if (offset + length > size) {
         throw IndexOutOfBoundsException("Wrong offset/count for $name: offset $offset, length $length, size $size")
     }
 }
 
-private inline fun requireRange(offset: Long, length: Long, size: Long, name: String) {
+internal inline fun requireRange(offset: Long, length: Long, size: Long, name: String) {
     if (offset + length > size) {
         throw IndexOutOfBoundsException("Wrong offset/count for $name: offset $offset, length $length, size $size")
     }

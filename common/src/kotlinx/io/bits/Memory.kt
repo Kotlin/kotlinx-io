@@ -106,6 +106,16 @@ inline fun Memory.storeAt(index: Long, value: UByte) = storeAt(index, value.toBy
 inline fun Memory.storeAt(index: Int, value: UByte) = storeAt(index, value.toByte())
 
 /**
+ * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ */
+expect fun Memory.fill(offset: Long, count: Long, value: Byte)
+
+/**
+ * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ */
+expect fun Memory.fill(offset: Int, count: Int, value: Byte)
+
+/**
  * Read short signed 16bit integer in the network byte order (Big Endian)
  */
 expect inline fun Memory.loadShortAt(offset: Int): Short

@@ -353,3 +353,31 @@ internal inline fun Double.toBigEndian(): Double = when {
     else -> reverseByteOrder()
 }
 
+/**
+ * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ */
+actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
+    requirePositiveIndex(offset, "offset")
+    requirePositiveIndex(count, "count")
+    requireRange(offset, count, size, "fill")
+    if (count.toULong() > size_t.MAX_VALUE.toULong()) {
+        throw IllegalArgumentException("count is too big: it shouldn't exceed size_t.MAX_VALUE")
+    }
+
+    memset(pointer + offset, value.toInt(), count.convert())
+}
+
+/**
+ * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ */
+actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
+    requirePositiveIndex(offset, "offset")
+    requirePositiveIndex(count, "count")
+    requireRange(offset.toLong(), count.toLong(), size, "fill")
+
+    if (count.toULong() > size_t.MAX_VALUE.toULong()) {
+        throw IllegalArgumentException("count is too big: it shouldn't exceed size_t.MAX_VALUE")
+    }
+
+    memset(pointer + offset, value.toInt(), count.convert())
+}

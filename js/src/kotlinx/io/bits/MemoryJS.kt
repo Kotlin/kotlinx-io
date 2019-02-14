@@ -244,3 +244,13 @@ actual fun Memory.copyTo(
 ) {
     copyTo(destination, offset.toIntOrFail("offset"), length, destinationOffset)
 }
+
+actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
+    for (index in offset until offset + count) {
+        this[index] = value
+    }
+}
+
+actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
+    fill(offset.toIntOrFail("offset"), count.toIntOrFail("count"), value)
+}
