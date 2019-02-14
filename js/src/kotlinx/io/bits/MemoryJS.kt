@@ -121,18 +121,6 @@ actual class Memory @DangerousInternalIoApi constructor(val view: DataView) {
     }
 }
 
-fun Memory.Companion.of(buffer: ArrayBuffer, offset: Int = 0, length: Int = buffer.byteLength - offset): Memory {
-    return Memory(DataView(buffer, offset, length))
-}
-
-fun Memory.Companion.of(view: DataView): Memory {
-    return Memory(view)
-}
-
-fun Memory.Companion.of(view: ArrayBufferView, offset: Int = 0, length: Int = view.byteLength): Memory {
-    return Memory.of(view.buffer, view.byteOffset + offset, length)
-}
-
 actual inline fun Memory.getShortAt(offset: Int): Short = view.getInt16(offset, false)
 
 actual inline fun Memory.getShortAt(offset: Long): Short = getShortAt(offset.toIntOrFail("offset"))
@@ -225,16 +213,6 @@ actual inline fun Memory.setDoubleAt(offset: Int, value: Double) {
 actual inline fun Memory.setDoubleAt(offset: Long, value: Double) {
     view.setFloat64(offset.toIntOrFail("offset"), value, littleEndian = false)
 }
-
-@PublishedApi
-internal inline fun Long.toIntOrFail(name: String): Int {
-    if (this >= Int.MAX_VALUE) failLongToIntConversion(this, name)
-    return toInt()
-}
-
-@PublishedApi
-internal fun failLongToIntConversion(value: Long, name: String): Nothing =
-    throw IllegalArgumentException("Long value $value of $name doesn't fit into 32-bit integer")
 
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]

@@ -2,6 +2,7 @@
 
 package kotlinx.io.bits
 
+import kotlinx.io.core.internal.*
 import java.nio.*
 
 /**

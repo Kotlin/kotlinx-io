@@ -3,6 +3,7 @@
 package kotlinx.io.bits
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import org.khronos.webgl.*
 
 private val isLittleEndianPlatform = ByteOrder.nativeOrder() === ByteOrder.LITTLE_ENDIAN

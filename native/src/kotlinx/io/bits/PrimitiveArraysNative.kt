@@ -288,7 +288,7 @@ private inline fun requirePositiveIndex(value: Int, name: String) {
     }
 }
 
-private inline fun requirePositiveIndex(value: Long, name: String) {
+internal inline fun requirePositiveIndex(value: Long, name: String) {
     if (value < 0L) {
         throw IndexOutOfBoundsException("$name shouldn't be negative: $value")
     }

@@ -99,14 +99,6 @@ actual inline class Memory @DangerousInternalIoApi constructor(val buffer: ByteB
     }
 }
 
-inline fun Memory.Companion.of(buffer: ByteBuffer): Memory {
-    return Memory(buffer.slice().order(ByteOrder.BIG_ENDIAN))
-}
-
-inline fun Memory.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Memory {
-    return Memory(ByteBuffer.wrap(array, offset, length).order(ByteOrder.BIG_ENDIAN))
-}
-
 actual inline fun Memory.getShortAt(offset: Int): Short {
     return buffer.getShort(offset)
 }
@@ -263,16 +255,6 @@ private inline fun ByteBuffer.mySlice(): ByteBuffer {
 private inline fun ByteBuffer.suppressNullCheck(): ByteBuffer {
     return this
 }
-
-@PublishedApi
-internal inline fun Long.toIntOrFail(name: String): Int {
-    if (this >= Int.MAX_VALUE) failLongToIntConversion(this, name)
-    return toInt()
-}
-
-@PublishedApi
-internal fun failLongToIntConversion(value: Long, name: String): Nothing =
-    throw IllegalArgumentException("Long value $value of $name doesn't fit into 32-bit integer")
 
 private fun ByteBuffer.sliceSafe(offset: Int, length: Int): ByteBuffer {
     return myDuplicate().apply { position(offset); limit(offset + length) }.mySlice()

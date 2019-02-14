@@ -12,7 +12,14 @@ import kotlin.require
 @PublishedApi
 internal const val PLATFORM_BIG_ENDIAN = platform.posix.BYTE_ORDER == platform.posix.LITTLE_ENDIAN
 
-actual class Memory @DangerousInternalIoApi constructor(val pointer: CPointer<ByteVar>, actual inline val size: Long) {
+actual class Memory @DangerousInternalIoApi constructor(
+    val pointer: CPointer<ByteVar>,
+    actual inline val size: Long
+) {
+    init {
+        requirePositiveIndex(size, "size")
+    }
+
     /**
      * Size of memory range in bytes represented as signed 32bit integer
      * @throws IllegalStateException when size doesn't fit into a signed 32bit integer
@@ -45,11 +52,19 @@ actual class Memory @DangerousInternalIoApi constructor(val pointer: CPointer<By
 
     actual fun slice(offset: Long, length: Long): Memory {
         assertIndex(offset, length)
+        if (offset == 0L && length == size) {
+            return this
+        }
+
         return Memory(pointer.plus(offset)!!, length)
     }
 
     actual fun slice(offset: Int, length: Int): Memory {
         assertIndex(offset, length)
+        if (offset == 0 && length.toLong() == size) {
+            return this
+        }
+
         return Memory(pointer.plus(offset)!!, length.toLong())
     }
 
@@ -110,19 +125,6 @@ actual class Memory @DangerousInternalIoApi constructor(val pointer: CPointer<By
     actual companion object {
         actual val Empty: Memory = Memory(nativeHeap.allocArray(0), 0L)
     }
-}
-
-inline fun Memory.Companion.of(pointer: CPointer<*>, size: size_t): Memory {
-    require(size <= Long.MAX_VALUE.convert())
-    return of(pointer, size.convert())
-}
-
-inline fun Memory.Companion.of(pointer: CPointer<*>, size: Int): Memory {
-    return Memory(pointer.reinterpret(), size.toLong())
-}
-
-inline fun Memory.Companion.of(pointer: CPointer<*>, size: Long): Memory {
-    return Memory(pointer.reinterpret(), size.toLong())
 }
 
 actual inline fun Memory.getShortAt(offset: Int): Short {
@@ -304,16 +306,6 @@ actual fun Memory.copyTo(
         )
     }
 }
-
-@PublishedApi
-internal inline fun Long.toIntOrFail(name: String): Int {
-    if (this >= Int.MAX_VALUE) failLongToIntConversion(this, name)
-    return toInt()
-}
-
-@PublishedApi
-internal fun failLongToIntConversion(value: Long, name: String): Nothing =
-    throw IllegalArgumentException("Long value $value of $name doesn't fit into 32-bit integer")
 
 @PublishedApi
 internal inline fun Memory.assertIndex(offset: Int, valueSize: Int): Int {
