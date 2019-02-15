@@ -1,16 +1,12 @@
-@file:Suppress("NOTHING_TO_INLINE")
+@file:Suppress("NOTHING_TO_INLINE", "IntroduceWhenSubject")
 
 package kotlinx.io.bits
 
 import kotlinx.cinterop.*
+import kotlinx.io.bits.internal.utils.*
 import kotlinx.io.core.internal.*
 import platform.posix.*
 import kotlin.require
-
-// TODO doesn't work on Windows
-// NOTE: this should be a constant to make llvm reduce redundant conditional jumps
-@PublishedApi
-internal const val PLATFORM_BIG_ENDIAN = platform.posix.BYTE_ORDER == platform.posix.LITTLE_ENDIAN
 
 actual class Memory @DangerousInternalIoApi constructor(
     val pointer: CPointer<ByteVar>,
@@ -195,31 +191,31 @@ internal inline fun Memory.assertIndex(offset: Long, valueSize: Long): Long {
 
 @PublishedApi
 internal inline fun Short.toBigEndian(): Short = when {
-    PLATFORM_BIG_ENDIAN -> this
+    PLATFORM_BIG_ENDIAN == 1 -> this
     else -> reverseByteOrder()
 }
 
 @PublishedApi
 internal inline fun Int.toBigEndian(): Int = when {
-    PLATFORM_BIG_ENDIAN -> this
+    PLATFORM_BIG_ENDIAN == 1 -> this
     else -> reverseByteOrder()
 }
 
 @PublishedApi
 internal inline fun Long.toBigEndian(): Long = when {
-    PLATFORM_BIG_ENDIAN -> this
+    PLATFORM_BIG_ENDIAN == 1 -> this
     else -> reverseByteOrder()
 }
 
 @PublishedApi
 internal inline fun Float.toBigEndian(): Float = when {
-    PLATFORM_BIG_ENDIAN -> this
+    PLATFORM_BIG_ENDIAN == 1 -> this
     else -> reverseByteOrder()
 }
 
 @PublishedApi
 internal inline fun Double.toBigEndian(): Double = when {
-    PLATFORM_BIG_ENDIAN -> this
+    PLATFORM_BIG_ENDIAN == 1 -> this
     else -> reverseByteOrder()
 }
 
