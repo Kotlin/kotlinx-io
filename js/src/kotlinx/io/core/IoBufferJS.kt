@@ -1135,7 +1135,7 @@ actual class IoBuffer internal constructor(
 
     internal actual fun writeBufferAppend(other: IoBuffer, maxSize: Int) {
         val size = minOf(other.readRemaining, maxSize)
-        require(size <= writeRemaining + endGap) { "should should be greater than write space + end gap (size = $size, " +
+        require(size <= writeRemaining + endGap) { "should be greater than write space + end gap (size = $size, " +
                 "writeRemaining = $writeRemaining, endGap = $endGap, rem+gap = ${writeRemaining + endGap}" }
 
         val otherEnd = other.readPosition + size
@@ -1153,6 +1153,10 @@ actual class IoBuffer internal constructor(
         if (refCount != 0) throw IllegalStateException("Unable to unlink buffers: buffer view is in use")
         content = EmptyBuffer
         i8 = Empty8
+        i16 = Empty16
+        i32 = Empty32
+        f32 = EmptyF32
+        f64 = EmptyF64
         view = EmptyDataView
         resetForWrite()
     }
