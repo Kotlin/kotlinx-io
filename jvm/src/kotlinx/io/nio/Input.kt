@@ -1,38 +1,20 @@
 package kotlinx.io.nio
 
 import kotlinx.io.core.*
-import kotlinx.io.core.IoBuffer.*
+import kotlinx.io.core.Buffer
+import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
-import java.nio.*
 import java.nio.channels.*
+import kotlin.require
 
-private class ChannelAsInput(private val channel: ReadableByteChannel, pool: ObjectPool<IoBuffer>) :
+private class ChannelAsInput(private val channel: ReadableByteChannel, pool: ObjectPool<ChunkBuffer>) :
     AbstractInput(pool = pool), Input {
     init {
         require(channel !is SelectableChannel || !channel.isBlocking) { "Non-blocking channels are not supported" }
     }
 
-    override fun fill(): IoBuffer? {
-        val buffer: IoBuffer = pool.borrow()
-        buffer.reserveEndGap(IoBuffer.ReservedSize)
-
-        try {
-            var rc = -1
-
-            buffer.writeDirect(1) { bb: ByteBuffer ->
-                rc = channel.read(bb)
-            }
-
-            if (rc == -1) {
-                buffer.release(pool)
-                return null
-            }
-
-            return buffer
-        } catch (t: Throwable) {
-            buffer.release(pool)
-            throw t
-        }
+    override fun fill(destination: Buffer): Boolean {
+        return channel.read(destination) == -1
     }
 
     override fun closeSource() {
@@ -40,5 +22,7 @@ private class ChannelAsInput(private val channel: ReadableByteChannel, pool: Obj
     }
 }
 
-fun ReadableByteChannel.asInput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool): Input = ChannelAsInput(this, pool)
+fun ReadableByteChannel.asInput(
+    pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+): Input = ChannelAsInput(this, pool)
 

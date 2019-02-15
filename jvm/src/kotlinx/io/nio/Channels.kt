@@ -1,8 +1,11 @@
 package kotlinx.io.nio
 
+import kotlinx.io.bits.*
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import java.io.EOFException
 import java.nio.channels.*
+import kotlin.require
 
 /**
  * Builds packet and write it to a NIO channel. May block if the channel is configured as blocking or
@@ -29,7 +32,7 @@ fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
         while (true) {
             var rc = 0
 
-            p.read { node : IoBuffer ->
+            p.read { node: Buffer ->
                 node.readDirect {
                     rc = write(it)
                 }
@@ -67,10 +70,10 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
 
     if (max == 0L) return ByteReadPacket.Empty
 
-    val pool = IoBuffer.Pool
-    val empty = IoBuffer.Empty
-    var head: IoBuffer = empty
-    var tail: IoBuffer = empty
+    val pool = ChunkBuffer.Pool
+    val empty = ChunkBuffer.Empty
+    var head: ChunkBuffer = empty
+    var tail: ChunkBuffer = empty
 
     var read = 0L
 
@@ -112,6 +115,7 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
 /**
  * Does the same as [ReadableByteChannel.read] but to a [IoBuffer] instance
  */
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun ReadableByteChannel.read(buffer: IoBuffer): Int {
     if (buffer.writeRemaining == 0) return 0
     val rc = read(buffer.writeBuffer)
@@ -120,8 +124,31 @@ fun ReadableByteChannel.read(buffer: IoBuffer): Int {
 }
 
 /**
+ * Does the same as [ReadableByteChannel.read] but to a [Buffer] instance
+ */
+fun ReadableByteChannel.read(buffer: Buffer): Int {
+    if (buffer.writeRemaining == 0) return 0
+    // TODO writeDirect?
+    return buffer.write { memory, start, endExclusive ->
+        val rc = read(memory.buffer.sliceSafe(start, endExclusive - start))
+        if (rc == -1) return -1
+        rc
+    }
+}
+
+/**
  * Does the same as [WritableByteChannel.write] but from a [IoBuffer] instance
  */
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun WritableByteChannel.write(buffer: IoBuffer): Int {
     return write(buffer.readBuffer)
+}
+
+/**
+ * Does the same as [WritableByteChannel.write] but from a [Buffer] instance
+ */
+fun WritableByteChannel.write(buffer: Buffer): Int {
+    return buffer.write { memory, start, endExclusive ->
+        write(memory.buffer.sliceSafe(start, endExclusive - start))
+    }
 }

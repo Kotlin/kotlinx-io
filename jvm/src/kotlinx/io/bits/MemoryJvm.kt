@@ -4,7 +4,6 @@ package kotlinx.io.bits
 
 import kotlinx.io.core.internal.*
 import java.nio.*
-import java.util.*
 
 @Suppress("ACTUAL_WITHOUT_EXPECT", "EXPERIMENTAL_FEATURE_WARNING")
 actual inline class Memory @DangerousInternalIoApi constructor(val buffer: ByteBuffer) {
@@ -135,6 +134,58 @@ actual fun Memory.copyTo(
     copyTo(destination, offset.toIntOrFail("offset"), length, destinationOffset)
 }
 
+/**
+ * Copies bytes from this memory range from the specified [offset]
+ * to the [destination] buffer.
+ */
+fun Memory.copyTo(
+    destination: ByteBuffer,
+    offset: Int
+) {
+    val size = destination.remaining()
+
+    if (buffer.hasArray() && !buffer.isReadOnly &&
+        destination.hasArray() && !destination.isReadOnly) {
+        val dstPosition = destination.position()
+
+        System.arraycopy(
+            buffer.array(), buffer.arrayOffset() + offset,
+            destination.array(), destination.arrayOffset() + dstPosition,
+            size
+        )
+        destination.position(dstPosition + size)
+        return
+    }
+
+    // we need to make a copy to prevent moving position
+    val source = buffer.duplicate().apply {
+        limit(offset + size)
+        position(offset)
+    }
+    destination.put(source)
+}
+
+/**
+ * Copies bytes from this memory range from the specified [offset]
+ * to the [destination] buffer.
+ */
+fun Memory.copyTo(destination: ByteBuffer, offset: Long) {
+    copyTo(destination, offset.toIntOrFail("offset"))
+}
+
+/**
+ * Copy byte from this buffer moving it's position to the [destination] at [offset].
+ */
+fun ByteBuffer.copyTo(destination: Memory, offset: Int) {
+    if (hasArray() && !isReadOnly) {
+        destination.storeByteArray(offset, array(), arrayOffset() + position(), remaining())
+        position(limit())
+        return
+    }
+
+    put(destination.buffer.sliceSafe(offset, remaining()))
+}
+
 private inline fun ByteBuffer.myDuplicate(): ByteBuffer {
     duplicate().apply { return suppressNullCheck() }
 }
@@ -147,7 +198,7 @@ private inline fun ByteBuffer.suppressNullCheck(): ByteBuffer {
     return this
 }
 
-private fun ByteBuffer.sliceSafe(offset: Int, length: Int): ByteBuffer {
+internal fun ByteBuffer.sliceSafe(offset: Int, length: Int): ByteBuffer {
     return myDuplicate().apply { position(offset); limit(offset + length) }.mySlice()
 }
 

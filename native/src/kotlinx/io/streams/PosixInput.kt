@@ -2,7 +2,6 @@ package kotlinx.io.streams
 
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
-import kotlinx.io.core.IoBuffer.*
 import kotlinx.io.errors.*
 import kotlinx.io.internal.utils.*
 import platform.posix.*
@@ -29,21 +28,13 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
         check(kx_internal_is_non_blocking(fileDescriptor) == 0) { "File descriptor is in O_NONBLOCK mode." }
     }
 
-    override fun fill(): IoBuffer? {
-        val buffer = pool.borrow()
-        buffer.reserveEndGap(IoBuffer.ReservedSize)
-
-        val size = read(fileDescriptor, buffer)
-        if (size == SZERO) { // EOF
-            buffer.release(pool)
-            return null
+    override fun fill(destination: Buffer): Boolean {
+        val size = read(fileDescriptor, destination)
+        return when {
+            size == SZERO -> true // EOF
+            size < 0 -> throw PosixException.forErrno(posixFunctionName = "read()").wrapIO()
+            else -> false
         }
-        if (size < 0) {
-            buffer.release(pool)
-            throw PosixException.forErrno(posixFunctionName = "read()").wrapIO()
-        }
-
-        return buffer
     }
 
     override fun closeSource() {
@@ -62,19 +53,14 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
 private class PosixInputForFile(val file: CPointer<FILE>) : AbstractInput() {
     private var closed = false
 
-    override fun fill(): IoBuffer? {
-        val buffer = pool.borrow()
-        buffer.reserveEndGap(IoBuffer.ReservedSize)
-
-        val size = fread(buffer, file)
+    override fun fill(destination: Buffer): Boolean {
+        val size = fread(destination, file)
         if (size == ZERO) {
-            buffer.release(pool)
-
-            if (feof(file) != 0) return null
+            if (feof(file) != 0) return true
             throw PosixException.forErrno(posixFunctionName = "read()").wrapIO()
         }
 
-        return buffer
+        return false
     }
 
     override fun closeSource() {

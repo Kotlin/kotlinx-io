@@ -1,5 +1,6 @@
 package kotlinx.io.bits
 
+import kotlinx.io.core.internal.*
 import org.khronos.webgl.*
 import kotlin.contracts.*
 
@@ -46,3 +47,10 @@ fun Memory.Companion.of(view: ArrayBufferView, offset: Int = 0, length: Int = vi
     return Memory.of(view.buffer, view.byteOffset + offset, length)
 }
 
+@PublishedApi
+internal actual object DefaultAllocator : Allocator {
+    override fun alloc(size: Int): Memory = Memory(DataView(ArrayBuffer(size)))
+    override fun alloc(size: Long): Memory = Memory(DataView(ArrayBuffer(size.toIntOrFail("size"))))
+    override fun free(instance: Memory) {
+    }
+}

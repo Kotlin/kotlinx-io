@@ -152,12 +152,61 @@ actual fun Memory.copyTo(
     copyTo(destination, offset.toIntOrFail("offset"), length, destinationOffset)
 }
 
+/**
+ * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ */
 actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
     for (index in offset until offset + count) {
         this[index] = value
     }
 }
 
+/**
+ * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ */
 actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
     fill(offset.toIntOrFail("offset"), count.toIntOrFail("count"), value)
+}
+
+/**
+ * Copies bytes from this memory range from the specified [offset] and [length]
+ * to the [destination] at [destinationOffset].
+ */
+fun Memory.copyTo(destination: ArrayBuffer, offset: Int, length: Int, destinationOffset: Int) {
+    @Suppress("UnsafeCastFromDynamic")
+    val to = Int8Array(destination, destinationOffset, length)
+    val from = Int8Array(view.buffer, view.byteOffset + offset, length)
+
+    to.set(from, 0)
+}
+
+/**
+ * Copies bytes from this memory range from the specified [offset] and [length]
+ * to the [destination] at [destinationOffset].
+ */
+fun Memory.copyTo(destination: ArrayBufferView, offset: Int, length: Int, destinationOffset: Int) {
+    @Suppress("UnsafeCastFromDynamic")
+    val to = Int8Array(destination.buffer, destinationOffset + destination.byteOffset, length)
+    val from = Int8Array(view.buffer, view.byteOffset + offset, length)
+
+    to.set(from, 0)
+}
+
+/**
+ * Copies bytes from this memory range from the specified [offset] and [length]
+ * to the [destination] at [destinationOffset].
+ */
+fun ArrayBuffer.copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
+    val from = Int8Array(this, offset, length)
+    val to = Int8Array(destination.view.buffer, destination.view.byteOffset + offset, destinationOffset)
+
+    to.set(from, 0)
+}
+
+/**
+ * Copies bytes from this memory range from the specified [offset] and [length]
+ * to the [destination] at [destinationOffset].
+ */
+fun ArrayBufferView.copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
+    buffer.copyTo(destination, offset + byteOffset, length, destinationOffset)
 }

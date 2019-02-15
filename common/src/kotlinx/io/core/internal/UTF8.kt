@@ -1,14 +1,19 @@
 package kotlinx.io.core.internal
 
+import kotlinx.io.bits.*
 import kotlinx.io.core.*
 
-internal inline fun IoBuffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
-    for (i in 0 until readRemaining) {
-        val v = readByte().toInt() and 0xff
-        if (v and 0x80 != 0 || !consumer(v.toChar())) {
-            pushBack(1)
-            return false
+internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
+    read { memory, start, endExclusive ->
+        for (index in start until endExclusive) {
+            val codepoint = memory[index].toInt() and 0xff
+            if (codepoint and 0x80 == 0x80 || !consumer(codepoint.toChar())) {
+                discard(index - start)
+                return false
+            }
         }
+
+        endExclusive - start
     }
 
     return true
@@ -61,7 +66,7 @@ suspend fun decodeUTF8LineLoopSuspend(
             }
 
             if (skip > 0) {
-                buffer.discardExact(skip)
+                buffer.discard(skip)
             }
 
             size = if (end) 0 else size.coerceAtLeast(1)
@@ -100,6 +105,12 @@ internal fun byteCountUtf8(firstByte: Int): Int {
     return byteCount
 }
 
+@Suppress("DEPRECATION")
+@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
+    return (this as Buffer).decodeUTF8(consumer)
+}
+
 /**
  * Decodes all the bytes to utf8 applying every character on [consumer] until or consumer return `false`.
  * If a consumer returned false then a character will be pushed back (including all surrogates will be pushed back as well)
@@ -108,70 +119,74 @@ internal fun byteCountUtf8(firstByte: Int): Int {
  * or -1 if consumer rejected loop
  */
 @DangerousInternalIoApi
-inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
+inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0
     var lastByteCount = 0
 
-    while (canRead()) {
-        val v = readByte().toInt() and 0xff
-        when {
-            v and 0x80 == 0 -> {
-                if (byteCount != 0) malformedByteCount(byteCount)
-                if (!consumer(v.toChar())) {
-                    pushBack(1)
-                    return -1
-                }
-            }
-            byteCount == 0 -> {
-                // first unicode byte
-
-                var mask = 0x80
-                value = v
-
-                for (i in 1..6) { // TODO do we support 6 bytes unicode?
-                    if (value and mask != 0) {
-                        value = value and mask.inv()
-                        mask = mask shr 1
-                        byteCount++
-                    } else {
-                        break
+    read { memory, start, endExclusive ->
+        for (index in start until endExclusive) {
+            val v = memory[index].toInt() and 0xff
+            when {
+                v and 0x80 == 0 -> {
+                    if (byteCount != 0) malformedByteCount(byteCount)
+                    if (!consumer(v.toChar())) {
+                        discard(index - start)
+                        return -1
                     }
                 }
+                byteCount == 0 -> {
+                    // first unicode byte
 
-                lastByteCount = byteCount
-                byteCount--
+                    var mask = 0x80
+                    value = v
 
-                if (byteCount > readRemaining) {
-                    pushBack(1) // return one byte back
-                    return lastByteCount
-                }
-            }
-            else -> {
-                // trailing unicode byte
-                value = (value shl 6) or (v and 0x7f)
-                byteCount--
-
-                if (byteCount == 0) {
-                    if (isBmpCodePoint(value)) {
-                        if (!consumer(value.toChar())) {
-                            pushBack(lastByteCount)
-                            return -1
+                    for (i in 1..6) { // TODO do we support 6 bytes unicode?
+                        if (value and mask != 0) {
+                            value = value and mask.inv()
+                            mask = mask shr 1
+                            byteCount++
+                        } else {
+                            break
                         }
-                    } else if (!isValidCodePoint(value)) {
-                        malformedCodePoint(value)
-                    } else {
-                        if (!consumer(highSurrogate(value).toChar()) ||
+                    }
+
+                    lastByteCount = byteCount
+                    byteCount--
+
+                    if (byteCount > readRemaining) {
+                        discard(index - start)
+                        return lastByteCount
+                    }
+                }
+                else -> {
+                    // trailing unicode byte
+                    value = (value shl 6) or (v and 0x7f)
+                    byteCount--
+
+                    if (byteCount == 0) {
+                        if (isBmpCodePoint(value)) {
+                            if (!consumer(value.toChar())) {
+                                discard(index - start - lastByteCount)
+                                return -1
+                            }
+                        } else if (!isValidCodePoint(value)) {
+                            malformedCodePoint(value)
+                        } else {
+                            if (!consumer(highSurrogate(value).toChar()) ||
                                 !consumer(lowSurrogate(value).toChar())) {
-                            pushBack(lastByteCount)
-                            return -1
+                                discard(index - start - lastByteCount)
+                                return -1
+                            }
                         }
-                    }
 
-                    value = 0
+                        value = 0
+                    }
                 }
             }
         }
+
+        endExclusive - start
     }
 
     return 0

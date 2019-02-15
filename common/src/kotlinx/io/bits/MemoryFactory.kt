@@ -1,5 +1,7 @@
 package kotlinx.io.bits
 
+import kotlinx.io.core.internal.*
+
 // TODO: length default argument should be this.size - offset but it doesn't work due to KT-29920
 /**
  * Execute [block] of code providing a temporary instance of [Memory] view of this byte array range
@@ -8,3 +10,15 @@ package kotlinx.io.bits
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
 expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory) -> R): R
+
+@PublishedApi
+internal expect object DefaultAllocator : Allocator
+
+@DangerousInternalIoApi
+internal interface Allocator {
+    fun alloc(size: Int): Memory
+
+    fun alloc(size: Long): Memory
+
+    fun free(instance: Memory)
+}

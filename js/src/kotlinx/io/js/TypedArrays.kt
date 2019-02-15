@@ -29,9 +29,9 @@ fun BytePacketBuilder.writeFully(src: Int8Array, offset: Int = 0, length: Int = 
     var rem = length
 
     while (rem > 0) {
-        write(1) { bb: IoBuffer ->
+        write(1) { bb: Buffer ->
             val size = minOf(bb.writeRemaining, rem)
-            bb.write(src, written + offset, size)
+            bb.writeFully(src, written + offset, size)
             written += size
             rem -= size
             size

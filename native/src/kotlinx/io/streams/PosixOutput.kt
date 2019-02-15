@@ -28,7 +28,7 @@ private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutpu
         check(kx_internal_is_non_blocking(fileDescriptor) == 0) { "File descriptor is in O_NONBLOCK mode." }
     }
 
-    override fun flush(buffer: IoBuffer) {
+    override fun flush(buffer: Buffer) {
         while (buffer.canRead()) {
             if (write(fileDescriptor, buffer) <= 0) {
                 throw PosixException.forErrno(posixFunctionName = "write()").wrapIO()
@@ -52,7 +52,7 @@ private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutpu
 private class PosixFileInstanceOutput(val file: CPointer<FILE>) : AbstractOutput() {
     private var closed = false
 
-    override fun flush(buffer: IoBuffer) {
+    override fun flush(buffer: Buffer) {
         while (buffer.canRead()) {
             if (fwrite(buffer, file) == ZERO) {
                 throw PosixException.forErrno(posixFunctionName = "fwrite()").wrapIO()

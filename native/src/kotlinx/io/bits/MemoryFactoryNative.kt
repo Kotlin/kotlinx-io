@@ -63,6 +63,18 @@ inline fun Memory.Companion.of(pointer: CPointer<*>, size: Long): Memory {
  * once the scope is leaved, all produced instances should be discarded and should be never used after the scope.
  * On the contrary instances created using [nativeHeap] do require release via [nativeHeap.free].
  */
+fun NativePlacement.allocMemory(size: Int): Memory {
+    return allocMemory(size.toLong())
+}
+
+/**
+ * Allocate memory range having the specified [size] in bytes and provide an instance of [Memory] view for this range.
+ * Please note that depending of the placement type (e.g. scoped or global) this memory instance may require
+ * explicit release using [free] on the same placement.
+ * In particular, instances created inside of [memScoped] block do not require to be released explicitly but
+ * once the scope is leaved, all produced instances should be discarded and should be never used after the scope.
+ * On the contrary instances created using [nativeHeap] do require release via [nativeHeap.free].
+ */
 fun NativePlacement.allocMemory(size: Long): Memory {
     return Memory(allocArray(size), size)
 }

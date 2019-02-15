@@ -3,9 +3,9 @@ package kotlinx.io.core
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
-expect class ByteReadPacket internal constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) :
+expect class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>) :
     ByteReadPacketPlatformBase {
-    constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>)
+    constructor(head: ChunkBuffer, pool: ObjectPool<ChunkBuffer>)
 
     companion object {
         val Empty: ByteReadPacket
@@ -15,9 +15,9 @@ expect class ByteReadPacket internal constructor(head: IoBuffer, remaining: Long
 
 @DangerousInternalIoApi
 expect abstract class ByteReadPacketPlatformBase protected constructor(
-    head: IoBuffer,
+    head: ChunkBuffer,
     remaining: Long,
-    pool: ObjectPool<IoBuffer>
+    pool: ObjectPool<ChunkBuffer>
 ) : ByteReadPacketBase
 
 /**
@@ -26,16 +26,15 @@ expect abstract class ByteReadPacketPlatformBase protected constructor(
  */
 @ExperimentalIoApi
 abstract class AbstractInput(
-    head: IoBuffer = IoBuffer.Empty,
+    head: ChunkBuffer = ChunkBuffer.Empty,
     remaining: Long = head.remainingAll(),
-    pool: ObjectPool<IoBuffer> = IoBuffer.Pool
+    pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteReadPacketPlatformBase(head, remaining, pool) {
     /**
-     * Reads the next chunk suitable for reading or `null` if no more chunks available. It is also allowed
-     * to return a chain of chunks linked through [IoBuffer.next]. The last chunk should have `null` next reference.
-     * Could rethrow exceptions from the underlying source.
+     * Read the next bytes into the [destination]
+     * @return `true` if EOF encountered
      */
-    abstract override fun fill(): IoBuffer?
+    abstract override fun fill(destination: Buffer): Boolean
 
     /**
      * Should close the underlying bytes source. Could do nothing or throw exceptions.

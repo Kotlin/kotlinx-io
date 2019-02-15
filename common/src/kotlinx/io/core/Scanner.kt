@@ -104,20 +104,24 @@ fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte, dst: Output): 
     return copiedTotal
 }
 
-internal expect fun IoBuffer.discardUntilDelimiterImpl(delimiter: Byte): Int
+internal expect fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int
 
-internal expect fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int
+internal expect fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int
 
 
-internal expect fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
+internal expect fun Buffer.readUntilDelimiterImpl(
+    delimiter: Byte,
                                                     dst: ByteArray, offset: Int, length: Int): Int
 
-internal expect fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
-                                                     dst: ByteArray, offset: Int, length: Int): Int
+internal expect fun Buffer.readUntilDelimitersImpl(
+    delimiter1: Byte, delimiter2: Byte,
+    dst: ByteArray, offset: Int, length: Int): Int
 
-internal expect fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
-                                                    dst: Output): Int
+internal expect fun Buffer.readUntilDelimiterImpl(
+    delimiter: Byte,
+    dst: Output): Int
 
-internal expect fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
-                                                     dst: Output): Int
+internal expect fun Buffer.readUntilDelimitersImpl(
+    delimiter1: Byte, delimiter2: Byte,
+    dst: Output): Int
 

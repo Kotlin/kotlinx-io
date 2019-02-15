@@ -1,7 +1,6 @@
 package kotlinx.io.core.internal
 
 import kotlinx.io.core.*
-import kotlinx.io.core.IoBuffer.*
 
 /**
  * API marked with this annotation is internal and extremely fragile and not intended to be used by library users.
@@ -27,26 +26,26 @@ fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
 }
 
 @DangerousInternalIoApi
-fun Input.prepareReadFirstHead(minSize: Int): IoBuffer? {
+fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? {
     if (this is ByteReadPacketBase) {
         return prepareReadHead(minSize)
     }
-    if (this is IoBuffer) {
+    if (this is ChunkBuffer) {
         return if (canRead()) this else null
     }
 
     return prepareReadHeadFallback(minSize)
 }
 
-private fun Input.prepareReadHeadFallback(minSize: Int): IoBuffer? {
+private fun Input.prepareReadHeadFallback(minSize: Int): ChunkBuffer? {
     if (endOfInput) return null
 
-    val buffer = IoBuffer.Pool.borrow()
+    val buffer = ChunkBuffer.Pool.borrow()
 
     while (buffer.readRemaining < minSize) {
         val rc = peekTo(buffer)
         if (rc <= 0) {
-            buffer.release(IoBuffer.Pool)
+            buffer.release(ChunkBuffer.Pool)
             return null
         }
     }
@@ -55,7 +54,7 @@ private fun Input.prepareReadHeadFallback(minSize: Int): IoBuffer? {
 }
 
 @DangerousInternalIoApi
-fun Input.completeReadHead(current: IoBuffer) {
+fun Input.completeReadHead(current: ChunkBuffer) {
     if (current === this) {
         return
     }
@@ -63,7 +62,7 @@ fun Input.completeReadHead(current: IoBuffer) {
         val remaining = current.readRemaining
         if (remaining == 0) {
             ensureNext(current)
-        } else if (current.endGap < IoBuffer.ReservedSize) {
+        } else if (current.endGap < Buffer.ReservedSize) {
             fixGapAfterRead(current)
         } else {
             updateHeadRemaining(remaining)
@@ -74,14 +73,14 @@ fun Input.completeReadHead(current: IoBuffer) {
     completeReadHeadFallback(current)
 }
 
-private fun Input.completeReadHeadFallback(current: IoBuffer) {
+private fun Input.completeReadHeadFallback(current: ChunkBuffer) {
     val discardAmount = current.capacity - current.writeRemaining - current.readRemaining
     discardExact(discardAmount)
-    current.release(IoBuffer.Pool)
+    current.release(ChunkBuffer.Pool)
 }
 
 @DangerousInternalIoApi
-fun Input.prepareReadNextHead(current: IoBuffer): IoBuffer? {
+fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     if (current === this) {
         return if (canRead()) this else null
     }
@@ -92,13 +91,13 @@ fun Input.prepareReadNextHead(current: IoBuffer): IoBuffer? {
     return prepareNextReadHeadFallback(current)
 }
 
-private fun Input.prepareNextReadHeadFallback(current: IoBuffer): IoBuffer? {
+private fun Input.prepareNextReadHeadFallback(current: ChunkBuffer): ChunkBuffer? {
     val discardAmount = current.capacity - current.writeRemaining - current.readRemaining
     discardExact(discardAmount)
     current.resetForWrite()
 
     if (endOfInput || peekTo(current) <= 0) {
-        current.release(IoBuffer.Pool)
+        current.release(ChunkBuffer.Pool)
         return null
     }
 
@@ -106,7 +105,7 @@ private fun Input.prepareNextReadHeadFallback(current: IoBuffer): IoBuffer? {
 }
 
 @DangerousInternalIoApi
-fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
+fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
     @Suppress("DEPRECATION")
     if (this is BytePacketBuilderBase) {
         return prepareWriteHead(capacity)
@@ -115,18 +114,18 @@ fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
     return prepareWriteHeadFallback(current)
 }
 
-private fun Output.prepareWriteHeadFallback(current: IoBuffer?): IoBuffer {
+private fun Output.prepareWriteHeadFallback(current: ChunkBuffer?): ChunkBuffer {
     if (current != null) {
         writeFully(current)
         current.resetForWrite()
         return current
     }
 
-    return IoBuffer.Pool.borrow()
+    return ChunkBuffer.Pool.borrow()
 }
 
 @DangerousInternalIoApi
-fun Output.afterHeadWrite(current: IoBuffer) {
+fun Output.afterHeadWrite(current: ChunkBuffer) {
     @Suppress("DEPRECATION")
     if (this is BytePacketBuilderBase) {
         return afterHeadWrite()
@@ -135,7 +134,7 @@ fun Output.afterHeadWrite(current: IoBuffer) {
     afterWriteHeadFallback(current)
 }
 
-private fun Output.afterWriteHeadFallback(current: IoBuffer) {
+private fun Output.afterWriteHeadFallback(current: ChunkBuffer) {
     writeFully(current)
-    current.release(IoBuffer.Pool)
+    current.release(ChunkBuffer.Pool)
 }

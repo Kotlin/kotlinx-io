@@ -1,18 +1,16 @@
 package kotlinx.io.nio
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 import java.nio.channels.*
 
-private class ChannelAsOutput(pool: ObjectPool<IoBuffer>,
-                              val channel: WritableByteChannel
+private class ChannelAsOutput(
+    pool: ObjectPool<ChunkBuffer>,
+    val channel: WritableByteChannel
 ) : AbstractOutput(pool) {
-    override fun flush(buffer: IoBuffer) {
-        buffer.readDirect { bb ->
-            while (bb.hasRemaining()) {
-                channel.write(bb)
-            }
-        }
+    override fun flush(buffer: Buffer) {
+        channel.write(buffer)
     }
 
     override fun closeDestination() {
@@ -20,5 +18,6 @@ private class ChannelAsOutput(pool: ObjectPool<IoBuffer>,
     }
 }
 
-fun WritableByteChannel.asOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool): Output
-        = ChannelAsOutput(pool, this)
+fun WritableByteChannel.asOutput(
+    pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+): Output = ChannelAsOutput(pool, this)

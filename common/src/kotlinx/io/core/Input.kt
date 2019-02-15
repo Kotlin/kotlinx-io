@@ -6,7 +6,12 @@ import kotlinx.io.core.internal.*
  * Shouldn't be implemented directly. Inherit [AbstractInput] instead.
  */
 expect interface Input : Closeable {
+    @Deprecated(
+        "Not supported anymore. All operations are big endian by default.",
+        level = DeprecationLevel.ERROR
+    )
     var byteOrder: ByteOrder
+
     val endOfInput: Boolean
 
     fun readByte(): Byte
@@ -56,6 +61,10 @@ expect interface Input : Closeable {
     override fun close()
 }
 
+
+fun Input.peekTo(buffer: Buffer): Int {
+    TODO()
+}
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset) {
@@ -123,7 +132,14 @@ fun Input.readAvailable(dst: DoubleArray, offset: Int = 0, length: Int = dst.siz
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: IoBuffer, length: Int = dst.writeRemaining): Int {
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Input.readAvailable(dst: IoBuffer, length: Int): Int {
+    return readAvailable(dst, length)
+}
+
+//@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Input.readAvailable(dst: ChunkBuffer, length: Int = dst.writeRemaining): Int {
+    TODO()
     return readAvailable(dst, length)
 }
 
@@ -150,7 +166,7 @@ fun Input.discardExact(n: Int) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
-inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
+inline fun Input.takeWhile(block: (Buffer) -> Boolean) {
     var release = true
     var current = prepareReadFirstHead(1) ?: return
 
@@ -179,7 +195,7 @@ inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
-inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
+inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
     var release = true
     var current = prepareReadFirstHead(initialSize) ?: return
     var size = initialSize
@@ -203,7 +219,7 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
 
             val next = when {
                 after == 0 -> prepareReadNextHead(current)
-                after < size || current.endGap < IoBuffer.ReservedSize -> {
+                after < size || current.endGap < Buffer.ReservedSize -> {
                     completeReadHead(current)
                     prepareReadFirstHead(size)
                 }

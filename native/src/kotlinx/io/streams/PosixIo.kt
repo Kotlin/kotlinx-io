@@ -17,7 +17,7 @@ inline fun <R> CPointer<FILE>.use(block: (CPointer<FILE>) -> R): R {
 }
 
 @ExperimentalIoApi
-fun fwrite(buffer: IoBuffer, stream: CPointer<FILE>): size_t {
+fun fwrite(buffer: Buffer, stream: CPointer<FILE>): size_t {
     var written: size_t = 0u
 
     buffer.readDirect { pointer ->
@@ -32,7 +32,7 @@ fun fwrite(buffer: IoBuffer, stream: CPointer<FILE>): size_t {
 }
 
 @ExperimentalIoApi
-fun write(fildes: Int, buffer: IoBuffer): ssize_t {
+fun write(fildes: Int, buffer: Buffer): ssize_t {
     var written: ssize_t = 0
 
     buffer.readDirect { pointer ->
@@ -48,7 +48,7 @@ fun write(fildes: Int, buffer: IoBuffer): ssize_t {
 }
 
 @ExperimentalIoApi
-fun send(socket: KX_SOCKET, buffer: IoBuffer, flags: Int): ssize_t {
+fun send(socket: KX_SOCKET, buffer: Buffer, flags: Int): ssize_t {
     var written: ssize_t = 0
 
     buffer.readDirect { pointer ->
@@ -64,7 +64,7 @@ fun send(socket: KX_SOCKET, buffer: IoBuffer, flags: Int): ssize_t {
 }
 
 @ExperimentalIoApi
-fun fread(buffer: IoBuffer, stream: CPointer<FILE>): size_t {
+fun fread(buffer: Buffer, stream: CPointer<FILE>): size_t {
     var bytesRead: size_t = 0u
 
     buffer.writeDirect { pointer ->
@@ -79,7 +79,7 @@ fun fread(buffer: IoBuffer, stream: CPointer<FILE>): size_t {
 }
 
 @ExperimentalIoApi
-fun read(fildes: Int, buffer: IoBuffer): ssize_t {
+fun read(fildes: Int, buffer: Buffer): ssize_t {
     var bytesRead: ssize_t = 0
 
     buffer.writeDirect { pointer ->
@@ -101,7 +101,7 @@ fun read(fildes: Int, buffer: IoBuffer): ssize_t {
 }
 
 @ExperimentalIoApi
-fun recv(socket: KX_SOCKET, buffer: IoBuffer, flags: Int): ssize_t {
+fun recv(socket: KX_SOCKET, buffer: Buffer, flags: Int): ssize_t {
     var bytesRead: ssize_t = 0
 
     buffer.writeDirect { pointer ->
@@ -119,7 +119,7 @@ fun recv(socket: KX_SOCKET, buffer: IoBuffer, flags: Int): ssize_t {
 @ExperimentalIoApi
 fun recvfrom(
     socket: KX_SOCKET,
-    buffer: IoBuffer,
+    buffer: Buffer,
     flags: Int,
     addr: CValuesRef<sockaddr>,
     addr_len: CValuesRef<KX_SOCKADDR_LENVar>
@@ -140,7 +140,7 @@ fun recvfrom(
 
 @ExperimentalIoApi
 fun sendto(
-    socket: KX_SOCKET, buffer: IoBuffer, flags: Int,
+    socket: KX_SOCKET, buffer: Buffer, flags: Int,
     addr: CValuesRef<sockaddr>,
     addr_len: KX_SOCKADDR_LEN
 ): ssize_t {

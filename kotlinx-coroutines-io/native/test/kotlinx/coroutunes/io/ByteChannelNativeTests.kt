@@ -1,7 +1,5 @@
 package kotlinx.coroutines.io
 
-import kotlinx.io.core.*
-import kotlinx.io.pool.*
 import kotlinx.cinterop.*
 import kotlin.test.*
 

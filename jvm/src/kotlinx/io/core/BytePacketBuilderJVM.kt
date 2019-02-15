@@ -8,7 +8,7 @@ import java.nio.*
 @Deprecated("Will be removed in future releases.")
 @Suppress("DEPRECATION")
 actual abstract class BytePacketBuilderPlatformBase
-internal actual constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase(pool) {
+internal actual constructor(pool: ObjectPool<ChunkBuffer>) : BytePacketBuilderBase(pool) {
     override fun writeFully(bb: ByteBuffer) {
         val l = bb.limit()
 

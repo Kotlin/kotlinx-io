@@ -1,6 +1,7 @@
 package kotlinx.io.charsets
 
 import kotlinx.io.core.*
+import kotlinx.io.core.Buffer
 import kotlinx.io.core.internal.*
 import java.nio.*
 import java.nio.charset.*
@@ -38,7 +39,7 @@ private fun CharsetEncoder.encodeToByteArraySlow(input: CharSequence, fromIndex:
     return existingArray ?: ByteArray(result.remaining()).also { result.get(it) }
 }
 
-internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int {
+internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
     val cb = CharBuffer.wrap(input, fromIndex, toIndex)
     val before = cb.remaining()
 
@@ -122,7 +123,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     }
 }
 
-internal actual fun CharsetEncoder.encodeComplete(dst: IoBuffer): Boolean {
+internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean {
     var completed = false
 
     dst.writeDirect(0) { bb ->
@@ -148,7 +149,7 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
 
     var readSize = 1
 
-    input.takeWhileSize { buffer: IoBuffer ->
+    input.takeWhileSize { buffer: Buffer ->
         val rem = max - copied
         if (rem == 0) return@takeWhileSize 0
 
@@ -236,7 +237,7 @@ private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): Strin
 
     var readSize = 1
 
-    input.takeWhileSize { buffer: IoBuffer ->
+    input.takeWhileSize { buffer: Buffer ->
         if (!cb.hasRemaining() || remainingInputBytes == 0) return@takeWhileSize 0
 
         buffer.readDirect { bb: ByteBuffer ->

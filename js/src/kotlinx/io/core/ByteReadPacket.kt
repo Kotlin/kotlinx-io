@@ -1,18 +1,20 @@
 package kotlinx.io.core
 
+import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 import org.khronos.webgl.*
 
 @DangerousInternalIoApi
 actual abstract class ByteReadPacketPlatformBase
-protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketBase(head, remaining, pool), Input {
+protected actual constructor(head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>) :
+    ByteReadPacketBase(head, remaining, pool), Input {
 
     override fun readFully(dst: Int8Array, offset: Int, length: Int) {
         if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
         var copied = 0
 
-        takeWhile { buffer: IoBuffer ->
+        takeWhile { buffer: Buffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
             if (rc > 0) copied += rc
             copied < length
@@ -23,7 +25,7 @@ protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<I
         if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
         var copied = 0
 
-        takeWhile { buffer: IoBuffer ->
+        takeWhile { buffer: Buffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
             if (rc > 0) copied += rc
             copied < length
@@ -34,7 +36,7 @@ protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<I
         if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
         var copied = 0
 
-        takeWhile { buffer: IoBuffer ->
+        takeWhile { buffer: Buffer ->
             val rc = buffer.readAvailable(dst, offset + copied, length - copied)
             if (rc > 0) copied += rc
             copied < length
@@ -68,8 +70,9 @@ protected actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<I
 }
 
 actual class ByteReadPacket
-    internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) : ByteReadPacketPlatformBase(head, remaining, pool), Input {
-    actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(head, head.remainingAll(), pool)
+internal actual constructor(head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>) :
+    ByteReadPacketPlatformBase(head, remaining, pool), Input {
+    actual constructor(head: ChunkBuffer, pool: ObjectPool<ChunkBuffer>) : this(head, head.remainingAll(), pool)
 
     init {
         markNoMoreChunksAvailable()
@@ -82,8 +85,8 @@ actual class ByteReadPacket
 
     actual companion object {
         actual val Empty: ByteReadPacket
-            get() = ByteReadPacket(IoBuffer.Empty, object : NoPoolImpl<IoBuffer>() {
-                override fun borrow() = IoBuffer.Empty
+            get() = ByteReadPacket(ChunkBuffer.Empty, object : NoPoolImpl<ChunkBuffer>() {
+                override fun borrow() = ChunkBuffer.Empty
             })
         actual inline val ReservedSize get() = IoBuffer.ReservedSize
     }
@@ -96,12 +99,12 @@ actual fun ByteReadPacket(array: ByteArray, offset: Int, length: Int, block: (By
         else -> content.buffer.slice(offset, offset + length)
     }
 
-    val pool = object : SingleInstancePool<IoBuffer>() {
-        override fun produceInstance(): IoBuffer {
-            return IoBuffer(sub, null)
+    val pool = object : SingleInstancePool<ChunkBuffer>() {
+        override fun produceInstance(): ChunkBuffer {
+            return ChunkBuffer(Memory.of(sub), null)
         }
 
-        override fun disposeInstance(instance: IoBuffer) {
+        override fun disposeInstance(instance: ChunkBuffer) {
             block(array)
         }
     }

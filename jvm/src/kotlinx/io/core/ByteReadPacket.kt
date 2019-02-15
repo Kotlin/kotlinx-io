@@ -7,9 +7,9 @@ import kotlin.require
 
 @DangerousInternalIoApi
 actual abstract class ByteReadPacketPlatformBase protected actual constructor(
-    head: IoBuffer,
+    head: ChunkBuffer,
     remaining: Long,
-    pool: ObjectPool<IoBuffer>
+    pool: ObjectPool<ChunkBuffer>
 ) : ByteReadPacketBase(head, remaining, pool), Input {
 
     override fun readFully(dst: ByteBuffer, length: Int) {
@@ -17,7 +17,7 @@ actual abstract class ByteReadPacketPlatformBase protected actual constructor(
         require(length <= dst.remaining()) { "Not enough free space in destination buffer to write $length bytes" }
         var copied = 0
 
-        takeWhile { buffer: IoBuffer ->
+        takeWhile { buffer: Buffer ->
             val rc = buffer.readAvailable(dst, length - copied)
             if (rc > 0) copied += rc
             copied < length
@@ -34,9 +34,9 @@ actual abstract class ByteReadPacketPlatformBase protected actual constructor(
 }
 
 actual class ByteReadPacket
-internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<IoBuffer>) :
+internal actual constructor(head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>) :
     ByteReadPacketPlatformBase(head, remaining, pool), Input {
-    actual constructor(head: IoBuffer, pool: ObjectPool<IoBuffer>) : this(
+    actual constructor(head: ChunkBuffer, pool: ObjectPool<ChunkBuffer>) : this(
         head,
         head.remainingAll(),
         pool
@@ -48,15 +48,19 @@ internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<Io
 
     final override fun fill() = null
 
+    override fun fill(destination: Buffer): Boolean {
+        return true
+    }
+
     override fun closeSource() {
     }
 
     actual companion object {
         actual val Empty: ByteReadPacket
-            get() = ByteReadPacket(IoBuffer.Empty, object : NoPoolImpl<IoBuffer>() {
-                override fun borrow() = IoBuffer.Empty
+            get() = ByteReadPacket(IoBuffer.Empty, object : NoPoolImpl<ChunkBuffer>() {
+                override fun borrow() = ChunkBuffer.Empty
             })
 
-        actual inline val ReservedSize get() = IoBuffer.ReservedSize
+        actual inline val ReservedSize get() = Buffer.ReservedSize
     }
 }

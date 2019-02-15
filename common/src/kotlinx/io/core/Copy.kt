@@ -1,5 +1,7 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
+
 /**
  * Copy all bytes to the [output].
  * Depending on actual input and output implementation it could be zero-copy or copy byte per byte.
@@ -29,7 +31,7 @@ fun Input.copyTo(output: Output): Long {
 }
 
 private fun Input.copyToFallback(output: Output): Long {
-    val buffer = IoBuffer.Pool.borrow()
+    val buffer = ChunkBuffer.Pool.borrow()
     var copied = 0L
 
     try {
@@ -43,6 +45,6 @@ private fun Input.copyToFallback(output: Output): Long {
 
         return copied
     } finally {
-        buffer.release(IoBuffer.Pool)
+        buffer.release(ChunkBuffer.Pool)
     }
 }

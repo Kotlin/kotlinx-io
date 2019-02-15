@@ -2,15 +2,16 @@ package kotlinx.io.core
 
 import kotlinx.io.charsets.*
 import kotlinx.cinterop.*
+import kotlinx.io.core.internal.*
 
 actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String {
     if (length == 0 && offset <= bytes.size) return ""
 
     return bytes.usePinned { pinned ->
         val ptr = pinned.addressOf(offset)
-        val view = IoBuffer(ptr, length, null)
+        val view = ChunkBuffer(ptr, length, null)
         view.resetForRead()
-        val packet = ByteReadPacket(view, IoBuffer.NoPoolForManaged)
+        val packet = ByteReadPacket(view, ChunkBuffer.NoPool)
         check(packet.remaining == length.toLong())
         charset.newDecoder().decode(packet, Int.MAX_VALUE)
     }

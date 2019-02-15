@@ -1,6 +1,7 @@
 package kotlinx.io.core
 
 import kotlinx.cinterop.*
+import kotlinx.io.core.internal.*
 
 /**
  * Read at most [limit] bytes to the specified [dst] address
@@ -42,17 +43,17 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(
     copied: Long
 ): Long {
     if (destinationCapacity == 0L) return copied
-    val current: IoBuffer = prepareRead(1) ?: return copied
+    val current: ChunkBuffer = prepareRead(1) ?: return copied
 
     val available = current.readRemaining.toLong()
 
     return if (destinationCapacity >= available) {
-        current.readFully(buffer, 0L, available)
+        current.readFully(buffer, 0L, available.toInt())
         releaseHead(current)
 
         readAsMuchAsPossible((buffer + available)!!, destinationCapacity - available, copied + available)
     } else {
-        current.readFully(buffer, 0, destinationCapacity)
+        current.readFully(buffer, 0, destinationCapacity.toInt())
         copied + destinationCapacity
     }
 }
@@ -65,7 +66,7 @@ fun BytePacketBuilder.writeFully(src: CPointer<ByteVar>, size: Int) {
     var offset = 0
 
     while (remaining > 0) {
-        write(1) { buffer: IoBuffer ->
+        write(1) { buffer: Buffer ->
             val srcSize = remaining
             val capacity = buffer.writeRemaining
 

@@ -1,9 +1,14 @@
 package kotlinx.io.core
 
+import kotlinx.io.bits.*
 import org.khronos.webgl.*
 
-internal actual fun IoBuffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
-    val content = Int8Array(content)
+private fun Memory.asInt8Array(): Int8Array {
+    return Int8Array(view.buffer, view.byteOffset, view.byteLength)
+}
+
+internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
+    val content = memory.asInt8Array()
     var idx = readPosition
     val end = writePosition
 
@@ -13,12 +18,12 @@ internal actual fun IoBuffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     }
 
     val start = readPosition
-    readPosition = idx
+    discardUntilIndex(idx)
     return idx - start
 }
 
-internal actual fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
-    val content = Int8Array(content)
+internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
+    val content = memory.asInt8Array()
     var idx = readPosition
     val end = writePosition
 
@@ -29,13 +34,14 @@ internal actual fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimi
     }
 
     val start = readPosition
-    readPosition = idx
+    discardUntilIndex(idx)
     return idx - start
 }
 
 
-internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
-                                                    dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun Buffer.readUntilDelimiterImpl(
+    delimiter: Byte,
+    dst: ByteArray, offset: Int, length: Int): Int {
     check(offset >= 0)
     check(length >= 0)
     check(offset + length <= dst.size)
@@ -43,8 +49,9 @@ internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
     return readUntilImpl({ it == delimiter }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
-                                                     dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun Buffer.readUntilDelimitersImpl(
+    delimiter1: Byte, delimiter2: Byte,
+    dst: ByteArray, offset: Int, length: Int): Int {
     check(offset >= 0)
     check(length >= 0)
     check(offset + length <= dst.size)
@@ -53,20 +60,21 @@ internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter
     return readUntilImpl({ it == delimiter1 || it == delimiter2 }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
+internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
     return readUntilImpl({ it == delimiter }, dst)
 }
 
-internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
+internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     check(delimiter1 != delimiter2)
 
     return readUntilImpl({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
-private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
-                                          dst: ByteArray, offset: Int, length: Int): Int {
+private inline fun Buffer.readUntilImpl(
+    predicate: (Byte) -> Boolean,
+    dst: ByteArray, offset: Int, length: Int): Int {
 
-    val array = Int8Array(content)
+    val array = memory.asInt8Array()
     val start = readPosition
     var i = start
     val end = i + minOf(length, readRemaining)
@@ -79,14 +87,15 @@ private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
     val copied = i - start
     val dstArray = dst.asDynamic() as Int8Array
     dstArray.set(array.subarray(start, end), offset)
-    readPosition = i
+    discardUntilIndex(i)
 
     return copied
 }
 
-private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
-                                          dst: Output): Int {
-    val array = Int8Array(content)
+private inline fun Buffer.readUntilImpl(
+    predicate: (Byte) -> Boolean,
+    dst: Output): Int {
+    val array = memory.asInt8Array()
     var i = readPosition
     var copiedTotal = 0
 
@@ -102,13 +111,13 @@ private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
 
         val size = i - start
 
-        Int8Array(chunk.content).set(array.subarray(start, i), chunk.writePosition)
-        chunk.writePosition += size
+        chunk.memory.asInt8Array().set(array.subarray(start, i), chunk.writePosition)
+        chunk.commitWritten(size)
         copiedTotal += size
 
         chunk.writeRemaining == 0 && i < end
     }
 
-    readPosition = i
+    discardUntilIndex(i)
     return copiedTotal
 }

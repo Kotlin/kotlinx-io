@@ -21,7 +21,12 @@ expect interface Output : Appendable, Closeable {
     fun writeFully(src: LongArray, offset: Int, length: Int)
     fun writeFully(src: FloatArray, offset: Int, length: Int)
     fun writeFully(src: DoubleArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     fun writeFully(src: IoBuffer, length: Int)
+
+    // TODO
+//    fun writeFully(src: Buffer, length: Int)
 
     fun append(csq: CharArray, start: Int, end: Int): Appendable
 
@@ -73,7 +78,14 @@ fun Output.writeFully(src: DoubleArray, offset: Int = 0, length: Int = src.size 
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun Output.writeFully(src: IoBuffer, length: Int = src.readRemaining) {
+    writeFully(src, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun Output.writeFully(src: Buffer, length: Int = src.readRemaining) {
+    TODO()
     writeFully(src, length)
 }
 
@@ -87,8 +99,8 @@ fun Output.fill(n: Long, v: Byte = 0) {
  * Depending on the output underlying implementation it could invoke [block] function with the same buffer several times
  * however it is guaranteed that it is always non-empty.
  */
-inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
-    var tail: IoBuffer = prepareWriteHead(1, null)
+inline fun Output.writeWhile(block: (Buffer) -> Boolean) {
+    var tail: ChunkBuffer = prepareWriteHead(1, null)
     try {
         while (true) {
             if (!block(tail)) break
@@ -105,7 +117,7 @@ inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
  * bytes space (could be the same buffer as before if it complies to the restriction).
  * @param initialSize for the first buffer passed to [block] function
  */
-inline fun Output.writeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
+inline fun Output.writeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
     var tail = prepareWriteHead(initialSize, null)
 
     try {

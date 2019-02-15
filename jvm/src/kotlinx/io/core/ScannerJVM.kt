@@ -2,7 +2,7 @@ package kotlinx.io.core
 
 import java.nio.*
 
-internal actual fun IoBuffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
+internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     val bb = readBuffer
     return if (bb.hasArray()) bb.discardUntilDelimiterImplArrays(delimiter)
     else bb.discardUntilDelimiterImplDirect(delimiter)
@@ -37,7 +37,7 @@ private fun ByteBuffer.discardUntilDelimiterImplDirect(delimiter: Byte): Int {
     return i - start
 }
 
-internal actual fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
+internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
     val bb = readBuffer
     return if (bb.hasArray()) bb.discardUntilDelimitersImplArrays(delimiter1, delimiter2)
         else bb.discardUntilDelimitersImplDirect(delimiter1, delimiter2)
@@ -95,8 +95,9 @@ private fun ByteBuffer.readUntilDelimiterArrays(delimiter: Byte,
     return copyUntilArrays({ it == delimiter }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
-                                                     dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun Buffer.readUntilDelimitersImpl(
+    delimiter1: Byte, delimiter2: Byte,
+    dst: ByteArray, offset: Int, length: Int): Int {
     assert(offset >= 0)
     assert(length >= 0)
     assert(offset + length <= dst.size)
@@ -117,7 +118,7 @@ private fun ByteBuffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: B
     return copyUntilArrays({ it == delimiter1 || it == delimiter2 }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
+internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
     val bb = readBuffer
     return if (bb.hasArray()) bb.readUntilDelimiterArrays(delimiter, dst)
     else bb.readUntilDelimiterDirect(delimiter, dst)
@@ -131,7 +132,7 @@ internal fun ByteBuffer.readUntilDelimiterArrays(delimiter: Byte, dst: Output): 
     return copyUntilArrays({ it == delimiter }, dst)
 }
 
-internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
+internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     assert(delimiter1 != delimiter2)
 
     val bb = readBuffer

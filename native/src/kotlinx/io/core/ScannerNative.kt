@@ -1,10 +1,9 @@
 package kotlinx.io.core
 
 import kotlinx.cinterop.*
-import platform.posix.memcpy
-import platform.posix.size_t
+import platform.posix.*
 
-internal actual fun IoBuffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
+internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     val content = content
     var idx = readPosition
     val end = writePosition
@@ -15,11 +14,11 @@ internal actual fun IoBuffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     }
 
     val start = readPosition
-    readPosition = idx
+    discardUntilIndex(idx)
     return idx - start
 }
 
-internal actual fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
+internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
     val content = content
     var idx = readPosition
     val end = writePosition
@@ -31,13 +30,14 @@ internal actual fun IoBuffer.discardUntilDelimitersImpl(delimiter1: Byte, delimi
     }
 
     val start = readPosition
-    readPosition = idx
+    discardUntilIndex(idx)
     return idx - start
 }
 
 
-internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
-                                                dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun Buffer.readUntilDelimiterImpl(
+    delimiter: Byte,
+    dst: ByteArray, offset: Int, length: Int): Int {
     check(offset >= 0)
     check(length >= 0)
     check(offset + length <= dst.size)
@@ -45,8 +45,9 @@ internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
     return readUntilImpl({ it == delimiter }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte,
-                                                 dst: ByteArray, offset: Int, length: Int): Int {
+internal actual fun Buffer.readUntilDelimitersImpl(
+    delimiter1: Byte, delimiter2: Byte,
+    dst: ByteArray, offset: Int, length: Int): Int {
     check(offset >= 0)
     check(length >= 0)
     check(offset + length <= dst.size)
@@ -55,18 +56,19 @@ internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter
     return readUntilImpl({ it == delimiter1 || it == delimiter2 }, dst, offset, length)
 }
 
-internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
+internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
     return readUntilImpl({ it == delimiter }, dst)
 }
 
-internal actual fun IoBuffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
+internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     check(delimiter1 != delimiter2)
 
     return readUntilImpl({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
-private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
-                                          dst: ByteArray, offset: Int, length: Int): Int {
+private inline fun Buffer.readUntilImpl(
+    predicate: (Byte) -> Boolean,
+    dst: ByteArray, offset: Int, length: Int): Int {
 
     if (length == 0) return 0
 
@@ -87,13 +89,14 @@ private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
         memcpy(dstPointer, srcPointer, copied.convert<size_t>())
     }
 
-    readPosition = i
+    discardUntilIndex(i)
 
     return copied
 }
 
-private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
-                                          dst: Output): Int {
+private inline fun Buffer.readUntilImpl(
+    predicate: (Byte) -> Boolean,
+    dst: Output): Int {
     val content = content
     var i = readPosition
     var copiedTotal = 0
@@ -112,12 +115,14 @@ private inline fun IoBuffer.readUntilImpl(predicate: (Byte) -> Boolean,
         val dstPointer = (chunk.content + chunk.writePosition)!!
         val srcPointer = (content + start)!!
         memcpy(dstPointer, srcPointer, size.convert<size_t>())
-        chunk.writePosition += size
+        chunk.commitWritten(size)
         copiedTotal += size
 
         chunk.writeRemaining == 0 && i < end
     }
 
-    readPosition = i
+    discardUntilIndex(i)
     return copiedTotal
 }
+
+private inline val Buffer.content: CPointer<ByteVar> get() = memory.pointer

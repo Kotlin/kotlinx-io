@@ -1,7 +1,10 @@
 package kotlinx.io.core
 
+import kotlinx.io.bits.*
 import kotlinx.io.charsets.*
+import kotlinx.io.core.internal.*
 import org.khronos.webgl.*
+import kotlin.require
 
 actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String {
     if (offset < 0 || length < 0 || offset + length > bytes.size) {
@@ -13,9 +16,9 @@ actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset):
     val bufferOffset = i8.byteOffset + offset
     val buffer = i8.buffer.slice(bufferOffset, bufferOffset + length)
 
-    val view = IoBuffer(buffer, null)
+    val view = ChunkBuffer(Memory.of(buffer), null)
     view.resetForRead()
-    val packet = ByteReadPacket(view, IoBuffer.NoPool)
+    val packet = ByteReadPacket(view, ChunkBuffer.NoPool)
 
     return charset.newDecoder().decode(packet, Int.MAX_VALUE)
 }

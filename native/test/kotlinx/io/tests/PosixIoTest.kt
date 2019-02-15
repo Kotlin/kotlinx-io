@@ -1,6 +1,7 @@
 package kotlinx.io.tests
 
 import kotlinx.cinterop.*
+import kotlinx.io.bits.*
 import kotlinx.io.core.*
 import kotlinx.io.errors.*
 import kotlinx.io.internal.utils.*
@@ -11,11 +12,11 @@ import kotlin.test.*
 
 class PosixIoTest {
     private val filename = "build/test.tmp"
-    private lateinit var buffer: IoBuffer
+    private lateinit var buffer: Buffer
 
     @BeforeTest
     fun setup() {
-        buffer = IoBuffer.Pool.borrow()
+        buffer = Buffer(DefaultAllocator.alloc(4096))
         buffer.resetForWrite()
         buffer.append("test")
 
@@ -24,7 +25,7 @@ class PosixIoTest {
 
     @AfterTest
     fun cleanup() {
-        buffer.release(IoBuffer.Pool)
+        DefaultAllocator.free(buffer.memory)
         unlink(filename)
     }
 

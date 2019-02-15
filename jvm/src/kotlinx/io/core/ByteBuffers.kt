@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.core.internal.*
 import java.nio.*
 
 /**
@@ -20,7 +21,7 @@ fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
 
 private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: Int): Int {
     if (!bb.hasRemaining()) return copied
-    val current: IoBuffer = prepareRead(1) ?: return copied
+    val current: ChunkBuffer = prepareRead(1) ?: return copied
 
     val destinationCapacity = bb.remaining()
     val available = current.readRemaining
@@ -50,7 +51,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * is at least 8 bytes long (long integer bytes length)
  */
 inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    write(size) { buffer: IoBuffer ->
+    write(size) { buffer: Buffer ->
         buffer.writeDirect(size, block)
     }
 }

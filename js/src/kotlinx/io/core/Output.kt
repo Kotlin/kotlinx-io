@@ -19,6 +19,8 @@ actual interface Output : Appendable, Closeable {
     actual fun writeFully(src: LongArray, offset: Int, length: Int)
     actual fun writeFully(src: FloatArray, offset: Int, length: Int)
     actual fun writeFully(src: DoubleArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     actual fun writeFully(src: IoBuffer, length: Int)
 
     actual fun append(csq: CharArray, start: Int, end: Int): Appendable
