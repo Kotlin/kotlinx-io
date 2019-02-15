@@ -100,12 +100,12 @@ actual fun Memory.loadLongArray(
 
     if (isLittleEndianPlatform) {
         for (index in 0 until count step 2) {
-            destination[index + destinationOffset] = (typed[index].reverseByteOrder().toLong() and 0xffffffffL) or
+            destination[index / 2 + destinationOffset] = (typed[index].reverseByteOrder().toLong() and 0xffffffffL) or
                 (typed[index + 1].reverseByteOrder().toLong() shl 32)
         }
     } else {
         for (index in 0 until count step 2) {
-            destination[index + destinationOffset] = (typed[index].toLong() and 0xffffffffL) or
+            destination[index / 2 + destinationOffset] = (typed[index].toLong() and 0xffffffffL) or
                 (typed[index + 1].toLong() shl 32)
         }
     }
@@ -199,4 +199,199 @@ actual fun Memory.loadDoubleArray(
     count: Int
 ) {
     loadDoubleArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
+}
+
+/**
+ * Copies shorts integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeShortArray(
+    offset: Int,
+    source: ShortArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    val typed = Int16Array(view.buffer, view.buffer.byteLength + offset, count)
+
+    if (isLittleEndianPlatform) {
+        // TODO investigate this implementation vs DataView.getInt16(...)
+        repeat(count) { index ->
+            typed[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        repeat(count) { index ->
+            typed[index] = source[index + sourceOffset]
+        }
+    }
+}
+
+/**
+ * Copies shorts integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeShortArray(
+    offset: Long,
+    source: ShortArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeShortArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
+}
+
+/**
+ * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeIntArray(
+    offset: Int,
+    source: IntArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    val typed = Int32Array(view.buffer, view.buffer.byteLength + offset, count)
+
+    if (isLittleEndianPlatform) {
+        repeat(count) { index ->
+            typed[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        repeat(count) { index ->
+            typed[index] = source[index + sourceOffset]
+        }
+    }
+}
+
+/**
+ * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeIntArray(
+    offset: Long,
+    source: IntArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeIntArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
+}
+
+/**
+ * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeLongArray(
+    offset: Int,
+    source: LongArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    val typed = Int32Array(view.buffer, view.buffer.byteLength + offset, count)
+
+    if (isLittleEndianPlatform) {
+        for (index in 0 until count step 2) {
+            val sourceIndex = index / 2 + sourceOffset
+            typed[index] = (source[sourceIndex] ushr 32).toInt().reverseByteOrder()
+            typed[index + 1] = (source[sourceIndex] and 0xffffffffL).toInt().reverseByteOrder()
+        }
+    } else {
+        for (index in 0 until count step 2) {
+            val sourceIndex = index / 2 + sourceOffset
+            typed[index] = (source[sourceIndex] ushr 32).toInt()
+            typed[index + 1] = (source[sourceIndex] and 0xffffffffL).toInt()
+        }
+    }
+}
+
+/**
+ * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeLongArray(
+    offset: Long,
+    source: LongArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeLongArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
+}
+
+/**
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeFloatArray(
+    offset: Int,
+    source: FloatArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    val typed = Float32Array(view.buffer, view.buffer.byteLength + offset, count)
+
+    if (isLittleEndianPlatform) {
+        repeat(count) { index ->
+            typed[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        repeat(count) { index ->
+            typed[index] = source[index + sourceOffset]
+        }
+    }
+}
+
+/**
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeFloatArray(
+    offset: Long,
+    source: FloatArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeFloatArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
+}
+
+/**
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeDoubleArray(
+    offset: Int,
+    source: DoubleArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    val typed = Float64Array(view.buffer, view.buffer.byteLength + offset, count)
+
+    if (isLittleEndianPlatform) {
+        repeat(count) { index ->
+            typed[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        repeat(count) { index ->
+            typed[index] = source[index + sourceOffset]
+        }
+    }
+}
+
+/**
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeDoubleArray(
+    offset: Long,
+    source: DoubleArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeDoubleArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
 }

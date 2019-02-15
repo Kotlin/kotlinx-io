@@ -3,6 +3,7 @@
 package kotlinx.io.bits
 
 import kotlinx.cinterop.*
+import kotlin.experimental.*
 
 actual inline fun Memory.loadShortAt(offset: Int): Short {
     assertIndex(offset, 2)
@@ -132,4 +133,35 @@ actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
 actual inline fun Memory.storeDoubleAt(offset: Long, value: Double) {
     assertIndex(offset, 8)
     pointer.plus(offset)!!.reinterpret<DoubleVar>().pointed.value = value.toBigEndian()
+}
+
+internal inline fun storeShortSlowAt(pointer: CPointer<ByteVar>, value: Short) {
+    pointer[0] = (value.toInt() ushr 8).toByte()
+    pointer[1] = (value and 0xff).toByte()
+}
+
+internal inline fun storeIntSlowAt(pointer: CPointer<ByteVar>, value: Int) {
+    pointer[0] = (value ushr 24).toByte()
+    pointer[1] = (value ushr 16).toByte()
+    pointer[2] = (value ushr 8).toByte()
+    pointer[3] = (value and 0xff).toByte()
+}
+
+internal inline fun storeLongSlowAt(pointer: CPointer<ByteVar>, value: Long) {
+    pointer[0] = (value ushr 56).toByte()
+    pointer[1] = (value ushr 48).toByte()
+    pointer[2] = (value ushr 40).toByte()
+    pointer[3] = (value ushr 32).toByte()
+    pointer[4] = (value ushr 24).toByte()
+    pointer[5] = (value ushr 16).toByte()
+    pointer[6] = (value ushr 8).toByte()
+    pointer[7] = (value and 0xff).toByte()
+}
+
+internal inline fun storeFloatSlowAt(pointer: CPointer<ByteVar>, value: Float) {
+    storeIntSlowAt(pointer, value.toRawBits())
+}
+
+internal inline fun storeDoubleSlowAt(pointer: CPointer<ByteVar>, value: Double) {
+    storeLongSlowAt(pointer, value.toRawBits())
 }

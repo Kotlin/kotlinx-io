@@ -3,7 +3,8 @@
 package kotlinx.io.bits
 
 import kotlinx.cinterop.*
-import platform.posix.memcpy
+import kotlinx.io.core.internal.*
+import platform.posix.*
 
 private const val unalignedAccessSupported = true // TODO
 
@@ -282,6 +283,231 @@ actual fun Memory.loadDoubleArray(
     }
 }
 
+/**
+ * Copies shorts integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeShortArray(
+    offset: Int,
+    source: ShortArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeShortArray(offset.toLong(), source, sourceOffset, count)
+}
+
+/**
+ * Copies shorts integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeShortArray(
+    offset: Long,
+    source: ShortArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeArrayIndicesCheck(offset, sourceOffset, count, 2L, source.size, size)
+    if (count == 0) return
+
+    if (PLATFORM_BIG_ENDIAN) {
+        copy(source, pointer.plus(offset)!!, sourceOffset, count)
+    } else if (unalignedAccessSupported || isAlignedShort(offset)) {
+        val destination = pointer.plus(offset)!!.reinterpret<ShortVar>()
+
+        for (index in 0 until count) {
+            destination[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        val destination = pointer.plus(offset)!!
+
+        for (index in 0 until count) {
+            storeShortSlowAt(destination.plus(index * 2)!!, source[index + sourceOffset])
+        }
+    }
+}
+
+/**
+ * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeIntArray(
+    offset: Int,
+    source: IntArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeIntArray(offset.toLong(), source, sourceOffset, count)
+}
+
+/**
+ * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeIntArray(
+    offset: Long,
+    source: IntArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeArrayIndicesCheck(offset, sourceOffset, count, 4L, source.size, size)
+    if (count == 0) return
+
+    if (PLATFORM_BIG_ENDIAN) {
+        copy(source, pointer.plus(offset)!!, sourceOffset, count)
+    } else if (unalignedAccessSupported || isAlignedInt(offset)) {
+        val destination = pointer.plus(offset)!!.reinterpret<IntVar>()
+
+        for (index in 0 until count) {
+            destination[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        val destination = pointer.plus(offset)!!
+
+        for (index in 0 until count) {
+            storeIntSlowAt(destination.plus(index * 4)!!, source[index + sourceOffset])
+        }
+    }
+}
+
+/**
+ * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeLongArray(
+    offset: Int,
+    source: LongArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeLongArray(offset.toLong(), source, sourceOffset, count)
+}
+
+/**
+ * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeLongArray(
+    offset: Long,
+    source: LongArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeArrayIndicesCheck(offset, sourceOffset, count, 8L, source.size, size)
+    if (count == 0) return
+
+    if (PLATFORM_BIG_ENDIAN) {
+        copy(source, pointer.plus(offset)!!, sourceOffset, count)
+    } else if (unalignedAccessSupported || isAlignedShort(offset)) {
+        val destination = pointer.plus(offset)!!.reinterpret<LongVar>()
+
+        for (index in 0 until count) {
+            destination[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        val destination = pointer.plus(offset)!!
+
+        for (index in 0 until count) {
+            storeLongSlowAt(destination.plus(index * 8L)!!, source[index + sourceOffset])
+        }
+    }
+}
+
+/**
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeFloatArray(
+    offset: Int,
+    source: FloatArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeFloatArray(offset.toLong(), source, sourceOffset, count)
+}
+
+/**
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeFloatArray(
+    offset: Long,
+    source: FloatArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeArrayIndicesCheck(offset, sourceOffset, count, 4L, source.size, size)
+    if (count == 0) return
+
+    if (PLATFORM_BIG_ENDIAN) {
+        copy(source, pointer.plus(offset)!!, sourceOffset, count)
+    } else if (unalignedAccessSupported || isAlignedInt(offset)) {
+        val destination = pointer.plus(offset)!!.reinterpret<FloatVar>()
+
+        for (index in 0 until count) {
+            destination[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        val destination = pointer.plus(offset)!!
+
+        for (index in 0 until count) {
+            storeFloatSlowAt(destination.plus(index * 4)!!, source[index + sourceOffset])
+        }
+    }
+}
+
+/**
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeDoubleArray(
+    offset: Int,
+    source: DoubleArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeDoubleArray(offset.toLong(), source, sourceOffset, count)
+}
+
+/**
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+actual fun Memory.storeDoubleArray(
+    offset: Long,
+    source: DoubleArray,
+    sourceOffset: Int,
+    count: Int
+) {
+    storeArrayIndicesCheck(offset, sourceOffset, count, 8L, source.size, size)
+    if (count == 0) return
+
+    if (PLATFORM_BIG_ENDIAN) {
+        copy(source, pointer.plus(offset)!!, sourceOffset, count)
+    } else if (unalignedAccessSupported || isAlignedShort(offset)) {
+        val destination = pointer.plus(offset)!!.reinterpret<DoubleVar>()
+
+        for (index in 0 until count) {
+            destination[index] = source[index + sourceOffset].reverseByteOrder()
+        }
+    } else {
+        val destination = pointer.plus(offset)!!
+
+        for (index in 0 until count) {
+            storeDoubleSlowAt(destination.plus(index * 8L)!!, source[index + sourceOffset])
+        }
+    }
+}
+
 internal inline fun requirePositiveIndex(value: Int, name: String) {
     if (value < 0) {
         throw IndexOutOfBoundsException("$name shouldn't be negative: $value")
@@ -309,3 +535,75 @@ internal inline fun requireRange(offset: Long, length: Long, size: Long, name: S
 private inline fun Memory.isAlignedShort(offset: Long) = (pointer.toLong() + offset) and 1L == 0L
 private inline fun Memory.isAlignedInt(offset: Long) = (pointer.toLong() + offset) and 11L == 0L
 private inline fun Memory.isAlignedLong(offset: Long) = (pointer.toLong() + offset) and 111L == 0L
+
+
+private fun copy(
+    source: IntArray,
+    destinationPointer: CPointer<ByteVar>,
+    sourceOffset: Int,
+    count: Int
+) {
+    source.usePinned { pinned ->
+        memcpy(destinationPointer, pinned.addressOf(sourceOffset), (count * 4L).convert())
+    }
+}
+
+private fun copy(
+    source: ShortArray,
+    destinationPointer: CPointer<ByteVar>,
+    sourceOffset: Int,
+    count: Int
+) {
+    source.usePinned { pinned ->
+        memcpy(destinationPointer, pinned.addressOf(sourceOffset), (count * 2L).convert())
+    }
+}
+
+private fun copy(
+    source: LongArray,
+    destinationPointer: CPointer<ByteVar>,
+    sourceOffset: Int,
+    count: Int
+) {
+    source.usePinned { pinned ->
+        memcpy(destinationPointer, pinned.addressOf(sourceOffset), (count * 8L).convert())
+    }
+}
+
+private fun copy(
+    source: FloatArray,
+    destinationPointer: CPointer<ByteVar>,
+    sourceOffset: Int,
+    count: Int
+) {
+    source.usePinned { pinned ->
+        memcpy(destinationPointer, pinned.addressOf(sourceOffset), (count * 4L).convert())
+    }
+}
+
+private fun copy(
+    source: DoubleArray,
+    destinationPointer: CPointer<ByteVar>,
+    sourceOffset: Int,
+    count: Int
+) {
+    source.usePinned { pinned ->
+        memcpy(destinationPointer, pinned.addressOf(sourceOffset), (count * 8L).convert())
+    }
+}
+
+private inline fun storeArrayIndicesCheck(
+    offset: Long,
+    sourceOffset: Int,
+    count: Int,
+    itemSize: Long,
+    sourceSize: Int,
+    memorySize: Long
+) {
+    requirePositiveIndex(offset, "offset")
+    requirePositiveIndex(sourceOffset, "destinationOffset")
+    requirePositiveIndex(count, "count")
+
+    requireRange(sourceOffset, count, sourceSize, "source")
+    requireRange(offset, count * itemSize, memorySize, "memory")
+}

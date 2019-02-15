@@ -261,3 +261,264 @@ expect fun Memory.loadDoubleArray(
     destinationOffset: Int = 0,
     count: Int = destination.size - destinationOffset
 )
+
+/**
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
+ * @param sourceOffset items
+ */
+inline fun Memory.storeByteArray(
+    offset: Int,
+    source: ByteArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    source.useMemory(sourceOffset, count) { sourceMemory ->
+        sourceMemory.copyTo(this, 0, count, offset)
+    }
+}
+
+/**
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
+ * @param sourceOffset items
+ */
+inline fun Memory.storeByteArray(
+    offset: Long,
+    source: ByteArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    source.useMemory(sourceOffset, count) { sourceMemory ->
+        sourceMemory.copyTo(this, 0L, count.toLong(), offset)
+    }
+}
+
+/**
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
+ * @param sourceOffset items
+ */
+inline fun Memory.storeUByteArray(
+    offset: Int,
+    source: UByteArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    storeByteArray(offset, source.asByteArray(), sourceOffset, count)
+}
+
+/**
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
+ * @param sourceOffset items
+ */
+inline fun Memory.storeUByteArray(
+    offset: Long,
+    source: UByteArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    storeByteArray(offset, source.asByteArray(), sourceOffset, count)
+}
+
+/**
+ * Copies shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeShortArray(
+    offset: Int,
+    source: ShortArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeShortArray(
+    offset: Long,
+    source: ShortArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+inline fun Memory.storeUShortArray(
+    offset: Int,
+    source: UShortArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    storeShortArray(offset, source.asShortArray(), sourceOffset, count)
+}
+
+/**
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+inline fun Memory.storeUShortArray(
+    offset: Long,
+    source: UShortArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    storeShortArray(offset, source.asShortArray(), sourceOffset, count)
+}
+
+/**
+ * Copies regular integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeIntArray(
+    offset: Int,
+    source: IntArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies regular integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeIntArray(
+    offset: Long,
+    source: IntArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies unsigned integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+inline fun Memory.storeUIntArray(
+    offset: Int,
+    source: UIntArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    storeIntArray(offset, source.asIntArray(), sourceOffset, count)
+}
+
+/**
+ * Copies unsigned integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+inline fun Memory.storeUIntArray(
+    offset: Long,
+    source: UIntArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    storeIntArray(offset, source.asIntArray(), sourceOffset, count)
+}
+
+/**
+ * Copies long integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeLongArray(
+    offset: Int,
+    source: LongArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies long integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeLongArray(
+    offset: Long,
+    source: LongArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies unsigned long integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+inline fun Memory.storeULongArray(
+    offset: Int,
+    source: ULongArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    storeLongArray(offset, source.asLongArray(), sourceOffset, count)
+}
+
+/**
+ * Copies unsigned long integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+inline fun Memory.storeULongArray(
+    offset: Long,
+    source: ULongArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+) {
+    storeLongArray(offset, source.asLongArray(), sourceOffset, count)
+}
+
+/**
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeFloatArray(
+    offset: Int,
+    source: FloatArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeFloatArray(
+    offset: Long,
+    source: FloatArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeDoubleArray(
+    offset: Int,
+    source: DoubleArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
+/**
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * interpreting numbers in the network order (Big Endian).
+ * @param sourceOffset items
+ */
+expect fun Memory.storeDoubleArray(
+    offset: Long,
+    source: DoubleArray,
+    sourceOffset: Int = 0,
+    count: Int = source.size - sourceOffset
+)
+
