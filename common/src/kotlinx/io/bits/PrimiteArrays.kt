@@ -7,7 +7,7 @@ package kotlinx.io.bits
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getByteArray(
+inline fun Memory.loadByteArray(
     offset: Int,
     destination: ByteArray,
     destinationOffset: Int = 0,
@@ -21,7 +21,7 @@ inline fun Memory.getByteArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getByteArray(
+inline fun Memory.loadByteArray(
     offset: Long,
     destination: ByteArray,
     destinationOffset: Int = 0,
@@ -35,7 +35,7 @@ inline fun Memory.getByteArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getUByteArray(
+inline fun Memory.loadUByteArray(
     offset: Int,
     destination: UByteArray,
     destinationOffset: Int = 0,
@@ -49,7 +49,7 @@ inline fun Memory.getUByteArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getUByteArray(
+inline fun Memory.loadUByteArray(
     offset: Long,
     destination: UByteArray,
     destinationOffset: Int = 0,
@@ -63,7 +63,7 @@ inline fun Memory.getUByteArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getShortArray(
+expect fun Memory.loadShortArray(
     offset: Int,
     destination: ShortArray,
     destinationOffset: Int = 0,
@@ -75,7 +75,7 @@ expect fun Memory.getShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getShortArray(
+expect fun Memory.loadShortArray(
     offset: Long,
     destination: ShortArray,
     destinationOffset: Int = 0,
@@ -87,13 +87,13 @@ expect fun Memory.getShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getUShortArray(
+inline fun Memory.loadUShortArray(
     offset: Int,
     destination: UShortArray,
     destinationOffset: Int = 0,
     count: Int = destination.size - destinationOffset
 ) {
-    getShortArray(offset, destination.asShortArray(), destinationOffset, count)
+    loadShortArray(offset, destination.asShortArray(), destinationOffset, count)
 }
 
 /**
@@ -101,13 +101,13 @@ inline fun Memory.getUShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getUShortArray(
+inline fun Memory.loadUShortArray(
     offset: Long,
     destination: UShortArray,
     destinationOffset: Int = 0,
     count: Int = destination.size - destinationOffset
 ) {
-    getShortArray(offset, destination.asShortArray(), destinationOffset, count)
+    loadShortArray(offset, destination.asShortArray(), destinationOffset, count)
 }
 
 /**
@@ -115,7 +115,7 @@ inline fun Memory.getUShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getIntArray(
+expect fun Memory.loadIntArray(
     offset: Int,
     destination: IntArray,
     destinationOffset: Int = 0,
@@ -127,7 +127,7 @@ expect fun Memory.getIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getIntArray(
+expect fun Memory.loadIntArray(
     offset: Long,
     destination: IntArray,
     destinationOffset: Int = 0,
@@ -139,13 +139,13 @@ expect fun Memory.getIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getUIntArray(
+inline fun Memory.loadUIntArray(
     offset: Int,
     destination: UIntArray,
     destinationOffset: Int = 0,
     count: Int = destination.size - destinationOffset
 ) {
-    getIntArray(offset, destination.asIntArray(), destinationOffset, count)
+    loadIntArray(offset, destination.asIntArray(), destinationOffset, count)
 }
 
 /**
@@ -153,13 +153,13 @@ inline fun Memory.getUIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getUIntArray(
+inline fun Memory.loadUIntArray(
     offset: Long,
     destination: UIntArray,
     destinationOffset: Int = 0,
     count: Int = destination.size - destinationOffset
 ) {
-    getIntArray(offset, destination.asIntArray(), destinationOffset, count)
+    loadIntArray(offset, destination.asIntArray(), destinationOffset, count)
 }
 
 /**
@@ -167,7 +167,7 @@ inline fun Memory.getUIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getLongArray(
+expect fun Memory.loadLongArray(
     offset: Int,
     destination: LongArray,
     destinationOffset: Int = 0,
@@ -179,7 +179,7 @@ expect fun Memory.getLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getLongArray(
+expect fun Memory.loadLongArray(
     offset: Long,
     destination: LongArray,
     destinationOffset: Int = 0,
@@ -191,13 +191,13 @@ expect fun Memory.getLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getULongArray(
+inline fun Memory.loadULongArray(
     offset: Int,
     destination: ULongArray,
     destinationOffset: Int = 0,
     count: Int = destination.size - destinationOffset
 ) {
-    getLongArray(offset, destination.asLongArray(), destinationOffset, count)
+    loadLongArray(offset, destination.asLongArray(), destinationOffset, count)
 }
 
 /**
@@ -205,13 +205,13 @@ inline fun Memory.getULongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.getULongArray(
+inline fun Memory.loadULongArray(
     offset: Long,
     destination: ULongArray,
     destinationOffset: Int = 0,
     count: Int = destination.size - destinationOffset
 ) {
-    getLongArray(offset, destination.asLongArray(), destinationOffset, count)
+    loadLongArray(offset, destination.asLongArray(), destinationOffset, count)
 }
 
 /**
@@ -219,7 +219,7 @@ inline fun Memory.getULongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getFloatArray(
+expect fun Memory.loadFloatArray(
     offset: Int,
     destination: FloatArray,
     destinationOffset: Int = 0,
@@ -231,7 +231,7 @@ expect fun Memory.getFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getFloatArray(
+expect fun Memory.loadFloatArray(
     offset: Long,
     destination: FloatArray,
     destinationOffset: Int = 0,
@@ -243,7 +243,7 @@ expect fun Memory.getFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getDoubleArray(
+expect fun Memory.loadDoubleArray(
     offset: Int,
     destination: DoubleArray,
     destinationOffset: Int = 0,
@@ -255,7 +255,7 @@ expect fun Memory.getDoubleArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.getDoubleArray(
+expect fun Memory.loadDoubleArray(
     offset: Long,
     destination: DoubleArray,
     destinationOffset: Int = 0,

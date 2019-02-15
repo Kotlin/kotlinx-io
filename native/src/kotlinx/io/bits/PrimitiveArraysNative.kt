@@ -12,13 +12,13 @@ private const val unalignedAccessSupported = true // TODO
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getShortArray(
+actual fun Memory.loadShortArray(
     offset: Int,
     destination: ShortArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getShortArray(offset.toLong(), destination, destinationOffset, count)
+    loadShortArray(offset.toLong(), destination, destinationOffset, count)
 }
 
 /**
@@ -26,7 +26,7 @@ actual fun Memory.getShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getShortArray(
+actual fun Memory.loadShortArray(
     offset: Long,
     destination: ShortArray,
     destinationOffset: Int,
@@ -67,13 +67,13 @@ actual fun Memory.getShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getIntArray(
+actual fun Memory.loadIntArray(
     offset: Int,
     destination: IntArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getIntArray(offset.toLong(), destination, destinationOffset, count)
+    loadIntArray(offset.toLong(), destination, destinationOffset, count)
 }
 
 /**
@@ -81,7 +81,7 @@ actual fun Memory.getIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getIntArray(
+actual fun Memory.loadIntArray(
     offset: Long,
     destination: IntArray,
     destinationOffset: Int,
@@ -122,13 +122,13 @@ actual fun Memory.getIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getLongArray(
+actual fun Memory.loadLongArray(
     offset: Int,
     destination: LongArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getLongArray(offset.toLong(), destination, destinationOffset, count)
+    loadLongArray(offset.toLong(), destination, destinationOffset, count)
 }
 
 /**
@@ -136,7 +136,7 @@ actual fun Memory.getLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getLongArray(
+actual fun Memory.loadLongArray(
     offset: Long,
     destination: LongArray,
     destinationOffset: Int,
@@ -177,13 +177,13 @@ actual fun Memory.getLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getFloatArray(
+actual fun Memory.loadFloatArray(
     offset: Int,
     destination: FloatArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getFloatArray(offset.toLong(), destination, destinationOffset, count)
+    loadFloatArray(offset.toLong(), destination, destinationOffset, count)
 }
 
 /**
@@ -191,7 +191,7 @@ actual fun Memory.getFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getFloatArray(
+actual fun Memory.loadFloatArray(
     offset: Long,
     destination: FloatArray,
     destinationOffset: Int,
@@ -232,13 +232,13 @@ actual fun Memory.getFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getDoubleArray(
+actual fun Memory.loadDoubleArray(
     offset: Int,
     destination: DoubleArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getDoubleArray(offset.toLong(), destination, destinationOffset, count)
+    loadDoubleArray(offset.toLong(), destination, destinationOffset, count)
 }
 
 /**
@@ -246,7 +246,7 @@ actual fun Memory.getDoubleArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getDoubleArray(
+actual fun Memory.loadDoubleArray(
     offset: Long,
     destination: DoubleArray,
     destinationOffset: Int,

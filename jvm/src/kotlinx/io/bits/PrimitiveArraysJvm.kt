@@ -10,7 +10,7 @@ import java.nio.*
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getShortArray(
+actual fun Memory.loadShortArray(
     offset: Int,
     destination: ShortArray,
     destinationOffset: Int,
@@ -24,13 +24,13 @@ actual fun Memory.getShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getShortArray(
+actual fun Memory.loadShortArray(
     offset: Long,
     destination: ShortArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getShortArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
+    loadShortArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
 }
 
 /**
@@ -38,7 +38,7 @@ actual fun Memory.getShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getIntArray(
+actual fun Memory.loadIntArray(
     offset: Int,
     destination: IntArray,
     destinationOffset: Int,
@@ -52,13 +52,13 @@ actual fun Memory.getIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getIntArray(
+actual fun Memory.loadIntArray(
     offset: Long,
     destination: IntArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getIntArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
+    loadIntArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
 }
 
 /**
@@ -66,7 +66,7 @@ actual fun Memory.getIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getLongArray(
+actual fun Memory.loadLongArray(
     offset: Int,
     destination: LongArray,
     destinationOffset: Int,
@@ -80,13 +80,13 @@ actual fun Memory.getLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getLongArray(
+actual fun Memory.loadLongArray(
     offset: Long,
     destination: LongArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getLongArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
+    loadLongArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
 }
 
 /**
@@ -94,7 +94,7 @@ actual fun Memory.getLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getFloatArray(
+actual fun Memory.loadFloatArray(
     offset: Int,
     destination: FloatArray,
     destinationOffset: Int,
@@ -108,13 +108,13 @@ actual fun Memory.getFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getFloatArray(
+actual fun Memory.loadFloatArray(
     offset: Long,
     destination: FloatArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getFloatArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
+    loadFloatArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
 }
 
 /**
@@ -122,7 +122,7 @@ actual fun Memory.getFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getDoubleArray(
+actual fun Memory.loadDoubleArray(
     offset: Int,
     destination: DoubleArray,
     destinationOffset: Int,
@@ -136,13 +136,13 @@ actual fun Memory.getDoubleArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.getDoubleArray(
+actual fun Memory.loadDoubleArray(
     offset: Long,
     destination: DoubleArray,
     destinationOffset: Int,
     count: Int
 ) {
-    getDoubleArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
+    loadDoubleArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
 }
 
 
