@@ -23,8 +23,11 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual final overr
 
     actual final override fun recycle(instance: T) {
         validateInstance(instance)
-        if (size == capacity) disposeInstance(instance)
-        instances[size++] = instance
+        if (size == capacity) {
+            disposeInstance(instance)
+        } else {
+            instances[size++] = instance
+        }
     }
 
     actual final override fun dispose() {
