@@ -24,28 +24,28 @@ actual class Memory @DangerousInternalIoApi constructor(val view: DataView) {
     /**
      * Returns byte at [index] position.
      */
-    actual inline fun getAt(index: Int): Byte {
+    actual inline fun loadAt(index: Int): Byte {
         return view.getInt8(index)
     }
 
     /**
      * Returns byte at [index] position.
      */
-    actual inline fun getAt(index: Long): Byte {
+    actual inline fun loadAt(index: Long): Byte {
         return view.getInt8(index.toIntOrFail("index"))
     }
 
     /**
      * Write [value] at the specified [index].
      */
-    actual inline fun setAt(index: Int, value: Byte) {
+    actual inline fun storeAt(index: Int, value: Byte) {
         view.setInt8(index, value)
     }
 
     /**
      * Write [value] at the specified [index]
      */
-    actual inline fun setAt(index: Long, value: Byte) {
+    actual inline fun storeAt(index: Long, value: Byte) {
         view.setInt8(index.toIntOrFail("index"), value)
     }
 
@@ -121,60 +121,60 @@ actual class Memory @DangerousInternalIoApi constructor(val view: DataView) {
     }
 }
 
-actual inline fun Memory.getShortAt(offset: Int): Short = view.getInt16(offset, false)
+actual inline fun Memory.loadShortAt(offset: Int): Short = view.getInt16(offset, false)
 
-actual inline fun Memory.getShortAt(offset: Long): Short = getShortAt(offset.toIntOrFail("offset"))
+actual inline fun Memory.loadShortAt(offset: Long): Short = loadShortAt(offset.toIntOrFail("offset"))
 
-actual inline fun Memory.getIntAt(offset: Int): Int = view.getInt32(offset, false)
+actual inline fun Memory.loadIntAt(offset: Int): Int = view.getInt32(offset, false)
 
-actual inline fun Memory.getIntAt(offset: Long): Int = getIntAt(offset.toIntOrFail("offset"))
+actual inline fun Memory.loadIntAt(offset: Long): Int = loadIntAt(offset.toIntOrFail("offset"))
 
-actual inline fun Memory.getLongAt(offset: Int): Long =
+actual inline fun Memory.loadLongAt(offset: Int): Long =
     (view.getInt32(offset, false).toLong() shl 32) or
         view.getInt32(offset + 4, false).toLong()
 
-actual inline fun Memory.getLongAt(offset: Long): Long = getLongAt(offset.toIntOrFail("offset"))
+actual inline fun Memory.loadLongAt(offset: Long): Long = loadLongAt(offset.toIntOrFail("offset"))
 
-actual inline fun Memory.getFloatAt(offset: Int): Float = view.getFloat32(offset, false)
+actual inline fun Memory.loadFloatAt(offset: Int): Float = view.getFloat32(offset, false)
 
-actual inline fun Memory.getFloatAt(offset: Long): Float = getFloatAt(offset.toIntOrFail("offset"))
+actual inline fun Memory.loadFloatAt(offset: Long): Float = loadFloatAt(offset.toIntOrFail("offset"))
 
-actual inline fun Memory.getDoubleAt(offset: Int): Double = view.getFloat64(offset, false)
+actual inline fun Memory.loadDoubleAt(offset: Int): Double = view.getFloat64(offset, false)
 
-actual inline fun Memory.getDoubleAt(offset: Long): Double = getDoubleAt(offset.toIntOrFail("offset"))
+actual inline fun Memory.loadDoubleAt(offset: Long): Double = loadDoubleAt(offset.toIntOrFail("offset"))
 
 /**
  * Write regular signed 32bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.setIntAt(offset: Int, value: Int) {
+actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
     view.setInt32(offset, value, littleEndian = false)
 }
 
 /**
  * Write regular signed 32bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.setIntAt(offset: Long, value: Int) {
+actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
     view.setInt32(offset.toIntOrFail("offset"), value, littleEndian = false)
 }
 
 /**
  * Write short signed 16bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.setShortAt(offset: Int, value: Short) {
+actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
     view.setInt16(offset, value, littleEndian = false)
 }
 
 /**
  * Write short signed 16bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.setShortAt(offset: Long, value: Short) {
+actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
     view.setInt16(offset.toIntOrFail("offset"), value, littleEndian = false)
 }
 
 /**
  * Write short signed 64bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.setLongAt(offset: Int, value: Long) {
+actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
     view.setInt32(offset, (value shr 32).toInt(), littleEndian = false)
     view.setInt32(offset + 4, (value and 0xffffffffL).toInt(), littleEndian = false)
 }
@@ -182,35 +182,35 @@ actual inline fun Memory.setLongAt(offset: Int, value: Long) {
 /**
  * Write short signed 64bit integer in the network byte order (Big Endian)
  */
-actual inline fun Memory.setLongAt(offset: Long, value: Long) {
-    setLongAt(offset.toIntOrFail("offset"), value)
+actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
+    storeLongAt(offset.toIntOrFail("offset"), value)
 }
 
 /**
  * Write short signed 32bit floating point number in the network byte order (Big Endian)
  */
-actual inline fun Memory.setFloatAt(offset: Int, value: Float) {
+actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
     view.setFloat32(offset, value, littleEndian = false)
 }
 
 /**
  * Write short signed 32bit floating point number in the network byte order (Big Endian)
  */
-actual inline fun Memory.setFloatAt(offset: Long, value: Float) {
+actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
     view.setFloat32(offset.toIntOrFail("offset"), value, littleEndian = false)
 }
 
 /**
  * Write short signed 64bit floating point number in the network byte order (Big Endian)
  */
-actual inline fun Memory.setDoubleAt(offset: Int, value: Double) {
+actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
     view.setFloat64(offset, value, littleEndian = false)
 }
 
 /**
  * Write short signed 64bit floating point number in the network byte order (Big Endian)
  */
-actual inline fun Memory.setDoubleAt(offset: Long, value: Double) {
+actual inline fun Memory.storeDoubleAt(offset: Long, value: Double) {
     view.setFloat64(offset.toIntOrFail("offset"), value, littleEndian = false)
 }
 
