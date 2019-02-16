@@ -2,6 +2,7 @@
 
 package kotlinx.io.bits
 
+import kotlinx.io.core.internal.*
 import java.nio.*
 import kotlin.contracts.*
 
@@ -34,3 +35,12 @@ inline fun Memory.Companion.of(buffer: ByteBuffer): Memory {
     return Memory(buffer.slice().order(ByteOrder.BIG_ENDIAN))
 }
 
+@PublishedApi
+internal actual object DefaultAllocator : Allocator {
+    override fun alloc(size: Int): Memory = Memory(ByteBuffer.allocate(size))
+
+    override fun alloc(size: Long): Memory = DefaultAllocator.alloc(size.toIntOrFail("size"))
+
+    override fun free(instance: Memory) {
+    }
+}

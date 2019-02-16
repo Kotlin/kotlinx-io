@@ -76,3 +76,16 @@ fun NativeFreeablePlacement.free(memory: Memory) {
     free(memory.pointer)
 }
 
+internal inline class PlacementAllocator(private val placement: NativeFreeablePlacement) : Allocator {
+    override fun alloc(size: Int): Memory = alloc(size.toLong())
+
+    override fun alloc(size: Long): Memory = Memory(placement.allocArray(size), size)
+
+    override fun free(instance: Memory) {
+        placement.free(instance.pointer)
+    }
+}
+
+@PublishedApi
+internal actual object DefaultAllocator : Allocator by PlacementAllocator(nativeHeap)
+
