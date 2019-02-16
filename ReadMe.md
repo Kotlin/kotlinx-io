@@ -23,7 +23,7 @@ dependencies {
 }
 ```
 
-Use `kotlinx-io-js` with Kotlin JavaScript and `kotlin-io` for common code if you are doing multiplatform module.
+Use `kotlinx-io-js` with Kotlin JavaScript and `kotlinx-io` for common code if you are doing multiplatform module.
 
 # Basic concepts
 
