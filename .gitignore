@@ -13,3 +13,5 @@ kotlinx-io-native/repo/
 !.idea/dictionaries/*
 !.idea/codeStyles
 !.idea/codeStyles/*
+
+.gradletasknamecache
