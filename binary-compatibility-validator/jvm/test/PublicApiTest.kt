@@ -11,6 +11,7 @@ import java.io.*
 import java.util.jar.*
 
 @RunWith(Parameterized::class)
+@Ignore
 class PublicApiTest(
     private val rootDir: File,
     private val moduleName: String
