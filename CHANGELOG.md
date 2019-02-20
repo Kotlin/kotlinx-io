@@ -1,3 +1,9 @@
+# 0.1.6
+> Published 20 Feb 2019
+
+- Fixed object pool instances disposal on JS and native
+- Updated atomicfu to 0.12.2
+
 # 0.1.5
 > Published 12 Feb 2019
 
