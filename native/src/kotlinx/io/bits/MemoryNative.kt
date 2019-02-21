@@ -247,3 +247,55 @@ actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
 
     memset(pointer + offset, value.toInt(), count.convert())
 }
+
+/**
+ * Copy content bytes to the memory addressed by the [destination] pointer with
+ * the specified [destinationOffset] in bytes.
+ */
+fun Memory.copyTo(
+    destination: CPointer<ByteVar>,
+    offset: Int,
+    length: Int,
+    destinationOffset: Int
+) {
+    copyTo(destination, offset.toLong(), length.toLong(), destinationOffset.toLong())
+}
+
+/**
+ * Copy content bytes to the memory addressed by the [destination] pointer with
+ * the specified [destinationOffset] in bytes.
+ */
+fun Memory.copyTo(
+    destination: CPointer<ByteVar>,
+    offset: Long,
+    length: Long,
+    destinationOffset: Long
+) {
+    requirePositiveIndex(offset, "offset")
+    requirePositiveIndex(length, "length")
+    requirePositiveIndex(destinationOffset, "destinationOffset")
+    requireRange(offset, length, size, "source memory")
+
+    memcpy(destination + destinationOffset, pointer + offset, length.convert())
+}
+
+/**
+ * Copy [length] bytes to the [destination] at the specified [destinationOffset]
+ * from the memory addressed by this pointer with [offset] in bytes.
+ */
+fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
+    copyTo(destination, offset.toLong(), length.toLong(), destinationOffset.toLong())
+}
+
+/**
+ * Copy [length] bytes to the [destination] at the specified [destinationOffset]
+ * from the memory addressed by this pointer with [offset] in bytes.
+ */
+fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
+    requirePositiveIndex(offset, "offset")
+    requirePositiveIndex(length, "length")
+    requirePositiveIndex(destinationOffset, "destinationOffset")
+    requireRange(destinationOffset, length, destination.size, "source memory")
+
+    memcpy(destination.pointer + destinationOffset, this + offset, length.convert())
+}
