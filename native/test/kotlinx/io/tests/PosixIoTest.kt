@@ -10,7 +10,7 @@ import platform.posix.*
 import kotlin.test.*
 
 class PosixIoTest {
-    private val repeatCount = 10000
+    private val repeatCount = 20000
     private val filename = "build/test.tmp"
     private lateinit var buffer: IoBuffer
 
@@ -267,6 +267,22 @@ class PosixIoTest {
     }
 
     @Test
+    fun testInputOutputReadAtOnce() {
+        val writeFd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        Output(writeFd).use { output ->
+            repeat(repeatCount) {
+                output.writeFully(byteArrayOf(1, 2, 3, 4, 5, 6, 7))
+            }
+        }
+
+        val readFd = open(filename, O_RDONLY, 420).checkError("open(R)")
+        Input(readFd).use { input ->
+            val bytesRead = input.readBytes().size
+            assertEquals(7 * repeatCount, bytesRead, "Bytes read count is not exact as expected")
+        }
+    }
+
+    @Test
     fun testFInputOutput() {
         val writeFd = fopen(filename, "w")!!
         Output(writeFd).use { output ->
@@ -285,6 +301,22 @@ class PosixIoTest {
                 bytesRead += rc
             }
 
+            assertEquals(7 * repeatCount, bytesRead, "Bytes read count is not exact as expected")
+        }
+    }
+
+    @Test
+    fun testFInputOutputAtOnce() {
+        val writeFd = fopen(filename, "w")!!
+        Output(writeFd).use { output ->
+            repeat(repeatCount) {
+                output.writeFully(byteArrayOf(1, 2, 3, 4, 5, 6, 7))
+            }
+        }
+
+        val readFd = fopen(filename, "r")!!
+        Input(readFd).use { input ->
+            val bytesRead = input.readBytes().size
             assertEquals(7 * repeatCount, bytesRead, "Bytes read count is not exact as expected")
         }
     }
