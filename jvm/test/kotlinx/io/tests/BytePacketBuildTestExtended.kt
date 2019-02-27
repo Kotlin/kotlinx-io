@@ -1,6 +1,7 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.Test
 import org.junit.Rule
 import java.nio.*
@@ -8,7 +9,7 @@ import kotlin.test.*
 
 class BytePacketBuildTestExtended : BytePacketBuildTest() {
     @get:Rule
-    override val pool = VerifyingObjectPool(IoBuffer.Pool)
+    override val pool = VerifyingObjectPool(ChunkBuffer.Pool)
 
     @Test
     fun smokeSingleBufferTestExtended() {
@@ -83,9 +84,5 @@ class BytePacketBuildTestExtended : BytePacketBuildTest() {
             builder.release()
             throw t
         }
-    }
-
-    companion object {
-        val PACKET_BUFFER_SIZE = 4096
     }
 }

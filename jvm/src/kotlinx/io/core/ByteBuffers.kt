@@ -33,7 +33,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
         readAsMuchAsPossible(bb, copied + available)
     } else {
         current.readFully(bb, destinationCapacity)
-        updateHeadRemaining(current.readRemaining)
+        headPosition = current.readPosition
         copied + destinationCapacity
     }
 }
@@ -72,7 +72,7 @@ inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     }
 }
 
-@Suppress("unused")
+@Suppress("unused", "DEPRECATION")
 @Deprecated("Removed", level = DeprecationLevel.HIDDEN)
 inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     read(size) { view ->

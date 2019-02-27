@@ -77,19 +77,30 @@ fun Buffer.flush() {
 
 
 @Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
-fun Buffer.appendChars(csq: CharArray, start: Int, end: Int): Int = TODO()
+internal fun Buffer.appendChars(csq: CharArray, start: Int, end: Int): Int = TODO()
 
-@Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
-fun Buffer.appendChars(csq: CharSequence, start: Int, end: Int): Int = TODO()
+internal fun Buffer.appendChars(csq: CharSequence, start: Int, end: Int): Int {
+    return Charsets.UTF_8.newEncoder().encodeImpl(csq, start, end, this)
+}
 
 @Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
 fun Buffer.append(c: Char): Buffer = TODO()
 
-@Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
-fun Buffer.append(csq: CharSequence?): Buffer = TODO()
+fun Buffer.append(csq: CharSequence?): Buffer {
+    if (csq == null) {
+        return append("null")
+    }
 
-@Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
-fun Buffer.append(csq: CharSequence?, start: Int, end: Int): Buffer = TODO()
+    return append(csq, 0, csq.length)
+}
+
+fun Buffer.append(csq: CharSequence?, start: Int, end: Int): Buffer = apply {
+    if (csq == null) {
+        return append("null", start, end)
+    }
+
+    appendChars(csq, start, end)
+}
 
 @Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
 fun Buffer.append(csq: CharArray, start: Int, end: Int): Buffer = TODO()
@@ -108,6 +119,14 @@ fun IoBuffer.release(pool: ObjectPool<IoBuffer>) {
     @Suppress("UNCHECKED_CAST")
     (this as ChunkBuffer).release(pool as ObjectPool<ChunkBuffer>)
 }
+
+/**
+ * Peek the next unsigned byte or return `-1` if no more bytes available for reading. No bytes will be marked
+ * as consumed in any case.
+ * @see [Buffer.tryPeekByte]
+ */
+@Deprecated("Use tryPeekByte instead", replaceWith = ReplaceWith("tryPeekByte()"))
+fun Buffer.tryPeek(): Int = tryPeekByte()
 
 fun Buffer.readFully(dst: Array<Byte>, offset: Int = 0, length: Int = dst.size - offset) {
     read { memory, start, endExclusive ->

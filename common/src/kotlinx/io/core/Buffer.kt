@@ -69,6 +69,13 @@ open class Buffer(val memory: Memory) {
     inline val writeRemaining: Int get() = limit - writePosition
 
     /**
+     * User data: could be a session, connection or anything useful
+     */
+    @Deprecated("Will be removed. Inherit Buffer and add required fields instead.")
+    @ExperimentalIoApi
+    var attachment: Any? = null
+
+    /**
      * Discard [count] readable bytes.
      *
      * @throws EOFException if [count] is bigger than available bytes.
@@ -238,8 +245,11 @@ open class Buffer(val memory: Memory) {
     /**
      * Peek the next unsigned byte or return `-1` if no more bytes available for reading. No bytes will be marked
      * as consumed in any case.
+     * @return an unsigned byte or `-1` if not even a byte is available for reading.
+     * @see tryReadByte
+     * @see readByte
      */
-    fun tryPeek(): Int {
+    fun tryPeekByte(): Int {
         val readPosition = readPosition
         if (readPosition == writePosition) return -1
         return memory[readPosition].toInt() and 0xff
@@ -248,6 +258,9 @@ open class Buffer(val memory: Memory) {
     /**
      * Read the next unsigned byte or return `-1` if no more bytes available for reading. The returned byte is marked
      * as consumed.
+     * @return an unsigned byte or `-1` if not even a byte is available for reading.
+     * @see tryPeekByte
+     * @see readByte
      */
     fun tryReadByte(): Int {
         val readPosition = readPosition
@@ -256,6 +269,13 @@ open class Buffer(val memory: Memory) {
         return memory[readPosition].toInt() and 0xff
     }
 
+    /**
+     * Read the next byte or fail with [EOFException] if it's not available. The returned byte is marked
+     * as consumed.
+     * @throws EOFException when not even a byte is available for reading.
+     * @see tryPeekByte
+     * @see tryReadByte
+     */
     fun readByte(): Byte {
         val readPosition = readPosition
         if (readPosition == writePosition) {
@@ -265,10 +285,14 @@ open class Buffer(val memory: Memory) {
         return memory[readPosition]
     }
 
+    /**
+     * Write a byte [value] at [writePosition] (incremented when written successfully).
+     * @throws InsufficientSpaceException when no free space in the buffer.
+     */
     fun writeByte(value: Byte) {
         val writePosition = writePosition
         if (writePosition == limit) {
-            throw EOFException("No free space in the buffer to write a byte")
+            throw InsufficientSpaceException("No free space in the buffer to write a byte")
         }
         memory[writePosition] = value
         this.writePosition = writePosition + 1

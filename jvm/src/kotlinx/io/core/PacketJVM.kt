@@ -1,13 +1,15 @@
 package kotlinx.io.core
 
 import kotlinx.io.charsets.*
+import kotlinx.io.core.internal.*
 import kotlinx.io.utils.*
 import java.nio.*
 import java.nio.charset.CharsetDecoder
 
 actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
 
-actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder = BytePacketBuilder(headerSizeHint, IoBuffer.Pool)
+actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder =
+    BytePacketBuilder(headerSizeHint, ChunkBuffer.Pool)
 
 actual typealias EOFException = java.io.EOFException
 

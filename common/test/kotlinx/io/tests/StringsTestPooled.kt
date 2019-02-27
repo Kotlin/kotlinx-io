@@ -1,7 +1,7 @@
 package kotlinx.io.tests
 
-import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 
 class StringsTestPooled : StringsTest() {
-    override val pool: VerifyingObjectPool<IoBuffer> = VerifyingObjectPool(IoBuffer.Pool)
+    override val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.Pool)
 }

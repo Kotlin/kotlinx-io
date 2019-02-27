@@ -4,7 +4,7 @@ import kotlinx.io.core.*
 
 @ExperimentalIoApi
 interface WriterSession {
-    fun request(min: Int): IoBuffer?
+    fun request(min: Int): Buffer?
     fun written(n: Int)
     fun flush()
 }

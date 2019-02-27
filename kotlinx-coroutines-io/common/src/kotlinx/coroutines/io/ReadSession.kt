@@ -27,7 +27,7 @@ interface ReadSession {
      * @return buffer for the requested range or `null` if it is impossible to provide such a buffer view
      * @throws Throwable if the channel has been closed with an exception or cancelled
      */
-    fun request(atLeast: Int = 1): IoBuffer?
+    fun request(atLeast: Int = 1): Buffer?
 }
 
 @ExperimentalIoApi

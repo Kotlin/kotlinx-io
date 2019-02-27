@@ -1,6 +1,7 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.*
 
 class AbstractOutputTest {
@@ -12,7 +13,7 @@ class AbstractOutputTest {
             override fun closeDestination() {
             }
 
-            override fun flush(buffer: IoBuffer) {
+            override fun flush(buffer: Buffer) {
                 builder.writeFully(buffer)
             }
         }
@@ -33,23 +34,23 @@ class AbstractOutputTest {
             override fun closeDestination() {
             }
 
-            override fun flush(buffer: IoBuffer) {
+            override fun flush(buffer: Buffer) {
                 result.writeFully(buffer)
             }
         }
 
-        val fromHead = IoBuffer.Pool.borrow()
+        val fromHead = ChunkBuffer.Pool.borrow()
         var current = fromHead
         repeat(3) {
             current.append("test $it. ")
-            val next = IoBuffer.Pool.borrow()
+            val next = ChunkBuffer.Pool.borrow()
             current.next = next
             current = next
         }
 
         current.append("end.")
 
-        val from = ByteReadPacket(fromHead, IoBuffer.Pool)
+        val from = ByteReadPacket(fromHead, ChunkBuffer.Pool)
 
         from.copyTo(output)
         output.flush()

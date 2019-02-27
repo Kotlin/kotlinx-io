@@ -1,6 +1,7 @@
 package kotlinx.io.core.internal
 
 import kotlinx.io.core.*
+import kotlinx.io.errors.*
 
 /**
  * API marked with this annotation is internal and extremely fragile and not intended to be used by library users.
@@ -27,7 +28,7 @@ fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
 
 @DangerousInternalIoApi
 fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? {
-    if (this is ByteReadPacketBase) {
+    if (this is AbstractInput) {
         return prepareReadHead(minSize)
     }
     if (this is ChunkBuffer) {
@@ -50,7 +51,7 @@ private fun Input.prepareReadHeadFallback(minSize: Int): ChunkBuffer? {
         }
     }
 
-    return buffer
+    return TODO_ERROR(buffer)
 }
 
 @DangerousInternalIoApi
@@ -58,14 +59,13 @@ fun Input.completeReadHead(current: ChunkBuffer) {
     if (current === this) {
         return
     }
-    if (this is ByteReadPacketBase) {
-        val remaining = current.readRemaining
-        if (remaining == 0) {
+    if (this is AbstractInput) {
+        if (!current.canRead()) {
             ensureNext(current)
         } else if (current.endGap < Buffer.ReservedSize) {
             fixGapAfterRead(current)
         } else {
-            updateHeadRemaining(remaining)
+            headPosition = current.readPosition
         }
         return
     }
@@ -84,7 +84,7 @@ fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     if (current === this) {
         return if (canRead()) this else null
     }
-    if (this is ByteReadPacketBase) {
+    if (this is AbstractInput) {
         return ensureNextHead(current)
     }
 

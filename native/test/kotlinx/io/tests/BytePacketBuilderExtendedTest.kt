@@ -2,11 +2,12 @@ package kotlinx.io.tests
 
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.Test
 import kotlin.test.*
 
 class BytePacketBuildTestExtended : BytePacketBuildTest() {
-    override val pool = VerifyingObjectPool(IoBuffer.Pool)
+    override val pool = VerifyingObjectPool(ChunkBuffer.Pool)
 
     private val buffer = nativeHeap.allocArray<ByteVar>(8888)
 

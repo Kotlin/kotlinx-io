@@ -1,6 +1,7 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlinx.io.streams.*
 import org.junit.Test
 import org.junit.Rule
@@ -9,7 +10,7 @@ import kotlin.test.*
 
 class BytePacketReaderWriterTest {
     @get:Rule
-    internal val pool = VerifyingObjectPool(IoBuffer.Pool)
+    internal val pool = VerifyingObjectPool(ChunkBuffer.Pool)
 
     @Test
     fun testReaderEmpty() {

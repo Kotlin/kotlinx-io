@@ -1,15 +1,15 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.*
-import org.khronos.webgl.*
 
 class IoBufferNativeTest {
-    private val buffer = IoBuffer.Pool.borrow()
+    private val buffer = ChunkBuffer.Pool.borrow()
 
     @AfterTest
     fun destroy() {
-        buffer.release(IoBuffer.Pool)
+        buffer.release(ChunkBuffer.Pool)
     }
 
     @Test

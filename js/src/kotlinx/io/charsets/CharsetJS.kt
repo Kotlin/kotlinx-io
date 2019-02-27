@@ -1,8 +1,11 @@
 package kotlinx.io.charsets
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
+import kotlinx.io.errors.*
 import kotlinx.io.js.*
 import org.khronos.webgl.*
+import kotlin.require
 
 actual abstract class Charset(internal val _name: String) {
     actual abstract fun newEncoder(): CharsetEncoder
@@ -77,7 +80,7 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
         val rem = max - copied
         if (rem == 0) return@takeWhileSize 0
 
-        copied += buffer.readText(decoder, dst, buffer.next == null, rem)
+        copied += buffer.readText(decoder, dst, buffer is ChunkBuffer && buffer.next == null, rem)
         1
     }
 
@@ -96,16 +99,22 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
 
 actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
-    if (input is ByteReadPacketBase && input.headRemaining >= inputLength) {
+    if (input is AbstractInput && input.headRemaining >= inputLength) {
         val decoder = TextDecoderFatal(charset._name, true)
 
         val head = input.head
+        val view = input.headMemory.view
+
         val text = decodeWrap {
-            when {
-                head.readPosition == 0 && inputLength == head.content.byteLength -> decoder.decode(head.content)
-                else -> decoder.decode(Int8Array(head.content, head.readPosition, inputLength))
+            val subView: ArrayBufferView = when {
+                head.readPosition == 0 && inputLength == view.byteLength -> view
+                else -> DataView(view.buffer, view.byteOffset + head.readPosition, inputLength)
             }
+
+            decoder.decode(subView)
         }
+
+        TODO_ERROR("update headReadOffset")
 
         input.discardExact(inputLength)
         return text

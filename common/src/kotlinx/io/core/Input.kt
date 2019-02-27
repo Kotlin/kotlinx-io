@@ -3,7 +3,7 @@ package kotlinx.io.core
 import kotlinx.io.core.internal.*
 
 /**
- * Shouldn't be implemented directly. Inherit [AbstractInput] instead.
+ * Usually shouldn't be implemented directly. Inherit [AbstractInput] instead.
  */
 expect interface Input : Closeable {
     @Deprecated(
@@ -12,35 +12,44 @@ expect interface Input : Closeable {
     )
     var byteOrder: ByteOrder
 
+    /**
+     * It is `true` when it is known that no more bytes will be available. When it is `false` then this means that
+     * it is not known yet or there are available bytes.
+     * Please note that `false` value doesn't guarantee that there are available bytes so `readByte()` may fail.
+     */
     val endOfInput: Boolean
 
+    /**
+     * Prefetch at least [min] bytes from the underlying source. May do nothing if there are already requested bytes
+     * buffered or when the underlying source is already consumed entirely.
+     * @return `true` if at least [min] bytes available of `false` when not enough bytes buffered and
+     * no more pending bytes in the underlying source.
+     */
+    fun prefetch(min: Int): Boolean
+
+    /**
+     * Read the next upcoming byte
+     * @throws EOFException if no more bytes available.
+     */
     fun readByte(): Byte
-    fun readShort(): Short
-    fun readInt(): Int
-    fun readLong(): Long
-    fun readFloat(): Float
-    fun readDouble(): Double
-
-    fun readFully(dst: ByteArray, offset: Int, length: Int)
-    fun readFully(dst: ShortArray, offset: Int, length: Int)
-    fun readFully(dst: IntArray, offset: Int, length: Int)
-    fun readFully(dst: LongArray, offset: Int, length: Int)
-    fun readFully(dst: FloatArray, offset: Int, length: Int)
-    fun readFully(dst: DoubleArray, offset: Int, length: Int)
-    fun readFully(dst: IoBuffer, length: Int = dst.writeRemaining)
-
-    fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: IntArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
-    fun readAvailable(dst: IoBuffer, length: Int): Int
 
     /*
      * Returns next byte (unsigned) or `-1` if no more bytes available
      */
     fun tryPeek(): Int
+
+    /**
+     * Discard at most [n] bytes
+     */
+    fun discard(n: Long): Long
+
+    /**
+     * Close input including the underlying source. All pending bytes will be discarded.
+     * It is not recommended to invoke it with read operations in-progress concurrently.
+     */
+    override fun close()
+
+    // TODO add prefetch(Int): Boolean
 
     /**
      * Copy available bytes to the specified [buffer] but keep them available.
@@ -51,102 +60,79 @@ expect interface Input : Closeable {
      *
      * @return number of bytes were copied
      */
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("DEPRECATION")
     fun peekTo(buffer: IoBuffer): Int
 
-    /**
-     * Discard at most [n] bytes
-     */
-    fun discard(n: Long): Long
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readShort(): Short
 
-    override fun close()
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readInt(): Int
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readLong(): Long
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readFloat(): Float
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readDouble(): Double
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readFully(dst: ByteArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readFully(dst: ShortArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readFully(dst: IntArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readFully(dst: LongArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readFully(dst: FloatArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readFully(dst: DoubleArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readFully(dst: IoBuffer, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readAvailable(dst: IntArray, offset: Int, length: Int): Int
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun readAvailable(dst: IoBuffer, length: Int): Int
 }
 
-
-fun Input.peekTo(buffer: Buffer): Int {
-    TODO()
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset) {
-    return readFully(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: ShortArray, offset: Int = 0, length: Int = dst.size - offset) {
-    return readFully(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: IntArray, offset: Int = 0, length: Int = dst.size - offset) {
-    return readFully(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: LongArray, offset: Int = 0, length: Int = dst.size - offset) {
-    return readFully(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: FloatArray, offset: Int = 0, length: Int = dst.size - offset) {
-    return readFully(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: DoubleArray, offset: Int = 0, length: Int = dst.size - offset) {
-    return readFully(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: IoBuffer, length: Int = dst.writeRemaining) {
-    return readFully(dst, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset): Int {
-    return readAvailable(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: ShortArray, offset: Int = 0, length: Int = dst.size - offset): Int {
-    return readAvailable(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: IntArray, offset: Int = 0, length: Int = dst.size - offset): Int {
-    return readAvailable(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: LongArray, offset: Int = 0, length: Int = dst.size - offset): Int {
-    return readAvailable(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: FloatArray, offset: Int = 0, length: Int = dst.size - offset): Int {
-    return readAvailable(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: DoubleArray, offset: Int = 0, length: Int = dst.size - offset): Int {
-    return readAvailable(dst, offset, length)
-}
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun Input.readAvailable(dst: IoBuffer, length: Int): Int {
-    return readAvailable(dst, length)
-}
-
-//@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: ChunkBuffer, length: Int = dst.writeRemaining): Int {
-    TODO()
-    return readAvailable(dst, length)
-}
-
+/**
+ * Discard all remaining bytes.
+ * @return number of bytes were discarded
+ */
 fun Input.discard(): Long {
     return discard(Long.MAX_VALUE)
 }
 
+/**
+ * Discard exactly [n] bytes or fail if not enough bytes in the input to be discarded.
+ */
 fun Input.discardExact(n: Long) {
     val discarded = discard(n)
     if (discarded != n) {
@@ -154,6 +140,9 @@ fun Input.discardExact(n: Long) {
     }
 }
 
+/**
+ * Discard exactly [n] bytes or fail if not enough bytes in the input to be discarded.
+ */
 fun Input.discardExact(n: Int) {
     discardExact(n.toLong())
 }

@@ -2,11 +2,12 @@ package kotlinx.io.tests
 
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.Test
 import kotlin.test.*
 
 open class StringsTest {
-    open val pool: VerifyingObjectPool<IoBuffer> = VerifyingObjectPool(IoBuffer.NoPool)
+    open val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)
 
     @AfterTest
     fun verifyPool() {

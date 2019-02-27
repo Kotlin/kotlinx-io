@@ -106,7 +106,7 @@ fun CharsetDecoder.decode(input: Input, max: Int = Int.MAX_VALUE): String = buil
 
 internal fun Input.sizeEstimate(): Long = when (this) {
     is ByteReadPacket -> remaining
-    is ByteReadPacketBase -> maxOf(remaining, 16)
+    is AbstractInput -> maxOf(remaining, 16)
     else -> 16
 }
 

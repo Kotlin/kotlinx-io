@@ -1,11 +1,12 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.math.*
 import kotlin.test.*
 
 class PrimitiveCodecTest {
-    val pool = VerifyingObjectPool(IoBuffer.Pool)
+    val pool = VerifyingObjectPool(ChunkBuffer.Pool)
     val builder = BytePacketBuilder(0, pool)
 
     @AfterTest

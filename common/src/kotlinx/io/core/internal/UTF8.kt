@@ -23,7 +23,7 @@ internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
 suspend fun decodeUTF8LineLoopSuspend(
     out: Appendable,
     limit: Int,
-    nextChunk: suspend (Int) -> ByteReadPacketBase?
+    nextChunk: suspend (Int) -> AbstractInput?
 ): Boolean {
     var decoded = 0
     var size = 1

@@ -1,6 +1,7 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.*
 
 class PeekCharTest {
@@ -63,15 +64,15 @@ class PeekCharTest {
     fun testPeekUtf8Edge() {
         val oSlash = '\u00f8'
 
-        val chunk1 = IoBuffer.Pool.borrow()
-        val chunk2 = IoBuffer.Pool.borrow()
+        val chunk1 = ChunkBuffer.Pool.borrow()
+        val chunk2 = ChunkBuffer.Pool.borrow()
         chunk1.reserveEndGap(8)
         chunk1.next = chunk2
 
         chunk1.writeByte(0xc3.toByte())
         chunk2.writeByte(0xb8.toByte())
 
-        ByteReadPacket(chunk1, IoBuffer.Pool).use {
+        ByteReadPacket(chunk1, ChunkBuffer.Pool).use {
             assertEquals(oSlash, it.peekCharUtf8())
         }
     }
@@ -80,8 +81,8 @@ class PeekCharTest {
     fun testPeekUtf8EdgeFor3BytesCharacter() {
         val bopomofoChar = '\u310f'
 
-        val chunk1 = IoBuffer.Pool.borrow()
-        val chunk2 = IoBuffer.Pool.borrow()
+        val chunk1 = ChunkBuffer.Pool.borrow()
+        val chunk2 = ChunkBuffer.Pool.borrow()
         chunk1.reserveEndGap(8)
         chunk1.next = chunk2
 
@@ -89,7 +90,7 @@ class PeekCharTest {
         chunk2.writeByte(0x84.toByte())
         chunk2.writeByte(0x8f.toByte())
 
-        ByteReadPacket(chunk1, IoBuffer.Pool).use {
+        ByteReadPacket(chunk1, ChunkBuffer.Pool).use {
             assertEquals(bopomofoChar, it.peekCharUtf8())
         }
     }
@@ -98,8 +99,8 @@ class PeekCharTest {
     fun testPeekUtf8EdgeFor3BytesCharacter2() {
         val bopomofoChar = '\u310f'
 
-        val chunk1 = IoBuffer.Pool.borrow()
-        val chunk2 = IoBuffer.Pool.borrow()
+        val chunk1 = ChunkBuffer.Pool.borrow()
+        val chunk2 = ChunkBuffer.Pool.borrow()
         chunk1.reserveEndGap(8)
         chunk1.next = chunk2
 
@@ -107,7 +108,7 @@ class PeekCharTest {
         chunk1.writeByte(0x84.toByte())
         chunk2.writeByte(0x8f.toByte())
 
-        ByteReadPacket(chunk1, IoBuffer.Pool).use {
+        ByteReadPacket(chunk1, ChunkBuffer.Pool).use {
             assertEquals(bopomofoChar, it.peekCharUtf8())
         }
     }
@@ -116,8 +117,8 @@ class PeekCharTest {
     fun testPeekUtf8EdgeReservedFor3BytesCharacter() {
         val bopomofoChar = '\u310f'
 
-        val chunk1 = IoBuffer.Pool.borrow()
-        val chunk2 = IoBuffer.Pool.borrow()
+        val chunk1 = ChunkBuffer.Pool.borrow()
+        val chunk2 = ChunkBuffer.Pool.borrow()
         chunk1.reserveEndGap(8)
         chunk1.next = chunk2
 
@@ -127,7 +128,7 @@ class PeekCharTest {
         chunk2.writeByte(0x8f.toByte())
         chunk2.writeByte(0x30)
 
-        ByteReadPacket(chunk1, IoBuffer.Pool).use {
+        ByteReadPacket(chunk1, ChunkBuffer.Pool).use {
             it.discardExact(4087)
             assertEquals(bopomofoChar, it.peekCharUtf8())
             it.discardExact(3)
@@ -141,11 +142,15 @@ class PeekCharTest {
         var count = 0
 
         val myInput = object : AbstractInput() {
-            override fun fill(): IoBuffer? = when (count++) {
-                0 -> pool.borrow().apply { writeByte(0xe3.toByte()) }
-                1 -> pool.borrow().apply { writeByte(0x84.toByte()) }
-                2 -> pool.borrow().apply { writeByte(0x8f.toByte()) }
-                else -> null
+            override fun fill(destination: Buffer): Boolean {
+                when (count++) {
+                    0 -> destination.writeByte(0xe3.toByte())
+                    1 -> destination.writeByte(0x84.toByte())
+                    2 -> destination.writeByte(0x8f.toByte())
+                    else -> return true
+                }
+
+                return false
             }
 
             override fun closeSource() {

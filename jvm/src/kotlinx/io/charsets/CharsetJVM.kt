@@ -57,7 +57,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
         return
     }
 
-    val tmp = IoBuffer.Pool.borrow()
+    val tmp = ChunkBuffer.Pool.borrow()
     var readSize = 1
 
     try {
@@ -80,7 +80,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
                     } else false
                 }
 
-                input.updateHeadRemaining(chunk.readRemaining)
+                input.headPosition = chunk.readPosition
 
                 cb.flip()
 
@@ -119,7 +119,7 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
             }
         }
     } finally {
-        tmp.release(IoBuffer.Pool)
+        tmp.release(ChunkBuffer.Pool)
     }
 }
 
@@ -196,15 +196,21 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
 
 actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
-    if (input is ByteReadPacketBase && input.headRemaining >= inputLength) {
+    if (input is AbstractInput && input.headRemaining >= inputLength) {
         // if we have a packet or a buffered input with the first head containing enough bytes
         // then we can try fast-path
-        if (input.head.readBuffer.hasArray()) {
+        if (input.headMemory.buffer.hasArray()) {
             // the most performant way is to use String ctor of ByteArray
             // on JVM9+ with string compression enabled it will do System.arraycopy and lazy decoding that is blazing fast
             // on older JVMs it is still the fastest way
-            val bb = input.head.readBuffer
-            val text = String(bb.array(), bb.arrayOffset() + bb.position(), inputLength, charset())
+            val bb = input.headMemory.buffer
+            val text = String(
+                bb.array(),
+                bb.arrayOffset() + bb.position() + input.head.readPosition,
+                inputLength,
+                charset()
+            )
+
             input.discardExact(inputLength)
             return text
         }
@@ -216,17 +222,14 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
     return decodeImplSlow(input, inputLength)
 }
 
-private fun CharsetDecoder.decodeImplByteBuffer(input: ByteReadPacketBase, inputLength: Int): String {
+private fun CharsetDecoder.decodeImplByteBuffer(input: AbstractInput, inputLength: Int): String {
     val cb = CharBuffer.allocate(inputLength)
-    val bb = input.head.readBuffer
-    val limit = bb.limit()
-    bb.limit(bb.position() + inputLength)
+    val bb = input.headMemory.slice(input.head.readPosition, inputLength).buffer
 
-    val rc = decode(input.head.readBuffer, cb, true)
+    val rc = decode(bb, cb, true)
     if (rc.isMalformed || rc.isUnmappable) rc.throwExceptionWrapped()
-
-    bb.limit(limit)
     cb.flip()
+    input.discardExact(bb.position())
     return cb.toString()
 }
 

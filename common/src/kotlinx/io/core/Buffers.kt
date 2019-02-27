@@ -11,11 +11,6 @@ import kotlin.contracts.*
  */
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
 expect class IoBuffer : Input, Output, ChunkBuffer {
-    /**
-     * User data: could be a session, connection or anything useful
-     */
-    @ExperimentalIoApi
-    var attachment: Any?
 
     override fun close()
 
@@ -27,7 +22,7 @@ expect class IoBuffer : Input, Output, ChunkBuffer {
          * when several instances of [ChunkBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
-        @Deprecated("Use Buffer.ReservedSize instead.")
+        @Deprecated("Use Buffer.ReservedSize instead.", ReplaceWith("Buffer.ReservedSize"))
         val ReservedSize: Int
 
         /**

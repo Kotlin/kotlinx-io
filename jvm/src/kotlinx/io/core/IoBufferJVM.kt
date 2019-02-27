@@ -15,7 +15,8 @@ import kotlin.contracts.*
 /**
  * A read-write facade to actual buffer of fixed size. Multiple views could share the same actual buffer.
  */
-@Deprecated("")
+@Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
+@Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
 actual class IoBuffer private constructor(
     private var content: ByteBuffer,
     origin: ChunkBuffer?
@@ -41,12 +42,6 @@ actual class IoBuffer private constructor(
         }
 
     /**
-     * User data: could be a session, connection or anything useful
-     */
-    @ExperimentalIoApi
-    actual var attachment: Any? = null
-
-    /**
      * @return `true` if there are available bytes to be read
      */
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
@@ -60,6 +55,10 @@ actual class IoBuffer private constructor(
 
     override val endOfInput: Boolean
         get() = !canRead()
+
+    override fun prefetch(min: Int): Boolean {
+        return readRemaining >= min
+    }
 
     /**
      * read and write operations byte-order (endianness)
@@ -75,6 +74,10 @@ actual class IoBuffer private constructor(
                 throw UnsupportedOperationException("Only BIG_ENDIAN is supported")
             }
         }
+
+    final override fun tryPeek(): Int {
+        return tryPeekByte()
+    }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun writeShort(v: Short) {
@@ -233,19 +236,19 @@ actual class IoBuffer private constructor(
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readShort() = readShort()
+    final override fun readShort() = (this as Input).readShort()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readInt() = readInt()
+    final override fun readInt() = (this as Input).readInt()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readLong() = readLong()
+    final override fun readLong() = (this as Input).readLong()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readFloat() = readFloat()
+    final override fun readFloat() = (this as Input).readFloat()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readDouble() = readDouble()
+    final override fun readDouble() = (this as Input).readDouble()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
@@ -412,6 +415,7 @@ actual class IoBuffer private constructor(
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
+        @Deprecated("Use Buffer.ReservedSize instead.", ReplaceWith("Buffer.ReservedSize"))
         actual val ReservedSize: Int get() = Buffer.ReservedSize
 
         private val DEFAULT_BUFFER_SIZE = getIOIntProperty("buffer.size", 4096)
@@ -420,6 +424,9 @@ actual class IoBuffer private constructor(
 
         actual val Empty = IoBuffer(Buffer.Empty.memory.buffer, null)
 
+        /**
+         * The default buffer pool
+         */
         actual val Pool: ObjectPool<IoBuffer> = object : DefaultPool<IoBuffer>(DEFAULT_BUFFER_POOL_SIZE) {
             override fun produceInstance(): IoBuffer {
                 val buffer = when (DEFAULT_BUFFER_POOL_DIRECT) {
@@ -480,22 +487,30 @@ fun Buffer.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int {
     return size
 }
 
-inline fun Buffer.readDirect(block: (ByteBuffer) -> Int): Int {
+inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 
     return read { memory, start, endExclusive ->
-        block(memory.slice(start, endExclusive - start).buffer)
+        val nioBuffer = memory.slice(start, endExclusive - start).buffer
+        block(nioBuffer)
+        check(nioBuffer.limit() == endExclusive - start) { "Buffer's limit change is not allowed" }
+
+        nioBuffer.position()
     }
 }
 
-inline fun Buffer.writeDirect(block: (ByteBuffer) -> Int): Int {
+inline fun Buffer.writeDirect(size: Int = 1, block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 
     return write { memory, start, endExclusive ->
-        block(memory.slice(start, endExclusive - start).buffer)
+        val nioBuffer = memory.slice(start, endExclusive - start).buffer
+        block(nioBuffer)
+        check(nioBuffer.limit() == endExclusive - start) { "Buffer's limit change is not allowed" }
+
+        nioBuffer.position()
     }
 }

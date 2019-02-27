@@ -1,19 +1,18 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.*
 
 class AbstractInputTest {
     @Test
     fun smokeTest() {
         var closed = false
-        var chunk: IoBuffer? = IoBuffer.Pool.borrow().apply { append("test") }
 
         val input = object : AbstractInput() {
-            override fun fill(): IoBuffer? {
-                val next = chunk
-                chunk = null
-                return next
+            override fun fill(destination: Buffer): Boolean {
+                destination.append("test")
+                return true
             }
 
             override fun closeSource() {
@@ -31,21 +30,23 @@ class AbstractInputTest {
 
     @Test
     fun testCopy() {
-        val items = ArrayList<IoBuffer>().apply {
-            add(IoBuffer.Pool.borrow().apply { append("test.") })
-            add(IoBuffer.Pool.borrow().apply { append("123.") })
-            add(IoBuffer.Pool.borrow().apply { append("zxc.") })
-        }
+        val items = arrayListOf(
+            "test.", "123.", "zxc."
+        )
 
         val input = object : AbstractInput() {
-            override fun fill(): IoBuffer? {
+            override fun fill(): ChunkBuffer? {
                 if (items.isEmpty()) return null
+                return super.fill()
+            }
 
-                return items.removeAt(0)
+            override fun fill(destination: Buffer): Boolean {
+                val next = items.removeAt(0)
+                destination.append(next)
+                return items.isEmpty()
             }
 
             override fun closeSource() {
-                items.forEach { it.release(IoBuffer.Pool) }
                 items.clear()
             }
         }

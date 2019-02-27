@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION_ERROR", "DEPRECATION")
+@file:Suppress("DEPRECATION_ERROR", "DEPRECATION", "RedundantModalityModifier")
 package kotlinx.io.core
 
 import kotlinx.cinterop.*
@@ -12,7 +12,8 @@ import kotlin.native.concurrent.*
 @PublishedApi
 internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
-@Deprecated("")
+@Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
+@Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
 actual class IoBuffer internal constructor(
     internal var content: CPointer<ByteVar>,
     private val contentCapacity: Int,
@@ -25,9 +26,6 @@ actual class IoBuffer internal constructor(
     internal var refCount = 1
 
     constructor(content: CPointer<ByteVar>, contentCapacity: Int) : this(content, contentCapacity, null)
-
-    @ExperimentalIoApi
-    actual var attachment: Any? = null
 
     override val endOfInput: Boolean get() = !canRead()
 
@@ -47,6 +45,15 @@ actual class IoBuffer internal constructor(
             }
         }
 
+    override fun prefetch(min: Int): Boolean {
+        return readRemaining >= min
+    }
+
+    final override fun tryPeek(): Int {
+        return tryPeekByte()
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readShort(): Short {
         return (this as Buffer).readShort()
     }
@@ -55,6 +62,7 @@ actual class IoBuffer internal constructor(
         (this as Buffer).writeShort(v)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readInt(): Int {
         return (this as Buffer).readInt()
     }
@@ -63,6 +71,7 @@ actual class IoBuffer internal constructor(
         (this as Buffer).writeInt(v)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFloat(): Float {
         return (this as Buffer).readFloat()
     }
@@ -71,6 +80,7 @@ actual class IoBuffer internal constructor(
         (this as Buffer).writeFloat(v)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readDouble(): Double {
         return (this as Buffer).readDouble()
     }
@@ -79,10 +89,12 @@ actual class IoBuffer internal constructor(
         (this as Buffer).writeDouble(v)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
         (this as Buffer).readFully(dst, offset, length.toIntOrFail("length"))
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
     }
@@ -95,67 +107,83 @@ actual class IoBuffer internal constructor(
         (this as Buffer).writeFully(src, offset, length.toIntOrFail("length"))
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: IntArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: LongArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
 
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: IoBuffer, length: Int) {
         (this as Buffer).readFully(dst, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
         return (this as Buffer).readAvailable(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
         return (this as Buffer).readAvailable(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
         return (this as Buffer).readAvailable(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
         return (this as Buffer).readAvailable(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
         return (this as Buffer).readAvailable(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
         return (this as Buffer).readAvailable(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: IoBuffer, length: Int): Int {
         return (this as Buffer).readAvailable(dst, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
         return (this as Buffer).readAvailable(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long {
         return (this as Buffer).readAvailable(dst, offset, length.toIntOrFail("length")).toLong()
     }
@@ -254,6 +282,7 @@ actual class IoBuffer internal constructor(
         return (this as Buffer).appendChars(csq, start, end)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun peekTo(buffer: IoBuffer): Int {
         return (this as Buffer).peekTo(buffer)
     }
@@ -285,12 +314,16 @@ actual class IoBuffer internal constructor(
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
+        @Deprecated("Use Buffer.ReservedSize instead.", ReplaceWith("Buffer.ReservedSize"))
         actual val ReservedSize: Int get() = Buffer.ReservedSize
 
         internal val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
 
         actual val Empty = IoBuffer(EmptyBuffer, 0, null)
 
+        /**
+         * The default buffer pool
+         */
         actual val Pool: ObjectPool<IoBuffer> get() = NoPool // BufferPoolNativeWorkaround
 
         actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {

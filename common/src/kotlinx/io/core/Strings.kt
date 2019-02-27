@@ -268,7 +268,9 @@ private fun bufferLimitExceeded(limit: Int): Nothing {
     throw BufferLimitExceededException("Too many characters before delimiter: limit $limit exceeded")
 }
 
-private fun prematureEndOfStream(size: Int): Nothing = throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
+@PublishedApi
+internal fun prematureEndOfStream(size: Int): Nothing =
+    throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
 
 /**
  * Read exactly [n] bytes (consumes all remaining if [n] is not specified but up to [Int.MAX_VALUE] bytes).

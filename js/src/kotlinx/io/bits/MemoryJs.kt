@@ -210,3 +210,5 @@ fun ArrayBuffer.copyTo(destination: Memory, offset: Int, length: Int, destinatio
 fun ArrayBufferView.copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
     buffer.copyTo(destination, offset + byteOffset, length, destinationOffset)
 }
+
+internal val Memory.Int8ArrayView: Int8Array get() = Int8Array(view.buffer, view.byteOffset, view.byteLength)

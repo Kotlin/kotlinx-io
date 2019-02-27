@@ -65,7 +65,7 @@ private suspend fun ByteChannelSequentialBase.copyToTail(dst: ByteChannelSequent
 abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlush: Boolean) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
     protected var closed = false
     protected val writable = BytePacketBuilder(0)
-    protected val readable = ByteReadPacket(initial, IoBuffer.Pool)
+    protected val readable = ByteReadPacket(initial, ChunkBuffer.Pool)
 
     internal val notFull = Condition { totalPending() <= 4088L }
 
@@ -198,7 +198,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
     @ExperimentalIoApi
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = object : WriterSuspendSession {
-            override fun request(min: Int): IoBuffer? {
+            override fun request(min: Int): Buffer? {
                 if (availableForWrite == 0) return null
                 return writable.prepareWriteHead(min)
             }
@@ -457,19 +457,19 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
     }
 
     private var lastReadAvailable = 0
-    private var lastReadView = IoBuffer.Empty
+    private var lastReadView = Buffer.Empty
 
     private fun completeReading() {
         val remaining = lastReadView.readRemaining
         val delta = lastReadAvailable - remaining
-        if (lastReadView !== IoBuffer.Empty) {
+        if (lastReadView !== Buffer.Empty) {
             readable.updateHeadRemaining(remaining)
         }
         if (delta > 0) {
             afterRead()
         }
         lastReadAvailable = 0
-        lastReadView = IoBuffer.Empty
+        lastReadView = Buffer.Empty
     }
 
     override suspend fun await(atLeast: Int): Boolean {
@@ -502,7 +502,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         return readable.discard(n).also { afterRead() }
     }
 
-    override fun request(atLeast: Int): IoBuffer? {
+    override fun request(atLeast: Int): Buffer? {
         closedCause?.let { throw it }
 
         completeReading()
@@ -510,14 +510,12 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         val view = readable.prepareReadHead(atLeast)
 
         if (view == null) {
-            lastReadView = IoBuffer.Empty
+            lastReadView = Buffer.Empty
             lastReadAvailable = 0
         } else {
             lastReadView = view
             lastReadAvailable = view.readRemaining
         }
-
-        view?.byteOrder = readByteOrder
 
         return view
     }
