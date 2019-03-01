@@ -1,6 +1,7 @@
 package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
+import kotlinx.io.errors.*
 import kotlinx.io.pool.*
 import kotlin.contracts.*
 
@@ -9,6 +10,7 @@ import kotlin.contracts.*
  * Concurrent unsafe. The only concurrent-safe operation is [release].
  * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
  */
+@Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
 expect class IoBuffer : Input, Output, ChunkBuffer {
 
@@ -16,6 +18,7 @@ expect class IoBuffer : Input, Output, ChunkBuffer {
 
     final override fun flush()
 
+    @Suppress("DEPRECATION")
     companion object {
         /**
          * Number of bytes usually reserved in the end of chunk
@@ -120,6 +123,28 @@ internal inline fun Long.coerceAtMostMaxInt(): Int = minOf(this, Int.MAX_VALUE.t
 internal inline fun Long.coerceAtMostMaxIntOrFail(message: String): Int {
     if (this > Int.MAX_VALUE.toLong()) throw IllegalArgumentException(message)
     return this.toInt()
+}
+
+internal fun Buffer.peekTo(destination: Buffer, offset: Int, min: Int, max: Int): Int {
+    checkPeekTo(destination, offset, min, max)
+
+    val size = minOf(readRemaining - offset, max)
+    if (size <= 0) {
+        if (min > 0) {
+            prematureEndOfStream(offset + min)
+        }
+        return 0
+    }
+
+    memory.copyTo(
+        destination.memory,
+        readPosition + offset,
+        size,
+        destination.writePosition
+    )
+    destination.commitWritten(size)
+
+    return size
 }
 
 class BufferLimitExceededException(message: String) : Exception(message)

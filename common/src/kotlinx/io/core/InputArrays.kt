@@ -1,47 +1,5 @@
 package kotlinx.io.core
 
-import kotlinx.io.core.internal.*
-
-fun Input.peekTo(buffer: Buffer): Int {
-    if (this is AbstractInput) {
-        var copied = 0
-        var chunk = head
-        val dst = buffer.memory
-        var dstPosition = buffer.writePosition
-        var remaining = buffer.writeRemaining
-
-        while (remaining > 0) {
-            val size = minOf(remaining, chunk.readRemaining)
-            chunk.memory.copyTo(dst, chunk.readPosition, size, dstPosition)
-            dstPosition += size
-            copied += size
-            remaining -= size
-
-            chunk = chunk.next ?: break
-        }
-
-        buffer.commitWritten(copied)
-        return copied
-    }
-
-    return peekToFallback(buffer)
-}
-
-private fun Input.peekToFallback(buffer: Buffer): Int {
-    val head = prepareReadFirstHead(1) ?: return 0
-    val size = minOf(buffer.writeRemaining, head.readRemaining)
-    head.memory.copyTo(buffer.memory, head.readPosition, size, buffer.writePosition)
-    buffer.commitWritten(size)
-    return size
-}
-
-fun Input.peekTo(min: Int, buffer: Buffer): Int {
-    if (!prefetch(min)) prematureEndOfStream(min)
-    val size = peekTo(buffer)
-    if (size < min) prematureEndOfStream(min)
-    return size
-}
-
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset) {
     readFullyBytesTemplate(offset, length) { src, dstOffset, count ->

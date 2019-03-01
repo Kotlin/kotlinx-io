@@ -56,10 +56,6 @@ actual class IoBuffer private constructor(
     override val endOfInput: Boolean
         get() = !canRead()
 
-    override fun prefetch(min: Int): Boolean {
-        return readRemaining >= min
-    }
-
     /**
      * read and write operations byte-order (endianness)
      */
@@ -74,6 +70,10 @@ actual class IoBuffer private constructor(
                 throw UnsupportedOperationException("Only BIG_ENDIAN is supported")
             }
         }
+
+    final override fun peekTo(destination: Buffer, offset: Int, min: Int, max: Int): Int {
+        return (this as Buffer).peekTo(destination, offset, min, max)
+    }
 
     final override fun tryPeek(): Int {
         return tryPeekByte()

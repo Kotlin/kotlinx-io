@@ -500,7 +500,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         writeFully(src as Buffer, length)
     }
 
-    override fun writeFully(src: Buffer, length: Int) {
+    fun writeFully(src: Buffer, length: Int) {
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(length <= src.readRemaining) { "Not enough bytes available in src buffer to read $length bytes" }
 
