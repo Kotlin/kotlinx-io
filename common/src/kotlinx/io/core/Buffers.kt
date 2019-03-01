@@ -3,7 +3,11 @@ package kotlinx.io.core
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
-@Deprecated("Use IoBuffer instead", replaceWith = ReplaceWith("IoBuffer", "kotlinx.io.core.IoBuffer"))
+@Deprecated(
+    "Use IoBuffer instead",
+    replaceWith = ReplaceWith("IoBuffer", "kotlinx.io.core.IoBuffer"),
+    level = DeprecationLevel.ERROR
+)
 typealias BufferView = IoBuffer
 
 /**
@@ -85,7 +89,7 @@ expect class IoBuffer : Input, Output {
     final override fun readFloat(): Float
     final override fun readDouble(): Double
 
-    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"), level = DeprecationLevel.ERROR)
     fun read(dst: ByteArray, offset: Int, length: Int)
 
     final override fun readFully(dst: ByteArray, offset: Int, length: Int)
@@ -122,7 +126,7 @@ expect class IoBuffer : Input, Output {
     /**
      * Discards [n] bytes or fails if there is not enough bytes available for read.
      */
-    @Deprecated("Extension function should be used instead", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     fun discardExact(n: Int)
 
     final override fun writeByte(v: Byte)
@@ -155,13 +159,13 @@ expect class IoBuffer : Input, Output {
     /**
      * Writes exactly [length] bytes of [array] starting from [offset] position or fails if not enough free space
      */
-    @Deprecated("Use writeFully instead")
+    @Deprecated("Use writeFully instead", level = DeprecationLevel.ERROR)
     fun write(array: ByteArray, offset: Int, length: Int)
 
     /**
      * Writes [length] bytes of [src] buffer or fails if not enough free space available
      */
-    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"), level = DeprecationLevel.ERROR)
     fun writeBuffer(src: IoBuffer, length: Int): Int
 
     internal fun restoreStartGap(n: Int)
@@ -242,8 +246,11 @@ expect class IoBuffer : Input, Output {
     }
 }
 
-@Deprecated("Use IoBuffer.EmptyPool instead",
-        replaceWith = ReplaceWith("IoBuffer.EmptyPool", "kotlinx.io.core.IoBuffer"))
+@Deprecated(
+    "Use IoBuffer.EmptyPool instead.",
+    replaceWith = ReplaceWith("IoBuffer.EmptyPool", "kotlinx.io.core.IoBuffer"),
+    level = DeprecationLevel.ERROR
+)
 val EmptyBufferViewPool get() = IoBuffer.EmptyPool
 
 internal object EmptyBufferPoolImpl : NoPoolImpl<IoBuffer>() {

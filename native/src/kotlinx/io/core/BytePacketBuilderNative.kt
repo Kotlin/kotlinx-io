@@ -6,7 +6,7 @@ import kotlinx.io.core.internal.*
 
 @DangerousInternalIoApi
 @Deprecated("Will be removed in future releases.")
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 actual abstract class BytePacketBuilderPlatformBase
 internal actual constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase(pool) {
     final override fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {

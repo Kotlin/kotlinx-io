@@ -1,7 +1,6 @@
 package kotlinx.io.core.internal
 
 import kotlinx.io.core.*
-import kotlinx.io.core.IoBuffer.*
 
 /**
  * API marked with this annotation is internal and extremely fragile and not intended to be used by library users.
@@ -107,7 +106,7 @@ private fun Input.prepareNextReadHeadFallback(current: IoBuffer): IoBuffer? {
 
 @DangerousInternalIoApi
 fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     if (this is BytePacketBuilderBase) {
         return prepareWriteHead(capacity)
     }
@@ -127,7 +126,7 @@ private fun Output.prepareWriteHeadFallback(current: IoBuffer?): IoBuffer {
 
 @DangerousInternalIoApi
 fun Output.afterHeadWrite(current: IoBuffer) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     if (this is BytePacketBuilderBase) {
         return afterHeadWrite()
     }

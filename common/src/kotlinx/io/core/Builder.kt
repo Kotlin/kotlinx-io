@@ -39,7 +39,7 @@ expect fun BytePacketBuilder(headerSizeHint: Int = 0): BytePacketBuilder
  * ```
  */
 class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuffer>) :
-    @Suppress("DEPRECATION") BytePacketBuilderPlatformBase(pool) {
+    @Suppress("DEPRECATION_ERROR") BytePacketBuilderPlatformBase(pool) {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }
@@ -262,8 +262,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
 }
 
 @DangerousInternalIoApi
-@Deprecated("Will be removed in future releases.")
-@Suppress("DEPRECATION")
+@Deprecated("Will be removed in future releases.", level = DeprecationLevel.ERROR)
+@Suppress("DEPRECATION_ERROR")
 expect abstract class BytePacketBuilderPlatformBase
 internal constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase
 
@@ -272,8 +272,8 @@ internal constructor(pool: ObjectPool<IoBuffer>) : BytePacketBuilderBase
  */
 @ExperimentalIoApi
 abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) :
-    @Suppress("DEPRECATION") BytePacketBuilderPlatformBase(pool) {
-    @Deprecated("Will be removed. Override flush(buffer) properly.")
+    @Suppress("DEPRECATION_ERROR") BytePacketBuilderPlatformBase(pool) {
+    @Deprecated("Will be removed. Override flush(buffer) properly.", level = DeprecationLevel.ERROR)
     protected var currentTail: IoBuffer
         get() = this.tail
         set(newValue) {
@@ -345,7 +345,7 @@ abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) :
 }
 
 @DangerousInternalIoApi
-@Deprecated("Will be removed in future releases")
+@Deprecated("Will be removed in future releases", level = DeprecationLevel.ERROR)
 @Suppress("DEPRECATION")
 abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<IoBuffer>) : Appendable, Output {
 
@@ -531,14 +531,14 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     /**
      * Append single UTF-8 character
      */
-    override fun append(c: Char): BytePacketBuilderBase {
+    override fun append(c: Char): @Suppress("DEPRECATION_ERROR") BytePacketBuilderBase {
         write(3) {
             it.putUtf8Char(c.toInt())
         }
         return this
     }
 
-    override fun append(csq: CharSequence?): BytePacketBuilderBase {
+    override fun append(csq: CharSequence?): @Suppress("DEPRECATION_ERROR") BytePacketBuilderBase {
         if (csq == null) {
             appendChars("null", 0, 4)
         } else {
@@ -547,7 +547,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
         return this
     }
 
-    override fun append(csq: CharSequence?, start: Int, end: Int): BytePacketBuilderBase {
+    override fun append(csq: CharSequence?, start: Int, end: Int): @Suppress("DEPRECATION_ERROR") BytePacketBuilderBase {
         if (csq == null) {
             return append("null", start, end)
         }

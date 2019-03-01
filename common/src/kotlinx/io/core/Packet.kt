@@ -855,13 +855,18 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     }
 
     companion object {
-        @Deprecated("Use ByteReadPacket.Empty instead", ReplaceWith("ByteReadPacket.Empty"))
+        @Deprecated(
+            "Use ByteReadPacket.Empty instead",
+            ReplaceWith("ByteReadPacket.Empty"),
+            level = DeprecationLevel.ERROR
+        )
         val Empty: ByteReadPacket
             get() = ByteReadPacket.Empty
 
         @Deprecated(
             "Use IoBuffer.ReservedSize instead",
-            replaceWith = ReplaceWith("IoBuffer.ReservedSize", "kotlinx.io.core.IoBuffer")
+            replaceWith = ReplaceWith("IoBuffer.ReservedSize", "kotlinx.io.core.IoBuffer"),
+            level = DeprecationLevel.ERROR
         )
         val ReservedSize: Int = IoBuffer.ReservedSize
     }

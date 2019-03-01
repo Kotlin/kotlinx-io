@@ -25,7 +25,7 @@ fun ByteReadPacket.readByteBuffer(
     return bb
 }
 
-@Deprecated("Migrate parameters order", ReplaceWith("readText(out, decoder, max)"))
+@Deprecated("Migrate parameters order", ReplaceWith("readText(out, decoder, max)"), level = DeprecationLevel.ERROR)
 fun ByteReadPacket.readText(decoder: CharsetDecoder, out: Appendable, max: Int = Int.MAX_VALUE): Int {
     return decoder.decode(this, out, max)
 }

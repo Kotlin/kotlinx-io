@@ -181,7 +181,7 @@ fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit: Int =
     return readUTFUntilDelimiterToSlowAscii(delimiters, limit, out)
 }
 
-@Suppress("unused", "DEPRECATION")
+@Suppress("unused", "DEPRECATION_ERROR")
 @Deprecated("Use Output version instead", level = DeprecationLevel.HIDDEN)
 fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     return readUTF8UntilDelimiterTo(out as Output, delimiters, limit)
@@ -319,7 +319,9 @@ fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (m
  * @return number of characters copied to [out]
  */
 @Deprecated("Use CharsetDecoder.decode instead",
-        ReplaceWith("decoder.decode(this, out, max)", "kotlinx.io.charsets.decode"))
+    ReplaceWith("decoder.decode(this, out, max)", "kotlinx.io.charsets.decode"),
+    level = DeprecationLevel.ERROR
+)
 fun Input.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): Int {
     return decoder.decode(this, out, max)
 }
@@ -338,7 +340,9 @@ fun Input.readText(out: Appendable, charset: Charset = Charsets.UTF_8, max: Int 
  */
 @Deprecated(
     "Use CharsetDecoder.decode instead",
-        ReplaceWith("decoder.decode(this, max)", "kotlinx.io.charsets.decode"))
+    ReplaceWith("decoder.decode(this, max)", "kotlinx.io.charsets.decode"),
+    level = DeprecationLevel.ERROR
+)
 fun Input.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String {
     return decoder.decode(this, max)
 }

@@ -143,7 +143,15 @@ actual class IoBuffer internal constructor(
     }
 
     actual final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
-        write(src, offset, length)
+        if (writeRemaining < length) throw IllegalStateException("Not enough space left ($writeRemaining) to write $length bytes")
+        val wp = writePosition
+        val i8 = i8
+
+        for (idx in 0 .. length - 1) {
+            i8[wp + idx] = src[offset + idx]
+        }
+
+        writePosition = wp + length
     }
 
     actual final override fun writeFully(src: ShortArray, offset: Int, length: Int) {
@@ -312,7 +320,7 @@ actual class IoBuffer internal constructor(
         writePosition += n.toInt()
     }
 
-    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"), level = DeprecationLevel.ERROR)
     actual fun read(dst: ByteArray, offset: Int, length: Int) {
         readFully(dst, offset, length)
     }
@@ -528,7 +536,7 @@ actual class IoBuffer internal constructor(
         return size
     }
 
-    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"), level = DeprecationLevel.ERROR)
     fun read(dst: Array<Byte>, offset: Int, length: Int) {
         return readFully(dst, offset, length)
     }
@@ -545,7 +553,7 @@ actual class IoBuffer internal constructor(
         readPosition += length
     }
 
-    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"), level = DeprecationLevel.ERROR)
     fun read(dst: ArrayBuffer, offset: Int, length: Int) {
         readFully(dst, offset, length)
     }
@@ -605,7 +613,7 @@ actual class IoBuffer internal constructor(
         return size
     }
 
-    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"), level = DeprecationLevel.ERROR)
     fun read(dst: Int8Array, offset: Int, length: Int) {
         readFully(dst, offset, length)
     }
@@ -845,16 +853,9 @@ actual class IoBuffer internal constructor(
         return size.toLong()
     }
 
+    @Deprecated("Use writeFully instead", level = DeprecationLevel.ERROR)
     actual fun write(array: ByteArray, offset: Int, length: Int) {
-        if (writeRemaining < length) throw IllegalStateException("Not enough space left ($writeRemaining) to write $length bytes")
-        val wp = writePosition
-        val i8 = i8
-
-        for (idx in 0 .. length - 1) {
-            i8[wp + idx] = array[offset + idx]
-        }
-
-        writePosition = wp + length
+        writeFully(array, offset, length)
     }
 
     fun writeFully(src: ArrayBufferView, offset: Int, length: Int) {
@@ -989,7 +990,7 @@ actual class IoBuffer internal constructor(
         }
     }
 
-    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"), level = DeprecationLevel.ERROR)
     actual fun writeBuffer(src: IoBuffer, length: Int): Int {
         writeFully(src, length)
         return length

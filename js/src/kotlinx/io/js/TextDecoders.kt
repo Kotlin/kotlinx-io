@@ -4,10 +4,10 @@ import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 
-@Deprecated("Use readText with charset instead", ReplaceWith("readText(Charset.forName(encoding), max)", "kotlinx.io.core.readText", "kotlinx.io.charsets.Charset"))
+@Deprecated("Use readText with charset instead", ReplaceWith("readText(Charset.forName(encoding), max)", "kotlinx.io.core.readText", "kotlinx.io.charsets.Charset"), level = DeprecationLevel.ERROR)
 fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = readText(Charset.forName(encoding), max)
 
-@Deprecated("Use readText with charset instead", ReplaceWith("readText(out, Charset.forName(encoding), max)", "kotlinx.io.core.readText", "kotlinx.io.charsets.Charset"))
+@Deprecated("Use readText with charset instead", ReplaceWith("readText(out, Charset.forName(encoding), max)", "kotlinx.io.core.readText", "kotlinx.io.charsets.Charset"), level = DeprecationLevel.ERROR)
 fun ByteReadPacket.readText(encoding: String = "UTF-8", out: Appendable, max: Int = Int.MAX_VALUE): Int {
     return readText(out, Charset.forName(encoding), max)
 }

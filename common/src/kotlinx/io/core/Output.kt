@@ -121,7 +121,7 @@ inline fun Output.writeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int)
 }
 
 fun Output.writePacket(packet: ByteReadPacket) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     if (this is BytePacketBuilderBase) {
         writePacket(packet)
         return

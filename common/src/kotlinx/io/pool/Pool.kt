@@ -147,7 +147,7 @@ expect abstract class DefaultPool<T : Any>(capacity: Int) : ObjectPool<T> {
 /**
  * Borrows and instance of [T] from the pool, invokes [block] with it and finally recycles it
  */
-@Deprecated("Use useInstance instead", ReplaceWith("useInstance(block)"))
+@Deprecated("Use useInstance instead", ReplaceWith("useInstance(block)"), level = DeprecationLevel.ERROR)
 inline fun <T : Any, R> ObjectPool<T>.useBorrowed(block: (T) -> R): R {
     return useInstance(block)
 }

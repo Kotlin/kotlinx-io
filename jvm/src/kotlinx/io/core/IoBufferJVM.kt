@@ -422,12 +422,12 @@ actual class IoBuffer private constructor(
     /**
      * Writes exactly [length] bytes of [array] starting from [offset] position or fails if not enough free space
      */
-    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(array, offset, length)"))
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(array, offset, length)"), level = DeprecationLevel.ERROR)
     actual fun write(array: ByteArray, offset: Int, length: Int) {
         writeFully(array, offset, length)
     }
 
-    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(buffer)"))
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(buffer)"), level = DeprecationLevel.ERROR)
     fun write(buffer: ByteBuffer) {
         writeFully(buffer)
     }
@@ -470,7 +470,7 @@ actual class IoBuffer private constructor(
     /**
      * Writes [length] bytes of [src] buffer or fails if not enough free space available
      */
-    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"), level = DeprecationLevel.ERROR)
     actual fun writeBuffer(src: IoBuffer, length: Int): Int {
         writeFully(src, length)
         return length
@@ -540,7 +540,7 @@ actual class IoBuffer private constructor(
     actual final override fun readFloat() = readBuffer.getFloat()
     actual final override fun readDouble() = readBuffer.getDouble()
 
-    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"), level = DeprecationLevel.ERROR)
     actual fun read(dst: ByteArray, offset: Int, length: Int) {
         readFully(dst, offset, length)
     }
@@ -641,7 +641,7 @@ actual class IoBuffer private constructor(
         return size
     }
 
-    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, length)"))
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, length)"), level = DeprecationLevel.ERROR)
     fun read(dst: ByteBuffer, length: Int) {
         return readFully(dst, length)
     }
@@ -724,7 +724,7 @@ actual class IoBuffer private constructor(
     /**
      * Reset read/write position to original's content pos/limit. May not work due to slicing.
      */
-    @Deprecated("Unstable API. Could be changed or removed without notice.")
+    @ExperimentalIoApi
     fun resetFromContentToWrite(child: ByteBuffer) {
         writeBuffer.limit(child.limit())
         writeBuffer.position(child.position())

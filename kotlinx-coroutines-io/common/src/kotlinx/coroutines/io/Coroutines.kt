@@ -43,7 +43,7 @@ fun CoroutineScope.reader(
     block: suspend ReaderScope.() -> Unit
 ): ReaderJob = launchChannel(coroutineContext, ByteChannel(autoFlush), attachJob = true, block = block)
 
-@Deprecated("Use scope.reader instead")
+@Deprecated("Use scope.reader instead", level = DeprecationLevel.ERROR)
 fun reader(
     coroutineContext: CoroutineContext,
     channel: ByteChannel,
@@ -56,8 +56,8 @@ fun reader(
     return CoroutineScope(newContext).reader(EmptyCoroutineContext, channel, block)
 }
 
-@Suppress("DEPRECATION")
-@Deprecated("Use scope.reader instead")
+@Suppress("DEPRECATION_ERROR")
+@Deprecated("Use scope.reader instead", level = DeprecationLevel.ERROR)
 fun reader(
     coroutineContext: CoroutineContext,
     autoFlush: Boolean = false, parent: Job? = null,
@@ -81,7 +81,7 @@ fun CoroutineScope.writer(
     block: suspend WriterScope.() -> Unit
 ): WriterJob = launchChannel(coroutineContext, ByteChannel(autoFlush), attachJob = true, block = block)
 
-@Deprecated("Use scope.writer instead")
+@Deprecated("Use scope.writer instead", level = DeprecationLevel.ERROR)
 fun writer(
     coroutineContext: CoroutineContext,
     channel: ByteChannel, parent: Job? = null,
@@ -93,8 +93,8 @@ fun writer(
     return CoroutineScope(newContext).writer(EmptyCoroutineContext, channel, block)
 }
 
-@Suppress("DEPRECATION")
-@Deprecated("Use scope.writer instead")
+@Suppress("DEPRECATION_ERROR")
+@Deprecated("Use scope.writer instead", level = DeprecationLevel.ERROR)
 fun writer(
     coroutineContext: CoroutineContext,
     autoFlush: Boolean = false, parent: Job? = null,

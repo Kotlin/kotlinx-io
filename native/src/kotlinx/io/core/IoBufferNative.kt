@@ -1,3 +1,5 @@
+@file:Suppress("RedundantModalityModifier")
+
 package kotlinx.io.core
 
 import kotlinx.cinterop.*
@@ -174,7 +176,7 @@ actual class IoBuffer internal constructor(
         writePosition += length.toInt()
     }
 
-    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"))
+    @Deprecated("Use readFully instead", ReplaceWith("readFully(dst, offset, length)"), level = DeprecationLevel.ERROR)
     actual fun read(dst: ByteArray, offset: Int, length: Int) {
         readFully(dst, offset, length)
     }
@@ -503,7 +505,7 @@ actual class IoBuffer internal constructor(
         return rc
     }
 
-    @Deprecated("Use writeFully instead")
+    @Deprecated("Use writeFully instead", level = DeprecationLevel.ERROR)
     actual final fun write(array: ByteArray, offset: Int, length: Int) {
         writeFully(array, offset, length)
     }
@@ -856,7 +858,7 @@ actual class IoBuffer internal constructor(
     @Suppress("NOTHING_TO_INLINE")
     private inline fun Int.isSurrogateCodePoint() = this in 55296..57343
 
-    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"))
+    @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"), level = DeprecationLevel.ERROR)
     actual fun writeBuffer(src: IoBuffer, length: Int): Int {
         writeFully(src, length)
         return length
