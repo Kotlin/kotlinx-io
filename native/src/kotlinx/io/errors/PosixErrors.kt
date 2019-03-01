@@ -29,11 +29,11 @@ private val KnownPosixErrors = mapOf<Int, String>(
 
 /**
  * Represents a POSIX error. Could be thrown when a POSIX function returns error code.
- * @property errno error code that caused this exception
+ * @property errorCode error code that caused this exception
  * @property message error text
  */
 @ExperimentalIoApi
-sealed class PosixException(val errno: Int, message: String) : Exception(message) {
+sealed class PosixException(val errorCode: Int, message: String) : Exception(message) {
     @ExperimentalIoApi
     class BadFileDescriptorException(message: String) : PosixException(EBADF, message)
 
@@ -80,37 +80,37 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
     class NoMemoryException(message: String) : PosixException(ENOMEM, message)
 
     @ExperimentalIoApi
-    class PosixErrnoException(errno: Int, message: String) : PosixException(errno, "$message ($errno)")
+    class PosixErrnoException(errorCode: Int, message: String) : PosixException(errorCode, "$message ($errorCode)")
 
     companion object {
         /**
          * Create the corresponding instance of PosixException
-         * with error message provided by the underlying POSIX implementation.
+         * with errorCode message provided by the underlying POSIX implementation.
          *
-         * @param errno error code returned by [posix.platform.errno]
+         * @param errorCode error code returned by [posix.platform.errno]
          * @param posixFunctionName optional function name to be included to the exception message
          * @return an instance of [PosixException] or it's subtype
          */
         @ExperimentalIoApi
-        fun forErrno(errno: Int = platform.posix.errno, posixFunctionName: String? = null): PosixException = memScoped {
-            val posixConstantName = KnownPosixErrors[errno]
+        fun forErrno(errorCode: Int = errno, posixFunctionName: String? = null): PosixException = memScoped {
+            val posixConstantName = KnownPosixErrors[errorCode]
             val posixErrorCodeMessage = when {
-                posixConstantName == null -> "POSIX error $errno"
-                else -> "$posixConstantName ($errno)"
+                posixConstantName == null -> "POSIX error $errorCode"
+                else -> "$posixConstantName ($errorCode)"
             }
 
             val message = when {
-                posixFunctionName.isNullOrBlank() -> posixErrorCodeMessage + ": " + strerror(errno)
-                else -> "$posixFunctionName failed, $posixErrorCodeMessage: ${strerror(errno)}"
+                posixFunctionName.isNullOrBlank() -> posixErrorCodeMessage + ": " + strerror(errorCode)
+                else -> "$posixFunctionName failed, $posixErrorCodeMessage: ${strerror(errorCode)}"
             }
 
-            when (errno) {
+            when (errorCode) {
                 EBADF -> BadFileDescriptorException(message)
 
                 // it is not guaranteed that these errors have identical numeric values
                 // so we need to specify both
                 @Suppress("DUPLICATE_LABEL_IN_WHEN")
-                EWOULDBLOCK, EAGAIN -> TryAgainException(errno, message)
+                EWOULDBLOCK, EAGAIN -> TryAgainException(errorCode, message)
 
                 EBADMSG -> BadMessageException(message)
                 EINTR -> InterruptedException(message)
@@ -125,14 +125,18 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
                 ENOTSOCK -> NotSocketException(message)
                 EADDRINUSE -> AddressAlreadyInUseException(message)
                 ENOENT -> NoSuchFileException(message)
-                else -> PosixErrnoException(errno, message)
+                else -> PosixErrnoException(errorCode, message)
             }
         }
     }
 }
 
+@Suppress("unused")
+@Deprecated("Use errorCode instead.", ReplaceWith("errorCode"), level = DeprecationLevel.ERROR)
+internal inline val PosixException.errno: Int get() = errorCode
+
 internal fun PosixException.wrapIO(): IOException =
-    IOException("I/O operation failed due to posix error code $errno", this)
+    IOException("I/O operation failed due to posix error code $errorCode", this)
 
 private tailrec fun MemScope.strerror(errno: Int, size: size_t = 8192.convert()): String {
     val message = allocArray<ByteVar>(size.toLong())
