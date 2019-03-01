@@ -90,3 +90,64 @@ inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit)
 fun BytePacketBuilder.writeFully(src: ByteBuffer) {
     writeFully(src)
 }
+
+
+@PublishedApi
+@Suppress("unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+internal fun BytePacketBuilder.nioBuffer(size: Int): ByteBuffer = prepareWriteHead(size).writeBuffer()
+
+@PublishedApi
+@Suppress("unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+internal fun BytePacketBuilder.afterNioBufferUsed(written: Int) {
+    head.commitWritten(written)
+    afterHeadWrite()
+}
+
+@PublishedApi
+@Suppress("unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+internal fun ByteReadPacket.nioBuffer(size: Int): ByteBuffer? {
+    return prepareRead(size)?.writeBuffer()
+}
+
+@PublishedApi
+@Suppress("unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+internal fun AbstractInput.nioBuffer(size: Int): ByteBuffer? {
+    return prepareRead(size)?.writeBuffer()
+}
+
+@PublishedApi
+@Suppress("unused", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+internal fun ByteReadPacketBase.nioBuffer(size: Int): ByteBuffer? {
+    return prepareRead(size)?.writeBuffer()
+}
+
+@PublishedApi
+@Suppress("unused", "DEPRECATION", "DEPRECATION_ERROR")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+internal fun ByteReadPacket.afterNioBufferUsed(read: Int) {
+    (this as ByteReadPacketBase).afterNioBufferUsed(read)
+}
+
+@PublishedApi
+@Suppress("unused", "DEPRECATION", "DEPRECATION_ERROR")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+internal fun AbstractInput.afterNioBufferUsed(read: Int) {
+    (this as ByteReadPacketBase).afterNioBufferUsed(read)
+}
+
+@PublishedApi
+@Suppress("unused", "DEPRECATION", "DEPRECATION_ERROR")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.ERROR)
+internal fun ByteReadPacketBase.afterNioBufferUsed(read: Int) {
+    val headRemaining = headRemaining
+    updateHeadRemaining(headRemaining - read)
+}
+
+private fun ChunkBuffer.writeBuffer(): ByteBuffer {
+    return memory.slice(writePosition, writeRemaining).buffer
+}

@@ -6,6 +6,7 @@ import kotlinx.io.bits.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.internal.*
 import kotlinx.io.core.internal.require
+import kotlinx.io.errors.*
 import kotlinx.io.pool.*
 
 
@@ -75,16 +76,15 @@ fun ChunkBuffer.makeView(): ChunkBuffer = duplicate()
 fun Buffer.flush() {
 }
 
-
-@Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
-internal fun Buffer.appendChars(csq: CharArray, start: Int, end: Int): Int = TODO()
+internal fun Buffer.appendChars(csq: CharArray, start: Int, end: Int): Int {
+    TODO_ERROR()
+}
 
 internal fun Buffer.appendChars(csq: CharSequence, start: Int, end: Int): Int {
     return Charsets.UTF_8.newEncoder().encodeImpl(csq, start, end, this)
 }
 
-@Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
-fun Buffer.append(c: Char): Buffer = TODO()
+fun Buffer.append(c: Char): Buffer = TODO_ERROR()
 
 fun Buffer.append(csq: CharSequence?): Buffer {
     if (csq == null) {

@@ -6,35 +6,60 @@ import kotlinx.io.core.internal.*
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
 expect interface Output : Appendable, Closeable {
+    @Deprecated(
+        "This is no longer supported. All operations are big endian by default. Use writeXXXLittleEndian " +
+            "to write primitives in little endian order.",
+        level = DeprecationLevel.ERROR
+    )
     var byteOrder: ByteOrder
 
     fun writeByte(v: Byte)
-    fun writeShort(v: Short)
-    fun writeInt(v: Int)
-    fun writeLong(v: Long)
-    fun writeFloat(v: Float)
-    fun writeDouble(v: Double)
-
-    fun writeFully(src: ByteArray, offset: Int, length: Int)
-    fun writeFully(src: ShortArray, offset: Int, length: Int)
-    fun writeFully(src: IntArray, offset: Int, length: Int)
-    fun writeFully(src: LongArray, offset: Int, length: Int)
-    fun writeFully(src: FloatArray, offset: Int, length: Int)
-    fun writeFully(src: DoubleArray, offset: Int, length: Int)
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFully(src: IoBuffer, length: Int)
-
-    // TODO
-//    fun writeFully(src: Buffer, length: Int)
-
-    fun append(csq: CharArray, start: Int, end: Int): Appendable
-
-    fun fill(n: Long, v: Byte)
 
     fun flush()
 
     override fun close()
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeShort(v: Short)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeInt(v: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeLong(v: Long)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFloat(v: Float)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeDouble(v: Double)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: ByteArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: ShortArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: IntArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: LongArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: FloatArray, offset: Int, length: Int)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: DoubleArray, offset: Int, length: Int)
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: IoBuffer, length: Int)
+
+    fun append(csq: CharArray, start: Int, end: Int): Appendable
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun fill(n: Long, v: Byte)
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
@@ -49,49 +74,77 @@ fun Output.append(csq: CharArray, start: Int = 0, end: Int = csq.size): Appendab
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.writeFully(src: ByteArray, offset: Int = 0, length: Int = src.size - offset) {
-    writeFully(src, offset, length)
+    writeFullyBytesTemplate(offset, length) { buffer, currentOffset, count ->
+        buffer.writeFully(src, currentOffset, count)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.writeFully(src: ShortArray, offset: Int = 0, length: Int = src.size - offset) {
-    writeFully(src, offset, length)
+    writeFullyTemplate(2, offset, length) { buffer, currentOffset, count ->
+        buffer.writeFully(src, currentOffset, count)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.writeFully(src: IntArray, offset: Int = 0, length: Int = src.size - offset) {
-    writeFully(src, offset, length)
+    writeFullyTemplate(4, offset, length) { buffer, currentOffset, count ->
+        buffer.writeFully(src, currentOffset, count)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.writeFully(src: LongArray, offset: Int = 0, length: Int = src.size - offset) {
-    writeFully(src, offset, length)
+    writeFullyTemplate(8, offset, length) { buffer, currentOffset, count ->
+        buffer.writeFully(src, currentOffset, count)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.writeFully(src: FloatArray, offset: Int = 0, length: Int = src.size - offset) {
-    writeFully(src, offset, length)
+    writeFullyTemplate(4, offset, length) { buffer, currentOffset, count ->
+        buffer.writeFully(src, currentOffset, count)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.writeFully(src: DoubleArray, offset: Int = 0, length: Int = src.size - offset) {
-    writeFully(src, offset, length)
+    writeFullyTemplate(8, offset, length) { buffer, currentOffset, count ->
+        buffer.writeFully(src, currentOffset, count)
+    }
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun Output.writeFully(src: IoBuffer, length: Int = src.readRemaining) {
-    writeFully(src, length)
+    writeFully(src as Buffer, length)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Output.writeFully(src: Buffer, length: Int = src.readRemaining) {
-    TODO()
-    writeFully(src, length)
+    writeFullyBytesTemplate(0, length) { buffer, _, count ->
+        buffer.writeFully(src, count)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Output.fill(n: Long, v: Byte = 0) {
-    fill(n, v)
+fun Output.fill(times: Long, value: Byte = 0) {
+    if (this is AbstractOutput) {
+        var written = 0L
+        writeWhile { buffer ->
+            val partTimes = minOf(buffer.writeRemaining.toLong(), times - written).toInt()
+            buffer.fill(partTimes, value)
+            written += partTimes
+            written < times
+        }
+    } else {
+        fillFallback(times, value)
+    }
+}
+
+private fun Output.fillFallback(times: Long, value: Byte) {
+    for (iterate in 0 until times) {
+        writeByte(value)
+    }
 }
 
 /**
@@ -133,7 +186,7 @@ inline fun Output.writeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
 }
 
 fun Output.writePacket(packet: ByteReadPacket) {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     if (this is BytePacketBuilderBase) {
         writePacket(packet)
         return
@@ -144,3 +197,39 @@ fun Output.writePacket(packet: ByteReadPacket) {
         true
     }
 }
+
+private inline fun Output.writeFullyBytesTemplate(
+    offset: Int,
+    length: Int,
+    block: (Buffer, currentOffset: Int, count: Int) -> Unit
+) {
+    var currentOffset = offset
+    var remaining = length
+
+    writeWhile { buffer ->
+        val size = minOf(remaining, buffer.writeRemaining)
+        block(buffer, currentOffset, size)
+        currentOffset += size
+        remaining -= size
+        remaining > 0
+    }
+}
+
+private inline fun Output.writeFullyTemplate(
+    componentSize: Int,
+    offset: Int,
+    length: Int,
+    block: (Buffer, currentOffset: Int, count: Int) -> Unit
+) {
+    var currentOffset = offset
+    var remaining = length
+
+    writeWhileSize(componentSize) { buffer ->
+        val size = minOf(remaining, buffer.writeRemaining)
+        block(buffer, currentOffset, size)
+        currentOffset += size
+        remaining -= size
+        remaining * componentSize
+    }
+}
+

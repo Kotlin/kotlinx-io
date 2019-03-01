@@ -1,7 +1,6 @@
 package kotlinx.io.core.internal
 
 import kotlinx.io.core.*
-import kotlinx.io.errors.*
 
 /**
  * API marked with this annotation is internal and extremely fragile and not intended to be used by library users.
@@ -121,8 +120,7 @@ private fun Input.prepareNextReadHeadFallback(current: ChunkBuffer): ChunkBuffer
 
 @DangerousInternalIoApi
 fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
-    @Suppress("DEPRECATION")
-    if (this is BytePacketBuilderBase) {
+    if (this is AbstractOutput) {
         return prepareWriteHead(capacity)
     }
 
@@ -141,8 +139,7 @@ private fun Output.prepareWriteHeadFallback(current: ChunkBuffer?): ChunkBuffer 
 
 @DangerousInternalIoApi
 fun Output.afterHeadWrite(current: ChunkBuffer) {
-    @Suppress("DEPRECATION")
-    if (this is BytePacketBuilderBase) {
+    if (this is AbstractOutput) {
         return afterHeadWrite()
     }
 

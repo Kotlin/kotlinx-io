@@ -99,6 +99,27 @@ open class Buffer(val memory: Memory) {
         writePosition = newWritePosition
     }
 
+    /**
+     * @return `true` if there is free space
+     */
+    @PublishedApi
+    internal fun commitWrittenUntilIndex(position: Int): Boolean {
+        val limit = limit
+        if (position < writePosition) {
+            commitWrittenFailed(position - writePosition, writeRemaining)
+        }
+        if (position >= limit) {
+            if (position == limit) {
+                writePosition = position
+                return false
+            }
+            commitWrittenFailed(position - writePosition, writeRemaining)
+        }
+
+        writePosition = position
+        return true
+    }
+
     internal fun discardUntilIndex(position: Int) {
         if (position < 0 || position > writePosition) {
             discardFailed(position - readPosition, readRemaining)

@@ -4,8 +4,6 @@ package kotlinx.io.core
 import kotlinx.cinterop.*
 import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
-import kotlinx.io.errors.*
-import kotlinx.io.errors.checkPeekTo
 import kotlinx.io.pool.*
 import platform.posix.*
 import kotlin.contracts.*
@@ -60,6 +58,7 @@ actual class IoBuffer internal constructor(
         return (this as Buffer).readShort()
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeShort(v: Short) {
         (this as Buffer).writeShort(v)
     }
@@ -69,6 +68,7 @@ actual class IoBuffer internal constructor(
         return (this as Buffer).readInt()
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeInt(v: Int) {
         (this as Buffer).writeInt(v)
     }
@@ -78,6 +78,7 @@ actual class IoBuffer internal constructor(
         return (this as Buffer).readFloat()
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFloat(v: Float) {
         (this as Buffer).writeFloat(v)
     }
@@ -87,6 +88,7 @@ actual class IoBuffer internal constructor(
         return (this as Buffer).readDouble()
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeDouble(v: Double) {
         (this as Buffer).writeDouble(v)
     }
@@ -214,42 +216,52 @@ actual class IoBuffer internal constructor(
         return rc
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
         (this as Buffer).writeFully(src, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: ShortArray, offset: Int, length: Int) {
         (this as Buffer).writeFully(src, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: IntArray, offset: Int, length: Int) {
         (this as Buffer).writeFully(src, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: LongArray, offset: Int, length: Int) {
         (this as Buffer).writeFully(src, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: FloatArray, offset: Int, length: Int) {
         (this as Buffer).writeFully(src, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
         (this as Buffer).writeFully(src, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: IoBuffer, length: Int) {
         (this as Buffer).writeFully(src, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun fill(n: Long, v: Byte) {
         (this as Buffer).fill(n, v)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readLong(): Long {
         return (this as Buffer).readLong()
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeLong(v: Long) {
         (this as Buffer).writeLong(v)
     }

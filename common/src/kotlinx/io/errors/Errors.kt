@@ -25,3 +25,9 @@ internal fun checkPeekTo(destination: Buffer, offset: Int, min: Int, max: Int) {
             "to write the specified minimum number of bytes: min = $min, free = ${destination.writeRemaining}."
     }
 }
+
+@PublishedApi
+internal fun incompatibleVersionError(): Nothing = throw Error(
+    "This API is no longer supported. " +
+        "Please downgrade kotlinx-io or recompile your project/dependencies with new kotlinx-io."
+)

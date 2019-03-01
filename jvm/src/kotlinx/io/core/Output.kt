@@ -5,29 +5,90 @@ import java.nio.*
 /**
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
+@Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
 actual interface Output : Closeable, Appendable {
     actual var byteOrder: ByteOrder
 
     actual fun writeByte(v: Byte)
-    actual fun writeShort(v: Short)
-    actual fun writeInt(v: Int)
-    actual fun writeLong(v: Long)
-    actual fun writeFloat(v: Float)
-    actual fun writeDouble(v: Double)
-
-    actual fun writeFully(src: ByteArray, offset: Int, length: Int)
-    actual fun writeFully(src: ShortArray, offset: Int, length: Int)
-    actual fun writeFully(src: IntArray, offset: Int, length: Int)
-    actual fun writeFully(src: LongArray, offset: Int, length: Int)
-    actual fun writeFully(src: FloatArray, offset: Int, length: Int)
-    actual fun writeFully(src: DoubleArray, offset: Int, length: Int)
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    actual fun writeFully(src: IoBuffer, length: Int)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeShort(v: Short) {
+        writeShort(v)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeInt(v: Int) {
+        writeInt(v)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeLong(v: Long) {
+        writeLong(v)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeFloat(v: Float) {
+        writeFloat(v)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeDouble(v: Double) {
+        writeDouble(v)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeFully(src: ByteArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeFully(src: ShortArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeFully(src: IntArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeFully(src: LongArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeFully(src: FloatArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeFully(src: DoubleArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    actual fun writeFully(src: IoBuffer, length: Int) {
+        writeFully(src, length)
+    }
 
     actual fun append(csq: CharArray, start: Int, end: Int): Appendable
 
-    fun writeFully(bb: ByteBuffer)
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(bb: ByteBuffer) {
+        writeFully(bb)
+    }
 
     actual fun fill(n: Long, v: Byte)
     actual fun flush()

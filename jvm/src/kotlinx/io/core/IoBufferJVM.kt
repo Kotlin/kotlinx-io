@@ -18,7 +18,7 @@ import kotlin.contracts.*
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
 actual class IoBuffer private constructor(
-    private var content: ByteBuffer,
+    content: ByteBuffer,
     origin: ChunkBuffer?
 ) : Input, Output, ChunkBuffer(Memory.of(content), origin) {
 
@@ -81,27 +81,27 @@ actual class IoBuffer private constructor(
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun writeShort(v: Short) {
-        writeShort(v)
+        (this as Buffer).writeShort(v)
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun writeInt(v: Int) {
-        writeInt(v)
+        (this as Buffer).writeInt(v)
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun writeLong(v: Long) {
-        writeLong(v)
+        (this as Buffer).writeLong(v)
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun writeFloat(v: Float) {
-        writeFloat(v)
+        (this as Buffer).writeFloat(v)
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun writeDouble(v: Double) {
-        writeDouble(v)
+        (this as Buffer).writeDouble(v)
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
@@ -372,7 +372,7 @@ actual class IoBuffer private constructor(
      * the fact that the buffer is actually shared.
      */
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun isExclusivelyOwned(): Boolean = referenceCount == 1
+    fun isExclusivelyOwned(): Boolean = (this as ChunkBuffer).isExclusivelyOwned()
 
     /**
      * Creates a new view to the same actual buffer with independent read and write positions and gaps

@@ -62,7 +62,7 @@ fun CharsetEncoder.encodeToByteArrayImpl(input: CharSequence,
         }
 
         val builder = BytePacketBuilder(0, ChunkBuffer.Pool)
-        builder.last(single.duplicate())
+        builder.appendSingleChunk(single.duplicate())
         encode(input, start, toIndex, builder)
         return builder.build().readBytes()
     } finally {
