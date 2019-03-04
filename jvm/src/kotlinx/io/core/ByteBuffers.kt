@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.internal.jvm.*
 import java.nio.*
 
 /**
@@ -50,34 +51,45 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * is at least 8 bytes long (long integer bytes length)
  */
 inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    write(size) { buffer: IoBuffer ->
-        buffer.writeDirect(size, block)
-    }
+    val buffer = nioBuffer(size)
+    val positionBefore = buffer.position()
+    block(buffer)
+    val delta = buffer.position() - positionBefore
+    afterNioBufferUsed(delta)
 }
 
 inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    read(size) { view ->
-        view.readDirect {
-            block(it)
-        }
+    val buffer = nioBuffer(size) ?: return
+    val positionBefore = buffer.position()
+    try {
+        block(buffer)
+    } finally {
+        val delta = buffer.position() - positionBefore
+        afterNioBufferUsed(delta)
     }
 }
 
 inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    read(size) { view ->
-        view.readDirect {
-            block(it)
-        }
+    val buffer = nioBuffer(size) ?: return
+    val positionBefore = buffer.position()
+    try {
+        block(buffer)
+    } finally {
+        val delta = buffer.position() - positionBefore
+        afterNioBufferUsed(delta)
     }
 }
 
 @Suppress("unused")
 @Deprecated("Removed", level = DeprecationLevel.HIDDEN)
 inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
-    read(size) { view ->
-        view.readDirect {
-            block(it)
-        }
+    val buffer = nioBuffer(size) ?: return
+    val positionBefore = buffer.position()
+    try {
+        block(buffer)
+    } finally {
+        val delta = buffer.position() - positionBefore
+        afterNioBufferUsed(delta)
     }
 }
 
@@ -88,4 +100,49 @@ inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit)
 @Deprecated("Should be resolved to member function instead", level = DeprecationLevel.HIDDEN)
 fun BytePacketBuilder.writeFully(src: ByteBuffer) {
     writeFully(src)
+}
+
+@PublishedApi
+internal fun BytePacketBuilder.nioBuffer(size: Int): ByteBuffer = prepareWriteHead(size).writeBuffer
+
+@PublishedApi
+internal fun BytePacketBuilder.afterNioBufferUsed(written: Int) {
+    val head = head
+    if (written < 0 || written > head.writeRemaining) {
+        wrongBufferPositionChangeError(written, size)
+    }
+    head.afterWrite()
+    addSize(written)
+}
+
+@PublishedApi
+internal fun ByteReadPacket.nioBuffer(size: Int): ByteBuffer? {
+    return prepareRead(size)?.writeBuffer
+}
+
+@PublishedApi
+internal fun AbstractInput.nioBuffer(size: Int): ByteBuffer? {
+    return prepareRead(size)?.writeBuffer
+}
+
+@PublishedApi
+internal fun ByteReadPacketBase.nioBuffer(size: Int): ByteBuffer? {
+    return prepareRead(size)?.writeBuffer
+}
+
+@PublishedApi
+internal fun ByteReadPacket.afterNioBufferUsed(read: Int) {
+    (this as ByteReadPacketBase).afterNioBufferUsed(read)
+}
+
+@PublishedApi
+internal fun AbstractInput.afterNioBufferUsed(read: Int) {
+    (this as ByteReadPacketBase).afterNioBufferUsed(read)
+}
+
+@PublishedApi
+internal fun ByteReadPacketBase.afterNioBufferUsed(read: Int) {
+    val headRemaining = headRemaining
+    require(read in 0..headRemaining) { "read count shouldn't be negative: $read" }
+    this.headRemaining = headRemaining - read
 }

@@ -83,6 +83,14 @@ public final class kotlinx/io/core/BuilderKt {
 }
 
 public final class kotlinx/io/core/ByteBuffersKt {
+	public static final fun afterNioBufferUsed (Lkotlinx/io/core/AbstractInput;I)V
+	public static final fun afterNioBufferUsed (Lkotlinx/io/core/BytePacketBuilder;I)V
+	public static final fun afterNioBufferUsed (Lkotlinx/io/core/ByteReadPacket;I)V
+	public static final fun afterNioBufferUsed (Lkotlinx/io/core/ByteReadPacketBase;I)V
+	public static final fun nioBuffer (Lkotlinx/io/core/AbstractInput;I)Ljava/nio/ByteBuffer;
+	public static final fun nioBuffer (Lkotlinx/io/core/BytePacketBuilder;I)Ljava/nio/ByteBuffer;
+	public static final fun nioBuffer (Lkotlinx/io/core/ByteReadPacket;I)Ljava/nio/ByteBuffer;
+	public static final fun nioBuffer (Lkotlinx/io/core/ByteReadPacketBase;I)Ljava/nio/ByteBuffer;
 	public static final fun readAvailable (Lkotlinx/io/core/ByteReadPacket;Ljava/nio/ByteBuffer;)I
 	public static final fun readDirect (Lkotlinx/io/core/AbstractInput;ILkotlin/jvm/functions/Function1;)V
 	public static final fun readDirect (Lkotlinx/io/core/ByteReadPacket;ILkotlin/jvm/functions/Function1;)V
