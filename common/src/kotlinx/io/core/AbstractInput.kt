@@ -5,7 +5,6 @@ package kotlinx.io.core
 import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
 import kotlinx.io.core.internal.require
-import kotlinx.io.errors.*
 import kotlinx.io.errors.checkPeekTo
 import kotlinx.io.pool.*
 import kotlin.jvm.*
@@ -19,6 +18,16 @@ abstract class AbstractInput(
     remaining: Long = head.remainingAll(),
     val pool: ObjectPool<ChunkBuffer>
 ) : Input {
+    /**
+     * Read the next bytes into the [destination]
+     * @return `true` if EOF encountered
+     */
+    protected abstract fun fill(destination: Buffer): Boolean
+
+    /**
+     * Should close the underlying bytes source. Could do nothing or throw exceptions.
+     */
+    protected abstract fun closeSource()
 
     /**
      * Current head chunk reference
@@ -318,24 +327,9 @@ abstract class AbstractInput(
     }
 
     /**
-     * Read as much bytes as possible to [dst] array
-     * @return number of bytes copied
-     */
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final fun readAvailable(dst: ByteArray): Int = readAvailable(dst, 0, dst.size)
-
-    /**
-     * Read at most [length] bytes to [dst] array and write them at [offset]
-     * @return number of bytes copied to the array
-     */
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
-        return readAvailable(dst, offset, length)
-    }
-
-    /**
      * Read exactly [length] bytes to [dst] array at specified [offset]
      */
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         val rc = readAvailable(dst, offset, length)
         if (rc != length) throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
@@ -369,157 +363,6 @@ abstract class AbstractInput(
         read(n, block)
     }
 
-    final override fun readFully(dst: ShortArray, offset: Int, length: Int) {
-        var copied = 0
-        takeWhile { buffer ->
-            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
-            if (rc == -1) throw EOFException("Unexpected EOF while reading $length bytes")
-            copied += rc
-            copied < length
-        }
-
-        if (copied != length) {
-            throw EOFException("Not enough bytes available to read $length short integers, $copied were copied")
-        }
-    }
-
-    final override fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
-        val remaining = remaining
-        if (remaining == 0L) {
-            if (doFill() == null) return -1
-            return readAvailable(dst, offset, length)
-        }
-        val size = minOf(remaining, length.toLong()).toInt()
-        readFully(dst, offset, size)
-        return size
-    }
-
-    final override fun readFully(dst: IntArray, offset: Int, length: Int) {
-        var copied = 0
-        takeWhile { buffer ->
-            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
-            if (rc == -1) throw EOFException("Unexpected EOF while read $length short integers")
-            copied += rc
-            copied < length
-        }
-
-        if (copied != length) {
-            throw EOFException("Not enough bytes available to read $length integers, $copied were copied")
-        }
-    }
-
-    final override fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
-        val remaining = remaining
-        if (remaining == 0L) {
-            if (doFill() == null) return -1
-            return readAvailable(dst, offset, length)
-        }
-        val size = minOf(remaining, length.toLong()).toInt()
-        readFully(dst, offset, size)
-        return size
-    }
-
-    final override fun readFully(dst: LongArray, offset: Int, length: Int) {
-        var copied = 0
-        takeWhile { buffer ->
-            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
-            if (rc == -1) throw EOFException("Unexpected EOF while reading $length long integers")
-            copied += rc
-            copied < length
-        }
-
-        if (copied != length) {
-            throw EOFException("Not enough bytes available to read $length long integers, $copied were copied")
-        }
-    }
-
-    final override fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
-        val remaining = remaining
-        if (remaining == 0L) {
-            if (doFill() == null) return -1
-            return readAvailable(dst, offset, length)
-        }
-        val size = minOf(remaining, length.toLong()).toInt()
-        readFully(dst, offset, size)
-        return size
-    }
-
-    final override fun readFully(dst: FloatArray, offset: Int, length: Int) {
-        var copied = 0
-        takeWhile { buffer ->
-            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
-            if (rc == -1) throw EOFException("Unexpected EOF while read $length float number")
-            copied += rc
-            copied < length
-        }
-
-        if (copied != length) {
-            throw EOFException("Not enough bytes available to read $length float numbers, $copied were copied")
-        }
-    }
-
-    final override fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
-        val remaining = remaining
-        if (remaining == 0L) {
-            if (doFill() == null) return -1
-            return readAvailable(dst, offset, length)
-        }
-        val size = minOf(remaining, length.toLong()).toInt()
-        readFully(dst, offset, size)
-        return size
-    }
-
-    final override fun readFully(dst: DoubleArray, offset: Int, length: Int) {
-        var copied = 0
-        takeWhile { buffer ->
-            val rc = buffer.readAvailable(dst, offset + copied, length - copied)
-            if (rc == -1) throw EOFException("Unexpected EOF while reading $length double float numbers")
-            copied += rc
-            copied < length
-        }
-
-        if (copied != length) {
-            throw EOFException("Not enough bytes available to read $length double numbers, $copied were copied")
-        }
-    }
-
-    final override fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
-        val remaining = remaining
-        if (remaining == 0L) {
-            if (doFill() == null) return -1
-            return readAvailable(dst, offset, length)
-        }
-        val size = minOf(remaining, length.toLong()).toInt()
-        readFully(dst, offset, size)
-        return size
-    }
-
-    final override fun readFully(dst: IoBuffer, length: Int) {
-        require(length <= dst.writeRemaining) { "Not enough free space in destination buffer to write $length bytes" }
-
-        var copied = 0
-        takeWhile { buffer ->
-            val rc = buffer.readAvailable(dst, length - copied)
-            if (rc > 0) copied += rc
-            copied < length
-        }
-
-        if (copied != length) {
-            throw EOFException("Not enough bytes available to read $length bytes, $copied were copied")
-        }
-    }
-
-    final override fun readAvailable(dst: IoBuffer, length: Int): Int {
-        val remaining = remaining
-        if (remaining == 0L) {
-            if (doFill() == null) return -1
-            return readAvailable(dst, length)
-        }
-        val size = minOf(remaining, length.toLong(), dst.writeRemaining.toLong()).toInt()
-        readFully(dst, size)
-        return size
-    }
-
     /*
      * Returns next byte (unsigned) or `-1` if no more bytes available
      */
@@ -534,6 +377,7 @@ abstract class AbstractInput(
         return prepareReadLoop(1, head)?.tryPeekByte() ?: -1
     }
 
+    @Suppress("DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun peekTo(buffer: IoBuffer): Int {
         val head = prepareReadHead(1) ?: return -1
@@ -550,7 +394,7 @@ abstract class AbstractInput(
     }
 
     internal fun readCbuf(cbuf: CharArray, off: Int, len: Int): Int {
-        if (isEmpty) return -1
+        if (endOfInput) return -1
 
         val out = object : Appendable {
             private var idx = off
@@ -605,7 +449,7 @@ abstract class AbstractInput(
      * Read a string at last [min] and at most [max] characters length
      */
     fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
-        if (min == 0 && (max == 0 || isEmpty)) return ""
+        if (min == 0 && (max == 0 || endOfInput)) return ""
         val remaining = remaining
         if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytes = remaining.toInt())
 
@@ -624,7 +468,7 @@ abstract class AbstractInput(
     private fun readASCII(out: Appendable, min: Int, max: Int): Int {
         when {
             max == 0 && min == 0 -> return 0
-            isEmpty -> if (min == 0) return 0 else atLeastMinCharactersRequire(min)
+            endOfInput -> if (min == 0) return 0 else atLeastMinCharactersRequire(min)
             max < min -> minShouldBeLess(min, max)
         }
 
@@ -874,17 +718,6 @@ abstract class AbstractInput(
             throw t
         }
     }
-
-    /**
-     * Read the next bytes into the [destination]
-     * @return `true` if EOF encountered
-     */
-    protected abstract fun fill(destination: Buffer): Boolean
-
-    /**
-     * Should close the underlying bytes source. Could do nothing or throw exceptions.
-     */
-    protected abstract fun closeSource()
 
     protected final fun markNoMoreChunksAvailable() {
         if (!noMoreChunksAvailable) {

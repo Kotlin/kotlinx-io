@@ -79,7 +79,7 @@ internal constructor(
 
     /**
      * Byte order (Endianness) to be used by future write functions calls on this builder instance. Doesn't affect any
-     * previously written values. Note that [reset] doesn't change this value back to the default byte order.
+     * previously written values.
      * @default [ByteOrder.BIG_ENDIAN]
      */
     @Deprecated(
@@ -192,74 +192,8 @@ internal constructor(
         }
     }
 
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
-        (this as Output).writeFully(src, offset, length)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun writeLong(v: Long) {
-        (this as Output).writeLong(v)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun writeInt(v: Int) {
-        (this as Output).writeInt(v)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun writeShort(v: Short) {
-        (this as Output).writeShort(v)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun writeDouble(v: Double) {
-        (this as Output).writeDouble(v)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun writeFloat(v: Float) {
-        (this as Output).writeFloat(v)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override fun writeFully(src: ShortArray, offset: Int, length: Int) {
-        (this as Output).writeFully(src, offset, length)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override fun writeFully(src: IntArray, offset: Int, length: Int) {
-        (this as Output).writeFully(src, offset, length)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override fun writeFully(src: LongArray, offset: Int, length: Int) {
-        (this as Output).writeFully(src, offset, length)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override fun writeFully(src: FloatArray, offset: Int, length: Int) {
-        (this as Output).writeFully(src, offset, length)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
-        (this as Output).writeFully(src, offset, length)
-    }
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override fun writeFully(src: IoBuffer, length: Int) {
-        writeFully(src as Buffer, length)
-    }
-
     fun writeFully(src: Buffer, length: Int) {
         (this as Output).writeFully(src, length)
-    }
-
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    override fun fill(n: Long, v: Byte) {
-        (this as Output).fill(n, v)
     }
 
     /**
