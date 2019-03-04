@@ -122,14 +122,21 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
      * otherwise an unexpected behaviour may occur.
      */
     fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
-        val head = head.copyAll()
-        val pool = if (head === IoBuffer.Empty) IoBuffer.EmptyPool else pool
-        val packet = ByteReadPacket(head, pool)
+        val packet = preview()
 
         return try {
             block(packet)
         } finally {
             packet.release()
+        }
+    }
+
+    @PublishedApi
+    internal final fun preview(): ByteReadPacket {
+        val head = head
+        return when {
+            head === IoBuffer.Empty -> ByteReadPacket.Empty
+            else -> ByteReadPacket(head.copyAll(), pool)
         }
     }
 
