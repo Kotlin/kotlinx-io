@@ -2,7 +2,6 @@
 
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
 
 apply from: project.rootProject.file('gradle/pom.gradle')
 
@@ -20,8 +19,16 @@ task emptyJar(type: Jar) {
 
 publishing {
     repositories {
-        maven { url = 'https://kotlin.bintray.com/kotlinx' }
-        maven { name = "testLocal"; url = "$rootProject.buildDir/m2" }
+        maven {
+            def user = 'kotlin'
+            def repo = 'kotlinx'
+            def name = 'kotlinx.io'
+            url "https://api.bintray.com/maven/$user/$repo/$name/;publish=0"
+        }
+        maven {
+            name = "testLocal"
+            url = "$rootProject.buildDir/m2"
+        }
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
@@ -48,30 +55,7 @@ publishing {
                 it.artifactId = "$project.name-$type"
                 break
         }
-
-
-        pom.withXml { pom ->
-            def dependenciesNode = asNode().getAt("dependencies")[0]
-            if (dependenciesNode == null) return
-            dependenciesNode.dependency.each {
-                it.artifactId.each { node ->
-                    def artifactId = node.text()
-                    if (!artifactId.startsWith("kotlinx-io") || !artifactId.endsWith("native")) return
-
-                    switch (type) {
-                        case 'metadata':
-                            node.setValue("${artifactId[0..-8]}")
-                            break
-                        case 'jvm':
-                        case 'js':
-                            node.setValue("${artifactId[0..-8]}-$type")
-                            break
-                    }
-                }
-            }
-        }
     }
-
 
     kotlin.targets.all { target ->
         def publication = publishing.publications.findByName(target.name)
@@ -88,33 +72,4 @@ publishing {
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-    publish = true
-    override = true // for multi-platform Kotlin/Native publishing
-
-    pkg {
-        userOrg = 'kotlin'
-        repo = 'kotlinx'
-        name = 'kotlinx.io'
-        licenses = ['Apache-2.0']
-
-        version {
-            name = project.version
-            vcsTag = project.version
-            released = new Date()
-        }
-    }
-}
-
-// TODO :kludge this is required for K/N publishing
-bintrayUpload.dependsOn publishToMavenLocal
-
-// This is for easier debugging of bintray uploading problems
-bintrayUpload.doFirst {
-    publications = project.publishing.publications.findAll { !it.name.contains('-test') }.collect {
-        println("Uploading artifact '$it.groupId:$it.artifactId:$it.version' from publication '$it.name'")
-        it
-    }
-}
+publish.dependsOn publishToMavenLocal
