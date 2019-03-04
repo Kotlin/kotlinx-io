@@ -123,6 +123,7 @@ public final class kotlinx/io/core/BytePacketBuilder : kotlinx/io/core/BytePacke
 	public final fun getSize ()I
 	public final fun isEmpty ()Z
 	public final fun isNotEmpty ()Z
+	public final fun preview ()Lkotlinx/io/core/ByteReadPacket;
 	public final fun preview (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public fun release ()V
 	public fun writePacket (Lkotlinx/io/core/ByteReadPacket;)V
