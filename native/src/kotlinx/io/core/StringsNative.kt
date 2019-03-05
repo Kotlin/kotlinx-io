@@ -4,6 +4,11 @@ import kotlinx.io.charsets.*
 import kotlinx.cinterop.*
 import kotlinx.io.core.internal.*
 
+/**
+ * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
+ * interpreting characters in the specified [charset].
+ */
+@Suppress("FunctionName")
 actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String {
     if (length == 0 && offset <= bytes.size) return ""
 

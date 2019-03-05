@@ -78,7 +78,7 @@ actual interface Output : Closeable, Appendable {
     }
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    @Suppress("ACTUAL_WITHOUT_EXPECT", "DEPRECATION")
     actual fun writeFully(src: IoBuffer, length: Int) {
         writeFully(src, length)
     }
@@ -90,7 +90,12 @@ actual interface Output : Closeable, Appendable {
         writeFully(bb)
     }
 
-    actual fun fill(n: Long, v: Byte)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    actual fun fill(n: Long, v: Byte) {
+        fill(n, v)
+    }
+
     actual fun flush()
     actual override fun close()
 }

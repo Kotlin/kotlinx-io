@@ -2,7 +2,11 @@ package kotlinx.io.core
 
 import kotlinx.io.charsets.*
 
-@Suppress("NOTHING_TO_INLINE")
+/**
+ * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
+ * interpreting characters in the specified [charset].
+ */
+@Suppress("NOTHING_TO_INLINE", "FunctionName")
 actual inline fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String =
         java.lang.String(bytes, offset, length, charset) as String
 

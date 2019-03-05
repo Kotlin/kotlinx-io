@@ -14,7 +14,7 @@ import kotlin.jvm.*
  * @see [AbstractInput.fill] and [AbstractInput.closeSource].
  */
 abstract class AbstractInput(
-    head: ChunkBuffer,
+    head: ChunkBuffer = ChunkBuffer.Empty,
     remaining: Long = head.remainingAll(),
     val pool: ObjectPool<ChunkBuffer>
 ) : Input {

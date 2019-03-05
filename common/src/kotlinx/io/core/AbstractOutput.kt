@@ -3,8 +3,9 @@
 package kotlinx.io.core
 
 import kotlinx.io.bits.*
+import kotlinx.io.charsets.Charsets
 import kotlinx.io.core.internal.*
-import kotlinx.io.pool.*
+import kotlinx.io.pool.ObjectPool
 
 /**
  * The default [Output] implementation.
@@ -200,17 +201,30 @@ internal constructor(
      * Append single UTF-8 character
      */
     override fun append(c: Char): AbstractOutput {
-        write(3) {
-            it.putUtf8Char(c.toInt())
+        val tailPosition = tailPosition
+        if (tailEndExclusive - tailPosition >= 3) {
+            val size = tailMemory.putUtf8Char(tailPosition, c.toInt())
+            this.tailPosition = tailPosition + size
+            return this
         }
+
+        appendCharFallback(c)
         return this
+    }
+
+    private fun appendCharFallback(c: Char) {
+        write(3) { buffer ->
+            val size = buffer.memory.putUtf8Char(buffer.writePosition, c.toInt())
+            buffer.commitWritten(size)
+            size
+        }
     }
 
     override fun append(csq: CharSequence?): AbstractOutput {
         if (csq == null) {
-            appendChars("null", 0, 4)
+            append("null", 0, 4)
         } else {
-            appendChars(csq, 0, csq.length)
+            append(csq, 0, csq.length)
         }
         return this
     }
@@ -220,7 +234,7 @@ internal constructor(
             return append("null", start, end)
         }
 
-        appendChars(csq, start, end)
+        writeText(csq, start, end, Charsets.UTF_8)
 
         return this
     }
@@ -348,7 +362,7 @@ internal constructor(
     }
 
     override fun append(csq: CharArray, start: Int, end: Int): Appendable {
-        appendChars(csq, start, end)
+        writeText(csq, start, end, Charsets.UTF_8)
         return this
     }
 
@@ -370,25 +384,15 @@ internal constructor(
         return idx
     }
 
-    private fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
-        return appendCharsTemplate(start, end) { idx -> appendChars(csq, idx, end) }
-    }
-
-    private fun appendChars(csq: CharArray, start: Int, end: Int): Int {
-        return appendCharsTemplate(start, end) { idx -> appendChars(csq, idx, end) }
-    }
-
+    @Deprecated("Use writeText instead", ReplaceWith("writeText(s)"))
     fun writeStringUtf8(s: String) {
-        append(s, 0, s.length)
+        writeText(s)
     }
 
+    @Deprecated("Use writeText instead", ReplaceWith("writeText(s)"))
     fun writeStringUtf8(cs: CharSequence) {
-        append(cs, 0, cs.length)
+        writeText(cs)
     }
-
-//    fun writeStringUtf8(cb: CharBuffer) {
-//        append(cb, 0, cb.remaining())
-//    }
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun Buffer.putUtf8Char(v: Int) = when {

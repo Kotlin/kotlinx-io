@@ -148,6 +148,14 @@ internal fun ByteReadPacketBase.afterNioBufferUsed(read: Int) {
     updateHeadRemaining(headRemaining - read)
 }
 
-private fun ChunkBuffer.writeBuffer(): ByteBuffer {
+@Deprecated("Should be rewritten on top of Memory")
+internal fun Buffer.readBuffer(): ByteBuffer {
+    return memory.slice(readPosition, readRemaining).buffer
+}
+
+@Deprecated("Should be rewritten on top of Memory")
+internal fun Buffer.writeBuffer(): ByteBuffer {
     return memory.slice(writePosition, writeRemaining).buffer
 }
+
+internal fun Buffer.hasArray(): Boolean = memory.buffer.let { it.hasArray() && !it.isReadOnly }

@@ -192,6 +192,132 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     return 0
 }
 
+@Suppress("NOTHING_TO_INLINE", "EXPERIMENTAL_FEATURE_WARNING")
+internal inline class EncodeResult(val value: Int) {
+    constructor(characters: UShort, bytes: UShort) : this(characters.toInt() shl 16 or bytes.toInt())
+
+    inline val characters: UShort get() = value.highShort.toUShort()
+    inline val bytes: UShort get() = value.lowShort.toUShort()
+
+    inline operator fun component1(): UShort = characters
+    inline operator fun component2(): UShort = bytes
+}
+
+internal fun Memory.encodeUTF8(text: CharSequence, from: Int, to: Int, dstOffset: Int, dstLimit: Int): EncodeResult {
+    // encode single-byte characters
+    val lastCharIndex = minOf(to, from + UShort.MAX_VALUE.toInt())
+    val resultLimit = dstLimit.coerceAtMost(UShort.MAX_VALUE.toInt())
+    var resultPosition = dstOffset
+    var index = from
+
+    do {
+        if (resultPosition >= resultLimit || index >= lastCharIndex) {
+            return EncodeResult((index - from).toUShort(), (resultPosition - dstOffset).toUShort())
+        }
+
+        val character = text[index++].toInt() and 0xff
+        if (character and 0x80 != 0x80) {
+            storeAt(resultPosition++, character.toByte())
+        } else {
+            break
+        }
+    } while (true)
+
+    index--
+    return encodeUTF8Stage1(text, index, lastCharIndex, from, resultPosition, resultLimit, dstOffset)
+}
+
+/**
+ * Encode UTF-8 multibytes characters when we for sure have enough free space
+ */
+private fun Memory.encodeUTF8Stage1(
+    text: CharSequence,
+    index1: Int,
+    lastCharIndex: Int,
+    from: Int,
+    resultPosition1: Int,
+    resultLimit: Int,
+    dstOffset: Int
+): EncodeResult {
+    var index = index1
+    var resultPosition: Int = resultPosition1
+    val stage1Limit = resultLimit - 3
+
+    do {
+        val freeSpace = stage1Limit - resultPosition
+        if (freeSpace <= 0 || index >= lastCharIndex) {
+            break
+        }
+
+        val character = text[index++].toInt() and 0xff
+        val size = putUtf8Char(resultPosition, character)
+        resultPosition += size
+    } while (true)
+
+    if (resultPosition == stage1Limit) {
+        return encodeUTF8Stage2(text, index, lastCharIndex, from, resultPosition, resultLimit, dstOffset)
+    }
+
+    return EncodeResult((index - from).toUShort(), (resultPosition - dstOffset).toUShort())
+}
+
+private fun Memory.encodeUTF8Stage2(
+    text: CharSequence,
+    index1: Int,
+    lastCharIndex: Int,
+    from: Int,
+    resultPosition1: Int,
+    resultLimit: Int,
+    dstOffset: Int
+): EncodeResult {
+    var index = index1
+    var resultPosition: Int = resultPosition1
+
+    do {
+        val freeSpace = resultLimit - resultPosition
+        if (freeSpace <= 0 || index >= lastCharIndex) {
+            break
+        }
+
+        val character = text[index++].toInt() and 0xff
+        if (charactersSize(character) > freeSpace) {
+            index--
+            break
+        }
+        val size = putUtf8Char(resultPosition, character)
+        resultPosition += size
+    } while (true)
+
+    return EncodeResult((index - from).toUShort(), (resultPosition - dstOffset).toUShort())
+}
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun charactersSize(v: Int) = when {
+    v in 1..0x7f -> 1
+    v > 0x7ff -> 3
+    else -> 2
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun Memory.putUtf8Char(offset: Int, v: Int) = when {
+    v in 1..0x7f -> {
+        storeAt(offset, v.toByte())
+        1
+    }
+    v > 0x7ff -> {
+        this[offset] = (0xe0 or ((v shr 12) and 0x0f)).toByte()
+        this[offset + 1] = (0x80 or ((v shr 6) and 0x3f)).toByte()
+        this[offset + 2] = (0x80 or (v and 0x3f)).toByte()
+        3
+    }
+    else -> {
+        // TODO surrogates
+        this[offset] = (0xc0 or ((v shr 6) and 0x1f)).toByte()
+        this[offset + 1] = (0x80 or (v and 0x3f)).toByte()
+        2
+    }
+}
+
 @PublishedApi
 internal fun malformedByteCount(byteCount: Int): Nothing =
     throw MalformedUTF8InputException("Expected $byteCount more character bytes")

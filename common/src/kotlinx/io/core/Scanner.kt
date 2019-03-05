@@ -1,5 +1,8 @@
 package kotlinx.io.core
 
+import kotlinx.io.bits.get
+import kotlinx.io.bits.loadByteArray
+
 /**
  * Discards bytes until [delimiter] occurred
  * @return number of bytes discarded
@@ -106,8 +109,38 @@ fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte, dst: Output): 
 
 internal expect fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int
 
+internal fun discardUntilDelimiterImplMemory(buffer: Buffer, delimiter: Byte): Int {
+    val start = buffer.readPosition
+    var i = start
+    val limit = buffer.writePosition
+    val memory = buffer.memory
+
+    while (i < limit) {
+        if (memory[i] == delimiter) break
+        i++
+    }
+
+    buffer.discardUntilIndex(i)
+    return i - start
+}
+
 internal expect fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int
 
+internal fun discardUntilDelimitersImplMemory(buffer: Buffer, delimiter1: Byte, delimiter2: Byte): Int {
+    val start = buffer.readPosition
+    var i = start
+    val limit = buffer.writePosition
+    val memory = buffer.memory
+
+    while (i < limit) {
+        val v = memory[i]
+        if (v == delimiter1 || v == delimiter2) break
+        i++
+    }
+
+    buffer.discardUntilIndex(i)
+    return i - start
+}
 
 internal expect fun Buffer.readUntilDelimiterImpl(
     delimiter: Byte,
@@ -124,4 +157,36 @@ internal expect fun Buffer.readUntilDelimiterImpl(
 internal expect fun Buffer.readUntilDelimitersImpl(
     delimiter1: Byte, delimiter2: Byte,
     dst: Output): Int
+
+internal inline fun Buffer.copyUntil(predicate: (Byte) -> Boolean, dst: ByteArray, offset: Int, length: Int): Int {
+    val readPosition = readPosition
+    var end = minOf(writePosition, readPosition + length)
+    val memory = memory
+    for (index in readPosition until end) {
+        if (predicate(memory.loadAt(index))) {
+            end = index
+            break
+        }
+    }
+
+    val copySize = end - readPosition
+    memory.loadByteArray(readPosition, dst, offset, copySize)
+    return copySize
+}
+
+internal inline fun Buffer.copyUntil(predicate: (Byte) -> Boolean, dst: Output): Int {
+    var index = readPosition
+    val end = writePosition
+    val memory = memory
+    do {
+        if (index == end || predicate(memory.loadAt(index))) {
+            break
+        }
+        index++
+    } while (true)
+
+    val size = index - readPosition
+    dst.writeFully(this, size)
+    return size
+}
 

@@ -9,7 +9,7 @@ import kotlinx.io.core.internal.*
  * are always optimized so no bytes will be copied.
  */
 fun Input.copyTo(output: Output): Long {
-    if (this !is AbstractInput || output !is BytePacketBuilderBase) {
+    if (this !is AbstractInput || output !is AbstractOutput) {
         // slow-path
         return copyToFallback(output)
     }

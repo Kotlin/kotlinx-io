@@ -7,6 +7,11 @@ import kotlinx.io.core.internal.*
 inline fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray =
     charset.newEncoder().encodeToByteArray(this, 0, length)
 
+/**
+ * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
+ * interpreting characters in the specified [charset].
+ */
+@Suppress("FunctionName")
 expect fun String(
     bytes: ByteArray,
     offset: Int = 0,
@@ -181,7 +186,7 @@ fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit: Int =
     return readUTFUntilDelimiterToSlowAscii(delimiters, limit, out)
 }
 
-@Suppress("unused", "DEPRECATION")
+@Suppress("unused", "DEPRECATION_ERROR")
 @Deprecated("Use Output version instead", level = DeprecationLevel.HIDDEN)
 fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     return readUTF8UntilDelimiterTo(out as Output, delimiters, limit)
@@ -210,7 +215,7 @@ private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: In
 
         val delta = before - buffer.readRemaining
         if (delta > 0) {
-            buffer.pushBack(delta)
+            buffer.rewind(delta)
             out.writeFully(buffer, delta)
         }
 
@@ -250,7 +255,7 @@ private fun Input.readUTF8UntilDelimiterToSlowUtf8(
 
         val delta = before - buffer.readRemaining
         if (delta > 0) {
-            buffer.pushBack(delta)
+            buffer.rewind(delta)
             out.writeFully(buffer, delta)
         }
 
@@ -320,8 +325,11 @@ fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (m
  * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
  * @return number of characters copied to [out]
  */
-@Deprecated("Use CharsetDecoder.decode instead",
-        ReplaceWith("decoder.decode(this, out, max)", "kotlinx.io.charsets.decode"))
+@Deprecated(
+    "Use CharsetDecoder.decode instead",
+    ReplaceWith("decoder.decode(this, out, max)", "kotlinx.io.charsets.decode"),
+    level = DeprecationLevel.ERROR
+)
 fun Input.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): Int {
     return decoder.decode(this, out, max)
 }
@@ -340,7 +348,8 @@ fun Input.readText(out: Appendable, charset: Charset = Charsets.UTF_8, max: Int 
  */
 @Deprecated(
     "Use CharsetDecoder.decode instead",
-        ReplaceWith("decoder.decode(this, max)", "kotlinx.io.charsets.decode"))
+    ReplaceWith("decoder.decode(this, max)", "kotlinx.io.charsets.decode")
+)
 fun Input.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String {
     return decoder.decode(this, max)
 }
@@ -353,6 +362,10 @@ fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE):
     return charset.newDecoder().decode(this, max)
 }
 
+/**
+ * Read exactly [n] characters decoding bytes in the specified [charset].
+ * @return decoded string
+ */
 fun Input.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): String {
     val s = readText(charset, n)
     if (s.length < n) throw EOFException("Not enough data available to read $n characters")
@@ -366,6 +379,10 @@ fun Input.readTextExactBytes(charset: Charset = Charsets.UTF_8, bytes: Int): Str
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [encoder]
  */
+@Deprecated(
+    "Use the implementation with Charset instead",
+    ReplaceWith("writeText(text, fromIndex, toIndex, encoder.charset)", "kotlinx.io.charsets.charset")
+)
 fun Output.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, encoder: CharsetEncoder) {
     encoder.encode(text, fromIndex, toIndex, this)
 }
@@ -373,8 +390,49 @@ fun Output.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]
  */
-fun Output.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, charset: Charset = Charsets.UTF_8) {
-    writeText(text, fromIndex, toIndex, charset.newEncoder())
+fun Output.writeText(
+    text: CharSequence,
+    fromIndex: Int = 0,
+    toIndex: Int = text.length,
+    charset: Charset = Charsets.UTF_8
+) {
+    if (charset === Charsets.UTF_8) {
+        return writeTextUtf8(text, fromIndex, toIndex)
+    }
+
+    charset.newEncoder().encode(text, fromIndex, toIndex, this)
+}
+
+/**
+ * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]
+ */
+fun Output.writeText(
+    text: CharArray,
+    fromIndex: Int = 0,
+    toIndex: Int = text.size,
+    charset: Charset = Charsets.UTF_8
+) {
+    charset.newEncoder().encode(text, fromIndex, toIndex, this)
+}
+
+private fun Output.writeTextUtf8(text: CharSequence, fromIndex: Int, toIndex: Int) {
+    var index = fromIndex
+    writeWhileSize(1) { buffer ->
+        val memory = buffer.memory
+        val dstOffset = buffer.writePosition
+        val dstLimit = buffer.limit
+
+        val (characters, bytes) = memory.encodeUTF8(text, index, toIndex, dstOffset, dstLimit)
+
+        index += characters.toInt()
+        buffer.commitWritten(bytes.toInt())
+
+        when {
+            characters.toInt() == 0 && index < toIndex -> 8
+            index < toIndex -> 1
+            else -> 0
+        }
+    }
 }
 
 internal expect fun String.getCharsInternal(dst: CharArray, dstOffset: Int)

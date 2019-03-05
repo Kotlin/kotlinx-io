@@ -1,18 +1,18 @@
 package kotlinx.io.core
 
-import java.nio.*
+import java.nio.ByteBuffer
 
 internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
-    val bb = readBuffer
-    return if (bb.hasArray()) bb.discardUntilDelimiterImplArrays(delimiter)
-    else bb.discardUntilDelimiterImplDirect(delimiter)
+    return if (hasArray()) discardUntilDelimiterImplArrays(this, delimiter)
+    else discardUntilDelimiterImplMemory(this, delimiter)
 }
 
-private fun ByteBuffer.discardUntilDelimiterImplArrays(delimiter: Byte): Int {
-    val array = array()!!
-    val start = arrayOffset() + position()
+private fun discardUntilDelimiterImplArrays(buffer: Buffer, delimiter: Byte): Int {
+    val bb = buffer.memory.buffer
+    val array = bb.array()!!
+    val start = bb.arrayOffset() + bb.position() + buffer.readPosition
     var i = start
-    val end = i + remaining()
+    val end = i + buffer.readRemaining
     if (end <= array.size) {
         while (i < end) {
             if (array[i] == delimiter) break
@@ -20,34 +20,21 @@ private fun ByteBuffer.discardUntilDelimiterImplArrays(delimiter: Byte): Int {
         }
     }
 
-    position(i - arrayOffset())
-    return i - start
-}
-
-private fun ByteBuffer.discardUntilDelimiterImplDirect(delimiter: Byte): Int {
-    val start = position()
-    var i = start
-
-    while (i < limit()) {
-        if (this[i] == delimiter) break
-        i++
-    }
-
-    position(i)
+    buffer.discardUntilIndex(i)
     return i - start
 }
 
 internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
-    val bb = readBuffer
-    return if (bb.hasArray()) bb.discardUntilDelimitersImplArrays(delimiter1, delimiter2)
-        else bb.discardUntilDelimitersImplDirect(delimiter1, delimiter2)
+    return if (hasArray()) discardUntilDelimitersImplArrays(this, delimiter1, delimiter2)
+        else discardUntilDelimitersImplMemory(this, delimiter1, delimiter2)
 }
 
-private fun ByteBuffer.discardUntilDelimitersImplArrays(delimiter1: Byte, delimiter2: Byte): Int {
-    val array = array()!!
-    val start = arrayOffset() + position()
+private fun discardUntilDelimitersImplArrays(buffer: Buffer, delimiter1: Byte, delimiter2: Byte): Int {
+    val bb = buffer.memory.buffer
+    val array = bb.array()!!
+    val start = bb.arrayOffset() + bb.position() + buffer.readPosition
     var i = start
-    val end = i + remaining()
+    val end = i + buffer.readRemaining
     if (end <= array.size) {
         while (i < end) {
             val v = array[i]
@@ -56,43 +43,34 @@ private fun ByteBuffer.discardUntilDelimitersImplArrays(delimiter1: Byte, delimi
         }
     }
 
-    position(i - arrayOffset())
+    buffer.discardUntilIndex(i)
     return i - start
 }
 
-private fun ByteBuffer.discardUntilDelimitersImplDirect(delimiter1: Byte, delimiter2: Byte): Int {
-    val start = position()
-    var i = start
-
-    while (i < limit()) {
-        val v = this[i]
-        if (v == delimiter1 || v == delimiter2) break
-        i++
-    }
-
-    position(i)
-    return i - start
-}
-
-internal actual fun IoBuffer.readUntilDelimiterImpl(delimiter: Byte,
+@Suppress("DEPRECATION")
+internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte,
                                                     dst: ByteArray, offset: Int, length: Int): Int {
     assert(offset >= 0)
     assert(length >= 0)
     assert(offset + length <= dst.size)
 
-    val bb = readBuffer
-    return if (bb.hasArray()) bb.readUntilDelimiterArrays(delimiter, dst, offset, length)
-    else bb.readUntilDelimiterDirect(delimiter, dst, offset, length)
+    return if (hasArray()) readUntilDelimiterArrays(this, delimiter, dst, offset, length)
+    else readUntilDelimiterDirect(delimiter, dst, offset, length)
 }
 
-private fun ByteBuffer.readUntilDelimiterDirect(delimiter: Byte,
-                                                dst: ByteArray, offset: Int, length: Int): Int {
-    return copyUntilDirect({ it == delimiter }, dst, offset, length)
+private fun Buffer.readUntilDelimiterDirect(
+    delimiter: Byte,
+    dst: ByteArray, offset: Int, length: Int
+): Int {
+    val copied = copyUntil({ it == delimiter }, dst, offset, length)
+    discard(copied)
+    return copied
 }
 
-private fun ByteBuffer.readUntilDelimiterArrays(delimiter: Byte,
-                                                dst: ByteArray, offset: Int, length: Int): Int {
-    return copyUntilArrays({ it == delimiter }, dst, offset, length)
+private fun readUntilDelimiterArrays(buffer: Buffer, delimiter: Byte, dst: ByteArray, offset: Int, length: Int): Int {
+    val copied = buffer.memory.buffer.copyUntilArrays({ it == delimiter }, buffer.readPosition, dst, offset, length)
+    buffer.discard(copied)
+    return copied
 }
 
 internal actual fun Buffer.readUntilDelimitersImpl(
@@ -103,53 +81,58 @@ internal actual fun Buffer.readUntilDelimitersImpl(
     assert(offset + length <= dst.size)
     assert(delimiter1 != delimiter2)
 
-    val bb = readBuffer
-    return if (bb.hasArray()) bb.readUntilDelimitersArrays(delimiter1, delimiter2, dst, offset, length)
-    else bb.readUntilDelimitersDirect(delimiter1, delimiter2, dst, offset, length)
+    return if (hasArray()) readUntilDelimitersArrays(delimiter1, delimiter2, dst, offset, length)
+    else readUntilDelimitersDirect(delimiter1, delimiter2, dst, offset, length)
 }
 
-private fun ByteBuffer.readUntilDelimitersDirect(delimiter1: Byte, delimiter2: Byte,
+private fun Buffer.readUntilDelimitersDirect(delimiter1: Byte, delimiter2: Byte,
                                                  dst: ByteArray, offset: Int, length: Int): Int {
-    return copyUntilDirect({ it == delimiter1 || it == delimiter2 }, dst, offset, length)
+    val copied = copyUntil({ it == delimiter1 || it == delimiter2 }, dst, offset, length)
+    discard(copied)
+    return copied
 }
 
-private fun ByteBuffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: Byte,
+private fun Buffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: Byte,
                                                  dst: ByteArray, offset: Int, length: Int): Int {
-    return copyUntilArrays({ it == delimiter1 || it == delimiter2 }, dst, offset, length)
+    val copied = memory.buffer.copyUntilArrays({ it == delimiter1 || it == delimiter2 },
+        readPosition, dst, offset, length)
+    discard(copied)
+    return copied
 }
 
 internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
-    val bb = readBuffer
-    return if (bb.hasArray()) bb.readUntilDelimiterArrays(delimiter, dst)
-    else bb.readUntilDelimiterDirect(delimiter, dst)
+    return if (hasArray()) readUntilDelimiterArrays(delimiter, dst)
+    else readUntilDelimiterDirect(delimiter, dst)
 }
 
-internal fun ByteBuffer.readUntilDelimiterDirect(delimiter: Byte, dst: Output): Int {
-    return copyUntilDirect({ it == delimiter }, dst)
+internal fun Buffer.readUntilDelimiterDirect(delimiter: Byte, dst: Output): Int {
+    return copyUntil({ it == delimiter }, dst)
 }
 
-internal fun ByteBuffer.readUntilDelimiterArrays(delimiter: Byte, dst: Output): Int {
-    return copyUntilArrays({ it == delimiter }, dst)
+internal fun Buffer.readUntilDelimiterArrays(delimiter: Byte, dst: Output): Int {
+    val size = copyUntilArrays({ it == delimiter }, dst)
+    discard(size)
+    return size
 }
 
 internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     assert(delimiter1 != delimiter2)
 
-    val bb = readBuffer
-    return if (bb.hasArray()) bb.readUntilDelimitersArrays(delimiter1, delimiter2, dst)
-    else bb.readUntilDelimitersDirect(delimiter1, delimiter2, dst)
+    return if (hasArray()) readUntilDelimitersArrays(delimiter1, delimiter2, dst)
+    else readUntilDelimitersDirect(delimiter1, delimiter2, dst)
 }
 
-internal fun ByteBuffer.readUntilDelimitersDirect(delimiter1: Byte, delimiter2: Byte,
+internal fun Buffer.readUntilDelimitersDirect(delimiter1: Byte, delimiter2: Byte,
                                                   dst: Output): Int {
-    return copyUntilDirect({ it == delimiter1 || it == delimiter2 }, dst)
+    return copyUntil({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
-internal fun ByteBuffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: Byte,
+internal fun Buffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: Byte,
                                                   dst: Output): Int {
     return copyUntilArrays({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
+@Deprecated("Rewrite to Memory.copyTo")
 private inline fun ByteBuffer.copyUntilDirect(predicate: (Byte) -> Boolean,
                                               dst: ByteArray, offset: Int, length: Int): Int {
     val start = position()
@@ -166,10 +149,11 @@ private inline fun ByteBuffer.copyUntilDirect(predicate: (Byte) -> Boolean,
 }
 
 private inline fun ByteBuffer.copyUntilArrays(predicate: (Byte) -> Boolean,
+                                              bufferOffset: Int,
                                               dst: ByteArray, offset: Int, length: Int): Int {
 
     val array = array()!!
-    val start = position() + arrayOffset()
+    val start = bufferOffset + position() + arrayOffset()
     var i = start
     val end = i + minOf(length, remaining())
     if (end <= array.size) {
@@ -181,53 +165,19 @@ private inline fun ByteBuffer.copyUntilArrays(predicate: (Byte) -> Boolean,
 
     val copied = i - start
     System.arraycopy(array, start, dst, offset, copied)
-    position(i - arrayOffset())
     return copied
 }
 
-private inline fun ByteBuffer.copyUntilDirect(predicate: (Byte) -> Boolean,
+private inline fun Buffer.copyUntilArrays(predicate: (Byte) -> Boolean,
                                               dst: Output): Int {
-    val bb = this
-    var i = bb.position()
+    val bb = memory.buffer
+    val array = bb.array()!!
+    var i = bb.position() + bb.arrayOffset() + readPosition
     var copiedTotal = 0
 
     dst.writeWhile { chunk ->
-        val writeBuffer = chunk.writeBuffer
         val start = i
-        val end = i + writeBuffer.remaining()
-
-        while (i < bb.limit() && i < end) {
-            if (predicate(bb[i])) break
-            i++
-        }
-
-        val size = i - start
-        val l = bb.limit()
-        bb.position(start)
-        bb.limit(i)
-        writeBuffer.put(bb)
-        bb.limit(l)
-        chunk.afterWrite()
-
-        copiedTotal += size
-        !writeBuffer.hasRemaining() && i < bb.limit()
-    }
-
-    bb.position(i)
-    return copiedTotal
-}
-
-private inline fun ByteBuffer.copyUntilArrays(predicate: (Byte) -> Boolean,
-                                              dst: Output): Int {
-    val bb = this
-    val array = array()!!
-    var i = bb.position() + arrayOffset()
-    var copiedTotal = 0
-
-    dst.writeWhile { chunk ->
-        val writeBuffer = chunk.writeBuffer
-        val start = i
-        val end = minOf(i + writeBuffer.remaining(), limit() + arrayOffset())
+        val end = minOf(i + chunk.writeRemaining, bb.limit() + bb.arrayOffset())
 
         if (end <= array.size) {
             while (i < end) {
@@ -237,15 +187,11 @@ private inline fun ByteBuffer.copyUntilArrays(predicate: (Byte) -> Boolean,
         }
 
         val size = i - start
-        val l = bb.limit()
-        bb.position(start - bb.arrayOffset())
-        bb.limit(bb.position() + size)
-        writeBuffer.put(bb)
-        bb.limit(l)
-        chunk.afterWrite()
+
+        chunk.writeFully(array, start, size)
 
         copiedTotal += size
-        !writeBuffer.hasRemaining() && bb.hasRemaining()
+        !chunk.canWrite() && i < bb.limit() + bb.arrayOffset()
     }
 
     bb.position(i)

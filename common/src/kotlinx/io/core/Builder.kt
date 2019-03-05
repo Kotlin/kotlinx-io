@@ -33,8 +33,3 @@ internal constructor(pool: ObjectPool<ChunkBuffer>) : BytePacketBuilderBase(pool
 abstract class BytePacketBuilderBase
 internal constructor(pool: ObjectPool<ChunkBuffer>) : AbstractOutput(pool)
 
-private inline fun <T> T.takeUnless(predicate: (T) -> Boolean): T? {
-    return if (!predicate(this)) this else null
-}
-
-

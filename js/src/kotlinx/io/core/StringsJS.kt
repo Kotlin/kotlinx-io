@@ -6,6 +6,11 @@ import kotlinx.io.core.internal.*
 import org.khronos.webgl.*
 import kotlin.require
 
+/**
+ * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
+ * interpreting characters in the specified [charset].
+ */
+@Suppress("FunctionName")
 actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String {
     if (offset < 0 || length < 0 || offset + length > bytes.size) {
         checkIndices(offset, length, bytes)

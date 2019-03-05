@@ -88,7 +88,7 @@ private inline fun Output.writePrimitiveFallbackTemplate(
     if (this is AbstractOutput) {
         val tail = prepareWriteHead(componentSize)
         writeOperation(tail)
-        commitTailChunkWritten()
+        afterHeadWrite()
         return true
     }
 

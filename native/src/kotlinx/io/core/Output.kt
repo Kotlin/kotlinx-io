@@ -85,7 +85,12 @@ actual interface Output : Appendable, Closeable {
 
     actual fun append(csq: CharArray, start: Int, end: Int): Appendable
 
-    actual fun fill(n: Long, v: Byte)
+    @Suppress("ACTUAL_WITHOUT_EXPECT")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    actual fun fill(n: Long, v: Byte) {
+        fill(n, v)
+    }
+
     actual fun flush()
     actual override fun close()
 }

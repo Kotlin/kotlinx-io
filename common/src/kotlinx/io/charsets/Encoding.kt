@@ -38,6 +38,25 @@ fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst
     encodeCompleteImpl(dst)
 }
 
+fun CharsetEncoder.encode(input: CharArray, fromIndex: Int, toIndex: Int, dst: Output) {
+    var start = fromIndex
+
+    if (start >= toIndex) return
+    dst.writeWhileSize(1) { view: Buffer ->
+        val rc = encodeImpl(input, start, toIndex, view)
+        check(rc >= 0)
+        start += rc
+
+        when {
+            start >= toIndex -> 0
+            rc == 0 -> 8
+            else -> 1
+        }
+    }
+
+    encodeCompleteImpl(dst)
+}
+
 private val EmptyByteArray = ByteArray(0)
 
 expect fun CharsetEncoder.encodeToByteArray(input: CharSequence,
@@ -92,6 +111,7 @@ fun CharsetEncoder.encodeUTF8(input: ByteReadPacket) = buildPacket {
     encodeUTF8(input, this)
 }
 
+internal fun CharsetEncoder.encodeImpl(input: CharArray, fromIndex: Int, toIndex: Int, dst: Buffer): Int = TODO()
 internal expect fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int
 internal expect fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean
 
