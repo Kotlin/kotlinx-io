@@ -1,6 +1,5 @@
 package kotlinx.io.core
 
-import kotlinx.io.core.IoBuffer.*
 import kotlinx.io.core.internal.*
 import kotlinx.io.errors.IOException
 import kotlinx.io.pool.*
@@ -490,7 +489,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
      */
     fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
         if (max.toLong() >= remaining) {
-            val s = readTextExactBytes(bytes = remaining.toInt())
+            val s = readTextExactBytes(bytesCount = remaining.toInt())
             out.append(s)
             return s.length
         }
@@ -510,7 +509,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
     fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
         if (min == 0 && (max == 0 || isEmpty)) return ""
         val remaining = remaining
-        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytes = remaining.toInt())
+        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytesCount = remaining.toInt())
 
         return buildString(min.coerceAtLeast(16).coerceAtMost(max)) {
             readASCII(this, min, max)
