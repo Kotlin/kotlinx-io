@@ -80,6 +80,8 @@ expect class IoBuffer : Input, Output {
     /**
      * read and write operations byte-order (endianness)
      */
+    @Deprecated("Read/write with readXXXLittleEndian/writeXXXLittleEndian or " +
+        "do readXXX/writeXXX with X.reverseByteOrder() instead.")
     final override var byteOrder: ByteOrder
 
     final override fun readByte(): Byte

@@ -63,6 +63,8 @@ actual class IoBuffer internal constructor(
     actual val startGap: Int get() = readPosition
     actual val endGap: Int get() = content.byteLength - limit
 
+    @Deprecated("Read/write with readXXXLittleEndian/writeXXXLittleEndian or " +
+        "do readXXX/writeXXX with X.reverseByteOrder() instead.")
     actual final override var byteOrder: ByteOrder
         get() = if (littleEndian) ByteOrder.LITTLE_ENDIAN else  ByteOrder.BIG_ENDIAN
         set(value) {

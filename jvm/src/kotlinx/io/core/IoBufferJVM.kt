@@ -104,6 +104,8 @@ actual class IoBuffer private constructor(
     /**
      * read and write operations byte-order (endianness)
      */
+    @Deprecated("Read/write with readXXXLittleEndian/writeXXXLittleEndian or " +
+        "do readXXX/writeXXX with X.reverseByteOrder() instead.")
     actual final override var byteOrder: ByteOrder
         get() = ByteOrder.of(readBuffer.order())
         set(value) {

@@ -14,7 +14,6 @@ class StreamTest {
         val baos = ByteArrayOutputStream()
         val output = baos.asOutput()
 
-        output.byteOrder = ByteOrder.BIG_ENDIAN
         output.writeInt(0x11223344)
 
         output.flush()
@@ -27,7 +26,6 @@ class StreamTest {
         val baos = ByteArrayInputStream(byteArrayOf(0x11, 0x22, 0x33, 0x44))
         val input = baos.asInput()
 
-        input.byteOrder = ByteOrder.BIG_ENDIAN
         assertEquals(0x11223344, input.readInt())
     }
 
@@ -59,7 +57,6 @@ class StreamTest {
         val input = inputStream.asInput()
 
         val th = thread(start = false, name = "testInputParts") {
-            input.byteOrder = ByteOrder.BIG_ENDIAN
             assertEquals(0x11223344, input.readInt())
         }
 

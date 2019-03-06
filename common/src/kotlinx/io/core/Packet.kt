@@ -19,6 +19,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         head.setByteOrderForNonEmpty(ByteOrder.BIG_ENDIAN)
     }
 
+    @Deprecated("Read and readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.")
     final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {
             field = newOrder
@@ -130,6 +131,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             head.findTail().next = chain
             tailRemaining += size
         }
+        @Suppress("DEPRECATION")
         chain.byteOrder = byteOrder
     }
 
@@ -744,6 +746,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             }
             next.canRead() -> {
                 head = next
+                @Suppress("DEPRECATION")
                 next.byteOrder = byteOrder
                 val nextRemaining = next.readRemaining
                 headRemaining = nextRemaining
@@ -787,6 +790,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         val tail = head.findTail()
         if (tail === IoBuffer.Empty) {
             head = chunk
+            @Suppress("DEPRECATION")
             chunk.byteOrder = byteOrder
             require(tailRemaining == 0L) { throw IllegalStateException("It should be no tail remaining bytes if current tail is EmptyBuffer") }
             headRemaining = chunk.readRemaining
@@ -806,6 +810,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         if (headSize >= minSize) return head
 
         val next = head.next ?: doFill() ?: return null
+        @Suppress("DEPRECATION")
         next.byteOrder = byteOrder
 
         if (headSize == 0) {
@@ -876,6 +881,7 @@ expect class EOFException(message: String) : IOException
 
 private fun IoBuffer.setByteOrderForNonEmpty(newByteOrder: ByteOrder) {
     if (canRead()) {
+        @Suppress("DEPRECATION")
         byteOrder = newByteOrder
     }
 }

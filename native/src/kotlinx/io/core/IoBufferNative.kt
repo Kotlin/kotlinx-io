@@ -8,6 +8,7 @@ import platform.posix.memcpy
 import platform.posix.memset
 import platform.posix.size_t
 import kotlinx.io.core.internal.*
+import kotlin.native.concurrent.ThreadLocal
 
 @PublishedApi
 internal val MAX_SIZE: size_t = size_t.MAX_VALUE
@@ -45,6 +46,8 @@ actual class IoBuffer internal constructor(
         require(this !== origin) { "origin shouldn't point to itself" }
     }
 
+    @Deprecated("Read/write with readXXXLittleEndian/writeXXXLittleEndian or " +
+        "do readXXX/writeXXX with X.reverseByteOrder() instead.")
     actual final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {
             field = newOrder
@@ -107,7 +110,7 @@ actual class IoBuffer internal constructor(
 
     actual final override fun writeInt(v: Int) {
         if (writeRemaining < 4) throw IllegalStateException("Not enough space left to write an int")
-        var value = if (platformEndian) v else swap(v)
+        val value = if (platformEndian) v else swap(v)
         (content + writePosition)!!.reinterpret<IntVar>()[0] = value
         writePosition += 4
     }
@@ -661,6 +664,7 @@ actual class IoBuffer internal constructor(
         val a = readInt().toLong() and m
         val b = readInt().toLong() and m
 
+        @Suppress("DEPRECATION")
         return if (byteOrder === ByteOrder.LITTLE_ENDIAN) {
             (b shl 32) or a
         } else {
@@ -674,6 +678,7 @@ actual class IoBuffer internal constructor(
         val a = (v shr 32).toInt()
         val b = (v and m).toInt()
 
+        @Suppress("DEPRECATION")
         if (byteOrder === ByteOrder.LITTLE_ENDIAN) {
             writeInt(b)
             writeInt(a)

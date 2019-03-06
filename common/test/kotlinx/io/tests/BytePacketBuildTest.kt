@@ -67,7 +67,7 @@ open class BytePacketBuildTest {
             writeLong(0x123456789abcdef0)
 
             writeStringUtf8("OK\n")
-            kotlin.collections.listOf(1, 2, 3).joinTo(this, separator = "|")
+            listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
         assertEquals(9999 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
@@ -88,7 +88,7 @@ open class BytePacketBuildTest {
     @Test
     fun testSingleBufferSkipTooMuch() {
         val p = buildPacket {
-            writeFully(kotlin.ByteArray(9999))
+            writeFully(ByteArray(9999))
         }
 
         assertEquals(9999, p.discard(10000))
@@ -132,7 +132,7 @@ open class BytePacketBuildTest {
     @Test
     fun testMultiBufferSkipTooMuch() {
         val p = buildPacket {
-            writeFully(kotlin.ByteArray(99999))
+            writeFully(ByteArray(99999))
         }
 
         assertEquals(99999, p.discard(1000000))
@@ -142,7 +142,7 @@ open class BytePacketBuildTest {
     @Test
     fun testMultiBufferSkip() {
         val p = buildPacket {
-            writeFully(kotlin.ByteArray(99999))
+            writeFully(ByteArray(99999))
             writeFully("ABC123".toByteArray0())
         }
 
@@ -154,7 +154,7 @@ open class BytePacketBuildTest {
     @Test
     fun testNextBufferBytesStealing() {
         val p = buildPacket {
-            kotlin.repeat(PACKET_BUFFER_SIZE + 3) {
+            repeat(PACKET_BUFFER_SIZE + 3) {
                 writeByte(1)
             }
         }
@@ -168,7 +168,7 @@ open class BytePacketBuildTest {
     @Test
     fun testNextBufferBytesStealingFailed() {
         val p = buildPacket {
-            kotlin.repeat(PACKET_BUFFER_SIZE + 1) {
+            repeat(PACKET_BUFFER_SIZE + 1) {
                 writeByte(1)
             }
         }
@@ -222,10 +222,8 @@ open class BytePacketBuildTest {
     @Test
     fun testWriteShortWithEndian() {
         buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeShort(0x0102)
-            byteOrder = ByteOrder.LITTLE_ENDIAN
-            writeShort(0x0102)
+            writeShortLittleEndian(0x0102)
         }.use { pkt ->
             assertEquals(byteArrayOf(1, 2, 2, 1).toList(), pkt.readBytes().toList())
         }
@@ -234,10 +232,8 @@ open class BytePacketBuildTest {
     @Test
     fun testWriteIntWithEndian() {
         buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
-            byteOrder = ByteOrder.LITTLE_ENDIAN
-            writeInt(0x01020304)
+            writeIntLittleEndian(0x01020304)
         }.use { pkt ->
             assertEquals(byteArrayOf(1, 2, 3, 4, 4, 3, 2, 1).toList(), pkt.readBytes().toList())
         }
@@ -246,10 +242,8 @@ open class BytePacketBuildTest {
     @Test
     fun testWriteLongWithEndian() {
         buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeLong(0x0102030405060708L)
-            byteOrder = ByteOrder.LITTLE_ENDIAN
-            writeLong(0x0102030405060708L)
+            writeLongLittleEndian(0x0102030405060708L)
         }.use { pkt ->
             assertEquals(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1).toList(), pkt.readBytes().toList())
         }
@@ -258,10 +252,8 @@ open class BytePacketBuildTest {
     @Test
     fun testWriteFloatWithEndian() {
         buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeFloat(1.5f)
-            byteOrder = ByteOrder.LITTLE_ENDIAN
-            writeFloat(1.5f)
+            writeFloatLittleEndian(1.5f)
         }.use { pkt ->
             assertEquals(byteArrayOf(63, -64, 0, 0, 0, 0, -64, 63).toList(), pkt.readBytes().toList())
         }
@@ -270,10 +262,8 @@ open class BytePacketBuildTest {
     @Test
     fun testWriteDoubleWithEndian() {
         buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeDouble(1.5)
-            byteOrder = ByteOrder.LITTLE_ENDIAN
-            writeDouble(1.5)
+            writeDoubleLittleEndian(1.5)
         }.use { pkt ->
             assertEquals(
                 byteArrayOf(63, -8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, 63).toList(),
@@ -306,6 +296,6 @@ open class BytePacketBuildTest {
     }
 
     companion object {
-        val PACKET_BUFFER_SIZE = 4096
+        const val PACKET_BUFFER_SIZE: Int = 4096
     }
 }

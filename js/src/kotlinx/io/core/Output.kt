@@ -4,6 +4,7 @@ package kotlinx.io.core
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
 actual interface Output : Appendable, Closeable {
+    @Deprecated("Write with writeXXXLittleEndian or do X.reverseByteOrder() and then writeXXX instead.")
     actual var byteOrder: ByteOrder
 
     actual fun writeByte(v: Byte)

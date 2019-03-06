@@ -6,6 +6,12 @@ import kotlinx.io.core.internal.*
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
 expect interface Output : Appendable, Closeable {
+    /**
+     * Byte order (Endianness) to be used by future write functions calls on this builder instance. Doesn't affect any
+     * previously written values.
+     * @default [ByteOrder.BIG_ENDIAN]
+     */
+    @Deprecated("Write with writeXXXLittleEndian or do X.reverseByteOrder() and then writeXXX instead.")
     var byteOrder: ByteOrder
 
     fun writeByte(v: Byte)

@@ -96,7 +96,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesAll() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
         }
 
@@ -110,7 +109,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesExact1() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
         }
 
@@ -124,7 +122,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesExact2() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
         }
 
@@ -138,7 +135,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesExact3() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
         }
 
@@ -152,7 +148,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesExactFails() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
         }
 
@@ -168,7 +163,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesOf1() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
         }
 
@@ -182,7 +176,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesOf2() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
         }
 
@@ -196,7 +189,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesOf3() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x01020304)
         }
 
@@ -211,7 +203,6 @@ class BytePacketReadTest {
     @Test
     fun testReadBytesOfFails() {
         val pkt = buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeInt(0x11223344)
         }
 
@@ -232,12 +223,10 @@ class BytePacketReadTest {
 
         try {
             pkt.copy().use { copy ->
-                copy.byteOrder = ByteOrder.BIG_ENDIAN
                 assertEquals(0x0102, copy.readShort())
             }
             pkt.copy().use { copy ->
-                copy.byteOrder = ByteOrder.LITTLE_ENDIAN
-                assertEquals(0x0201, copy.readShort())
+                assertEquals(0x0201, copy.readShortLittleEndian())
             }
         } finally {
             pkt.release()
@@ -252,12 +241,10 @@ class BytePacketReadTest {
 
         try {
             pkt.copy().use { copy ->
-                copy.byteOrder = ByteOrder.BIG_ENDIAN
                 assertEquals(0x01020304, copy.readInt())
             }
             pkt.copy().use { copy ->
-                copy.byteOrder = ByteOrder.LITTLE_ENDIAN
-                assertEquals(0x04030201, copy.readInt())
+                assertEquals(0x04030201, copy.readIntLittleEndian())
             }
         } finally {
             pkt.release()
@@ -272,12 +259,10 @@ class BytePacketReadTest {
 
         try {
             pkt.copy().use { copy ->
-                copy.byteOrder = ByteOrder.BIG_ENDIAN
                 assertEquals(0x0102030405060708L, copy.readLong())
             }
             pkt.copy().use { copy ->
-                copy.byteOrder = ByteOrder.LITTLE_ENDIAN
-                assertEquals(0x0807060504030201, copy.readLong())
+                assertEquals(0x0807060504030201, copy.readLongLittleEndian())
             }
         } finally {
             pkt.release()
@@ -292,10 +277,8 @@ class BytePacketReadTest {
         }
 
         try {
-            pkt.byteOrder = ByteOrder.BIG_ENDIAN
             assertEquals(1.5f, pkt.readFloat())
-            pkt.byteOrder = ByteOrder.LITTLE_ENDIAN
-            assertEquals(1.5f, pkt.readFloat())
+            assertEquals(1.5f, pkt.readFloatLittleEndian())
         } finally {
             pkt.release()
         }
@@ -309,10 +292,8 @@ class BytePacketReadTest {
         }
 
         try {
-            pkt.byteOrder = ByteOrder.BIG_ENDIAN
             assertEquals(1.5, pkt.readDouble())
-            pkt.byteOrder = ByteOrder.LITTLE_ENDIAN
-            assertEquals(1.5, pkt.readDouble())
+            assertEquals(1.5, pkt.readDoubleLittleEndian())
         } finally {
             pkt.release()
         }
@@ -326,18 +307,20 @@ class BytePacketReadTest {
 
         // simulate segment reusing
         val chunk = pool.borrow()
+        @Suppress("DEPRECATION")
         chunk.byteOrder = ByteOrder.LITTLE_ENDIAN
         chunk.writeFully(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8))
 
         ByteReadPacket(chunk, 8L, pool).use { pkt ->
             // it is BIG_ENDIAN by default
-            assertEquals(ByteOrder.BIG_ENDIAN, pkt.byteOrder)
+            assertEquals(ByteOrder.BIG_ENDIAN, @Suppress("DEPRECATION") pkt.byteOrder)
             assertEquals(0x0102030405060708L, pkt.readLong())
         }
     }
 
     @Test
     fun switchingEmptyPacketByteOrder() {
+        @Suppress("DEPRECATION")
         buildPacket { writeByte(1) }.use { pkt ->
             pkt.readByte()
             // pkt is empty

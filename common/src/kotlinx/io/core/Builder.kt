@@ -366,6 +366,7 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
      * previously written values. Note that [reset] doesn't change this value back to the default byte order.
      * @default [ByteOrder.BIG_ENDIAN]
      */
+    @Deprecated("Write with writeXXXLittleEndian or do X.reverseByteOrder() and then writeXXX instead.")
     final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(value) {
             field = value

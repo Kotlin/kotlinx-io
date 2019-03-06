@@ -3,6 +3,7 @@ package kotlinx.io.core
 import kotlinx.cinterop.*
 
 actual interface Output : Appendable, Closeable {
+    @Deprecated("Write with writeXXXLittleEndian or do X.reverseByteOrder() and then writeXXX instead.")
     actual var byteOrder: ByteOrder
 
     actual fun writeByte(v: Byte)
