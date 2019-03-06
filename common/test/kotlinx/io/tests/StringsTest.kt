@@ -345,14 +345,16 @@ open class StringsTest {
     fun testEncodeToByteArrayCommonImpl() {
         val encoder = Charsets.UTF_8.newEncoder()
         assertEquals(byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
-                encoder.encodeToByteArrayImpl("\uD858\uDE18").hexdump())
+            encoder.encodeToByteArrayImpl1("\uD858\uDE18").hexdump()
+        )
     }
 
     @Test
     fun testEncodeToByteArrayCommonImplCharSequence() {
         val encoder = Charsets.UTF_8.newEncoder()
         assertEquals(byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
-                encoder.encodeToByteArrayImpl(StringBuilder().apply { append("\uD858\uDE18") }).hexdump())
+            encoder.encodeToByteArrayImpl1(StringBuilder().apply { append("\uD858\uDE18") }).hexdump()
+        )
     }
 
     @Test
@@ -366,7 +368,7 @@ open class StringsTest {
     @Test
     fun testEncodeToByteArrayCommonImplCharSequenceLong() {
         val expected = longMultibyteStringBytes().hexdump()
-        val actual = Charsets.UTF_8.newEncoder().encodeToByteArrayImpl(
+        val actual = Charsets.UTF_8.newEncoder().encodeToByteArrayImpl1(
                 longMultibyteString()
         ).hexdump()
 

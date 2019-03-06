@@ -136,38 +136,6 @@ fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, limit: I
     return decoded
 }
 
-private fun Input.readUTF8UntilDelimiterToSlowUtf8(
-    out: Appendable,
-    delimiters: String,
-    limit: Int,
-    decoded0: Int
-): Int {
-    var decoded = decoded0
-    var size = 1
-
-    takeWhileSize { buffer ->
-        size = buffer.decodeUTF8 { ch ->
-            if (ch in delimiters) {
-                false
-            } else {
-                if (decoded == limit) {
-                    bufferLimitExceeded(limit)
-                }
-                decoded++
-                out.append(ch)
-                true
-            }
-        }
-
-        size = if (size == -1) 0 else size.coerceAtLeast(1)
-        size
-    }
-
-    if (size > 1) prematureEndOfStream(size)
-
-    return decoded
-}
-
 /**
  * Reads UTF-8 characters to [out] buffer until one of the specified [delimiters] found, [limit] exceeded
  * or end of stream encountered
@@ -191,91 +159,6 @@ fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit: Int =
 fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     return readUTF8UntilDelimiterTo(out as Output, delimiters, limit)
 }
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun Char.isAsciiChar() = toInt() <= 0x7f
-
-private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: Int, out: Output): Int {
-    var decoded = 0
-    var delimiter = false
-
-    takeWhile { buffer ->
-        val before = buffer.readRemaining
-
-        val rc = buffer.decodeASCII { ch ->
-            if (ch in delimiters) {
-                delimiter = true
-                false
-            } else {
-                if (decoded == limit) bufferLimitExceeded(limit)
-                decoded++
-                true
-            }
-        }
-
-        val delta = before - buffer.readRemaining
-        if (delta > 0) {
-            buffer.rewind(delta)
-            out.writeFully(buffer, delta)
-        }
-
-        rc
-    }
-
-    if (!delimiter && !endOfInput) {
-        decoded = readUTF8UntilDelimiterToSlowUtf8(out, delimiters, limit, decoded)
-    }
-
-    return decoded
-}
-
-private fun Input.readUTF8UntilDelimiterToSlowUtf8(
-    out: Output,
-    delimiters: String,
-    limit: Int,
-    decoded0: Int
-): Int {
-    var decoded = decoded0
-    var size = 1
-
-    takeWhileSize { buffer ->
-        val before = buffer.readRemaining
-
-        size = buffer.decodeUTF8 { ch ->
-            if (ch in delimiters) {
-                false
-            } else {
-                if (decoded == limit) {
-                    bufferLimitExceeded(limit)
-                }
-                decoded++
-                true
-            }
-        }
-
-        val delta = before - buffer.readRemaining
-        if (delta > 0) {
-            buffer.rewind(delta)
-            out.writeFully(buffer, delta)
-        }
-
-        size = if (size == -1) 0 else size.coerceAtLeast(1)
-        size
-    }
-
-    if (size > 1) prematureEndOfStream(size)
-
-    return decoded
-}
-
-
-private fun bufferLimitExceeded(limit: Int): Nothing {
-    throw BufferLimitExceededException("Too many characters before delimiter: limit $limit exceeded")
-}
-
-@PublishedApi
-internal fun prematureEndOfStream(size: Int): Nothing =
-    throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
 
 /**
  * Read exactly [n] bytes (consumes all remaining if [n] is not specified but up to [Int.MAX_VALUE] bytes).
@@ -316,7 +199,9 @@ fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (m
         }
     }
 
-    if (size < min) throw EOFException("Not enough bytes available to read $min bytes: ${min - size} more required")
+    if (size < min) {
+        throw EOFException("Not enough bytes available to read $min bytes: ${min - size} more required")
+    }
 
     if (size == array.size) array else array.copyOf(size)
 }
@@ -363,17 +248,41 @@ fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE):
 }
 
 /**
- * Read exactly [n] characters decoding bytes in the specified [charset].
- * @return decoded string
+ * Read exactly [n] characters interpreting bytes in the specified [charset].
  */
+@Deprecated(
+    "Use readTextExactCharacters instead.",
+    ReplaceWith("readTextExactCharacters(n, charset)")
+)
 fun Input.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): String {
-    val s = readText(charset, n)
-    if (s.length < n) throw EOFException("Not enough data available to read $n characters")
+    return readTextExactCharacters(n, charset)
+}
+
+/**
+ * Read exactly [charactersCount] characters interpreting bytes in the specified [charset].
+ */
+fun Input.readTextExactCharacters(charactersCount: Int, charset: Charset = Charsets.UTF_8): String {
+    val s = readText(charset, charactersCount)
+    if (s.length < charactersCount) {
+        prematureEndOfStreamToReadChars(charactersCount)
+    }
     return s
 }
 
+/**
+ * Read exactly the specified number of [bytes]
+ * interpreting bytes in the specified [charset] (optional, UTF-8 by default).
+ */
+@Deprecated("Parameters order is changed.", ReplaceWith("readTextExactBytes(bytes, charset)"))
 fun Input.readTextExactBytes(charset: Charset = Charsets.UTF_8, bytes: Int): String {
-    return charset.newDecoder().decodeExactBytes(this, inputLength = bytes)
+    return readTextExactBytes(bytes, charset)
+}
+
+/**
+ * Read exactly [bytesCount] interpreting bytes in the specified [charset] (optional, UTF-8 by default).
+ */
+fun Input.readTextExactBytes(bytesCount: Int, charset: Charset = Charsets.UTF_8): String {
+    return charset.newDecoder().decodeExactBytes(this, inputLength = bytesCount)
 }
 
 /**
@@ -381,10 +290,11 @@ fun Input.readTextExactBytes(charset: Charset = Charsets.UTF_8, bytes: Int): Str
  */
 @Deprecated(
     "Use the implementation with Charset instead",
-    ReplaceWith("writeText(text, fromIndex, toIndex, encoder.charset)", "kotlinx.io.charsets.charset")
+    ReplaceWith("writeText(text, fromIndex, toIndex, encoder.charset)", "kotlinx.io.charsets.charset"),
+    level = DeprecationLevel.ERROR
 )
 fun Output.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, encoder: CharsetEncoder) {
-    encoder.encode(text, fromIndex, toIndex, this)
+    encoder.encodeToImpl(this, text, fromIndex, toIndex)
 }
 
 /**
@@ -400,7 +310,7 @@ fun Output.writeText(
         return writeTextUtf8(text, fromIndex, toIndex)
     }
 
-    charset.newEncoder().encode(text, fromIndex, toIndex, this)
+    charset.newEncoder().encodeToImpl(this, text, fromIndex, toIndex)
 }
 
 /**
@@ -436,3 +346,122 @@ private fun Output.writeTextUtf8(text: CharSequence, fromIndex: Int, toIndex: In
 }
 
 internal expect fun String.getCharsInternal(dst: CharArray, dstOffset: Int)
+
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun Char.isAsciiChar() = toInt() <= 0x7f
+
+private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: Int, out: Output): Int {
+    var decoded = 0
+    var delimiter = false
+
+    takeWhile { buffer ->
+        val before = buffer.readRemaining
+
+        val rc = buffer.decodeASCII { ch ->
+            if (ch in delimiters) {
+                delimiter = true
+                false
+            } else {
+                if (decoded == limit) bufferLimitExceeded(limit)
+                decoded++
+                true
+            }
+        }
+
+        val delta = before - buffer.readRemaining
+        if (delta > 0) {
+            buffer.pushBack(delta)
+            out.writeFully(buffer, delta)
+        }
+
+        rc
+    }
+
+    if (!delimiter && !endOfInput) {
+        decoded = readUTF8UntilDelimiterToSlowUtf8(out, delimiters, limit, decoded)
+    }
+
+    return decoded
+}
+
+private fun Input.readUTF8UntilDelimiterToSlowUtf8(
+    out: Output,
+    delimiters: String,
+    limit: Int,
+    decoded0: Int
+): Int {
+    var decoded = decoded0
+    var size = 1
+
+    takeWhileSize { buffer ->
+        val before = buffer.readRemaining
+
+        size = buffer.decodeUTF8 { ch ->
+            if (ch in delimiters) {
+                false
+            } else {
+                if (decoded == limit) {
+                    bufferLimitExceeded(limit)
+                }
+                decoded++
+                true
+            }
+        }
+
+        val delta = before - buffer.readRemaining
+        if (delta > 0) {
+            buffer.pushBack(delta)
+            out.writeFully(buffer, delta)
+        }
+
+        size = if (size == -1) 0 else size.coerceAtLeast(1)
+        size
+    }
+
+    if (size > 1) prematureEndOfStream(size)
+
+    return decoded
+}
+
+private fun Input.readUTF8UntilDelimiterToSlowUtf8(
+    out: Appendable,
+    delimiters: String,
+    limit: Int,
+    decoded0: Int
+): Int {
+    var decoded = decoded0
+    var size = 1
+
+    takeWhileSize { buffer ->
+        size = buffer.decodeUTF8 { ch ->
+            if (ch in delimiters) {
+                false
+            } else {
+                if (decoded == limit) {
+                    bufferLimitExceeded(limit)
+                }
+                decoded++
+                out.append(ch)
+                true
+            }
+        }
+
+        size = if (size == -1) 0 else size.coerceAtLeast(1)
+        size
+    }
+
+    if (size > 1) prematureEndOfStream(size)
+
+    return decoded
+}
+
+private fun bufferLimitExceeded(limit: Int): Nothing {
+    throw BufferLimitExceededException("Too many characters before delimiter: limit $limit exceeded")
+}
+
+private fun prematureEndOfStream(size: Int): Nothing =
+    throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
+
+private fun prematureEndOfStreamToReadChars(charactersCount: Int): Nothing =
+    throw EOFException("Not enough input bytes to read $charactersCount characters.")
