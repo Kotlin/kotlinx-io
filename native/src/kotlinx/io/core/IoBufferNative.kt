@@ -319,6 +319,10 @@ actual class IoBuffer internal constructor(
         throw UnsupportedOperationException("close for buffer view is not supported")
     }
 
+    actual fun release(pool: ObjectPool<IoBuffer>) {
+        releaseImpl(pool)
+    }
+
     override fun toString(): String =
         "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 

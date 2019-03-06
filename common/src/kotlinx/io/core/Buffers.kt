@@ -10,13 +10,15 @@ import kotlin.contracts.*
  * Concurrent unsafe. The only concurrent-safe operation is [release].
  * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
  */
-@Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
+@Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES", "DEPRECATION")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
 expect class IoBuffer : Input, Output, ChunkBuffer {
 
     override fun close()
 
     final override fun flush()
+
+    fun release(pool: ObjectPool<IoBuffer>)
 
     @Suppress("DEPRECATION")
     companion object {
@@ -48,6 +50,19 @@ expect class IoBuffer : Input, Output, ChunkBuffer {
          * A pool that always returns [IoBuffer.Empty]
          */
         val EmptyPool: ObjectPool<IoBuffer>
+    }
+}
+
+@Suppress("DEPRECATION")
+internal fun IoBuffer.releaseImpl(pool: ObjectPool<IoBuffer>) {
+    if (release()) {
+        val origin = origin
+        if (origin is IoBuffer) {
+            unlink()
+            origin.release(pool)
+        } else {
+            pool.recycle(this)
+        }
     }
 }
 

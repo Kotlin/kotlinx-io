@@ -77,15 +77,35 @@ fun Buffer.flush() {
 }
 
 internal fun Buffer.appendChars(csq: CharArray, start: Int, end: Int): Int {
-    TODO_ERROR()
+    return appendChars(CharArraySequence(csq, 0, csq.size), start, end)
 }
 
 internal fun Buffer.appendChars(csq: CharSequence, start: Int, end: Int): Int {
-    return Charsets.UTF_8.newEncoder().encodeImpl(csq, start, end, this)
+    var charactersWritten: Int
+
+    write { dst, dstStart, dstEndExclusive ->
+        val result = dst.encodeUTF8(csq, start, end, dstStart, dstEndExclusive)
+        charactersWritten = result.characters.toInt()
+        result.bytes.toInt()
+    }
+
+    return start + charactersWritten
 }
 
-fun Buffer.append(c: Char): Buffer = TODO_ERROR()
+@Deprecated("This is no longer supported. Use a packet builder to append characters instead.")
+fun Buffer.append(c: Char): Buffer {
+    write { memory, start, endExclusive ->
+        val size = memory.putUtf8Char(start, c.toInt())
+        when {
+            size > endExclusive - start -> appendFailed(1)
+            else -> size
+        }
+    }
 
+    return this
+}
+
+@Deprecated("This is no longer supported. Use a packet builder to append characters instead.")
 fun Buffer.append(csq: CharSequence?): Buffer {
     if (csq == null) {
         return append("null")
@@ -94,19 +114,29 @@ fun Buffer.append(csq: CharSequence?): Buffer {
     return append(csq, 0, csq.length)
 }
 
+@Deprecated("This is no longer supported. Use a packet builder to append characters instead.")
 fun Buffer.append(csq: CharSequence?, start: Int, end: Int): Buffer = apply {
     if (csq == null) {
         return append("null", start, end)
     }
 
-    appendChars(csq, start, end)
+    if (appendChars(csq, start, end) != end) {
+        appendFailed(end - start)
+    }
 }
 
-@Deprecated("Not supported anymore", level = DeprecationLevel.ERROR)
-fun Buffer.append(csq: CharArray, start: Int, end: Int): Buffer = TODO()
+private fun appendFailed(length: Int): Nothing {
+    throw BufferLimitExceededException("Not enough free space available to write $length character(s).")
+}
 
+@Deprecated("This is no longer supported. Use a packet builder to append characters instead.")
+fun Buffer.append(csq: CharArray, start: Int, end: Int): Buffer {
+    return append(CharArraySequence(csq, 0, csq.size), start, end)
+}
+
+@Deprecated("This is no longer supported. Read from a packet instead.")
 fun Buffer.readText(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
-    TODO()
+    TODO_ERROR()
 }
 
 /**

@@ -460,7 +460,7 @@ private fun bufferLimitExceeded(limit: Int): Nothing {
     throw BufferLimitExceededException("Too many characters before delimiter: limit $limit exceeded")
 }
 
-private fun prematureEndOfStream(size: Int): Nothing =
+internal fun prematureEndOfStream(size: Int): Nothing =
     throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
 
 private fun prematureEndOfStreamToReadChars(charactersCount: Int): Nothing =

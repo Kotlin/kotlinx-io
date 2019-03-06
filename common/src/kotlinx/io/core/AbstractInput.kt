@@ -16,7 +16,7 @@ import kotlin.jvm.*
 abstract class AbstractInput(
     head: ChunkBuffer = ChunkBuffer.Empty,
     remaining: Long = head.remainingAll(),
-    val pool: ObjectPool<ChunkBuffer>
+    val pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : Input {
     /**
      * Read the next bytes into the [destination]

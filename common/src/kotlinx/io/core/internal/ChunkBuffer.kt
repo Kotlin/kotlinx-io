@@ -108,7 +108,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
      * Release ref-count.
      * @return `true` if the last usage was released
      */
-    private fun release(): Boolean {
+    internal fun release(): Boolean {
         return refCount.updateAndGet { old ->
             if (old <= 0) throw IllegalStateException("Unable to release: it is already released.")
             old - 1

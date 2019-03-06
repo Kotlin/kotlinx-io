@@ -348,6 +348,10 @@ actual class IoBuffer internal constructor(
         return rc
     }
 
+    actual fun release(pool: ObjectPool<IoBuffer>) {
+        releaseImpl(pool)
+    }
+
     actual override fun close() {
         throw UnsupportedOperationException("close for buffer view is not supported")
     }

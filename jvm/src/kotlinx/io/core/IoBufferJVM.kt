@@ -408,6 +408,11 @@ actual class IoBuffer private constructor(
     internal inline fun afterWrite() {
     }
 
+    @Suppress("ACCIDENTAL_OVERRIDE")
+    actual fun release(pool: ObjectPool<IoBuffer>) {
+        releaseImpl(pool)
+    }
+
     override fun toString(): String =
         "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 
