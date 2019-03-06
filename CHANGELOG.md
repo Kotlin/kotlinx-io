@@ -1,4 +1,16 @@
 # 0.1.6
+> Published 6 Mar 2019
+
+- Introduced ISO-8859-1 on JS and common `Charsets.ISO_8859_1`.
+- Deprecated `Input.byteOrder`, `Output.byteOrder`, 
+`ByteReadPacket.byteOrder`, `BytePacketBuilder.byteOrder`. 
+Introduced read/writeLittleEndian functions instead.
+- `CharsetEncoder` and `CharsetDecoder` are made experimental to 
+make possible to improve that API in the future.
+- Several minor deprecations.
+- Renamed `errno` to `errorCode` in `PosixException` to avoid objc export issues.
+
+# 0.1.6
 > Published 20 Feb 2019
 
 - Fixed object pool instances disposal on JS and native
