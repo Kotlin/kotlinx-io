@@ -42,12 +42,10 @@ private fun Input.prepareReadHeadFallback(minSize: Int): IoBuffer? {
 
     val buffer = IoBuffer.Pool.borrow()
 
-    while (buffer.readRemaining < minSize) {
-        val rc = peekTo(buffer)
-        if (rc <= 0) {
-            buffer.release(IoBuffer.Pool)
-            return null
-        }
+    val rc = peekTo(buffer)
+    if (rc < minSize) {
+        buffer.release(IoBuffer.Pool)
+        return null
     }
 
     return buffer
