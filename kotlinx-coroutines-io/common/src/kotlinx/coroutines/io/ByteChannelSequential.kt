@@ -88,6 +88,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         set(newOrder) {
             if (field != newOrder) {
                 field = newOrder
+                @Suppress("DEPRECATION")
                 readable.byteOrder = newOrder
             }
         }
@@ -95,6 +96,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         set(newOrder) {
             if (field != newOrder) {
                 field = newOrder
+                @Suppress("DEPRECATION")
                 writable.byteOrder = newOrder
             }
         }
@@ -517,6 +519,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
             lastReadAvailable = view.readRemaining
         }
 
+        @Suppress("DEPRECATION")
         view?.byteOrder = readByteOrder
 
         return view

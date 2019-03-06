@@ -1844,6 +1844,7 @@ internal class ByteBufferChannel(
         var byteBuffer = current.setupStateForWrite() ?: return writeSuspendSession(visitor)
         var view = IoBuffer(current.state.backingBuffer)
         var ringBufferCapacity = current.state.capacity
+        @Suppress("DEPRECATION")
         view.byteOrder = writeByteOrder
 
         val session = object : WriterSuspendSession {
@@ -1895,6 +1896,7 @@ internal class ByteBufferChannel(
                     current = resolveDelegation(current, joining) ?: continue
                     byteBuffer = current.setupStateForWrite() ?: continue
                     view = IoBuffer(current.state.backingBuffer)
+                    @Suppress("DEPRECATION")
                     view.byteOrder = writeByteOrder
                     @Suppress("DEPRECATION")
                     view.resetFromContentToWrite(byteBuffer)
