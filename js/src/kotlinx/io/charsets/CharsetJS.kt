@@ -11,6 +11,12 @@ actual abstract class Charset(internal val _name: String) {
     actual companion object {
         actual fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
+            if (name == "ISO-8859-1" || name == "iso-8859-1"
+                || name.toLowerCase().replace('_', '-') == "iso-8859-1"
+                || name == "latin1"
+            ) {
+                return Charsets.ISO_8859_1
+            }
             throw IllegalArgumentException("Charset $name is not supported")
         }
 
@@ -30,6 +36,10 @@ actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int,
 
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int {
     require(fromIndex <= toIndex)
+    if (charset == Charsets.ISO_8859_1) {
+        return encodeISO88591(input, fromIndex, toIndex, dst)
+    }
+
     require(charset === Charsets.UTF_8) { "Only UTF-8 encoding is supported in JS" }
 
     val encoder = TextEncoderCtor()  // Only UTF-8 is supported so we know that at most 6 bytes per character is used
@@ -120,6 +130,7 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
 
 actual object Charsets {
     actual val UTF_8: Charset = CharsetImpl("UTF-8")
+    actual val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
 }
 
 private data class CharsetImpl(val name: String) : Charset(name) {

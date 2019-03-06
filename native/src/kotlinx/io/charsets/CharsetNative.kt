@@ -332,7 +332,7 @@ private external fun fromCharArray(array: CharArray, start: Int, size: Int): Str
 
 actual object Charsets {
     actual val UTF_8: Charset = CharsetImpl("UTF-8")
-    val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
+    actual val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
     internal val UTF_16: Charset = CharsetImpl(platformUtf16)
 }
 

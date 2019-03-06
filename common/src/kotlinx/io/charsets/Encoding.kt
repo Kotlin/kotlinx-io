@@ -86,6 +86,7 @@ expect fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
 // ----------------------------- REGISTRY ------------------------------------------------------------------------------
 expect object Charsets {
     val UTF_8: Charset
+    val ISO_8859_1: Charset
 }
 
 expect class MalformedInputException(message: String) : Throwable
