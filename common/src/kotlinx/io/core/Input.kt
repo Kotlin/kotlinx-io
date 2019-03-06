@@ -6,6 +6,12 @@ import kotlinx.io.core.internal.*
  * Shouldn't be implemented directly. Inherit [AbstractInput] instead.
  */
 expect interface Input : Closeable {
+    @Deprecated(
+        "Implementing this interface is highly experimental. Extend AbstractInput instead.",
+        level = DeprecationLevel.HIDDEN
+    )
+    val doNotImplementInputButExtendAbstractInputInstead: Nothing
+
     @Deprecated("Use readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.")
     var byteOrder: ByteOrder
     val endOfInput: Boolean

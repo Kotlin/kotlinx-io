@@ -18,6 +18,14 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         head.setByteOrderForNonEmpty(ByteOrder.BIG_ENDIAN)
     }
 
+    @Deprecated(
+        "Suppress warning.",
+        level = DeprecationLevel.HIDDEN
+    )
+    @Suppress("unused")
+    final override val doNotImplementInputButExtendAbstractInputInstead: Nothing
+        get() = error("Should be never accessed.")
+
     @Deprecated("Use readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.")
     final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {

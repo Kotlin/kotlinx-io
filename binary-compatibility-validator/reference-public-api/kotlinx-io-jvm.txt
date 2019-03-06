@@ -150,6 +150,7 @@ public abstract class kotlinx/io/core/BytePacketBuilderBase : java/lang/Appendab
 	public final fun appendNewBuffer ()Lkotlinx/io/core/IoBuffer;
 	public fun fill (JB)V
 	public final fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
+	public final synthetic fun getDoNotImplementOutputButExtendAbstractOutputInstead ()Ljava/lang/Void;
 	protected final fun getPool ()Lkotlinx/io/pool/ObjectPool;
 	protected final fun get_size ()I
 	public final fun prepareWriteHead (I)Lkotlinx/io/core/IoBuffer;
@@ -210,6 +211,7 @@ public abstract class kotlinx/io/core/ByteReadPacketBase : kotlinx/io/core/Input
 	protected abstract fun fill ()Lkotlinx/io/core/IoBuffer;
 	public final fun fixGapAfterRead (Lkotlinx/io/core/IoBuffer;)V
 	public final fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
+	public final synthetic fun getDoNotImplementInputButExtendAbstractInputInstead ()Ljava/lang/Void;
 	public fun getEndOfInput ()Z
 	public final fun getPool ()Lkotlinx/io/pool/ObjectPool;
 	public final synthetic fun getRemaining ()I
@@ -297,6 +299,7 @@ public abstract interface class kotlinx/io/core/Input : java/io/Closeable {
 	public abstract fun close ()V
 	public abstract fun discard (J)J
 	public abstract fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
+	public abstract synthetic fun getDoNotImplementInputButExtendAbstractInputInstead ()Ljava/lang/Void;
 	public abstract fun getEndOfInput ()Z
 	public abstract fun peekTo (Lkotlinx/io/core/IoBuffer;)I
 	public abstract fun readAvailable (Ljava/nio/ByteBuffer;I)I
@@ -429,6 +432,8 @@ public final class kotlinx/io/core/IoBuffer : kotlinx/io/core/Input, kotlinx/io/
 	public final fun getAttachment ()Ljava/lang/Object;
 	public final fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
 	public final fun getCapacity ()I
+	public final synthetic fun getDoNotImplementInputButExtendAbstractInputInstead ()Ljava/lang/Void;
+	public final synthetic fun getDoNotImplementOutputButExtendAbstractOutputInstead ()Ljava/lang/Void;
 	public final fun getEndGap ()I
 	public fun getEndOfInput ()Z
 	public final fun getNext ()Lkotlinx/io/core/IoBuffer;
@@ -512,6 +517,7 @@ public abstract interface class kotlinx/io/core/Output : java/io/Closeable, java
 	public abstract fun fill (JB)V
 	public abstract fun flush ()V
 	public abstract fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
+	public abstract synthetic fun getDoNotImplementOutputButExtendAbstractOutputInstead ()Ljava/lang/Void;
 	public abstract fun setByteOrder (Lkotlinx/io/core/ByteOrder;)V
 	public abstract fun writeByte (B)V
 	public abstract fun writeDouble (D)V

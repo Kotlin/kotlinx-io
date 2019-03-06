@@ -20,6 +20,22 @@ actual class IoBuffer private constructor(
 
     constructor(external: ByteBuffer) : this(external, null)
 
+    @Deprecated(
+        "Suppress warning.",
+        level = DeprecationLevel.HIDDEN
+    )
+    @Suppress("unused")
+    actual final override val doNotImplementInputButExtendAbstractInputInstead: Nothing
+        get() = error("Should be never accessed.")
+
+    @Deprecated(
+        "Suppress warning.",
+        level = DeprecationLevel.HIDDEN
+    )
+    @Suppress("unused")
+    actual final override val doNotImplementOutputButExtendAbstractOutputInstead: Nothing
+        get() = error("Should be never accessed.")
+
     @PublishedApi
     @JvmField
     internal var readBuffer: ByteBuffer = if (content === EmptyBuffer) EmptyBuffer else content.slice()

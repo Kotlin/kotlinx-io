@@ -355,6 +355,12 @@ abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) :
 @Deprecated("Will be removed in future releases", level = DeprecationLevel.ERROR)
 @Suppress("DEPRECATION")
 abstract class BytePacketBuilderBase internal constructor(protected val pool: ObjectPool<IoBuffer>) : Appendable, Output {
+    @Deprecated(
+        "Suppress warning.",
+        level = DeprecationLevel.HIDDEN
+    )
+    final override val doNotImplementOutputButExtendAbstractOutputInstead: Nothing
+        get() = error("Should be never accessed.")
 
     /**
      * Number of bytes currently buffered or -1 if not known (need to be recomputed)

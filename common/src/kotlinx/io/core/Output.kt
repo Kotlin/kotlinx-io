@@ -6,6 +6,12 @@ import kotlinx.io.core.internal.*
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
 expect interface Output : Appendable, Closeable {
+    @Deprecated(
+        "Implementing this interface is highly experimental. Extend AbstractOutput instead.",
+        level = DeprecationLevel.HIDDEN
+    )
+    val doNotImplementOutputButExtendAbstractOutputInstead: Nothing
+
     /**
      * Byte order (Endianness) to be used by future write functions calls on this builder instance. Doesn't affect any
      * previously written values.

@@ -1,3 +1,5 @@
+@file:Suppress("RedundantModalityModifier")
+
 package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
@@ -16,6 +18,12 @@ typealias BufferView = IoBuffer
  * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
  */
 expect class IoBuffer : Input, Output {
+    @Deprecated("Suppress warning.", level = DeprecationLevel.HIDDEN)
+    final override val doNotImplementInputButExtendAbstractInputInstead: Nothing
+
+    @Deprecated("Suppress warning.", level = DeprecationLevel.HIDDEN)
+    final override val doNotImplementOutputButExtendAbstractOutputInstead: Nothing
+
     /**
      * Reference to an origin buffer view this was copied from
      */

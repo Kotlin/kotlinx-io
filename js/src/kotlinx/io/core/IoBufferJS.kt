@@ -11,6 +11,22 @@ actual class IoBuffer internal constructor(
         internal var content: ArrayBuffer,
         internal actual val origin: IoBuffer?
 ) : Input, Output {
+    @Deprecated(
+        "Suppress warning.",
+        level = DeprecationLevel.HIDDEN
+    )
+    @Suppress("unused")
+    actual final override val doNotImplementInputButExtendAbstractInputInstead: Nothing
+        get() = error("Should be never accessed.")
+
+    @Deprecated(
+        "Suppress warning.",
+        level = DeprecationLevel.HIDDEN
+    )
+    @Suppress("unused")
+    actual final override val doNotImplementOutputButExtendAbstractOutputInstead: Nothing
+        get() = error("Should be never accessed.")
+
     private var refCount = 1
 
     internal var readPosition = 0

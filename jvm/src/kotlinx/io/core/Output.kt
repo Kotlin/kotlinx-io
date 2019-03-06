@@ -6,6 +6,13 @@ import java.nio.*
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
 actual interface Output : Closeable, Appendable {
+    @Deprecated(
+        "Implementing this interface is highly experimental. Extend AbstractOutput instead.",
+        level = DeprecationLevel.HIDDEN
+    )
+    @Suppress("unused")
+    actual val doNotImplementOutputButExtendAbstractOutputInstead: Nothing
+
     @Deprecated("Write with writeXXXLittleEndian or do X.reverseByteOrder() and then writeXXX instead.")
     actual var byteOrder: ByteOrder
 
