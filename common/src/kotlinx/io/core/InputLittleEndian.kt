@@ -15,7 +15,7 @@ fun Input.readFloatLittleEndian(): Float = readPrimitiveTemplate({ readFloat() }
 fun Input.readDoubleLittleEndian(): Double = readPrimitiveTemplate({ readDouble() }, { reverseByteOrder() })
 
 fun Input.readFullyLittleEndian(dst: UShortArray, offset: Int = 0, length: Int = dst.size - offset) {
-    readFully(dst.asShortArray(), offset, length)
+    readFullyLittleEndian(dst.asShortArray(), offset, length)
 }
 
 fun Input.readFullyLittleEndian(dst: ShortArray, offset: Int = 0, length: Int = dst.size - offset) {
@@ -29,7 +29,7 @@ fun Input.readFullyLittleEndian(dst: ShortArray, offset: Int = 0, length: Int = 
 }
 
 fun Input.readFullyLittleEndian(dst: UIntArray, offset: Int = 0, length: Int = dst.size - offset) {
-    readFully(dst.asIntArray(), offset, length)
+    readFullyLittleEndian(dst.asIntArray(), offset, length)
 }
 
 fun Input.readFullyLittleEndian(dst: IntArray, offset: Int = 0, length: Int = dst.size - offset) {
@@ -43,7 +43,7 @@ fun Input.readFullyLittleEndian(dst: IntArray, offset: Int = 0, length: Int = ds
 }
 
 fun Input.readFullyLittleEndian(dst: ULongArray, offset: Int = 0, length: Int = dst.size - offset) {
-    readFully(dst.asLongArray(), offset, length)
+    readFullyLittleEndian(dst.asLongArray(), offset, length)
 }
 
 fun Input.readFullyLittleEndian(dst: LongArray, offset: Int = 0, length: Int = dst.size - offset) {

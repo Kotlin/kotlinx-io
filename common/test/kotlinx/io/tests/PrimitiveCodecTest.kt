@@ -245,7 +245,7 @@ class PrimitiveCodecTest {
         assertEquals(8, p.remaining)
         assertTrue { p.isNotEmpty }
 
-        assertEquals(0x112233440a0b0c0dL, p.readLongLittleEndian())
+        assertEquals(0x112233440a0b0c0dL, p.readLong())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
     }
