@@ -623,8 +623,12 @@ public final class kotlinx/io/core/StringsKt {
 	public static synthetic fun readText$default (Lkotlinx/io/core/Input;Ljava/nio/charset/CharsetDecoder;IILjava/lang/Object;)Ljava/lang/String;
 	public static final fun readTextExact (Lkotlinx/io/core/Input;Ljava/nio/charset/Charset;I)Ljava/lang/String;
 	public static synthetic fun readTextExact$default (Lkotlinx/io/core/Input;Ljava/nio/charset/Charset;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun readTextExactBytes (Lkotlinx/io/core/Input;ILjava/nio/charset/Charset;)Ljava/lang/String;
 	public static final fun readTextExactBytes (Lkotlinx/io/core/Input;Ljava/nio/charset/Charset;I)Ljava/lang/String;
+	public static synthetic fun readTextExactBytes$default (Lkotlinx/io/core/Input;ILjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
 	public static synthetic fun readTextExactBytes$default (Lkotlinx/io/core/Input;Ljava/nio/charset/Charset;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun readTextExactCharacters (Lkotlinx/io/core/Input;ILjava/nio/charset/Charset;)Ljava/lang/String;
+	public static synthetic fun readTextExactCharacters$default (Lkotlinx/io/core/Input;ILjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun readUTF8Line (Lkotlinx/io/core/ByteReadPacket;II)Ljava/lang/String;
 	public static final fun readUTF8Line (Lkotlinx/io/core/Input;II)Ljava/lang/String;
 	public static synthetic fun readUTF8Line$default (Lkotlinx/io/core/ByteReadPacket;IIILjava/lang/Object;)Ljava/lang/String;

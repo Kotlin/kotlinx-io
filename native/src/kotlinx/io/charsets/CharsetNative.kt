@@ -63,7 +63,7 @@ private fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
 }
 
 actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
-    encodeToByteArrayImpl(input, fromIndex, toIndex)
+    encodeToByteArrayImpl1(input, fromIndex, toIndex)
 
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int {
     val length = toIndex - fromIndex

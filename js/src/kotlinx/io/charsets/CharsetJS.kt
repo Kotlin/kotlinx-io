@@ -26,7 +26,7 @@ private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEnc
 actual val CharsetEncoder.charset: Charset get() = _charset
 
 actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray
-        = encodeToByteArrayImpl(input, fromIndex, toIndex)
+        = encodeToByteArrayImpl1(input, fromIndex, toIndex)
 
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int {
     require(fromIndex <= toIndex)
@@ -66,7 +66,9 @@ internal actual fun CharsetEncoder.encodeComplete(dst: IoBuffer): Boolean = true
 // ----------------------------------------------------------------------
 
 actual abstract class CharsetDecoder(internal val _charset: Charset)
+
 private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDecoder(charset)
+
 actual val CharsetDecoder.charset: Charset get() = _charset
 
 actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
@@ -114,6 +116,21 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
     return decodeExactBytesSlow(input, inputLength)
 }
 
+// -----------------------------------------------------------
+
+actual object Charsets {
+    actual val UTF_8: Charset = CharsetImpl("UTF-8")
+}
+
+private data class CharsetImpl(val name: String) : Charset(name) {
+    override fun newEncoder(): CharsetEncoder = CharsetEncoderImpl(this)
+    override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
+}
+
+
+actual class MalformedInputException actual constructor(message: String) : Throwable(message)
+
+
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
     val decoder = TextDecoderFatal(charset.name, true)
     var inputRemaining = inputLength
@@ -155,17 +172,3 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
 
     return sb.toString()
 }
-
-// -----------------------------------------------------------
-
-actual object Charsets {
-    actual val UTF_8: Charset = CharsetImpl("UTF-8")
-}
-
-private data class CharsetImpl(val name: String) : Charset(name) {
-    override fun newEncoder(): CharsetEncoder = CharsetEncoderImpl(this)
-    override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
-}
-
-
-actual class MalformedInputException actual constructor(message: String) : Throwable(message)
