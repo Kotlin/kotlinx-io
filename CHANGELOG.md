@@ -1,4 +1,4 @@
-# 0.1.6
+# 0.1.7
 > Published 6 Mar 2019
 
 - Introduced ISO-8859-1 on JS and common `Charsets.ISO_8859_1`.
