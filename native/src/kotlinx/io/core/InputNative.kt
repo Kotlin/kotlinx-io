@@ -4,7 +4,7 @@ import kotlinx.cinterop.*
 import kotlinx.io.core.internal.*
 
 actual interface Input : Closeable {
-    @Deprecated("Read and readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.")
+    @Deprecated("Use readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.")
     actual var byteOrder: ByteOrder
     actual val endOfInput: Boolean
 

@@ -7,7 +7,7 @@ import org.khronos.webgl.*
  * Shouldn't be implemented directly. Inherit [AbstractInput] instead.
  */
 actual interface Input : Closeable {
-    @Deprecated("Read and readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.")
+    @Deprecated("Use readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.")
     actual var byteOrder: ByteOrder
     actual val endOfInput: Boolean
 
