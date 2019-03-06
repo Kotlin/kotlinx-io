@@ -8,7 +8,8 @@ import java.nio.*
 @Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
 actual interface Input : Closeable {
     @Deprecated(
-        "Not supported anymore. All operations are big endian by default.",
+        "Not supported anymore. All operations are big endian by default. " +
+            "Use readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.",
         level = DeprecationLevel.ERROR
     )
     actual var byteOrder: ByteOrder

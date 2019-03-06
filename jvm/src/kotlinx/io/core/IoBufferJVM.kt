@@ -60,7 +60,9 @@ actual class IoBuffer private constructor(
      * read and write operations byte-order (endianness)
      */
     @Deprecated(
-        "All read operations are big endian by default except functions with LittleEndian suffix",
+        "All read operations are big endian by default except functions with LittleEndian suffix. " +
+            "Read/write with readXXXLittleEndian/writeXXXLittleEndian or " +
+            "do readXXX/writeXXX with X.reverseByteOrder() instead.",
         level = DeprecationLevel.ERROR
     )
     final override var byteOrder: ByteOrder

@@ -17,7 +17,9 @@ actual class IoBuffer internal constructor(
     override val endOfInput: Boolean get() = writePosition == readPosition
 
     @Deprecated(
-        "Not supported anymore. All operations are big endian by default.",
+        "Not supported anymore. All operations are big endian by default. " +
+            "Read/write with readXXXLittleEndian/writeXXXLittleEndian or " +
+            "do readXXX/writeXXX with X.reverseByteOrder() instead.",
         level = DeprecationLevel.ERROR
     )
     final override var byteOrder: ByteOrder

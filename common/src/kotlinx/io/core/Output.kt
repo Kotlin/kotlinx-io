@@ -8,7 +8,8 @@ import kotlinx.io.core.internal.*
 expect interface Output : Appendable, Closeable {
     @Deprecated(
         "This is no longer supported. All operations are big endian by default. Use writeXXXLittleEndian " +
-            "to write primitives in little endian order.",
+            "to write primitives in little endian order" +
+            " or do X.reverseByteOrder() and then writeXXX instead.",
         level = DeprecationLevel.ERROR
     )
     var byteOrder: ByteOrder

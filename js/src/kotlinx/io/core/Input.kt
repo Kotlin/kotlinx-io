@@ -8,7 +8,8 @@ import org.khronos.webgl.*
 @Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
 actual interface Input : Closeable {
     @Deprecated(
-        "Not supported anymore. All operations are big endian by default.",
+        "Not supported anymore. All operations are big endian by default. " +
+            "Read and readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.",
         level = DeprecationLevel.ERROR
     )
     @Suppress("ACTUAL_WITHOUT_EXPECT")

@@ -2,12 +2,9 @@ package kotlinx.io.tests
 
 import kotlinx.io.core.*
 import kotlinx.io.nio.*
-import org.junit.*
 import java.io.*
 import java.nio.channels.*
-import java.util.*
 import kotlin.test.*
-import kotlin.test.Test
 
 class ChannelsTest {
     @Test
@@ -15,7 +12,6 @@ class ChannelsTest {
         val content = ByteArrayInputStream(byteArrayOf(0x11, 0x22, 0x33, 0x44))
         val input = Channels.newChannel(content).asInput()
 
-        input.byteOrder = ByteOrder.BIG_ENDIAN
         assertEquals(0x11223344, input.readInt())
     }
 
@@ -42,7 +38,6 @@ class ChannelsTest {
         val baos = ByteArrayOutputStream()
         val output = Channels.newChannel(baos).asOutput()
 
-        output.byteOrder = ByteOrder.BIG_ENDIAN
         output.writeInt(0x11223344)
 
         output.flush()

@@ -228,7 +228,7 @@ class BytePacketReadTest {
                 assertEquals(0x0102, copy.readShort())
             }
             pkt.copy().use { copy ->
-                assertEquals(0x0201, copy.readShort().reverseByteOrder())
+                assertEquals(0x0201, copy.readShortLittleEndian())
             }
         } finally {
             pkt.release()
@@ -246,7 +246,7 @@ class BytePacketReadTest {
                 assertEquals(0x01020304, copy.readInt())
             }
             pkt.copy().use { copy ->
-                assertEquals(0x04030201, copy.readInt().reverseByteOrder())
+                assertEquals(0x04030201, copy.readIntLittleEndian())
             }
         } finally {
             pkt.release()
@@ -264,7 +264,7 @@ class BytePacketReadTest {
                 assertEquals(0x0102030405060708L, copy.readLong())
             }
             pkt.copy().use { copy ->
-                assertEquals(0x0807060504030201, copy.readLong().reverseByteOrder())
+                assertEquals(0x0807060504030201, copy.readLongLittleEndian())
             }
         } finally {
             pkt.release()
@@ -280,7 +280,7 @@ class BytePacketReadTest {
 
         try {
             assertEquals(1.5f, pkt.readFloat())
-            assertEquals(1.5f, pkt.readFloat().reverseByteOrder())
+            assertEquals(1.5f, pkt.readFloatLittleEndian())
         } finally {
             pkt.release()
         }
@@ -295,7 +295,7 @@ class BytePacketReadTest {
 
         try {
             assertEquals(1.5, pkt.readDouble())
-            assertEquals(1.5, pkt.readDouble().reverseByteOrder())
+            assertEquals(1.5, pkt.readDoubleLittleEndian())
         } finally {
             pkt.release()
         }

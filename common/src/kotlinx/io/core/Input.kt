@@ -7,7 +7,8 @@ import kotlinx.io.core.internal.*
  */
 expect interface Input : Closeable {
     @Deprecated(
-        "Not supported anymore. All operations are big endian by default.",
+        "Not supported anymore. All operations are big endian by default. " +
+            "Use readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.",
         level = DeprecationLevel.ERROR
     )
     var byteOrder: ByteOrder
