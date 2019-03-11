@@ -136,7 +136,7 @@ fun Buffer.append(csq: CharArray, start: Int, end: Int): Buffer {
 
 @Deprecated("This is no longer supported. Read from a packet instead.")
 fun Buffer.readText(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
-    TODO_ERROR()
+    return decoder.decodeBuffer(this, out, lastBuffer, max)
 }
 
 /**

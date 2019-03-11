@@ -1,11 +1,8 @@
 package kotlinx.io.charsets
 
 import kotlinx.io.core.*
-import kotlinx.io.core.internal.*
-import kotlinx.io.errors.*
 import kotlinx.io.js.*
 import org.khronos.webgl.*
-import kotlin.require
 
 actual abstract class Charset(internal val _name: String) {
     actual abstract fun newEncoder(): CharsetEncoder
@@ -76,7 +73,9 @@ actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
 
 internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
 
+
 // ----------------------------------------------------------------------
+
 
 actual abstract class CharsetDecoder(internal val _charset: Charset)
 
@@ -84,29 +83,90 @@ private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDec
 
 actual val CharsetDecoder.charset: Charset get() = _charset
 
-actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
-    val decoder = TextDecoderFatal(charset.name, true)
-    var copied = 0
+internal actual fun CharsetDecoder.decodeBuffer(
+    input: Buffer,
+    out: Appendable,
+    lastBuffer: Boolean,
+    max: Int
+): Int {
+    if (max == 0) return 0
 
-    input.takeWhileSize { buffer ->
-        val rem = max - copied
-        if (rem == 0) return@takeWhileSize 0
+    val decoder = TextDecoderFatal(charset.name)
+    val copied: Int
 
-        copied += buffer.readText(decoder, dst, buffer is ChunkBuffer && buffer.next == null, rem)
-        1
-    }
+    input.readDirectInt8Array { view ->
+        val result = view.decodeBufferImpl(decoder, max)
+        out.append(result.charactersDecoded)
+        copied = result.bytesConsumed
 
-    if (copied < max) {
-        val s = decodeWrap { decoder.decode() }
-        if (s.length > max - copied) {
-            throw UnsupportedOperationException("Partial trailing characters are not supported")
-        }
-
-        dst.append(s)
-        copied += s.length
+        result.bytesConsumed
     }
 
     return copied
+}
+
+actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
+    val decoder = TextDecoderFatal(charset.name, true)
+    var charactersCopied = 0
+
+    // use decode stream while we have remaining characters count > buffer size in bytes
+    // it is much faster than using decodeBufferImpl
+    input.takeWhileSize { buffer ->
+        val rem = max - charactersCopied
+        val bufferSize = buffer.readRemaining
+        if (rem < bufferSize) return@takeWhileSize 0
+
+        buffer.readDirectInt8Array { view ->
+            val decodedText = decodeWrap {
+                decoder.decodeStream(view, stream = true)
+            }
+            dst.append(decodedText)
+            charactersCopied += decodedText.length
+            view.byteLength
+        }
+
+        when {
+            charactersCopied == max -> {
+                val tail = try {
+                    decoder.decode()
+                } catch (_: dynamic) {
+                    ""
+                }
+
+                if (tail.isNotEmpty()) {
+                    // if we have a trailing byte then we can't handle this chunk via fast-path
+                    // because we don't know how many bytes in the end we need to preserve
+                    buffer.rewind(bufferSize)
+                }
+                0
+            }
+            charactersCopied < max -> MAX_CHARACTERS_SIZE_IN_BYTES
+            else -> 0
+        }
+    }
+
+    if (charactersCopied < max) {
+        val tail = decodeWrap {
+            decoder.decode()
+        }
+        if (tail.isNotEmpty()) {
+            dst.append(tail)
+            charactersCopied += tail.length
+        }
+    }
+
+    if (charactersCopied < max) {
+        input.takeWhileSize(MAX_CHARACTERS_SIZE_IN_BYTES) { buffer ->
+            buffer.readDirectInt8Array { view ->
+                val result = view.decodeBufferImpl(decoder, max - charactersCopied)
+                dst.append(result.charactersDecoded)
+                charactersCopied += result.charactersDecoded.length
+                result.bytesConsumed
+            }
+        }
+    }
+
+    return charactersCopied
 }
 
 actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
@@ -125,8 +185,6 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
 
             decoder.decode(subView)
         }
-
-        TODO_ERROR("update headReadOffset")
 
         input.discardExact(inputLength)
         return text
@@ -161,8 +219,17 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
             val chunkSize = buffer.readRemaining
             val size = minOf(chunkSize, inputRemaining)
             val text = when {
-                buffer.readPosition == 0 && buffer.content.byteLength == size -> decoder.decodeStream(buffer.content, true)
-                else -> decoder.decodeStream(Int8Array(buffer.content, buffer.readPosition, size), true)
+                buffer.readPosition == 0 && buffer.memory.view.byteLength == size -> decoder.decodeStream(
+                    buffer.memory.view,
+                    true
+                )
+                else -> decoder.decodeStream(
+                    Int8Array(
+                        buffer.memory.view.buffer,
+                        buffer.memory.view.byteOffset + buffer.readPosition,
+                        size
+                    ), true
+                )
             }
             sb.append(text)
 
@@ -177,8 +244,16 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
                 val chunkSize = buffer.readRemaining
                 val size = minOf(chunkSize, inputRemaining)
                 val text = when {
-                    buffer.readPosition == 0 && buffer.content.byteLength == size -> decoder.decode(buffer.content)
-                    else -> decoder.decodeStream(Int8Array(buffer.content, buffer.readPosition, size), true)
+                    buffer.readPosition == 0 && buffer.memory.view.byteLength == size -> {
+                        decoder.decode(buffer.memory.view)
+                    }
+                    else -> decoder.decodeStream(
+                        Int8Array(
+                            buffer.memory.view.buffer,
+                            buffer.memory.view.byteOffset + buffer.readPosition,
+                            size
+                        ), true
+                    )
                 }
                 sb.append(text)
                 buffer.discardExact(size)

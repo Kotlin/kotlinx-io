@@ -258,6 +258,61 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     }
 }
 
+
+internal actual fun CharsetDecoder.decodeBuffer(
+    input: Buffer,
+    out: Appendable,
+    lastBuffer: Boolean,
+    max: Int
+): Int {
+    if (!input.canRead() || max == 0) {
+        return 0
+    }
+
+    val charset = iconvCharsetName(charset.name)
+    val cd = iconv_open(platformUtf16, charset)
+    checkErrors(cd, charset)
+
+    var charactersCopied = 0
+    try {
+        input.readDirect { ptr ->
+            val size = input.readRemaining
+            val result = CharArray(size)
+
+            val bytesLeft = memScoped {
+                result.usePinned { pinnedResult ->
+                    val inbuf = alloc<CPointerVar<ByteVar>>()
+                    val outbuf = alloc<CPointerVar<ByteVar>>()
+                    val inbytesleft = alloc<size_tVar>()
+                    val outbytesleft = alloc<size_tVar>()
+
+                    inbuf.value = ptr
+                    outbuf.value = pinnedResult.addressOf(0).reinterpret()
+                    inbytesleft.value = size.convert()
+                    outbytesleft.value = size.convert()
+
+                    if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == MAX_SIZE) {
+                        checkIconvResult(posix_errno())
+                    }
+
+                    charactersCopied += (size - outbytesleft.value.convert<Int>()) / 2
+                    inbytesleft.value.convert<Int>()
+                }
+            }
+
+            repeat(charactersCopied) { index ->
+                out.append(result[index])
+            }
+
+            size - bytesLeft
+        }
+
+        return charactersCopied
+    } finally {
+        iconv_close(cd)
+    }
+}
+
 actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
 

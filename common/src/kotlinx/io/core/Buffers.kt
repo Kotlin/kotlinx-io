@@ -14,6 +14,14 @@ import kotlin.contracts.*
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
 expect class IoBuffer : Input, Output, ChunkBuffer {
 
+    @Deprecated(
+        "Not supported anymore. All operations are big endian by default. " +
+            "Read/write with readXXXLittleEndian/writeXXXLittleEndian or " +
+            "do readXXX/writeXXX with X.reverseByteOrder() instead.",
+        level = DeprecationLevel.ERROR
+    )
+    final override var byteOrder: ByteOrder
+
     override fun close()
 
     final override fun flush()
@@ -51,6 +59,19 @@ expect class IoBuffer : Input, Output, ChunkBuffer {
          */
         val EmptyPool: ObjectPool<IoBuffer>
     }
+}
+
+/**
+ * Read the specified number of bytes specified (optional, read all remaining by default)
+ */
+fun Buffer.readBytes(count: Int = readRemaining): ByteArray {
+    if (count == 0) {
+        return EmptyByteArray
+    }
+
+    val result = ByteArray(count)
+    readFully(result)
+    return result
 }
 
 @Suppress("DEPRECATION")

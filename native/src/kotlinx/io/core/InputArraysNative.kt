@@ -2,7 +2,6 @@ package kotlinx.io.core
 
 import kotlinx.cinterop.*
 import kotlinx.io.errors.*
-import java.nio.*
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {

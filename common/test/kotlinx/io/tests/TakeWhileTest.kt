@@ -1,14 +1,15 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.*
 
 class TakeWhileTest {
-    private val pool = VerifyingObjectPool(IoBuffer.NoPool)
+    private val pool = VerifyingObjectPool(ChunkBuffer.Pool)
     private val chunk1 = pool.borrow()
     private val chunk2 = pool.borrow()
 
-    private val chunks = ArrayList<IoBuffer>()
+    private val chunks = ArrayList<ChunkBuffer>()
     private val packets = ArrayList<ByteReadPacket>()
 
     @BeforeTest

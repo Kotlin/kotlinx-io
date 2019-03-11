@@ -38,7 +38,8 @@ actual class IoBuffer internal constructor(
         "Not supported anymore. All operations are big endian by default.",
         level = DeprecationLevel.ERROR
     )
-    final override var byteOrder: ByteOrder get() = ByteOrder.BIG_ENDIAN
+    actual final override var byteOrder: ByteOrder
+        get() = ByteOrder.BIG_ENDIAN
         set(newOrder) {
             if (newOrder != ByteOrder.BIG_ENDIAN) {
                 throw IllegalArgumentException("Only BIG_ENDIAN is supported")

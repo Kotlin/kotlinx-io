@@ -166,8 +166,10 @@ fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: Strin
  */
 fun ByteReadPacket.readBytes(
     n: Int = remaining.coerceAtMostMaxIntOrFail("Unable to convert to a ByteArray: packet is too big")
-): ByteArray =
-    ByteArray(n).also { readFully(it, 0, n) }
+): ByteArray = when {
+    n != 0 -> ByteArray(n).also { readFully(it, 0, n) }
+    else -> EmptyByteArray
+}
 
 /**
  * Reads exactly [n] bytes from the input or fails if not enough bytes available.
@@ -183,7 +185,9 @@ fun Input.readBytes(): ByteArray = readBytesOf()
  * Reads at least [min] but no more than [max] bytes from the input to a new byte array
  * @throws EOFException if not enough bytes available to get [min] bytes
  */
-fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (min == max) {
+fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (min == max && min == 0) {
+    EmptyByteArray
+} else if (min == max) {
     ByteArray(min).also { readFully(it, 0, min) }
 } else {
     var array = ByteArray(max.toLong().coerceAtMost(sizeEstimate()).coerceAtLeast(min.toLong()).toInt())
@@ -460,6 +464,7 @@ private fun bufferLimitExceeded(limit: Int): Nothing {
     throw BufferLimitExceededException("Too many characters before delimiter: limit $limit exceeded")
 }
 
+@PublishedApi
 internal fun prematureEndOfStream(size: Int): Nothing =
     throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
 

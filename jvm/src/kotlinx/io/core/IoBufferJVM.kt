@@ -65,7 +65,7 @@ actual class IoBuffer private constructor(
             "do readXXX/writeXXX with X.reverseByteOrder() instead.",
         level = DeprecationLevel.ERROR
     )
-    final override var byteOrder: ByteOrder
+    actual final override var byteOrder: ByteOrder
         get() = ByteOrder.of(readBuffer.order())
         set(value) {
             if (value != ByteOrder.BIG_ENDIAN) {

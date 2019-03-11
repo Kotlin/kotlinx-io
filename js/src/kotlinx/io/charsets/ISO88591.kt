@@ -3,7 +3,7 @@ package kotlinx.io.charsets
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 
-internal fun encodeISO88591(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int {
+internal fun encodeISO88591(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
     if (fromIndex >= toIndex) return 0
 
     dst.writeDirect { view ->

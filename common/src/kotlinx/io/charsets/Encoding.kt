@@ -1,6 +1,7 @@
 package kotlinx.io.charsets
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 
 expect abstract class Charset {
     @ExperimentalIoApi
@@ -29,8 +30,6 @@ expect val CharsetEncoder.charset: Charset
 fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Output) {
     encodeToImpl(dst, input, fromIndex, toIndex)
 }
-
-private val EmptyByteArray = ByteArray(0)
 
 @ExperimentalIoApi
 expect fun CharsetEncoder.encodeToByteArray(
@@ -71,7 +70,7 @@ fun CharsetEncoder.encode(input: CharArray, fromIndex: Int, toIndex: Int, dst: O
 
     if (start >= toIndex) return
     dst.writeWhileSize(1) { view: Buffer ->
-        val rc = encodeImpl(input, start, toIndex, view)
+        val rc = encodeArrayImpl(input, start, toIndex, view)
         check(rc >= 0)
         start += rc
 
@@ -119,11 +118,18 @@ expect class MalformedInputException(message: String) : Throwable
 
 // ----------------------------- INTERNALS -----------------------------------------------------------------------------
 
-internal fun CharsetEncoder.encodeImpl(input: CharArray, fromIndex: Int, toIndex: Int, dst: Buffer): Int = TODO()
+internal fun CharsetEncoder.encodeArrayImpl(input: CharArray, fromIndex: Int, toIndex: Int, dst: Buffer): Int = TODO()
 
-internal expect fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: IoBuffer): Int
+internal expect fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int
 
-internal expect fun CharsetEncoder.encodeComplete(dst: IoBuffer): Boolean
+internal expect fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean
+
+internal expect fun CharsetDecoder.decodeBuffer(
+    input: Buffer,
+    out: Appendable,
+    lastBuffer: Boolean,
+    max: Int = Int.MAX_VALUE
+): Int
 
 internal fun CharsetEncoder.encodeToByteArrayImpl1(
     input: CharSequence,
@@ -132,7 +138,7 @@ internal fun CharsetEncoder.encodeToByteArrayImpl1(
 ): ByteArray {
     var start = fromIndex
     if (start >= toIndex) return EmptyByteArray
-    val single = IoBuffer.Pool.borrow()
+    val single = ChunkBuffer.Pool.borrow()
 
     try {
         IoBuffer.NoPool
@@ -144,12 +150,12 @@ internal fun CharsetEncoder.encodeToByteArrayImpl1(
             return result
         }
 
-        val builder = BytePacketBuilder(0, IoBuffer.Pool)
-        builder.appendSingleChunk(single.duplicate())
-        encodeToImpl(builder, input, start, toIndex)
-        return builder.build().readBytes()
+        return buildPacket {
+            appendSingleChunk(single.duplicate())
+            encodeToImpl(this, input, start, toIndex)
+        }.readBytes()
     } finally {
-        single.release(IoBuffer.Pool)
+        single.release(ChunkBuffer.Pool)
     }
 }
 
@@ -189,7 +195,7 @@ internal fun CharsetEncoder.encodeToImpl(
 
     var bytesWritten = 0
 
-    destination.writeWhileSize(1) { view: IoBuffer ->
+    destination.writeWhileSize(1) { view: Buffer ->
         val before = view.writeRemaining
         val rc = encodeImpl(input, start, toIndex, view)
         check(rc >= 0)

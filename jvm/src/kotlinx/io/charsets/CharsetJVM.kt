@@ -137,6 +137,38 @@ internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean {
     return completed
 }
 
+internal actual fun CharsetDecoder.decodeBuffer(
+    input: Buffer,
+    out: Appendable,
+    lastBuffer: Boolean,
+    max: Int
+): Int {
+    var charactersCopied = 0
+    input.readDirect { bb ->
+        val tmpBuffer = ChunkBuffer.Pool.borrow()
+        val cb = tmpBuffer.memory.buffer.asCharBuffer()!!
+
+        try {
+            while (bb.hasRemaining() && charactersCopied < max) {
+                val partSize = minOf(cb.capacity(), max - charactersCopied)
+                cb.clear()
+                cb.limit(partSize)
+
+                val result = decode(bb, cb, lastBuffer)
+                if (result.isMalformed || result.isUnmappable) {
+                    result.throwExceptionWrapped()
+                }
+
+                charactersCopied += partSize
+            }
+        } finally {
+            tmpBuffer.release(ChunkBuffer.Pool)
+        }
+    }
+
+    return charactersCopied
+}
+
 // -----------------------
 
 actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder

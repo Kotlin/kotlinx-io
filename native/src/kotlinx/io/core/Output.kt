@@ -81,8 +81,15 @@ actual interface Output : Appendable, Closeable {
         writeFully(src, length)
     }
 
-    fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
-    fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
+        writeFully(src, offset, length)
+    }
 
     actual fun append(csq: CharArray, start: Int, end: Int): Appendable
 

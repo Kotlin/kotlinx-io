@@ -150,6 +150,6 @@ private inline fun <T : Any> Input.readPrimitiveTemplate(read: () -> T, reverse:
     }
 }
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 private inline val Input.byteOrderDeprecated
     get() = byteOrder

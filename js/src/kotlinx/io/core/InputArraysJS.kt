@@ -2,8 +2,8 @@
 
 package kotlinx.io.core
 
+import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
-import kotlinx.io.errors.*
 import org.khronos.webgl.*
 
 fun Input.readFully(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset) {
@@ -11,42 +11,75 @@ fun Input.readFully(dst: Int8Array, offset: Int = 0, length: Int = dst.length - 
         return readFully(dst, offset, length)
     }
 
-    TODO_ERROR()
+    val rc = readAvailable(dst, offset, length)
+    if (rc != length) {
+        prematureEndOfStream(length)
+    }
 }
 
 fun Input.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset) {
     if (this is AbstractInput) {
         return readFully(dst, offset, length)
     }
-    TODO_ERROR()
+
+    val rc = readAvailable(dst, offset, length)
+    if (rc != length) {
+        prematureEndOfStream(length)
+    }
 }
 
 fun Input.readFully(dst: ArrayBufferView, byteOffset: Int = 0, byteLength: Int = dst.byteLength - byteOffset) {
     if (this is AbstractInput) {
         return readFully(dst, byteOffset, byteLength)
     }
-    TODO_ERROR()
+
+    val rc = readAvailable(dst, byteOffset, byteLength)
+    if (rc != byteLength) {
+        prematureEndOfStream(byteLength)
+    }
 }
 
 fun Input.readAvailable(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset): Int {
     if (this is AbstractInput) {
         return readAvailable(dst, offset, length)
     }
-    TODO_ERROR()
+
+    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+    return readAvailable(dst as ArrayBufferView, offset, length)
 }
 
+@Suppress("Duplicates")
 fun Input.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
     if (this is AbstractInput) {
         return readAvailable(dst, offset, length)
     }
-    TODO_ERROR()
+
+    var bytesCopied = 0
+    takeWhile { buffer ->
+        val partSize = minOf(buffer.readRemaining, length - bytesCopied)
+        buffer.memory.copyTo(dst, buffer.readPosition, partSize, bytesCopied)
+        bytesCopied += partSize
+        bytesCopied < length
+    }
+
+    return bytesCopied
 }
 
+@Suppress("Duplicates")
 fun Input.readAvailable(dst: ArrayBufferView, byteOffset: Int = 0, byteLength: Int = dst.byteLength - byteOffset): Int {
     if (this is AbstractInput) {
         return readAvailable(dst, byteOffset, byteLength)
     }
-    TODO_ERROR()
+
+    var bytesCopied = 0
+    takeWhile { buffer ->
+        val partSize = minOf(buffer.readRemaining, byteLength - bytesCopied)
+        buffer.memory.copyTo(dst, buffer.readPosition, partSize, bytesCopied)
+        bytesCopied += partSize
+        bytesCopied < byteLength
+    }
+
+    return bytesCopied
 }
 
 internal fun AbstractInput.readFully(dst: Int8Array, offset: Int, length: Int) {

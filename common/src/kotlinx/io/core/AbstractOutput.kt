@@ -19,11 +19,6 @@ internal constructor(
     protected val pool: ObjectPool<ChunkBuffer>
 ) : Appendable, Output {
     constructor(pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool) : this(0, pool)
-
-    @Suppress("UNCHECKED_CAST", "DEPRECATION")
-    @Deprecated("Use ChunkBuffer's pool instead", level = DeprecationLevel.ERROR)
-    constructor(pool: ObjectPool<IoBuffer>) : this(pool as ObjectPool<ChunkBuffer>)
-
     /**
      * An implementation should write the whole [buffer] to the destination. It should never capture the [buffer] instance
      * longer than this method execution since it will be disposed after return.
