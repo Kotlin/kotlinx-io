@@ -1,10 +1,11 @@
 package kotlinx.io.tests
 
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.*
 
 class ReadUntilDelimiterTest {
-    private val pool: VerifyingObjectPool<IoBuffer> = VerifyingObjectPool(IoBuffer.NoPool)
+    private val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)
     private val small = ByteArray(3)
     private val empty = ByteArray(0)
     private val builder = BytePacketBuilder(0, pool)

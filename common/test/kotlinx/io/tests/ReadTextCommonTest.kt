@@ -2,10 +2,11 @@ package kotlinx.io.tests
 
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
+import kotlinx.io.core.internal.*
 import kotlin.test.*
 
 class ReadTextCommonTest {
-    private val pool: VerifyingObjectPool<IoBuffer> = VerifyingObjectPool(IoBuffer.NoPool)
+    private val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)
 
     @AfterTest
     fun verifyPool() {
@@ -274,7 +275,7 @@ class ReadTextCommonTest {
         first.writeByte(0xce.toByte())
         second.writeByte(0x9b.toByte())
 
-        val pkt = ByteReadPacket(first, IoBuffer.NoPool)
+        val pkt = ByteReadPacket(first, ChunkBuffer.NoPool)
 
         val text = pkt.readText(Charsets.UTF_8)
         assertEquals("\u039b", text)
@@ -294,7 +295,7 @@ class ReadTextCommonTest {
         second.writeByte(0xaf.toByte())
         second.writeByte(0xb5.toByte())
 
-        val pkt = ByteReadPacket(first, IoBuffer.NoPool)
+        val pkt = ByteReadPacket(first, ChunkBuffer.NoPool)
 
         val text = pkt.readText(Charsets.UTF_8)
         assertEquals("\u0BF5", text)
@@ -315,7 +316,7 @@ class ReadTextCommonTest {
         first.writeByte(0xaf.toByte())
         second.writeByte(0xb5.toByte())
 
-        val pkt = ByteReadPacket(first, IoBuffer.NoPool)
+        val pkt = ByteReadPacket(first, ChunkBuffer.NoPool)
 
         val text = pkt.readText(Charsets.UTF_8)
         assertEquals("\u0BF5", text)
@@ -347,17 +348,14 @@ class ReadTextCommonTest {
         val input = object : AbstractInput() {
             private var offset = 0
 
-            override fun fill(): IoBuffer? {
-                if (offset >= content.size) return null
+            override fun fill(destination: Buffer): Boolean {
+                if (offset >= content.size) return true
 
-                val buffer = pool.borrow()
-                buffer.reserveEndGap(8)
-
-                val size = minOf(buffer.writeRemaining, content.size - offset)
-                buffer.writeFully(content, offset, size)
+                val size = minOf(destination.writeRemaining, content.size - offset)
+                destination.writeFully(content, offset, size)
                 offset += size
 
-                return buffer
+                return offset >= content.size
             }
 
             override fun closeSource() {

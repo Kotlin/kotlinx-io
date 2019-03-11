@@ -375,7 +375,7 @@ private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: In
 
         val delta = before - buffer.readRemaining
         if (delta > 0) {
-            buffer.pushBack(delta)
+            buffer.rewind(delta)
             out.writeFully(buffer, delta)
         }
 
@@ -415,7 +415,7 @@ private fun Input.readUTF8UntilDelimiterToSlowUtf8(
 
         val delta = before - buffer.readRemaining
         if (delta > 0) {
-            buffer.pushBack(delta)
+            buffer.rewind(delta)
             out.writeFully(buffer, delta)
         }
 
@@ -466,6 +466,10 @@ private fun bufferLimitExceeded(limit: Int): Nothing {
 
 @PublishedApi
 internal fun prematureEndOfStream(size: Int): Nothing =
+    throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
+
+@PublishedApi
+internal fun prematureEndOfStream(size: Long): Nothing =
     throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
 
 private fun prematureEndOfStreamToReadChars(charactersCount: Int): Nothing =

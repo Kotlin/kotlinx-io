@@ -141,7 +141,6 @@ internal fun CharsetEncoder.encodeToByteArrayImpl1(
     val single = ChunkBuffer.Pool.borrow()
 
     try {
-        IoBuffer.NoPool
         val rc = encodeImpl(input, start, toIndex, single)
         start += rc
         if (start == toIndex) {
