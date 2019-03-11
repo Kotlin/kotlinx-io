@@ -79,7 +79,7 @@ fun Output.writeFullyLittleEndian(source: DoubleArray, offset: Int = 0, length: 
         { writeDouble(source[it].reverseByteOrder()) })
 }
 
-private fun <T : Any> Output.writePrimitiveTemplate(value: T, write: (T) -> Unit, reverse: T.() -> T) {
+private inline fun <T : Any> Output.writePrimitiveTemplate(value: T, write: (T) -> Unit, reverse: T.() -> T) {
     write(
         when (byteOrderDeprecated) {
             ByteOrder.LITTLE_ENDIAN -> value
