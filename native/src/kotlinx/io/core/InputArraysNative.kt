@@ -1,24 +1,45 @@
 package kotlinx.io.core
 
 import kotlinx.cinterop.*
-import kotlinx.io.errors.*
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readFully(dst: CPointer<ByteVar>, offset: Int, length: Int) {
-    TODO_ERROR()
+    if (readAvailable(dst, offset, length) != length) {
+        prematureEndOfStream(length)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readFully(dst: CPointer<ByteVar>, offset: Long, length: Long) {
-    TODO_ERROR()
+    if (readAvailable(dst, offset, length) != length) {
+        prematureEndOfStream(length)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
-    TODO_ERROR()
+    var bytesCopied = 0
+
+    takeWhile { buffer ->
+        val partSize = minOf(length - bytesCopied, buffer.readRemaining)
+        buffer.readFully(dst, offset + bytesCopied, partSize)
+        bytesCopied += partSize
+        bytesCopied < length
+    }
+
+    return bytesCopied
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Long {
-    TODO_ERROR()
+    var bytesCopied = 0L
+
+    takeWhile { buffer ->
+        val partSize = minOf(length - bytesCopied, buffer.readRemaining.toLong()).toInt()
+        buffer.readFully(dst, offset + bytesCopied, partSize)
+        bytesCopied += partSize
+        bytesCopied < length
+    }
+
+    return bytesCopied
 }
