@@ -9,6 +9,10 @@ actual abstract class Charset(internal val _name: String) {
     actual abstract fun newEncoder(): CharsetEncoder
     actual abstract fun newDecoder(): CharsetDecoder
 
+    override fun toString(): String {
+        return name
+    }
+
     actual companion object {
         actual fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
