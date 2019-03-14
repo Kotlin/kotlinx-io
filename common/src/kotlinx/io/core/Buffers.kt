@@ -269,6 +269,8 @@ internal object EmptyBufferPoolImpl : NoPoolImpl<IoBuffer>() {
 
 internal tailrec fun IoBuffer?.releaseAll(pool: ObjectPool<IoBuffer>) {
     if (this == null) return
+    val next = next
+    this.next = null
     release(pool)
     next.releaseAll(pool)
 }
