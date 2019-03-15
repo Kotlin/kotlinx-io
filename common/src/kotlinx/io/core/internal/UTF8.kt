@@ -1,6 +1,7 @@
 package kotlinx.io.core.internal
 
 import kotlinx.io.bits.*
+import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 
 internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
@@ -167,7 +168,7 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
                     if (byteCount == 0) {
                         if (isBmpCodePoint(value)) {
                             if (!consumer(value.toChar())) {
-                                discard(index - start - lastByteCount)
+                                discard(index - start - lastByteCount + 1)
                                 return -1
                             }
                         } else if (!isValidCodePoint(value)) {
@@ -175,7 +176,7 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
                         } else {
                             if (!consumer(highSurrogate(value).toChar()) ||
                                 !consumer(lowSurrogate(value).toChar())) {
-                                discard(index - start - lastByteCount)
+                                discard(index - start - lastByteCount + 1)
                                 return -1
                             }
                         }
@@ -242,8 +243,8 @@ internal fun Memory.encodeUTF8(text: CharSequence, from: Int, to: Int, dstOffset
             return EncodeResult((index - from).toUShort(), (resultPosition - dstOffset).toUShort())
         }
 
-        val character = text[index++].toInt() and 0xff
-        if (character and 0x80 != 0x80) {
+        val character = text[index++].toInt() and 0xffff
+        if (character and 0xff80 == 0) {
             storeAt(resultPosition++, character.toByte())
         } else {
             break
@@ -276,8 +277,18 @@ private fun Memory.encodeUTF8Stage1(
             break
         }
 
-        val character = text[index++].toInt() and 0xff
-        val size = putUtf8Char(resultPosition, character)
+        val character = text[index++]
+        val codepoint = when {
+            character.isHighSurrogate() -> {
+                if (index == lastCharIndex) {
+                    throw MalformedInputException("Splitted surrogate character")
+                }
+                codePoint(character, text[index++])
+            }
+            else -> character.toInt()
+        }
+        val size = putUtf8Char(resultPosition, codepoint)
+
         resultPosition += size
     } while (true)
 
@@ -306,12 +317,21 @@ private fun Memory.encodeUTF8Stage2(
             break
         }
 
-        val character = text[index++].toInt() and 0xff
-        if (charactersSize(character) > freeSpace) {
+        val character = text[index++]
+        val codepoint = when {
+            character.isHighSurrogate() -> character.toInt()
+            else -> {
+                if (index == lastCharIndex) {
+                    prematureEndOfStream(1) // TODO error message
+                }
+                codePoint(character, text[index++])
+            }
+        }
+        if (charactersSize(codepoint) > freeSpace) {
             index--
             break
         }
-        val size = putUtf8Char(resultPosition, character)
+        val size = putUtf8Char(resultPosition, codepoint)
         resultPosition += size
     } while (true)
 
@@ -321,28 +341,38 @@ private fun Memory.encodeUTF8Stage2(
 @Suppress("NOTHING_TO_INLINE")
 private inline fun charactersSize(v: Int) = when {
     v in 1..0x7f -> 1
-    v > 0x7ff -> 3
-    else -> 2
+    v in 0x80..0x7ff -> 2
+    v in 0x800..0xffff -> 3
+    v in 0x10000..0x10ffff -> 4
+    else -> malformedCodePoint(v)
 }
 
+// TODO optimize it, now we are simply do naive encoding here
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun Memory.putUtf8Char(offset: Int, v: Int) = when {
+internal inline fun Memory.putUtf8Char(offset: Int, v: Int): Int = when {
     v in 1..0x7f -> {
         storeAt(offset, v.toByte())
         1
     }
-    v > 0x7ff -> {
+    v in 0x80..0x7ff -> {
+        this[offset] = (0xc0 or ((v shr 6) and 0x1f)).toByte()
+        this[offset + 1] = (0x80 or (v and 0x3f)).toByte()
+        2
+    }
+    v in 0x800..0xffff -> {
         this[offset] = (0xe0 or ((v shr 12) and 0x0f)).toByte()
         this[offset + 1] = (0x80 or ((v shr 6) and 0x3f)).toByte()
         this[offset + 2] = (0x80 or (v and 0x3f)).toByte()
         3
     }
-    else -> {
-        // TODO surrogates
-        this[offset] = (0xc0 or ((v shr 6) and 0x1f)).toByte()
-        this[offset + 1] = (0x80 or (v and 0x3f)).toByte()
-        2
+    v in 0x10000..0x10ffff -> {
+        this[offset] = (0xf0 or ((v shr 18) and 0x07)).toByte() // 3 bits
+        this[offset + 1] = (0x80 or ((v shr 12) and 0x3f)).toByte() // 6 bits
+        this[offset + 2] = (0x80 or ((v shr 6) and 0x3f)).toByte() // 6 bits
+        this[offset + 3] = (0x80 or (v and 0x3f)).toByte() // 6 bits
+        4
     }
+    else -> malformedCodePoint(v)
 }
 
 @PublishedApi
@@ -370,5 +400,15 @@ internal fun lowSurrogate(cp: Int) = (cp and 0x3ff) + MinLowSurrogate
 
 @PublishedApi
 internal fun highSurrogate(cp: Int) = (cp ushr 10) + HighSurrogateMagic
+
+internal fun codePoint(high: Char, low: Char): Int {
+    check(high.isHighSurrogate())
+    check(low.isLowSurrogate())
+
+    val highValue = high.toInt() - HighSurrogateMagic
+    val lowValue = low.toInt() - MinLowSurrogate
+
+    return highValue shl 10 or lowValue
+}
 
 class MalformedUTF8InputException(message: String) : Exception(message)
