@@ -7,7 +7,6 @@ import kotlinx.io.core.internal.*
 import kotlinx.io.core.internal.require
 import kotlinx.io.errors.checkPeekTo
 import kotlinx.io.pool.*
-import kotlin.jvm.*
 
 /**
  * The default abstract base class implementing [Input] interface.
@@ -49,21 +48,14 @@ abstract class AbstractInput(
             _head = newHead
         }
 
-    @JvmField
     @PublishedApi
-    @Suppress("INAPPLICABLE_JVM_FIELD")
     internal final var headMemory: Memory = head.memory
-        private set
 
     @PublishedApi
-    @JvmField
     internal final var headPosition = head.readPosition
 
     @PublishedApi
-    @JvmField
-    @Suppress("INAPPLICABLE_JVM_FIELD")
     internal final var headEndExclusive = head.writePosition
-        private set
 
     @PublishedApi
     @Suppress("DEPRECATION_ERROR")
@@ -75,6 +67,23 @@ abstract class AbstractInput(
         }
 
     private var tailRemaining: Long = remaining - headRemaining
+        set(newValue) {
+            if (newValue < 0) {
+                error("tailRemaining is negative: $newValue")
+            }
+            if (newValue == 0L) {
+                val tail = _head.next?.remainingAll() ?: 0L
+                if (tail != 0L) {
+                    error("tailRemaining is set 0 while there is a tail of size $tail")
+                }
+            }
+            val tailSize = _head.next?.remainingAll() ?: 0L
+            if (newValue != tailSize) {
+                error("tailRemaining is set to a value that is not consistent with the actual tail: $newValue != $tailSize")
+            }
+
+            field = newValue
+        }
 
     @Deprecated(
         "Not supported anymore. All operations are big endian by default.",
@@ -303,8 +312,10 @@ abstract class AbstractInput(
             return value
         }
 
-        prepareRead(1)
-        return readByte()
+        val head = prepareRead(1) ?: prematureEndOfStream(1)
+        val byte = head.readByte()
+        completeReadHead(head)
+        return byte
     }
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
@@ -610,24 +621,27 @@ abstract class AbstractInput(
 
         val remaining = current.readRemaining
         val overrunSize = minOf(remaining, Buffer.ReservedSize - current.endGap)
-        if (next.startGap < overrunSize) return fixGapAfterReadFallback(current)
+        if (next.startGap < overrunSize) {
+            return fixGapAfterReadFallback(current)
+        }
 
         next.restoreStartGap(overrunSize)
 
         if (remaining > overrunSize) {
-            current.restoreEndGap(overrunSize)
+            current.releaseEndGap()
 
             this.headEndExclusive = current.writePosition
             this.tailRemaining += overrunSize
         } else {
             this._head = next
             this.tailRemaining -= next.readRemaining - overrunSize
+            current.cleanNext()
             current.release(pool)
         }
     }
 
     private fun fixGapAfterReadFallback(current: ChunkBuffer) {
-        if (noMoreChunksAvailable) {
+        if (noMoreChunksAvailable && current.next == null) {
             this.headPosition = current.readPosition
             this.headEndExclusive = current.writePosition
             this.tailRemaining = 0
@@ -642,11 +656,10 @@ abstract class AbstractInput(
         } else {
             val new = pool.borrow()
             new.reserveEndGap(Buffer.ReservedSize)
-            new.next = current.next
+            new.next = current.cleanNext()
 
             new.writeBufferAppend(current, size)
             this._head = new
-            this.tailRemaining = 0L
         }
 
         current.release(pool)
@@ -662,13 +675,13 @@ abstract class AbstractInput(
         chunk1.reserveEndGap(Buffer.ReservedSize)
         chunk2.reserveEndGap(Buffer.ReservedSize)
         chunk1.next = chunk2
-        chunk2.next = current.next
+        chunk2.next = current.cleanNext()
 
         chunk1.writeBufferAppend(current, size - overrun)
         chunk2.writeBufferAppend(current, overrun)
 
         this._head = chunk1
-        this.tailRemaining = chunk2.readRemaining.toLong()
+        this.tailRemaining = chunk2.remainingAll()
     }
 
     private tailrec fun ensureNext(current: ChunkBuffer, empty: ChunkBuffer): ChunkBuffer? {
@@ -676,7 +689,7 @@ abstract class AbstractInput(
             return doFill()
         }
 
-        val next = current.next
+        val next = current.cleanNext()
         current.release(pool)
 
         return when {
@@ -779,14 +792,16 @@ abstract class AbstractInput(
 
             return prepareReadLoop(minSize, next)
         } else {
-            val before = next.readPosition
-            head.writeBufferAppend(next, minSize - headSize)
+            val desiredExtraBytes = minSize - headSize
+            val copied = head.writeBufferAppend(next, desiredExtraBytes)
             headEndExclusive = head.writePosition
-            val after = next.readPosition
-            tailRemaining -= after - before
-            if (after == next.writePosition) {
-                head.next = next.next
+            tailRemaining -= copied
+            if (!next.canRead()) {
+                head.next = null
+                head.next = next.cleanNext()
                 next.release(pool)
+            } else {
+                next.reserveStartGap(copied)
             }
         }
 
@@ -797,7 +812,7 @@ abstract class AbstractInput(
     }
 
     private fun minSizeIsTooBig(minSize: Int): Nothing {
-        throw IllegalStateException("minSize of $minSize is too big (should be less than ${Buffer.ReservedSize}")
+        throw IllegalStateException("minSize of $minSize is too big (should be less than ${Buffer.ReservedSize})")
     }
 
     private fun afterRead(head: ChunkBuffer) {
@@ -810,6 +825,7 @@ abstract class AbstractInput(
         val next = head.next ?: ChunkBuffer.Empty
         this._head = next
         this.tailRemaining -= next.readRemaining
+        head.next = null
         head.release(pool)
 
         return next

@@ -23,7 +23,7 @@ fun Input.copyTo(output: Output): Long {
         }
 
         copied += head.remainingAll()
-        output.appendSingleChunk(head)
+        output.appendChain(head)
     } while (true)
 
     return copied

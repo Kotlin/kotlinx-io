@@ -56,8 +56,8 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
         }
 
         val array1 = encoder.encode(input.substring(start, endIndexExclusive))
-        if (array1.length > dst.writeRemaining) break
-        dst.writeFully(array1, 0, array1.length)
+        if (array1.length > dstRemaining) break
+        dst.writeFully(array1)
         start = endIndexExclusive
         dstRemaining -= array1.length
     }
@@ -146,23 +146,21 @@ actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     }
 
     if (charactersCopied < max) {
-        val tail = decodeWrap {
-            decoder.decode()
-        }
-        if (tail.isNotEmpty()) {
-            dst.append(tail)
-            charactersCopied += tail.length
-        }
-    }
-
-    if (charactersCopied < max) {
-        input.takeWhileSize(MAX_CHARACTERS_SIZE_IN_BYTES) { buffer ->
-            buffer.readDirectInt8Array { view ->
+        var size = 1
+        input.takeWhileSize(1) { buffer ->
+            val rc = buffer.readDirectInt8Array { view ->
                 val result = view.decodeBufferImpl(decoder, max - charactersCopied)
                 dst.append(result.charactersDecoded)
                 charactersCopied += result.charactersDecoded.length
                 result.bytesConsumed
             }
+            when {
+                rc > 0 -> size = 1
+                size == MAX_CHARACTERS_SIZE_IN_BYTES -> size = 0
+                else -> size++
+            }
+
+            size
         }
     }
 

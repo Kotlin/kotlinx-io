@@ -14,8 +14,8 @@ actual inline fun Memory.loadIntAt(offset: Int): Int = view.getInt32(offset, fal
 actual inline fun Memory.loadIntAt(offset: Long): Int = loadIntAt(offset.toIntOrFail("offset"))
 
 actual inline fun Memory.loadLongAt(offset: Int): Long =
-    (view.getInt32(offset, false).toLong() shl 32) or
-        view.getInt32(offset + 4, false).toLong()
+    (view.getUint32(offset, false).toLong() shl 32) or
+        view.getUint32(offset + 4, false).toLong()
 
 actual inline fun Memory.loadLongAt(offset: Long): Long = loadLongAt(offset.toIntOrFail("offset"))
 

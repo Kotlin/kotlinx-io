@@ -240,8 +240,10 @@ open class Buffer(val memory: Memory) {
     }
 
     internal fun releaseStartGap(newReadPosition: Int) {
-        require(newReadPosition >= 0)
-        require(newReadPosition <= readPosition)
+        require(newReadPosition >= 0) { "newReadPosition shouldn't be negative: $newReadPosition" }
+        require(newReadPosition <= readPosition) {
+            "newReadPosition shouldn't be ahead of the read position: $newReadPosition > $readPosition"
+        }
 
         readPosition = newReadPosition
         if (startGap > newReadPosition) {
@@ -317,6 +319,10 @@ open class Buffer(val memory: Memory) {
         }
         memory[writePosition] = value
         this.writePosition = writePosition + 1
+    }
+
+    override fun toString(): String {
+        return "Buffer($readRemaining used, $writeRemaining free, ${startGap + endGap} reserved of $capacity)"
     }
 
     companion object {
@@ -425,10 +431,6 @@ internal fun Buffer.endGapReservationFailedDueToContent(endGap: Int) {
 
 internal fun Buffer.restoreStartGap(size: Int) {
     releaseStartGap(readPosition - size)
-}
-
-internal fun Buffer.restoreEndGap(size: Int) {
-    releaseEndGap()
 }
 
 class InsufficientSpaceException(message: String = "Not enough free space") : Exception(message) {

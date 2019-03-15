@@ -19,7 +19,7 @@ actual fun Memory.loadShortArray(
     destinationOffset: Int,
     count: Int
 ) {
-    val typed = Int16Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Int16Array(view.buffer, view.byteOffset + offset, count)
 
     if (isLittleEndianPlatform) {
         // TODO investigate this implementation vs DataView.getInt16(...)
@@ -58,7 +58,7 @@ actual fun Memory.loadIntArray(
     destinationOffset: Int,
     count: Int
 ) {
-    val typed = Int32Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Int32Array(view.buffer, view.byteOffset + offset, count)
 
     if (isLittleEndianPlatform) {
         repeat(count) { index ->
@@ -96,15 +96,16 @@ actual fun Memory.loadLongArray(
     destinationOffset: Int,
     count: Int
 ) {
-    val typed = Int32Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Int32Array(view.buffer, view.byteOffset + offset, count * 2)
 
     if (isLittleEndianPlatform) {
-        for (index in 0 until count step 2) {
-            destination[index / 2 + destinationOffset] = (typed[index].reverseByteOrder().toLong() and 0xffffffffL) or
-                (typed[index + 1].reverseByteOrder().toLong() shl 32)
+        for (index in 0 until count * 2 step 2) {
+            destination[index / 2 + destinationOffset] =
+                (typed[index + 1].reverseByteOrder().toLong() and 0xffffffffL) or
+                    (typed[index].reverseByteOrder().toLong() shl 32)
         }
     } else {
-        for (index in 0 until count step 2) {
+        for (index in 0 until count * 2 step 2) {
             destination[index / 2 + destinationOffset] = (typed[index].toLong() and 0xffffffffL) or
                 (typed[index + 1].toLong() shl 32)
         }
@@ -136,7 +137,7 @@ actual fun Memory.loadFloatArray(
     destinationOffset: Int,
     count: Int
 ) {
-    val typed = Float32Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Float32Array(view.buffer, view.byteOffset + offset, count)
 
     if (isLittleEndianPlatform) {
         repeat(count) { index ->
@@ -174,7 +175,7 @@ actual fun Memory.loadDoubleArray(
     destinationOffset: Int,
     count: Int
 ) {
-    val typed = Float64Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Float64Array(view.buffer, view.byteOffset + offset, count)
 
     if (isLittleEndianPlatform) {
         repeat(count) { index ->
@@ -212,7 +213,7 @@ actual fun Memory.storeShortArray(
     sourceOffset: Int,
     count: Int
 ) {
-    val typed = Int16Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Int16Array(view.buffer, view.byteOffset + offset, count)
 
     if (isLittleEndianPlatform) {
         // TODO investigate this implementation vs DataView.getInt16(...)
@@ -251,7 +252,7 @@ actual fun Memory.storeIntArray(
     sourceOffset: Int,
     count: Int
 ) {
-    val typed = Int32Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Int32Array(view.buffer, view.byteOffset + offset, count)
 
     if (isLittleEndianPlatform) {
         repeat(count) { index ->
@@ -289,19 +290,21 @@ actual fun Memory.storeLongArray(
     sourceOffset: Int,
     count: Int
 ) {
-    val typed = Int32Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Int32Array(view.buffer, view.byteOffset + offset, count * 2)
 
     if (isLittleEndianPlatform) {
-        for (index in 0 until count step 2) {
+        for (index in 0 until count * 2 step 2) {
             val sourceIndex = index / 2 + sourceOffset
-            typed[index] = (source[sourceIndex] ushr 32).toInt().reverseByteOrder()
-            typed[index + 1] = (source[sourceIndex] and 0xffffffffL).toInt().reverseByteOrder()
+            val sourceValue = source[sourceIndex]
+            typed[index] = (sourceValue ushr 32).toInt().reverseByteOrder()
+            typed[index + 1] = (sourceValue and 0xffffffffL).toInt().reverseByteOrder()
         }
     } else {
-        for (index in 0 until count step 2) {
+        for (index in 0 until count * 2 step 2) {
             val sourceIndex = index / 2 + sourceOffset
-            typed[index] = (source[sourceIndex] ushr 32).toInt()
-            typed[index + 1] = (source[sourceIndex] and 0xffffffffL).toInt()
+            val sourceValue = source[sourceIndex]
+            typed[index] = (sourceValue ushr 32).toInt()
+            typed[index + 1] = (sourceValue and 0xffffffffL).toInt()
         }
     }
 }
@@ -331,7 +334,7 @@ actual fun Memory.storeFloatArray(
     sourceOffset: Int,
     count: Int
 ) {
-    val typed = Float32Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Float32Array(view.buffer, view.byteOffset + offset, count)
 
     if (isLittleEndianPlatform) {
         repeat(count) { index ->
@@ -369,7 +372,7 @@ actual fun Memory.storeDoubleArray(
     sourceOffset: Int,
     count: Int
 ) {
-    val typed = Float64Array(view.buffer, view.buffer.byteLength + offset, count)
+    val typed = Float64Array(view.buffer, view.byteOffset + offset, count)
 
     if (isLittleEndianPlatform) {
         repeat(count) { index ->

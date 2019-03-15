@@ -18,7 +18,10 @@ internal constructor(
     private val headerSizeHint: Int,
     protected val pool: ObjectPool<ChunkBuffer>
 ) : Appendable, Output {
-    constructor(pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool) : this(0, pool)
+    constructor(pool: ObjectPool<ChunkBuffer>) : this(0, pool)
+
+    constructor() : this(ChunkBuffer.Pool)
+
     /**
      * An implementation should write the whole [buffer] to the destination. It should never capture the [buffer] instance
      * longer than this method execution since it will be disposed after return.
@@ -422,7 +425,10 @@ internal constructor(
     @DangerousInternalIoApi
     fun prepareWriteHead(n: Int): ChunkBuffer {
         if (tailRemaining >= n) {
-            _tail?.let { return it }
+            _tail?.let {
+                it.commitWrittenUntilIndex(tailPosition)
+                return it
+            }
         }
         return appendNewBuffer()
     }

@@ -16,14 +16,14 @@ actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memo
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
-    return Memory(ByteBuffer.wrap(this, offset, length)).let(block)
+    return Memory(ByteBuffer.wrap(this, offset, length).slice().order(ByteOrder.BIG_ENDIAN)).let(block)
 }
 
 /**
  * Create [Memory] view for the specified [array] range starting at [offset] and the specified bytes [length].
  */
 inline fun Memory.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Memory {
-    return Memory(ByteBuffer.wrap(array, offset, length).order(ByteOrder.BIG_ENDIAN))
+    return Memory(ByteBuffer.wrap(array, offset, length).slice().order(ByteOrder.BIG_ENDIAN))
 }
 
 /**
@@ -39,7 +39,7 @@ inline fun Memory.Companion.of(buffer: ByteBuffer): Memory {
 internal actual object DefaultAllocator : Allocator {
     override fun alloc(size: Int): Memory = Memory(ByteBuffer.allocate(size))
 
-    override fun alloc(size: Long): Memory = DefaultAllocator.alloc(size.toIntOrFail("size"))
+    override fun alloc(size: Long): Memory = alloc(size.toIntOrFail("size"))
 
     override fun free(instance: Memory) {
     }

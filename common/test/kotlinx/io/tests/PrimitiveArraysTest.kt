@@ -673,7 +673,9 @@ class PrimitiveArraysTest {
         assertEquals(array.size * size, view.readRemaining)
         val tmp = LongArray(array.size)
         view.readFullyLittleEndian(tmp)
-        assertTrue { tmp.contentEquals(array) }
+        if (!tmp.contentEquals(array)) {
+            assertEquals(array.joinToString(), tmp.joinToString())
+        }
     }
 
     @Test

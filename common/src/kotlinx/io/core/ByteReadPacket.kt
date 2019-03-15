@@ -33,6 +33,10 @@ class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, po
     final override fun closeSource() {
     }
 
+    override fun toString(): String {
+        return "ByteReadPacket($remaining bytes remaining)"
+    }
+
     companion object {
         val Empty: ByteReadPacket = ByteReadPacket(ChunkBuffer.Empty, 0L, ChunkBuffer.EmptyPool)
 

@@ -6,6 +6,8 @@ import kotlinx.io.pool.DefaultPool
 import kotlinx.io.pool.ObjectPool
 import kotlin.native.concurrent.ThreadLocal
 
+internal const val DEFAULT_BUFFER_SIZE: Int = 4096
+
 /**
  * Invoke [block] function with a temporary [Buffer] instance of the specified [size] in bytes.
  * The provided instance shouldn't be captured and used outside of the [block] otherwise an undefined behaviour
@@ -50,7 +52,7 @@ internal inline fun <R> withChunkBuffer(pool: ObjectPool<ChunkBuffer>, block: Ch
 internal val DefaultChunkedBufferPool: ObjectPool<ChunkBuffer> = DefaultBufferPool()
 
 internal class DefaultBufferPool(
-    val bufferSize: Int = 4096,
+    val bufferSize: Int = DEFAULT_BUFFER_SIZE,
     capacity: Int = 1000,
     private val allocator: Allocator = DefaultAllocator
 ) : DefaultPool<ChunkBuffer>(capacity) {

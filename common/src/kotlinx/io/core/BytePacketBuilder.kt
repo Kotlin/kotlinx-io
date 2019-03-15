@@ -132,4 +132,8 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<ChunkB
             head.reserveEndGap(Buffer.ReservedSize)
         }
     }
+
+    override fun toString(): String {
+        return "BytePacketBuilder($size bytes written)"
+    }
 }

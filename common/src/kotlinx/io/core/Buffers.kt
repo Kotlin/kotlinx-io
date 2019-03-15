@@ -94,6 +94,7 @@ internal object EmptyBufferPoolImpl : NoPoolImpl<IoBuffer>() {
 
 internal tailrec fun ChunkBuffer?.releaseAll(pool: ObjectPool<ChunkBuffer>) {
     if (this == null) return
+    val next = cleanNext()
     release(pool)
     next.releaseAll(pool)
 }

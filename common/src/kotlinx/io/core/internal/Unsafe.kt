@@ -122,6 +122,9 @@ private fun Input.prepareNextReadHeadFallback(current: ChunkBuffer): ChunkBuffer
 @DangerousInternalIoApi
 fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
     if (this is AbstractOutput) {
+        if (current != null) {
+            afterHeadWrite()
+        }
         return prepareWriteHead(capacity)
     }
 

@@ -19,6 +19,8 @@ class BufferTest {
         assertFalse(Buffer.Empty.canWrite())
 
         val buffer = Buffer.Pool.borrow()
+        buffer.resetForWrite()
+        buffer.releaseGaps()
         try {
             assertNotEquals(0, buffer.writeRemaining)
             assertEquals(buffer.capacity, buffer.writeRemaining)

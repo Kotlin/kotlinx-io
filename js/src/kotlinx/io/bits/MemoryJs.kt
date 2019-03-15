@@ -198,7 +198,7 @@ fun Memory.copyTo(destination: ArrayBufferView, offset: Int, length: Int, destin
  */
 fun ArrayBuffer.copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
     val from = Int8Array(this, offset, length)
-    val to = Int8Array(destination.view.buffer, destination.view.byteOffset + offset, destinationOffset)
+    val to = Int8Array(destination.view.buffer, destination.view.byteOffset + destinationOffset, length)
 
     to.set(from, 0)
 }

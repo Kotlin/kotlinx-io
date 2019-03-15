@@ -42,9 +42,14 @@ internal fun Buffer.writeBufferPrepend(other: Buffer): Int {
     return size
 }
 
-private fun Buffer.writeBufferAppendUnreserve(size: Int) {
-    if (writeRemaining + endGap < size) {
+private fun Buffer.writeBufferAppendUnreserve(writeSize: Int) {
+    if (writeRemaining + endGap < writeSize) {
         throw IllegalArgumentException("Can't append buffer: not enough free space at the end")
     }
-    releaseEndGap()
+    val newWritePosition = writePosition + writeSize
+    val overrunSize = newWritePosition - limit
+
+    if (overrunSize > 0) {
+        releaseEndGap()
+    }
 }

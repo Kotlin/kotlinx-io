@@ -115,6 +115,7 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
 /**
  * Does the same as [ReadableByteChannel.read] but to a [IoBuffer] instance
  */
+@Suppress("DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun ReadableByteChannel.read(buffer: IoBuffer): Int {
     if (buffer.writeRemaining == 0) return 0
@@ -139,6 +140,7 @@ fun ReadableByteChannel.read(buffer: Buffer): Int {
 /**
  * Does the same as [WritableByteChannel.write] but from a [IoBuffer] instance
  */
+@Suppress("DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun WritableByteChannel.write(buffer: IoBuffer): Int {
     return write(buffer.readBuffer)
@@ -148,7 +150,7 @@ fun WritableByteChannel.write(buffer: IoBuffer): Int {
  * Does the same as [WritableByteChannel.write] but from a [Buffer] instance
  */
 fun WritableByteChannel.write(buffer: Buffer): Int {
-    return buffer.write { memory, start, endExclusive ->
+    return buffer.read { memory, start, endExclusive ->
         write(memory.buffer.sliceSafe(start, endExclusive - start))
     }
 }

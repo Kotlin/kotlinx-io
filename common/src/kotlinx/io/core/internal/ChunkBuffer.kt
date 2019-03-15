@@ -4,7 +4,8 @@ import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.atomicfu.updateAndGet
-import kotlinx.io.bits.Memory
+import kotlinx.io.bits.*
+import kotlinx.io.bits.DefaultAllocator
 import kotlinx.io.core.*
 import kotlinx.io.core.DefaultChunkedBufferPool
 import kotlinx.io.pool.*
@@ -21,7 +22,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
     /**
      * Reference to an origin buffer view this was copied from
      */
-    var origin: ChunkBuffer? = null
+    var origin: ChunkBuffer? = origin
         private set
 
     /**
@@ -57,7 +58,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
         }
     }
 
-    fun release(pool: ObjectPool<ChunkBuffer>) {
+    open fun release(pool: ObjectPool<ChunkBuffer>) {
         if (release()) {
             val origin = origin
             if (origin != null) {
@@ -135,10 +136,15 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
             }
         }
 
-        // TODO
         internal val NoPool: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
+            private val allocator = DefaultAllocator
+
             override fun borrow(): ChunkBuffer {
-                TODO("Not supported")
+                return ChunkBuffer(allocator.alloc(DEFAULT_BUFFER_SIZE), null)
+            }
+
+            override fun recycle(instance: ChunkBuffer) {
+                allocator.free(instance.memory)
             }
         }
     }

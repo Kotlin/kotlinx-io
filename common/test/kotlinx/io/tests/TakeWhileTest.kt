@@ -29,6 +29,7 @@ class TakeWhileTest {
     @AfterTest
     fun release() {
         chunks.forEach {
+            it.cleanNext()
             it.release(pool)
         }
         packets.forEach {
@@ -76,7 +77,7 @@ class TakeWhileTest {
 
         pkt.takeWhileSize(8) { it.discard(7); 0 }
 
-        assertNotNull(chunk1.next)
+        assertSame(chunk2, pkt.head)
         assertEquals(4, pkt.remaining)
 
         pkt.takeWhileSize(4) { 0 }

@@ -118,7 +118,10 @@ expect class MalformedInputException(message: String) : Throwable
 
 // ----------------------------- INTERNALS -----------------------------------------------------------------------------
 
-internal fun CharsetEncoder.encodeArrayImpl(input: CharArray, fromIndex: Int, toIndex: Int, dst: Buffer): Int = TODO()
+internal fun CharsetEncoder.encodeArrayImpl(input: CharArray, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
+    val length = toIndex - fromIndex
+    return encodeImpl(CharArraySequence(input, fromIndex, length), 0, length, dst)
+}
 
 internal expect fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int
 

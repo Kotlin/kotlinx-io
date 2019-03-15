@@ -453,7 +453,7 @@ fun Buffer.readAvailable(dst: ArrayBufferView, offset: Int = 0, length: Int = ds
 fun Buffer.writeFully(src: ArrayBuffer, offset: Int = 0, length: Int = src.byteLength) {
     write { memory, start, endExclusive ->
         if (endExclusive - start < length) {
-            throw EOFException("Not enough free space to write $length bytes")
+            throw InsufficientSpaceException("Not enough free space to write $length bytes")
         }
 
         src.copyTo(memory, offset, length, start)
@@ -462,12 +462,12 @@ fun Buffer.writeFully(src: ArrayBuffer, offset: Int = 0, length: Int = src.byteL
 }
 
 fun Buffer.writeFully(src: ArrayBufferView, offset: Int = 0, length: Int = src.byteLength - offset) {
-    write { memory, start, endExclusive ->
-        if (endExclusive - start < length) {
-            throw EOFException("Not enough free space to write $length bytes")
+    write { memory, dstOffset, endExclusive ->
+        if (endExclusive - dstOffset < length) {
+            throw InsufficientSpaceException("Not enough free space to write $length bytes")
         }
 
-        src.copyTo(memory, offset, length, start)
+        src.copyTo(memory, offset, length, dstOffset)
         length
     }
 }

@@ -110,9 +110,7 @@ internal fun Buffer.readUntilDelimiterDirect(delimiter: Byte, dst: Output): Int 
 }
 
 internal fun Buffer.readUntilDelimiterArrays(delimiter: Byte, dst: Output): Int {
-    val size = copyUntilArrays({ it == delimiter }, dst)
-    discard(size)
-    return size
+    return copyUntilArrays({ it == delimiter }, dst)
 }
 
 internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
@@ -173,11 +171,12 @@ private inline fun Buffer.copyUntilArrays(predicate: (Byte) -> Boolean,
     val bb = memory.buffer
     val array = bb.array()!!
     var i = bb.position() + bb.arrayOffset() + readPosition
+    val sourceEndPosition = bb.position() + bb.arrayOffset() + writePosition
     var copiedTotal = 0
 
     dst.writeWhile { chunk ->
         val start = i
-        val end = minOf(i + chunk.writeRemaining, bb.limit() + bb.arrayOffset())
+        val end = minOf(i + chunk.writeRemaining, sourceEndPosition)
 
         if (end <= array.size) {
             while (i < end) {
@@ -191,9 +190,9 @@ private inline fun Buffer.copyUntilArrays(predicate: (Byte) -> Boolean,
         chunk.writeFully(array, start, size)
 
         copiedTotal += size
-        !chunk.canWrite() && i < bb.limit() + bb.arrayOffset()
+        !chunk.canWrite() && i < sourceEndPosition
     }
 
-    bb.position(i)
+    discardUntilIndex(i)
     return copiedTotal
 }

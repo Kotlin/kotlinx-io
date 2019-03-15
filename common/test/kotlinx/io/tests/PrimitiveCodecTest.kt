@@ -246,7 +246,7 @@ class PrimitiveCodecTest {
         assertEquals(8, p.remaining)
         assertTrue { p.isNotEmpty }
 
-        assertEquals(0x112233440a0b0c0dL, p.readLongLittleEndian())
+        assertEquals(0x112233440a0b0c0dL, p.readLong())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
     }
@@ -255,6 +255,12 @@ class PrimitiveCodecTest {
     fun testULong() {
         builder.writeULong(0xfffefdfcfbfaf9f8u)
         val packet = builder.build()
+        val hex: String
+        packet.copy().read {
+            hex = it.readHex()
+            it.readRemaining
+        }
+        assertEquals("fffefdfcfbfaf9f8", hex)
         assertEquals(0xfffefdfcfbfaf9f8u, packet.readULong())
     }
 
@@ -400,5 +406,24 @@ class PrimitiveCodecTest {
         assertEquals(0.05, p.readDouble())
         assertEquals(0, p.remaining)
         assertTrue { p.isEmpty }
+    }
+
+    private fun Buffer.readHex() = buildString(readRemaining * 2) {
+        repeat(readRemaining) {
+            val i = readByte().toInt() and 0xff
+            val l = i shr 4
+            val r = i and 0x0f
+
+            appendDigit(l)
+            appendDigit(r)
+        }
+    }
+
+    private fun StringBuilder.appendDigit(d: Int) {
+        kotlin.require(d < 16) { "digit $d should be in [0..15]" }
+        kotlin.require(d >= 0) { "digit $d should be in [0..15]" }
+
+        if (d < 10) append('0' + d)
+        else append('a' + (d - 10))
     }
 }

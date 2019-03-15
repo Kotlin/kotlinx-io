@@ -23,7 +23,7 @@ private fun Input.readIntFallback(): Int {
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readLong(): Long {
-    return readPrimitive(2, { memory, index -> memory.loadLongAt(index) }, { readLongFallback() })
+    return readPrimitive(8, { memory, index -> memory.loadLongAt(index) }, { readLongFallback() })
 }
 
 private fun Input.readLongFallback(): Long {

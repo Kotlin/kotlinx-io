@@ -251,6 +251,10 @@ fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE):
     return charset.newDecoder().decode(this, max)
 }
 
+fun Buffer.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String = buildString {
+    charset.newDecoder().decodeBuffer(this@readText, this, true, max)
+}
+
 /**
  * Read exactly [n] characters interpreting bytes in the specified [charset].
  */
@@ -326,6 +330,10 @@ fun Output.writeText(
     toIndex: Int = text.size,
     charset: Charset = Charsets.UTF_8
 ) {
+    if (charset === Charsets.UTF_8) {
+        return writeTextUtf8(CharArraySequence(text, 0, text.size), fromIndex, toIndex)
+    }
+
     charset.newEncoder().encode(text, fromIndex, toIndex, this)
 }
 
@@ -466,11 +474,11 @@ private fun bufferLimitExceeded(limit: Int): Nothing {
 
 @PublishedApi
 internal fun prematureEndOfStream(size: Int): Nothing =
-    throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
+    throw EOFException("Premature end of stream: expected $size bytes")
 
 @PublishedApi
 internal fun prematureEndOfStream(size: Long): Nothing =
-    throw MalformedUTF8InputException("Premature end of stream: expected $size bytes")
+    throw EOFException("Premature end of stream: expected $size bytes")
 
 private fun prematureEndOfStreamToReadChars(charactersCount: Int): Nothing =
     throw EOFException("Not enough input bytes to read $charactersCount characters.")

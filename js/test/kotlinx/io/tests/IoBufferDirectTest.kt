@@ -7,6 +7,12 @@ import kotlin.test.*
 class IoBufferNativeTest {
     private val buffer = ChunkBuffer.Pool.borrow()
 
+    @BeforeTest
+    fun prepare() {
+        buffer.releaseGaps()
+        buffer.resetForWrite()
+    }
+
     @AfterTest
     fun destroy() {
         buffer.release(ChunkBuffer.Pool)

@@ -98,7 +98,7 @@ fun Input.readUntilDelimiter(delimiter: Byte, dst: Output): Long {
 fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte, dst: Output): Long {
     var copiedTotal = 0L
 
-    takeWhile {  chunk ->
+    takeWhile { chunk ->
         val copied = chunk.readUntilDelimitersImpl(delimiter1, delimiter2, dst)
         copiedTotal += copied
         !chunk.canRead()

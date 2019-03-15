@@ -456,15 +456,15 @@ open class StringsTest {
         }
 
         try {
-            for (i in listOf(4088, 4089, 4095, 4096, 4097, 4098, 8176, 8192)) {
-                packet = big.copy()
+            for (i in listOf(4095)) { //}, 4089, 4095, 4096, 4097, 4098, 8176, 8192)) {
+                val copied = big.copy()
 
                 try {
-                    val actual = packet.readTextExactBytes(bytes = i)
+                    val actual = copied.readTextExactBytes(bytes = i)
                     assertEquals(i, actual.length)
                     assertTrue { longLine.substring(0, i) == actual }
                 } finally {
-                    packet.release()
+                    copied.release()
                 }
             }
         } finally {
