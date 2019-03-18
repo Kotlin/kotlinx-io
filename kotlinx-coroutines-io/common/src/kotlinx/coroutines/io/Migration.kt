@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "PackageDirectoryMismatch")
 
 package kotlinx.coroutines.experimental.io
 
@@ -13,10 +13,10 @@ import kotlinx.coroutines.io.WriterScope
 import kotlinx.io.charsets.*
 import kotlin.coroutines.*
 
-@Deprecated("Use the same type from different package")
+@Deprecated("Use the same type from different package", level = DeprecationLevel.ERROR)
 typealias ByteReadChannel = kotlinx.coroutines.io.ByteReadChannel
 
-@Deprecated("Use the same type from different package")
+@Deprecated("Use the same type from different package", level = DeprecationLevel.ERROR)
 typealias ByteWriteChannel = kotlinx.coroutines.io.ByteWriteChannel
 
 @Deprecated("Use the same type from different package", level = DeprecationLevel.ERROR)

@@ -1,6 +1,7 @@
 package kotlinx.coroutines.io
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 import kotlin.jvm.Volatile

@@ -582,7 +582,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
     override fun cancel(cause: Throwable?): Boolean {
         if (closedCause != null || closed) return false
-        return close(cause ?: kotlinx.coroutines.io.CancellationException("Channel cancelled"))
+        return close(cause ?: kotlinx.coroutines.CancellationException("Channel cancelled"))
     }
 
     final override fun close(cause: Throwable?): Boolean {

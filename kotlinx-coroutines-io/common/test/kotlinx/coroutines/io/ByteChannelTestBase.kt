@@ -1,5 +1,6 @@
 package kotlinx.coroutines.io
 
+import kotlinx.coroutines.CancellationException
 import kotlin.test.*
 
 abstract class ByteChannelTestBase(autoFlush: Boolean = false) {
