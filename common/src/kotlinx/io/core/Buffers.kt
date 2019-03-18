@@ -129,6 +129,7 @@ expect class IoBuffer : Input, Output {
      *
      * @return number of bytes were copied
      */
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun peekTo(buffer: IoBuffer): Int
 
     final override fun discard(n: Long): Long

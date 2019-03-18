@@ -63,6 +63,7 @@ actual interface Input : Closeable {
      *
      * @return number of bytes were copied
      */
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     actual fun peekTo(buffer: IoBuffer): Int
 
     actual fun discard(n: Long): Long

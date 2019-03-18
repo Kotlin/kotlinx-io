@@ -53,6 +53,7 @@ expect interface Input : Closeable {
      *
      * @return number of bytes were copied
      */
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     fun peekTo(buffer: IoBuffer): Int
 
     /**
@@ -157,6 +158,7 @@ fun Input.discardExact(n: Int) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
+@Deprecated("This is going to become internal. Use peekTo instead.")
 inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
     var release = true
     var current = prepareReadFirstHead(1) ?: return
@@ -186,6 +188,7 @@ inline fun Input.takeWhile(block: (IoBuffer) -> Boolean) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
+@Deprecated("This is going to become internal. Use peekTo instead.")
 inline fun Input.takeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     var release = true
     var current = prepareReadFirstHead(initialSize) ?: return

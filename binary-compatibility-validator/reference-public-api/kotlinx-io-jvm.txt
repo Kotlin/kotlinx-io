@@ -219,7 +219,7 @@ public abstract class kotlinx/io/core/ByteReadPacketBase : kotlinx/io/core/Input
 	public final fun hasBytes (I)Z
 	public final fun isEmpty ()Z
 	public final fun isNotEmpty ()Z
-	public final fun peekTo (Lkotlinx/io/core/IoBuffer;)I
+	public final synthetic fun peekTo (Lkotlinx/io/core/IoBuffer;)I
 	public final fun prepareRead (ILkotlinx/io/core/IoBuffer;)Lkotlinx/io/core/IoBuffer;
 	public final fun prepareReadHead (I)Lkotlinx/io/core/IoBuffer;
 	public final fun read (ILkotlin/jvm/functions/Function1;)V
@@ -301,7 +301,7 @@ public abstract interface class kotlinx/io/core/Input : java/io/Closeable {
 	public abstract fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
 	public abstract synthetic fun getDoNotImplementInputButExtendAbstractInputInstead ()Ljava/lang/Void;
 	public abstract fun getEndOfInput ()Z
-	public abstract fun peekTo (Lkotlinx/io/core/IoBuffer;)I
+	public abstract synthetic fun peekTo (Lkotlinx/io/core/IoBuffer;)I
 	public abstract fun readAvailable (Ljava/nio/ByteBuffer;I)I
 	public abstract fun readAvailable (Lkotlinx/io/core/IoBuffer;I)I
 	public abstract fun readAvailable ([BII)I
@@ -412,6 +412,11 @@ public final class kotlinx/io/core/InputLittleEndianKt {
 	public static final fun readShortLittleEndian (Lkotlinx/io/core/Input;)S
 }
 
+public final class kotlinx/io/core/InputPeekKt {
+	public static final fun peekTo (Lkotlinx/io/core/Input;Lkotlinx/io/core/IoBuffer;III)I
+	public static synthetic fun peekTo$default (Lkotlinx/io/core/Input;Lkotlinx/io/core/IoBuffer;IIIILjava/lang/Object;)I
+}
+
 public final class kotlinx/io/core/IoBuffer : kotlinx/io/core/Input, kotlinx/io/core/Output {
 	public static final field Companion Lkotlinx/io/core/IoBuffer$Companion;
 	public fun <init> (Ljava/nio/ByteBuffer;)V
@@ -442,7 +447,7 @@ public final class kotlinx/io/core/IoBuffer : kotlinx/io/core/Input, kotlinx/io/
 	public final fun getWriteRemaining ()I
 	public final fun isExclusivelyOwned ()Z
 	public final fun makeView ()Lkotlinx/io/core/IoBuffer;
-	public final fun peekTo (Lkotlinx/io/core/IoBuffer;)I
+	public final synthetic fun peekTo (Lkotlinx/io/core/IoBuffer;)I
 	public final fun pushBack (I)V
 	public final fun read (Ljava/nio/ByteBuffer;I)V
 	public final fun read ([BII)V

@@ -697,14 +697,9 @@ actual class IoBuffer private constructor(
         return if (bb.hasRemaining()) bb.get(bb.position()).toInt() and 0xff else -1
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     actual final override fun peekTo(buffer: IoBuffer): Int {
-        val readRemaining = readRemaining
-        if (readRemaining == 0) return -1
-
-        val size = minOf(readRemaining, buffer.writeRemaining)
-        buffer.writeFully(this, size)
-
-        return size
+        return peekTo(buffer)
     }
 
     actual final override fun discard(n: Long): Long {

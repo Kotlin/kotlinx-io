@@ -445,13 +445,9 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         return prepareRead(1, head)?.tryPeek() ?: -1
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun peekTo(buffer: IoBuffer): Int {
-        val head = prepareReadHead(1) ?: return -1
-
-        val size = minOf(buffer.writeRemaining, head.readRemaining)
-        buffer.writeFully(head, size)
-
-        return size
+        return peekTo(buffer)
     }
 
     final override fun discard(n: Long): Long {
@@ -565,6 +561,28 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
             return copied + readUtf8(out, min - copied, max - copied)
         }
         if (copied < min) prematureEndOfStreamChars(min, copied)
+        return copied
+    }
+
+    internal final fun peekToImpl(destination: IoBuffer, offset: Int, min: Int, max: Int): Int {
+        var current: IoBuffer = head
+        var copied = 0
+        var skip = offset
+
+        while (copied < min) {
+            val chunkSize = current.readRemaining
+            if (chunkSize > skip) {
+                val size = minOf(chunkSize - skip, max - copied)
+                current.readFully(destination, size)
+                skip = 0
+                copied += size
+            } else {
+                skip -= chunkSize
+            }
+
+            current = current.next ?: break
+        }
+
         return copied
     }
 
@@ -842,6 +860,42 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         if (minSize > IoBuffer.ReservedSize) minSizeIsTooBig(minSize)
 
         return prepareRead(minSize, head)
+    }
+
+    internal fun prefetch(size: Int) {
+        if (headRemaining >= size) return
+        val head = head
+
+        val currentSize = head.remainingAll()
+        if (currentSize >= size || noMoreChunksAvailable) return
+
+        if (head === IoBuffer.Empty) {
+            doFill()
+            return prefetch(size)
+        }
+
+        prefetchLoop(size, currentSize, head)
+    }
+
+    private fun prefetchLoop(size: Int, currentSize0: Long, head: IoBuffer) {
+        var tail = head.findTail()
+        var currentSize = currentSize0
+        var tailRemaining = tailRemaining
+
+        do {
+            val chunk = fill()
+            if (chunk == null) {
+                noMoreChunksAvailable = true
+                break
+            }
+            val chunkSize = chunk.readRemaining
+            tail.next = chunk
+            tailRemaining += chunkSize
+            currentSize += chunkSize
+            tail = chunk
+        } while (currentSize < size)
+
+        this.tailRemaining = tailRemaining
     }
 
     private fun minSizeIsTooBig(minSize: Int): Nothing {
