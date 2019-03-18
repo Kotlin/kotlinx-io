@@ -429,7 +429,7 @@ actual class IoBuffer private constructor(
         private val DEFAULT_BUFFER_POOL_SIZE = getIOIntProperty("buffer.pool.size", 100)
         private val DEFAULT_BUFFER_POOL_DIRECT = getIOIntProperty("buffer.pool.direct", 0)
 
-        actual val Empty = IoBuffer(Buffer.Empty.memory.buffer, null)
+        actual val Empty = IoBuffer(Memory.Empty.buffer, null)
 
         /**
          * The default buffer pool

@@ -69,6 +69,14 @@ internal class DefaultBufferPool(
     override fun validateInstance(instance: ChunkBuffer) {
         super.validateInstance(instance)
 
+        if (instance === IoBuffer.Empty) {
+            error("IoBuffer.Empty couldn't be recycled")
+        }
+
+        check(instance !== IoBuffer.Empty) { "Empty instance couldn't be recycled" }
+        check(instance !== Buffer.Empty) { "Empty instance couldn't be recycled" }
+        check(instance !== ChunkBuffer.Empty) { "Empty instance couldn't be recycled" }
+
         check(instance.referenceCount == 0) { "Unable to clear buffer: it is still in use." }
         check(instance.next == null) { "Recycled instance shouldn't be a part of a chain." }
         check(instance.origin == null) { "Recycled instance shouldn't be a view or another buffer." }

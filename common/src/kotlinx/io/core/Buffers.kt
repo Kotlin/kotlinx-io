@@ -41,7 +41,6 @@ expect class IoBuffer : Input, Output, ChunkBuffer {
         /**
          * The empty buffer singleton: it has zero capacity for read and write.
          */
-        @Deprecated("Shouldn't be used anymore.", level = DeprecationLevel.ERROR)
         val Empty: IoBuffer
 
         /**

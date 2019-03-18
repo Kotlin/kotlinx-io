@@ -118,7 +118,9 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
 
     companion object {
         val Pool: ObjectPool<ChunkBuffer> get() = DefaultChunkedBufferPool
-        val Empty: ChunkBuffer = ChunkBuffer(Memory.Empty, null)
+
+        @Suppress("DEPRECATION")
+        val Empty: ChunkBuffer get() = IoBuffer.Empty
 
         /**
          * A pool that always returns [ChunkBuffer.Empty]

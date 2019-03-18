@@ -145,7 +145,7 @@ open class Buffer(val memory: Memory) {
      * May move [readPosition] and [writePosition] if no bytes available for reading.
      */
     fun reserveStartGap(startGap: Int) {
-        require(startGap > 0)
+        require(startGap >= 0) { "startGap shouldn't be negative: $startGap" }
 
         if (readPosition >= startGap) {
             this.startGap = startGap
@@ -172,7 +172,7 @@ open class Buffer(val memory: Memory) {
      * all written bytes are marked as consumed (were read or discarded).
      */
     fun reserveEndGap(endGap: Int) {
-        require(endGap > 0)
+        require(endGap >= 0) { "endGap shouldn't be negative: $endGap" }
 
         val newLimit = capacity - endGap
         if (newLimit >= writePosition) {
@@ -336,7 +336,8 @@ open class Buffer(val memory: Memory) {
         /**
          * The empty buffer singleton: it has zero capacity for read and write.
          */
-        val Empty: Buffer = Buffer(Memory.Empty)
+        @Suppress("DEPRECATION")
+        val Empty: Buffer get() = IoBuffer.Empty
     }
 }
 
