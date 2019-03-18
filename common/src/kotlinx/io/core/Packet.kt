@@ -1,3 +1,5 @@
+@file:Suppress("RedundantModalityModifier")
+
 package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
@@ -804,7 +806,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         }
     }
 
-    protected fun doFill(): IoBuffer? {
+    private fun doFill(): IoBuffer? {
         if (noMoreChunksAvailable) return null
         val chunk = fill()
         if (chunk == null) {
@@ -815,7 +817,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         return chunk
     }
 
-    internal fun appendView(chunk: IoBuffer) {
+    private fun appendView(chunk: IoBuffer) {
         val tail = head.findTail()
         if (tail === IoBuffer.Empty) {
             head = chunk
