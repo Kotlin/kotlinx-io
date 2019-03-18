@@ -66,6 +66,7 @@ actual interface Input : Closeable {
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     actual fun peekTo(buffer: IoBuffer): Int
 
+    @Deprecated("Use discardExact instead.")
     actual fun discard(n: Long): Long
 
     actual override fun close()

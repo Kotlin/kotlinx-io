@@ -132,6 +132,7 @@ expect class IoBuffer : Input, Output {
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun peekTo(buffer: IoBuffer): Int
 
+    @Deprecated("Use discardExact instead.")
     final override fun discard(n: Long): Long
 
     /**

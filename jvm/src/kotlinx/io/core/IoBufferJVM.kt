@@ -702,6 +702,7 @@ actual class IoBuffer private constructor(
         return peekTo(buffer)
     }
 
+    @Deprecated("Use discardExact instead.")
     actual final override fun discard(n: Long): Long {
         require(n >= 0L) { "Negative discard quantity $n" }
         val size = minOf(readRemaining.toLong(), n).toInt()

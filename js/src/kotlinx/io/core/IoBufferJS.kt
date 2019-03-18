@@ -860,6 +860,7 @@ actual class IoBuffer internal constructor(
         return peekTo(buffer)
     }
 
+    @Deprecated("Use discardExact instead.")
     actual final override fun discard(n: Long): Long {
         val size = minOf(readRemaining.toLong(), n).toInt()
         readPosition += size

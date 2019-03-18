@@ -59,6 +59,7 @@ expect interface Input : Closeable {
     /**
      * Discard at most [n] bytes
      */
+    @Deprecated("Use discardExact instead.")
     fun discard(n: Long): Long
 
     override fun close()
@@ -135,17 +136,34 @@ fun Input.readAvailable(dst: IoBuffer, length: Int = dst.writeRemaining): Int {
     return readAvailable(dst, length)
 }
 
+/**
+ * Discard all remaining bytes.
+ *
+ * @return number of bytes were discarded
+ */
 fun Input.discard(): Long {
+    @Suppress("DEPRECATION")
     return discard(Long.MAX_VALUE)
 }
 
+/**
+ * Discard exactly [n] bytes or fail if not enough bytes available.
+ *
+ * @throws EOFException when not enough bytes available to discard the specified number of bytes.
+ */
 fun Input.discardExact(n: Long) {
+    @Suppress("DEPRECATION")
     val discarded = discard(n)
     if (discarded != n) {
-        throw IllegalStateException("Only $discarded bytes were discarded of $n requested")
+        throw EOFException("Only $discarded bytes were discarded of $n requested")
     }
 }
 
+/**
+ * Discard exactly [n] bytes or fail if not enough bytes available.
+ *
+ * @throws EOFException when not enough bytes available to discard the specified number of bytes.
+ */
 fun Input.discardExact(n: Int) {
     discardExact(n.toLong())
 }

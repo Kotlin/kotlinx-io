@@ -243,12 +243,15 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
      * Discards at most [n] bytes
      * @return number of bytes has been discarded
      */
-    fun discard(n: Int) = discardAsMuchAsPossible(n, 0)
+    @Deprecated("Use discardExact instead.")
+    final fun discard(n: Int) = discardAsMuchAsPossible(n, 0)
 
     /**
      * Discards exactly [n] bytes or fails with [EOFException]
      */
-    fun discardExact(n: Int) {
+    @Suppress("DEPRECATION")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    final fun discardExact(n: Int) {
         if (discard(n) != n) throw EOFException("Unable to discard $n bytes due to end of packet")
     }
 
@@ -450,6 +453,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         return peekTo(buffer)
     }
 
+    @Deprecated("Use discardExact instead.")
     final override fun discard(n: Long): Long {
         return discardAsMuchAsPossible(minOf(Int.MAX_VALUE.toLong(), n).toInt(), 0).toLong()
     }

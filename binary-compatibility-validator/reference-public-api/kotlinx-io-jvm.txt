@@ -204,7 +204,7 @@ public abstract class kotlinx/io/core/ByteReadPacketBase : kotlinx/io/core/Input
 	public final fun copy ()Lkotlinx/io/core/ByteReadPacket;
 	public final fun discard (I)I
 	public final fun discard (J)J
-	public final fun discardExact (I)V
+	public final synthetic fun discardExact (I)V
 	protected final fun doFill ()Lkotlinx/io/core/IoBuffer;
 	public final fun ensureNext (Lkotlinx/io/core/IoBuffer;)Lkotlinx/io/core/IoBuffer;
 	public final fun ensureNextHead (Lkotlinx/io/core/IoBuffer;)Lkotlinx/io/core/IoBuffer;

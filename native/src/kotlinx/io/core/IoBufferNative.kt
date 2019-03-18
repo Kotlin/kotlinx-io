@@ -946,6 +946,7 @@ actual class IoBuffer internal constructor(
         if (discard(n.toLong()) != n.toLong()) throw EOFException("Unable to discard $n")
     }
 
+    @Deprecated("Use discardExact instead.")
     actual final override fun discard(n: Long): Long {
         val step = minOf(readRemaining.toLong(), n).toInt()
         readPosition += step
