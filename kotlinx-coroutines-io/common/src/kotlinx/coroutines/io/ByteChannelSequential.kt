@@ -1,6 +1,7 @@
 package kotlinx.coroutines.io
 
 import kotlinx.io.core.*
+import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
 
 
@@ -85,19 +86,8 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         get() = maxOf(0, 4088 - totalPending())
 
     override var readByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
-        set(newOrder) {
-            if (field != newOrder) {
-                field = newOrder
-                readable.byteOrder = newOrder
-            }
-        }
+
     override var writeByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
-        set(newOrder) {
-            if (field != newOrder) {
-                field = newOrder
-                writable.byteOrder = newOrder
-            }
-        }
 
     override val isClosedForRead: Boolean
         get() = closed && readable.isEmpty
@@ -130,28 +120,36 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         return awaitFreeSpace()
     }
 
+    private inline fun <T : Any> reverseWrite(value: () -> T, reversed: () -> T): T {
+        return if (writeByteOrder == ByteOrder.BIG_ENDIAN) {
+            value()
+        } else {
+            reversed()
+        }
+    }
+
     override suspend fun writeShort(s: Short) {
-        writable.writeShort(s)
+        writable.writeShort(reverseWrite({ s }, { s.reverseByteOrder() }))
         return awaitFreeSpace()
     }
 
     override suspend fun writeInt(i: Int) {
-        writable.writeInt(i)
+        writable.writeInt(reverseWrite({ i }, { i.reverseByteOrder() }))
         return awaitFreeSpace()
     }
 
     override suspend fun writeLong(l: Long) {
-        writable.writeLong(l)
+        writable.writeLong(reverseWrite({ l }, { l.reverseByteOrder() }))
         return awaitFreeSpace()
     }
 
     override suspend fun writeFloat(f: Float) {
-        writable.writeFloat(f)
+        writable.writeFloat(reverseWrite({ f }, { f.reverseByteOrder() }))
         return awaitFreeSpace()
     }
 
     override suspend fun writeDouble(d: Double) {
-        writable.writeDouble(d)
+        writable.writeDouble(reverseWrite({ d }, { d.reverseByteOrder() }))
         return awaitFreeSpace()
     }
 
@@ -248,14 +246,14 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
     override suspend fun readShort(): Short {
         return if (readable.hasBytes(2)) {
-            readable.readShort().also { afterRead() }
+            readable.readShort().reverseRead().also { afterRead() }
         } else {
             readShortSlow()
         }
     }
 
     private suspend fun readShortSlow(): Short {
-        readNSlow(2) { return readable.readShort().also { afterRead() } }
+        readNSlow(2) { return readable.readShort().reverseRead().also { afterRead() } }
     }
 
     protected fun afterRead() {
@@ -263,52 +261,82 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         notFull.signal()
     }
 
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun Short.reverseRead(): Short = when {
+        readByteOrder == ByteOrder.BIG_ENDIAN -> this
+        else -> this.reverseByteOrder()
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun Int.reverseRead(): Int = when {
+        readByteOrder == ByteOrder.BIG_ENDIAN -> this
+        else -> this.reverseByteOrder()
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun Long.reverseRead(): Long = when {
+        readByteOrder == ByteOrder.BIG_ENDIAN -> this
+        else -> this.reverseByteOrder()
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun Float.reverseRead(): Float = when {
+        readByteOrder == ByteOrder.BIG_ENDIAN -> this
+        else -> this.reverseByteOrder()
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun Double.reverseRead(): Double = when {
+        readByteOrder == ByteOrder.BIG_ENDIAN -> this
+        else -> this.reverseByteOrder()
+    }
+
     override suspend fun readInt(): Int {
         return if (readable.hasBytes(4)) {
-            readable.readInt().also { afterRead() }
+            readable.readInt().reverseRead().also { afterRead() }
         } else {
             readIntSlow()
         }
     }
 
     private suspend fun readIntSlow(): Int {
-        readNSlow(4) { return readable.readInt().also { afterRead() } }
+        readNSlow(4) { return readable.readInt().reverseRead().also { afterRead() } }
     }
 
     override suspend fun readLong(): Long {
         return if (readable.hasBytes(8)) {
-            readable.readLong().also { afterRead() }
+            readable.readLong().reverseRead().also { afterRead() }
         } else {
             readLongSlow()
         }
     }
 
     private suspend fun readLongSlow(): Long {
-        readNSlow(8) { return readable.readLong().also { afterRead() } }
+        readNSlow(8) { return readable.readLong().reverseRead().also { afterRead() } }
     }
 
     override suspend fun readFloat(): Float {
         return if (readable.hasBytes(4)) {
-            readable.readFloat().also { afterRead() }
+            readable.readFloat().reverseRead().also { afterRead() }
         } else {
             readFloatSlow()
         }
     }
 
     private suspend fun readFloatSlow(): Float {
-        readNSlow(4) { return readable.readFloat().also { afterRead() } }
+        readNSlow(4) { return readable.readFloat().reverseRead().also { afterRead() } }
     }
 
     override suspend fun readDouble(): Double {
         return if (readable.hasBytes(8)) {
-            readable.readDouble().also { afterRead() }
+            readable.readDouble().reverseRead().also { afterRead() }
         } else {
             readDoubleSlow()
         }
     }
 
     private suspend fun readDoubleSlow(): Double {
-        readNSlow(8) { return readable.readDouble().also { afterRead() } }
+        readNSlow(8) { return readable.readDouble().reverseRead().also { afterRead() } }
     }
 
     override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket {
@@ -457,19 +485,19 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
     }
 
     private var lastReadAvailable = 0
-    private var lastReadView = Buffer.Empty
+    private var lastReadView: ChunkBuffer = ChunkBuffer.Empty
 
     private fun completeReading() {
         val remaining = lastReadView.readRemaining
         val delta = lastReadAvailable - remaining
         if (lastReadView !== Buffer.Empty) {
-            readable.updateHeadRemaining(remaining)
+            readable.completeReadHead(lastReadView)
         }
         if (delta > 0) {
             afterRead()
         }
         lastReadAvailable = 0
-        lastReadView = Buffer.Empty
+        lastReadView = ChunkBuffer.Empty
     }
 
     override suspend fun await(atLeast: Int): Boolean {
@@ -510,7 +538,7 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
         val view = readable.prepareReadHead(atLeast)
 
         if (view == null) {
-            lastReadView = Buffer.Empty
+            lastReadView = ChunkBuffer.Empty
             lastReadAvailable = 0
         } else {
             lastReadView = view

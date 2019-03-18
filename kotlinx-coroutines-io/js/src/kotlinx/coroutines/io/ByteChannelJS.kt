@@ -25,7 +25,7 @@ actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteRe
     while (true) {
         tail.reserveEndGap(8)
         val size = minOf(end - start, tail.writeRemaining)
-        tail.writeFully(content, start, size)
+        (tail as Buffer).writeFully(content, start, size)
         start += size
 
         if (start == end) break

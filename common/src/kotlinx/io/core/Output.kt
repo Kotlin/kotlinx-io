@@ -20,47 +20,85 @@ expect interface Output : Appendable, Closeable {
 
     override fun close()
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeShort(v: Short)
+    fun writeShort(v: Short) {
+        writeShort(v)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeInt(v: Int)
+    fun writeInt(v: Int) {
+        writeInt(v)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeLong(v: Long)
+    fun writeLong(v: Long) {
+        writeLong(v)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFloat(v: Float)
+    fun writeFloat(v: Float) {
+        writeFloat(v)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeDouble(v: Double)
+    fun writeDouble(v: Double) {
+        writeDouble(v)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFully(src: ByteArray, offset: Int, length: Int)
+    fun writeFully(src: ByteArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFully(src: ShortArray, offset: Int, length: Int)
+    fun writeFully(src: ShortArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFully(src: IntArray, offset: Int, length: Int)
+    fun writeFully(src: IntArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFully(src: LongArray, offset: Int, length: Int)
+    fun writeFully(src: LongArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFully(src: FloatArray, offset: Int, length: Int)
+    fun writeFully(src: FloatArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFully(src: DoubleArray, offset: Int, length: Int)
+    fun writeFully(src: DoubleArray, offset: Int, length: Int) {
+        writeFully(src, offset, length)
+    }
 
-    @Suppress("DEPRECATION")
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeFully(src: IoBuffer, length: Int)
+    fun writeFully(src: IoBuffer, length: Int) {
+        writeFully(src, length)
+    }
 
     fun append(csq: CharArray, start: Int, end: Int): Appendable
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun fill(n: Long, v: Byte)
+    fun fill(n: Long, v: Byte) {
+        fill(n, v)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")

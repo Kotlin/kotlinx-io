@@ -72,67 +72,124 @@ expect interface Input : Closeable {
      * @return number of bytes were copied
      */
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    @Suppress("DEPRECATION")
-    fun peekTo(buffer: IoBuffer): Int
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
+    fun peekTo(buffer: IoBuffer): Int {
+        return peekTo(buffer)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readShort(): Short
+    fun readShort(): Short {
+        return readShort()
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readInt(): Int
+    fun readInt(): Int {
+        return readInt()
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readLong(): Long
+    fun readLong(): Long {
+        return readLong()
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readFloat(): Float
+    fun readFloat(): Float {
+        return readFloat()
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readDouble(): Double
+    fun readDouble(): Double {
+        return readDouble()
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readFully(dst: ByteArray, offset: Int, length: Int)
+    fun readFully(dst: ByteArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readFully(dst: ShortArray, offset: Int, length: Int)
+    fun readFully(dst: ShortArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readFully(dst: IntArray, offset: Int, length: Int)
+    fun readFully(dst: IntArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readFully(dst: LongArray, offset: Int, length: Int)
+    fun readFully(dst: LongArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readFully(dst: FloatArray, offset: Int, length: Int)
+    fun readFully(dst: FloatArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readFully(dst: DoubleArray, offset: Int, length: Int)
+    fun readFully(dst: DoubleArray, offset: Int, length: Int) {
+        readFully(dst, offset, length)
+    }
 
-    @Suppress("DEPRECATION")
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readFully(dst: IoBuffer, length: Int)
+    fun readFully(dst: IoBuffer, length: Int) {
+        readFully(dst, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
+        return readAvailable(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: ShortArray, offset: Int, length: Int): Int {
+        return readAvailable(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readAvailable(dst: IntArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: IntArray, offset: Int, length: Int): Int {
+        return readAvailable(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readAvailable(dst: LongArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: LongArray, offset: Int, length: Int): Int {
+        return readAvailable(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: FloatArray, offset: Int, length: Int): Int {
+        return readAvailable(dst, offset, length)
+    }
 
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int
+    fun readAvailable(dst: DoubleArray, offset: Int, length: Int): Int {
+        return readAvailable(dst, offset, length)
+    }
 
-    @Suppress("DEPRECATION")
+    @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun readAvailable(dst: IoBuffer, length: Int): Int
+    fun readAvailable(dst: IoBuffer, length: Int): Int {
+        return readAvailable(dst, length)
+    }
 }
 
 /**

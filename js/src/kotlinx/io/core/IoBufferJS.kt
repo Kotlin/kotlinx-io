@@ -372,7 +372,6 @@ actual class IoBuffer internal constructor(
         private val EmptyBuffer = ArrayBuffer(0)
         private val EmptyDataView = DataView(EmptyBuffer)
 
-        @Deprecated("", level = DeprecationLevel.ERROR)
         actual val Empty = IoBuffer(EmptyBuffer, null)
 
         /**

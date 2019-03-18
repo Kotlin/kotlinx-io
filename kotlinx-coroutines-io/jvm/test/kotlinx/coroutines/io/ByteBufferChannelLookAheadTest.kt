@@ -1,6 +1,7 @@
 package kotlinx.coroutines.experimental.io
 
 import kotlinx.coroutines.io.*
+import kotlinx.io.core.writeInt
 import kotlin.test.*
 
 class ByteBufferChannelLookAheadTest : ByteChannelTestBase() {

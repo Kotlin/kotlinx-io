@@ -6,6 +6,7 @@ import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.internal.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
+import kotlinx.io.core.Buffer
 import kotlinx.io.core.ByteOrder
 import kotlinx.io.pool.*
 import java.io.EOFException
@@ -433,7 +434,7 @@ internal class ByteBufferChannel(
         return consumed
     }
 
-    private tailrec fun readAsMuchAsPossible(dst: IoBuffer, consumed0: Int = 0, max: Int = dst.writeRemaining): Int {
+    private tailrec fun readAsMuchAsPossible(dst: Buffer, consumed0: Int = 0, max: Int = dst.writeRemaining): Int {
         var consumed = 0
 
         val rc = reading {
@@ -1384,7 +1385,7 @@ internal class ByteBufferChannel(
         return 0
     }
 
-    private fun writeAsMuchAsPossible(src: IoBuffer): Int {
+    private fun writeAsMuchAsPossible(src: Buffer): Int {
         writing { dst, state ->
             var written = 0
 
@@ -1844,7 +1845,6 @@ internal class ByteBufferChannel(
         var byteBuffer = current.setupStateForWrite() ?: return writeSuspendSession(visitor)
         var view = IoBuffer(current.state.backingBuffer)
         var ringBufferCapacity = current.state.capacity
-        view.byteOrder = writeByteOrder
 
         val session = object : WriterSuspendSession {
             override fun request(min: Int): IoBuffer? {
@@ -1895,7 +1895,6 @@ internal class ByteBufferChannel(
                     current = resolveDelegation(current, joining) ?: continue
                     byteBuffer = current.setupStateForWrite() ?: continue
                     view = IoBuffer(current.state.backingBuffer)
-                    view.byteOrder = writeByteOrder
                     @Suppress("DEPRECATION")
                     view.resetFromContentToWrite(byteBuffer)
                     ringBufferCapacity = current.state.capacity

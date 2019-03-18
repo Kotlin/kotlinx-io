@@ -93,7 +93,7 @@ fun BytePacketBuilder.writeFully(src: ByteBuffer) {
 
 
 @PublishedApi
-@Suppress("unused")
+@Suppress("unused", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 internal fun BytePacketBuilder.nioBuffer(size: Int): ByteBuffer = prepareWriteHead(size).writeBuffer()
 
@@ -106,14 +106,14 @@ internal fun BytePacketBuilder.afterNioBufferUsed(written: Int) {
 }
 
 @PublishedApi
-@Suppress("unused")
+@Suppress("unused", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 internal fun ByteReadPacket.nioBuffer(size: Int): ByteBuffer? {
     return prepareRead(size)?.writeBuffer()
 }
 
 @PublishedApi
-@Suppress("unused")
+@Suppress("unused", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 internal fun AbstractInput.nioBuffer(size: Int): ByteBuffer? {
     return prepareRead(size)?.writeBuffer()
