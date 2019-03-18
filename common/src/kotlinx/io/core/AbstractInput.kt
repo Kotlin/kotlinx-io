@@ -18,10 +18,16 @@ abstract class AbstractInput(
     val pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : Input {
     /**
-     * Read the next bytes into the [destination]
-     * @return `true` if EOF encountered
+     * Read the next bytes into the [destination] starting at [offset] at most [length] bytes.
+     * May block until at least one byte is available.
+     * Usually bypass all exceptions from the underlying source.
+     *
+     * @param offset in bytes where result should be written
+     * @param length should be at least one byte
+     *
+     * @return number of bytes were copied or `0` if EOF encountered
      */
-    protected abstract fun fill(destination: Buffer): Boolean
+    protected abstract fun fill(destination: Memory, offset: Int, length: Int): Int
 
     /**
      * Should close the underlying bytes source. Could do nothing or throw exceptions.
@@ -404,24 +410,24 @@ abstract class AbstractInput(
         return discardAsMuchAsPossible(n, 0)
     }
 
-    internal fun readCbuf(cbuf: CharArray, off: Int, len: Int): Int {
+    internal fun readAvailableCharacters(destination: CharArray, off: Int, len: Int): Int {
         if (endOfInput) return -1
 
         val out = object : Appendable {
             private var idx = off
 
             override fun append(c: Char): Appendable {
-                cbuf[idx++] = c
+                destination[idx++] = c
                 return this
             }
 
             override fun append(csq: CharSequence?): Appendable {
                 if (csq is String) {
-                    csq.getCharsInternal(cbuf, idx)
+                    csq.getCharsInternal(destination, idx)
                     idx += csq.length
                 } else if (csq != null) {
                     for (i in 0 until csq.length) {
-                        cbuf[idx++] = csq[i]
+                        destination[idx++] = csq[i]
                     }
                 }
 
@@ -442,7 +448,7 @@ abstract class AbstractInput(
      */
     fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
         if (max.toLong() >= remaining) {
-            val s = readTextExactBytes(bytes = remaining.toInt())
+            val s = readTextExactBytes(bytesCount = remaining.toInt() )
             out.append(s)
             return s.length
         }
@@ -462,7 +468,7 @@ abstract class AbstractInput(
     fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
         if (min == 0 && (max == 0 || endOfInput)) return ""
         val remaining = remaining
-        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytes = remaining.toInt())
+        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytesCount = remaining.toInt() )
 
         return buildString(min.coerceAtLeast(16).coerceAtMost(max)) {
             readASCII(this, min, max)
@@ -716,7 +722,9 @@ abstract class AbstractInput(
         val buffer = pool.borrow()
         try {
             buffer.reserveEndGap(Buffer.ReservedSize)
-            if (fill(buffer)) {
+            val copied = fill(buffer.memory, buffer.writePosition, buffer.writeRemaining)
+
+            if (copied == 0) {
                 noMoreChunksAvailable = true
 
                 if (!buffer.canRead()) {
@@ -724,6 +732,8 @@ abstract class AbstractInput(
                     return null
                 }
             }
+
+            buffer.commitWritten(copied)
 
             return buffer
         } catch (t: Throwable) {
@@ -741,7 +751,7 @@ abstract class AbstractInput(
     /**
      * see [prefetch] for similar logic
      */
-    protected final fun doFill(): ChunkBuffer? {
+    private final fun doFill(): ChunkBuffer? {
         if (noMoreChunksAvailable) return null
         val chunk = fill()
         if (chunk == null) {
@@ -752,7 +762,7 @@ abstract class AbstractInput(
         return chunk
     }
 
-    internal final fun appendView(chunk: ChunkBuffer) {
+    private final fun appendView(chunk: ChunkBuffer) {
         val tail = _head.findTail()
         if (tail === ChunkBuffer.Empty) {
             _head = chunk

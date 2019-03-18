@@ -3,6 +3,7 @@
 package kotlinx.io.streams
 
 import kotlinx.cinterop.*
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.*
 import kotlinx.io.internal.utils.*
 import platform.posix.*
@@ -79,6 +80,23 @@ fun fread(buffer: Buffer, stream: CPointer<FILE>): size_t {
 }
 
 @ExperimentalIoApi
+fun fread(destination: Memory, offset: Int, length: Int, stream: CPointer<FILE>): Int {
+    return fread(destination, offset.toLong(), length.toLong(), stream).toInt()
+}
+
+@ExperimentalIoApi
+fun fread(destination: Memory, offset: Long, length: Long, stream: CPointer<FILE>): Long {
+    val maxLength = minOf(length, Int.MAX_VALUE.toLong(), size_t.MAX_VALUE.toLong())
+    val pointer = destination.pointer + offset
+
+    val result = fread(pointer, 1.convert(), maxLength.convert(), stream)
+
+    // it is completely safe to convert since the returned value will be never greater than Int.MAX_VALUE
+    return result.convert()
+}
+
+
+@ExperimentalIoApi
 fun read(fildes: Int, buffer: Buffer): ssize_t {
     var bytesRead: ssize_t = 0
 
@@ -98,6 +116,22 @@ fun read(fildes: Int, buffer: Buffer): ssize_t {
     }
 
     return bytesRead
+}
+
+@ExperimentalIoApi
+fun read(fildes: Int, destination: Memory, offset: Int, length: Int): Int {
+    return read(fildes, destination, offset.toLong(), length.toLong()).toInt()
+}
+
+@ExperimentalIoApi
+fun read(fildes: Int, destination: Memory, offset: Long, length: Long): Long {
+
+    val maxLength = minOf<Long>(
+        ssize_t.MAX_VALUE.convert(),
+        length
+    )
+
+    return read(fildes, destination.pointer + offset, maxLength.convert()).convert<Long>().coerceAtLeast(0)
 }
 
 @ExperimentalIoApi

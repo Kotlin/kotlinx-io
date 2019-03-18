@@ -114,7 +114,7 @@ fun ByteReadPacket.readerUTF8(): Reader {
             return skipped
         }
 
-        override fun read(cbuf: CharArray, off: Int, len: Int) = readCbuf(cbuf, off, len)
+        override fun read(cbuf: CharArray, off: Int, len: Int) = readAvailableCharacters(cbuf, off, len)
     }
 }
 

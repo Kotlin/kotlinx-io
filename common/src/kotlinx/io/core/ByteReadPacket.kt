@@ -2,6 +2,7 @@
 
 package kotlinx.io.core
 
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
 
@@ -26,8 +27,8 @@ class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, po
 
     final override fun fill() = null
 
-    final override fun fill(destination: Buffer): Boolean {
-        return true
+    final override fun fill(destination: Memory, offset: Int, length: Int): Int {
+        return 0
     }
 
     final override fun closeSource() {

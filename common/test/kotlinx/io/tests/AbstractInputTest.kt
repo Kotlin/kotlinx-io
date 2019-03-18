@@ -1,18 +1,31 @@
 package kotlinx.io.tests
 
+import kotlinx.io.bits.Memory
+import kotlinx.io.bits.set
+import kotlinx.io.bits.storeIntAt
 import kotlinx.io.core.*
 import kotlinx.io.core.internal.*
 import kotlin.test.*
 
 class AbstractInputTest {
+    private val pool = VerifyingObjectPool(ChunkBuffer.Pool)
+
+    @AfterTest
+    fun verify() {
+        pool.assertEmpty()
+    }
+
     @Test
     fun smokeTest() {
         var closed = false
+        var written = false
 
-        val input = object : AbstractInput() {
-            override fun fill(destination: Buffer): Boolean {
-                destination.append("test")
-                return true
+        val input = object : AbstractInput(pool = pool) {
+            override fun fill(destination: Memory, offset: Int, length: Int): Int {
+                if (written) return 0
+                written = true
+                destination.storeIntAt(offset, 0x74657374) // = test
+                return 4
             }
 
             override fun closeSource() {
@@ -34,16 +47,19 @@ class AbstractInputTest {
             "test.", "123.", "zxc."
         )
 
-        val input = object : AbstractInput() {
+        val input = object : AbstractInput(pool = pool) {
             override fun fill(): ChunkBuffer? {
                 if (items.isEmpty()) return null
                 return super.fill()
             }
 
-            override fun fill(destination: Buffer): Boolean {
+            override fun fill(destination: Memory, offset: Int, length: Int): Int {
+                if (items.isEmpty()) return 0
                 val next = items.removeAt(0)
-                destination.append(next)
-                return items.isEmpty()
+                for (index in 0 until next.length) {
+                    destination[offset + index] = next[index].toByte()
+                }
+                return next.length
             }
 
             override fun closeSource() {
@@ -51,7 +67,7 @@ class AbstractInputTest {
             }
         }
 
-        val out = BytePacketBuilder()
+        val out = BytePacketBuilder(pool = pool)
         input.copyTo(out)
         assertEquals("test.123.zxc.", out.build().readText())
     }

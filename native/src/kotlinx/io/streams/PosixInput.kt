@@ -1,6 +1,7 @@
 package kotlinx.io.streams
 
 import kotlinx.cinterop.*
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.*
 import kotlinx.io.errors.*
 import kotlinx.io.internal.utils.*
@@ -9,17 +10,16 @@ import platform.posix.*
 /**
  * Create a blocking [Input] reading from the specified [fileDescriptor] using [read].
  */
+@Suppress("FunctionName")
 @ExperimentalIoApi
 fun Input(fileDescriptor: Int): Input = PosixInputForFileDescriptor(fileDescriptor)
 
 /**
  * Create a blocking [Input] reading from the specified [file] instance using [fread].
  */
+@Suppress("FunctionName")
 @ExperimentalIoApi
 fun Input(file: CPointer<FILE>): Input = PosixInputForFile(file)
-
-private const val SZERO: ssize_t = 0
-private const val ZERO: size_t = 0u
 
 private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInput() {
     private var closed = false
@@ -28,13 +28,13 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
         check(kx_internal_is_non_blocking(fileDescriptor) == 0) { "File descriptor is in O_NONBLOCK mode." }
     }
 
-    override fun fill(destination: Buffer): Boolean {
-        val size = read(fileDescriptor, destination)
-        return when {
-            size == SZERO -> true // EOF
-            size < 0 -> throw PosixException.forErrno(posixFunctionName = "read()").wrapIO()
-            else -> false
+    override fun fill(destination: Memory, offset: Int, length: Int): Int {
+        val size = read(fileDescriptor, destination, offset, length)
+        if (size < 0) {
+            throw PosixException.forErrno(posixFunctionName = "read()").wrapIO()
         }
+
+        return size
     }
 
     override fun closeSource() {
@@ -53,14 +53,14 @@ private class PosixInputForFileDescriptor(val fileDescriptor: Int) : AbstractInp
 private class PosixInputForFile(val file: CPointer<FILE>) : AbstractInput() {
     private var closed = false
 
-    override fun fill(destination: Buffer): Boolean {
-        val size = fread(destination, file)
-        if (size == ZERO) {
-            if (feof(file) != 0) return true
+    override fun fill(destination: Memory, offset: Int, length: Int): Int {
+        val size = fread(destination, offset, length, file)
+        if (size == 0) {
+            if (feof(file) != 0) return 0
             throw PosixException.forErrno(posixFunctionName = "read()").wrapIO()
         }
 
-        return false
+        return size
     }
 
     override fun closeSource() {

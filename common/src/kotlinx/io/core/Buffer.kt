@@ -3,6 +3,7 @@
 package kotlinx.io.core
 
 import kotlinx.io.bits.*
+import kotlinx.io.core.internal.DangerousInternalIoApi
 import kotlinx.io.errors.EOFException
 import kotlin.contracts.*
 
@@ -12,6 +13,7 @@ import kotlin.contracts.*
  * Concurrent unsafe: the same memory could be shared between different instances of [Buffer] however you can't
  * read/write using the same [Buffer] instance from different threads.
  */
+@DangerousInternalIoApi
 open class Buffer(val memory: Memory) {
     /**
      * Current read position. It is always non-negative and will never run ahead of the [writePosition].
@@ -125,7 +127,9 @@ open class Buffer(val memory: Memory) {
             discardFailed(position - readPosition, readRemaining)
         }
 
-        readPosition = position
+        if (readPosition != position) {
+            readPosition = position
+        }
     }
 
     /**

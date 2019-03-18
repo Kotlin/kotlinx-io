@@ -141,7 +141,7 @@ internal constructor(
     internal final fun appendChain(head: ChunkBuffer) {
         val tail = head.findTail()
         val chainedSizeDelta = (head.remainingAll() - tail.readRemaining).toIntOrFail("total size increase")
-        appendChainImpl(head, head.findTail(), chainedSizeDelta)
+        appendChainImpl(head, tail, chainedSizeDelta)
     }
 
     private final fun appendChainImpl(head: ChunkBuffer, newTail: ChunkBuffer, chainedSizeDelta: Int) {

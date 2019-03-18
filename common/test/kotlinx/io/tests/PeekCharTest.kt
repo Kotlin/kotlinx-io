@@ -1,5 +1,7 @@
 package kotlinx.io.tests
 
+import kotlinx.io.bits.Memory
+import kotlinx.io.bits.set
 import kotlinx.io.core.*
 import kotlinx.io.core.internal.*
 import kotlin.test.*
@@ -142,15 +144,15 @@ class PeekCharTest {
         var count = 0
 
         val myInput = object : AbstractInput() {
-            override fun fill(destination: Buffer): Boolean {
-                when (count++) {
-                    0 -> destination.writeByte(0xe3.toByte())
-                    1 -> destination.writeByte(0x84.toByte())
-                    2 -> destination.writeByte(0x8f.toByte())
-                    else -> return true
+            override fun fill(destination: Memory, offset: Int, length: Int): Int {
+                destination[offset] = when (count++) {
+                    0 -> 0xe3.toByte()
+                    1 -> 0x84.toByte()
+                    2 -> 0x8f.toByte()
+                    else -> return 0
                 }
 
-                return false
+                return 1
             }
 
             override fun closeSource() {

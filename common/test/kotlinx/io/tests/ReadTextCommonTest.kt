@@ -1,5 +1,7 @@
 package kotlinx.io.tests
 
+import kotlinx.io.bits.Memory
+import kotlinx.io.bits.storeByteArray
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import kotlinx.io.core.internal.*
@@ -346,20 +348,20 @@ class ReadTextCommonTest {
         }.readBytes()
 
         val input = object : AbstractInput() {
-            private var offset = 0
+            private var sourceOffset = 0
 
-            override fun fill(destination: Buffer): Boolean {
-                if (offset >= content.size) return true
+            override fun fill(destination: Memory, offset: Int, length: Int): Int {
+                if (sourceOffset >= content.size) return 0
 
-                val size = minOf(destination.writeRemaining, content.size - offset)
-                destination.writeFully(content, offset, size)
-                offset += size
+                val copySize = minOf(length, content.size - sourceOffset)
+                destination.storeByteArray(offset, content, sourceOffset, copySize)
+                sourceOffset += copySize
 
-                return offset >= content.size
+                return copySize
             }
 
             override fun closeSource() {
-                offset = Int.MAX_VALUE
+                sourceOffset = Int.MAX_VALUE
             }
         }
 
