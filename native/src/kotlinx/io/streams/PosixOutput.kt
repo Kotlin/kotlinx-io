@@ -1,22 +1,23 @@
 package kotlinx.io.streams
 
 import kotlinx.cinterop.*
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.*
 import kotlinx.io.errors.*
 import kotlinx.io.internal.utils.*
 import platform.posix.*
 
-private const val ZERO: size_t = 0u
-
 /**
  * Create a blocking [Output] writing to the specified [fileDescriptor] using [write].
  */
+@Suppress("FunctionName")
 @ExperimentalIoApi
 fun Output(fileDescriptor: Int): Output = PosixFileDescriptorOutput(fileDescriptor)
 
 /**
  * Create a blocking [Output] writing to the specified [file] instance using [fwrite].
  */
+@Suppress("FunctionName")
 @ExperimentalIoApi
 fun Output(file: CPointer<FILE>): Output = PosixFileInstanceOutput(file)
 
@@ -28,11 +29,17 @@ private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutpu
         check(kx_internal_is_non_blocking(fileDescriptor) == 0) { "File descriptor is in O_NONBLOCK mode." }
     }
 
-    override fun flush(buffer: Buffer) {
-        while (buffer.canRead()) {
-            if (write(fileDescriptor, buffer) <= 0) {
-                throw PosixException.forErrno(posixFunctionName = "write()").wrapIO()
+    override fun flush(source: Memory, offset: Int, length: Int) {
+        val fileDescriptor = fileDescriptor
+        val end = offset + length
+        var currentOffset = offset
+
+        while (currentOffset < end) {
+            val result = write(fileDescriptor, source, currentOffset, end - currentOffset)
+            if (result == 0) {
+                throw PosixException.forErrno(posixFunctionName = "fwrite()").wrapIO()
             }
+            currentOffset += result
         }
     }
 
@@ -52,11 +59,16 @@ private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutpu
 private class PosixFileInstanceOutput(val file: CPointer<FILE>) : AbstractOutput() {
     private var closed = false
 
-    override fun flush(buffer: Buffer) {
-        while (buffer.canRead()) {
-            if (fwrite(buffer, file) == ZERO) {
+    override fun flush(source: Memory, offset: Int, length: Int) {
+        val end = offset + length
+        var currentOffset = offset
+
+        while (currentOffset < end) {
+            val result = fwrite(source, currentOffset, end - currentOffset, file)
+            if (result == 0) {
                 throw PosixException.forErrno(posixFunctionName = "fwrite()").wrapIO()
             }
+            currentOffset += result
         }
     }
 

@@ -1,5 +1,6 @@
 package kotlinx.io.tests
 
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.*
 import kotlinx.io.core.internal.*
 import kotlin.test.*
@@ -13,8 +14,8 @@ class AbstractOutputTest {
             override fun closeDestination() {
             }
 
-            override fun flush(buffer: Buffer) {
-                builder.writeFully(buffer)
+            override fun flush(source: Memory, offset: Int, length: Int) {
+                builder.writeFully(source, offset, length)
             }
         }
 
@@ -34,8 +35,8 @@ class AbstractOutputTest {
             override fun closeDestination() {
             }
 
-            override fun flush(buffer: Buffer) {
-                result.writeFully(buffer)
+            override fun flush(source: Memory, offset: Int, length: Int) {
+                result.writeFully(source, offset, length)
             }
         }
 

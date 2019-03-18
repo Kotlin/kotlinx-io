@@ -23,10 +23,11 @@ internal constructor(
     constructor() : this(ChunkBuffer.Pool)
 
     /**
-     * An implementation should write the whole [buffer] to the destination. It should never capture the [buffer] instance
-     * longer than this method execution since it will be disposed after return.
+     * An implementation should write [source] to the destination exactly [length] bytes.
+     * It should never capture the [source] instance
+     * longer than this method execution since it may be disposed after return.
      */
-    protected abstract fun flush(buffer: Buffer)
+    protected abstract fun flush(source: Memory, offset: Int, length: Int)
 
     /**
      * An implementation should only close the destination.
@@ -106,7 +107,7 @@ internal constructor(
 
         try {
             oldTail.forEachChunk { chunk ->
-                flush(chunk)
+                flush(chunk.memory, chunk.readPosition, chunk.readRemaining)
             }
         } finally {
             oldTail.releaseAll(pool)

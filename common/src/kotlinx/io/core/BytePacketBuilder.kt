@@ -2,6 +2,7 @@
 
 package kotlinx.io.core
 
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.internal.*
 import kotlinx.io.core.internal.require
 import kotlinx.io.pool.*
@@ -69,7 +70,7 @@ class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<Ch
     /**
      * Does nothing for memory-backed output
      */
-    final override fun flush(buffer: Buffer) {
+    final override fun flush(source: Memory, offset: Int, length: Int) {
     }
 
     override fun append(c: Char): BytePacketBuilder {

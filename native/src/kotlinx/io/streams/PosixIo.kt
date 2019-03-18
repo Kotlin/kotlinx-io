@@ -19,7 +19,7 @@ inline fun <R> CPointer<FILE>.use(block: (CPointer<FILE>) -> R): R {
 
 @ExperimentalIoApi
 fun fwrite(buffer: Buffer, stream: CPointer<FILE>): size_t {
-    var written: size_t = 0u
+    var written: size_t
 
     buffer.readDirect { pointer ->
         val result = fwrite(pointer, 1.convert(), buffer.readRemaining.convert(), stream)
@@ -33,8 +33,19 @@ fun fwrite(buffer: Buffer, stream: CPointer<FILE>): size_t {
 }
 
 @ExperimentalIoApi
+fun fwrite(source: Memory, offset: Int, length: Int, stream: CPointer<FILE>): Int {
+    return fwrite(source, offset.toLong(), length.toLong(), stream).toInt()
+}
+
+@ExperimentalIoApi
+fun fwrite(source: Memory, offset: Long, length: Long, stream: CPointer<FILE>): Long {
+    val maxLength = minOf<Long>(length, ssize_t.MAX_VALUE.convert())
+    return fwrite(source.pointer + offset, 1.convert(), maxLength.convert(), stream).convert()
+}
+
+@ExperimentalIoApi
 fun write(fildes: Int, buffer: Buffer): ssize_t {
-    var written: ssize_t = 0
+    var written: ssize_t
 
     buffer.readDirect { pointer ->
         val result = write(fildes, pointer, buffer.readRemaining.convert())
@@ -49,8 +60,19 @@ fun write(fildes: Int, buffer: Buffer): ssize_t {
 }
 
 @ExperimentalIoApi
+fun write(fildes: Int, source: Memory, offset: Int, length: Int): Int {
+    return write(fildes, source, offset.toLong(), length.toLong()).toInt()
+}
+
+@ExperimentalIoApi
+fun write(fildes: Int, source: Memory, offset: Long, length: Long): Long {
+    val maxLength = minOf<Long>(length, ssize_t.MAX_VALUE.convert())
+    return write(fildes, source.pointer + offset, maxLength.convert()).convert()
+}
+
+@ExperimentalIoApi
 fun send(socket: KX_SOCKET, buffer: Buffer, flags: Int): ssize_t {
-    var written: ssize_t = 0
+    var written: ssize_t
 
     buffer.readDirect { pointer ->
         val result = send(socket, pointer, buffer.readRemaining.convert(), flags)
@@ -66,7 +88,7 @@ fun send(socket: KX_SOCKET, buffer: Buffer, flags: Int): ssize_t {
 
 @ExperimentalIoApi
 fun fread(buffer: Buffer, stream: CPointer<FILE>): size_t {
-    var bytesRead: size_t = 0u
+    var bytesRead: size_t
 
     buffer.writeDirect { pointer ->
         val result = fread(pointer, 1.convert(), buffer.writeRemaining.convert(), stream)
@@ -98,7 +120,7 @@ fun fread(destination: Memory, offset: Long, length: Long, stream: CPointer<FILE
 
 @ExperimentalIoApi
 fun read(fildes: Int, buffer: Buffer): ssize_t {
-    var bytesRead: ssize_t = 0
+    var bytesRead: ssize_t
 
     buffer.writeDirect { pointer ->
         val size = minOf(
@@ -136,7 +158,7 @@ fun read(fildes: Int, destination: Memory, offset: Long, length: Long): Long {
 
 @ExperimentalIoApi
 fun recv(socket: KX_SOCKET, buffer: Buffer, flags: Int): ssize_t {
-    var bytesRead: ssize_t = 0
+    var bytesRead: ssize_t
 
     buffer.writeDirect { pointer ->
         val result = recv(socket, pointer, buffer.writeRemaining.convert(), flags)
@@ -158,7 +180,7 @@ fun recvfrom(
     addr: CValuesRef<sockaddr>,
     addr_len: CValuesRef<KX_SOCKADDR_LENVar>
 ): ssize_t {
-    var bytesRead: ssize_t = 0
+    var bytesRead: ssize_t
 
     buffer.writeDirect { pointer ->
         val result = recvfrom(socket, pointer, buffer.writeRemaining.convert(), flags, addr, addr_len)
@@ -178,7 +200,7 @@ fun sendto(
     addr: CValuesRef<sockaddr>,
     addr_len: KX_SOCKADDR_LEN
 ): ssize_t {
-    var written: ssize_t = 0
+    var written: ssize_t
 
     buffer.readDirect { pointer ->
         val result = sendto(socket, pointer, buffer.readRemaining.convert(), flags, addr, addr_len)

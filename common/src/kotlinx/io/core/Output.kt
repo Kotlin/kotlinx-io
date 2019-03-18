@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.internal.*
 
 /**
@@ -162,6 +163,15 @@ fun Output.writeFully(src: IoBuffer, length: Int = src.readRemaining) {
 fun Output.writeFully(src: Buffer, length: Int = src.readRemaining) {
     writeFullyBytesTemplate(0, length) { buffer, _, count ->
         buffer.writeFully(src, count)
+    }
+}
+
+fun Output.writeFully(src: Memory, offset: Int, length: Int) {
+    writeFullyBytesTemplate(offset, length) { buffer, sourceOffset, count ->
+        buffer.write { memory, start, _ ->
+            src.copyTo(memory, sourceOffset, count, start)
+            count
+        }
     }
 }
 
