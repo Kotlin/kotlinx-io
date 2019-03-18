@@ -319,7 +319,7 @@ private fun Memory.encodeUTF8Stage2(
 
         val character = text[index++]
         val codepoint = when {
-            character.isHighSurrogate() -> character.toInt()
+            !character.isHighSurrogate() -> character.toInt()
             else -> {
                 if (index == lastCharIndex) {
                     prematureEndOfStream(1) // TODO error message

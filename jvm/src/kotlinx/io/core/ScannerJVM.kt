@@ -68,7 +68,13 @@ private fun Buffer.readUntilDelimiterDirect(
 }
 
 private fun readUntilDelimiterArrays(buffer: Buffer, delimiter: Byte, dst: ByteArray, offset: Int, length: Int): Int {
-    val copied = buffer.memory.buffer.copyUntilArrays({ it == delimiter }, buffer.readPosition, dst, offset, length)
+    val copied = buffer.memory.buffer.copyUntilArrays(
+        { it == delimiter },
+        buffer.readPosition,
+        dst,
+        offset,
+        minOf(length, buffer.readRemaining)
+    )
     buffer.discard(copied)
     return copied
 }
@@ -95,7 +101,7 @@ private fun Buffer.readUntilDelimitersDirect(delimiter1: Byte, delimiter2: Byte,
 private fun Buffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: Byte,
                                                  dst: ByteArray, offset: Int, length: Int): Int {
     val copied = memory.buffer.copyUntilArrays({ it == delimiter1 || it == delimiter2 },
-        readPosition, dst, offset, length)
+        readPosition, dst, offset, minOf(length, readRemaining))
     discard(copied)
     return copied
 }

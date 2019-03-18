@@ -289,8 +289,6 @@ inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
                 break
             }
 
-            check(current !== next) { "Chunk shouldn't be loop-self-cycled" }
-
             current = next
             release = true
         } while (size > 0)
