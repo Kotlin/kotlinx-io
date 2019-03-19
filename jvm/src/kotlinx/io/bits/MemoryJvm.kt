@@ -183,7 +183,7 @@ fun ByteBuffer.copyTo(destination: Memory, offset: Int) {
         return
     }
 
-    put(destination.buffer.sliceSafe(offset, remaining()))
+    destination.buffer.sliceSafe(offset, remaining()).put(this)
 }
 
 private inline fun ByteBuffer.myDuplicate(): ByteBuffer {

@@ -3,9 +3,8 @@
 package kotlinx.io.bits
 
 /**
- * Copies unsigned shorts integers from this memory range from the specified [offset] and [count]
- * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
- * @param destinationOffset items
+ * Copies bytes from this memory range from the specified [offset] and [count]
+ * to the [destination] at [destinationOffset].
  */
 inline fun Memory.loadByteArray(
     offset: Int,

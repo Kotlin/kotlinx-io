@@ -134,6 +134,19 @@ internal constructor(
         return head
     }
 
+    internal fun afterBytesStolen() {
+        val head = head
+        if (head !== ChunkBuffer.Empty) {
+            check(head.next == null)
+            head.resetForWrite()
+            head.reserveStartGap(headerSizeHint)
+            head.reserveEndGap(Buffer.ReservedSize)
+            tailPosition = head.writePosition
+            tailInitialPosition = tailPosition
+            tailEndExclusive = head.limit
+        }
+    }
+
     internal final fun appendSingleChunk(buffer: ChunkBuffer) {
         check(buffer.next == null) { "It should be a single buffer chunk." }
         appendChainImpl(buffer, buffer, 0)

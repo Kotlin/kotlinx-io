@@ -124,16 +124,6 @@ class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<Ch
         return preview()
     }
 
-    internal fun afterBytesStolen() {
-        val head = head
-        if (head !== ChunkBuffer.Empty) {
-            check(head.next == null)
-            head.resetForWrite()
-            head.reserveStartGap(headerSizeHint)
-            head.reserveEndGap(Buffer.ReservedSize)
-        }
-    }
-
     override fun toString(): String {
         return "BytePacketBuilder($size bytes written)"
     }
