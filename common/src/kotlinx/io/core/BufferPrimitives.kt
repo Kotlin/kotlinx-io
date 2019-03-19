@@ -541,7 +541,7 @@ fun Buffer.writeFully(src: Buffer) {
 
     writeExact(length, "buffer readable content") { memory, offset ->
         src.memory.copyTo(memory, src.readPosition, length, offset)
-        src.discard(length)
+        src.discardExact(length)
     }
 }
 
@@ -560,7 +560,7 @@ fun Buffer.writeFully(src: Buffer, length: Int) {
 
     writeExact(length, "buffer readable content") { memory, offset ->
         src.memory.copyTo(memory, src.readPosition, length, offset)
-        src.discard(length)
+        src.discardExact(length)
     }
 }
 
@@ -571,6 +571,7 @@ internal inline fun <R> Buffer.readExact(size: Int, name: String, block: (memory
     }
 
     var value: R
+
     read { memory, start, endExclusive ->
         kotlinx.io.core.internal.require(endExclusive - start >= size) {
             throw EOFException("Not enough bytes to read a $name of size $size.")

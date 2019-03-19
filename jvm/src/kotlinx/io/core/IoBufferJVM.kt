@@ -73,8 +73,8 @@ actual class IoBuffer private constructor(
             }
         }
 
-    final override fun peekTo(destination: Buffer, offset: Int, min: Int, max: Int): Int {
-        return (this as Buffer).peekTo(destination, offset, min, max)
+    final override fun peekTo(destination: Memory, destinationOffset: Long, offset: Long, min: Long, max: Long): Long {
+        return (this as Buffer).peekTo(destination, destinationOffset, offset, min, max)
     }
 
     final override fun tryPeek(): Int {
@@ -334,20 +334,7 @@ actual class IoBuffer private constructor(
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun peekTo(buffer: IoBuffer): Int {
-        return (this as Buffer).peekTo(buffer)
-    }
-
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun discard(n: Long): Long {
-        require(n >= 0L) { "Negative discard quantity $n" }
-        val size = minOf(readRemaining.toLong(), n).toInt()
-        discard(size)
-        return size.toLong()
-    }
-
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun discardExact(n: Int) {
-        discard(n)
+        return (this as Input).peekTo(buffer)
     }
 
     /**

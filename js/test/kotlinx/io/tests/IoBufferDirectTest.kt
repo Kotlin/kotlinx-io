@@ -20,8 +20,8 @@ class IoBufferNativeTest {
 
     @Test
     fun testReadDirectOnEmpty() {
-        var invoked = false
-        buffer.readDirect { ptr ->
+        var invoked: Boolean
+        buffer.readDirect {
             invoked = true
             0
         }
@@ -32,17 +32,19 @@ class IoBufferNativeTest {
     fun testReadDirectNegativeResult() {
         var invoked = false
         assertFails {
-            buffer.readDirect { ptr ->
+            buffer.readDirect {
+                invoked = true
                 -1
             }
         }
+        assertTrue(invoked)
     }
 
     @Test
     fun testReadDirectTooManyBytesResult() {
-        var invoked = false
+        buffer.resetForWrite()
         assertFails {
-            buffer.readDirect { ptr ->
+            buffer.readDirect {
                 1
             }
         }
@@ -50,7 +52,7 @@ class IoBufferNativeTest {
 
     @Test
     fun testReadDirect() {
-        var result = 0
+        var result: Int
         buffer.writeByte(7)
         buffer.writeByte(8)
         buffer.readDirect { ptr ->
@@ -63,7 +65,7 @@ class IoBufferNativeTest {
 
     @Test
     fun testReadDirectWithEndGap() {
-        var result = 0
+        var result: Int
         buffer.reserveEndGap(8)
         buffer.writeByte(9)
         buffer.writeByte(10)
@@ -77,7 +79,7 @@ class IoBufferNativeTest {
 
     @Test
     fun testReadDirectWithStartGap() {
-        var result = 0
+        var result: Int
         buffer.reserveStartGap(8)
         buffer.writeByte(11)
         buffer.writeByte(12)
@@ -95,7 +97,7 @@ class IoBufferNativeTest {
             buffer.writeByte(1)
         }
 
-        buffer.readDirect { ptr ->
+        buffer.readDirect {
             buffer.readRemaining
         }
 
@@ -159,7 +161,7 @@ class IoBufferNativeTest {
         }
         assertEquals(1,  rc)
 
-        var value = 0
+        var value: Int
         rc = buffer.readDirect { view  ->
             assertEquals(2, view.byteLength)
             value = view.getInt8(0).toInt()

@@ -36,7 +36,7 @@ internal fun Buffer.writeBufferPrepend(other: Buffer): Int {
 
     val newReadPosition = readPosition - size
     other.memory.copyTo(memory, other.readPosition, size, newReadPosition)
-    other.discard(size)
+    other.discardExact(size)
     releaseStartGap(newReadPosition)
 
     return size

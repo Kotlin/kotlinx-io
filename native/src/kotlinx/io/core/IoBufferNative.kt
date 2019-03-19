@@ -19,10 +19,6 @@ actual class IoBuffer internal constructor(
     private val contentCapacity: Int,
     origin: ChunkBuffer?
 ) : Input, Output, ChunkBuffer(Memory.of(content, contentCapacity), origin) {
-    override fun discard(n: Long): Long {
-        return (this as Buffer).discard(n)
-    }
-
     internal var refCount = 1
 
     constructor(content: CPointer<ByteVar>, contentCapacity: Int) : this(content, contentCapacity, null)
@@ -46,8 +42,8 @@ actual class IoBuffer internal constructor(
             }
         }
 
-    final override fun peekTo(destination: Buffer, offset: Int, min: Int, max: Int): Int {
-        return (this as Buffer).peekTo(destination, offset, min, max)
+    final override fun peekTo(destination: Memory, destinationOffset: Long, offset: Long, min: Long, max: Long): Long {
+        return (this as Buffer).peekTo(destination, destinationOffset, offset, min, max)
     }
 
     final override fun tryPeek(): Int {
@@ -299,7 +295,7 @@ actual class IoBuffer internal constructor(
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun peekTo(buffer: IoBuffer): Int {
-        return (this as Buffer).peekTo(buffer)
+        return (this as Input).peekTo(buffer)
     }
 
     fun makeView(): IoBuffer {

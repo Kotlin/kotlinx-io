@@ -9,31 +9,6 @@ import kotlinx.io.core.internal.require
 import kotlinx.io.errors.*
 import kotlinx.io.pool.*
 
-
-@Deprecated("Use discard with Int parameter. No replacement")
-fun Buffer.discard(n: Long): Long = minOf(readRemaining.toLong(), n).toInt().also { discard(it) }.toLong()
-
-fun Buffer.discardExact(n: Int) {
-    discard(n)
-}
-
-/**
- * Copy available bytes to the specified [buffer] but keep them available.
- * If the underlying implementation could trigger
- * bytes population from the underlying source and block until any bytes available
- *
- * Very similar to [readAvailable] but don't discard copied bytes.
- *
- * @return number of bytes were copied
- */
-fun Buffer.peekTo(buffer: Buffer): Int {
-    val size = minOf(readRemaining, buffer.writeRemaining)
-    memory.copyTo(buffer.memory, readPosition, size, buffer.writePosition)
-    discard(size)
-    buffer.commitWritten(size)
-    return size
-}
-
 /**
  * Write byte [value] repeated the specified [times].
  */

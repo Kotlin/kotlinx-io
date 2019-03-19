@@ -9,7 +9,7 @@ internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
         for (index in start until endExclusive) {
             val codepoint = memory[index].toInt() and 0xff
             if (codepoint and 0x80 == 0x80 || !consumer(codepoint.toChar())) {
-                discard(index - start)
+                discardExact(index - start)
                 return false
             }
         }
@@ -67,7 +67,7 @@ suspend fun decodeUTF8LineLoopSuspend(
             }
 
             if (skip > 0) {
-                buffer.discard(skip)
+                buffer.discardExact(skip)
             }
 
             size = if (end) 0 else size.coerceAtLeast(1)
@@ -132,7 +132,7 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
                 v and 0x80 == 0 -> {
                     if (byteCount != 0) malformedByteCount(byteCount)
                     if (!consumer(v.toChar())) {
-                        discard(index - start)
+                        discardExact(index - start)
                         return -1
                     }
                 }
@@ -156,7 +156,7 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
                     byteCount--
 
                     if (byteCount > readRemaining) {
-                        discard(index - start)
+                        discardExact(index - start)
                         return lastByteCount
                     }
                 }
@@ -168,7 +168,7 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
                     if (byteCount == 0) {
                         if (isBmpCodePoint(value)) {
                             if (!consumer(value.toChar())) {
-                                discard(index - start - lastByteCount + 1)
+                                discardExact(index - start - lastByteCount + 1)
                                 return -1
                             }
                         } else if (!isValidCodePoint(value)) {
@@ -176,7 +176,7 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
                         } else {
                             if (!consumer(highSurrogate(value).toChar()) ||
                                 !consumer(lowSurrogate(value).toChar())) {
-                                discard(index - start - lastByteCount + 1)
+                                discardExact(index - start - lastByteCount + 1)
                                 return -1
                             }
                         }

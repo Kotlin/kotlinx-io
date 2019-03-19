@@ -100,7 +100,7 @@ open class Buffer(val memory: Memory) {
     }
 
     @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
-    fun discard(count: Long): Long {
+    final fun discard(count: Long): Long {
         val size = minOf(count, readRemaining.toLong()).toInt()
         discardExact(size)
         return size.toLong()

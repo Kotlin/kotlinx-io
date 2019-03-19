@@ -1,5 +1,6 @@
 package kotlinx.io.core
 
+import kotlinx.io.bits.Memory
 import org.khronos.webgl.*
 
 /**
@@ -45,7 +46,13 @@ actual interface Input : Closeable {
      * @return number of bytes copied to the [destination] possibly `0`
      * @throws Throwable when not enough bytes available to provide
      */
-    actual fun peekTo(destination: Buffer, offset: Int, min: Int, max: Int): Int
+    actual fun peekTo(
+        destination: Memory,
+        destinationOffset: Long,
+        offset: Long,
+        min: Long,
+        max: Long
+    ): Long
 
     /**
      * Read the next upcoming byte

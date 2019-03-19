@@ -75,7 +75,7 @@ class TakeWhileTest {
         assertEquals(1, chunk1.readRemaining)
         assertEquals(10, chunk2.readRemaining)
 
-        pkt.takeWhileSize(8) { it.discard(7); 0 }
+        pkt.takeWhileSize(8) { it.discardExact(7); 0 }
 
         assertSame(chunk2, pkt.head)
         assertEquals(4, pkt.remaining)

@@ -30,8 +30,8 @@ actual class IoBuffer internal constructor(
             }
         }
 
-    final override fun peekTo(destination: Buffer, offset: Int, min: Int, max: Int): Int {
-        return (this as Buffer).peekTo(destination, offset, min, max)
+    final override fun peekTo(destination: Memory, destinationOffset: Long, offset: Long, min: Long, max: Long): Long {
+        return (this as Buffer).peekTo(destination, destinationOffset, offset, min, max)
     }
 
     final override fun tryPeek(): Int {
@@ -107,10 +107,6 @@ actual class IoBuffer internal constructor(
     override fun append(c: Char): Appendable {
         (this as Buffer).append(c)
         return this
-    }
-
-    final override fun discard(n: Long): Long {
-        return (this as Buffer).discard(n)
     }
 
     @Deprecated(
@@ -213,7 +209,7 @@ actual class IoBuffer internal constructor(
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     override fun peekTo(buffer: IoBuffer): Int {
-        return (this as Buffer).peekTo(buffer)
+        return (this as Input).peekTo(buffer)
     }
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)

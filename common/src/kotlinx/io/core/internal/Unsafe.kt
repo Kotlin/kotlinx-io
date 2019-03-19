@@ -41,29 +41,18 @@ fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? {
 private fun Input.prepareReadHeadFallback(minSize: Int): ChunkBuffer? {
     if (endOfInput) return null
 
-    if (this is AbstractInput) {
-        if (!prefetch(minSize)) {
-            prematureEndOfStream(minSize)
-        }
-    }
-
     val buffer = ChunkBuffer.Pool.borrow()
-    var copied = 0
+    val copied = peekTo(
+        buffer.memory,
+        buffer.writePosition.toLong(),
+        0L,
+        minSize.toLong(),
+        buffer.writeRemaining.toLong()
+    ).toInt()
+    buffer.commitWritten(copied)
 
-    while (copied < minSize) {
-        val rc = try {
-            peekTo(buffer, copied)
-        } catch (t: Throwable) {
-            buffer.release(ChunkBuffer.Pool)
-            throw t
-        }
-
-        if (rc <= 0) {
-            buffer.release(ChunkBuffer.Pool)
-            return null
-        }
-
-        copied += rc
+    if (copied < minSize) {
+        prematureEndOfStream(minSize)
     }
 
     return buffer

@@ -1,7 +1,7 @@
 package kotlinx.io.core
 
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.internal.*
-import kotlinx.io.errors.*
 import kotlinx.io.pool.*
 import kotlin.contracts.*
 
@@ -161,24 +161,19 @@ internal inline fun Long.coerceAtMostMaxIntOrFail(message: String): Int {
     return this.toInt()
 }
 
-internal fun Buffer.peekTo(destination: Buffer, offset: Int, min: Int, max: Int): Int {
-    checkPeekTo(destination, offset, min, max)
-
-    val size = minOf(readRemaining - offset, max)
-    if (size <= 0) {
-        if (min > 0) {
-            prematureEndOfStream(offset + min)
-        }
-        return 0
-    }
+internal fun Buffer.peekTo(destination: Memory, destinationOffset: Long, offset: Long, min: Long, max: Long): Long {
+    val size = minOf(
+        destination.size - destinationOffset,
+        max,
+        readRemaining.toLong()
+    )
 
     memory.copyTo(
-        destination.memory,
+        destination,
         readPosition + offset,
         size,
-        destination.writePosition
+        destinationOffset
     )
-    destination.commitWritten(size)
 
     return size
 }

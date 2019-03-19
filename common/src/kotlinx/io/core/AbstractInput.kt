@@ -5,7 +5,6 @@ package kotlinx.io.core
 import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
 import kotlinx.io.core.internal.require
-import kotlinx.io.errors.checkPeekTo
 import kotlinx.io.pool.*
 
 /**
@@ -103,7 +102,7 @@ abstract class AbstractInput(
             }
         }
 
-    internal final fun prefetch(min: Int): Boolean {
+    internal final fun prefetch(min: Long): Boolean {
         if (min <= 0) return true
         val headRemaining = headRemaining
         if (headRemaining >= min || headRemaining + tailRemaining >= min) return true
@@ -111,24 +110,21 @@ abstract class AbstractInput(
         return doPrefetch(min)
     }
 
-    final override fun peekTo(destination: Buffer, offset: Int, min: Int, max: Int): Int {
-        checkPeekTo(destination, offset, min, max)
-
-        if (!prefetch(min + offset)) {
-            prematureEndOfStream(min + offset)
-        }
+    final override fun peekTo(destination: Memory, destinationOffset: Long, offset: Long, min: Long, max: Long): Long {
+        prefetch(min + offset)
 
         var current: ChunkBuffer = head
-        var copied = 0
+        var copied = 0L
         var skip = offset
-        var writePosition = destination.writePosition
+        var writePosition = destinationOffset
+        val maxCopySize = minOf(max, destination.size - destinationOffset)
 
-        while (copied < min) {
+        while (copied < min && copied < maxCopySize) {
             val chunkSize = current.readRemaining
             if (chunkSize > skip) {
-                val size = minOf(chunkSize - skip, max - copied)
+                val size = minOf(chunkSize - skip, maxCopySize - copied)
                 current.memory.copyTo(
-                    destination.memory,
+                    destination,
                     current.readPosition + skip,
                     size,
                     writePosition
@@ -143,12 +139,6 @@ abstract class AbstractInput(
             current = current.next ?: break
         }
 
-        if (copied < min) {
-            prematureEndOfStream(min - copied)
-        }
-
-        destination.commitWritten(copied)
-
         return copied
     }
 
@@ -156,7 +146,7 @@ abstract class AbstractInput(
      * @see doFill for similar logic
      * @see appendView for similar logic
      */
-    private fun doPrefetch(min: Int): Boolean {
+    private fun doPrefetch(min: Long): Boolean {
         var tail = _head.findTail()
         var available = headRemaining + tailRemaining
 
