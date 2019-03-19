@@ -82,7 +82,7 @@ open class Buffer(val memory: Memory) {
      *
      * @throws EOFException if [count] is bigger than available bytes.
      */
-    fun discard(count: Int = readRemaining) {
+    fun discardExact(count: Int = readRemaining) {
         if (count == 0) return
 
         val newReadPosition = readPosition + count
@@ -90,6 +90,20 @@ open class Buffer(val memory: Memory) {
             discardFailed(count, readRemaining)
         }
         readPosition = newReadPosition
+    }
+
+    @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
+    fun discard(count: Int): Int {
+        val size = minOf(count, readRemaining)
+        discardExact(size)
+        return size
+    }
+
+    @Deprecated("Use discardExact instead.", level = DeprecationLevel.ERROR)
+    fun discard(count: Long): Long {
+        val size = minOf(count, readRemaining.toLong()).toInt()
+        discardExact(size)
+        return size.toLong()
     }
 
     @PublishedApi
@@ -367,7 +381,7 @@ inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: Int) ->
     }
 
     val rc = block(memory, readPosition, writePosition)
-    discard(rc)
+    discardExact(rc)
     return rc
 }
 
@@ -438,6 +452,7 @@ internal fun Buffer.restoreStartGap(size: Int) {
     releaseStartGap(readPosition - size)
 }
 
+@ExperimentalIoApi
 class InsufficientSpaceException(message: String = "Not enough free space") : Exception(message) {
     constructor(
         size: Int,
