@@ -1,5 +1,7 @@
 package kotlinx.io.bits
 
+import kotlinx.io.core.ExperimentalIoApi
+
 /**
  * Reverse number's byte order
  */
@@ -43,11 +45,20 @@ fun UInt.reverseByteOrder(): UInt = toInt().reverseByteOrder().toUInt()
 @ExperimentalUnsignedTypes
 fun ULong.reverseByteOrder(): ULong = toLong().reverseByteOrder().toULong()
 
+@ExperimentalIoApi
 inline val Short.highByte: Byte get() = ((toInt() and 0xff) shr 8).toByte()
+
+@ExperimentalIoApi
 inline val Short.lowByte: Byte get() = (toInt() and 0xff).toByte()
 
+@ExperimentalIoApi
 inline val Int.highShort: Short get() = (this ushr 16).toShort()
+
+@ExperimentalIoApi
 inline val Int.lowShort: Short get() = (this and 0xffff).toShort()
 
+@ExperimentalIoApi
 inline val Long.highInt: Int get() = (this ushr 32).toInt()
+
+@ExperimentalIoApi
 inline val Long.lowInt: Int get() = (this and 0xffffffffL).toInt()
