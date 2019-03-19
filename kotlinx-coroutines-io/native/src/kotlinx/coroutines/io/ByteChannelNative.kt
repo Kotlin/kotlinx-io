@@ -3,8 +3,6 @@ package kotlinx.coroutines.io
 import kotlinx.io.core.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlin.jvm.*
-
 
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
@@ -50,8 +48,6 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
 }
 
 internal class ByteChannelNative(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
-
-    @Volatile
     private var attachedJob: Job? = null
 
     @UseExperimental(InternalCoroutinesApi::class)
