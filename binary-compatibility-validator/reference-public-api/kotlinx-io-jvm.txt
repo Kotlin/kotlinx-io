@@ -710,14 +710,13 @@ public final class kotlinx/io/core/internal/RequireKt {
 
 public final class kotlinx/io/core/internal/UTF8Kt {
 	public static final fun decodeUTF8 (Lkotlinx/io/core/IoBuffer;Lkotlin/jvm/functions/Function1;)I
-	public static final fun decodeUTF8LineLoopSuspend (Ljava/lang/Appendable;ILkotlin/jvm/functions/Function1;)Z
+	public static final fun decodeUTF8LineLoopSuspend (Ljava/lang/Appendable;ILkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun highSurrogate (I)I
 	public static final fun isBmpCodePoint (I)Z
 	public static final fun isValidCodePoint (I)Z
 	public static final fun lowSurrogate (I)I
 	public static final fun malformedByteCount (I)Ljava/lang/Void;
 	public static final fun malformedCodePoint (I)Ljava/lang/Void;
-	public static final fun prematureEndOfStreamUtf (I)Ljava/lang/Void;
 }
 
 public final class kotlinx/io/core/internal/UnsafeKt {
