@@ -99,6 +99,7 @@ fun Output.fill(n: Long, v: Byte = 0) {
  * Depending on the output underlying implementation it could invoke [block] function with the same buffer several times
  * however it is guaranteed that it is always non-empty.
  */
+@Deprecated("This is going to become internal. Write directly to output instead.")
 inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
     var tail: IoBuffer = prepareWriteHead(1, null)
     try {
@@ -117,6 +118,7 @@ inline fun Output.writeWhile(block: (IoBuffer) -> Boolean) {
  * bytes space (could be the same buffer as before if it complies to the restriction).
  * @param initialSize for the first buffer passed to [block] function
  */
+@Deprecated("This is going to become internal. Write directly to output instead.")
 inline fun Output.writeWhileSize(initialSize: Int = 1, block: (IoBuffer) -> Int) {
     var tail = prepareWriteHead(initialSize, null)
 
