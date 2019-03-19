@@ -155,7 +155,7 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
                     lastByteCount = byteCount
                     byteCount--
 
-                    if (byteCount > readRemaining) {
+                    if (lastByteCount > endExclusive - index) {
                         discardExact(index - start)
                         return lastByteCount
                     }
