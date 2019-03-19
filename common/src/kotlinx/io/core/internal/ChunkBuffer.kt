@@ -149,6 +149,16 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
                 allocator.free(instance.memory)
             }
         }
+
+        internal val NoPoolManuallyManaged: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
+            override fun borrow(): ChunkBuffer {
+                throw UnsupportedOperationException("This pool doesn't support borrow")
+            }
+
+            override fun recycle(instance: ChunkBuffer) {
+                // do nothing: manually managed objects should be disposed manually
+            }
+        }
     }
 }
 
