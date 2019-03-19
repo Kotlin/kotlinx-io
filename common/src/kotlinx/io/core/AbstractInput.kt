@@ -822,10 +822,9 @@ abstract class AbstractInput(
     }
 
     internal final fun releaseHead(head: ChunkBuffer): ChunkBuffer {
-        val next = head.next ?: ChunkBuffer.Empty
+        val next = head.cleanNext() ?: ChunkBuffer.Empty
         this._head = next
         this.tailRemaining -= next.readRemaining
-        head.next = null
         head.release(pool)
 
         return next

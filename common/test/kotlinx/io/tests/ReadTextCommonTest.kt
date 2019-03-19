@@ -266,8 +266,8 @@ class ReadTextCommonTest {
 
     @Test
     fun testDecodeWrapped2Bytes() {
-        val first = IoBuffer.NoPool.borrow()
-        val second = IoBuffer.NoPool.borrow()
+        val first = ChunkBuffer.NoPool.borrow()
+        val second = ChunkBuffer.NoPool.borrow()
 
         first.resetForWrite()
         first.reserveEndGap(8)
@@ -285,8 +285,8 @@ class ReadTextCommonTest {
 
     @Test
     fun testDecodeWrapped3bytes1() {
-        val first = IoBuffer.NoPool.borrow()
-        val second = IoBuffer.NoPool.borrow()
+        val first = ChunkBuffer.NoPool.borrow()
+        val second = ChunkBuffer.NoPool.borrow()
 
         first.resetForWrite()
         second.resetForWrite()
@@ -306,8 +306,8 @@ class ReadTextCommonTest {
     @Test
     fun testDecodeWrapped3bytes2() {
         // the same but we have 2 bytes in the first chunk
-        val first = IoBuffer.NoPool.borrow()
-        val second = IoBuffer.NoPool.borrow()
+        val first = ChunkBuffer.NoPool.borrow()
+        val second = ChunkBuffer.NoPool.borrow()
 
         first.resetForWrite()
         second.resetForWrite()

@@ -54,6 +54,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(
         readAsMuchAsPossible((buffer + available)!!, destinationCapacity - available, copied + available)
     } else {
         current.readFully(buffer, 0, destinationCapacity.toInt())
+        completeReadHead(current)
         copied + destinationCapacity
     }
 }

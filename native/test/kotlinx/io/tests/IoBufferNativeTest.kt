@@ -97,7 +97,7 @@ class IoBufferNativeTest {
 
     @Test
     fun testWriteDirectOnFull() {
-        val size = buffer.capacity
+        val size = buffer.writeRemaining
         buffer.writeDirect { size }
         assertEquals(size, buffer.readRemaining)
         assertEquals(0, buffer.writeRemaining)
