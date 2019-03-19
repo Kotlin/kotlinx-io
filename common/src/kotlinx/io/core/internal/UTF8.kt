@@ -21,10 +21,10 @@ internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
 }
 
 @DangerousInternalIoApi
-inline fun decodeUTF8LineLoopSuspend(
+suspend fun decodeUTF8LineLoopSuspend(
     out: Appendable,
     limit: Int,
-    nextChunk: (Int) -> AbstractInput?
+    nextChunk: suspend (Int) -> AbstractInput?
 ): Boolean {
     var decoded = 0
     var size = 1
@@ -84,8 +84,7 @@ inline fun decodeUTF8LineLoopSuspend(
     return decoded > 0 || end
 }
 
-@PublishedApi
-internal fun prematureEndOfStreamUtf(size: Int): Nothing =
+private fun prematureEndOfStreamUtf(size: Int): Nothing =
     throw EOFException("Premature end of stream: expected $size bytes to decode UTF-8 char")
 
 @DangerousInternalIoApi
