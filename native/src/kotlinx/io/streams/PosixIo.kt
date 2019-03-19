@@ -120,7 +120,7 @@ fun fread(destination: Memory, offset: Int, length: Int, stream: CPointer<FILE>)
 
 @ExperimentalIoApi
 fun fread(destination: Memory, offset: Long, length: Long, stream: CPointer<FILE>): Long {
-    val maxLength = minOf(length, Int.MAX_VALUE.toLong(), size_t.MAX_VALUE.toLong())
+    val maxLength = minOf(length, Int.MAX_VALUE.toLong(), ssize_t.MAX_VALUE.toLong())
     val pointer = destination.pointer + offset
 
     val result = fread(pointer, 1.convert(), maxLength.convert(), stream)
