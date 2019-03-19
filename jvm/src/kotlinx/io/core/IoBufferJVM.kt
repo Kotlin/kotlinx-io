@@ -27,7 +27,7 @@ actual class IoBuffer private constructor(
     @PublishedApi
     @Deprecated("")
     internal var readBuffer: ByteBuffer
-        get() = memory.buffer.sliceSafe(readPosition, writePosition)
+        get() = memory.buffer.sliceSafe(readPosition, readRemaining)
         @Deprecated("", level = DeprecationLevel.ERROR)
         set(_) {
             TODO()
@@ -36,7 +36,7 @@ actual class IoBuffer private constructor(
     @PublishedApi
     @Deprecated("")
     internal var writeBuffer: ByteBuffer
-        get() = memory.buffer.sliceSafe(writePosition, limit)
+        get() = memory.buffer.sliceSafe(writePosition, writeRemaining)
         set(_) {
             TODO()
         }
@@ -350,8 +350,8 @@ actual class IoBuffer private constructor(
      */
     @Deprecated("Unstable API. Could be changed or removed without notice.")
     fun resetFromContentToWrite(child: ByteBuffer) {
-        writeBuffer.limit(child.limit())
-        writeBuffer.position(child.position())
+        resetForWrite(child.limit())
+        commitWrittenUntilIndex(child.position())
     }
 
     /**

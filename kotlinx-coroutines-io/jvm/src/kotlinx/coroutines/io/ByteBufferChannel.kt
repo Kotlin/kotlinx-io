@@ -1860,10 +1860,19 @@ internal class ByteBufferChannel(
             }
 
             override fun written(n: Int) {
-                require(n >= 0)
-                if (n > locked) throw IllegalStateException()
+                if (n < 0 || n > locked) {
+                    writtenFailed(n)
+                }
                 locked -= n
                 byteBuffer.bytesWritten(ringBufferCapacity, n)
+            }
+
+            private fun writtenFailed(n: Int): Nothing {
+                if (n < 0) {
+                    throw IllegalArgumentException("Written bytes count shouldn't be negative: $n")
+                }
+
+                throw IllegalStateException("Unable to mark $n bytes as written: only $locked were pre-locked.")
             }
 
             override suspend fun tryAwait(n: Int) {
