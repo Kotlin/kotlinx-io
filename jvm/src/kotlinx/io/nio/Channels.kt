@@ -127,6 +127,7 @@ fun ReadableByteChannel.read(buffer: IoBuffer): Int {
 /**
  * Does the same as [ReadableByteChannel.read] but to a [Buffer] instance
  */
+@Deprecated("Use read(Memory) instead.")
 fun ReadableByteChannel.read(buffer: Buffer): Int {
     if (buffer.writeRemaining == 0) return 0
     // TODO writeDirect?
@@ -135,6 +136,18 @@ fun ReadableByteChannel.read(buffer: Buffer): Int {
         if (rc == -1) return -1
         rc
     }
+}
+
+/**
+ * Does the same as [ReadableByteChannel.read] but to a [Memory] instance
+ */
+fun ReadableByteChannel.read(
+    destination: Memory,
+    destinationOffset: Int = 0,
+    maxLength: Int = destination.size32 - destinationOffset
+): Int {
+    val nioBuffer = destination.buffer.sliceSafe(destinationOffset, maxLength)
+    return read(nioBuffer)
 }
 
 /**
@@ -149,8 +162,21 @@ fun WritableByteChannel.write(buffer: IoBuffer): Int {
 /**
  * Does the same as [WritableByteChannel.write] but from a [Buffer] instance
  */
+@Deprecated("Use write(Memory) instead.")
 fun WritableByteChannel.write(buffer: Buffer): Int {
     return buffer.read { memory, start, endExclusive ->
         write(memory.buffer.sliceSafe(start, endExclusive - start))
     }
+}
+
+/**
+ * Does the same as [WritableByteChannel.write] but from a [Memory] instance
+ */
+fun WritableByteChannel.write(
+    source: Memory,
+    sourceOffset: Int = 0,
+    maxLength: Int = source.size32 - sourceOffset
+): Int {
+    val nioBuffer = source.buffer.sliceSafe(sourceOffset, maxLength)
+    return write(nioBuffer)
 }

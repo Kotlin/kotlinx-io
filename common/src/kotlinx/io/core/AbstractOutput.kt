@@ -192,10 +192,6 @@ internal constructor(
         }
     }
 
-    fun writeFully(src: Buffer, length: Int) {
-        (this as Output).writeFully(src, length)
-    }
-
     /**
      * Append single UTF-8 character
      */

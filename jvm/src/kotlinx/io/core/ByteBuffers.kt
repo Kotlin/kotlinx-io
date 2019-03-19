@@ -2,6 +2,8 @@ package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
 import java.nio.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Read at most `dst.remaining()` bytes to the specified [dst] byte buffer and change it's position accordingly
@@ -51,12 +53,20 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * is at least 8 bytes long (long integer bytes length)
  */
 inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     write(size) { buffer: Buffer ->
         buffer.writeDirect(size, block)
     }
 }
 
 inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     read(size) { view ->
         view.readDirect {
             block(it)
@@ -65,6 +75,10 @@ inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
 }
 
 inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     read(size) { view ->
         view.readDirect {
             block(it)

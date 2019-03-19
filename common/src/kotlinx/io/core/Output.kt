@@ -201,6 +201,7 @@ private fun Output.fillFallback(times: Long, value: Byte) {
  * Depending on the output underlying implementation it could invoke [block] function with the same buffer several times
  * however it is guaranteed that it is always non-empty.
  */
+@DangerousInternalIoApi
 inline fun Output.writeWhile(block: (Buffer) -> Boolean) {
     var tail: ChunkBuffer = prepareWriteHead(1, null)
     try {
@@ -219,6 +220,7 @@ inline fun Output.writeWhile(block: (Buffer) -> Boolean) {
  * bytes space (could be the same buffer as before if it complies to the restriction).
  * @param initialSize for the first buffer passed to [block] function
  */
+@DangerousInternalIoApi
 inline fun Output.writeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
     var tail = prepareWriteHead(initialSize, null)
 

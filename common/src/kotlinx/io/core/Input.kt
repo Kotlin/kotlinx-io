@@ -233,6 +233,7 @@ fun Input.discardExact(n: Int) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
+@DangerousInternalIoApi
 inline fun Input.takeWhile(block: (Buffer) -> Boolean) {
     var release = true
     var current = prepareReadFirstHead(1) ?: return
@@ -262,6 +263,7 @@ inline fun Input.takeWhile(block: (Buffer) -> Boolean) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
+@DangerousInternalIoApi
 inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
     var release = true
     var current = prepareReadFirstHead(initialSize) ?: return

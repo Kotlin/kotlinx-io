@@ -17,7 +17,7 @@ inline fun <R> CPointer<FILE>.use(block: (CPointer<FILE>) -> R): R {
     }
 }
 
-@ExperimentalIoApi
+@Deprecated("Use fwrite(Memory) instead.")
 fun fwrite(buffer: Buffer, stream: CPointer<FILE>): size_t {
     var written: size_t
 
@@ -43,7 +43,7 @@ fun fwrite(source: Memory, offset: Long, length: Long, stream: CPointer<FILE>): 
     return fwrite(source.pointer + offset, 1.convert(), maxLength.convert(), stream).convert()
 }
 
-@ExperimentalIoApi
+@Deprecated("Use write(Memory) instead.")
 fun write(fildes: Int, buffer: Buffer): ssize_t {
     var written: ssize_t
 
@@ -70,7 +70,7 @@ fun write(fildes: Int, source: Memory, offset: Long, length: Long): Long {
     return write(fildes, source.pointer + offset, maxLength.convert()).convert()
 }
 
-@ExperimentalIoApi
+@Deprecated("Use send(Memory) instead.")
 fun send(socket: KX_SOCKET, buffer: Buffer, flags: Int): ssize_t {
     var written: ssize_t
 
@@ -87,6 +87,18 @@ fun send(socket: KX_SOCKET, buffer: Buffer, flags: Int): ssize_t {
 }
 
 @ExperimentalIoApi
+fun send(socket: KX_SOCKET, source: Memory, sourceOffset: Long, maxLength: Long, flags: Int): Long {
+    val pointer = source.pointer + sourceOffset
+
+    return send(socket, pointer, maxLength.coerceAtMost(size_t.MAX_VALUE.toLong()).convert(), flags).convert()
+}
+
+@ExperimentalIoApi
+fun send(socket: KX_SOCKET, source: Memory, sourceOffset: Int, maxLength: Int, flags: Int): Int {
+    return send(socket, source, sourceOffset.toLong(), maxLength.toLong(), flags).toInt()
+}
+
+@Deprecated("Use fread(Memory) instead.")
 fun fread(buffer: Buffer, stream: CPointer<FILE>): size_t {
     var bytesRead: size_t
 
@@ -118,7 +130,7 @@ fun fread(destination: Memory, offset: Long, length: Long, stream: CPointer<FILE
 }
 
 
-@ExperimentalIoApi
+@Deprecated("Use read(Memory) instead.")
 fun read(fildes: Int, buffer: Buffer): ssize_t {
     var bytesRead: ssize_t
 
@@ -156,7 +168,7 @@ fun read(fildes: Int, destination: Memory, offset: Long, length: Long): Long {
     return read(fildes, destination.pointer + offset, maxLength.convert()).convert<Long>().coerceAtLeast(0)
 }
 
-@ExperimentalIoApi
+@Deprecated("Use fread(Memory) instead.")
 fun recv(socket: KX_SOCKET, buffer: Buffer, flags: Int): ssize_t {
     var bytesRead: ssize_t
 
