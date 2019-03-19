@@ -289,13 +289,13 @@ internal actual fun CharsetDecoder.decodeBuffer(
                     inbuf.value = ptr
                     outbuf.value = pinnedResult.addressOf(0).reinterpret()
                     inbytesleft.value = size.convert()
-                    outbytesleft.value = size.convert()
+                    outbytesleft.value = (size * 2).convert()
 
                     if (iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr) == MAX_SIZE) {
                         checkIconvResult(posix_errno())
                     }
 
-                    charactersCopied += (size - outbytesleft.value.convert<Int>()) / 2
+                    charactersCopied += (size * 2 - outbytesleft.value.convert<Int>()) / 2
                     inbytesleft.value.convert<Int>()
                 }
             }
