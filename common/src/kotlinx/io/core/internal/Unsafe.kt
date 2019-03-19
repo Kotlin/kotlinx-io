@@ -13,17 +13,15 @@ annotation class DangerousInternalIoApi
 
 @DangerousInternalIoApi
 fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
+    val builderHead = builder.stealAll() ?: return
     val builderSize = builder.size
-    val builderHead = builder.head
 
     if (builderSize <= PACKET_MAX_COPY_SIZE && builderHead.next == null && tryWriteAppend(builderHead)) {
         builder.afterBytesStolen()
         return
     }
 
-    builder.stealAll()?.let { chain ->
-        append(chain)
-    }
+    append(builderHead)
 }
 
 @DangerousInternalIoApi
