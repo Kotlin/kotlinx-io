@@ -3,6 +3,7 @@ package kotlinx.coroutines.io
 import kotlinx.io.core.*
 import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
+import kotlinx.io.pool.ObjectPool
 
 
 suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
@@ -63,10 +64,14 @@ private suspend fun ByteChannelSequentialBase.copyToTail(dst: ByteChannelSequent
  */
 @Suppress("OverridingDeprecatedMember")
 @ExperimentalIoApi
-abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlush: Boolean) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
+abstract class ByteChannelSequentialBase(
+    initial: IoBuffer,
+    override val autoFlush: Boolean,
+    pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
     protected var closed = false
-    protected val writable = BytePacketBuilder(0)
-    protected val readable = ByteReadPacket(initial, ChunkBuffer.Pool)
+    protected val writable = BytePacketBuilder(0, pool)
+    protected val readable = ByteReadPacket(initial, pool)
 
     internal val notFull = Condition { totalPending() <= 4088L }
 

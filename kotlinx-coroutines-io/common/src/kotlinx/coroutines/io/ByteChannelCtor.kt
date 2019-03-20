@@ -51,7 +51,10 @@ fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): ByteReadCh
 /**
  * Byte channel that is always empty.
  */
-@Deprecated("Use ByteReadChannel.Empty instead", ReplaceWith("ByteReadChannel.Empty"))
+@Deprecated(
+    "Use ByteReadChannel.Empty instead", ReplaceWith("ByteReadChannel.Empty"),
+    level = DeprecationLevel.ERROR
+)
 val EmptyByteReadChannel: ByteReadChannel
     get() = ByteReadChannel.Empty
 

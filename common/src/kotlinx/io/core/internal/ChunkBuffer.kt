@@ -7,7 +7,6 @@ import kotlinx.atomicfu.updateAndGet
 import kotlinx.io.bits.*
 import kotlinx.io.bits.DefaultAllocator
 import kotlinx.io.core.*
-import kotlinx.io.core.DefaultChunkedBufferPool
 import kotlinx.io.pool.*
 
 @DangerousInternalIoApi

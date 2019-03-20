@@ -1,5 +1,7 @@
 package kotlinx.io.pool
 
+import kotlin.native.concurrent.ensureNeverFrozen
+
 actual abstract class DefaultPool<T : Any> actual constructor(actual override final val capacity: Int) : ObjectPool<T> {
     private val instances = arrayOfNulls<Any?>(capacity)
     private var size = 0
@@ -9,6 +11,10 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual override fi
 
     actual protected open fun clearInstance(instance: T): T = instance
     actual protected open fun validateInstance(instance: T) {}
+
+    init {
+        ensureNeverFrozen()
+    }
 
     actual final override fun borrow(): T {
         if (size == 0) return produceInstance()

@@ -3,7 +3,8 @@ package kotlinx.coroutines.io
 import kotlinx.io.core.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlin.jvm.*
+import kotlinx.io.core.internal.ChunkBuffer
+import kotlinx.io.pool.ObjectPool
 
 
 /**
@@ -49,9 +50,10 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
     return (this as ByteChannelSequentialBase).copyTo((dst as ByteChannelSequentialBase))
 }
 
-internal class ByteChannelNative(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
-
-    @Volatile
+internal class ByteChannelNative(initial: IoBuffer,
+                                 autoFlush: Boolean,
+                                 pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool) :
+    ByteChannelSequentialBase(initial, autoFlush, pool) {
     private var attachedJob: Job? = null
 
     @UseExperimental(InternalCoroutinesApi::class)

@@ -194,9 +194,11 @@ actual interface ByteReadChannel {
     actual suspend fun discard(max: Long): Long
 
     actual companion object {
-        actual val Empty: ByteReadChannel =
-            ByteChannelNative(IoBuffer.Empty, false).apply {
-                close(null)
-            }
+        actual val Empty: ByteReadChannel = ByteChannelNative(
+            IoBuffer.Empty, false,
+            kotlinx.io.core.internal.ChunkBuffer.EmptyPool
+        ).apply {
+            close(null)
+        }
     }
 }
