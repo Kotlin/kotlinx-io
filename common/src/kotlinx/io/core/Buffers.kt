@@ -234,6 +234,7 @@ expect class IoBuffer : Input, Output {
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
+        @Deprecated("This implementation detail is going to become internal.")
         val ReservedSize: Int
 
         /**

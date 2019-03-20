@@ -9,6 +9,8 @@ expect class ByteReadPacket internal constructor(head: IoBuffer, remaining: Long
 
     companion object {
         val Empty: ByteReadPacket
+
+        @Deprecated("This implementation detail is going to become internal.")
         val ReservedSize: Int
     }
 }

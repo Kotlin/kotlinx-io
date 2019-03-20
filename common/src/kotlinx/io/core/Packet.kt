@@ -935,11 +935,7 @@ abstract class ByteReadPacketBase(@PublishedApi internal var head: IoBuffer,
         val Empty: ByteReadPacket
             get() = ByteReadPacket.Empty
 
-        @Deprecated(
-            "Use IoBuffer.ReservedSize instead",
-            replaceWith = ReplaceWith("IoBuffer.ReservedSize", "kotlinx.io.core.IoBuffer"),
-            level = DeprecationLevel.ERROR
-        )
+        @Deprecated("This implementation detail is going to become internal.", level = DeprecationLevel.ERROR)
         val ReservedSize: Int = IoBuffer.ReservedSize
     }
 }

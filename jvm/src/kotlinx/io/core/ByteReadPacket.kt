@@ -57,6 +57,7 @@ internal actual constructor(head: IoBuffer, remaining: Long, pool: ObjectPool<Io
                 override fun borrow() = IoBuffer.Empty
             })
 
+        @Deprecated("This implementation detail is going to become internal.")
         actual inline val ReservedSize get() = IoBuffer.ReservedSize
     }
 }

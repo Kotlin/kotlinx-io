@@ -1046,6 +1046,7 @@ actual class IoBuffer internal constructor(
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
+        @Deprecated("This implementation detail is going to become internal.")
         actual val ReservedSize: Int = 8
 
         internal val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)

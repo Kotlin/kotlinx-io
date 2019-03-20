@@ -85,6 +85,8 @@ actual class ByteReadPacket
             get() = ByteReadPacket(IoBuffer.Empty, object : NoPoolImpl<IoBuffer>() {
                 override fun borrow() = IoBuffer.Empty
             })
+
+        @Deprecated("This implementation detail is going to become internal.")
         actual inline val ReservedSize get() = IoBuffer.ReservedSize
     }
 }

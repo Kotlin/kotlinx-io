@@ -943,6 +943,7 @@ actual class IoBuffer private constructor(
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
+        @Deprecated("This implementation detail is going to become internal.")
         actual val ReservedSize: Int = 8
 
         private val EmptyBuffer: ByteBuffer = ByteBuffer.allocateDirect(0)
