@@ -4,6 +4,8 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.internal.*
+import kotlinx.io.bits.Memory
+import kotlinx.io.bits.copyTo
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import kotlinx.io.core.Buffer
@@ -2454,6 +2456,28 @@ internal class ByteBufferChannel(
             val newValue = block(old) ?: continue
             if (old === newValue || updater.compareAndSet(this, old, newValue)) return Pair(old, newValue)
         }
+    }
+
+    override suspend fun peekTo(
+        destination: Memory,
+        destinationOffset: Long,
+        offset: Long,
+        min: Long,
+        max: Long
+    ): Long {
+        var bytesCopied = 0
+        val desiredSize = (min + offset).coerceAtMost(4088L).toInt()
+
+        read(desiredSize) { nioBuffer ->
+            if (nioBuffer.remaining() > offset) {
+                val view = nioBuffer.duplicate()!!
+                view.position(view.position() + offset.toInt())
+                bytesCopied = view.remaining()
+                view.copyTo(destination, destinationOffset.toInt())
+            }
+        }
+
+        return bytesCopied.toLong()
     }
 
     companion object {

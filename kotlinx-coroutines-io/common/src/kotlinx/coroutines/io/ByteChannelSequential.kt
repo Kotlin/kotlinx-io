@@ -676,4 +676,30 @@ abstract class ByteChannelSequentialBase(
         afterWrite()
         return notFull.await { flush() }
     }
+
+    final override suspend fun peekTo(
+        destination: Memory,
+        destinationOffset: Long,
+        offset: Long,
+        min: Long,
+        max: Long
+    ): Long {
+        var bytesCopied = 0L
+
+        @Suppress("DEPRECATION")
+        readSuspendableSession {
+            val desiredSize = (min + offset).coerceAtMost(4088L).toInt()
+
+            await(desiredSize)
+
+            val buffer = request(1) ?: IoBuffer.Empty
+            if (buffer.readRemaining > offset) {
+                buffer.discardExact(offset)
+                bytesCopied = minOf(buffer.readRemaining.toLong(), max)
+                buffer.memory.copyTo(destination, buffer.readPosition.toLong(), bytesCopied.toLong(), destinationOffset)
+            }
+        }
+
+        return bytesCopied
+    }
 }

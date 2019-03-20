@@ -1,5 +1,6 @@
 package kotlinx.coroutines.io
 
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
 import java.nio.*
@@ -195,6 +196,33 @@ actual interface ByteReadChannel {
      * @return number of bytes were discarded
      */
     actual suspend fun discard(max: Long): Long
+
+    /**
+     * Try to copy at least [min] but up to [max] bytes to the specified [destination] buffer from this input
+     * skipping [offset] bytes. If there are not enough bytes available to provide [min] bytes after skipping [offset]
+     * bytes then it will trigger the underlying source reading first and after that will
+     * simply copy available bytes even if EOF encountered so [min] is not a requirement but a desired number of bytes.
+     * It is safe to specify [max] greater than the destination free space.
+     * `min` shouldn't be bigger than the [destination] free space.
+     * This function could trigger the underlying source suspending reading.
+     * It is allowed to specify too big [offset] so in this case this function will always return `0` after prefetching
+     * all underlying bytes but note that it may lead to significant memory consumption.
+     * This function usually copy more bytes than [min] (unless `max = min`) but it is not guaranteed.
+     * When `0` is returned with `offset = 0` then it makes sense to check [endOfInput].
+     *
+     * @param destination to write bytes
+     * @param offset to skip input
+     * @param min bytes to be copied, shouldn't be greater than the buffer free space. Could be `0`.
+     * @param max bytes to be copied even if there are more bytes buffered, could be [Int.MAX_VALUE].
+     * @return number of bytes copied to the [destination] possibly `0`
+     */
+    actual suspend fun peekTo(
+        destination: Memory,
+        destinationOffset: Long,
+        offset: Long,
+        min: Long,
+        max: Long
+    ): Long
 
     actual companion object {
         actual val Empty: ByteReadChannel by lazy { ByteChannel().apply { close() } }
