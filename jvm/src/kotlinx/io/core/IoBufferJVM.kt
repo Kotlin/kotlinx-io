@@ -409,7 +409,7 @@ actual class IoBuffer private constructor(
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
-        @Deprecated("Use Buffer.ReservedSize instead.", ReplaceWith("Buffer.ReservedSize"))
+        @DangerousInternalIoApi
         actual val ReservedSize: Int get() = Buffer.ReservedSize
 
         private val DEFAULT_BUFFER_SIZE = getIOIntProperty("buffer.size", 4096)

@@ -834,12 +834,5 @@ abstract class AbstractInput(
         @Deprecated("Use ByteReadPacket.Empty instead", ReplaceWith("ByteReadPacket.Empty"))
         val Empty: ByteReadPacket
             get() = ByteReadPacket.Empty
-
-        @Deprecated(
-            "Use Buffer.ReservedSize instead",
-            replaceWith = ReplaceWith("Buffer.ReservedSize", "kotlinx.io.core.Buffer"),
-            level = DeprecationLevel.ERROR
-        )
-        val ReservedSize: Int = Buffer.ReservedSize
     }
 }

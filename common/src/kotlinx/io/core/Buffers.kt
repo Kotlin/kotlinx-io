@@ -35,7 +35,7 @@ expect class IoBuffer : Input, Output, ChunkBuffer {
          * when several instances of [ChunkBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
-        @Deprecated("Use Buffer.ReservedSize instead.", ReplaceWith("Buffer.ReservedSize"))
+        @DangerousInternalIoApi
         val ReservedSize: Int
 
         /**

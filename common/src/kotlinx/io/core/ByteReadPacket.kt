@@ -41,7 +41,7 @@ class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, po
     companion object {
         val Empty: ByteReadPacket = ByteReadPacket(ChunkBuffer.Empty, 0L, ChunkBuffer.EmptyPool)
 
-        @Deprecated("Use Buffer.ReservedSize instead", ReplaceWith("Buffer.ReservedSize"))
+        @DangerousInternalIoApi
         val ReservedSize: Int
             get() = Buffer.ReservedSize
     }

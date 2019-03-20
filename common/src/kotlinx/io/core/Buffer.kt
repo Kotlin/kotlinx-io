@@ -349,6 +349,7 @@ open class Buffer(val memory: Memory) {
          * when several instances of [kotlinx.io.core.internal.ChunkBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
+        @DangerousInternalIoApi
         const val ReservedSize: Int = 8
 
         /**
