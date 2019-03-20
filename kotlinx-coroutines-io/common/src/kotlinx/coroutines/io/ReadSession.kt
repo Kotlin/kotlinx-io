@@ -1,8 +1,48 @@
 package kotlinx.coroutines.io
 
+import kotlinx.io.bits.Memory
 import kotlinx.io.core.*
+import kotlinx.io.errors.TODO_ERROR
 
+/*
 @ExperimentalIoApi
+suspend inline fun ByteReadChannel.readMemory(
+    desiredSize: Int = 1,
+    block: (Memory, start: Int, endExclusive: Int) -> Int
+): Int {
+    val buffer = requestBuffer(desiredSize) ?: Buffer.Empty
+    var bytesRead = 0
+    try {
+        bytesRead = block(buffer.memory, buffer.readPosition, buffer.readRemaining)
+        return bytesRead
+    } finally {
+        completeReadingFromBuffer(buffer, bytesRead)
+    }
+}
+
+@PublishedApi
+internal fun ByteReadChannel.requestBuffer(desiredSize: Int): Buffer? {
+    @Suppress("DEPRECATION")
+    if (this is ReadSession) {
+        return request(desiredSize.coerceAtMost(Buffer.ReservedSize))
+    }
+
+    TODO_ERROR("!!!")
+}
+
+@PublishedApi
+internal fun ByteReadChannel.completeReadingFromBuffer(buffer: Buffer?, bytesRead: Int) {
+    @Suppress("DEPRECATION")
+    if (this is ReadSession) {
+        discard(bytesRead)
+        return
+    }
+
+
+}
+*/
+
+@Deprecated("Use readMemory instead.")
 interface ReadSession {
     /**
      * Number of bytes available for read. However it doesn't necessarily means that all available bytes could be
@@ -27,10 +67,10 @@ interface ReadSession {
      * @return buffer for the requested range or `null` if it is impossible to provide such a buffer view
      * @throws Throwable if the channel has been closed with an exception or cancelled
      */
-    fun request(atLeast: Int = 1): Buffer?
+    fun request(atLeast: Int = 1): IoBuffer?
 }
 
-@ExperimentalIoApi
+@Deprecated("Use readMemory instead.")
 interface SuspendableReadSession : ReadSession {
     /**
      * Suspend until [atLeast] bytes become available or end of stream encountered (possibly due to exceptional close)

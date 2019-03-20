@@ -2,14 +2,14 @@ package kotlinx.coroutines.io
 
 import kotlinx.io.core.*
 
-@ExperimentalIoApi
+@Deprecated("Use writeMemory instead.")
 interface WriterSession {
-    fun request(min: Int): Buffer?
+    fun request(min: Int): IoBuffer?
     fun written(n: Int)
     fun flush()
 }
 
-@ExperimentalIoApi
+@Deprecated("Use writeMemory instead.")
 interface WriterSuspendSession : WriterSession {
     suspend fun tryAwait(n: Int)
 }

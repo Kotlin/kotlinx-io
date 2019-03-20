@@ -17,12 +17,11 @@ import kotlin.contracts.*
  */
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
-actual class IoBuffer private constructor(
-    content: ByteBuffer,
+actual class IoBuffer actual constructor(
+    memory: Memory,
     origin: ChunkBuffer?
-) : Input, Output, ChunkBuffer(Memory.of(content), origin) {
-
-    constructor(external: ByteBuffer) : this(external, null)
+) : Input, Output, ChunkBuffer(memory, origin) {
+    constructor(external: ByteBuffer) : this(Memory.of(external), null)
 
     @PublishedApi
     @Deprecated("")
@@ -373,7 +372,7 @@ actual class IoBuffer private constructor(
 
     override fun duplicate(): IoBuffer = (origin ?: this).let { newOrigin ->
         newOrigin.acquire()
-        IoBuffer(memory.buffer, newOrigin).also { copy ->
+        IoBuffer(memory, newOrigin).also { copy ->
             duplicateTo(copy)
         }
     }
@@ -416,7 +415,7 @@ actual class IoBuffer private constructor(
         private val DEFAULT_BUFFER_POOL_SIZE = getIOIntProperty("buffer.pool.size", 100)
         private val DEFAULT_BUFFER_POOL_DIRECT = getIOIntProperty("buffer.pool.direct", 0)
 
-        actual val Empty = IoBuffer(Memory.Empty.buffer, null)
+        actual val Empty = IoBuffer(Memory.Empty, null)
 
         /**
          * The default buffer pool
@@ -427,7 +426,7 @@ actual class IoBuffer private constructor(
                     0 -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
                     else -> ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
                 }
-                return IoBuffer(buffer, null)
+                return IoBuffer(buffer)
             }
 
             override fun disposeInstance(instance: IoBuffer) {
@@ -454,7 +453,7 @@ actual class IoBuffer private constructor(
                     0 -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
                     else -> ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE)
                 }
-                return IoBuffer(buffer, null)
+                return IoBuffer(buffer)
             }
         }
 
@@ -481,6 +480,7 @@ fun Buffer.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int {
     return size
 }
 
+@Deprecated("Work with Memory instead.")
 inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -495,6 +495,7 @@ inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     }
 }
 
+@Deprecated("Work with Memory instead.")
 inline fun Buffer.writeDirect(size: Int = 1, block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

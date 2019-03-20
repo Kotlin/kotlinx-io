@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io.core
 
 import kotlinx.io.bits.*
@@ -9,11 +11,21 @@ import kotlinx.io.core.internal.require
  */
 fun Buffer.readUByte(): UByte = readByte().toUByte()
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readUByte(): UByte = (this as Buffer).readUByte()
+
 /**
  * Write an unsigned byte or fail if not enough space available for writing.
  */
 fun Buffer.writeUByte(value: UByte) {
     writeByte(value.toByte())
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+fun IoBuffer.writeUByte(value: UByte) {
+    (this as Buffer).writeUByte(value)
 }
 
 /**
@@ -24,6 +36,10 @@ fun Buffer.readShort(): Short = readExact(2, "short integer") { memory, offset -
     memory.loadShortAt(offset)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readShort(): Short = (this as Buffer).readShort()
+
 /**
  * Read an unsigned short integer or fail if not enough bytes available for reading.
  * The numeric value is decoded in the network order (Big Endian).
@@ -31,6 +47,11 @@ fun Buffer.readShort(): Short = readExact(2, "short integer") { memory, offset -
 fun Buffer.readUShort(): UShort = readExact(2, "short unsigned integer") { memory, offset ->
     memory.loadUShortAt(offset)
 }
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readUShort(): UShort = (this as Buffer).readUShort()
+
 
 /**
  * Read an integer or fail if not enough bytes available for reading.
@@ -40,6 +61,11 @@ fun Buffer.readInt(): Int = readExact(4, "regular integer") { memory, offset ->
     memory.loadIntAt(offset)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readInt(): Int = (this as Buffer).readInt()
+
+
 /**
  * Read an unsigned integer or fail if not enough bytes available for reading.
  * The numeric value is decoded in the network order (Big Endian).
@@ -47,6 +73,11 @@ fun Buffer.readInt(): Int = readExact(4, "regular integer") { memory, offset ->
 fun Buffer.readUInt(): UInt = readExact(4, "regular unsigned integer") { memory, offset ->
     memory.loadUIntAt(offset)
 }
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readUInt(): UInt = (this as Buffer).readUInt()
+
 
 /**
  * Read a long integer or fail if not enough bytes available for reading.
@@ -56,6 +87,10 @@ fun Buffer.readLong(): Long = readExact(8, "long integer") { memory, offset ->
     memory.loadLongAt(offset)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readLong(): Long = (this as Buffer).readLong()
+
 /**
  * Read an unsigned long integer or fail if not enough bytes available for reading.
  * The numeric value is decoded in the network order (Big Endian).
@@ -63,6 +98,11 @@ fun Buffer.readLong(): Long = readExact(8, "long integer") { memory, offset ->
 fun Buffer.readULong(): ULong = readExact(8, "long unsigned integer") { memory, offset ->
     memory.loadULongAt(offset)
 }
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readULong(): ULong = (this as Buffer).readULong()
+
 
 /**
  * Read a floating point number or fail if not enough bytes available for reading.
@@ -72,6 +112,11 @@ fun Buffer.readFloat(): Float = readExact(4, "floating point number") { memory, 
     memory.loadFloatAt(offset)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readFloat(): Float = (this as Buffer).readFloat()
+
+
 /**
  * Read a floating point number or fail if not enough bytes available for reading.
  * The numeric value is decoded in the network order (Big Endian).
@@ -79,6 +124,11 @@ fun Buffer.readFloat(): Float = readExact(4, "floating point number") { memory, 
 fun Buffer.readDouble(): Double = readExact(8, "long floating point number") { memory, offset ->
     memory.loadDoubleAt(offset)
 }
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readDouble(): Double = (this as Buffer).readDouble()
+
 
 /**
  * Write a short integer or fail if not enough space available for writing.
@@ -88,6 +138,10 @@ fun Buffer.writeShort(value: Short): Unit = writeExact(2, "short integer") { mem
     memory.storeShortAt(offset, value)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+inline fun IoBuffer.writeShort(value: Short): Unit = (this as Buffer).writeShort(value)
+
 /**
  * Write an unsigned short integer or fail if not enough space available for writing.
  * The numeric value is encoded in the network order (Big Endian).
@@ -95,6 +149,10 @@ fun Buffer.writeShort(value: Short): Unit = writeExact(2, "short integer") { mem
 fun Buffer.writeUShort(value: UShort): Unit = writeExact(2, "short unsigned integer") { memory, offset ->
     memory.storeUShortAt(offset, value)
 }
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+inline fun IoBuffer.writeUShort(value: UShort): Unit = (this as Buffer).writeUShort(value)
 
 /**
  * Write an integer or fail if not enough space available for writing.
@@ -104,6 +162,10 @@ fun Buffer.writeInt(value: Int): Unit = writeExact(4, "regular integer") { memor
     memory.storeIntAt(offset, value)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+inline fun IoBuffer.writeInt(value: Int): Unit = (this as Buffer).writeInt(value)
+
 /**
  * Write an unsigned integer or fail if not enough space available for writing.
  * The numeric value is encoded in the network order (Big Endian).
@@ -111,6 +173,10 @@ fun Buffer.writeInt(value: Int): Unit = writeExact(4, "regular integer") { memor
 fun Buffer.writeUInt(value: UInt): Unit = writeExact(4, "regular unsigned integer") { memory, offset ->
     memory.storeUIntAt(offset, value)
 }
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+inline fun IoBuffer.writeUInt(value: UInt): Unit = (this as Buffer).writeUInt(value)
 
 /**
  * Write a long integer or fail if not enough space available for writing.
@@ -120,6 +186,10 @@ fun Buffer.writeLong(value: Long): Unit = writeExact(8, "long integer") { memory
     memory.storeLongAt(offset, value)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+inline fun IoBuffer.writeLong(value: Long): Unit = (this as Buffer).writeLong(value)
+
 /**
  * Write an unsigned long integer or fail if not enough space available for writing.
  * The numeric value is encoded in the network order (Big Endian).
@@ -127,6 +197,10 @@ fun Buffer.writeLong(value: Long): Unit = writeExact(8, "long integer") { memory
 fun Buffer.writeULong(value: ULong): Unit = writeExact(8, "long unsigned integer") { memory, offset ->
     memory.storeULongAt(offset, value)
 }
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+inline fun IoBuffer.writeULong(value: ULong): Unit = (this as Buffer).writeULong(value)
 
 /**
  * Write a floating point number or fail if not enough space available for writing.
@@ -136,6 +210,10 @@ fun Buffer.writeFloat(value: Float): Unit = writeExact(4, "floating point number
     memory.storeFloatAt(offset, value)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+inline fun IoBuffer.writeFloat(value: Float): Unit = (this as Buffer).writeFloat(value)
+
 /**
  * Write a floating point number or fail if not enough space available for writing.
  * The numeric value is encoded in the network order (Big Endian).
@@ -144,6 +222,10 @@ fun Buffer.writeDouble(value: Double): Unit = writeExact(8, "long floating point
     memory.storeDoubleAt(offset, value)
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+inline fun IoBuffer.writeDouble(value: Double): Unit = (this as Buffer).writeDouble(value)
+
 /**
  * Read from this buffer to the [destination] array to [offset] and [length] bytes.
  */
@@ -151,6 +233,12 @@ fun Buffer.readFully(destination: ByteArray, offset: Int = 0, length: Int = dest
     readExact(length, "byte array") { memory, srcOffset ->
         memory.loadByteArray(srcOffset, destination, offset, length)
     }
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+inline fun IoBuffer.readFully(destination: ByteArray, offset: Int = 0, length: Int = destination.size - offset) {
+    (this as Buffer).readFully(destination, offset, length)
 }
 
 /**
@@ -180,6 +268,12 @@ fun Buffer.readAvailable(destination: ByteArray, offset: Int = 0, length: Int = 
     return toBeRead
 }
 
+@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+inline fun IoBuffer.readAvailable(destination: ByteArray, offset: Int = 0, length: Int = destination.size - offset): Int {
+    return (this as Buffer).readAvailable(destination, offset, length)
+}
+
 /**
  * Read available for read bytes to the [destination] array range starting at array [offset] and [length] bytes.
  * If less than [length] bytes available then less bytes will be copied and the corresponding number
@@ -197,6 +291,12 @@ fun Buffer.writeFully(source: ByteArray, offset: Int = 0, length: Int = source.s
     writeExact(length, "byte array") { memory, dstOffset ->
         memory.storeByteArray(dstOffset, source, offset, length)
     }
+}
+
+@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+inline fun IoBuffer.writeFully(source: ByteArray, offset: Int = 0, length: Int = source.size - offset) {
+    (this as Buffer).writeFully(source, offset, length)
 }
 
 /**

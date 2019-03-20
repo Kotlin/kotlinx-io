@@ -51,24 +51,26 @@ internal inline fun <R> withChunkBuffer(pool: ObjectPool<ChunkBuffer>, block: Ch
 }
 
 @ThreadLocal
-internal val DefaultChunkedBufferPool: ObjectPool<ChunkBuffer> = DefaultBufferPool()
+internal val DefaultChunkedBufferPool: ObjectPool<IoBuffer> = DefaultBufferPool()
 
+@Suppress("DEPRECATION")
 internal class DefaultBufferPool(
-    val bufferSize: Int = DEFAULT_BUFFER_SIZE,
+    private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
+
     capacity: Int = 1000,
     private val allocator: Allocator = DefaultAllocator
-) : DefaultPool<ChunkBuffer>(capacity) {
-    override fun produceInstance(): ChunkBuffer {
-        return ChunkBuffer(allocator.alloc(bufferSize), null)
+) : DefaultPool<IoBuffer>(capacity) {
+    override fun produceInstance(): IoBuffer {
+        return IoBuffer(allocator.alloc(bufferSize), null)
     }
 
-    override fun disposeInstance(instance: ChunkBuffer) {
+    override fun disposeInstance(instance: IoBuffer) {
         allocator.free(instance.memory)
         super.disposeInstance(instance)
         instance.unlink()
     }
 
-    override fun validateInstance(instance: ChunkBuffer) {
+    override fun validateInstance(instance: IoBuffer) {
         super.validateInstance(instance)
 
         if (instance === IoBuffer.Empty) {
@@ -84,7 +86,7 @@ internal class DefaultBufferPool(
         check(instance.origin == null) { "Recycled instance shouldn't be a view or another buffer." }
     }
 
-    override fun clearInstance(instance: ChunkBuffer): ChunkBuffer {
+    override fun clearInstance(instance: IoBuffer): IoBuffer {
         instance.unpark()
         instance.resetForWrite()
         instance.reserveEndGap(Buffer.ReservedSize)

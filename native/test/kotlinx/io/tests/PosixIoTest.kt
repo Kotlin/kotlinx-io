@@ -258,7 +258,7 @@ class PosixIoTest {
 
     private fun my_htons(value: UShort): uint16_t = when {
         ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN -> value
-        else -> swap(value.toShort()).toUShort()
+        else -> value.toShort().reverseByteOrder().toUShort()
     }
 
     @Suppress("unused")

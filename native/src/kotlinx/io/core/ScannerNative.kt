@@ -125,4 +125,4 @@ private inline fun Buffer.readUntilImpl(
     return copiedTotal
 }
 
-private inline val Buffer.content: CPointer<ByteVar> get() = memory.pointer
+internal inline val Buffer.content: CPointer<ByteVar> get() = memory.pointer

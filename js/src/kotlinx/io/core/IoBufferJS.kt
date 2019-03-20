@@ -10,10 +10,12 @@ import kotlin.contracts.*
 
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
-actual class IoBuffer internal constructor(
-    internal var content: ArrayBuffer,
-    origin: IoBuffer?
-) : Input, Output, ChunkBuffer(Memory.of(content), origin) {
+actual class IoBuffer actual constructor(
+    memory: Memory,
+    origin: ChunkBuffer?
+) : Input, Output, ChunkBuffer(memory, origin) {
+    private val content: ArrayBuffer get() = memory.view.buffer
+
     override val endOfInput: Boolean get() = writePosition == readPosition
 
     @Deprecated(
@@ -368,14 +370,14 @@ actual class IoBuffer internal constructor(
         private val EmptyBuffer = ArrayBuffer(0)
         private val EmptyDataView = DataView(EmptyBuffer)
 
-        actual val Empty = IoBuffer(EmptyBuffer, null)
+        actual val Empty = IoBuffer(Memory.Empty, null)
 
         /**
          * The default buffer pool
          */
         actual val Pool: ObjectPool<IoBuffer> = object : DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
             override fun produceInstance(): IoBuffer {
-                return IoBuffer(ArrayBuffer(BUFFER_VIEW_SIZE), null)
+                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
             }
 
             override fun clearInstance(instance: IoBuffer): IoBuffer {
@@ -395,13 +397,18 @@ actual class IoBuffer internal constructor(
             }
 
             override fun disposeInstance(instance: IoBuffer) {
+                DefaultAllocator.free(instance.memory)
                 instance.unlink()
             }
         }
 
         actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
             override fun borrow(): IoBuffer {
-                return IoBuffer(ArrayBuffer(4096), null)
+                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
+            }
+
+            override fun recycle(instance: IoBuffer) {
+                DefaultAllocator.free(instance.memory)
             }
         }
 

@@ -14,14 +14,15 @@ internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
-actual class IoBuffer internal constructor(
-    internal var content: CPointer<ByteVar>,
-    private val contentCapacity: Int,
+actual class IoBuffer actual constructor(
+    memory: Memory,
     origin: ChunkBuffer?
-) : Input, Output, ChunkBuffer(Memory.of(content, contentCapacity), origin) {
+) : Input, Output, ChunkBuffer(memory, origin) {
     internal var refCount = 1
 
-    constructor(content: CPointer<ByteVar>, contentCapacity: Int) : this(content, contentCapacity, null)
+    private val contentCapacity: Int get() = memory.size32
+
+    constructor(content: CPointer<ByteVar>, contentCapacity: Int) : this(Memory.of(content, contentCapacity), null)
 
     override val endOfInput: Boolean get() = !canRead()
 
@@ -100,10 +101,12 @@ actual class IoBuffer internal constructor(
         (this as Buffer).readFully(dst, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
         (this as Buffer).writeFully(src, offset, length)
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
         (this as Buffer).writeFully(src, offset, length.toIntOrFail("length"))
     }
@@ -304,7 +307,7 @@ actual class IoBuffer internal constructor(
 
     override fun duplicate(): IoBuffer = (origin ?: this).let { newOrigin ->
         newOrigin.acquire()
-        IoBuffer(memory.pointer, contentCapacity, newOrigin).also { copy ->
+        IoBuffer(memory, newOrigin).also { copy ->
             duplicateTo(copy)
         }
     }
@@ -334,24 +337,22 @@ actual class IoBuffer internal constructor(
 
         internal val EmptyBuffer = nativeHeap.allocArray<ByteVar>(0)
 
-        actual val Empty = IoBuffer(EmptyBuffer, 0, null)
+        actual val Empty = IoBuffer(Memory.Empty, null)
 
         /**
          * The default buffer pool
          */
-        actual val Pool: ObjectPool<IoBuffer> get() = NoPool // BufferPoolNativeWorkaround
+        actual val Pool: ObjectPool<IoBuffer> get() = BufferPoolNativeWorkaround
 
         actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
             override fun borrow(): IoBuffer {
-                val content = nativeHeap.allocArray<ByteVar>(BUFFER_VIEW_SIZE)
-                return IoBuffer(content, BUFFER_VIEW_SIZE, null)
+                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
             }
 
             override fun recycle(instance: IoBuffer) {
                 require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
                 nativeHeap.free(instance.content)
-                instance.content = EmptyBuffer
             }
         }
 
@@ -363,7 +364,6 @@ actual class IoBuffer internal constructor(
             override fun recycle(instance: IoBuffer) {
                 require(instance.refCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.refCount}" }
                 require(instance.content !== EmptyBuffer) { "Couldn't dispose empty buffer" }
-                instance.content = EmptyBuffer
             }
         }
 
@@ -371,31 +371,13 @@ actual class IoBuffer internal constructor(
     }
 }
 
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or ((s.toInt() and 0xffff) ushr 8)).toShort()
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun swap(s: Int): Int =
-    (swap((s and 0xffff).toShort()).toInt() shl 16) or (swap((s ushr 16).toShort()).toInt() and 0xffff)
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun swap(s: Long): Long =
-    (swap((s and 0xffffffff).toInt()).toLong() shl 32) or (swap((s ushr 32).toInt()).toLong() and 0xffffffff)
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun swap(s: Float): Float = Float.fromBits(swap(s.toRawBits()))
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun swap(s: Double): Double = Double.fromBits(swap(s.toRawBits()))
-
 @ThreadLocal
-private object BufferPoolNativeWorkaround : DefaultPool<ChunkBuffer>(BUFFER_VIEW_POOL_SIZE) {
-    override fun produceInstance(): ChunkBuffer {
-        val buffer = nativeHeap.allocMemory(BUFFER_VIEW_SIZE)
-        return ChunkBuffer(buffer, null)
+private object BufferPoolNativeWorkaround : DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
+    override fun produceInstance(): IoBuffer {
+        return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
     }
 
-    override fun clearInstance(instance: ChunkBuffer): ChunkBuffer {
+    override fun clearInstance(instance: IoBuffer): IoBuffer {
         return super.clearInstance(instance).apply {
             instance.resetForWrite()
             instance.next = null
@@ -403,14 +385,14 @@ private object BufferPoolNativeWorkaround : DefaultPool<ChunkBuffer>(BUFFER_VIEW
         }
     }
 
-    override fun validateInstance(instance: ChunkBuffer) {
+    override fun validateInstance(instance: IoBuffer) {
         super.validateInstance(instance)
 
         require(instance.referenceCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})" }
         require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
     }
 
-    override fun disposeInstance(instance: ChunkBuffer) {
+    override fun disposeInstance(instance: IoBuffer) {
         require(instance.referenceCount == 0) { "Couldn't dispose buffer: it is still in-use: refCount = ${instance.referenceCount}" }
         nativeHeap.free(instance.memory)
     }

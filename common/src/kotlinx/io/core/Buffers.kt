@@ -11,8 +11,11 @@ import kotlin.contracts.*
  * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
  */
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES", "DEPRECATION")
-@Deprecated("Use Memory instead.")
+@Deprecated("Use Memory, Input or Output instead.")
 expect class IoBuffer : Input, Output, ChunkBuffer {
+
+    @Suppress("ConvertSecondaryConstructorToPrimary")
+    constructor(memory: Memory, origin: ChunkBuffer?)
 
     @Deprecated(
         "Not supported anymore. All operations are big endian by default. " +

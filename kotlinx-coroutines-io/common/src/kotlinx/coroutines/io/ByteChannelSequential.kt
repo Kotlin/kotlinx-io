@@ -201,9 +201,9 @@ abstract class ByteChannelSequentialBase(
     @ExperimentalIoApi
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
         val session = object : WriterSuspendSession {
-            override fun request(min: Int): Buffer? {
+            override fun request(min: Int): IoBuffer? {
                 if (availableForWrite == 0) return null
-                return writable.prepareWriteHead(min)
+                return writable.prepareWriteHead(min) as IoBuffer
             }
 
             override fun written(n: Int) {
@@ -535,12 +535,12 @@ abstract class ByteChannelSequentialBase(
         return readable.discard(n).also { afterRead() }
     }
 
-    override fun request(atLeast: Int): Buffer? {
+    override fun request(atLeast: Int): IoBuffer? {
         closedCause?.let { throw it }
 
         completeReading()
 
-        val view = readable.prepareReadHead(atLeast)
+        val view = readable.prepareReadHead(atLeast) as IoBuffer?
 
         if (view == null) {
             lastReadView = ChunkBuffer.Empty
@@ -571,7 +571,8 @@ abstract class ByteChannelSequentialBase(
         return discarded
     }
 
-    @ExperimentalIoApi
+    @Suppress("DEPRECATION")
+    @Deprecated("Use readMemory instead.")
     override fun readSession(consumer: ReadSession.() -> Unit) {
         try {
             consumer(this)
@@ -580,7 +581,8 @@ abstract class ByteChannelSequentialBase(
         }
     }
 
-    @ExperimentalIoApi
+    @Suppress("DEPRECATION")
+    @Deprecated("Use readMemory instead.")
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         try {
             consumer(this)
@@ -649,6 +651,7 @@ abstract class ByteChannelSequentialBase(
         } while (true)
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun writeAvailableSuspend(src: IoBuffer): Int {
         awaitFreeSpace()
         return writeAvailable(src)
