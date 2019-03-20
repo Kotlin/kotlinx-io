@@ -167,11 +167,12 @@ fun Output.writeFully(src: Buffer, length: Int = src.readRemaining) {
 }
 
 fun Output.writeFully(src: Memory, offset: Int, length: Int) {
-    writeFullyBytesTemplate(offset, length) { buffer, sourceOffset, count ->
-        buffer.write { memory, start, _ ->
-            src.copyTo(memory, sourceOffset, count, start)
-            count
-        }
+    writeFully(src, offset.toLong(), length.toLong())
+}
+
+fun Output.writeFully(src: Memory, offset: Long, length: Long) {
+    writeFullyBytesTemplate(offset, length) { memory, destinationOffset, sourceOffset, count ->
+        src.copyTo(memory, sourceOffset, count, destinationOffset)
     }
 }
 
@@ -260,6 +261,24 @@ private inline fun Output.writeFullyBytesTemplate(
     writeWhile { buffer ->
         val size = minOf(remaining, buffer.writeRemaining)
         block(buffer, currentOffset, size)
+        currentOffset += size
+        remaining -= size
+        remaining > 0
+    }
+}
+
+private inline fun Output.writeFullyBytesTemplate(
+    initialOffset: Long,
+    length: Long,
+    block: (destination: Memory, destinationOffset: Long, currentOffset: Long, count: Long) -> Unit
+) {
+    var currentOffset = initialOffset
+    var remaining = length
+
+    writeWhile { buffer ->
+        val size = minOf(remaining, buffer.writeRemaining.toLong())
+        block(buffer.memory, buffer.writePosition.toLong(), currentOffset, size)
+        buffer.commitWritten(size.toInt())
         currentOffset += size
         remaining -= size
         remaining > 0

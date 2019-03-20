@@ -11,7 +11,7 @@ import kotlin.contracts.*
  * In most cases [ByteReadPacket] and [BytePacketBuilder] should be used instead.
  */
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES", "DEPRECATION")
-@Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
+@Deprecated("Use Memory instead.")
 expect class IoBuffer : Input, Output, ChunkBuffer {
 
     @Deprecated(

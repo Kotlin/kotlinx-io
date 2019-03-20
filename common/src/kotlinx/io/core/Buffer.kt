@@ -376,6 +376,7 @@ inline fun Buffer.canWrite() = limit > writePosition
  * No read/write functions on this buffer should be called inside of [block] otherwise an undefined behaviour may occur
  * including data damage.
  */
+@DangerousInternalIoApi
 inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: Int) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -392,6 +393,7 @@ inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: Int) ->
  * o read/write functions on this buffer should be called inside of [block] otherwise an undefined behaviour may occur
  * including data damage.
  */
+@DangerousInternalIoApi
 inline fun Buffer.write(block: (memory: Memory, start: Int, endExclusive: Int) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

@@ -1,5 +1,7 @@
 package kotlinx.io.core
 
+import kotlinx.io.bits.Memory
+
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun Input.readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset) {
     readFullyBytesTemplate(offset, length) { src, dstOffset, count ->
@@ -47,6 +49,16 @@ fun Input.readFully(dst: Buffer, length: Int = dst.writeRemaining) {
     readFullyBytesTemplate(0, length) { src, _, count ->
         src.readFully(dst, count)
     }.requireNoRemaining()
+}
+
+fun Input.readFully(destination: Memory, destinationOffset: Int, length: Int) {
+    readFully(destination, destinationOffset.toLong(), length.toLong())
+}
+
+fun Input.readFully(destination: Memory, destinationOffset: Long, length: Long) {
+    if (readAvailable(destination, destinationOffset, length) != length) {
+        prematureEndOfStream(length)
+    }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
@@ -97,20 +109,59 @@ fun Input.readAvailable(dst: Buffer, length: Int = dst.writeRemaining): Int {
     }
 }
 
+fun Input.readAvailable(destination: Memory, destinationOffset: Int, length: Int): Int {
+    return readAvailable(destination, destinationOffset.toLong(), length.toLong()).toInt()
+}
+
+fun Input.readAvailable(destination: Memory, destinationOffset: Long, length: Long): Long {
+    val remaining = readFullyBytesTemplate(destinationOffset, length) { src, srcOffset, dstOffset, count ->
+        src.copyTo(destination, srcOffset, count.toLong(), dstOffset)
+    }
+    val result = length - remaining
+    return when {
+        result == 0L && endOfInput -> -1
+        else -> result
+    }
+}
+
 /**
  * @return number of bytes remaining or 0 if all [length] bytes were copied
  */
 private inline fun Input.readFullyBytesTemplate(
-    offset: Int,
+    initialDstOffset: Int,
     length: Int,
     readBlock: (src: Buffer, dstOffset: Int, count: Int) -> Unit
 ): Int {
     var remaining = length
-    var dstOffset = offset
+    var dstOffset = initialDstOffset
 
     takeWhile { buffer ->
         val count = minOf(remaining, buffer.readRemaining)
         readBlock(buffer, dstOffset, count)
+        remaining -= count
+        dstOffset += count
+
+        remaining > 0
+    }
+
+    return remaining
+}
+
+/**
+ * @return number of bytes remaining or 0 if all [length] bytes were copied
+ */
+private inline fun Input.readFullyBytesTemplate(
+    initialDstOffset: Long,
+    length: Long,
+    readBlock: (src: Memory, srcOffset: Long, dstOffset: Long, count: Int) -> Unit
+): Long {
+    var remaining = length
+    var dstOffset = initialDstOffset
+
+    takeWhile { buffer ->
+        val count = minOf(remaining, buffer.readRemaining.toLong()).toInt()
+        readBlock(buffer.memory, buffer.readPosition.toLong(), dstOffset, count)
+        buffer.discardExact(count)
         remaining -= count
         dstOffset += count
 
