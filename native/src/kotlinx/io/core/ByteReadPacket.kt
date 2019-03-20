@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package kotlinx.io.core
 
 import kotlinx.cinterop.*
@@ -21,11 +23,14 @@ actual fun ByteReadPacket(array: ByteArray, offset: Int, length: Int, block: (By
             val base = content.addressOf(offset)
             pinned = content
 
-            return ChunkBuffer(Memory.of(base, length), null)
+            @Suppress("DEPRECATION")
+            return IoBuffer(Memory.of(base, length), null)
         }
 
         override fun disposeInstance(instance: ChunkBuffer) {
             check(pinned != null) { "The array hasn't been pinned yet" }
+            @Suppress("DEPRECATION")
+            check(instance is IoBuffer) { "Only IoBuffer could be recycled" }
             block(array)
             pinned?.unpin()
             pinned = null

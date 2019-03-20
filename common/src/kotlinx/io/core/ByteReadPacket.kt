@@ -1,4 +1,4 @@
-@file:Suppress("RedundantModalityModifier")
+@file:Suppress("RedundantModalityModifier", "FunctionName")
 
 package kotlinx.io.core
 

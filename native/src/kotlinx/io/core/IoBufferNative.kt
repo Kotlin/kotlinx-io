@@ -461,9 +461,9 @@ inline fun Buffer.writeDirect(block: (CPointer<ByteVar>) -> Int): Int {
 }
 
 fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Int, origin: ChunkBuffer?): ChunkBuffer {
-    return ChunkBuffer(Memory.of(ptr, lengthInBytes), origin)
+    return IoBuffer(Memory.of(ptr, lengthInBytes), origin)
 }
 
 fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Long, origin: ChunkBuffer?): ChunkBuffer {
-    return ChunkBuffer(Memory.of(ptr, lengthInBytes), origin)
+    return IoBuffer(Memory.of(ptr, lengthInBytes), origin)
 }

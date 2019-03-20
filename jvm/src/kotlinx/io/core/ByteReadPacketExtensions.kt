@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
@@ -20,11 +22,14 @@ private fun poolFor(bb: ByteBuffer, release: (ByteBuffer) -> Unit): ObjectPool<C
 
 private class SingleByteBufferPool(val instance: ByteBuffer, val release: (ByteBuffer) -> Unit) :
     SingleInstancePool<ChunkBuffer>() {
-    override fun produceInstance(): IoBuffer {
+    override fun produceInstance(): ChunkBuffer {
+        @Suppress("DEPRECATION")
         return IoBuffer(instance)
     }
 
     override fun disposeInstance(instance: ChunkBuffer) {
+        @Suppress("DEPRECATION")
+        check(instance is IoBuffer) { "Only IoBuffer could be recycled" }
         release(this.instance)
     }
 }

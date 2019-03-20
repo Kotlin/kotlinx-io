@@ -40,7 +40,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
 
     val referenceCount: Int get() = refCount.value
 
-    fun appendNext(chunk: ChunkBuffer) {
+    private fun appendNext(chunk: ChunkBuffer) {
         if (!nextRef.compareAndSet(null, chunk)) {
             throw IllegalStateException("This chunk has already a next chunk.")
         }

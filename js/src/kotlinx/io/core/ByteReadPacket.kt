@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package kotlinx.io.core
 
 import kotlinx.io.bits.*
@@ -14,10 +16,12 @@ actual fun ByteReadPacket(array: ByteArray, offset: Int, length: Int, block: (By
 
     val pool = object : SingleInstancePool<ChunkBuffer>() {
         override fun produceInstance(): ChunkBuffer {
-            return ChunkBuffer(Memory.of(sub), null)
+            @Suppress("DEPRECATION")
+            return IoBuffer(Memory.of(sub), null)
         }
 
-        override fun disposeInstance(instance: ChunkBuffer) {
+        override fun disposeInstance(instance: ChunkBuffer) {@Suppress("DEPRECATION")
+            check(instance is IoBuffer) { "Only IoBuffer could be recycled" }
             block(array)
         }
     }
