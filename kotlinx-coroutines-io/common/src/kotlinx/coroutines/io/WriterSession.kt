@@ -62,7 +62,7 @@ internal suspend fun ByteWriteChannel.requestWriteBuffer(desiredSpace: Int): Buf
         return writeBufferSuspend(session, desiredSpace)
     }
 
-    return writeBufferFallback(desiredSpace)
+    return writeBufferFallback()
 }
 
 @PublishedApi
@@ -87,12 +87,12 @@ private suspend fun ByteWriteChannel.completeWritingFallback(buffer: Buffer) {
 }
 
 @Suppress("DEPRECATION")
-private suspend fun ByteWriteChannel.writeBufferSuspend(session: WriterSuspendSession, desiredSpace: Int): Buffer? {
+private suspend fun writeBufferSuspend(session: WriterSuspendSession, desiredSpace: Int): Buffer? {
     session.tryAwait(desiredSpace)
     return session.request(desiredSpace) ?: session.request(1)
 }
 
-private fun ByteWriteChannel.writeBufferFallback(desiredSpace: Int): Buffer? {
+private fun writeBufferFallback(): Buffer? {
     return ChunkBuffer.Pool.borrow().also { it.resetForWrite(); it.reserveEndGap(Buffer.ReservedSize) }
 }
 

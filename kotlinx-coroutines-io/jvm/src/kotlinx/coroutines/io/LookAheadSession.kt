@@ -3,7 +3,7 @@ package kotlinx.coroutines.io
 import kotlinx.io.core.*
 import java.nio.*
 
-@ExperimentalIoApi
+@Deprecated("Use read { } instead.")
 interface LookAheadSession {
     /**
      * Marks [n] bytes as consumed so the corresponding range becomes available for writing
@@ -23,7 +23,7 @@ interface LookAheadSession {
     fun request(skip: Int, atLeast: Int): ByteBuffer?
 }
 
-@ExperimentalIoApi
+@Deprecated("Use read { } instead.")
 interface LookAheadSuspendSession : LookAheadSession {
     /**
      * Suspend until [n] bytes become available or end of stream encountered (possibly due to exceptional close)

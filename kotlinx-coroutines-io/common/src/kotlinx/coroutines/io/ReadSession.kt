@@ -31,7 +31,7 @@ suspend inline fun ByteReadChannel.read(
     }
 }
 
-@Deprecated("Use read instead.")
+@Deprecated("Use read { } instead.")
 interface ReadSession {
     /**
      * Number of bytes available for read. However it doesn't necessarily means that all available bytes could be
@@ -61,7 +61,7 @@ interface ReadSession {
 }
 
 @Suppress("DEPRECATION")
-@Deprecated("Use read instead.")
+@Deprecated("Use read { } instead.")
 interface SuspendableReadSession : ReadSession {
     /**
      * Suspend until [atLeast] bytes become available or end of stream encountered (possibly due to exceptional close)

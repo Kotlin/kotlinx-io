@@ -110,14 +110,16 @@ expect interface ByteReadChannel {
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * event if there are no bytes available for read yet.
      */
-    @ExperimentalIoApi
+    @Suppress("DEPRECATION")
+    @Deprecated("Use read { } instead.")
     fun readSession(consumer: ReadSession.() -> Unit)
 
     /**
      * Starts a suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * even if there are no bytes available for read yet. [consumer] lambda could suspend as much as needed.
      */
-    @ExperimentalIoApi
+    @Suppress("DEPRECATION")
+    @Deprecated("Use read { } instead.")
     suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
 
     /**
@@ -170,7 +172,7 @@ expect interface ByteReadChannel {
      * It is allowed to specify too big [offset] so in this case this function will always return `0` after prefetching
      * all underlying bytes but note that it may lead to significant memory consumption.
      * This function usually copy more bytes than [min] (unless `max = min`) but it is not guaranteed.
-     * When `0` is returned with `offset = 0` then it makes sense to check [endOfInput].
+     * When `0` is returned with `offset = 0` then it makes sense to check [isClosedForRead].
      *
      * @param destination to write bytes
      * @param offset to skip input
