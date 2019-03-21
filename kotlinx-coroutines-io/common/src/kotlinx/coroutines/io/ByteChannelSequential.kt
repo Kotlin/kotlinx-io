@@ -14,7 +14,7 @@ abstract class ByteChannelSequentialBase(
     initial: IoBuffer,
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
-) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession {
+) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
     protected var closed = false
     protected val writable = BytePacketBuilder(0, pool)
     protected val readable = ByteReadPacket(initial, pool)
@@ -149,8 +149,15 @@ abstract class ByteChannelSequentialBase(
     }
 
     @ExperimentalIoApi
+    @Suppress("DEPRECATION")
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
-        val session = object : WriterSuspendSession {
+        val session = beginWriteSession()
+        visitor(session)
+    }
+
+    @Suppress("DEPRECATION")
+    override fun beginWriteSession(): WriterSuspendSession {
+        return object : WriterSuspendSession {
             override fun request(min: Int): IoBuffer? {
                 if (availableForWrite == 0) return null
                 return writable.prepareWriteHead(min) as IoBuffer
@@ -172,8 +179,11 @@ abstract class ByteChannelSequentialBase(
                 }
             }
         }
+    }
 
-        visitor(session)
+    override fun endWriteSession(written: Int) {
+        writable.afterHeadWrite()
+        afterWrite()
     }
 
     override suspend fun readByte(): Byte {
@@ -186,8 +196,12 @@ abstract class ByteChannelSequentialBase(
 
     private fun checkClosed(n: Int) {
         if (closed) {
-            throw closedCause ?: EOFException("$n bytes required but EOF reached")
+            throw closedCause ?: prematureClose(n)
         }
+    }
+
+    private fun prematureClose(n: Int): Exception {
+        return EOFException("$n bytes required but EOF reached")
     }
 
     private suspend fun readByteSlow(): Byte {

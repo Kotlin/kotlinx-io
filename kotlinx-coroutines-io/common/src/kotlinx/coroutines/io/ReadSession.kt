@@ -11,7 +11,8 @@ import kotlinx.io.core.internal.*
  *
  * Specifying [desiredSize] larger than the channel's capacity leads to block function invocation earlier
  * when the channel is full. So specifying too big [desiredSize] is identical to specifying [desiredSize] equal to
- * the channel's capacity.
+ * the channel's capacity. The other case when a provided memory range could be less than [desiredSize] is that
+ * all the requested bytes couldn't be represented as a single memory range due to internal implementation reasons.
  *
  * @return number of bytes consumed, possibly 0
  */

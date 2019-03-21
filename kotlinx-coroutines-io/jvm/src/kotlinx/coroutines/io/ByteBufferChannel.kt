@@ -24,8 +24,8 @@ internal const val DEFAULT_CLOSE_MESSAGE = "Byte channel was closed"
 internal class ByteBufferChannel(
     override val autoFlush: Boolean,
     private val pool: ObjectPool<ReadWriteBufferState.Initial> = BufferObjectPool,
-    private val reservedSize: Int = RESERVED_SIZE
-) : ByteChannel, ByteReadChannel, ByteWriteChannel, LookAheadSuspendSession, HasReadSession {
+    internal val reservedSize: Int = RESERVED_SIZE
+) : ByteChannel, ByteReadChannel, ByteWriteChannel, LookAheadSuspendSession, HasReadSession, HasWriteSession {
 
     // internal constructor for reading of byte buffers
     constructor(content: ByteBuffer) : this(false, BufferObjectNoPool, 0) {
@@ -57,6 +57,10 @@ internal class ByteBufferChannel(
 
     @Volatile
     private var attachedJob: Job? = null
+
+    internal fun currentState(): ReadWriteBufferState = state
+
+    internal fun getJoining(): JoiningState? = joining
 
     @UseExperimental(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
@@ -153,6 +157,10 @@ internal class ByteBufferChannel(
         flushImpl(1, 1)
     }
 
+    internal fun prepareWriteBuffer(buffer: ByteBuffer, lockedSpace: Int) {
+        buffer.prepareBuffer(writeByteOrder, writePosition, lockedSpace)
+    }
+
     private fun ByteBuffer.prepareBuffer(order: ByteOrder, position: Int, available: Int) {
         require(position >= 0)
         require(available >= 0)
@@ -165,7 +173,7 @@ internal class ByteBufferChannel(
         position(position)
     }
 
-    private fun setupStateForWrite(): ByteBuffer? {
+    internal fun setupStateForWrite(): ByteBuffer? {
         writeOp?.let { existing ->
             throw IllegalStateException("Write operation is already in progress: $existing")
         }
@@ -213,7 +221,7 @@ internal class ByteBufferChannel(
         }
     }
 
-    private fun restoreStateAfterWrite() {
+    internal fun restoreStateAfterWrite() {
         var toRelease: ReadWriteBufferState.IdleNonEmpty? = null
 
         val (_, newState) = updateState {
@@ -320,7 +328,7 @@ internal class ByteBufferChannel(
         return true
     }
 
-    private fun tryTerminate(): Boolean {
+    internal fun tryTerminate(): Boolean {
         if (closed == null) return false
 
         if (!tryReleaseBuffer(false)) return false
@@ -872,6 +880,10 @@ internal class ByteBufferChannel(
         }
     }
 
+    internal fun bytesWrittenFromSesion(buffer: ByteBuffer, c: RingBufferCapacity, n: Int) {
+        buffer.bytesWritten(c, n)
+    }
+
     private fun ByteBuffer.bytesWritten(c: RingBufferCapacity, n: Int) {
         require(n >= 0)
 
@@ -889,6 +901,10 @@ internal class ByteBufferChannel(
         @Suppress("DEPRECATION")
         totalBytesRead += n
         resumeWriteOp()
+    }
+
+    internal fun resolveChannelInstance(): ByteBufferChannel {
+        return joining?.let { resolveDelegation(this, it) } ?: this
     }
 
     private tailrec fun resolveDelegation(current: ByteBufferChannel, joining: JoiningState): ByteBufferChannel? {
@@ -1636,6 +1652,16 @@ internal class ByteBufferChannel(
         }
     }
 
+    @Suppress("DEPRECATION")
+    override fun beginWriteSession(): WriterSuspendSession? {
+        return writeSession.also { it.begin() }
+    }
+
+    override fun endWriteSession(written: Int) {
+        writeSession.written(written)
+        writeSession.complete()
+    }
+
     @ExperimentalIoApi
     override fun readSession(consumer: ReadSession.() -> Unit) {
         lookAhead {
@@ -1829,94 +1855,17 @@ internal class ByteBufferChannel(
         return result!!
     }
 
+    private val writeSession = WriteSessionImpl(this)
+
     @ExperimentalIoApi
     override suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit) {
-        var locked = 0
+        val session = writeSession
 
-        var current = joining?.let { resolveDelegation(this, it) } ?: this
-        var byteBuffer = current.setupStateForWrite() ?: return writeSuspendSession(visitor)
-        var view = IoBuffer(current.state.backingBuffer)
-        var ringBufferCapacity = current.state.capacity
-
-        val session = object : WriterSuspendSession {
-            override fun request(min: Int): IoBuffer? {
-                locked += ringBufferCapacity.tryWriteAtLeast(0)
-                if (locked < min) return null
-                byteBuffer.prepareBuffer(writeByteOrder, writePosition, locked)
-                if (byteBuffer.remaining() < min) return null
-                if (current.joining != null) return null
-                @Suppress("DEPRECATION")
-                view.resetFromContentToWrite(byteBuffer)
-
-                return view
-            }
-
-            override fun written(n: Int) {
-                if (n < 0 || n > locked) {
-                    writtenFailed(n)
-                }
-                locked -= n
-                byteBuffer.bytesWritten(ringBufferCapacity, n)
-            }
-
-            private fun writtenFailed(n: Int): Nothing {
-                if (n < 0) {
-                    throw IllegalArgumentException("Written bytes count shouldn't be negative: $n")
-                }
-
-                throw IllegalStateException("Unable to mark $n bytes as written: only $locked were pre-locked.")
-            }
-
-            override suspend fun tryAwait(n: Int) {
-                val joining = current.joining
-                if (joining != null) {
-                    return tryAwaitJoinSwitch(n, joining)
-                }
-
-                if (locked >= n) return
-                if (locked > 0) {
-                    ringBufferCapacity.completeRead(locked)
-                    locked = 0
-                }
-
-                return tryWriteSuspend(n)
-            }
-
-            private suspend fun tryAwaitJoinSwitch(n: Int, joining: JoiningState) {
-                if (locked > 0) {
-                    ringBufferCapacity.completeRead(locked)
-                    locked = 0
-                }
-                flush()
-                restoreStateAfterWrite()
-                tryTerminate()
-
-                do {
-                    current.tryWriteSuspend(n)
-                    current = resolveDelegation(current, joining) ?: continue
-                    byteBuffer = current.setupStateForWrite() ?: continue
-                    view = IoBuffer(current.state.backingBuffer)
-                    @Suppress("DEPRECATION")
-                    view.resetFromContentToWrite(byteBuffer)
-                    ringBufferCapacity = current.state.capacity
-                } while (false)
-            }
-
-            override fun flush() {
-                current.flush()
-            }
-        }
-
+        session.begin()
         try {
             visitor(session)
         } finally {
-            if (locked > 0) {
-                ringBufferCapacity.completeRead(locked)
-                locked = 0
-            }
-
-            current.restoreStateAfterWrite()
-            current.tryTerminate()
+            session.complete()
         }
     }
 
@@ -2341,7 +2290,7 @@ internal class ByteBufferChannel(
         COROUTINE_SUSPENDED
     }
 
-    private suspend fun tryWriteSuspend(size: Int) {
+    internal suspend fun tryWriteSuspend(size: Int) {
         if (!writeSuspendPredicate(size)) {
             closed?.sendException?.let { throw it }
             return

@@ -85,7 +85,8 @@ actual interface ByteWriteChannel {
      */
     suspend fun writeWhile(block: (ByteBuffer) -> Boolean)
 
-    @ExperimentalIoApi
+    @Suppress("DEPRECATION")
+    @Deprecated("Use write { } instead.")
     actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**

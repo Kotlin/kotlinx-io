@@ -90,7 +90,8 @@ actual interface ByteWriteChannel {
      */
     suspend fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
 
-    @ExperimentalIoApi
+    @Suppress("DEPRECATION")
+    @Deprecated("Use write { } instead.")
     actual suspend fun writeSuspendSession(visitor: suspend WriterSuspendSession.() -> Unit)
 
     /**

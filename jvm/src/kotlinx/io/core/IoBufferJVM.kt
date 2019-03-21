@@ -347,7 +347,7 @@ actual class IoBuffer actual constructor(
     /**
      * Reset read/write position to original's content pos/limit. May not work due to slicing.
      */
-    @Deprecated("Unstable API. Could be changed or removed without notice.")
+    @DangerousInternalIoApi
     fun resetFromContentToWrite(child: ByteBuffer) {
         resetForWrite(child.limit())
         commitWrittenUntilIndex(child.position())

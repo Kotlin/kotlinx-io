@@ -250,6 +250,24 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
     }
 
     @Test
+    fun testNewWriteBlock() = runTest {
+        launch {
+            assertEquals(0x11223344, ch.readInt())
+        }
+
+        ch.write (4) { freeSpace, startOffset, endExclusive ->
+            if (endExclusive - startOffset < 4) {
+                fail("Not enough free space for writing 4 bytes: ${endExclusive - startOffset}")
+            }
+
+            freeSpace.storeIntAt(startOffset, 0x11223344)
+
+            4
+        }
+        ch.close()
+    }
+
+    @Test
     fun testReadBlock() = runTest {
         ch.writeLong(0x1234567812345678L)
         ch.flush()
