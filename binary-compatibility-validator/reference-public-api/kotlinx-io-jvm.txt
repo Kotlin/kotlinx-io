@@ -65,6 +65,7 @@ public abstract class kotlinx/io/core/AbstractOutput : kotlinx/io/core/BytePacke
 	protected abstract fun flush (Lkotlinx/io/core/IoBuffer;)V
 	protected final fun getCurrentTail ()Lkotlinx/io/core/IoBuffer;
 	public final fun release ()V
+	public final fun reset ()V
 	protected final fun setCurrentTail (Lkotlinx/io/core/IoBuffer;)V
 }
 
@@ -80,9 +81,18 @@ public final class kotlinx/io/core/BuffersKt {
 public final class kotlinx/io/core/BuilderKt {
 	public static final fun buildPacket (ILkotlin/jvm/functions/Function1;)Lkotlinx/io/core/ByteReadPacket;
 	public static synthetic fun buildPacket$default (ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/io/core/ByteReadPacket;
+	public static final fun reset (Lkotlinx/io/core/BytePacketBuilder;)V
 }
 
 public final class kotlinx/io/core/ByteBuffersKt {
+	public static final fun afterNioBufferUsed (Lkotlinx/io/core/AbstractInput;I)V
+	public static final fun afterNioBufferUsed (Lkotlinx/io/core/BytePacketBuilder;I)V
+	public static final fun afterNioBufferUsed (Lkotlinx/io/core/ByteReadPacket;I)V
+	public static final fun afterNioBufferUsed (Lkotlinx/io/core/ByteReadPacketBase;I)V
+	public static final fun nioBuffer (Lkotlinx/io/core/AbstractInput;I)Ljava/nio/ByteBuffer;
+	public static final fun nioBuffer (Lkotlinx/io/core/BytePacketBuilder;I)Ljava/nio/ByteBuffer;
+	public static final fun nioBuffer (Lkotlinx/io/core/ByteReadPacket;I)Ljava/nio/ByteBuffer;
+	public static final fun nioBuffer (Lkotlinx/io/core/ByteReadPacketBase;I)Ljava/nio/ByteBuffer;
 	public static final fun readAvailable (Lkotlinx/io/core/ByteReadPacket;Ljava/nio/ByteBuffer;)I
 	public static final fun readDirect (Lkotlinx/io/core/AbstractInput;ILkotlin/jvm/functions/Function1;)V
 	public static final fun readDirect (Lkotlinx/io/core/ByteReadPacket;ILkotlin/jvm/functions/Function1;)V
@@ -123,8 +133,10 @@ public final class kotlinx/io/core/BytePacketBuilder : kotlinx/io/core/BytePacke
 	public final fun getSize ()I
 	public final fun isEmpty ()Z
 	public final fun isNotEmpty ()Z
+	public final fun preview ()Lkotlinx/io/core/ByteReadPacket;
 	public final fun preview (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public fun release ()V
+	public synthetic fun reset ()V
 	public fun writePacket (Lkotlinx/io/core/ByteReadPacket;)V
 }
 
@@ -141,11 +153,12 @@ public abstract class kotlinx/io/core/BytePacketBuilderBase : java/lang/Appendab
 	public final fun appendNewBuffer ()Lkotlinx/io/core/IoBuffer;
 	public fun fill (JB)V
 	public final fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
+	public final synthetic fun getDoNotImplementOutputButExtendAbstractOutputInstead ()Ljava/lang/Void;
 	protected final fun getPool ()Lkotlinx/io/pool/ObjectPool;
 	protected final fun get_size ()I
 	public final fun prepareWriteHead (I)Lkotlinx/io/core/IoBuffer;
 	public abstract fun release ()V
-	public final fun reset ()V
+	public synthetic fun reset ()V
 	public final fun setByteOrder (Lkotlinx/io/core/ByteOrder;)V
 	protected final fun set_size (I)V
 	public final fun write (ILkotlin/jvm/functions/Function1;)V
@@ -194,13 +207,13 @@ public abstract class kotlinx/io/core/ByteReadPacketBase : kotlinx/io/core/Input
 	public final fun copy ()Lkotlinx/io/core/ByteReadPacket;
 	public final fun discard (I)I
 	public final fun discard (J)J
-	public final fun discardExact (I)V
-	protected final fun doFill ()Lkotlinx/io/core/IoBuffer;
+	public final synthetic fun discardExact (I)V
 	public final fun ensureNext (Lkotlinx/io/core/IoBuffer;)Lkotlinx/io/core/IoBuffer;
 	public final fun ensureNextHead (Lkotlinx/io/core/IoBuffer;)Lkotlinx/io/core/IoBuffer;
 	protected abstract fun fill ()Lkotlinx/io/core/IoBuffer;
 	public final fun fixGapAfterRead (Lkotlinx/io/core/IoBuffer;)V
 	public final fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
+	public final synthetic fun getDoNotImplementInputButExtendAbstractInputInstead ()Ljava/lang/Void;
 	public fun getEndOfInput ()Z
 	public final fun getPool ()Lkotlinx/io/pool/ObjectPool;
 	public final synthetic fun getRemaining ()I
@@ -208,7 +221,7 @@ public abstract class kotlinx/io/core/ByteReadPacketBase : kotlinx/io/core/Input
 	public final fun hasBytes (I)Z
 	public final fun isEmpty ()Z
 	public final fun isNotEmpty ()Z
-	public final fun peekTo (Lkotlinx/io/core/IoBuffer;)I
+	public final synthetic fun peekTo (Lkotlinx/io/core/IoBuffer;)I
 	public final fun prepareRead (ILkotlinx/io/core/IoBuffer;)Lkotlinx/io/core/IoBuffer;
 	public final fun prepareReadHead (I)Lkotlinx/io/core/IoBuffer;
 	public final fun read (ILkotlin/jvm/functions/Function1;)V
@@ -288,8 +301,9 @@ public abstract interface class kotlinx/io/core/Input : java/io/Closeable {
 	public abstract fun close ()V
 	public abstract fun discard (J)J
 	public abstract fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
+	public abstract synthetic fun getDoNotImplementInputButExtendAbstractInputInstead ()Ljava/lang/Void;
 	public abstract fun getEndOfInput ()Z
-	public abstract fun peekTo (Lkotlinx/io/core/IoBuffer;)I
+	public abstract synthetic fun peekTo (Lkotlinx/io/core/IoBuffer;)I
 	public abstract fun readAvailable (Ljava/nio/ByteBuffer;I)I
 	public abstract fun readAvailable (Lkotlinx/io/core/IoBuffer;I)I
 	public abstract fun readAvailable ([BII)I
@@ -360,6 +374,51 @@ public final class kotlinx/io/core/InputKt {
 	public static synthetic fun takeWhileSize$default (Lkotlinx/io/core/Input;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
+public final class kotlinx/io/core/InputLittleEndianKt {
+	public static final fun readAvailableLittleEndian (Lkotlinx/io/core/Input;[DII)I
+	public static final fun readAvailableLittleEndian (Lkotlinx/io/core/Input;[FII)I
+	public static final fun readAvailableLittleEndian (Lkotlinx/io/core/Input;[III)I
+	public static final fun readAvailableLittleEndian (Lkotlinx/io/core/Input;[JII)I
+	public static final fun readAvailableLittleEndian (Lkotlinx/io/core/Input;[SII)I
+	public static synthetic fun readAvailableLittleEndian$default (Lkotlinx/io/core/Input;[DIIILjava/lang/Object;)I
+	public static synthetic fun readAvailableLittleEndian$default (Lkotlinx/io/core/Input;[FIIILjava/lang/Object;)I
+	public static synthetic fun readAvailableLittleEndian$default (Lkotlinx/io/core/Input;[IIIILjava/lang/Object;)I
+	public static synthetic fun readAvailableLittleEndian$default (Lkotlinx/io/core/Input;[JIIILjava/lang/Object;)I
+	public static synthetic fun readAvailableLittleEndian$default (Lkotlinx/io/core/Input;[SIIILjava/lang/Object;)I
+	public static final fun readAvailableLittleEndian-Hn3XiNM (Lkotlinx/io/core/Input;[JII)I
+	public static synthetic fun readAvailableLittleEndian-Hn3XiNM$default (Lkotlinx/io/core/Input;[JIIILjava/lang/Object;)I
+	public static final fun readAvailableLittleEndian-_44sl1A (Lkotlinx/io/core/Input;[SII)I
+	public static synthetic fun readAvailableLittleEndian-_44sl1A$default (Lkotlinx/io/core/Input;[SIIILjava/lang/Object;)I
+	public static final fun readAvailableLittleEndian-wOR3gME (Lkotlinx/io/core/Input;[III)I
+	public static synthetic fun readAvailableLittleEndian-wOR3gME$default (Lkotlinx/io/core/Input;[IIIILjava/lang/Object;)I
+	public static final fun readDoubleLittleEndian (Lkotlinx/io/core/Input;)D
+	public static final fun readFloatLittleEndian (Lkotlinx/io/core/Input;)F
+	public static final fun readFullyLittleEndian (Lkotlinx/io/core/Input;[DII)V
+	public static final fun readFullyLittleEndian (Lkotlinx/io/core/Input;[FII)V
+	public static final fun readFullyLittleEndian (Lkotlinx/io/core/Input;[III)V
+	public static final fun readFullyLittleEndian (Lkotlinx/io/core/Input;[JII)V
+	public static final fun readFullyLittleEndian (Lkotlinx/io/core/Input;[SII)V
+	public static synthetic fun readFullyLittleEndian$default (Lkotlinx/io/core/Input;[DIIILjava/lang/Object;)V
+	public static synthetic fun readFullyLittleEndian$default (Lkotlinx/io/core/Input;[FIIILjava/lang/Object;)V
+	public static synthetic fun readFullyLittleEndian$default (Lkotlinx/io/core/Input;[IIIILjava/lang/Object;)V
+	public static synthetic fun readFullyLittleEndian$default (Lkotlinx/io/core/Input;[JIIILjava/lang/Object;)V
+	public static synthetic fun readFullyLittleEndian$default (Lkotlinx/io/core/Input;[SIIILjava/lang/Object;)V
+	public static final fun readFullyLittleEndian-Hn3XiNM (Lkotlinx/io/core/Input;[JII)V
+	public static synthetic fun readFullyLittleEndian-Hn3XiNM$default (Lkotlinx/io/core/Input;[JIIILjava/lang/Object;)V
+	public static final fun readFullyLittleEndian-_44sl1A (Lkotlinx/io/core/Input;[SII)V
+	public static synthetic fun readFullyLittleEndian-_44sl1A$default (Lkotlinx/io/core/Input;[SIIILjava/lang/Object;)V
+	public static final fun readFullyLittleEndian-wOR3gME (Lkotlinx/io/core/Input;[III)V
+	public static synthetic fun readFullyLittleEndian-wOR3gME$default (Lkotlinx/io/core/Input;[IIIILjava/lang/Object;)V
+	public static final fun readIntLittleEndian (Lkotlinx/io/core/Input;)I
+	public static final fun readLongLittleEndian (Lkotlinx/io/core/Input;)J
+	public static final fun readShortLittleEndian (Lkotlinx/io/core/Input;)S
+}
+
+public final class kotlinx/io/core/InputPeekKt {
+	public static final fun peekTo (Lkotlinx/io/core/Input;Lkotlinx/io/core/IoBuffer;III)I
+	public static synthetic fun peekTo$default (Lkotlinx/io/core/Input;Lkotlinx/io/core/IoBuffer;IIIILjava/lang/Object;)I
+}
+
 public final class kotlinx/io/core/IoBuffer : kotlinx/io/core/Input, kotlinx/io/core/Output {
 	public static final field Companion Lkotlinx/io/core/IoBuffer$Companion;
 	public fun <init> (Ljava/nio/ByteBuffer;)V
@@ -380,6 +439,8 @@ public final class kotlinx/io/core/IoBuffer : kotlinx/io/core/Input, kotlinx/io/
 	public final fun getAttachment ()Ljava/lang/Object;
 	public final fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
 	public final fun getCapacity ()I
+	public final synthetic fun getDoNotImplementInputButExtendAbstractInputInstead ()Ljava/lang/Void;
+	public final synthetic fun getDoNotImplementOutputButExtendAbstractOutputInstead ()Ljava/lang/Void;
 	public final fun getEndGap ()I
 	public fun getEndOfInput ()Z
 	public final fun getNext ()Lkotlinx/io/core/IoBuffer;
@@ -388,7 +449,7 @@ public final class kotlinx/io/core/IoBuffer : kotlinx/io/core/Input, kotlinx/io/
 	public final fun getWriteRemaining ()I
 	public final fun isExclusivelyOwned ()Z
 	public final fun makeView ()Lkotlinx/io/core/IoBuffer;
-	public final fun peekTo (Lkotlinx/io/core/IoBuffer;)I
+	public final synthetic fun peekTo (Lkotlinx/io/core/IoBuffer;)I
 	public final fun pushBack (I)V
 	public final fun read (Ljava/nio/ByteBuffer;I)V
 	public final fun read ([BII)V
@@ -463,6 +524,7 @@ public abstract interface class kotlinx/io/core/Output : java/io/Closeable, java
 	public abstract fun fill (JB)V
 	public abstract fun flush ()V
 	public abstract fun getByteOrder ()Lkotlinx/io/core/ByteOrder;
+	public abstract synthetic fun getDoNotImplementOutputButExtendAbstractOutputInstead ()Ljava/lang/Void;
 	public abstract fun setByteOrder (Lkotlinx/io/core/ByteOrder;)V
 	public abstract fun writeByte (B)V
 	public abstract fun writeDouble (D)V
@@ -505,6 +567,30 @@ public final class kotlinx/io/core/OutputKt {
 	public static final fun writeWhile (Lkotlinx/io/core/Output;Lkotlin/jvm/functions/Function1;)V
 	public static final fun writeWhileSize (Lkotlinx/io/core/Output;ILkotlin/jvm/functions/Function1;)V
 	public static synthetic fun writeWhileSize$default (Lkotlinx/io/core/Output;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class kotlinx/io/core/OutputLittleEndianKt {
+	public static final fun writeDoubleLittleEndian (Lkotlinx/io/core/Output;D)V
+	public static final fun writeFloatLittleEndian (Lkotlinx/io/core/Output;F)V
+	public static final fun writeFullyLittleEndian (Lkotlinx/io/core/Output;[DII)V
+	public static final fun writeFullyLittleEndian (Lkotlinx/io/core/Output;[FII)V
+	public static final fun writeFullyLittleEndian (Lkotlinx/io/core/Output;[III)V
+	public static final fun writeFullyLittleEndian (Lkotlinx/io/core/Output;[JII)V
+	public static final fun writeFullyLittleEndian (Lkotlinx/io/core/Output;[SII)V
+	public static synthetic fun writeFullyLittleEndian$default (Lkotlinx/io/core/Output;[DIIILjava/lang/Object;)V
+	public static synthetic fun writeFullyLittleEndian$default (Lkotlinx/io/core/Output;[FIIILjava/lang/Object;)V
+	public static synthetic fun writeFullyLittleEndian$default (Lkotlinx/io/core/Output;[IIIILjava/lang/Object;)V
+	public static synthetic fun writeFullyLittleEndian$default (Lkotlinx/io/core/Output;[JIIILjava/lang/Object;)V
+	public static synthetic fun writeFullyLittleEndian$default (Lkotlinx/io/core/Output;[SIIILjava/lang/Object;)V
+	public static final fun writeFullyLittleEndian-5YrZhAk (Lkotlinx/io/core/Output;[III)V
+	public static synthetic fun writeFullyLittleEndian-5YrZhAk$default (Lkotlinx/io/core/Output;[IIIILjava/lang/Object;)V
+	public static final fun writeFullyLittleEndian-EgFVB10 (Lkotlinx/io/core/Output;[SII)V
+	public static synthetic fun writeFullyLittleEndian-EgFVB10$default (Lkotlinx/io/core/Output;[SIIILjava/lang/Object;)V
+	public static final fun writeFullyLittleEndian-OjWY3pY (Lkotlinx/io/core/Output;[JII)V
+	public static synthetic fun writeFullyLittleEndian-OjWY3pY$default (Lkotlinx/io/core/Output;[JIIILjava/lang/Object;)V
+	public static final fun writeIntLittleEndian (Lkotlinx/io/core/Output;I)V
+	public static final fun writeLongLittleEndian (Lkotlinx/io/core/Output;J)V
+	public static final fun writeShortLittleEndian (Lkotlinx/io/core/Output;S)V
 }
 
 public final class kotlinx/io/core/PacketJVMKt {
@@ -550,8 +636,12 @@ public final class kotlinx/io/core/StringsKt {
 	public static synthetic fun readText$default (Lkotlinx/io/core/Input;Ljava/nio/charset/CharsetDecoder;IILjava/lang/Object;)Ljava/lang/String;
 	public static final fun readTextExact (Lkotlinx/io/core/Input;Ljava/nio/charset/Charset;I)Ljava/lang/String;
 	public static synthetic fun readTextExact$default (Lkotlinx/io/core/Input;Ljava/nio/charset/Charset;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun readTextExactBytes (Lkotlinx/io/core/Input;ILjava/nio/charset/Charset;)Ljava/lang/String;
 	public static final fun readTextExactBytes (Lkotlinx/io/core/Input;Ljava/nio/charset/Charset;I)Ljava/lang/String;
+	public static synthetic fun readTextExactBytes$default (Lkotlinx/io/core/Input;ILjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
 	public static synthetic fun readTextExactBytes$default (Lkotlinx/io/core/Input;Ljava/nio/charset/Charset;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun readTextExactCharacters (Lkotlinx/io/core/Input;ILjava/nio/charset/Charset;)Ljava/lang/String;
+	public static synthetic fun readTextExactCharacters$default (Lkotlinx/io/core/Input;ILjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun readUTF8Line (Lkotlinx/io/core/ByteReadPacket;II)Ljava/lang/String;
 	public static final fun readUTF8Line (Lkotlinx/io/core/Input;II)Ljava/lang/String;
 	public static synthetic fun readUTF8Line$default (Lkotlinx/io/core/ByteReadPacket;IIILjava/lang/Object;)Ljava/lang/String;
