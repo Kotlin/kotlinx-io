@@ -142,6 +142,10 @@ internal tailrec fun ChunkBuffer.findTail(): ChunkBuffer {
 @DangerousInternalIoApi
 fun ChunkBuffer.remainingAll(): Long = remainingAll(0L)
 
+@Suppress("DEPRECATION", "UNUSED")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun remainingAll(buffer: IoBuffer): Long = buffer.remainingAll()
+
 private tailrec fun ChunkBuffer.remainingAll(n: Long): Long {
     val rem = readRemaining.toLong() + n
     val next = this.next ?: return rem

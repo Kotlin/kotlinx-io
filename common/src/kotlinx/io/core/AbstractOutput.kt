@@ -158,6 +158,15 @@ internal constructor(
         appendChainImpl(head, tail, chainedSizeDelta)
     }
 
+    private fun appendNewChunk(): ChunkBuffer {
+        val new = pool.borrow()
+        new.reserveEndGap(Buffer.ReservedSize)
+
+        appendSingleChunk(new)
+
+        return new
+    }
+
     private final fun appendChainImpl(head: ChunkBuffer, newTail: ChunkBuffer, chainedSizeDelta: Int) {
         val _tail = _tail
         if (_tail == null) {
@@ -190,7 +199,7 @@ internal constructor(
     }
 
     private fun writeByteFallback(v: Byte) {
-        appendNewBuffer().writeByte(v)
+        appendNewChunk().writeByte(v)
         tailPosition++
     }
 
@@ -250,7 +259,7 @@ internal constructor(
     /**
      * Writes another packet to the end. Please note that the instance [p] gets consumed so you don't need to release it
      */
-    internal open fun writePacket(p: ByteReadPacket) {
+    fun writePacket(p: ByteReadPacket) {
         val foreignStolen = p.stealAll()
         if (foreignStolen == null) {
             p.release()
@@ -385,7 +394,7 @@ internal constructor(
         afterHeadWrite()
 
         while (idx < end) {
-            idx = appendNewBuffer().block(idx)
+            idx = appendNewChunk().block(idx)
             afterHeadWrite()
         }
 
@@ -440,7 +449,7 @@ internal constructor(
                 return it
             }
         }
-        return appendNewBuffer()
+        return appendNewChunk()
     }
 
     @DangerousInternalIoApi
@@ -474,13 +483,13 @@ internal constructor(
         appendSingleChunk(buffer as ChunkBuffer)
     }
 
-    @PublishedApi
-    internal fun appendNewBuffer(): ChunkBuffer {
-        val new = pool.borrow()
-        new.reserveEndGap(Buffer.ReservedSize)
+    @Suppress("DEPRECATION")
+    @Deprecated("Use appendNewChunk instead",
+        replaceWith = ReplaceWith("appendNewChunk()"),
+        level = DeprecationLevel.HIDDEN)
+    fun appendNewBuffer(): IoBuffer = appendNewChunk() as IoBuffer
 
-        appendSingleChunk(new)
-
-        return new
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    open fun reset() {
     }
 }

@@ -1,4 +1,4 @@
-@file:JvmName("ByteOrderJVM")
+@file:JvmName("ByteOrderJVMKt")
 package kotlinx.io.bits
 
 /**

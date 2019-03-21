@@ -113,7 +113,8 @@ class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<Ch
     /**
      * Discard all written bytes and prepare to build another packet.
      */
-    final fun reset() {
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    final override fun reset() {
         release()
     }
 

@@ -2,6 +2,7 @@ package kotlinx.io.core
 
 import kotlinx.io.bits.Memory
 import kotlinx.io.core.internal.*
+import kotlin.jvm.JvmName
 
 /**
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.

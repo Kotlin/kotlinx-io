@@ -12,7 +12,14 @@ import kotlinx.io.pool.*
     ReplaceWith("AbstractInput", "kotlinx.io.core.AbstractInput")
 )
 abstract class ByteReadPacketBase(head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>) :
-    AbstractInput(head, remaining, pool)
+    AbstractInput(head, remaining, pool) {
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    constructor(head: IoBuffer,
+                remaining: Long,
+                pool: ObjectPool<ChunkBuffer>) : this(head as ChunkBuffer, remaining, pool)
+}
 
 expect class EOFException(message: String) : IOException
 

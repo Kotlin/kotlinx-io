@@ -21,6 +21,14 @@ inline fun buildPacket(headerSizeHint: Int = 0, block: BytePacketBuilder.() -> U
 
 expect fun BytePacketBuilder(headerSizeHint: Int = 0): BytePacketBuilder
 
+/**
+ * Discard all written bytes and prepare to build another packet.
+ */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun BytePacketBuilder.reset() {
+    release()
+}
+
 @DangerousInternalIoApi
 @Deprecated("Will be removed in future releases.", level = DeprecationLevel.ERROR)
 @Suppress("DEPRECATION_ERROR")

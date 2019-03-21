@@ -16,6 +16,13 @@ abstract class AbstractInput(
     remaining: Long = head.remainingAll(),
     val pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : Input {
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    constructor(head: IoBuffer = IoBuffer.Empty,
+                remaining: Long = head.remainingAll(),
+                pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool) : this(head as ChunkBuffer, remaining, pool)
+
     /**
      * Read the next bytes into the [destination] starting at [offset] at most [length] bytes.
      * May block until at least one byte is available.
