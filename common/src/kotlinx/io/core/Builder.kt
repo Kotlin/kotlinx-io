@@ -116,6 +116,15 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
     }
 
     /**
+     * Discard all written bytes and prepare to build another packet.
+     */
+    @Suppress("OverridingDeprecatedMember")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    override fun reset() {
+        release()
+    }
+
+    /**
      * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
      * This is similar to `build().copy()` except that the builder keeps already written bytes untouched.
      * A temporary view packet is passed as argument to [block] function and it shouldn't leak outside of this block
@@ -268,6 +277,14 @@ class BytePacketBuilder(private var headerSizeHint: Int, pool: ObjectPool<IoBuff
     }
 }
 
+/**
+ * Discard all written bytes and prepare to build another packet.
+ */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun BytePacketBuilder.reset() {
+    release()
+}
+
 @DangerousInternalIoApi
 @Deprecated("Will be removed in future releases.", level = DeprecationLevel.ERROR)
 @Suppress("DEPRECATION_ERROR")
@@ -298,6 +315,10 @@ abstract class AbstractOutput(pool: ObjectPool<IoBuffer> = IoBuffer.Pool) :
      * An implementation should only close the destination.
      */
     protected abstract fun closeDestination()
+
+    @Deprecated("This makes no sense for anything except BytePacketBuilder.")
+    final override fun reset() {
+    }
 
     /**
      * Invoked when a new [buffer] is appended for writing (usually it's empty)
@@ -705,8 +726,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     /**
      * Discard all written bytes and prepare to build another packet.
      */
-    fun reset() {
-        release()
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    open fun reset() {
     }
 
     @PublishedApi
