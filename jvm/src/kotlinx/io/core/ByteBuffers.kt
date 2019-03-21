@@ -52,6 +52,8 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use write {} instead.")
 inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -62,6 +64,8 @@ inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit)
     }
 }
 
+@Suppress("DEPRECATION")
+@Deprecated("Use read {} instead.")
 inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -74,6 +78,8 @@ inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     }
 }
 
+@Suppress("DEPRECATION")
+@Deprecated("Use read {} instead.")
 inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -162,12 +168,6 @@ internal fun ByteReadPacketBase.afterNioBufferUsed(read: Int) {
     updateHeadRemaining(headRemaining - read)
 }
 
-@Deprecated("Should be rewritten on top of Memory")
-internal fun Buffer.readBuffer(): ByteBuffer {
-    return memory.slice(readPosition, readRemaining).buffer
-}
-
-@Deprecated("Should be rewritten on top of Memory")
 internal fun Buffer.writeBuffer(): ByteBuffer {
     return memory.slice(writePosition, writeRemaining).buffer
 }
