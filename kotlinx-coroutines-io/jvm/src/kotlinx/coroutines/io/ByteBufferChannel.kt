@@ -1816,7 +1816,7 @@ internal class ByteBufferChannel(
             return visitor(TerminatedLookAhead)
         }
 
-        var result: R? = null
+        var result: Any? = null
         val rc = reading {
             result = visitor(this@ByteBufferChannel)
             true
@@ -1824,16 +1824,20 @@ internal class ByteBufferChannel(
 
         if (!rc) {
             if (closed != null || state === ReadWriteBufferState.Terminated) return visitor(TerminatedLookAhead)
-            result = visitor(this)
-            if (!state.idle && state !== ReadWriteBufferState.Terminated) {
-                if (state is ReadWriteBufferState.Reading || state is ReadWriteBufferState.ReadingWriting) {
-                    restoreStateAfterRead()
+            try {
+                result = visitor(this)
+            } finally {
+                if (!state.idle && state !== ReadWriteBufferState.Terminated) {
+                    if (state is ReadWriteBufferState.Reading || state is ReadWriteBufferState.ReadingWriting) {
+                        restoreStateAfterRead()
+                    }
+                    tryTerminate()
                 }
-                tryTerminate()
             }
         }
 
-        return result!!
+        @Suppress("UNCHECKED_CAST")
+        return result as R
     }
 
     @ExperimentalIoApi
