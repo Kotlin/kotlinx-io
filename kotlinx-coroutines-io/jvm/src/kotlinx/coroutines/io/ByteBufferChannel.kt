@@ -25,7 +25,7 @@ internal class ByteBufferChannel(
     override val autoFlush: Boolean,
     private val pool: ObjectPool<ReadWriteBufferState.Initial> = BufferObjectPool,
     private val reservedSize: Int = RESERVED_SIZE
-) : ByteChannel, ByteReadChannel, ByteWriteChannel, LookAheadSuspendSession {
+) : ByteChannel, ByteReadChannel, ByteWriteChannel, LookAheadSuspendSession, HasReadSession {
 
     // internal constructor for reading of byte buffers
     constructor(content: ByteBuffer) : this(false, BufferObjectNoPool, 0) {
@@ -389,6 +389,29 @@ internal class ByteBufferChannel(
             }
             current.restoreStateAfterWrite()
             current.tryTerminate()
+        }
+    }
+
+    private inline fun readingIfNotYet(block: ByteBuffer.(RingBufferCapacity) -> Boolean): Boolean {
+        val state = state
+        var releaseReadState = false
+        // TODO this is not exactly correct but...
+        val buffer = if (state is ReadWriteBufferState.Reading || state is ReadWriteBufferState.ReadingWriting) {
+            state.readBuffer.apply {
+                prepareBuffer(readByteOrder, readPosition, state.capacity.availableForRead)
+            }
+        } else {
+            releaseReadState = true
+            setupStateForRead() ?: return false
+        }
+
+        return try {
+            block(buffer, this.state.capacity)
+        } finally {
+            if (releaseReadState) {
+                restoreStateAfterRead()
+                tryTerminate()
+            }
         }
     }
 
@@ -1597,74 +1620,41 @@ internal class ByteBufferChannel(
         return continueWriting
     }
 
+    @Suppress("DEPRECATION")
+    private val readSession = ReadSessionImpl(this)
+
+    @Suppress("DEPRECATION")
+    override fun startReadSession(): SuspendableReadSession {
+        return readSession
+    }
+
+    override fun endReadSession() {
+        readSession.completed()
+        val state = state
+        if (state is ReadWriteBufferState.Reading || state is ReadWriteBufferState.ReadingWriting) {
+            restoreStateAfterRead()
+        }
+    }
+
     @ExperimentalIoApi
     override fun readSession(consumer: ReadSession.() -> Unit) {
         lookAhead {
-            consumer(object : ReadSession {
-                override val availableForRead: Int
-                    get() = this@ByteBufferChannel.availableForRead
-
-                override fun discard(n: Int): Int {
-                    var result = 0
-                    reading {
-                        val size = availableForRead
-                        bytesRead(it, size)
-                        result = size
-                        true
-                    }
-                    return result
-                }
-
-                override fun request(atLeast: Int): IoBuffer? {
-                    return request(0, atLeast)?.let { IoBuffer(it).also { it.resetForRead() } }
-                }
-            })
+            try {
+                consumer(readSession)
+            } finally {
+                readSession.completed()
+            }
         }
     }
 
     @ExperimentalIoApi
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         lookAheadSuspend {
-            var lastAvailable = 0
-            var lastView: IoBuffer = IoBuffer.Empty
-
-            fun completed(newView: IoBuffer) {
-                val delta = lastAvailable - lastView.readRemaining
-                if (delta > 0) {
-                    consumed(delta)
-                }
-                lastView = newView
-                lastAvailable = newView.readRemaining
+            try {
+                consumer(readSession)
+            } finally {
+                readSession.completed()
             }
-
-            consumer(object : SuspendableReadSession {
-                override val availableForRead: Int
-                    get() = this@ByteBufferChannel.availableForRead
-
-                override fun discard(n: Int): Int {
-                    completed(IoBuffer.Empty)
-
-                    var result = 0
-                    reading {
-                        val size = availableForRead
-                        bytesRead(it, size)
-                        result = size
-                        true
-                    }
-                    return result
-                }
-
-                override fun request(atLeast: Int): IoBuffer? {
-                    return request(0, atLeast)?.let { IoBuffer(it).also { it.resetForRead(); completed(it) } }
-                }
-
-                override suspend fun await(atLeast: Int): Boolean {
-                    completed(IoBuffer.Empty)
-                    return awaitAtLeast(atLeast)
-                }
-            })
-
-            completed(IoBuffer.Empty)
         }
     }
 

@@ -106,8 +106,8 @@ open class Buffer(val memory: Memory) {
         return size.toLong()
     }
 
-    @PublishedApi
-    internal fun commitWritten(count: Int) {
+    @DangerousInternalIoApi
+    fun commitWritten(count: Int) {
         val newWritePosition = writePosition + count
         if (count < 0 || newWritePosition > limit) {
             commitWrittenFailed(count, writeRemaining)

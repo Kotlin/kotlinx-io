@@ -5,60 +5,6 @@ import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.ObjectPool
 
-
-suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
-    copyTo(dst)
-    if (closeOnEnd) dst.close()
-}
-
-/**
- * Reads up to [limit] bytes from receiver channel and writes them to [dst] channel.
- * Closes [dst] channel if fails to read or write with cause exception.
- * @return a number of copied bytes
- */
-suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, limit: Long = Long.MAX_VALUE): Long {
-    require(this !== dst)
-
-    var remainingLimit = limit
-
-    while (true) {
-        if (!awaitInternalAtLeast1()) break
-        val transferred = transferTo(dst, remainingLimit)
-
-        val copied = if (transferred == 0L) {
-            val tail = copyToTail(dst, remainingLimit)
-            if (tail == 0L) break
-            tail
-        } else {
-            if (dst.availableForWrite == 0) {
-                dst.notFull.await()
-            }
-            transferred
-        }
-
-        remainingLimit -= copied
-    }
-
-    return limit - remainingLimit
-}
-
-private suspend fun ByteChannelSequentialBase.copyToTail(dst: ByteChannelSequentialBase, limit: Long): Long {
-    val lastPiece = IoBuffer.Pool.borrow()
-    try {
-        lastPiece.resetForWrite(limit.coerceAtMost(lastPiece.capacity.toLong()).toInt())
-        val rc = readAvailable(lastPiece)
-        if (rc == -1) {
-            lastPiece.release(IoBuffer.Pool)
-            return 0
-        }
-
-        dst.writeFully(lastPiece)
-        return rc.toLong()
-    } finally {
-        lastPiece.release(IoBuffer.Pool)
-    }
-}
-
 /**
  * Sequential (non-concurrent) byte channel implementation
  */
@@ -68,7 +14,7 @@ abstract class ByteChannelSequentialBase(
     initial: IoBuffer,
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
-) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession {
+) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession {
     protected var closed = false
     protected val writable = BytePacketBuilder(0, pool)
     protected val readable = ByteReadPacket(initial, pool)
@@ -164,6 +110,10 @@ abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun writeFully(src: IoBuffer) {
+        return writeFully(src as Buffer)
+    }
+
+    internal suspend fun writeFully(src: Buffer) {
         writable.writeFully(src)
         return awaitFreeSpace()
     }
@@ -406,6 +356,10 @@ abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun readAvailable(dst: IoBuffer): Int {
+        return readAvailable(dst as Buffer)
+    }
+
+    internal suspend fun readAvailable(dst: Buffer): Int {
         return when {
             closedCause != null -> throw closedCause!!
             readable.canRead() -> {
@@ -420,12 +374,16 @@ abstract class ByteChannelSequentialBase(
         }
     }
 
-    private suspend fun readAvailableSuspend(dst: IoBuffer): Int {
+    private suspend fun readAvailableSuspend(dst: Buffer): Int {
         awaitSuspend(1)
         return readAvailable(dst)
     }
 
     override suspend fun readFully(dst: IoBuffer, n: Int) {
+        readFully(dst as Buffer, n)
+    }
+
+    private suspend fun readFully(dst: Buffer, n: Int) {
         require(n <= dst.writeRemaining) { "Not enough space in the destination buffer to write $n bytes" }
         require(n >= 0) { "n shouldn't be negative" }
 
@@ -437,7 +395,7 @@ abstract class ByteChannelSequentialBase(
         }
     }
 
-    private suspend fun readFullySuspend(dst: IoBuffer, n: Int) {
+    private suspend fun readFullySuspend(dst: Buffer, n: Int) {
         awaitSuspend(n)
         return readFully(dst, n)
     }
@@ -572,7 +530,7 @@ abstract class ByteChannelSequentialBase(
     }
 
     @Suppress("DEPRECATION")
-    @Deprecated("Use readMemory instead.")
+    @Deprecated("Use read instead.")
     override fun readSession(consumer: ReadSession.() -> Unit) {
         try {
             consumer(this)
@@ -581,8 +539,16 @@ abstract class ByteChannelSequentialBase(
         }
     }
 
+    override fun startReadSession(): SuspendableReadSession {
+        return this
+    }
+
+    override fun endReadSession() {
+        completeReading()
+    }
+
     @Suppress("DEPRECATION")
-    @Deprecated("Use readMemory instead.")
+    @Deprecated("Use read instead.")
     override suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit) {
         try {
             consumer(this)

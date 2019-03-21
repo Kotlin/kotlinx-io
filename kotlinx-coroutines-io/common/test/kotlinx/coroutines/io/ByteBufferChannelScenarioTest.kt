@@ -1,5 +1,6 @@
 package kotlinx.coroutines.io
 
+import kotlinx.io.bits.*
 import kotlinx.io.core.*
 import kotlin.test.*
 
@@ -311,6 +312,25 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         assertEquals(0, ch.availableForRead)
 
         finish(5)
+    }
+
+    @Test
+    fun testReadMemoryBlock() = runTest {
+        launch {
+            ch.writeInt(0x11223344)
+            ch.close()
+        }
+
+        ch.read(4) { source, start, endExclusive ->
+            if (endExclusive - start < 4) {
+                fail("It should be 4 bytes available, got ${endExclusive - start}")
+            }
+
+            assertEquals(0x11223344, source.loadIntAt(start))
+            4
+        }
+
+        assertEquals(0, ch.availableForRead)
     }
 
     @Test
