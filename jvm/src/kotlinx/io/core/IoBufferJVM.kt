@@ -43,14 +43,59 @@ actual class IoBuffer actual constructor(
     /**
      * @return `true` if there are available bytes to be read
      */
+    @Suppress("unused")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     fun canRead(): Boolean = canRead()
 
     /**
      * @return `true` if there is free room to for write
      */
+    @Suppress("unused")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     fun canWrite(): Boolean = canWrite()
+
+//    public final fun getNext ()Lkotlinx/io/core/IoBuffer;
+
+    @Suppress("unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun getNext(): IoBuffer? = next as IoBuffer?
+
+    @Suppress("unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun setNext(newNext: IoBuffer?): Unit {
+        next = newNext
+    }
+
+    @Suppress("unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun read(dst: ByteBuffer, size: Int) {
+        (this as Buffer).readFully(dst, size)
+    }
+
+    @Suppress("unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun read(dst: ByteArray, offset: Int, length: Int) {
+        (this as Buffer).readFully(dst, offset, length)
+    }
+
+    @Suppress("unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun write(src: ByteBuffer) {
+        (this as Buffer).writeFully(src)
+    }
+
+    @Suppress("unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun write(src: ByteArray, offset: Int, length: Int) {
+        (this as Buffer).writeFully(src, offset, length)
+    }
+
+    @Suppress("unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun writeBuffer(src: IoBuffer, length: Int): Int {
+        (this as Buffer).writeFully(src, length)
+        return length
+    }
 
     override val endOfInput: Boolean
         get() = !canRead()
@@ -359,6 +404,7 @@ actual class IoBuffer actual constructor(
      * One can instantiate multiple buffers with the same buffer and this function will return `true` in spite of
      * the fact that the buffer is actually shared.
      */
+    @Suppress("unused")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     fun isExclusivelyOwned(): Boolean = (this as ChunkBuffer).isExclusivelyOwned()
 

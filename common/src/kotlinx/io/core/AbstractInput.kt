@@ -837,9 +837,5 @@ abstract class AbstractInput(
         return next
     }
 
-    companion object {
-        @Deprecated("Use ByteReadPacket.Empty instead", ReplaceWith("ByteReadPacket.Empty"))
-        val Empty: ByteReadPacket
-            get() = ByteReadPacket.Empty
-    }
+    companion object
 }

@@ -26,6 +26,11 @@ abstract class ByteChannelSequentialBase(
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
+
+    @Suppress("unused", "DEPRECATION")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    constructor(initial: IoBuffer, autoFlush: Boolean) : this(initial, autoFlush, ChunkBuffer.Pool)
+
     protected var closed = false
     protected val writable = BytePacketBuilder(0, pool)
     protected val readable = ByteReadPacket(initial, pool)

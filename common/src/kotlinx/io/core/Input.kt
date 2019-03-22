@@ -2,6 +2,7 @@ package kotlinx.io.core
 
 import kotlinx.io.bits.Memory
 import kotlinx.io.core.internal.*
+import kotlin.jvm.JvmName
 
 /**
  * Usually shouldn't be implemented directly. Inherit [AbstractInput] instead.
@@ -336,3 +337,87 @@ private fun Input.peekCharUtf8Impl(first: Int): Char {
 
     return rc
 }
+
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Input.readAvailable(dst: IoBuffer, size: Int = dst.writeRemaining): Int = readAvailable(dst, size)
+
+@JvmName("readAvailable")
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Input.readAvailableOld(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset): Int {
+    return readAvailable(dst, offset, length)
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readAvailable")
+fun Input.readAvailableOld(dst: ShortArray, offset: Int = 0, length: Int = dst.size - offset): Int =
+    readAvailable(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readAvailable")
+fun Input.readAvailableOld(dst: IntArray, offset: Int = 0, length: Int = dst.size - offset): Int =
+    readAvailable(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readAvailable")
+fun Input.readAvailableOld(dst: LongArray, offset: Int = 0, length: Int = dst.size - offset): Int =
+    readAvailable(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readAvailable")
+fun Input.readAvailableOld(dst: FloatArray, offset: Int = 0, length: Int = dst.size - offset): Int =
+    readAvailable(dst, offset, length)
+
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readAvailable")
+fun Input.readAvailableOld(dst: DoubleArray, offset: Int = 0, length: Int = dst.size - offset): Int =
+    readAvailable(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Input.readFully(dst: IoBuffer, size: Int = dst.writeRemaining): Unit = readFully(dst, size)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readFully")
+fun Input.readFullyOld(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset): Unit =
+    readFully(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readFully")
+fun Input.readFullyOld(dst: ShortArray, offset: Int = 0, length: Int = dst.size - offset): Unit =
+    readFully(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readFully")
+fun Input.readFullyOld(dst: IntArray, offset: Int = 0, length: Int = dst.size - offset): Unit =
+    readFully(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readFully")
+fun Input.readFullyOld(dst: LongArray, offset: Int = 0, length: Int = dst.size - offset): Unit =
+    readFully(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readFully")
+fun Input.readFullyOld(dst: FloatArray, offset: Int = 0, length: Int = dst.size - offset): Unit =
+    readFully(dst, offset, length)
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+@JvmName("readFully")
+fun Input.readFullyOld(dst: DoubleArray, offset: Int = 0, length: Int = dst.size - offset): Unit =
+    readFully(dst, offset, length)
+

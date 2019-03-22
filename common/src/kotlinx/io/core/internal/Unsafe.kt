@@ -24,6 +24,13 @@ fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
     append(builderHead)
 }
 
+@Suppress("DEPRECATION", "UNUSED")
+@JvmName("prepareReadFirstHead")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Input.prepareReadFirstHeadOld(minSize: Int): IoBuffer? {
+    return prepareReadFirstHead(minSize) as IoBuffer?
+}
+
 @DangerousInternalIoApi
 fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? {
     if (this is AbstractInput) {
@@ -56,6 +63,12 @@ private fun Input.prepareReadHeadFallback(minSize: Int): ChunkBuffer? {
     return buffer
 }
 
+@Suppress("UNUSED", "DEPRECATION")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Input.completeReadHead(current: IoBuffer) {
+    completeReadHead(current)
+}
+
 @DangerousInternalIoApi
 fun Input.completeReadHead(current: ChunkBuffer) {
     if (current === this) {
@@ -79,6 +92,13 @@ private fun Input.completeReadHeadFallback(current: ChunkBuffer) {
     val discardAmount = current.capacity - current.writeRemaining - current.readRemaining
     discardExact(discardAmount)
     current.release(ChunkBuffer.Pool)
+}
+
+@Suppress("DEPRECATION", "UNUSED")
+@JvmName("prepareReadNextHead")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Input.prepareReadNextHeadOld(current: IoBuffer): IoBuffer? {
+    return prepareReadNextHead(current) as IoBuffer?
 }
 
 @DangerousInternalIoApi
@@ -106,6 +126,12 @@ private fun Input.prepareNextReadHeadFallback(current: ChunkBuffer): ChunkBuffer
     return current
 }
 
+@Suppress("DEPRECATION", "UNUSED")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
+    return prepareWriteHead(capacity, current) as IoBuffer
+}
+
 @DangerousInternalIoApi
 fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
     if (this is AbstractOutput) {
@@ -126,6 +152,12 @@ private fun Output.prepareWriteHeadFallback(current: ChunkBuffer?): ChunkBuffer 
     }
 
     return ChunkBuffer.Pool.borrow()
+}
+
+@Suppress("DEPRECATION", "UNUSED")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Output.afterHeadWrite(current: IoBuffer) {
+    return afterHeadWrite(current)
 }
 
 @DangerousInternalIoApi

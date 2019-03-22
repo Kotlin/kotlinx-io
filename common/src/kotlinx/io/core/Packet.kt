@@ -19,6 +19,16 @@ abstract class ByteReadPacketBase(head: ChunkBuffer, remaining: Long, pool: Obje
     constructor(head: IoBuffer,
                 remaining: Long,
                 pool: ObjectPool<ChunkBuffer>) : this(head as ChunkBuffer, remaining, pool)
+
+    companion object {
+        @Deprecated(
+            "Use ByteReadPacket.Empty instead",
+            ReplaceWith("ByteReadPacket.Empty"),
+            level = DeprecationLevel.ERROR
+        )
+        val Empty: ByteReadPacket
+            get() = ByteReadPacket.Empty
+    }
 }
 
 expect class EOFException(message: String) : IOException

@@ -15,6 +15,7 @@ import kotlin.Int
 import kotlin.PublishedApi
 import kotlin.Suppress
 import kotlin.check
+import kotlin.jvm.JvmName
 
 /**
  * A builder that provides ability to build byte packets with no knowledge of it's size.
@@ -84,6 +85,21 @@ class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<Ch
     override fun append(csq: CharSequence?, start: Int, end: Int): BytePacketBuilder {
         return super.append(csq, start, end) as BytePacketBuilder
     }
+
+    @Suppress("DEPRECATION_ERROR", "UNUSED")
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    @JvmName("append")
+    fun appendOld(c: Char): BytePacketBuilderBase = append(c)
+
+    @Suppress("DEPRECATION_ERROR", "UNUSED")
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    @JvmName("append")
+    fun appendOld(csq: CharSequence?): BytePacketBuilderBase = append(csq)
+
+    @Suppress("DEPRECATION_ERROR", "UNUSED")
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    @JvmName("append")
+    fun appendOld(csq: CharSequence?, start: Int, end: Int): BytePacketBuilderBase = append(csq, start, end)
 
     /**
      * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
