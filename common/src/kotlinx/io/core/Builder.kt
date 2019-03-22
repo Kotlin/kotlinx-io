@@ -2,6 +2,7 @@ package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
+import kotlin.contracts.*
 
 expect val PACKET_MAX_COPY_SIZE: Int
 
@@ -9,6 +10,10 @@ expect val PACKET_MAX_COPY_SIZE: Int
  * Build a byte packet in [block] lambda. Creates a temporary builder and releases it in case of failure
  */
 inline fun buildPacket(headerSizeHint: Int = 0, block: BytePacketBuilder.() -> Unit): ByteReadPacket {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     val builder = BytePacketBuilder(headerSizeHint)
     try {
         block(builder)
