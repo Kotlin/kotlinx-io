@@ -299,7 +299,7 @@ internal constructor(
             // do append
             tail.writeBufferAppend(foreignStolen, tail.writeRemaining + tail.endGap)
             afterHeadWrite()
-            foreignStolen.next?.let { next ->
+            foreignStolen.cleanNext()?.let { next ->
                 appendChain(next)
             }
 
