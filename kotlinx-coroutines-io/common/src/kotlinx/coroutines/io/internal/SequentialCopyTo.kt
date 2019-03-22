@@ -1,10 +1,11 @@
-package kotlinx.coroutines.io
+package kotlinx.coroutines.io.internal
 
+import kotlinx.coroutines.io.ByteChannelSequentialBase
+import kotlinx.coroutines.io.close
 import kotlinx.io.core.internal.ChunkBuffer
 
-
-suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
-    copyTo(dst)
+internal suspend fun ByteChannelSequentialBase.joinToImpl(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
+    copyToSequentialImpl(dst, Long.MAX_VALUE)
     if (closeOnEnd) dst.close()
 }
 
@@ -13,7 +14,7 @@ suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, clo
  * Closes [dst] channel if fails to read or write with cause exception.
  * @return a number of copied bytes
  */
-suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, limit: Long = Long.MAX_VALUE): Long {
+internal suspend fun ByteChannelSequentialBase.copyToSequentialImpl(dst: ByteChannelSequentialBase, limit: Long): Long {
     require(this !== dst)
 
     var remainingLimit = limit

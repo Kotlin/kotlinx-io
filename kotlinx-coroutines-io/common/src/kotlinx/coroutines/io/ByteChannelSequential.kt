@@ -1,15 +1,26 @@
 package kotlinx.coroutines.io
 
+import kotlinx.coroutines.io.internal.*
 import kotlinx.io.core.*
 import kotlinx.io.bits.*
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.ObjectPool
 
+@Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
+suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
+    return joinToImpl(dst, closeOnEnd)
+}
+
+@Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
+suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, limit: Long = kotlin.Long.MAX_VALUE): Long {
+    return copyToSequentialImpl(dst, limit)
+}
+
 /**
  * Sequential (non-concurrent) byte channel implementation
  */
 @Suppress("OverridingDeprecatedMember")
-@ExperimentalIoApi
+@DangerousInternalIoApi
 abstract class ByteChannelSequentialBase(
     initial: IoBuffer,
     override val autoFlush: Boolean,

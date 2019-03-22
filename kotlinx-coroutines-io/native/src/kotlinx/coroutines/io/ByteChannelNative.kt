@@ -3,6 +3,7 @@ package kotlinx.coroutines.io
 import kotlinx.io.core.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.io.internal.*
 import kotlinx.io.core.internal.ChunkBuffer
 import kotlinx.io.pool.ObjectPool
 
@@ -38,7 +39,7 @@ actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteRe
 }
 
 actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
-    (this as ByteChannelSequentialBase).joinTo((dst as ByteChannelSequentialBase), closeOnEnd)
+    (this as ByteChannelSequentialBase).joinToImpl((dst as ByteChannelSequentialBase), closeOnEnd)
 }
 
 /**
@@ -47,7 +48,7 @@ actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boo
  * @return a number of copied bytes
  */
 actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
-    return (this as ByteChannelSequentialBase).copyTo((dst as ByteChannelSequentialBase))
+    return (this as ByteChannelSequentialBase).copyToSequentialImpl((dst as ByteChannelSequentialBase), Long.MAX_VALUE)
 }
 
 internal class ByteChannelNative(initial: IoBuffer,

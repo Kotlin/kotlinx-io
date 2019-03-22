@@ -1,5 +1,6 @@
 package kotlinx.coroutines.io
 
+import kotlinx.coroutines.io.internal.*
 import kotlinx.io.bits.Memory
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
@@ -266,7 +267,7 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
     if (this is ByteBufferChannel && dst is ByteBufferChannel) {
         return dst.copyDirect(this, limit, null)
     } else if (this is ByteChannelSequentialBase && dst is ByteChannelSequentialBase) {
-        return copyTo(dst) // more specialized extension function
+        return copyToSequentialImpl(dst, Long.MAX_VALUE) // more specialized extension function
     }
 
     return copyToImpl(dst, limit)
