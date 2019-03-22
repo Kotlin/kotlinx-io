@@ -7,6 +7,19 @@ import kotlin.contracts.*
 import kotlinx.io.core.internal.require
 
 /**
+ * For every byte from this buffer invokes [block] function giving it as parameter.
+ */
+@ExperimentalIoApi
+inline fun Buffer.forEach(block: (Byte) -> Unit) {
+    read { memory, start, endExclusive ->
+        for (index in start until endExclusive) {
+            block(memory[index])
+        }
+        endExclusive - start
+    }
+}
+
+/**
  * Read an unsigned byte or fail if no bytes available for reading.
  */
 fun Buffer.readUByte(): UByte = readByte().toUByte()

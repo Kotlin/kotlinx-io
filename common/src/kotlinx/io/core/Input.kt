@@ -1,6 +1,7 @@
 package kotlinx.io.core
 
 import kotlinx.io.bits.Memory
+import kotlinx.io.bits.get
 import kotlinx.io.core.internal.*
 import kotlin.jvm.JvmName
 
@@ -317,6 +318,17 @@ fun Input.peekCharUtf8(): Char {
     if (rc == -1) throw EOFException("Failed to peek a char: end of input")
 
     return peekCharUtf8Impl(rc)
+}
+
+/**
+ * For every byte from this input invokes [block] function giving it as parameter.
+ */
+@ExperimentalIoApi
+inline fun Input.forEach(block: (Byte) -> Unit) {
+    takeWhile { buffer ->
+        buffer.forEach(block)
+        true
+    }
 }
 
 private fun Input.peekCharUtf8Impl(first: Int): Char {
