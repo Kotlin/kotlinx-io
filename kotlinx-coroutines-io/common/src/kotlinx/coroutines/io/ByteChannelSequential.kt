@@ -1,60 +1,17 @@
 package kotlinx.coroutines.io
 
+import kotlinx.coroutines.io.internal.*
 import kotlinx.io.core.*
 import kotlinx.io.core.internal.*
 
-
+@Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.")
 suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
-    copyTo(dst)
-    if (closeOnEnd) dst.close()
+    return joinToImpl(dst, closeOnEnd)
 }
 
-/**
- * Reads up to [limit] bytes from receiver channel and writes them to [dst] channel.
- * Closes [dst] channel if fails to read or write with cause exception.
- * @return a number of copied bytes
- */
-suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, limit: Long = Long.MAX_VALUE): Long {
-    require(this !== dst)
-
-    var remainingLimit = limit
-
-    while (true) {
-        if (!awaitInternalAtLeast1()) break
-        val transferred = transferTo(dst, remainingLimit)
-
-        val copied = if (transferred == 0L) {
-            val tail = copyToTail(dst, remainingLimit)
-            if (tail == 0L) break
-            tail
-        } else {
-            if (dst.availableForWrite == 0) {
-                dst.notFull.await()
-            }
-            transferred
-        }
-
-        remainingLimit -= copied
-    }
-
-    return limit - remainingLimit
-}
-
-private suspend fun ByteChannelSequentialBase.copyToTail(dst: ByteChannelSequentialBase, limit: Long): Long {
-    val lastPiece = IoBuffer.Pool.borrow()
-    try {
-        lastPiece.resetForWrite(limit.coerceAtMost(lastPiece.capacity.toLong()).toInt())
-        val rc = readAvailable(lastPiece)
-        if (rc == -1) {
-            lastPiece.release(IoBuffer.Pool)
-            return 0
-        }
-
-        dst.writeFully(lastPiece)
-        return rc.toLong()
-    } finally {
-        lastPiece.release(IoBuffer.Pool)
-    }
+@Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.")
+suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, limit: Long = kotlin.Long.MAX_VALUE): Long {
+    return copyToSequentialImpl(dst, limit)
 }
 
 /**
@@ -501,7 +458,10 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
 
     override fun discard(n: Int): Int {
         closedCause?.let { throw it }
-        return readable.discard(n).also { afterRead() }
+        val quantity = minOf(readable.remaining, n.toLong()).toInt()
+        readable.discardExact(quantity)
+        afterRead()
+        return quantity
     }
 
     override fun request(atLeast: Int): IoBuffer? {

@@ -1,5 +1,6 @@
 package kotlinx.coroutines.io
 
+import kotlinx.coroutines.io.internal.*
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
 import java.nio.*
@@ -209,6 +210,9 @@ actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boo
     if (this is ByteBufferChannel && dst is ByteBufferChannel) {
         return dst.joinFrom(this, closeOnEnd)
     }
+    if (this is ByteChannelSequentialBase && dst is ByteChannelSequentialBase) {
+        return joinToImpl(dst, closeOnEnd)
+    }
 
     return joinToImplSuspend(dst, closeOnEnd)
 }
@@ -234,7 +238,7 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
     if (this is ByteBufferChannel && dst is ByteBufferChannel) {
         return dst.copyDirect(this, limit, null)
     } else if (this is ByteChannelSequentialBase && dst is ByteChannelSequentialBase) {
-        return copyTo(dst) // more specialized extension function
+        return copyToSequentialImpl(dst, limit) // more specialized extension function
     }
 
     return copyToImpl(dst, limit)
