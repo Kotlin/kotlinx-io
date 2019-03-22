@@ -775,7 +775,7 @@ abstract class AbstractInput(
 
     @PublishedApi
     internal fun prepareRead(minSize: Int): ChunkBuffer? {
-        val head = _head
+        val head = head
         if (headEndExclusive - headPosition >= minSize) return head
         return prepareReadLoop(minSize, head)
     }
