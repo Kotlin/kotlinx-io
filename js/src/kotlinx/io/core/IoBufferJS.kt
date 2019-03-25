@@ -668,9 +668,8 @@ actual class IoBuffer internal constructor(
         if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
         if (dst.writeRemaining < length) throw IllegalArgumentException("Not enough free space in dst buffer to write $length bytes")
 
-        val thisBuffer = if (i8.length == length) i8 else Int8Array(content, readPosition, length)
-        val dstBuffer = if (dst.writePosition == 0) dst.i8 else Int8Array(dst.content, dst.writePosition, length)
-        dstBuffer.set(thisBuffer, writePosition)
+        val srcBuffer = if (i8.length == length) i8 else Int8Array(content, readPosition, length)
+        dst.i8.set(srcBuffer, dst.writePosition)
 
         dst.writePosition += length
         readPosition += length
