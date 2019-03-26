@@ -121,6 +121,7 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
         }
     }
 
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     override suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
         val readable = readable
         var invokedWithLast = false

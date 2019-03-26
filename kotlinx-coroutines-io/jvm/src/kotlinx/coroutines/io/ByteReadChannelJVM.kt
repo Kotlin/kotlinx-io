@@ -117,7 +117,10 @@ actual interface ByteReadChannel {
     /**
      * For every available bytes range invokes [visitor] function until it return false or end of stream encountered
      */
-    suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor)
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
+        consumeEachBufferRange(visitor)
+    }
 
     /**
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
@@ -151,7 +154,7 @@ actual interface ByteReadChannel {
      * @return `true` if line has been read (possibly empty) or `false` if channel has been closed
      * and no characters were read.
      */
-    actual suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
+    actual suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
 
     /**
      * Reads a line of UTF-8 characters up to [limit] characters.
@@ -237,8 +240,6 @@ actual interface ByteReadChannel {
         actual val Empty: ByteReadChannel by lazy { ByteChannel().apply { close() } }
     }
 }
-
-typealias ConsumeEachBufferVisitor = (buffer: ByteBuffer, last: Boolean) -> Boolean
 
 actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
     require(dst !== this)
