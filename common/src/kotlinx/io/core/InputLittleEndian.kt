@@ -4,6 +4,21 @@ package kotlinx.io.core
 
 import kotlinx.io.bits.*
 
+fun Input.readShort(byteOrder: ByteOrder): Short =
+    readPrimitiveTemplate(byteOrder, { readShort() }, { reverseByteOrder() })
+
+fun Input.readInt(byteOrder: ByteOrder): Int =
+    readPrimitiveTemplate(byteOrder, { readInt() }, { reverseByteOrder() })
+
+fun Input.readLong(byteOrder: ByteOrder): Long =
+    readPrimitiveTemplate(byteOrder, { readLong() }, { reverseByteOrder() })
+
+fun Input.readFloat(byteOrder: ByteOrder): Float =
+    readPrimitiveTemplate(byteOrder, { readFloat() }, { reverseByteOrder() })
+
+fun Input.readDouble(byteOrder: ByteOrder): Double =
+    readPrimitiveTemplate(byteOrder, { readDouble() }, { reverseByteOrder() })
+
 fun Input.readShortLittleEndian(): Short = readPrimitiveTemplate({ readShort() }, { reverseByteOrder() })
 
 fun Input.readIntLittleEndian(): Int = readPrimitiveTemplate({ readInt() }, { reverseByteOrder() })
@@ -146,6 +161,13 @@ fun Input.readAvailableLittleEndian(dst: DoubleArray, offset: Int = 0, length: I
 private inline fun <T : Any> Input.readPrimitiveTemplate(read: () -> T, reverse: T.() -> T): T {
     return when (byteOrderDeprecated) {
         ByteOrder.LITTLE_ENDIAN -> read()
+        else -> read().reverse()
+    }
+}
+
+private inline fun <T : Any> Input.readPrimitiveTemplate(byteOrder: ByteOrder, read: () -> T, reverse: T.() -> T): T {
+    return when {
+        byteOrderDeprecated == byteOrder -> read()
         else -> read().reverse()
     }
 }

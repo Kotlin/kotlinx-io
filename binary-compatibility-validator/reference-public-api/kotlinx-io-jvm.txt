@@ -391,7 +391,9 @@ public final class kotlinx/io/core/InputLittleEndianKt {
 	public static synthetic fun readAvailableLittleEndian-_44sl1A$default (Lkotlinx/io/core/Input;[SIIILjava/lang/Object;)I
 	public static final fun readAvailableLittleEndian-wOR3gME (Lkotlinx/io/core/Input;[III)I
 	public static synthetic fun readAvailableLittleEndian-wOR3gME$default (Lkotlinx/io/core/Input;[IIIILjava/lang/Object;)I
+	public static final fun readDouble (Lkotlinx/io/core/Input;Lkotlinx/io/core/ByteOrder;)D
 	public static final fun readDoubleLittleEndian (Lkotlinx/io/core/Input;)D
+	public static final fun readFloat (Lkotlinx/io/core/Input;Lkotlinx/io/core/ByteOrder;)F
 	public static final fun readFloatLittleEndian (Lkotlinx/io/core/Input;)F
 	public static final fun readFullyLittleEndian (Lkotlinx/io/core/Input;[DII)V
 	public static final fun readFullyLittleEndian (Lkotlinx/io/core/Input;[FII)V
@@ -409,8 +411,11 @@ public final class kotlinx/io/core/InputLittleEndianKt {
 	public static synthetic fun readFullyLittleEndian-_44sl1A$default (Lkotlinx/io/core/Input;[SIIILjava/lang/Object;)V
 	public static final fun readFullyLittleEndian-wOR3gME (Lkotlinx/io/core/Input;[III)V
 	public static synthetic fun readFullyLittleEndian-wOR3gME$default (Lkotlinx/io/core/Input;[IIIILjava/lang/Object;)V
+	public static final fun readInt (Lkotlinx/io/core/Input;Lkotlinx/io/core/ByteOrder;)I
 	public static final fun readIntLittleEndian (Lkotlinx/io/core/Input;)I
+	public static final fun readLong (Lkotlinx/io/core/Input;Lkotlinx/io/core/ByteOrder;)J
 	public static final fun readLongLittleEndian (Lkotlinx/io/core/Input;)J
+	public static final fun readShort (Lkotlinx/io/core/Input;Lkotlinx/io/core/ByteOrder;)S
 	public static final fun readShortLittleEndian (Lkotlinx/io/core/Input;)S
 }
 
@@ -570,7 +575,9 @@ public final class kotlinx/io/core/OutputKt {
 }
 
 public final class kotlinx/io/core/OutputLittleEndianKt {
+	public static final fun writeDouble (Lkotlinx/io/core/Output;DLkotlinx/io/core/ByteOrder;)V
 	public static final fun writeDoubleLittleEndian (Lkotlinx/io/core/Output;D)V
+	public static final fun writeFloat (Lkotlinx/io/core/Output;FLkotlinx/io/core/ByteOrder;)V
 	public static final fun writeFloatLittleEndian (Lkotlinx/io/core/Output;F)V
 	public static final fun writeFullyLittleEndian (Lkotlinx/io/core/Output;[DII)V
 	public static final fun writeFullyLittleEndian (Lkotlinx/io/core/Output;[FII)V
@@ -588,8 +595,11 @@ public final class kotlinx/io/core/OutputLittleEndianKt {
 	public static synthetic fun writeFullyLittleEndian-EgFVB10$default (Lkotlinx/io/core/Output;[SIIILjava/lang/Object;)V
 	public static final fun writeFullyLittleEndian-OjWY3pY (Lkotlinx/io/core/Output;[JII)V
 	public static synthetic fun writeFullyLittleEndian-OjWY3pY$default (Lkotlinx/io/core/Output;[JIIILjava/lang/Object;)V
+	public static final fun writeInt (Lkotlinx/io/core/Output;ILkotlinx/io/core/ByteOrder;)V
 	public static final fun writeIntLittleEndian (Lkotlinx/io/core/Output;I)V
+	public static final fun writeLong (Lkotlinx/io/core/Output;JLkotlinx/io/core/ByteOrder;)V
 	public static final fun writeLongLittleEndian (Lkotlinx/io/core/Output;J)V
+	public static final fun writeShort (Lkotlinx/io/core/Output;SLkotlinx/io/core/ByteOrder;)V
 	public static final fun writeShortLittleEndian (Lkotlinx/io/core/Output;S)V
 }
 

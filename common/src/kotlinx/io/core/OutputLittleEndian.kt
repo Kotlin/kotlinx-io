@@ -2,6 +2,26 @@ package kotlinx.io.core
 
 import kotlinx.io.bits.*
 
+fun Output.writeShort(value: Short, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeShort(it) }, { reverseByteOrder() })
+}
+
+fun Output.writeInt(value: Int, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeInt(it) }, { reverseByteOrder() })
+}
+
+fun Output.writeLong(value: Long, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeLong(it) }, { reverseByteOrder() })
+}
+
+fun Output.writeFloat(value: Float, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeFloat(it) }, { reverseByteOrder() })
+}
+
+fun Output.writeDouble(value: Double, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeDouble(it) }, { reverseByteOrder() })
+}
+
 fun Output.writeShortLittleEndian(value: Short) {
     writePrimitiveTemplate(value, { writeShort(it) }, { reverseByteOrder() })
 }
@@ -88,6 +108,14 @@ private inline fun <T : Any> Output.writePrimitiveTemplate(value: T, write: (T) 
     )
 }
 
+private inline fun <T : Any> Output.writePrimitiveTemplate(value: T, byteOrder: ByteOrder, write: (T) -> Unit, reverse: T.() -> T) {
+    write(
+        when {
+            byteOrderDeprecated == byteOrder -> value
+            else -> value.reverse()
+        }
+    )
+}
 
 private inline fun Output.writeArrayTemplate(
     offset: Int,
