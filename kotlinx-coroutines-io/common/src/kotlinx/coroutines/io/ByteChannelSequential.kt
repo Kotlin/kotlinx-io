@@ -88,6 +88,7 @@ abstract class ByteChannelSequentialBase(
     }
 
     private inline fun <T : Any> reverseWrite(value: () -> T, reversed: () -> T): T {
+        @Suppress("DEPRECATION_ERROR")
         return if (writeByteOrder == ByteOrder.BIG_ENDIAN) {
             value()
         } else {
@@ -246,31 +247,31 @@ abstract class ByteChannelSequentialBase(
         notFull.signal()
     }
 
-    @Suppress("NOTHING_TO_INLINE")
+    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
     private inline fun Short.reverseRead(): Short = when {
         readByteOrder == ByteOrder.BIG_ENDIAN -> this
         else -> this.reverseByteOrder()
     }
 
-    @Suppress("NOTHING_TO_INLINE")
+    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
     private inline fun Int.reverseRead(): Int = when {
         readByteOrder == ByteOrder.BIG_ENDIAN -> this
         else -> this.reverseByteOrder()
     }
 
-    @Suppress("NOTHING_TO_INLINE")
+    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
     private inline fun Long.reverseRead(): Long = when {
         readByteOrder == ByteOrder.BIG_ENDIAN -> this
         else -> this.reverseByteOrder()
     }
 
-    @Suppress("NOTHING_TO_INLINE")
+    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
     private inline fun Float.reverseRead(): Float = when {
         readByteOrder == ByteOrder.BIG_ENDIAN -> this
         else -> this.reverseByteOrder()
     }
 
-    @Suppress("NOTHING_TO_INLINE")
+    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
     private inline fun Double.reverseRead(): Double = when {
         readByteOrder == ByteOrder.BIG_ENDIAN -> this
         else -> this.reverseByteOrder()

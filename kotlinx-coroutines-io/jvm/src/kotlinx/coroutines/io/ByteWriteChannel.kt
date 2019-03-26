@@ -33,6 +33,10 @@ actual interface ByteWriteChannel {
      * Byte order that is used for multi-byte write operations
      * (such as [writeShort], [writeInt], [writeLong], [writeFloat], and [writeDouble]).
      */
+    @Deprecated(
+        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
+        level = DeprecationLevel.ERROR
+    )
     actual var writeByteOrder: ByteOrder
 
     /**

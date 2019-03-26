@@ -31,6 +31,10 @@ expect interface ByteWriteChannel {
      * Byte order that is used for multi-byte write operations
      * (such as [writeShort], [writeInt], [writeLong], [writeFloat], and [writeDouble]).
      */
+    @Deprecated(
+        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
+        level = DeprecationLevel.ERROR
+    )
     var writeByteOrder: ByteOrder
 
     /**
@@ -139,12 +143,20 @@ suspend fun ByteWriteChannel.writeShort(s: Int) {
     return writeShort((s and 0xffff).toShort())
 }
 
+suspend fun ByteWriteChannel.writeShort(s: Int, byteOrder: ByteOrder) {
+    return writeShort((s and 0xffff).toShort(), byteOrder)
+}
+
 suspend fun ByteWriteChannel.writeByte(b: Int) {
     return writeByte((b and 0xff).toByte())
 }
 
 suspend fun ByteWriteChannel.writeInt(i: Long) {
     return writeInt(i.toInt())
+}
+
+suspend fun ByteWriteChannel.writeInt(i: Long, byteOrder: ByteOrder) {
+    return writeInt(i.toInt(), byteOrder)
 }
 
 /**

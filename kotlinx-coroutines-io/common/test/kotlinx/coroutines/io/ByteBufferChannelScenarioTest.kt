@@ -282,8 +282,6 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
     @Test
     fun testReadBlockSuspend() = runTest {
         ch.writeByte(0x12)
-        ch.readByteOrder = ByteOrder.BIG_ENDIAN
-        ch.writeByteOrder = ByteOrder.BIG_ENDIAN
 
         launch {
             expect(1)
