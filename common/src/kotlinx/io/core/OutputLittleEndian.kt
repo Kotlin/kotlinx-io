@@ -1,6 +1,29 @@
+@file:Suppress("MoveLambdaOutsideParentheses")
+
 package kotlinx.io.core
 
 import kotlinx.io.bits.*
+
+
+fun Output.writeShort(value: Short, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeShort(it) }, { reverseByteOrder() })
+}
+
+fun Output.writeInt(value: Int, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeInt(it) }, { reverseByteOrder() })
+}
+
+fun Output.writeLong(value: Long, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeLong(it) }, { reverseByteOrder() })
+}
+
+fun Output.writeFloat(value: Float, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeFloat(it) }, { reverseByteOrder() })
+}
+
+fun Output.writeDouble(value: Double, byteOrder: ByteOrder) {
+    writePrimitiveTemplate(value, byteOrder, { writeDouble(it) }, { reverseByteOrder() })
+}
 
 fun Output.writeShortLittleEndian(value: Short) {
     writePrimitiveTemplate(value, { writeShort(it) }, { reverseByteOrder() })
@@ -55,7 +78,6 @@ fun Output.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, length: I
         offset,
         length,
         2,
-        { writeFully(source, offset, length) },
         { writeShort(source[it].reverseByteOrder()) })
 }
 
@@ -68,7 +90,6 @@ fun Output.writeFullyLittleEndian(source: IntArray, offset: Int = 0, length: Int
         offset,
         length,
         4,
-        { writeFully(source, offset, length) },
         { writeInt(source[it].reverseByteOrder()) })
 }
 
@@ -81,7 +102,6 @@ fun Output.writeFullyLittleEndian(source: LongArray, offset: Int = 0, length: In
         offset,
         length,
         8,
-        { writeFully(source, offset, length) },
         { writeLong(source[it].reverseByteOrder()) })
 }
 
@@ -90,7 +110,6 @@ fun Output.writeFullyLittleEndian(source: FloatArray, offset: Int = 0, length: I
         offset,
         length,
         4,
-        { writeFully(source, offset, length) },
         { writeFloat(source[it].reverseByteOrder()) })
 }
 
@@ -99,7 +118,6 @@ fun Output.writeFullyLittleEndian(source: DoubleArray, offset: Int = 0, length: 
         offset,
         length,
         8,
-        { writeFully(source, offset, length) },
         { writeDouble(source[it].reverseByteOrder()) })
 }
 
@@ -108,7 +126,6 @@ fun Buffer.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, length: I
         offset,
         length,
         2,
-        { writeFully(source, offset, length) },
         { writeShort(source[it].reverseByteOrder()) })
 }
 
@@ -121,7 +138,6 @@ fun Buffer.writeFullyLittleEndian(source: IntArray, offset: Int = 0, length: Int
         offset,
         length,
         4,
-        { writeFully(source, offset, length) },
         { writeInt(source[it].reverseByteOrder()) })
 }
 
@@ -134,7 +150,6 @@ fun Buffer.writeFullyLittleEndian(source: LongArray, offset: Int = 0, length: In
         offset,
         length,
         8,
-        { writeFully(source, offset, length) },
         { writeLong(source[it].reverseByteOrder()) })
 }
 
@@ -143,7 +158,6 @@ fun Buffer.writeFullyLittleEndian(source: FloatArray, offset: Int = 0, length: I
         offset,
         length,
         4,
-        { writeFully(source, offset, length) },
         { writeFloat(source[it].reverseByteOrder()) })
 }
 
@@ -152,23 +166,22 @@ fun Buffer.writeFullyLittleEndian(source: DoubleArray, offset: Int = 0, length: 
         offset,
         length,
         8,
-        { writeFully(source, offset, length) },
         { writeDouble(source[it].reverseByteOrder()) })
 }
 
-private inline fun <T : Any> Output.writePrimitiveTemplate(value: T, write: (T) -> Unit, reverse: T.() -> T) {
-    write(
-        when (byteOrderDeprecated) {
-            ByteOrder.LITTLE_ENDIAN -> value
-            else -> value.reverse()
-        }
-    )
+private inline fun <T : Any> writePrimitiveTemplate(value: T, write: (T) -> Unit, reverse: T.() -> T) {
+    write(value.reverse())
 }
 
-private inline fun <T : Any> Buffer.writePrimitiveTemplate(value: T, write: (T) -> Unit, reverse: T.() -> T) {
+private inline fun <T : Any> writePrimitiveTemplate(
+    value: T,
+    byteOrder: ByteOrder,
+    write: (T) -> Unit,
+    reverse: T.() -> T
+) {
     write(
-        when (byteOrderDeprecated) {
-            ByteOrder.LITTLE_ENDIAN -> value
+        when (byteOrder) {
+            ByteOrder.BIG_ENDIAN -> value
             else -> value.reverse()
         }
     )
@@ -178,26 +191,21 @@ private inline fun Output.writeArrayTemplate(
     offset: Int,
     length: Int,
     componentSize: Int,
-    writeFullyBE: () -> Unit,
     writeComponent: Buffer.(Int) -> Unit
 ) {
-    if (byteOrderDeprecated != ByteOrder.LITTLE_ENDIAN) {
-        val untilIndex = offset + length
-        var start = offset
-        writeWhileSize(componentSize) { buffer ->
-            val size = minOf(buffer.writeRemaining / componentSize, untilIndex - start)
-            val lastIndex = start + size - 1
-            for (index in start..lastIndex) {
-                writeComponent(buffer, index)
-            }
-            start += size
-            when {
-                start < untilIndex -> componentSize
-                else -> 0
-            }
+    val untilIndex = offset + length
+    var start = offset
+    writeWhileSize(componentSize) { buffer ->
+        val size = minOf(buffer.writeRemaining / componentSize, untilIndex - start)
+        val lastIndex = start + size - 1
+        for (index in start..lastIndex) {
+            writeComponent(buffer, index)
         }
-    } else {
-        writeFullyBE()
+        start += size
+        when {
+            start < untilIndex -> componentSize
+            else -> 0
+        }
     }
 }
 
@@ -205,30 +213,16 @@ private inline fun Buffer.writeArrayTemplate(
     offset: Int,
     length: Int,
     componentSize: Int,
-    writeFullyBE: () -> Unit,
     writeComponent: Buffer.(Int) -> Unit
 ) {
-    if (byteOrderDeprecated != ByteOrder.LITTLE_ENDIAN) {
-        val untilIndex = offset + length
-        var start = offset
-        val buffer = this
+    val untilIndex = offset + length
+    var start = offset
+    val buffer = this
 
-        val size = minOf(buffer.writeRemaining / componentSize, untilIndex - start)
-        val lastIndex = start + size - 1
-        for (index in start..lastIndex) {
-            writeComponent(buffer, index)
-        }
-        start += size
-    } else {
-        writeFullyBE()
+    val size = minOf(buffer.writeRemaining / componentSize, untilIndex - start)
+    val lastIndex = start + size - 1
+    for (index in start..lastIndex) {
+        writeComponent(buffer, index)
     }
+    start += size
 }
-
-@Suppress("DEPRECATION_ERROR")
-private inline val Output.byteOrderDeprecated
-    get() = byteOrder
-
-@Suppress("DEPRECATION_ERROR")
-private inline val Buffer.byteOrderDeprecated
-    get() = byteOrder
-
