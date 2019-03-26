@@ -219,12 +219,39 @@ public final class kotlinx/coroutines/io/ByteWriteChannelKt {
 	public static final fun writeChar (Lkotlinx/coroutines/io/ByteWriteChannel;CLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeFully (Lkotlinx/coroutines/io/ByteWriteChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeInt (Lkotlinx/coroutines/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeInt (Lkotlinx/coroutines/io/ByteWriteChannel;JLkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writePacket (Lkotlinx/coroutines/io/ByteWriteChannel;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun writePacket$default (Lkotlinx/coroutines/io/ByteWriteChannel;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun writePacketSuspend (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeShort (Lkotlinx/coroutines/io/ByteWriteChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeShort (Lkotlinx/coroutines/io/ByteWriteChannel;ILkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeStringUtf8 (Lkotlinx/coroutines/io/ByteWriteChannel;Ljava/lang/CharSequence;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeStringUtf8 (Lkotlinx/coroutines/io/ByteWriteChannel;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class kotlinx/coroutines/io/ChannelLittleEndianKt {
+	public static final fun readDouble (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readDoubleLittleEndian (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readFloat (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readFloatLittleEndian (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readInt (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readIntLittleEndian (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readLong (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readLongLittleEndian (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readShort (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readShortLittleEndian (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun reverseIfNeeded (Ljava/lang/Object;Lkotlinx/io/core/ByteOrder;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun toLittleEndian (Lkotlinx/coroutines/io/ByteReadChannel;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun writeDouble (Lkotlinx/coroutines/io/ByteWriteChannel;DLkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeDoubleLittleEndian (Lkotlinx/coroutines/io/ByteWriteChannel;DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeFloat (Lkotlinx/coroutines/io/ByteWriteChannel;FLkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeFloatLittleEndian (Lkotlinx/coroutines/io/ByteWriteChannel;FLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeInt (Lkotlinx/coroutines/io/ByteWriteChannel;ILkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeIntLittleEndian (Lkotlinx/coroutines/io/ByteWriteChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeLong (Lkotlinx/coroutines/io/ByteWriteChannel;JLkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeLongLittleEndian (Lkotlinx/coroutines/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeShort (Lkotlinx/coroutines/io/ByteWriteChannel;SLkotlinx/io/core/ByteOrder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeShortLittleEndian (Lkotlinx/coroutines/io/ByteWriteChannel;SLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class kotlinx/coroutines/io/ClosedWriteChannelException : java/util/concurrent/CancellationException {
