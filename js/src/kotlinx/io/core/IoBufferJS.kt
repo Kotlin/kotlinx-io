@@ -382,10 +382,8 @@ actual class IoBuffer actual constructor(
 
             override fun clearInstance(instance: IoBuffer): IoBuffer {
                 return super.clearInstance(instance).apply {
-                    instance.unpark()
-                    instance.resetForWrite()
-                    instance.next = null
-                    instance.attachment = null
+                    unpark()
+                    reset()
                 }
             }
 

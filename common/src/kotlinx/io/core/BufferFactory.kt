@@ -51,6 +51,7 @@ internal inline fun <R> withChunkBuffer(pool: ObjectPool<ChunkBuffer>, block: Ch
 }
 
 @ThreadLocal
+@Suppress("DEPRECATION")
 internal val DefaultChunkedBufferPool: ObjectPool<IoBuffer> = DefaultBufferPool()
 
 @Suppress("DEPRECATION")
@@ -87,10 +88,9 @@ internal class DefaultBufferPool(
     }
 
     override fun clearInstance(instance: IoBuffer): IoBuffer {
-        instance.unpark()
-        instance.resetForWrite()
-        instance.reserveEndGap(Buffer.ReservedSize)
-
-        return instance
+        return super.clearInstance(instance).apply {
+            unpark()
+            reset()
+        }
     }
 }

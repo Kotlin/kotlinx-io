@@ -115,6 +115,15 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
         } == 0
     }
 
+    final override fun reset() {
+        require(origin == null) { "Unable to reset buffer with origin" }
+
+        super.reset()
+        @Suppress("DEPRECATION")
+        attachment = null
+        nextRef.value = null
+    }
+
     companion object {
         val Pool: ObjectPool<ChunkBuffer> = object : ObjectPool<ChunkBuffer> {
             override val capacity: Int

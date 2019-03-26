@@ -379,9 +379,8 @@ private object BufferPoolNativeWorkaround : DefaultPool<IoBuffer>(BUFFER_VIEW_PO
 
     override fun clearInstance(instance: IoBuffer): IoBuffer {
         return super.clearInstance(instance).apply {
-            instance.resetForWrite()
-            instance.next = null
-            instance.unpark()
+            unpark()
+            reset()
         }
     }
 

@@ -339,6 +339,14 @@ open class Buffer(val memory: Memory) {
         this.writePosition = writePosition + 1
     }
 
+    /**
+     * Clear buffer's state: read/write positions, gaps and so on. Byte content is not cleaned-up.
+     */
+    open fun reset() {
+        releaseGaps()
+        resetForWrite()
+    }
+
     override fun toString(): String {
         return "Buffer($readRemaining used, $writeRemaining free, ${startGap + endGap} reserved of $capacity)"
     }
