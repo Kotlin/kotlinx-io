@@ -41,6 +41,12 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
     override val availableForWrite: Int
         get() = maxOf(0, 4088 - totalPending())
 
+    @Deprecated(
+        "Setting byte order is going to be deprecated. " +
+            "Read/write in big endian and use reverseByteOrder() extensions or use " +
+            "readWriteXXXLittleEndian functions instead.",
+        level = DeprecationLevel.WARNING
+    )
     override var readByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {
             if (field != newOrder) {
@@ -49,6 +55,13 @@ abstract class ByteChannelSequentialBase(initial: IoBuffer, override val autoFlu
                 readable.byteOrder = newOrder
             }
         }
+
+    @Deprecated(
+        "Setting byte order is going to be deprecated. " +
+            "Read/write in big endian and use reverseByteOrder() extensions or use " +
+            "readWriteXXXLittleEndian functions instead.",
+        level = DeprecationLevel.WARNING
+    )
     override var writeByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
         set(newOrder) {
             if (field != newOrder) {

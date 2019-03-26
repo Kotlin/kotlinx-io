@@ -27,6 +27,12 @@ expect interface ByteReadChannel {
      * Byte order that is used for multi-byte read operations
      * (such as [readShort], [readInt], [readLong], [readFloat], and [readDouble]).
      */
+    @Deprecated(
+        "Setting byte order is going to be deprecated. " +
+            "Read/write in big endian and use reverseByteOrder() extensions or use " +
+            "readWriteXXXLittleEndian functions instead.",
+        level = DeprecationLevel.WARNING
+    )
     var readByteOrder: ByteOrder
 
     /**

@@ -82,8 +82,22 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     @Test
     fun testShortB() {
         runTest {
-            ch.readByteOrder = ByteOrder.BIG_ENDIAN
-            ch.writeByteOrder = ByteOrder.BIG_ENDIAN
+            assertEquals(0, ch.availableForRead)
+            ch.writeShort(-1)
+            assertEquals(0, ch.availableForRead)
+            ch.flush()
+            assertEquals(2, ch.availableForRead)
+            assertEquals(-1, ch.readShort())
+            assertEquals(0, ch.availableForRead)
+        }
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun testShortL() {
+        runTest {
+            ch.readByteOrder = ByteOrder.LITTLE_ENDIAN
+            ch.writeByteOrder = ByteOrder.LITTLE_ENDIAN
 
             assertEquals(0, ch.availableForRead)
             ch.writeShort(-1)
@@ -96,17 +110,14 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
-    fun testShortL() {
+    fun testShortL2() {
         runTest {
-            ch.readByteOrder = ByteOrder.LITTLE_ENDIAN
-            ch.writeByteOrder = ByteOrder.LITTLE_ENDIAN
-
             assertEquals(0, ch.availableForRead)
-            ch.writeShort(-1)
+            ch.writeShortLittleEndian(-1)
             assertEquals(0, ch.availableForRead)
             ch.flush()
             assertEquals(2, ch.availableForRead)
-            assertEquals(-1, ch.readShort())
+            assertEquals(-1, ch.readShortLittleEndian())
             assertEquals(0, ch.availableForRead)
         }
     }
@@ -138,8 +149,21 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     @Test
     fun testIntB() {
         runTest {
-            ch.readByteOrder = ByteOrder.BIG_ENDIAN
-            ch.writeByteOrder = ByteOrder.BIG_ENDIAN
+            assertEquals(0, ch.availableForRead)
+            ch.writeInt(-1)
+            ch.flush()
+            assertEquals(4, ch.availableForRead)
+            assertEquals(-1, ch.readInt())
+            assertEquals(0, ch.availableForRead)
+        }
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun testIntL() {
+        runTest {
+            ch.readByteOrder = ByteOrder.LITTLE_ENDIAN
+            ch.writeByteOrder = ByteOrder.LITTLE_ENDIAN
 
             assertEquals(0, ch.availableForRead)
             ch.writeInt(-1)
@@ -151,16 +175,13 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
-    fun testIntL() {
+    fun testIntL2() {
         runTest {
-            ch.readByteOrder = ByteOrder.LITTLE_ENDIAN
-            ch.writeByteOrder = ByteOrder.LITTLE_ENDIAN
-
             assertEquals(0, ch.availableForRead)
-            ch.writeInt(-1)
+            ch.writeIntLittleEndian(-1)
             ch.flush()
             assertEquals(4, ch.availableForRead)
-            assertEquals(-1, ch.readInt())
+            assertEquals(-1, ch.readIntLittleEndian())
             assertEquals(0, ch.availableForRead)
         }
     }
@@ -234,8 +255,21 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     @Test
     fun testLongB() {
         runTest {
-            ch.readByteOrder = ByteOrder.BIG_ENDIAN
-            ch.writeByteOrder = ByteOrder.BIG_ENDIAN
+            assertEquals(0, ch.availableForRead)
+            ch.writeLong(Long.MIN_VALUE)
+            ch.flush()
+            assertEquals(8, ch.availableForRead)
+            assertEquals(Long.MIN_VALUE, ch.readLong())
+            assertEquals(0, ch.availableForRead)
+        }
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun testLongL() {
+        runTest {
+            ch.readByteOrder = ByteOrder.LITTLE_ENDIAN
+            ch.writeByteOrder = ByteOrder.LITTLE_ENDIAN
 
             assertEquals(0, ch.availableForRead)
             ch.writeLong(Long.MIN_VALUE)
@@ -247,16 +281,13 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
-    fun testLongL() {
+    fun testLongL2() {
         runTest {
-            ch.readByteOrder = ByteOrder.LITTLE_ENDIAN
-            ch.writeByteOrder = ByteOrder.LITTLE_ENDIAN
-
             assertEquals(0, ch.availableForRead)
-            ch.writeLong(Long.MIN_VALUE)
+            ch.writeLongLittleEndian(Long.MIN_VALUE)
             ch.flush()
             assertEquals(8, ch.availableForRead)
-            assertEquals(Long.MIN_VALUE, ch.readLong())
+            assertEquals(Long.MIN_VALUE, ch.readLongLittleEndian())
             assertEquals(0, ch.availableForRead)
         }
     }
@@ -293,9 +324,6 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     @Test
     fun testDoubleB() {
         runTest {
-            ch.readByteOrder = ByteOrder.BIG_ENDIAN
-            ch.writeByteOrder = ByteOrder.BIG_ENDIAN
-
             assertEquals(0, ch.availableForRead)
             ch.writeDouble(1.05)
             ch.flush()
@@ -307,6 +335,7 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testDoubleL() {
         runTest {
             ch.readByteOrder = ByteOrder.LITTLE_ENDIAN
@@ -323,11 +352,21 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
+    fun testDoubleL2() {
+        runTest {
+            assertEquals(0, ch.availableForRead)
+            ch.writeDoubleLittleEndian(1.05)
+            ch.flush()
+
+            assertEquals(8, ch.availableForRead)
+            assertEquals(1.05, ch.readDoubleLittleEndian())
+            assertEquals(0, ch.availableForRead)
+        }
+    }
+
+    @Test
     fun testFloatB() {
         runTest {
-            ch.readByteOrder = ByteOrder.BIG_ENDIAN
-            ch.writeByteOrder = ByteOrder.BIG_ENDIAN
-
             assertEquals(0, ch.availableForRead)
             ch.writeFloat(1.05f)
             ch.flush()
@@ -339,6 +378,7 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testFloatL() {
         runTest {
             ch.readByteOrder = ByteOrder.LITTLE_ENDIAN
@@ -354,9 +394,23 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
         }
     }
 
+    @Test
+    fun testFloatL2() {
+        runTest {
+            assertEquals(0, ch.availableForRead)
+            ch.writeFloatLittleEndian(1.05f)
+            ch.flush()
+
+            assertEquals(4, ch.availableForRead)
+            assertEquals(1.05f, ch.readFloatLittleEndian())
+            assertEquals(0, ch.availableForRead)
+        }
+    }
+
 
 
     @Test
+    @Suppress("DEPRECATION")
     fun testEndianMix() {
         val byteOrders = listOf(ByteOrder.BIG_ENDIAN, ByteOrder.LITTLE_ENDIAN)
         runTest {
@@ -499,10 +553,10 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
         ch.flush()
 
         val size = ch.readInt()
-        val readed = ch.readPacket(size)
+        val bytesRead = ch.readPacket(size)
 
-        assertEquals(0xffee, readed.readInt())
-        assertEquals("Hello", readed.readUTF8Line())
+        assertEquals(0xffee, bytesRead.readInt())
+        assertEquals("Hello", bytesRead.readUTF8Line())
     }
 
     @Test
@@ -520,10 +574,10 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
         }
 
         val size = ch.readInt()
-        val readed = ch.readPacket(size)
+        val bytesRead = ch.readPacket(size)
 
-        assertEquals(0xffee, readed.readInt())
-        assertEquals(".".repeat(8192), readed.readUTF8Line())
+        assertEquals(0xffee, bytesRead.readInt())
+        assertEquals(".".repeat(8192), bytesRead.readUTF8Line())
     }
 
     @Test
