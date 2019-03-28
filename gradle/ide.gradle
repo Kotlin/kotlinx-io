@@ -8,14 +8,6 @@ task prepareIdeInterop(type: Copy) {
     into "build/classes/kotlin/native"
 }
 
-assemble.doLast {
-    copy {
-        if (project.ext.isLinuxHost) {
-            from "build/classes/kotlin/linuxX64"
-        } else {
-            from "build/classes/kotlin/macosX64"
-        }
-
-        into "build/classes/kotlin/native"
-    }
+configure([assemble]) {
+    doLast { prepareIdeInterop.execute() }
 }
