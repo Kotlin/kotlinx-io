@@ -48,12 +48,11 @@ allprojects {
         project.version = DeployVersion
     }
 
-    if (publishSnapshotTrain) {
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-        mavenLocal()
-    }
-
     repositories {
+        if (publishSnapshotTrain) {
+            maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+            mavenLocal()
+        }
         maven {
             url "https://kotlin.bintray.com/kotlinx"
             credentials {
