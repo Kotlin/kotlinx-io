@@ -1,5 +1,9 @@
 apply plugin: 'kotlin-multiplatform'
 
+task emptyJavadoc(type: Jar) {
+    classifier = 'javadoc'
+}
+
 kotlin {
     infra {
         shared {
@@ -101,4 +105,13 @@ kotlin {
             api "org.jetbrains.kotlinx:atomicfu-native:$atomic_fu_version"
         }
     }
+    
+    targets.all { target ->
+        def publication = publishing.publications.findByName(target.name)
+
+        if (publication != null) {
+            publication.artifact emptyJavadoc
+        }
+    }
+
 }
