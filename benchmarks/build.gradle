@@ -19,7 +19,7 @@ dependencies {
     jmhCompile rootProject
     jmhCompile rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
 
-    compile group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.21'
+    jmhCompile group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.21'
 
     jmhCompileClasspath rootProject
     jmhCompileClasspath rootProject.kotlin.targets.jvm.compilations.main.output.allOutputs

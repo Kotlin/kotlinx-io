@@ -1,6 +1,9 @@
-rootProject.name = 'kotlinx-io'
+rootProject.name = 'kotlinx-io-package'
 enableFeaturePreview('GRADLE_METADATA')
 
-include 'kotlinx-coroutines-io'
-include 'benchmarks'
-include 'binary-compatibility-validator'
+include ':core'
+project(":core").name='kotlinx-io'
+
+include ':kotlinx-coroutines-io'
+include ':benchmarks'
+include ':binary-compatibility-validator'
