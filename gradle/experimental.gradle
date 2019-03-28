@@ -1,8 +1,0 @@
-ext.experimentalAnnotations = [
-    "kotlin.Experimental",
-    "kotlin.ExperimentalUnsignedTypes",
-    "kotlinx.io.core.ExperimentalIoApi",
-    "kotlinx.io.core.internal.DangerousInternalIoApi",
-    "kotlin.contracts.ExperimentalContracts"
-]
-

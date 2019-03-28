@@ -9,7 +9,7 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
-        classpath "kotlinx.team:kotlinx.team.infra:0.1.0-dev-29"
+        classpath "kotlinx.team:kotlinx.team.infra:0.1.0-dev-33"
     }
 }
 
@@ -23,6 +23,7 @@ infra {
     
     publishing {
         include(":kotlinx-io")
+        include(":kotlinx-coroutines-io")
 
         bintray {
             organization = 'orangy'
@@ -36,7 +37,11 @@ infra {
 
     node {
         version = '10.15.3'
-        mocha('6.0.2')
+        mocha {
+            version = '6.0.2'
+            headlessChromeVersion = '2.0.2'
+        }
+        
         install("source-map-support", "0.5.11")
         install("text-encoding", "0.7.0")
         install("mocha-teamcity-reporter", "2.5.2")

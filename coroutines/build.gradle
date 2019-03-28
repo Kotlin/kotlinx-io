@@ -31,6 +31,8 @@ kotlin {
                 sourceMap = true
                 moduleKind = "umd"
                 metaInfo = true
+                main = "call"
+                sourceMapEmbedSources = 'always'
             }
         }
     }
