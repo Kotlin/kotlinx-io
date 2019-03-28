@@ -1,0 +1,102 @@
+apply plugin: 'kotlin-multiplatform'
+
+kotlin {
+    infra {
+        shared {
+            compilations.main {
+                cinterops {
+                    bits { defFile = file("nativeMain/interop/bits.def") }
+                    sockets { defFile = file("nativeMain/interop/sockets.def") }
+                }
+            }
+            compilations.test {
+                cinterops {
+                    testSockets { defFile = file("nativeTest/interop/testSockets.def") }
+                }
+            }
+        }
+
+        target('macosX64')
+        target('iosX64')
+        target('iosArm64')
+        target('iosArm32')
+        target('linuxX64')
+        target('mingwX64')
+    }
+
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = '1.8'
+            }
+        }
+    }
+
+    js {
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                moduleKind = "umd"
+                metaInfo = true
+            }
+        }
+    }
+
+    sourceSets.all {
+        kotlin.srcDirs = ["$it.name/src"]
+        resources.srcDirs = ["$it.name/resources"]
+        languageSettings {
+            progressiveMode = true
+            useExperimentalAnnotation("kotlin.Experimental")
+            useExperimentalAnnotation('kotlin.ExperimentalUnsignedTypes')
+            useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
+            useExperimentalAnnotation("kotlinx.io.core.internal.DangerousInternalIoApi")
+            useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+        }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                api "org.jetbrains.kotlin:kotlin-stdlib"
+                api "org.jetbrains.kotlinx:atomicfu-common:$atomic_fu_version"
+            }
+        }
+
+        commonTest {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-test-common'
+                api 'org.jetbrains.kotlin:kotlin-test-annotations-common'
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+                api "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+            }
+        }
+        jvmTest {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-test-junit'
+            }
+        }
+
+        jsMain {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-stdlib-js'
+                api "org.jetbrains.kotlinx:atomicfu-js:$atomic_fu_version"
+            }
+        }
+
+        jsTest {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-test-js'
+            }
+        }
+
+        nativeMain.dependencies {
+            api "org.jetbrains.kotlinx:atomicfu-native:$atomic_fu_version"
+        }
+    }
+}

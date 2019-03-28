@@ -11,7 +11,7 @@ kotlin {
             dependencies {
                 api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-                api rootProject
+                api project(':kotlinx-io')
                 api project(':kotlinx-coroutines-io')
 
                 api 'org.ow2.asm:asm-debug-all:5.2'

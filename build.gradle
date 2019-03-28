@@ -1,145 +1,56 @@
-import org.jetbrains.kotlin.konan.target.HostManager
-
 buildscript {
-    ext.publishSnapshotTrain = rootProject.properties['publishSnapshotTrain'] != null
-
-    if (publishSnapshotTrain) {
-        ext.kotlin_version = '1.3-SNAPSHOT'
-    }
- 
     repositories {
-        mavenCentral()
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
-        maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
-        maven { url 'https://plugins.gradle.org/m2/' }
-        maven { url "https://teamcity.jetbrains.com/guestAuth/app/rest/builds/id:1907319/artifacts/content/maven" }
         jcenter()
-
-        if (publishSnapshotTrain) {
-            maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-            mavenLocal()
-        }
+        gradlePluginPortal()
+//        maven { url "../kotlin-libraries-infra/build/maven" }
+        maven { url "https://dl.bintray.com/orangy/maven" }
     }
+
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.37"
-        classpath group: 'net.rubygrapefruit', name: 'native-platform', version: '0.10'
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintray_plugin_version"
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
-        classpath "com.moowork.gradle:gradle-node-plugin:$gradle_node_version"
+        classpath "kotlinx.team:kotlinx.team.infra:0.1.0-dev-29"
     }
 }
 
-def skipPublish = ['benchmarks', 'binary-compatibility-validator']
+apply plugin: 'kotlinx.team.infra'
 
-apply from: "gradle/experimental.gradle"
-apply from: rootProject.file('gradle/verifier.gradle')
+infra {
+    teamcity {
+        bintrayUser = "orangy"
+        bintrayToken = "credentialsJSON:9a48193c-d16d-46c7-8751-2fb434b09e07"
+    }
+    
+    publishing {
+        include(":kotlinx-io")
+
+        bintray {
+            organization = 'orangy'
+            repository = 'maven'
+            library = 'kotlinx-files'
+
+            username = findProperty('bintrayUser')
+            password = findProperty('bintrayApiKey')
+        }
+    }
+
+    node {
+        version = '10.15.3'
+        mocha('6.0.2')
+        install("source-map-support", "0.5.11")
+        install("text-encoding", "0.7.0")
+        install("mocha-teamcity-reporter", "2.5.2")
+    }
+}
 
 allprojects {
-    project.ext.hostManager = new HostManager()
-
-    if (project.hasProperty('releaseVersion')) {
-        project.version = project.releaseVersion
-    }
-    def DeployVersion = properties['DeployVersion']
-    if (DeployVersion != null) {
-        project.version = DeployVersion
-    }
-
     repositories {
-        if (publishSnapshotTrain) {
-            maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-            mavenLocal()
-        }
-        maven {
-            url "https://kotlin.bintray.com/kotlinx"
-            credentials {
-                username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
-                password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
-            }
-        }
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
-        maven { url "https://teamcity.jetbrains.com/guestAuth/app/rest/builds/id:1907319/artifacts/content/maven" }
+        mavenLocal()
         jcenter()
-    }
-
-    apply plugin: 'kotlin-multiplatform'
-    apply plugin: 'kotlinx-atomicfu'
-
-    apply from: rootProject.file("gradle/utility.gradle")
-
-    apply from: rootProject.file("gradle/jvm.gradle")
-
-    if (!skipPublish.contains(project.name)) {
-        apply from: rootProject.file("gradle/common.gradle")
-        apply from: rootProject.file("gradle/js.gradle")
-        apply from: rootProject.file("gradle/native.gradle")
-        apply from: rootProject.file("gradle/ide.gradle")
-
-        apply from: rootProject.file("gradle/publish.gradle")
-
-    }
-
-    kotlin {
-        configure(sourceSets) {
-            def srcDir = name.endsWith('Main') ? 'src' : 'test'
-            def platform = name[0..-5]
-
-            kotlin.srcDir "$platform/$srcDir"
-
-            if (!skipPublish.contains(project.name)) {
-                languageSettings {
-                    progressiveMode = true
-                    experimentalAnnotations.each { useExperimentalAnnotation(it) }
-                }
-            }
-        }
-
-        configure(targets) {
-            def targetName = it.name
-            compilations.all { compilation ->
-                def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
-                compileTask.kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=" + experimentalAnnotations.join(",")]
-                if (targetName.contains("jvm") && compilation.compilationName == "main") {
-                    compileTask.kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
-                }
-            }
-
-            def mainInterop = new File(project.projectDir, 'native/interop').listFiles()?.findAll {
-                it.name.endsWith('.def')
-            }
-            def testInterop = new File(project.projectDir, 'native/interopTest').listFiles()?.findAll {
-                it.name.endsWith('.def')
-            }
-
-            if (mainInterop && compilations.main.hasProperty('cinterops')) {
-                compilations.main.cinterops { c ->
-                    mainInterop.each { file ->
-                        def filePath = file.absolutePath
-                        def name = file.name[0..-5]
-
-                        configure(c.create("${name}")) {
-                            defFile filePath
-                        }
-                    }
-                }
-            }
-
-            if (testInterop && compilations.hasProperty('test') && compilations.test.hasProperty('cinterops')) {
-                compilations.test.cinterops { c ->
-                    testInterop.each { file ->
-                        def filePath = file.absolutePath
-                        def name = file.name[0..-5]
-
-                        configure(c.create("${name}")) {
-                            defFile filePath
-                        }
-                    }
-                }
-            }
-        }
+        maven { url "https://dl.bintray.com/kotlin/kotlinx" }
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
     }
 }
+
+
