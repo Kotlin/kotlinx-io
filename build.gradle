@@ -8,7 +8,9 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
+        classpath "org.jetbrains.gradle.benchmarks:benchmarks.plugin:$bencmharks_version"
         classpath "kotlinx.team:kotlinx.team.infra:0.1.0-dev-33"
     }
 }
@@ -55,6 +57,7 @@ allprojects {
         maven { url "https://dl.bintray.com/kotlin/kotlinx" }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
+        maven { url "https://dl.bintray.com/orangy/maven" }
     }
 }
 

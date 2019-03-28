@@ -1,43 +1,107 @@
-
-
-plugins {
-    id 'me.champeau.gradle.jmh' version '0.4.5'
-}
-
+apply plugin: 'kotlin-multiplatform'
 apply plugin: 'kotlin-allopen'
+apply plugin: 'org.jetbrains.gradle.benchmarks.plugin'
+
+// how to apply plugin to a specific source set?
+allOpen {
+    annotation("org.openjdk.jmh.annotations.State")
+}
 
 kotlin {
-    targets {
-        fromPreset(presets.jvmWithJava, 'jvmWithJava')
+    infra {
+        target('macosX64')
+        target('linuxX64')
+        target('mingwX64')
+    }
+
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = '1.8'
+            }
+        }
+    }
+
+    js {
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                moduleKind = "umd"
+            }
+        }
+    }
+
+    sourceSets.all {
+        kotlin.srcDirs = ["$it.name/src"]
+        resources.srcDirs = ["$it.name/resources"]
+        languageSettings {
+            progressiveMode = true
+            useExperimentalAnnotation("kotlin.Experimental")
+            useExperimentalAnnotation('kotlin.ExperimentalUnsignedTypes')
+            useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
+            useExperimentalAnnotation("kotlinx.io.core.internal.DangerousInternalIoApi")
+            useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+        }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
+                implementation "org.jetbrains.gradle.benchmarks:runtime:$bencmharks_version"
+                implementation project(":kotlinx-io")
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-test-common'
+                implementation 'org.jetbrains.kotlin:kotlin-test-annotations-common'
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+            }
+        }
+        jvmTest {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-test'
+                implementation 'org.jetbrains.kotlin:kotlin-test-junit'
+            }
+        }
+        jsMain {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-js'
+            }
+        }
+        jsTest {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-test-js'
+            }
+        }
+
+        nativeMain {
+            dependencies {
+            }
+        }
     }
 }
 
-dependencies {
-    jmh rootProject
-    jmh rootProject.kotlin.targets.jvm.compilations.main.output.allOutputs
-    jmh rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
-    jmhCompile rootProject
-    jmhCompile rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
-
-    jmhCompile group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.21'
-
-    jmhCompileClasspath rootProject
-    jmhCompileClasspath rootProject.kotlin.targets.jvm.compilations.main.output.allOutputs
-    jmhCompileClasspath rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
-    jmhRuntimeClasspath rootProject
-    jmhRuntimeClasspath rootProject.kotlin.targets.jvm.compilations.main.output.allOutputs
-    jmhRuntimeClasspath rootProject.kotlin.targets.jvm.compilations.test.output.allOutputs
-}
-allOpen {
-    annotation('org.openjdk.jmh.annotations.State')
-}
-
-jmh {
-    jmhVersion '1.19'
-    jmhJar {
-        archiveName = 'benchmarks.jar'
+// Configure benchmark
+benchmark {
+    defaults {
+        iterations = 5 // number of iterations
+        iterationTime = 300 // time in ms per iteration
     }
-//    include = ['.*.myInput2?$', '.*.bufferInputStream']
-//    exclude = ['.*Guice.*', '.*PingPong.*']
+
+    // Setup configurations
+    configurations {
+        // This one matches compilation base name, e.g. 'jvm', 'jvmTest', etc
+        register("jvm") {
+            jmhVersion = "1.21"
+        }
+        register("js") {}
+        register("native") {}
+    }
 }
 

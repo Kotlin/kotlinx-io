@@ -1,4 +1,4 @@
-package kotlinx.io.tests.benchmarks
+package kotlinx.io.benchmarks
 
 import kotlinx.io.core.*
 import org.openjdk.jmh.annotations.*
