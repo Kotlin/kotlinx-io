@@ -1,8 +1,13 @@
 import org.jetbrains.kotlin.konan.target.HostManager
 
 buildscript {
+    ext.publishSnapshotTrain = rootProject.properties['publishSnapshotTrain'] != null
+
+    if (publishSnapshotTrain) {
+        ext.kotlin_version = '1.3-SNAPSHOT'
+    }
+ 
     repositories {
-        mavenLocal()
         mavenCentral()
         maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
@@ -10,6 +15,11 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
         maven { url "https://teamcity.jetbrains.com/guestAuth/app/rest/builds/id:1907319/artifacts/content/maven" }
         jcenter()
+
+        if (publishSnapshotTrain) {
+            maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+            mavenLocal()
+        }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -32,9 +42,17 @@ allprojects {
     if (project.hasProperty('releaseVersion')) {
         project.version = project.releaseVersion
     }
+    def DeployVersion = properties['DeployVersion']
+    if (DeployVersion != null) {
+        project.version = DeployVersion
+    }
+
+    if (publishSnapshotTrain) {
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        mavenLocal()
+    }
 
     repositories {
-        mavenLocal()
         maven {
             url "https://kotlin.bintray.com/kotlinx"
             credentials {
