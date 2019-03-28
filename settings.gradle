@@ -4,8 +4,10 @@ enableFeaturePreview('GRADLE_METADATA')
 include ':core'
 project(":core").name='kotlinx-io'
 
+include ':coroutines'
+project(":coroutines").name='kotlinx-coroutines-io'
+
 /*
-include ':kotlinx-coroutines-io'
 include ':benchmarks'
 include ':binary-compatibility-validator'
 */
