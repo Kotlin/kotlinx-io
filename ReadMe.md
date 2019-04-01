@@ -1,6 +1,6 @@
 [![Official JetBrains project](https://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![Download](https://api.bintray.com/packages/kotlin/kotlinx/kotlinx.io/images/download.svg) ](https://bintray.com/kotlin/kotlinx/kotlinx.io/_latestVersion)
-[![TeamCity Build](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/KotlinTools_KotlinxIo_BuildLinux.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_KotlinxIo_BuildLinux&branch_KotlinTools_KotlinxIo=%3Cdefault%3E&tab=buildTypeStatusDiv)
+[![TeamCity Build](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/KotlinTools_KotlinxIo_Build_Linux.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_KotlinxIo_Build_All&branch_KotlinTools_KotlinxIo=%3Cdefault%3E&tab=buildTypeStatusDiv)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 
 kotlinx-io is a multiplatform library suitable for I/O primitives building and manipulations
