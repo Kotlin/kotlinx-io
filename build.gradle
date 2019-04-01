@@ -50,7 +50,7 @@ infra {
         version = '10.15.3'
         mocha {
             version = '6.0.2'
-            headlessChromeVersion = '2.0.2'
+            // headlessChromeVersion = '2.0.2'
         }
         
         install("source-map-support", "0.5.11")
