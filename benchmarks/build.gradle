@@ -48,7 +48,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
-                implementation "org.jetbrains.gradle.benchmarks:runtime:$bencmharks_version"
+                implementation "org.jetbrains.gradle.benchmarks:runtime:$benchmarks_version"
                 implementation project(":kotlinx-io")
             }
         }
