@@ -38,13 +38,10 @@ infra {
         }
     }
 
-/*
     apiCheck {
         include(":kotlinx-io")
         include(":kotlinx-coroutines-io")
-
     }
-*/
     
     node {
         version = '10.15.3'

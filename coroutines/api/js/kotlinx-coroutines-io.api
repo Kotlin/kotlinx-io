@@ -1,0 +1,665 @@
+package kotlinx
+{
+}
+
+package kotlinx.coroutines
+{
+}
+
+package kotlinx.coroutines.io
+{
+   public interface ByteChannel : kotlinx.coroutines.io.ByteReadChannel, kotlinx.coroutines.io.ByteWriteChannel
+   {
+       public abstract override val autoFlush: kotlin.Boolean { get; }
+       public abstract override val availableForRead: kotlin.Int { get; }
+       public abstract override val availableForWrite: kotlin.Int { get; }
+       public abstract override val closedCause: kotlin.Throwable? { get; }
+       public abstract override val isClosedForRead: kotlin.Boolean { get; }
+       public abstract override val isClosedForWrite: kotlin.Boolean { get; }
+       public abstract override var readByteOrder: kotlinx.io.core.ByteOrder { get; set; }
+       public abstract override val totalBytesRead: kotlin.Long { get; }
+       public abstract override val totalBytesWritten: kotlin.Long { get; }
+       public abstract override var writeByteOrder: kotlinx.io.core.ByteOrder { get; set; }
+       public abstract fun attachJob(job: kotlinx.coroutines.Job): kotlin.Unit
+
+       public abstract override fun cancel(cause: kotlin.Throwable?): kotlin.Boolean
+
+       public abstract override fun close(cause: kotlin.Throwable?): kotlin.Boolean
+
+       public abstract override suspend fun discard(max: kotlin.Long): kotlin.Long
+
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public abstract override fun flush(): kotlin.Unit
+
+       public open override fun hashCode(): kotlin.Int
+
+       public abstract override suspend fun peekTo(destination: kotlinx.io.bits.Memory, destinationOffset: kotlin.Long, offset: kotlin.Long = ..., min: kotlin.Long = ..., max: kotlin.Long = ...): kotlin.Long
+
+       public abstract override suspend fun readAvailable(dst: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       public abstract override suspend fun readAvailable(dst: kotlinx.io.core.IoBuffer): kotlin.Int
+
+       public abstract override suspend fun readAvailable(dst: org.khronos.webgl.ArrayBuffer, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       public abstract override suspend fun readBoolean(): kotlin.Boolean
+
+       public abstract override suspend fun readByte(): kotlin.Byte
+
+       public abstract override suspend fun readDouble(): kotlin.Double
+
+       public abstract override suspend fun readFloat(): kotlin.Float
+
+       public abstract override suspend fun readFully(dst: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public abstract override suspend fun readFully(dst: kotlinx.io.core.IoBuffer, n: kotlin.Int): kotlin.Unit
+
+       public abstract override suspend fun readFully(dst: org.khronos.webgl.ArrayBuffer, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public abstract override suspend fun readInt(): kotlin.Int
+
+       public abstract override suspend fun readLong(): kotlin.Long
+
+       public abstract override suspend fun readPacket(size: kotlin.Int, headerSizeHint: kotlin.Int): kotlinx.io.core.ByteReadPacket
+
+       public abstract override suspend fun readRemaining(limit: kotlin.Long, headerSizeHint: kotlin.Int): kotlinx.io.core.ByteReadPacket
+
+       public abstract override fun readSession(consumer: kotlinx.coroutines.io.ReadSession.() -> kotlin.Unit): kotlin.Unit
+
+       public abstract override suspend fun readShort(): kotlin.Short
+
+       public abstract override suspend fun readSuspendableSession(consumer: suspend kotlinx.coroutines.io.SuspendableReadSession.() -> kotlin.Unit): kotlin.Unit
+
+       public abstract override suspend fun readUTF8Line(limit: kotlin.Int): kotlin.String?
+
+       public abstract override suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: kotlin.Int): kotlin.Boolean
+
+       public open override fun toString(): kotlin.String
+
+       public abstract override suspend fun writeAvailable(src: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       public abstract override suspend fun writeAvailable(src: kotlinx.io.core.IoBuffer): kotlin.Int
+
+       public abstract override suspend fun writeByte(b: kotlin.Byte): kotlin.Unit
+
+       public abstract override suspend fun writeDouble(d: kotlin.Double): kotlin.Unit
+
+       public abstract override suspend fun writeFloat(f: kotlin.Float): kotlin.Unit
+
+       public abstract override suspend fun writeFully(src: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public abstract override suspend fun writeFully(src: kotlinx.io.core.IoBuffer): kotlin.Unit
+
+       public abstract override suspend fun writeInt(i: kotlin.Int): kotlin.Unit
+
+       public abstract override suspend fun writeLong(l: kotlin.Long): kotlin.Unit
+
+       public abstract override suspend fun writePacket(packet: kotlinx.io.core.ByteReadPacket): kotlin.Unit
+
+       public abstract override suspend fun writeShort(s: kotlin.Short): kotlin.Unit
+
+       public abstract override suspend fun writeSuspendSession(visitor: suspend kotlinx.coroutines.io.WriterSuspendSession.() -> kotlin.Unit): kotlin.Unit
+
+   }
+
+   public abstract class ByteChannelSequentialBase : kotlinx.coroutines.io.ByteChannel, kotlinx.coroutines.io.ByteReadChannel, kotlinx.coroutines.io.ByteWriteChannel, kotlinx.coroutines.io.SuspendableReadSession, kotlinx.coroutines.io.HasReadSession, kotlinx.coroutines.io.HasWriteSession
+   {
+       public open override val autoFlush: kotlin.Boolean { get; }
+       public open override val availableForRead: kotlin.Int { get; }
+       public open override val availableForWrite: kotlin.Int { get; }
+       protected final var closed: kotlin.Boolean { get; set; }
+       public final override var closedCause: kotlin.Throwable? { get; }
+       public open override val isClosedForRead: kotlin.Boolean { get; }
+       public open override val isClosedForWrite: kotlin.Boolean { get; }
+       public open override var readByteOrder: kotlinx.io.core.ByteOrder { get; set; }
+       protected final val readable: kotlinx.io.core.ByteReadPacket { get; }
+       public open override val totalBytesRead: kotlin.Long { get; }
+       public open override val totalBytesWritten: kotlin.Long { get; }
+       protected final val writable: kotlinx.io.core.BytePacketBuilder { get; }
+       public open override var writeByteOrder: kotlinx.io.core.ByteOrder { get; set; }
+       protected final fun afterRead(): kotlin.Unit
+
+       protected final fun afterWrite(): kotlin.Unit
+
+       public abstract override fun attachJob(job: kotlinx.coroutines.Job): kotlin.Unit
+
+       public open override suspend fun await(atLeast: kotlin.Int = ...): kotlin.Boolean
+
+       protected final suspend fun awaitFreeSpace(): kotlin.Unit
+
+       protected final suspend fun awaitSuspend(atLeast: kotlin.Int): kotlin.Boolean
+
+       public open override fun beginWriteSession(): kotlinx.coroutines.io.WriterSuspendSession
+
+       public open override fun cancel(cause: kotlin.Throwable?): kotlin.Boolean
+
+       public final override fun close(cause: kotlin.Throwable?): kotlin.Boolean
+
+       public open override fun discard(n: kotlin.Int): kotlin.Int
+
+       public open override suspend fun discard(max: kotlin.Long): kotlin.Long
+
+       public open override fun endReadSession(): kotlin.Unit
+
+       public open override fun endWriteSession(written: kotlin.Int): kotlin.Unit
+
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public open override fun flush(): kotlin.Unit
+
+       public open override fun hashCode(): kotlin.Int
+
+       public final override suspend fun peekTo(destination: kotlinx.io.bits.Memory, destinationOffset: kotlin.Long, offset: kotlin.Long = ..., min: kotlin.Long = ..., max: kotlin.Long = ...): kotlin.Long
+
+       public open override suspend fun readAvailable(dst: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       public open override suspend fun readAvailable(dst: kotlinx.io.core.IoBuffer): kotlin.Int
+
+       public abstract override suspend fun readAvailable(dst: org.khronos.webgl.ArrayBuffer, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       protected final fun readAvailableClosed(): kotlin.Int
+
+       public open override suspend fun readBoolean(): kotlin.Boolean
+
+       public open override suspend fun readByte(): kotlin.Byte
+
+       public open override suspend fun readDouble(): kotlin.Double
+
+       public open override suspend fun readFloat(): kotlin.Float
+
+       public open override suspend fun readFully(dst: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public open override suspend fun readFully(dst: kotlinx.io.core.IoBuffer, n: kotlin.Int): kotlin.Unit
+
+       public abstract override suspend fun readFully(dst: org.khronos.webgl.ArrayBuffer, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public open override suspend fun readInt(): kotlin.Int
+
+       public open override suspend fun readLong(): kotlin.Long
+
+       public open override suspend fun readPacket(size: kotlin.Int, headerSizeHint: kotlin.Int): kotlinx.io.core.ByteReadPacket
+
+       public open override suspend fun readRemaining(limit: kotlin.Long, headerSizeHint: kotlin.Int): kotlinx.io.core.ByteReadPacket
+
+       public open override fun readSession(consumer: kotlinx.coroutines.io.ReadSession.() -> kotlin.Unit): kotlin.Unit
+
+       public open override suspend fun readShort(): kotlin.Short
+
+       public open override suspend fun readSuspendableSession(consumer: suspend kotlinx.coroutines.io.SuspendableReadSession.() -> kotlin.Unit): kotlin.Unit
+
+       public open override suspend fun readUTF8Line(limit: kotlin.Int): kotlin.String?
+
+       public open override suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: kotlin.Int): kotlin.Boolean
+
+       public open override fun request(atLeast: kotlin.Int = ...): kotlinx.io.core.IoBuffer?
+
+       public open override fun startReadSession(): kotlinx.coroutines.io.SuspendableReadSession
+
+       public open override fun toString(): kotlin.String
+
+       public open override suspend fun writeAvailable(src: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       public open override suspend fun writeAvailable(src: kotlinx.io.core.IoBuffer): kotlin.Int
+
+       public open override suspend fun writeByte(b: kotlin.Byte): kotlin.Unit
+
+       public open override suspend fun writeDouble(d: kotlin.Double): kotlin.Unit
+
+       public open override suspend fun writeFloat(f: kotlin.Float): kotlin.Unit
+
+       public open override suspend fun writeFully(src: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public open override suspend fun writeFully(src: kotlinx.io.core.IoBuffer): kotlin.Unit
+
+       public open override suspend fun writeInt(i: kotlin.Int): kotlin.Unit
+
+       public open override suspend fun writeLong(l: kotlin.Long): kotlin.Unit
+
+       public open override suspend fun writePacket(packet: kotlinx.io.core.ByteReadPacket): kotlin.Unit
+
+       public open override suspend fun writeShort(s: kotlin.Short): kotlin.Unit
+
+       public open override suspend fun writeSuspendSession(visitor: suspend kotlinx.coroutines.io.WriterSuspendSession.() -> kotlin.Unit): kotlin.Unit
+
+       public constructor ByteChannelSequentialBase(initial: kotlinx.io.core.IoBuffer, autoFlush: kotlin.Boolean)
+
+       public constructor ByteChannelSequentialBase(initial: kotlinx.io.core.IoBuffer, autoFlush: kotlin.Boolean, pool: kotlinx.io.pool.ObjectPool<kotlinx.io.core.internal.ChunkBuffer> = ...)
+
+   }
+
+   public interface ByteReadChannel
+   {
+       public abstract val availableForRead: kotlin.Int { get; }
+       public abstract val isClosedForRead: kotlin.Boolean { get; }
+       public abstract val isClosedForWrite: kotlin.Boolean { get; }
+       public abstract var readByteOrder: kotlinx.io.core.ByteOrder { get; set; }
+       public abstract val totalBytesRead: kotlin.Long { get; }
+       public abstract fun cancel(cause: kotlin.Throwable?): kotlin.Boolean
+
+       public abstract suspend fun discard(max: kotlin.Long): kotlin.Long
+
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public open override fun hashCode(): kotlin.Int
+
+       public abstract suspend fun peekTo(destination: kotlinx.io.bits.Memory, destinationOffset: kotlin.Long, offset: kotlin.Long = ..., min: kotlin.Long = ..., max: kotlin.Long = ...): kotlin.Long
+
+       public abstract suspend fun readAvailable(dst: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       public abstract suspend fun readAvailable(dst: kotlinx.io.core.IoBuffer): kotlin.Int
+
+       public abstract suspend fun readAvailable(dst: org.khronos.webgl.ArrayBuffer, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       public abstract suspend fun readBoolean(): kotlin.Boolean
+
+       public abstract suspend fun readByte(): kotlin.Byte
+
+       public abstract suspend fun readDouble(): kotlin.Double
+
+       public abstract suspend fun readFloat(): kotlin.Float
+
+       public abstract suspend fun readFully(dst: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public abstract suspend fun readFully(dst: kotlinx.io.core.IoBuffer, n: kotlin.Int): kotlin.Unit
+
+       public abstract suspend fun readFully(dst: org.khronos.webgl.ArrayBuffer, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public abstract suspend fun readInt(): kotlin.Int
+
+       public abstract suspend fun readLong(): kotlin.Long
+
+       public abstract suspend fun readPacket(size: kotlin.Int, headerSizeHint: kotlin.Int): kotlinx.io.core.ByteReadPacket
+
+       public abstract suspend fun readRemaining(limit: kotlin.Long, headerSizeHint: kotlin.Int): kotlinx.io.core.ByteReadPacket
+
+       public abstract fun readSession(consumer: kotlinx.coroutines.io.ReadSession.() -> kotlin.Unit): kotlin.Unit
+
+       public abstract suspend fun readShort(): kotlin.Short
+
+       public abstract suspend fun readSuspendableSession(consumer: suspend kotlinx.coroutines.io.SuspendableReadSession.() -> kotlin.Unit): kotlin.Unit
+
+       public abstract suspend fun readUTF8Line(limit: kotlin.Int): kotlin.String?
+
+       public abstract suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: kotlin.Int): kotlin.Boolean
+
+       public open override fun toString(): kotlin.String
+
+       public companion object of ByteReadChannel
+       {
+           public final val Empty: kotlinx.coroutines.io.ByteReadChannel { get; }
+           public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+           public open override fun hashCode(): kotlin.Int
+
+           public open override fun toString(): kotlin.String
+
+       }
+
+   }
+
+   public interface ByteWriteChannel
+   {
+       public abstract val autoFlush: kotlin.Boolean { get; }
+       public abstract val availableForWrite: kotlin.Int { get; }
+       public abstract val closedCause: kotlin.Throwable? { get; }
+       public abstract val isClosedForWrite: kotlin.Boolean { get; }
+       public abstract val totalBytesWritten: kotlin.Long { get; }
+       public abstract var writeByteOrder: kotlinx.io.core.ByteOrder { get; set; }
+       public abstract fun close(cause: kotlin.Throwable?): kotlin.Boolean
+
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public abstract fun flush(): kotlin.Unit
+
+       public open override fun hashCode(): kotlin.Int
+
+       public open override fun toString(): kotlin.String
+
+       public abstract suspend fun writeAvailable(src: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Int
+
+       public abstract suspend fun writeAvailable(src: kotlinx.io.core.IoBuffer): kotlin.Int
+
+       public abstract suspend fun writeByte(b: kotlin.Byte): kotlin.Unit
+
+       public abstract suspend fun writeDouble(d: kotlin.Double): kotlin.Unit
+
+       public abstract suspend fun writeFloat(f: kotlin.Float): kotlin.Unit
+
+       public abstract suspend fun writeFully(src: kotlin.ByteArray, offset: kotlin.Int, length: kotlin.Int): kotlin.Unit
+
+       public abstract suspend fun writeFully(src: kotlinx.io.core.IoBuffer): kotlin.Unit
+
+       public abstract suspend fun writeInt(i: kotlin.Int): kotlin.Unit
+
+       public abstract suspend fun writeLong(l: kotlin.Long): kotlin.Unit
+
+       public abstract suspend fun writePacket(packet: kotlinx.io.core.ByteReadPacket): kotlin.Unit
+
+       public abstract suspend fun writeShort(s: kotlin.Short): kotlin.Unit
+
+       public abstract suspend fun writeSuspendSession(visitor: suspend kotlinx.coroutines.io.WriterSuspendSession.() -> kotlin.Unit): kotlin.Unit
+
+   }
+
+   public final class ClosedWriteChannelException : kotlinx.coroutines.io.CancellationException /* = kotlinx.coroutines.CancellationException */
+   {
+       public constructor ClosedWriteChannelException(message: kotlin.String?)
+
+   }
+
+   public interface ReadSession
+   {
+       public abstract val availableForRead: kotlin.Int { get; }
+       public abstract fun discard(n: kotlin.Int): kotlin.Int
+
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public open override fun hashCode(): kotlin.Int
+
+       public abstract fun request(atLeast: kotlin.Int = ...): kotlinx.io.core.IoBuffer?
+
+       public open override fun toString(): kotlin.String
+
+   }
+
+   public interface ReaderJob : kotlinx.coroutines.Job
+   {
+       public abstract val channel: kotlinx.coroutines.io.ByteWriteChannel { get; }
+       public abstract override val children: kotlin.sequences.Sequence<kotlinx.coroutines.Job> { get; }
+       public abstract override val isActive: kotlin.Boolean { get; }
+       public abstract override val isCancelled: kotlin.Boolean { get; }
+       public abstract override val isCompleted: kotlin.Boolean { get; }
+       public abstract override val onJoin: kotlinx.coroutines.selects.SelectClause0 { get; }
+       public abstract override fun attachChild(child: kotlinx.coroutines.ChildJob): kotlinx.coroutines.ChildHandle
+
+       public abstract override fun cancel(): kotlin.Unit
+
+       public abstract override fun cancel(cause: kotlin.Throwable? = ...): kotlin.Boolean
+
+       public open override fun cancel0(): kotlin.Boolean
+
+       public abstract override fun getCancellationException(): kotlinx.coroutines.CancellationException
+
+       public abstract override fun invokeOnCompletion(onCancelling: kotlin.Boolean = ..., invokeImmediately: kotlin.Boolean = ..., handler: kotlinx.coroutines.CompletionHandler /* = (cause: kotlin.Throwable?) -> kotlin.Unit */): kotlinx.coroutines.DisposableHandle
+
+       public abstract override fun invokeOnCompletion(handler: kotlinx.coroutines.CompletionHandler /* = (cause: kotlin.Throwable?) -> kotlin.Unit */): kotlinx.coroutines.DisposableHandle
+
+       public abstract override suspend fun join(): kotlin.Unit
+
+       public open override operator fun plus(other: kotlinx.coroutines.Job): kotlinx.coroutines.Job
+
+       public abstract override fun start(): kotlin.Boolean
+
+   }
+
+   public interface ReaderScope : kotlinx.coroutines.CoroutineScope
+   {
+       public abstract val channel: kotlinx.coroutines.io.ByteReadChannel { get; }
+       public abstract override val coroutineContext: kotlin.coroutines.CoroutineContext { get; }
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public open override fun hashCode(): kotlin.Int
+
+       public open override fun toString(): kotlin.String
+
+   }
+
+   public interface SuspendableReadSession : kotlinx.coroutines.io.ReadSession
+   {
+       public abstract override val availableForRead: kotlin.Int { get; }
+       public abstract suspend fun await(atLeast: kotlin.Int = ...): kotlin.Boolean
+
+       public abstract override fun discard(n: kotlin.Int): kotlin.Int
+
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public open override fun hashCode(): kotlin.Int
+
+       public abstract override fun request(atLeast: kotlin.Int = ...): kotlinx.io.core.IoBuffer?
+
+       public open override fun toString(): kotlin.String
+
+   }
+
+   public interface WriterJob : kotlinx.coroutines.Job
+   {
+       public abstract val channel: kotlinx.coroutines.io.ByteReadChannel { get; }
+       public abstract override val children: kotlin.sequences.Sequence<kotlinx.coroutines.Job> { get; }
+       public abstract override val isActive: kotlin.Boolean { get; }
+       public abstract override val isCancelled: kotlin.Boolean { get; }
+       public abstract override val isCompleted: kotlin.Boolean { get; }
+       public abstract override val onJoin: kotlinx.coroutines.selects.SelectClause0 { get; }
+       public abstract override fun attachChild(child: kotlinx.coroutines.ChildJob): kotlinx.coroutines.ChildHandle
+
+       public abstract override fun cancel(): kotlin.Unit
+
+       public abstract override fun cancel(cause: kotlin.Throwable? = ...): kotlin.Boolean
+
+       public open override fun cancel0(): kotlin.Boolean
+
+       public abstract override fun getCancellationException(): kotlinx.coroutines.CancellationException
+
+       public abstract override fun invokeOnCompletion(onCancelling: kotlin.Boolean = ..., invokeImmediately: kotlin.Boolean = ..., handler: kotlinx.coroutines.CompletionHandler /* = (cause: kotlin.Throwable?) -> kotlin.Unit */): kotlinx.coroutines.DisposableHandle
+
+       public abstract override fun invokeOnCompletion(handler: kotlinx.coroutines.CompletionHandler /* = (cause: kotlin.Throwable?) -> kotlin.Unit */): kotlinx.coroutines.DisposableHandle
+
+       public abstract override suspend fun join(): kotlin.Unit
+
+       public open override operator fun plus(other: kotlinx.coroutines.Job): kotlinx.coroutines.Job
+
+       public abstract override fun start(): kotlin.Boolean
+
+   }
+
+   public interface WriterScope : kotlinx.coroutines.CoroutineScope
+   {
+       public abstract val channel: kotlinx.coroutines.io.ByteWriteChannel { get; }
+       public abstract override val coroutineContext: kotlin.coroutines.CoroutineContext { get; }
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public open override fun hashCode(): kotlin.Int
+
+       public open override fun toString(): kotlin.String
+
+   }
+
+   public interface WriterSession
+   {
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public abstract fun flush(): kotlin.Unit
+
+       public open override fun hashCode(): kotlin.Int
+
+       public abstract fun request(min: kotlin.Int): kotlinx.io.core.IoBuffer?
+
+       public open override fun toString(): kotlin.String
+
+       public abstract fun written(n: kotlin.Int): kotlin.Unit
+
+   }
+
+   public interface WriterSuspendSession : kotlinx.coroutines.io.WriterSession
+   {
+       public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+       public abstract override fun flush(): kotlin.Unit
+
+       public open override fun hashCode(): kotlin.Int
+
+       public abstract override fun request(min: kotlin.Int): kotlinx.io.core.IoBuffer?
+
+       public open override fun toString(): kotlin.String
+
+       public abstract suspend fun tryAwait(n: kotlin.Int): kotlin.Unit
+
+       public abstract override fun written(n: kotlin.Int): kotlin.Unit
+
+   }
+
+   public typealias CancellationException = kotlinx.coroutines.CancellationException
+   public val EmptyByteReadChannel: kotlinx.coroutines.io.ByteReadChannel { get; }
+   public fun ByteChannel(autoFlush: kotlin.Boolean = ...): kotlinx.coroutines.io.ByteChannel
+
+   public fun ByteReadChannel(content: kotlin.ByteArray, offset: kotlin.Int = ..., length: kotlin.Int = ...): kotlinx.coroutines.io.ByteReadChannel
+
+   public fun ByteReadChannel(text: kotlin.String, charset: kotlinx.io.charsets.Charset = ...): kotlinx.coroutines.io.ByteReadChannel
+
+   public fun ByteReadChannel(content: org.khronos.webgl.ArrayBufferView): kotlinx.coroutines.io.ByteReadChannel
+
+   public fun reader(coroutineContext: kotlin.coroutines.CoroutineContext, autoFlush: kotlin.Boolean = ..., parent: kotlinx.coroutines.Job? = ..., block: suspend kotlinx.coroutines.io.ReaderScope.() -> kotlin.Unit): kotlinx.coroutines.io.ReaderJob
+
+   public fun reader(coroutineContext: kotlin.coroutines.CoroutineContext, channel: kotlinx.coroutines.io.ByteChannel, parent: kotlinx.coroutines.Job? = ..., block: suspend kotlinx.coroutines.io.ReaderScope.() -> kotlin.Unit): kotlinx.coroutines.io.ReaderJob
+
+   public fun writer(coroutineContext: kotlin.coroutines.CoroutineContext, autoFlush: kotlin.Boolean = ..., parent: kotlinx.coroutines.Job? = ..., block: suspend kotlinx.coroutines.io.WriterScope.() -> kotlin.Unit): kotlinx.coroutines.io.WriterJob
+
+   public fun writer(coroutineContext: kotlin.coroutines.CoroutineContext, channel: kotlinx.coroutines.io.ByteChannel, parent: kotlinx.coroutines.Job? = ..., block: suspend kotlinx.coroutines.io.WriterScope.() -> kotlin.Unit): kotlinx.coroutines.io.WriterJob
+
+   public fun kotlinx.coroutines.io.ByteReadChannel.cancel(): kotlin.Boolean
+
+   public fun kotlinx.coroutines.io.ByteWriteChannel.close(): kotlin.Boolean
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.copyAndClose(dst: kotlinx.coroutines.io.ByteWriteChannel, limit: kotlin.Long = ...): kotlin.Long
+
+   public suspend fun kotlinx.coroutines.io.ByteChannelSequentialBase.copyTo(dst: kotlinx.coroutines.io.ByteChannelSequentialBase, limit: kotlin.Long = ...): kotlin.Long
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.copyTo(dst: kotlinx.coroutines.io.ByteWriteChannel, limit: kotlin.Long = ...): kotlin.Long
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.discard(): kotlin.Long
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.discardExact(n: kotlin.Long): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteChannelSequentialBase.joinTo(dst: kotlinx.coroutines.io.ByteChannelSequentialBase, closeOnEnd: kotlin.Boolean): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.joinTo(dst: kotlinx.coroutines.io.ByteWriteChannel, closeOnEnd: kotlin.Boolean): kotlin.Unit
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.read(desiredSize: kotlin.Int = ..., block: (source: kotlinx.io.bits.Memory, start: kotlin.Long, endExclusive: kotlin.Long) -> kotlin.Int): kotlin.Int
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.readAvailable(dst: kotlin.ByteArray): kotlin.Int
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readDouble(byteOrder: kotlinx.io.core.ByteOrder): kotlin.Double
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readDoubleLittleEndian(): kotlin.Double
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readFloat(byteOrder: kotlinx.io.core.ByteOrder): kotlin.Float
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readFloatLittleEndian(): kotlin.Float
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.readFully(dst: kotlin.ByteArray): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.readFully(dst: kotlinx.io.core.IoBuffer): kotlin.Unit
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readInt(byteOrder: kotlinx.io.core.ByteOrder): kotlin.Int
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readIntLittleEndian(): kotlin.Int
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readLong(byteOrder: kotlinx.io.core.ByteOrder): kotlin.Long
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readLongLittleEndian(): kotlin.Long
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.readPacket(size: kotlin.Int): kotlinx.io.core.ByteReadPacket
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.readRemaining(): kotlinx.io.core.ByteReadPacket
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.readRemaining(limit: kotlin.Long): kotlinx.io.core.ByteReadPacket
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readShort(byteOrder: kotlinx.io.core.ByteOrder): kotlin.Short
+
+   public suspend inline fun kotlinx.coroutines.io.ByteReadChannel.readShortLittleEndian(): kotlin.Short
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.readUTF8Line(): kotlin.String?
+
+   public suspend fun kotlinx.coroutines.io.ByteReadChannel.readUTF8LineTo(out: kotlin.text.Appendable): kotlin.Boolean
+
+   public fun kotlinx.coroutines.CoroutineScope.reader(coroutineContext: kotlin.coroutines.CoroutineContext = ..., autoFlush: kotlin.Boolean = ..., block: suspend kotlinx.coroutines.io.ReaderScope.() -> kotlin.Unit): kotlinx.coroutines.io.ReaderJob
+
+   public fun kotlinx.coroutines.CoroutineScope.reader(coroutineContext: kotlin.coroutines.CoroutineContext = ..., channel: kotlinx.coroutines.io.ByteChannel, block: suspend kotlinx.coroutines.io.ReaderScope.() -> kotlin.Unit): kotlinx.coroutines.io.ReaderJob
+
+   public suspend inline fun kotlinx.coroutines.io.ByteWriteChannel.write(desiredSpace: kotlin.Int = ..., block: (freeSpace: kotlinx.io.bits.Memory, startOffset: kotlin.Long, endExclusive: kotlin.Long) -> kotlin.Int): kotlin.Int
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeAvailable(src: kotlin.ByteArray): kotlin.Int
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeBoolean(b: kotlin.Boolean): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeByte(b: kotlin.Int): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeChar(ch: kotlin.Char): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeDouble(value: kotlin.Double, byteOrder: kotlinx.io.core.ByteOrder): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeDoubleLittleEndian(value: kotlin.Double): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeFloat(value: kotlin.Float, byteOrder: kotlinx.io.core.ByteOrder): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeFloatLittleEndian(value: kotlin.Float): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeFully(src: kotlin.ByteArray): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeInt(value: kotlin.Int, byteOrder: kotlinx.io.core.ByteOrder): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeInt(i: kotlin.Long): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeInt(i: kotlin.Long, byteOrder: kotlinx.io.core.ByteOrder): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeIntLittleEndian(value: kotlin.Int): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeLong(value: kotlin.Long, byteOrder: kotlinx.io.core.ByteOrder): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeLongLittleEndian(value: kotlin.Long): kotlin.Unit
+
+   public suspend inline fun kotlinx.coroutines.io.ByteWriteChannel.writePacket(headerSizeHint: kotlin.Int = ..., builder: kotlinx.io.core.BytePacketBuilder.() -> kotlin.Unit): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writePacketSuspend(builder: suspend kotlinx.io.core.BytePacketBuilder.() -> kotlin.Unit): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeShort(s: kotlin.Int): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeShort(s: kotlin.Int, byteOrder: kotlinx.io.core.ByteOrder): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeShort(value: kotlin.Short, byteOrder: kotlinx.io.core.ByteOrder): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeShortLittleEndian(value: kotlin.Short): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeStringUtf8(s: kotlin.CharSequence): kotlin.Unit
+
+   public suspend fun kotlinx.coroutines.io.ByteWriteChannel.writeStringUtf8(s: kotlin.String): kotlin.Unit
+
+   public fun kotlinx.coroutines.CoroutineScope.writer(coroutineContext: kotlin.coroutines.CoroutineContext = ..., autoFlush: kotlin.Boolean = ..., block: suspend kotlinx.coroutines.io.WriterScope.() -> kotlin.Unit): kotlinx.coroutines.io.WriterJob
+
+   public fun kotlinx.coroutines.CoroutineScope.writer(coroutineContext: kotlin.coroutines.CoroutineContext = ..., channel: kotlinx.coroutines.io.ByteChannel, block: suspend kotlinx.coroutines.io.WriterScope.() -> kotlin.Unit): kotlinx.coroutines.io.WriterJob
+
+}
+
+package kotlinx.coroutines.io.internal
+{
+}
+
+package kotlinx.coroutines.experimental
+{
+}
+
+package kotlinx.coroutines.experimental.io
+{
+   public typealias ByteChannel = kotlinx.coroutines.io.ByteChannel
+   public typealias ByteReadChannel = kotlinx.coroutines.io.ByteReadChannel
+   public typealias ByteWriteChannel = kotlinx.coroutines.io.ByteWriteChannel
+   public typealias CancellationException = kotlinx.coroutines.CancellationException
+   public typealias ReaderJob = kotlinx.coroutines.io.ReaderJob
+   public typealias ReaderScope = kotlinx.coroutines.io.ReaderScope
+   public typealias WriterJob = kotlinx.coroutines.io.WriterJob
+   public typealias WriterScope = kotlinx.coroutines.io.WriterScope
+   public fun ByteChannel(autoFlush: kotlin.Boolean = ...): kotlinx.coroutines.io.ByteChannel
+
+   public fun ByteReadChannel(content: kotlin.ByteArray, offset: kotlin.Int = ..., length: kotlin.Int = ...): kotlinx.coroutines.io.ByteReadChannel
+
+   public fun ByteReadChannel(text: kotlin.String, charset: kotlinx.io.charsets.Charset = ...): kotlinx.coroutines.io.ByteReadChannel
+
+   public fun reader(coroutineContext: kotlin.coroutines.CoroutineContext, autoFlush: kotlin.Boolean = ..., parent: kotlinx.coroutines.Job? = ..., block: suspend kotlinx.coroutines.io.ReaderScope.() -> kotlin.Unit): kotlinx.coroutines.io.ReaderJob
+
+   public fun reader(coroutineContext: kotlin.coroutines.CoroutineContext, channel: kotlinx.coroutines.io.ByteChannel, parent: kotlinx.coroutines.Job? = ..., block: suspend kotlinx.coroutines.io.ReaderScope.() -> kotlin.Unit): kotlinx.coroutines.io.ReaderJob
+
+   public fun writer(coroutineContext: kotlin.coroutines.CoroutineContext, autoFlush: kotlin.Boolean = ..., parent: kotlinx.coroutines.Job? = ..., block: suspend kotlinx.coroutines.io.WriterScope.() -> kotlin.Unit): kotlinx.coroutines.io.WriterJob
+
+   public fun writer(coroutineContext: kotlin.coroutines.CoroutineContext, channel: kotlinx.coroutines.io.ByteChannel, parent: kotlinx.coroutines.Job? = ..., block: suspend kotlinx.coroutines.io.WriterScope.() -> kotlin.Unit): kotlinx.coroutines.io.WriterJob
+
+}
+
