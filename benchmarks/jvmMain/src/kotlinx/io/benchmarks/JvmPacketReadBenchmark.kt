@@ -1,20 +1,13 @@
 package kotlinx.io.benchmarks
 
 import kotlinx.io.core.*
-import org.openjdk.jmh.annotations.*
+import org.jetbrains.gradle.benchmarks.*
 import java.io.*
 import java.nio.*
 import java.util.*
-import java.util.concurrent.*
 
 @State(Scope.Benchmark)
-@Fork(1)
-@Warmup(iterations = 10)
-@Measurement(iterations = 15)
-//@BenchmarkMode(Mode.Throughput, Mode.AverageTime)
-@BenchmarkMode(Mode.AverageTime)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-class PacketReadBenchmark {
+class JvmPacketReadBenchmark {
     private final val size = 32 * 1024 * 1024
     private final val array = ByteArray(size)
     private final val packet: ByteReadPacket

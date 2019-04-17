@@ -1,19 +1,10 @@
 package kotlinx.io.benchmarks
 
 import kotlinx.io.core.*
-import org.openjdk.jmh.annotations.*
-import java.util.concurrent.*
+import org.jetbrains.gradle.benchmarks.*
 
 @State(Scope.Benchmark)
-@Fork(1)
-@Warmup(iterations = 10)
-@Measurement(iterations = 15)
-//@BenchmarkMode(Mode.Throughput, Mode.AverageTime)
-@BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-class TextDecodeBenchmark {
-
-
+class JvmTextDecodeBenchmark {
     /*
 # Results on unit 660
 # Run complete. Total time: 00:05:04
