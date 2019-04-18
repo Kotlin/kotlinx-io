@@ -372,11 +372,11 @@ package kotlinx.coroutines.io
        public abstract override val onJoin: kotlinx.coroutines.selects.SelectClause0 { get; }
        public abstract override fun attachChild(child: kotlinx.coroutines.ChildJob): kotlinx.coroutines.ChildHandle
 
-       public abstract override fun cancel(): kotlin.Unit
+       public open override fun cancel(): kotlin.Unit
 
        public abstract override fun cancel(cause: kotlin.Throwable? = ...): kotlin.Boolean
 
-       public open override fun cancel0(): kotlin.Boolean
+       public abstract override fun cancel(cause: kotlinx.coroutines.CancellationException? = ...): kotlin.Unit
 
        public abstract override fun getCancellationException(): kotlinx.coroutines.CancellationException
 
@@ -431,11 +431,11 @@ package kotlinx.coroutines.io
        public abstract override val onJoin: kotlinx.coroutines.selects.SelectClause0 { get; }
        public abstract override fun attachChild(child: kotlinx.coroutines.ChildJob): kotlinx.coroutines.ChildHandle
 
-       public abstract override fun cancel(): kotlin.Unit
+       public open override fun cancel(): kotlin.Unit
 
        public abstract override fun cancel(cause: kotlin.Throwable? = ...): kotlin.Boolean
 
-       public open override fun cancel0(): kotlin.Boolean
+       public abstract override fun cancel(cause: kotlinx.coroutines.CancellationException? = ...): kotlin.Unit
 
        public abstract override fun getCancellationException(): kotlinx.coroutines.CancellationException
 
