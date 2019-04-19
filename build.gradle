@@ -83,11 +83,12 @@ allprojects {
         ext.kotlin_version = rootProject.properties['kotlin_snapshot_version']
         println "Using Kotlin $kotlin_version for project $it"
 
-        if (version != atomicfu_version) {
+        def skipSnapshotChecks = rootProject.properties['skip_snapshot_checks'] != null
+        if (!skipSnapshotChecks && version != atomicfu_version) {
             throw new IllegalStateException("Current deploy version is $version, but atomicfu version is not overridden ($atomicfu_version) for $it")
         }
 
-        if (version != coroutines_version) {
+        if (!skipSnapshotChecks && version != coroutines_version) {
             throw new IllegalStateException("Current deploy version is $version, but coroutines version is not overridden ($coroutines_version) for $it")
         }
 
