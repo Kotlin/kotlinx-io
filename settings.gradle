@@ -1,0 +1,27 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        jcenter()
+        gradlePluginPortal()
+        maven { url "https://dl.bintray.com/orangy/maven" }
+    }
+}
+
+rootProject.name = 'kotlinx-io-package'
+enableFeaturePreview('GRADLE_METADATA')
+
+include ':core'
+project(":core").name='kotlinx-io'
+
+/*
+include ':coroutines'
+project(":coroutines").name='kotlinx-coroutines-io'
+*/
+
+include ':benchmarks'
+project(":benchmarks").name='kotlinx-io-benchmarks'
+
+/*
+include ':benchmarks'
+include ':binary-compatibility-validator'
+*/
