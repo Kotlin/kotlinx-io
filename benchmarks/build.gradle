@@ -1,0 +1,105 @@
+apply plugin: 'kotlin-multiplatform'
+apply plugin: 'kotlin-allopen'
+apply plugin: 'kotlinx.benchmark'
+
+// how to apply plugin to a specific source set?
+allOpen {
+    annotation("org.openjdk.jmh.annotations.State")
+}
+
+kotlin {
+    infra {
+        target('macosX64')
+        target('linuxX64')
+        target('mingwX64')
+    }
+
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = '1.8'
+            }
+        }
+    }
+
+    js {
+        nodejs()
+    }
+
+    sourceSets.all {
+        kotlin.srcDirs = ["$it.name/src"]
+        resources.srcDirs = ["$it.name/resources"]
+        languageSettings {
+            progressiveMode = true
+            useExperimentalAnnotation("kotlin.Experimental")
+            useExperimentalAnnotation('kotlin.ExperimentalUnsignedTypes')
+            useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
+            useExperimentalAnnotation("kotlinx.io.unsafe.DangerousInternalIoApi")
+            useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+        }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
+                implementation "org.jetbrains.kotlinx:kotlinx.benchmark.runtime:$benchmarks_version"
+                implementation project(":kotlinx-io")
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-test-common'
+                implementation 'org.jetbrains.kotlin:kotlin-test-annotations-common'
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+            }
+        }
+        jvmTest {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-test'
+                implementation 'org.jetbrains.kotlin:kotlin-test-junit'
+            }
+        }
+        jsMain {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-js'
+            }
+        }
+        jsTest {
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-test-js'
+            }
+        }
+
+        nativeMain {
+            dependencies {
+            }
+        }
+    }
+}
+
+// Configure benchmark
+benchmark {
+    configurations {
+        main {
+            iterations = 10 // number of iterations
+            iterationTime = 1 
+            iterationTimeUnit = "s"
+        }
+    }
+
+    // Setup configurations
+    targets {
+        // This one matches compilation base name, e.g. 'jvm', 'jvmTest', etc
+        register("jvm") {
+            jmhVersion = "1.21"
+        }
+        register("js") {}
+        register("native") {}
+    }
+}
+
