@@ -65,12 +65,6 @@ actual inline class Memory(val buffer: ByteBuffer) {
 
     actual companion object {
         actual val Empty: Memory = Memory(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
-        actual fun allocate(size: Int): Memory {
-            return Memory(ByteBuffer.allocate(size).order(ByteOrder.BIG_ENDIAN))
-        }
-
-        actual fun release(memory: Memory) {
-        }
     }
 }
 

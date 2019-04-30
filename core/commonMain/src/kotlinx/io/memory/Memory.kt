@@ -45,9 +45,6 @@ expect class Memory {
          * Represents an empty memory region
          */
         val Empty: Memory
-
-        fun allocate(size: Int): Memory
-        fun release(memory: Memory)
     }
 }
 

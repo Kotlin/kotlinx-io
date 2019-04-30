@@ -8,15 +8,13 @@ import kotlin.random.*
 @State(Scope.Benchmark)
 class InputReadingBenchmark {
     val pageSize = 1024
-    val page = Memory.allocate(pageSize)
+    val page = PlatformMemoryAllocator.allocate(pageSize)
     
     private fun sequentialInfiniteInput(): Input {
         return object : Input() {
             private var value = 0L
             private var sliceRandom = Random(pageSize)
             
-            override fun allocatePage(): Memory = page
-            override fun releasePage(memory: Memory) {}
             override fun close() {}
 
             override fun fill(destination: Memory, offset: Int, length: Int): Int {
@@ -40,6 +38,16 @@ class InputReadingBenchmark {
         }
         return sum
     }
+    
+    @Benchmark
+    fun inputReadDoubles(): Double {
+        val input = sequentialInfiniteInput()
+        var sum = 0.0
+        repeat(1024) {
+            sum += input.readDouble()
+        }
+        return sum
+    }
 
     @Benchmark
     fun inputReadInts(): Int {
@@ -47,6 +55,16 @@ class InputReadingBenchmark {
         var sum = 0
         repeat(2048) {
             sum += input.readInt()
+        }
+        return sum
+    }
+
+    @Benchmark
+    fun inputReadBytes(): Int {
+        val input = sequentialInfiniteInput()
+        var sum = 0
+        repeat(8192) {
+            sum += input.readByte()
         }
         return sum
     }

@@ -11,8 +11,6 @@ class InputTest {
             private var value = 0L
             private var sliceRandom = Random(pageSize)
 
-            override fun allocatePage(): Memory = Memory.allocate(pageSize)
-            override fun releasePage(memory: Memory) = Memory.release(memory)
             override fun close() {}
 
             override fun fill(destination: Memory, offset: Int, length: Int): Int {
@@ -35,8 +33,6 @@ class InputTest {
             private var bytesLeft = bytes
             private var sliceRandom = Random(pageSize + bytes)
 
-            override fun allocatePage(): Memory = Memory.allocate(pageSize)
-            override fun releasePage(memory: Memory) = Memory.release(memory)
             override fun close() {}
 
             override fun fill(destination: Memory, offset: Int, length: Int): Int {
