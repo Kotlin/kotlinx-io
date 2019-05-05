@@ -68,10 +68,28 @@ class InputReadingBenchmark {
         }
         return sum
     }
+    
+    @Benchmark
+    fun inputPreviewLongs(): Long {
+        val input = sequentialInfiniteInput()
+        var sum = 0L
+        input.preview {
+            repeat(1024) {
+                sum += input.readLong()
+            }
+        }
+        
+        repeat(1024) {
+            sum -= input.readLong()
+        }
+        if (sum != 0L)
+            throw Exception("Incorrect repeated read")
+        return sum
+    }
 }
 
 fun main() {
-    repeat(1_000_000) {
-        InputReadingBenchmark().inputReadLongs()
+    repeat(1000_000) {
+        InputReadingBenchmark().inputPreviewLongs()
     }
 }

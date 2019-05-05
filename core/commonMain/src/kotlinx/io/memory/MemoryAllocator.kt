@@ -8,16 +8,16 @@ interface MemoryAllocator {
 
 expect object PlatformMemoryAllocator : MemoryAllocator
 
-internal const val DEFAULT_BUFFER_SIZE: Int = 1024
+internal const val DEFAULT_PAGE_SIZE: Int = 1024
 
 internal class SingleMemoryAllocator(
-    private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
+    private val pageSize: Int = DEFAULT_PAGE_SIZE,
     private val source: MemoryAllocator = PlatformMemoryAllocator
 ) {
     private var free: Memory? = null
 
     fun allocate(): Memory {
-        val page = free ?: source.allocate(bufferSize)
+        val page = free ?: source.allocate(pageSize)
         free = null
         return page
     }
