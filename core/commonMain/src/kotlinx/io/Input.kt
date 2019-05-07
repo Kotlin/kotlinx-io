@@ -3,6 +3,16 @@ package kotlinx.io
 import kotlinx.io.memory.*
 
 abstract class Input(pageSize: Int = DEFAULT_PAGE_SIZE) : Closeable {
+    
+    internal constructor(bytes: Bytes) : this() {
+        previewBytes = bytes
+        previewIndex = Bytes.StartPointer // replay, not consume
+        bytes.pointed(Bytes.StartPointer) { page, limit ->
+            this.page = page
+            this.limit = limit
+        }
+    }
+    
     private val allocator = SingleMemoryAllocator(pageSize)
 
     // Current memory 
@@ -16,9 +26,9 @@ abstract class Input(pageSize: Int = DEFAULT_PAGE_SIZE) : Closeable {
 
     // TODO: implement manual list management with Array<Memory> and IntArray
     // assume we normally preview at most 1 page ahead, so may be consider Any? for Memory and Array<Memory> here
-    private var previewIndex = Int.MIN_VALUE // positive values mean replay mode, -1 means discard mode, MIN_VALUE means no preview
-    private var previewPages: MutableList<Memory>? = null
-    private var previewLimits: MutableList<Int>? = null
+    private var previewIndex: BytesPointer =
+        Bytes.InvalidPointer // positive values mean replay mode, -1 means discard mode, MIN_VALUE means no preview
+    private var previewBytes: Bytes? = null
 
     fun readLong(): Long =
         readPrimitive(8, { page, offset -> page.loadLongAt(offset) }, { it })
@@ -92,7 +102,7 @@ abstract class Input(pageSize: Int = DEFAULT_PAGE_SIZE) : Closeable {
     }
 
     private fun fetchExpand(targetLimit: Int): Boolean {
-        if (previewIndex != Int.MIN_VALUE)
+        if (previewIndex != Bytes.InvalidPointer)
             return false // do not expand if in history mode TODO: expand if last page
 
         var currentLimit = limit
@@ -103,7 +113,7 @@ abstract class Input(pageSize: Int = DEFAULT_PAGE_SIZE) : Closeable {
 
         while (currentLimit < targetLimit) {
             val fetched = fill(currentPage, currentLimit, currentSize - currentLimit)
-            logln("PGE: Loaded [$fetched]")
+            logln { "PGE: Loaded [$fetched]" }
             if (fetched == 0)
                 throw Exception("EOF")
             currentLimit += fetched
@@ -116,23 +126,22 @@ abstract class Input(pageSize: Int = DEFAULT_PAGE_SIZE) : Closeable {
     fun <R> preview(reader: Input.() -> R): R {
         // Remember if we initiated the preview and should also start discard mode
 
-        val initiated = if (previewIndex == Int.MIN_VALUE) {
+        val initiated = if (previewIndex == Bytes.InvalidPointer) {
             // enable retaining of pages
-            previewPages = mutableListOf(page)
-            previewLimits = mutableListOf(limit)
-            previewIndex = 0
+            previewBytes = Bytes().apply { append(page, limit) }
+            previewIndex = Bytes.StartPointer
             true
         } else
             false
 
         if (previewIndex == -1) {
             // we were in discard mode, but new preview operation is starting, convert to preview mode
-            previewIndex = 0
+            previewIndex = Bytes.StartPointer
         }
-        
+
         val markIndex = previewIndex
         val markPosition = position
-        logln("PVW: Enter at #$markIndex @$markPosition of $limit")
+        logln { "PVW: Enter at #$markIndex @$markPosition of $limit" }
 
         val result = reader()
 
@@ -145,85 +154,87 @@ abstract class Input(pageSize: Int = DEFAULT_PAGE_SIZE) : Closeable {
         }
 */
 
-        val historyPages = previewPages!!
-        val historyLimits = previewLimits!!
+        val bytes = previewBytes!!
 
         // restore the whole context
         previewIndex = if (initiated) -1 else markIndex
-        page = historyPages[markIndex]
+        bytes.pointed(markIndex) { page, limit ->
+            this.page = page
+            this.limit = limit
+        }
+
         position = markPosition
-        limit = historyLimits[markIndex]
-        logln("PVW: Exit at #$markIndex @$markPosition of $limit")
+        logln { "PVW: Exit at #$markIndex @$markPosition of $limit" }
         return result
     }
-    
+
     private fun fetchPage() {
         if (position != limit) {
             // trying to fetch a page when previous page was not exhausted is an internal error
             throw UnsupportedOperationException("Throwing bytes")
         }
 
-        if (previewIndex == Int.MIN_VALUE) {
+        if (previewIndex == Bytes.InvalidPointer) {
             // no preview operation, reuse current page for new data
-            logln("PVW: None @$limit, filled page")
+            logln { "PVW: None @$limit, filled page" }
             return fillPage(page)
         }
 
-        val historyPages = previewPages!!
-        val historyLimits = previewLimits!!
+        val bytes = previewBytes!!
 
         // no preview operation in progress, but we still have pages in history, we will free used pages
         if (previewIndex == -1) {
             // return current page
             allocator.free(page)
-            historyLimits.removeAt(0)
-            historyPages.removeAt(0)
-            
-            if (historyPages.isEmpty()) {
-                logln("PVW: Finished @$limit, filled page")
+            bytes.discardFirst()
+
+            if (bytes.isEmpty()) {
+                logln { "PVW: Finished @$limit, filled page" }
                 // used all prefetched data, complete preview operation
-                previewIndex = Int.MIN_VALUE
-                previewPages = null
-                previewLimits = null
-                
+                previewIndex = Bytes.InvalidPointer
+                previewBytes = null
+
                 // allocate and fetch a new page
                 return fillPage(allocator.allocate())
             } else {
                 val oldLimit = limit
-                // get and remove a page from history
-                page = historyPages[0]
-                limit = historyLimits[0]
+                bytes.pointed(Bytes.StartPointer) { page, limit ->
+                    this.page = page
+                    this.limit = limit
+                }
                 position = 0
-                logln("PVW: Finished @$oldLimit, using prefetched page, $position/$limit")
+                logln { "PVW: Finished @$oldLimit, using prefetched page, $position/$limit" }
                 return
             }
         }
 
         // let's look at the next historical page
-        previewIndex++
+        previewIndex = bytes.advancePointer(previewIndex)
 
-        if (previewIndex < historyPages.size) {
+        if (!bytes.isAfterLast(previewIndex)) {
             // we have a page already in history, i.e. replaying history inside another preview
             this.position = 0
-            this.page = historyPages[previewIndex]
-            this.limit = historyLimits[previewIndex]
-            logln("PVW: Preview #$previewIndex, using prefetched page, $position/$limit")
+            bytes.pointed(previewIndex) { page, limit ->
+                this.page = page
+                this.limit = limit
+            }
+
+            logln { "PVW: Preview #$previewIndex, using prefetched page, $position/$limit" }
             return
         }
 
         // here we are in a preview operation, but don't have any prefetched pages ready
         // so we need to save current one and fill some more data
 
-        logln("PVW: Preview #$previewIndex, saved page, $position/$limit")
+        logln { "PVW: Preview #$previewIndex, saved page, $position/$limit" }
         fillPage(allocator.allocate())
-        historyPages.add(page)
-        historyLimits.add(limit)
-        logln("PVW: Preview #$previewIndex, filled page, $position/$limit")
+        bytes.append(page, limit)
+        logln { "PVW: Preview #$previewIndex, filled page, $position/$limit" }
     }
 
     private fun fillPage(page: Memory) {
         val fetched = fill(page, 0, page.size)
-        logln("PG: Loaded [$fetched]")
+        logln { "PG: Loaded [$fetched]" }
         if (fetched == 0)
             throw Exception("EOF")
 
@@ -252,6 +263,6 @@ abstract class Input(pageSize: Int = DEFAULT_PAGE_SIZE) : Closeable {
     protected abstract fun fill(destination: Memory, offset: Int, length: Int): Int
 }
 
-private fun logln(text: String) {
+private inline fun logln(text: () -> String) {
 
 }

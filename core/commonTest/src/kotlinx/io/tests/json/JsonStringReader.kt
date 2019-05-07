@@ -116,7 +116,7 @@ internal fun escapeToChar(c: Int): Char = if (c < ESC2C_MAX) ESCAPE_2_CHAR[c] el
 
 
 // Streaming JSON reader
-internal class JsonReader(private val source: String) {
+internal class JsonStringReader(private val source: String) {
 
     @JvmField
     var currentPosition: Int = 0 // position in source

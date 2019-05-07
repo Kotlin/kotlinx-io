@@ -3,6 +3,7 @@ package kotlinx.io.tests
 import kotlinx.io.*
 import kotlinx.io.memory.*
 import kotlin.random.*
+import kotlin.test.*
 
 fun sequentialInfiniteInput(fillSize: Int, pageSize: Int = DEFAULT_PAGE_SIZE) = object : Input(pageSize) {
     private var value = 0L
@@ -46,4 +47,17 @@ fun sequentialLimitedInput(fillSize: Int, bytes: Int, pageSize: Int = DEFAULT_PA
         }
         return index - offset
     }
+}
+
+fun Input.assertReadLong(expected: Long) {
+    val value = readLong()
+    if (value == expected)
+        return
+
+    fail("Expected: ${expected.toString(16).padStart(16, '0')}, actual: ${value.toString(16).padStart(16, '0')}")
+}
+
+private fun Long.printit(): Long {
+    println(toString(16))
+    return this
 }

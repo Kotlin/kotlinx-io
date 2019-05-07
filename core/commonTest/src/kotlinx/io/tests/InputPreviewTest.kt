@@ -77,15 +77,3 @@ class InputPreviewTest {
     }
 }
 
-private fun Input.assertReadLong(expected: Long) {
-    val value = readLong()
-    if (value == expected)
-        return
-
-    fail("Expected: ${expected.toString(16).padStart(16, '0')}, actual: ${value.toString(16).padStart(16, '0')}")
-}
-
-private fun Long.printit(): Long {
-    println(toString(16))
-    return this
-}
