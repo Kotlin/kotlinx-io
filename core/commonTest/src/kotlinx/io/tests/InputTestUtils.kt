@@ -1,17 +1,17 @@
 package kotlinx.io.tests
 
 import kotlinx.io.*
-import kotlinx.io.memory.*
+import kotlinx.io.buffer.*
 import kotlin.random.*
 import kotlin.test.*
 
-fun sequentialInfiniteInput(fillSize: Int, pageSize: Int = DEFAULT_PAGE_SIZE) = object : Input(pageSize) {
+fun sequentialInfiniteInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE) = object : Input(bufferSize) {
     private var value = 0L
     private var sliceRandom = Random(fillSize)
 
     override fun close() {}
 
-    override fun fill(destination: Memory, offset: Int, length: Int): Int {
+    override fun fill(destination: Buffer, offset: Int, length: Int): Int {
         // Simulate different slices being read, not just length
         val readLength = sliceRandom.nextInt(length) + 1
 
@@ -24,14 +24,14 @@ fun sequentialInfiniteInput(fillSize: Int, pageSize: Int = DEFAULT_PAGE_SIZE) = 
     }
 }
 
-fun sequentialLimitedInput(fillSize: Int, bytes: Int, pageSize: Int = DEFAULT_PAGE_SIZE) = object : Input(pageSize) {
+fun sequentialLimitedInput(fillSize: Int, bytes: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE) = object : Input(bufferSize) {
     private var value = 0L
     private var bytesLeft = bytes
     private var sliceRandom = Random(fillSize + bytes)
 
     override fun close() {}
 
-    override fun fill(destination: Memory, offset: Int, length: Int): Int {
+    override fun fill(destination: Buffer, offset: Int, length: Int): Int {
         // Simulate different slices being read, not just length
         val readLength = sliceRandom.nextInt(length) + 1
 

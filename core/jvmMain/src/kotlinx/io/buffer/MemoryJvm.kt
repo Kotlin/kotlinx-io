@@ -1,15 +1,15 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package kotlinx.io.memory
+package kotlinx.io.buffer
 
 import kotlinx.io.internal.*
 import java.nio.*
 import kotlin.contracts.*
 
 @Suppress("ACTUAL_WITHOUT_EXPECT", "EXPERIMENTAL_FEATURE_WARNING")
-actual inline class Memory(val buffer: ByteBuffer) {
+actual inline class Buffer(val buffer: ByteBuffer) {
     /**
-     * Size of memory range in bytes.
+     * Size of buffer range in bytes.
      */
     actual inline val size: Int get() = buffer.limit()
 
@@ -25,16 +25,16 @@ actual inline class Memory(val buffer: ByteBuffer) {
         buffer.put(index, value)
     }
 
-    actual fun slice(offset: Int, length: Int): Memory {
-        return Memory(buffer.sliceSafe(offset, length))
+    actual fun slice(offset: Int, length: Int): Buffer {
+        return Buffer(buffer.sliceSafe(offset, length))
     }
 
     /**
-     * Copies bytes from this memory range from the specified [offset] and [length]
+     * Copies bytes from this buffer range from the specified [offset] and [length]
      * to the [destination] at [destinationOffset].
-     * Copying bytes from a memory to itself is allowed.
+     * Copying bytes from a buffer to itself is allowed.
      */
-    actual fun copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
+    actual fun copyTo(destination: Buffer, offset: Int, length: Int, destinationOffset: Int) {
         if (buffer.hasArray() && destination.buffer.hasArray() &&
             !buffer.isReadOnly && !destination.buffer.isReadOnly
         // TODO: why this check? buffer.isReadOnly
@@ -50,7 +50,7 @@ actual inline class Memory(val buffer: ByteBuffer) {
         }
 
         // NOTE: it is ok here to make copy since it will be escaped by JVM
-        // while temporary moving position/offset makes memory concurrent unsafe that is unacceptable
+        // while temporary moving position/offset makes buffer concurrent unsafe that is unacceptable
 
         val srcCopy = buffer.duplicate().apply {
             position(offset)
@@ -64,15 +64,15 @@ actual inline class Memory(val buffer: ByteBuffer) {
     }
 
     actual companion object {
-        actual val Empty: Memory = Memory(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
+        actual val Empty: Buffer = Buffer(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
     }
 }
 
 /**
- * Copies bytes from this memory range from the specified [offset] and [length]
+ * Copies bytes from this buffer range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  */
-actual fun Memory.copyTo(
+actual fun Buffer.copyTo(
     destination: ByteArray,
     offset: Int,
     length: Int,
@@ -91,10 +91,10 @@ actual fun Memory.copyTo(
 }
 
 /**
- * Copies bytes from this memory range from the specified [offset] and [length]
+ * Copies bytes from this buffer range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  */
-actual fun Memory.copyTo(
+actual fun Buffer.copyTo(
     destination: ByteArray,
     offset: Long,
     length: Int,
@@ -104,10 +104,10 @@ actual fun Memory.copyTo(
 }
 
 /**
- * Copies bytes from this memory range from the specified [offset]
+ * Copies bytes from this buffer range from the specified [offset]
  * to the [destination] buffer.
  */
-fun Memory.copyTo(
+fun Buffer.copyTo(
     destination: ByteBuffer,
     offset: Int
 ) {
@@ -136,17 +136,17 @@ fun Memory.copyTo(
 }
 
 /**
- * Copies bytes from this memory range from the specified [offset]
+ * Copies bytes from this buffer range from the specified [offset]
  * to the [destination] buffer.
  */
-fun Memory.copyTo(destination: ByteBuffer, offset: Long) {
+fun Buffer.copyTo(destination: ByteBuffer, offset: Long) {
     copyTo(destination, offset.toIntOrFail("offset"))
 }
 
 /**
  * Copy byte from this buffer moving it's position to the [destination] at [offset].
  */
-fun ByteBuffer.copyTo(destination: Memory, offset: Int) {
+fun ByteBuffer.copyTo(destination: Buffer, offset: Int) {
     if (hasArray() && !isReadOnly) {
         destination.storeByteArray(offset, array(), arrayOffset() + position(), remaining())
         position(limit())
@@ -173,33 +173,33 @@ internal fun ByteBuffer.sliceSafe(offset: Int, length: Int): ByteBuffer {
 }
 
 /**
- * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ * Fill buffer range starting at the specified [offset] with [value] repeated [count] times.
  */
-actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
+actual fun Buffer.fill(offset: Long, count: Long, value: Byte) {
     fill(offset.toIntOrFail("offset"), count.toIntOrFail("count"), value)
 }
 
 /**
- * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ * Fill buffer range starting at the specified [offset] with [value] repeated [count] times.
  */
-actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
+actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
     for (index in offset until offset + count) {
         buffer.put(index, value)
     }
 }
 
 /**
- * Execute [block] of code providing a temporary instance of [Memory] view of this byte array range
+ * Execute [block] of code providing a temporary instance of [Buffer] view of this byte array range
  * starting at the specified [offset] and having the specified bytes [length].
  * By default, if neither [offset] nor [length] specified, the whole array is used.
- * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
+ * An instance of [Buffer] provided into the [block] should be never captured and used outside of lambda.
  */
-actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memory) -> R): R {
+actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block: (Buffer) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
     // TODO: too much wrappers for bytearray copy 
-    return Memory(
+    return Buffer(
         ByteBuffer.wrap(this, offset, length)
             .slice().order(ByteOrder.BIG_ENDIAN)
     ).let(block)

@@ -1,43 +1,43 @@
 package kotlinx.io
 
-import kotlinx.io.memory.*
+import kotlinx.io.buffer.*
 
 typealias BytesPointer = Int
 
 class Bytes {
-    private val pages: MutableList<Memory> = mutableListOf()
+    private val buffers: MutableList<Buffer> = mutableListOf()
     private val limits: MutableList<Int> = mutableListOf()
 
-    internal fun append(page: Memory, limit: Int) {
-        pages.add(page)
+    internal fun append(buffer: Buffer, limit: Int) {
+        buffers.add(buffer)
         limits.add(limit)
     }
 
     internal fun discardFirst() {
-        pages.removeAt(0)
+        buffers.removeAt(0)
         limits.removeAt(0)
     }
 
-    inline internal fun pointed(pointer: BytesPointer, consumer: (Memory, Int) -> Unit) =
-        consumer(pages[pointer], limits[pointer])
+    inline internal fun pointed(pointer: BytesPointer, consumer: (Buffer, Int) -> Unit) =
+        consumer(buffers[pointer], limits[pointer])
 
     inline internal fun advancePointer(pointer: BytesPointer): BytesPointer =
         pointer + 1
 
     inline internal fun isEmpty() =
-        pages.isEmpty()
+        buffers.isEmpty()
 
     inline internal fun isAfterLast(index: BytesPointer) =
-        index >= pages.size
+        index >= buffers.size
 
     fun asInput(): Input {
         return object: Input(this) {
             override fun close() {}
-            override fun fill(destination: Memory, offset: Int, length: Int): Int = 0
+            override fun fill(destination: Buffer, offset: Int, length: Int): Int = 0
         }
     }
 
-    override fun toString() = "Bytes(${pages.size} pages)"
+    override fun toString() = "Bytes(${buffers.size} buffers)"
 
     companion object {
         const val InvalidPointer = Int.MIN_VALUE
@@ -58,7 +58,7 @@ class BytesOutput : Output() {
         return bytes
     }
     
-    override fun flush(source: Memory, length: Int): Int {
+    override fun flush(source: Buffer, length: Int): Int {
         bytes.append(source, length)
         return length
     }

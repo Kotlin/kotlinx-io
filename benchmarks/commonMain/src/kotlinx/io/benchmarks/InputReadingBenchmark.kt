@@ -1,25 +1,25 @@
 package kotlinx.io.benchmarks
 
 import kotlinx.io.*
-import kotlinx.io.memory.*
+import kotlinx.io.buffer.*
 import org.jetbrains.gradle.benchmarks.*
 import kotlin.random.*
 
 @State(Scope.Benchmark)
 class InputReadingBenchmark {
-    val pageSize = 1024
-    val page = PlatformMemoryAllocator.allocate(pageSize)
+    val bufferSize = 1024
+    val buffer = PlatformBufferAllocator.allocate(bufferSize)
     
     private fun sequentialInfiniteInput(): Input {
         return object : Input() {
             private var value = 0L
-            private var sliceRandom = Random(pageSize)
+            private var sliceRandom = Random(bufferSize)
             
             override fun close() {}
 
-            override fun fill(destination: Memory, offset: Int, length: Int): Int {
+            override fun fill(destination: Buffer, offset: Int, length: Int): Int {
                 // Simulate different slices being read, not just length
-                val readLength = minOf(sliceRandom.nextInt(pageSize), length)
+                val readLength = minOf(sliceRandom.nextInt(bufferSize), length)
 
                 for (index in offset until offset + readLength) {
                     destination.storeAt(index, value++.toByte())

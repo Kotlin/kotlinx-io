@@ -1,16 +1,16 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package kotlinx.io.memory
+package kotlinx.io.buffer
 
 import kotlinx.io.internal.*
 import java.nio.*
 
 /**
- * Copies shorts integers from this memory range from the specified [offset] and [count]
+ * Copies shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadShortArray(
+actual fun Buffer.loadShortArray(
     offset: Int,
     destination: ShortArray,
     destinationOffset: Int,
@@ -20,11 +20,11 @@ actual fun Memory.loadShortArray(
 }
 
 /**
- * Copies shorts integers from this memory range from the specified [offset] and [count]
+ * Copies shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadShortArray(
+actual fun Buffer.loadShortArray(
     offset: Long,
     destination: ShortArray,
     destinationOffset: Int,
@@ -34,11 +34,11 @@ actual fun Memory.loadShortArray(
 }
 
 /**
- * Copies regular integers from this memory range from the specified [offset] and [count]
+ * Copies regular integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadIntArray(
+actual fun Buffer.loadIntArray(
     offset: Int,
     destination: IntArray,
     destinationOffset: Int,
@@ -48,11 +48,11 @@ actual fun Memory.loadIntArray(
 }
 
 /**
- * Copies regular integers from this memory range from the specified [offset] and [count]
+ * Copies regular integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadIntArray(
+actual fun Buffer.loadIntArray(
     offset: Long,
     destination: IntArray,
     destinationOffset: Int,
@@ -62,11 +62,11 @@ actual fun Memory.loadIntArray(
 }
 
 /**
- * Copies regular integers from this memory range from the specified [offset] and [count]
+ * Copies regular integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadLongArray(
+actual fun Buffer.loadLongArray(
     offset: Int,
     destination: LongArray,
     destinationOffset: Int,
@@ -76,11 +76,11 @@ actual fun Memory.loadLongArray(
 }
 
 /**
- * Copies regular integers from this memory range from the specified [offset] and [count]
+ * Copies regular integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadLongArray(
+actual fun Buffer.loadLongArray(
     offset: Long,
     destination: LongArray,
     destinationOffset: Int,
@@ -90,11 +90,11 @@ actual fun Memory.loadLongArray(
 }
 
 /**
- * Copies floating point numbers from this memory range from the specified [offset] and [count]
+ * Copies floating point numbers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadFloatArray(
+actual fun Buffer.loadFloatArray(
     offset: Int,
     destination: FloatArray,
     destinationOffset: Int,
@@ -104,11 +104,11 @@ actual fun Memory.loadFloatArray(
 }
 
 /**
- * Copies floating point numbers from this memory range from the specified [offset] and [count]
+ * Copies floating point numbers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadFloatArray(
+actual fun Buffer.loadFloatArray(
     offset: Long,
     destination: FloatArray,
     destinationOffset: Int,
@@ -118,11 +118,11 @@ actual fun Memory.loadFloatArray(
 }
 
 /**
- * Copies floating point numbers from this memory range from the specified [offset] and [count]
+ * Copies floating point numbers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadDoubleArray(
+actual fun Buffer.loadDoubleArray(
     offset: Int,
     destination: DoubleArray,
     destinationOffset: Int,
@@ -132,11 +132,11 @@ actual fun Memory.loadDoubleArray(
 }
 
 /**
- * Copies floating point numbers from this memory range from the specified [offset] and [count]
+ * Copies floating point numbers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadDoubleArray(
+actual fun Buffer.loadDoubleArray(
     offset: Long,
     destination: DoubleArray,
     destinationOffset: Int,
@@ -146,11 +146,11 @@ actual fun Memory.loadDoubleArray(
 }
 
 /**
- * Copies shorts integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies shorts integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeShortArray(
+actual fun Buffer.storeShortArray(
     offset: Int,
     source: ShortArray,
     sourceOffset: Int,
@@ -160,11 +160,11 @@ actual fun Memory.storeShortArray(
 }
 
 /**
- * Copies shorts integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies shorts integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeShortArray(
+actual fun Buffer.storeShortArray(
     offset: Long,
     source: ShortArray,
     sourceOffset: Int,
@@ -174,11 +174,11 @@ actual fun Memory.storeShortArray(
 }
 
 /**
- * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeIntArray(
+actual fun Buffer.storeIntArray(
     offset: Int,
     source: IntArray,
     sourceOffset: Int,
@@ -188,11 +188,11 @@ actual fun Memory.storeIntArray(
 }
 
 /**
- * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeIntArray(
+actual fun Buffer.storeIntArray(
     offset: Long,
     source: IntArray,
     sourceOffset: Int,
@@ -202,11 +202,11 @@ actual fun Memory.storeIntArray(
 }
 
 /**
- * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeLongArray(
+actual fun Buffer.storeLongArray(
     offset: Int,
     source: LongArray,
     sourceOffset: Int,
@@ -216,11 +216,11 @@ actual fun Memory.storeLongArray(
 }
 
 /**
- * Copies regular integers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeLongArray(
+actual fun Buffer.storeLongArray(
     offset: Long,
     source: LongArray,
     sourceOffset: Int,
@@ -230,11 +230,11 @@ actual fun Memory.storeLongArray(
 }
 
 /**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeFloatArray(
+actual fun Buffer.storeFloatArray(
     offset: Int,
     source: FloatArray,
     sourceOffset: Int,
@@ -244,11 +244,11 @@ actual fun Memory.storeFloatArray(
 }
 
 /**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeFloatArray(
+actual fun Buffer.storeFloatArray(
     offset: Long,
     source: FloatArray,
     sourceOffset: Int,
@@ -258,11 +258,11 @@ actual fun Memory.storeFloatArray(
 }
 
 /**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeDoubleArray(
+actual fun Buffer.storeDoubleArray(
     offset: Int,
     source: DoubleArray,
     sourceOffset: Int,
@@ -272,11 +272,11 @@ actual fun Memory.storeDoubleArray(
 }
 
 /**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeDoubleArray(
+actual fun Buffer.storeDoubleArray(
     offset: Long,
     source: DoubleArray,
     sourceOffset: Int,

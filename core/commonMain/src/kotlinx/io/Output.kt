@@ -1,79 +1,79 @@
 package kotlinx.io
 
-import kotlinx.io.memory.*
+import kotlinx.io.buffer.*
 
-abstract class Output(pageSize: Int = DEFAULT_PAGE_SIZE) : Closeable {
-    private val allocator = SingleMemoryAllocator(pageSize)
+abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
+    private val allocator = SingleBufferAllocator(bufferSize)
 
-    // Current memory 
-    private var page: Memory = allocator.allocate()
+    // Current buffer 
+    private var buffer: Buffer = allocator.allocate()
 
-    // Current position in [page]
+    // Current position in [buffer]
     private var position: Int = 0
 
-    // Current number of bytes in [page] that were already flushed 
+    // Current number of bytes in [buffer] that were already flushed 
     private var flushed: Int = 0
 
-    protected abstract fun flush(source: Memory, length: Int): Int
+    protected abstract fun flush(source: Buffer, length: Int): Int
 
     fun writeLong(value: Long) {
-        writePrimitive(8, { page, offset -> page.storeLongAt(offset, value) }, { value })
+        writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }, { value })
     }
 
     private inline fun writePrimitive(
         primitiveSize: Int,
-        writeDirect: (page: Memory, offset: Int) -> Unit,
+        writeDirect: (buffer: Buffer, offset: Int) -> Unit,
         longValue: () -> Long
     ) {
         val offset = position
-        val size = page.size
+        val size = buffer.size
         val targetLimit = offset + primitiveSize
         if (size >= targetLimit ) {
             position = targetLimit
-            return writeDirect(page, offset)
+            return writeDirect(buffer, offset)
         }
 
         if (offset == size) {
-            // current page exhausted, we cannot expand data in this page, 
+            // current buffer exhausted, we cannot expand data in this buffer, 
             // and we also don't have bytes left to be read
-            // so we should fetch new page of data and may be read entire primitive
-            flushPage()
+            // so we should fetch new buffer of data and may be read entire primitive
+            flushBuffer()
             // we know we are at zero position here
             if (size >= primitiveSize) {
                 position = primitiveSize
-                return writeDirect(page, 0)
+                return writeDirect(buffer, 0)
             }
         }
 
-        // Nope, doesn't fit in a page, read byte by byte
+        // Nope, doesn't fit in a buffer, read byte by byte
         writeBytes(primitiveSize, longValue())
     }
     
     private fun writeBytes(length: Int, value: Long) {
         var remainingValue = value
         var remaining = length
-        var size = page.size
+        var size = buffer.size
         while (remaining > 0) {
             if (position == size) {
-                flushPage()
-                size = page.size
+                flushBuffer()
+                size = buffer.size
             }
 
-            page.storeAt(position++, remainingValue.toByte())
+            buffer.storeAt(position++, remainingValue.toByte())
             remainingValue = remainingValue shr 8
             remaining--
         }
 
     }
 
-    private fun flushPage() {
-        flush(page, position)
-        page = allocator.allocate()
+    private fun flushBuffer() {
+        flush(buffer, position)
+        buffer = allocator.allocate()
         position = 0
         flushed = 0
     }
 
     fun flush() {
-        flushPage()
+        flushBuffer()
     }
 }

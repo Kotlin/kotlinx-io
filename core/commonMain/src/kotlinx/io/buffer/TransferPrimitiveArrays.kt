@@ -1,14 +1,14 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package kotlinx.io.memory
+package kotlinx.io.buffer
 
 import kotlinx.io.internal.*
 
 /**
- * Copies bytes from this memory range from the specified [offset] and [count]
+ * Copies bytes from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset].
  */
-inline fun Memory.loadByteArray(
+inline fun Buffer.loadByteArray(
     offset: Int,
     destination: ByteArray,
     destinationOffset: Int = 0,
@@ -18,11 +18,11 @@ inline fun Memory.loadByteArray(
 }
 
 /**
- * Copies unsigned shorts integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadByteArray(
+inline fun Buffer.loadByteArray(
     offset: Long,
     destination: ByteArray,
     destinationOffset: Int = 0,
@@ -32,11 +32,11 @@ inline fun Memory.loadByteArray(
 }
 
 /**
- * Copies unsigned shorts integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadUByteArray(
+inline fun Buffer.loadUByteArray(
     offset: Int,
     destination: UByteArray,
     destinationOffset: Int = 0,
@@ -46,11 +46,11 @@ inline fun Memory.loadUByteArray(
 }
 
 /**
- * Copies unsigned shorts integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadUByteArray(
+inline fun Buffer.loadUByteArray(
     offset: Long,
     destination: UByteArray,
     destinationOffset: Int = 0,
@@ -60,11 +60,11 @@ inline fun Memory.loadUByteArray(
 }
 
 /**
- * Copies shorts integers from this memory range from the specified [offset] and [count]
+ * Copies shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadShortArray(
+expect fun Buffer.loadShortArray(
     offset: Int,
     destination: ShortArray,
     destinationOffset: Int = 0,
@@ -72,11 +72,11 @@ expect fun Memory.loadShortArray(
 )
 
 /**
- * Copies shorts integers from this memory range from the specified [offset] and [count]
+ * Copies shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadShortArray(
+expect fun Buffer.loadShortArray(
     offset: Long,
     destination: ShortArray,
     destinationOffset: Int = 0,
@@ -84,11 +84,11 @@ expect fun Memory.loadShortArray(
 )
 
 /**
- * Copies unsigned shorts integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadUShortArray(
+inline fun Buffer.loadUShortArray(
     offset: Int,
     destination: UShortArray,
     destinationOffset: Int = 0,
@@ -98,11 +98,11 @@ inline fun Memory.loadUShortArray(
 }
 
 /**
- * Copies unsigned shorts integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned shorts integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadUShortArray(
+inline fun Buffer.loadUShortArray(
     offset: Long,
     destination: UShortArray,
     destinationOffset: Int = 0,
@@ -112,11 +112,11 @@ inline fun Memory.loadUShortArray(
 }
 
 /**
- * Copies regular integers from this memory range from the specified [offset] and [count]
+ * Copies regular integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadIntArray(
+expect fun Buffer.loadIntArray(
     offset: Int,
     destination: IntArray,
     destinationOffset: Int = 0,
@@ -124,11 +124,11 @@ expect fun Memory.loadIntArray(
 )
 
 /**
- * Copies regular integers from this memory range from the specified [offset] and [count]
+ * Copies regular integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadIntArray(
+expect fun Buffer.loadIntArray(
     offset: Long,
     destination: IntArray,
     destinationOffset: Int = 0,
@@ -136,11 +136,11 @@ expect fun Memory.loadIntArray(
 )
 
 /**
- * Copies unsigned integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadUIntArray(
+inline fun Buffer.loadUIntArray(
     offset: Int,
     destination: UIntArray,
     destinationOffset: Int = 0,
@@ -150,11 +150,11 @@ inline fun Memory.loadUIntArray(
 }
 
 /**
- * Copies unsigned integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadUIntArray(
+inline fun Buffer.loadUIntArray(
     offset: Long,
     destination: UIntArray,
     destinationOffset: Int = 0,
@@ -164,11 +164,11 @@ inline fun Memory.loadUIntArray(
 }
 
 /**
- * Copies long integers from this memory range from the specified [offset] and [count]
+ * Copies long integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadLongArray(
+expect fun Buffer.loadLongArray(
     offset: Int,
     destination: LongArray,
     destinationOffset: Int = 0,
@@ -176,11 +176,11 @@ expect fun Memory.loadLongArray(
 )
 
 /**
- * Copies long integers from this memory range from the specified [offset] and [count]
+ * Copies long integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadLongArray(
+expect fun Buffer.loadLongArray(
     offset: Long,
     destination: LongArray,
     destinationOffset: Int = 0,
@@ -188,11 +188,11 @@ expect fun Memory.loadLongArray(
 )
 
 /**
- * Copies unsigned long integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned long integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadULongArray(
+inline fun Buffer.loadULongArray(
     offset: Int,
     destination: ULongArray,
     destinationOffset: Int = 0,
@@ -202,11 +202,11 @@ inline fun Memory.loadULongArray(
 }
 
 /**
- * Copies unsigned long integers from this memory range from the specified [offset] and [count]
+ * Copies unsigned long integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-inline fun Memory.loadULongArray(
+inline fun Buffer.loadULongArray(
     offset: Long,
     destination: ULongArray,
     destinationOffset: Int = 0,
@@ -216,11 +216,11 @@ inline fun Memory.loadULongArray(
 }
 
 /**
- * Copies floating point numbers from this memory range from the specified [offset] and [count]
+ * Copies floating point numbers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadFloatArray(
+expect fun Buffer.loadFloatArray(
     offset: Int,
     destination: FloatArray,
     destinationOffset: Int = 0,
@@ -228,11 +228,11 @@ expect fun Memory.loadFloatArray(
 )
 
 /**
- * Copies floating point numbers from this memory range from the specified [offset] and [count]
+ * Copies floating point numbers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadFloatArray(
+expect fun Buffer.loadFloatArray(
     offset: Long,
     destination: FloatArray,
     destinationOffset: Int = 0,
@@ -240,11 +240,11 @@ expect fun Memory.loadFloatArray(
 )
 
 /**
- * Copies floating point numbers from this memory range from the specified [offset] and [count]
+ * Copies floating point numbers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadDoubleArray(
+expect fun Buffer.loadDoubleArray(
     offset: Int,
     destination: DoubleArray,
     destinationOffset: Int = 0,
@@ -252,11 +252,11 @@ expect fun Memory.loadDoubleArray(
 )
 
 /**
- * Copies floating point numbers from this memory range from the specified [offset] and [count]
+ * Copies floating point numbers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-expect fun Memory.loadDoubleArray(
+expect fun Buffer.loadDoubleArray(
     offset: Long,
     destination: DoubleArray,
     destinationOffset: Int = 0,
@@ -264,40 +264,40 @@ expect fun Memory.loadDoubleArray(
 )
 
 /**
- * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset].
  * @param sourceOffset items
  */
-inline fun Memory.storeByteArray(
+inline fun Buffer.storeByteArray(
     offset: Long,
     source: ByteArray,
     sourceOffset: Long = 0,
     count: Long = source.size - sourceOffset
 ) {
-    source.useMemory(sourceOffset.toIntOrFail { "sourceOffset" }, count.toIntOrFail { "count" }) { sourceMemory ->
-        sourceMemory.copyTo(this, 0, count, offset)
+    source.useBuffer(sourceOffset.toIntOrFail { "sourceOffset" }, count.toIntOrFail { "count" }) { sourcebuffer ->
+        sourcebuffer.copyTo(this, 0, count, offset)
     }
 }
 
 /**
- * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset].
  * @param sourceOffset items
  */
-inline fun Memory.storeByteArray(
+inline fun Buffer.storeByteArray(
     offset: Int,
     source: ByteArray,
     sourceOffset: Int = 0,
     count: Int = source.size - sourceOffset
 ) {
-    source.useMemory(sourceOffset, count) { sourceMemory ->
-        sourceMemory.copyTo(this, 0, count, offset)
+    source.useBuffer(sourceOffset, count) { buffer ->
+        buffer.copyTo(this, 0, count, offset)
     }
 }
 
 /**
- * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset].
  * @param sourceOffset items
  */
-inline fun Memory.storeUByteArray(
+inline fun Buffer.storeUByteArray(
     offset: Int,
     source: UByteArray,
     sourceOffset: Int = 0,
@@ -307,10 +307,10 @@ inline fun Memory.storeUByteArray(
 }
 
 /**
- * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset].
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset].
  * @param sourceOffset items
  */
-inline fun Memory.storeUByteArray(
+inline fun Buffer.storeUByteArray(
     offset: Long,
     source: UByteArray,
     sourceOffset: Int = 0,
@@ -320,11 +320,11 @@ inline fun Memory.storeUByteArray(
 }
 
 /**
- * Copies shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeShortArray(
+expect fun Buffer.storeShortArray(
     offset: Int,
     source: ShortArray,
     sourceOffset: Int = 0,
@@ -332,11 +332,11 @@ expect fun Memory.storeShortArray(
 )
 
 /**
- * Copies shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeShortArray(
+expect fun Buffer.storeShortArray(
     offset: Long,
     source: ShortArray,
     sourceOffset: Int = 0,
@@ -344,11 +344,11 @@ expect fun Memory.storeShortArray(
 )
 
 /**
- * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-inline fun Memory.storeUShortArray(
+inline fun Buffer.storeUShortArray(
     offset: Int,
     source: UShortArray,
     sourceOffset: Int = 0,
@@ -358,11 +358,11 @@ inline fun Memory.storeUShortArray(
 }
 
 /**
- * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-inline fun Memory.storeUShortArray(
+inline fun Buffer.storeUShortArray(
     offset: Long,
     source: UShortArray,
     sourceOffset: Int = 0,
@@ -372,11 +372,11 @@ inline fun Memory.storeUShortArray(
 }
 
 /**
- * Copies regular integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeIntArray(
+expect fun Buffer.storeIntArray(
     offset: Int,
     source: IntArray,
     sourceOffset: Int = 0,
@@ -384,11 +384,11 @@ expect fun Memory.storeIntArray(
 )
 
 /**
- * Copies regular integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies regular integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeIntArray(
+expect fun Buffer.storeIntArray(
     offset: Long,
     source: IntArray,
     sourceOffset: Int = 0,
@@ -396,11 +396,11 @@ expect fun Memory.storeIntArray(
 )
 
 /**
- * Copies unsigned integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies unsigned integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-inline fun Memory.storeUIntArray(
+inline fun Buffer.storeUIntArray(
     offset: Int,
     source: UIntArray,
     sourceOffset: Int = 0,
@@ -410,11 +410,11 @@ inline fun Memory.storeUIntArray(
 }
 
 /**
- * Copies unsigned integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies unsigned integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-inline fun Memory.storeUIntArray(
+inline fun Buffer.storeUIntArray(
     offset: Long,
     source: UIntArray,
     sourceOffset: Int = 0,
@@ -424,11 +424,11 @@ inline fun Memory.storeUIntArray(
 }
 
 /**
- * Copies long integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies long integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeLongArray(
+expect fun Buffer.storeLongArray(
     offset: Int,
     source: LongArray,
     sourceOffset: Int = 0,
@@ -436,11 +436,11 @@ expect fun Memory.storeLongArray(
 )
 
 /**
- * Copies long integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies long integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeLongArray(
+expect fun Buffer.storeLongArray(
     offset: Long,
     source: LongArray,
     sourceOffset: Int = 0,
@@ -448,11 +448,11 @@ expect fun Memory.storeLongArray(
 )
 
 /**
- * Copies unsigned long integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies unsigned long integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-inline fun Memory.storeULongArray(
+inline fun Buffer.storeULongArray(
     offset: Int,
     source: ULongArray,
     sourceOffset: Int = 0,
@@ -462,11 +462,11 @@ inline fun Memory.storeULongArray(
 }
 
 /**
- * Copies unsigned long integers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies unsigned long integers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-inline fun Memory.storeULongArray(
+inline fun Buffer.storeULongArray(
     offset: Long,
     source: ULongArray,
     sourceOffset: Int = 0,
@@ -476,11 +476,11 @@ inline fun Memory.storeULongArray(
 }
 
 /**
- * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeFloatArray(
+expect fun Buffer.storeFloatArray(
     offset: Int,
     source: FloatArray,
     sourceOffset: Int = 0,
@@ -488,11 +488,11 @@ expect fun Memory.storeFloatArray(
 )
 
 /**
- * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeFloatArray(
+expect fun Buffer.storeFloatArray(
     offset: Long,
     source: FloatArray,
     sourceOffset: Int = 0,
@@ -500,11 +500,11 @@ expect fun Memory.storeFloatArray(
 )
 
 /**
- * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeDoubleArray(
+expect fun Buffer.storeDoubleArray(
     offset: Int,
     source: DoubleArray,
     sourceOffset: Int = 0,
@@ -512,11 +512,11 @@ expect fun Memory.storeDoubleArray(
 )
 
 /**
- * Copies floating point numbers from the [source] array at [sourceOffset] to this memory at the specified [offset]
+ * Copies floating point numbers from the [source] array at [sourceOffset] to this buffer at the specified [offset]
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-expect fun Memory.storeDoubleArray(
+expect fun Buffer.storeDoubleArray(
     offset: Long,
     source: DoubleArray,
     sourceOffset: Int = 0,
