@@ -16,12 +16,12 @@ actual inline class Buffer(val buffer: ByteBuffer) {
     /**
      * Returns byte at [index] position.
      */
-    actual inline fun loadAt(index: Int): Byte = buffer.get(index)
+    actual inline fun loadByteAt(index: Int): Byte = buffer.get(index)
 
     /**
      * Write [value] at the specified [index]
      */
-    actual inline fun storeAt(index: Int, value: Byte) {
+    actual inline fun storeByteAt(index: Int, value: Byte) {
         buffer.put(index, value)
     }
 

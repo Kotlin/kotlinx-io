@@ -49,10 +49,10 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         readPrimitive(2, { buffer, offset -> buffer.loadShortAt(offset).toUShort() }, { it.toUShort() })
 
     fun readByte(): Byte =
-        readPrimitive(1, { buffer, offset -> buffer.loadAt(offset) }, { it.toByte() })
+        readPrimitive(1, { buffer, offset -> buffer.loadByteAt(offset) }, { it.toByte() })
 
     fun readUByte(): UByte =
-        readPrimitive(1, { buffer, offset -> buffer.loadAt(offset).toUByte() }, { it.toUByte() })
+        readPrimitive(1, { buffer, offset -> buffer.loadByteAt(offset).toUByte() }, { it.toUByte() })
 
     fun readDouble(): Double =
         readPrimitive(8, { buffer, offset -> buffer.loadDoubleAt(offset) }, { Double.fromBits(it) })

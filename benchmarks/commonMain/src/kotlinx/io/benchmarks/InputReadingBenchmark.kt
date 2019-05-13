@@ -22,7 +22,7 @@ class InputReadingBenchmark {
                 val readLength = minOf(sliceRandom.nextInt(bufferSize), length)
 
                 for (index in offset until offset + readLength) {
-                    destination.storeAt(index, value++.toByte())
+                    destination.storeByteAt(index, value++.toByte())
                 }
                 return readLength
             }

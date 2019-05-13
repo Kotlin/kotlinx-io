@@ -20,12 +20,12 @@ expect class Buffer {
     /**
      * Returns byte at [index] position.
      */
-    inline fun loadAt(index: Int): Byte
+    inline fun loadByteAt(index: Int): Byte
 
     /**
      * Write [value] at the specified [index]
      */
-    inline fun storeAt(index: Int, value: Byte)
+    inline fun storeByteAt(index: Int, value: Byte)
 
     /**
      * Copies bytes from this buffer range from the specified [offset] and [length]
@@ -45,32 +45,32 @@ expect class Buffer {
 /**
  * Read byte at the specified [index].
  */
-inline operator fun Buffer.get(index: Int): Byte = loadAt(index)
+inline operator fun Buffer.get(index: Int): Byte = loadByteAt(index)
 
 /**
  * Read byte at the specified [index].
  */
-inline operator fun Buffer.get(index: Long): Byte = loadAt(index.toIntOrFail { "index" })
+inline operator fun Buffer.get(index: Long): Byte = loadByteAt(index.toIntOrFail { "index" })
 
 /**
  * Index write operator to write [value] at the specified [index]
  */
-inline operator fun Buffer.set(index: Long, value: Byte) = storeAt(index.toIntOrFail { "index" }, value)
+inline operator fun Buffer.set(index: Long, value: Byte) = storeByteAt(index.toIntOrFail { "index" }, value)
 
 /**
  * Index write operator to write [value] at the specified [index]
  */
-inline operator fun Buffer.set(index: Int, value: Byte) = storeAt(index, value)
+inline operator fun Buffer.set(index: Int, value: Byte) = storeByteAt(index, value)
 
 /**
  * Index write operator to write [value] at the specified [index]
  */
-inline fun Buffer.storeAt(index: Long, value: UByte) = storeAt(index.toIntOrFail { "index" }, value.toByte())
+inline fun Buffer.storeByteAt(index: Long, value: UByte) = storeByteAt(index.toIntOrFail { "index" }, value.toByte())
 
 /**
  * Index write operator to write [value] at the specified [index]
  */
-inline fun Buffer.storeAt(index: Int, value: UByte) = storeAt(index, value.toByte())
+inline fun Buffer.storeByteAt(index: Int, value: UByte) = storeByteAt(index, value.toByte())
 
 /**
  * Fill buffer range starting at the specified [offset] with [value] repeated [count] times.
@@ -97,12 +97,12 @@ expect fun Buffer.copyTo(destination: ByteArray, offset: Long, length: Int, dest
 /**
  * Returns byte at [index] position.
  */
-inline fun Buffer.loadAt(index: Long): Byte = loadAt(index.toIntOrFail { "index" })
+inline fun Buffer.loadByteAt(index: Long): Byte = loadByteAt(index.toIntOrFail { "index" })
 
 /**
  * Write [value] at the specified [index].
  */
-inline fun Buffer.storeAt(index: Long, value: Byte) = storeAt(index.toIntOrFail { "index" }, value)
+inline fun Buffer.storeByteAt(index: Long, value: Byte) = storeByteAt(index.toIntOrFail { "index" }, value)
 
 /**
  * Copies bytes from this buffer range from the specified [offset] and [length]

@@ -17,7 +17,7 @@ fun sequentialInfiniteInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE
 
         var index = offset
         while (index < offset + readLength) {
-            destination.storeAt(index++, value.toByte())
+            destination.storeByteAt(index++, value.toByte())
             value++
         }
         return index - offset
@@ -39,7 +39,7 @@ fun sequentialLimitedInput(fillSize: Int, bytes: Int, bufferSize: Int = DEFAULT_
             return 0
         var index = offset
         while (index < offset + readLength) {
-            destination.storeAt(index++, value.toByte())
+            destination.storeByteAt(index++, value.toByte())
             value++
             bytesLeft--
             if (bytesLeft == 0)

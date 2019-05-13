@@ -59,7 +59,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
                 size = buffer.size
             }
 
-            buffer.storeAt(position++, remainingValue.toByte())
+            buffer.storeByteAt(position++, remainingValue.toByte())
             remainingValue = remainingValue shr 8
             remaining--
         }
