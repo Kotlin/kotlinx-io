@@ -2,6 +2,19 @@
 
 package kotlinx.io.buffer
 
+import kotlinx.io.internal.*
+
+
+/**
+ * Returns byte at [index] position.
+ */
+inline fun Buffer.loadByteAt(index: Long): Byte = loadByteAt(index.toIntOrFail { "index" })
+
+/**
+ * Write [value] at the specified [index].
+ */
+inline fun Buffer.storeByteAt(index: Long, value: Byte) = storeByteAt(index.toIntOrFail { "index" }, value)
+
 /**
  * Read short signed 16bit integer in the network byte order (Big Endian)
  */

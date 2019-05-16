@@ -3,7 +3,7 @@ package kotlinx.io
 import kotlinx.io.buffer.*
 
 abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
-    
+
     internal constructor(bytes: Bytes) : this() {
         previewBytes = bytes
         previewIndex = Bytes.StartPointer // replay, not consume
@@ -12,7 +12,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
             this.limit = limit
         }
     }
-    
+
     private val allocator = SingleBufferAllocator(bufferSize)
 
     // Current buffer 
@@ -60,6 +60,15 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     fun readFloat(): Float =
         readPrimitive(4, { buffer, offset -> buffer.loadFloatAt(offset) }, { Float.fromBits(it.toInt()) })
 
+    fun readBuffer(reader: (Buffer, offset: Int, size: Int) -> Int) : Int {
+        if (position == limit) {
+            fetchBuffer()
+        }
+        val consumed = reader(buffer, position, limit - position)
+        position += consumed
+        return consumed
+    }
+
     private inline fun <T> readPrimitive(
         primitiveSize: Int,
         readDirect: (buffer: Buffer, offset: Int) -> T,
@@ -86,11 +95,11 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
 
         // Nope, doesn't fit in a buffer, read byte by byte
         var long = 0L
-        readBytes(primitiveSize) { long = (long shl 8) or it.toLong() }
+        fetchBytes(primitiveSize) { long = (long shl 8) or it.toLong() }
         return fromLong(long)
     }
 
-    private inline fun readBytes(length: Int, consumer: (byte: Byte) -> Unit) {
+    private inline fun fetchBytes(length: Int, consumer: (byte: Byte) -> Unit) {
         var remaining = length
         while (remaining > 0) {
             if (position == limit)
