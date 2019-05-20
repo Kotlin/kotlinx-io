@@ -66,7 +66,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     internal inline fun readBuffer(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
         if (position == limit) {
             if (fetchBuffer() == 0)
-                throw EndOfFileException()
+                throw EOFException("End of file while reading buffer")
         }
         val consumed = reader(buffer, position, limit - position)
         position += consumed
@@ -80,7 +80,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     ): T {
         val offset = position
         val targetLimit = offset + primitiveSize
-        
+
         // TODO: fetchExpand can signal EOF
         if (limit >= targetLimit || fetchExpand(targetLimit)) {
             position = targetLimit
@@ -92,7 +92,8 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
             // and we also don't have bytes left to be read
             // so we should fetch new buffer of data and may be read entire primitive
             if (fetchBuffer() == 0)
-                throw EndOfFileException()
+                throw EOFException("End of file while reading buffer")
+
             // we know we are at zero position here
             if (limit >= primitiveSize) {
                 position = primitiveSize
@@ -111,7 +112,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         while (remaining > 0) {
             if (position == limit) {
                 if (fetchBuffer() == 0) {
-                    throw EndOfFileException()
+                    throw EOFException("End of file while reading buffer")
                 }
             }
 

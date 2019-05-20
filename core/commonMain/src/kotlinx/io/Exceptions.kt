@@ -1,5 +1,7 @@
 package kotlinx.io
 
-class EndOfFileException(message: String = "End of file") : IOException(message)
+expect open class IOException(message: String, cause: Throwable?) : Exception {
+    constructor(message: String)
+}
 
-abstract class IOException(message: String) : Exception(message) 
+expect open class EOFException(message: String) : IOException
