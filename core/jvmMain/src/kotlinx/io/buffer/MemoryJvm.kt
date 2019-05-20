@@ -29,43 +29,44 @@ actual inline class Buffer(val buffer: ByteBuffer) {
         return Buffer(buffer.sliceSafe(offset, length))
     }
 
-    /**
-     * Copies bytes from this buffer range from the specified [offset] and [length]
-     * to the [destination] at [destinationOffset].
-     * Copying bytes from a buffer to itself is allowed.
-     */
-    actual fun copyTo(destination: Buffer, offset: Int, length: Int, destinationOffset: Int) {
-        if (buffer.hasArray() && destination.buffer.hasArray() &&
-            !buffer.isReadOnly && !destination.buffer.isReadOnly
-        // TODO: why this check? buffer.isReadOnly
-        ) {
-            System.arraycopy(
-                buffer.array(),
-                buffer.arrayOffset() + offset,
-                destination.buffer.array(),
-                destination.buffer.arrayOffset() + destinationOffset,
-                length
-            )
-            return
-        }
-
-        // NOTE: it is ok here to make copy since it will be escaped by JVM
-        // while temporary moving position/offset makes buffer concurrent unsafe that is unacceptable
-
-        val srcCopy = buffer.duplicate().apply {
-            position(offset)
-            limit(offset + length)
-        }
-        val dstCopy = destination.buffer.duplicate().apply {
-            position(destinationOffset)
-        }
-
-        dstCopy.put(srcCopy)
-    }
 
     actual companion object {
         actual val Empty: Buffer = Buffer(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
     }
+}
+
+/**
+ * Copies bytes from this buffer range from the specified [offset] and [length]
+ * to the [destination] at [destinationOffset].
+ * Copying bytes from a buffer to itself is allowed.
+ */
+actual fun Buffer.copyTo(destination: Buffer, offset: Int, length: Int, destinationOffset: Int) {
+    if (buffer.hasArray() && destination.buffer.hasArray() &&
+        !buffer.isReadOnly && !destination.buffer.isReadOnly
+    // TODO: why this check? buffer.isReadOnly
+    ) {
+        System.arraycopy(
+            buffer.array(),
+            buffer.arrayOffset() + offset,
+            destination.buffer.array(),
+            destination.buffer.arrayOffset() + destinationOffset,
+            length
+        )
+        return
+    }
+
+    // NOTE: it is ok here to make copy since it will be escaped by JVM
+    // while temporary moving position/offset makes buffer concurrent unsafe that is unacceptable
+
+    val srcCopy = buffer.duplicate().apply {
+        position(offset)
+        limit(offset + length)
+    }
+    val dstCopy = destination.buffer.duplicate().apply {
+        position(destinationOffset)
+    }
+
+    dstCopy.put(srcCopy)
 }
 
 /**
@@ -88,19 +89,6 @@ actual fun Buffer.copyTo(
 
     // we need to make a copy to prevent moving position
     buffer.duplicate().get(destination, destinationOffset, length)
-}
-
-/**
- * Copies bytes from this buffer range from the specified [offset] and [length]
- * to the [destination] at [destinationOffset].
- */
-actual fun Buffer.copyTo(
-    destination: ByteArray,
-    offset: Long,
-    length: Int,
-    destinationOffset: Int
-) {
-    copyTo(destination, offset.toIntOrFail("offset"), length, destinationOffset)
 }
 
 /**
@@ -170,13 +158,6 @@ private inline fun ByteBuffer.suppressNullCheck(): ByteBuffer {
 
 internal fun ByteBuffer.sliceSafe(offset: Int, length: Int): ByteBuffer {
     return myDuplicate().apply { position(offset); limit((offset + length)) }.mySlice()
-}
-
-/**
- * Fill buffer range starting at the specified [offset] with [value] repeated [count] times.
- */
-actual fun Buffer.fill(offset: Long, count: Long, value: Byte) {
-    fill(offset.toIntOrFail("offset"), count.toIntOrFail("count"), value)
 }
 
 /**

@@ -20,20 +20,6 @@ actual fun Buffer.loadShortArray(
 }
 
 /**
- * Copies shorts integers from this buffer range from the specified [offset] and [count]
- * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
- * @param destinationOffset items
- */
-actual fun Buffer.loadShortArray(
-    offset: Long,
-    destination: ShortArray,
-    destinationOffset: Int,
-    count: Int
-) {
-    loadShortArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
-}
-
-/**
  * Copies regular integers from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
@@ -52,20 +38,6 @@ actual fun Buffer.loadIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Buffer.loadIntArray(
-    offset: Long,
-    destination: IntArray,
-    destinationOffset: Int,
-    count: Int
-) {
-    loadIntArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
-}
-
-/**
- * Copies regular integers from this buffer range from the specified [offset] and [count]
- * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
- * @param destinationOffset items
- */
 actual fun Buffer.loadLongArray(
     offset: Int,
     destination: LongArray,
@@ -73,20 +45,6 @@ actual fun Buffer.loadLongArray(
     count: Int
 ) {
     buffer.withOffset(offset).asLongBuffer().get(destination, destinationOffset, count)
-}
-
-/**
- * Copies regular integers from this buffer range from the specified [offset] and [count]
- * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
- * @param destinationOffset items
- */
-actual fun Buffer.loadLongArray(
-    offset: Long,
-    destination: LongArray,
-    destinationOffset: Int,
-    count: Int
-) {
-    loadLongArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
 }
 
 /**
@@ -108,20 +66,6 @@ actual fun Buffer.loadFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Buffer.loadFloatArray(
-    offset: Long,
-    destination: FloatArray,
-    destinationOffset: Int,
-    count: Int
-) {
-    loadFloatArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
-}
-
-/**
- * Copies floating point numbers from this buffer range from the specified [offset] and [count]
- * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
- * @param destinationOffset items
- */
 actual fun Buffer.loadDoubleArray(
     offset: Int,
     destination: DoubleArray,
@@ -129,20 +73,6 @@ actual fun Buffer.loadDoubleArray(
     count: Int
 ) {
     buffer.withOffset(offset).asDoubleBuffer().get(destination, destinationOffset, count)
-}
-
-/**
- * Copies floating point numbers from this buffer range from the specified [offset] and [count]
- * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
- * @param destinationOffset items
- */
-actual fun Buffer.loadDoubleArray(
-    offset: Long,
-    destination: DoubleArray,
-    destinationOffset: Int,
-    count: Int
-) {
-    loadDoubleArray(offset.toIntOrFail("offset"), destination, destinationOffset, count)
 }
 
 /**
@@ -157,20 +87,6 @@ actual fun Buffer.storeShortArray(
     count: Int
 ) {
     buffer.withOffset(offset).asShortBuffer().put(source, sourceOffset, count)
-}
-
-/**
- * Copies shorts integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
- * interpreting numbers in the network order (Big Endian).
- * @param sourceOffset items
- */
-actual fun Buffer.storeShortArray(
-    offset: Long,
-    source: ShortArray,
-    sourceOffset: Int,
-    count: Int
-) {
-    storeShortArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
 }
 
 /**
@@ -192,20 +108,6 @@ actual fun Buffer.storeIntArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Buffer.storeIntArray(
-    offset: Long,
-    source: IntArray,
-    sourceOffset: Int,
-    count: Int
-) {
-    storeIntArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
-}
-
-/**
- * Copies regular integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
- * interpreting numbers in the network order (Big Endian).
- * @param sourceOffset items
- */
 actual fun Buffer.storeLongArray(
     offset: Int,
     source: LongArray,
@@ -213,20 +115,6 @@ actual fun Buffer.storeLongArray(
     count: Int
 ) {
     buffer.withOffset(offset).asLongBuffer().put(source, sourceOffset, count)
-}
-
-/**
- * Copies regular integers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
- * interpreting numbers in the network order (Big Endian).
- * @param sourceOffset items
- */
-actual fun Buffer.storeLongArray(
-    offset: Long,
-    source: LongArray,
-    sourceOffset: Int,
-    count: Int
-) {
-    storeLongArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
 }
 
 /**
@@ -248,20 +136,6 @@ actual fun Buffer.storeFloatArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Buffer.storeFloatArray(
-    offset: Long,
-    source: FloatArray,
-    sourceOffset: Int,
-    count: Int
-) {
-    storeFloatArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
-}
-
-/**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
- * interpreting numbers in the network order (Big Endian).
- * @param sourceOffset items
- */
 actual fun Buffer.storeDoubleArray(
     offset: Int,
     source: DoubleArray,
@@ -271,18 +145,5 @@ actual fun Buffer.storeDoubleArray(
     buffer.withOffset(offset).asDoubleBuffer().put(source, sourceOffset, count)
 }
 
-/**
- * Copies floating point numbers from from the [source] array at [sourceOffset] to this buffer at the specified [offset]
- * interpreting numbers in the network order (Big Endian).
- * @param sourceOffset items
- */
-actual fun Buffer.storeDoubleArray(
-    offset: Long,
-    source: DoubleArray,
-    sourceOffset: Int,
-    count: Int
-) {
-    storeDoubleArray(offset.toIntOrFail("offset"), source, sourceOffset, count)
-}
 
 private inline fun ByteBuffer.withOffset(offset: Int): ByteBuffer = duplicate()!!.apply { position(offset) }

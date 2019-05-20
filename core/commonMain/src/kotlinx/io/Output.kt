@@ -19,6 +19,19 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     fun writeLong(value: Long) {
         writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }, { value })
     }
+    
+    fun writeByte(value: Byte) {
+        writePrimitive(1, { buffer, offset -> buffer.storeByteAt(offset, value) }, { value.toLong() })
+    }
+    
+    fun writeUByte(value: UByte) {
+        writePrimitive(1, { buffer, offset -> buffer.storeByteAt(offset, value) }, { value.toLong() })
+    }
+    
+    fun writeArray(array: UByteArray) {
+        for (byte in array)
+            writeUByte(byte)
+    }
 
     private inline fun writePrimitive(
         primitiveSize: Int,

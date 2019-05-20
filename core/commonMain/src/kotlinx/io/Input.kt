@@ -2,6 +2,9 @@ package kotlinx.io
 
 import kotlinx.io.buffer.*
 
+private const val stateSourceEOFMask = 0x1
+private const val stateSourceFailureMask = 0x2
+
 abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
 
     internal constructor(bytes: Bytes) : this() {
@@ -15,6 +18,9 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
 
     private val allocator = SingleBufferAllocator(bufferSize)
 
+    // Current state of the input
+    private var state: Int = 0
+
     // Current buffer 
     private var buffer: Buffer = allocator.allocate()
 
@@ -24,10 +30,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     // Current filled number of bytes in [buffer]
     private var limit: Int = 0
 
-    // TODO: implement manual list management with Array<Buffer> and IntArray
-    // assume we normally preview at most 1 buffer ahead, so may be consider Any? for Buffer and Array<Buffer> here
-    private var previewIndex: BytesPointer =
-        Bytes.InvalidPointer // positive values mean replay mode, -1 means discard mode, MIN_VALUE means no preview
+    private var previewIndex: BytesPointer = Bytes.InvalidPointer
     private var previewBytes: Bytes? = null
 
     fun readLong(): Long =
@@ -60,9 +63,10 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     fun readFloat(): Float =
         readPrimitive(4, { buffer, offset -> buffer.loadFloatAt(offset) }, { Float.fromBits(it.toInt()) })
 
-    fun readBuffer(reader: (Buffer, offset: Int, size: Int) -> Int) : Int {
+    internal inline fun readBuffer(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
         if (position == limit) {
-            fetchBuffer()
+            if (fetchBuffer() == 0)
+                throw EndOfFileException()
         }
         val consumed = reader(buffer, position, limit - position)
         position += consumed
@@ -76,6 +80,8 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     ): T {
         val offset = position
         val targetLimit = offset + primitiveSize
+        
+        // TODO: fetchExpand can signal EOF
         if (limit >= targetLimit || fetchExpand(targetLimit)) {
             position = targetLimit
             return readDirect(buffer, offset)
@@ -85,7 +91,8 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
             // current buffer exhausted, we cannot expand data in this buffer, 
             // and we also don't have bytes left to be read
             // so we should fetch new buffer of data and may be read entire primitive
-            fetchBuffer()
+            if (fetchBuffer() == 0)
+                throw EndOfFileException()
             // we know we are at zero position here
             if (limit >= primitiveSize) {
                 position = primitiveSize
@@ -102,8 +109,11 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     private inline fun fetchBytes(length: Int, consumer: (byte: Byte) -> Unit) {
         var remaining = length
         while (remaining > 0) {
-            if (position == limit)
-                fetchBuffer()
+            if (position == limit) {
+                if (fetchBuffer() == 0) {
+                    throw EndOfFileException()
+                }
+            }
 
             consumer(buffer[position++])
             remaining--
@@ -123,8 +133,10 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         while (currentLimit < targetLimit) {
             val fetched = fill(currentBuffer, currentLimit, currentSize - currentLimit)
             logln { "PGE: Loaded [$fetched]" }
-            if (fetched == 0)
-                throw Exception("EOF")
+            if (fetched == 0) {
+                // TODO: set EOF
+                return false
+            }
             currentLimit += fetched
         }
 
@@ -177,7 +189,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         return result
     }
 
-    private fun fetchBuffer() {
+    private fun fetchBuffer(): Int {
         if (position != limit) {
             // trying to fetch a buffer when previous buffer was not exhausted is an internal error
             throw UnsupportedOperationException("Throwing bytes")
@@ -213,7 +225,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
                 }
                 position = 0
                 logln { "PVW: Finished @$oldLimit, using prefetched buffer, $position/$limit" }
-                return
+                return limit
             }
         }
 
@@ -229,27 +241,25 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
             }
 
             logln { "PVW: Preview #$previewIndex, using prefetched buffer, $position/$limit" }
-            return
+            return limit
         }
 
         // here we are in a preview operation, but don't have any prefetched buffers ready
         // so we need to save current one and fill some more data
 
         logln { "PVW: Preview #$previewIndex, saved buffer, $position/$limit" }
-        fillBuffer(allocator.allocate())
+        val fetched = fillBuffer(allocator.allocate())
         bytes.append(buffer, limit)
         logln { "PVW: Preview #$previewIndex, filled buffer, $position/$limit" }
+        return fetched
     }
 
-    private fun fillBuffer(buffer: Buffer) {
+    private fun fillBuffer(buffer: Buffer): Int {
         val fetched = fill(buffer, 0, buffer.size)
-        logln { "PG: Loaded [$fetched]" }
-        if (fetched == 0)
-            throw Exception("EOF")
-
         limit = fetched
         position = 0
         this.buffer = buffer
+        return fetched
     }
 
     /**

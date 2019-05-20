@@ -1,5 +1,5 @@
 @file:JvmName("ByteOrderJVMKt")
-package kotlinx.io
+package kotlinx.io.buffer
 
 /**
  * Reverse number's byte order
