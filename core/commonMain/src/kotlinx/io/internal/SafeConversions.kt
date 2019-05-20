@@ -2,14 +2,10 @@ package kotlinx.io.internal
 
 @PublishedApi
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun Long.toIntOrFail(name: String): Int {
-    if (this >= Int.MAX_VALUE)
-        failLongToIntConversion(this, name) // TODO: any reason to extract this to a single-use function?
-    return toInt()
-}
+@Deprecated("Use function with lambda for name", replaceWith = ReplaceWith("toIntOrFail { name }"))
+internal inline fun Long.toIntOrFail(name: String): Int = toIntOrFail { name }
 
 @PublishedApi
-@Suppress("NOTHING_TO_INLINE")
 internal inline fun Long.toIntOrFail(name: () -> String): Int {
     if (this >= Int.MAX_VALUE)
         failLongToIntConversion(this, name()) // TODO: any reason to extract this to a single-use function?

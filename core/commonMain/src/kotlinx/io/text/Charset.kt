@@ -1,7 +1,5 @@
 package kotlinx.io.text
 
-import kotlinx.io.*
-
 expect abstract class Charset {
     abstract fun newEncoder(): CharsetEncoder
     abstract fun newDecoder(): CharsetDecoder

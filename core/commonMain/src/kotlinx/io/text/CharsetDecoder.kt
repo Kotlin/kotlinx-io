@@ -1,7 +1,5 @@
 package kotlinx.io.text
 
-import kotlinx.io.*
-
 expect abstract class CharsetDecoder
 
 /**

@@ -6,7 +6,7 @@ import kotlin.test.*
 
 class DecodeUTF8Test {
     @Test
-    fun `Decode UTF8 algorithm`() {
+    fun decodeUtf8FromBuffer() {
         val expected = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
         val content = ubyteArrayOf(
             0x66u,0x69u,0x6cu,0x65u,0x20u,0x63u,0x6fu,0x6eu,0x74u,0x65u,0x6eu,0x74u,0x20u,

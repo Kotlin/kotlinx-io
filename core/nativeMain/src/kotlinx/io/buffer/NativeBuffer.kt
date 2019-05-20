@@ -17,7 +17,6 @@ actual class Buffer constructor(val pointer: CPointer<ByteVar>, actual inline va
      */
     actual inline fun loadByteAt(index: Int): Byte = pointer[assertIndex(index, 1)]
 
-
     /**
      * Write [value] at the specified [index].
      */

@@ -12,7 +12,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun `Preview from the beginning`() = withInput {
+    fun previewFromTheBeginning() = withInput {
         preview {
             assertReadLong(0x0001020304050607)
             assertReadLong(0x08090A0B0C0D0E0F)
@@ -23,7 +23,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun `Preview after read`() = withInput {
+    fun previewAfterRead() = withInput {
         assertReadLong(0x0001020304050607)
         preview {
             assertReadLong(0x08090A0B0C0D0E0F)
@@ -33,7 +33,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun `Preview nested`() = withInput {
+    fun previewNested() = withInput {
         assertReadLong(0x0001020304050607)
         preview {
             assertReadLong(0x08090A0B0C0D0E0F)
@@ -47,7 +47,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun `Preview sequential`() = withInput {
+    fun previewSequential() = withInput {
         assertReadLong(0x0001020304050607)
         preview {
             assertReadLong(0x08090A0B0C0D0E0F)
@@ -60,7 +60,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun `Preview sequential longer`() = withInput {
+    fun previewSequentialLonger() = withInput {
         preview {
             assertReadLong(0x0001020304050607)
             assertReadLong(0x08090A0B0C0D0E0F)

@@ -3,42 +3,43 @@ package kotlinx.io.tests.buffer
 import kotlinx.io.buffer.*
 import kotlin.test.*
 
+// TODO: Unify IndexOutOfBoundsException and JS RangeError
 class BufferTest {
     @Test
-    fun `Empty buffer size is zero`() {
+    fun emptyBufferSizeIsZero() {
         assertEquals(Buffer.Empty.size, 0)
     }
 
     @Test
-    fun `Empty buffer throws on read`() {
-        assertFailsWith<IndexOutOfBoundsException> {
+    fun emptyBufferThrowsOnLoad() {
+        assertFailsWith<Throwable> {
             Buffer.Empty[0]
         }
-        assertFailsWith<IndexOutOfBoundsException> {
+        assertFailsWith<Throwable> {
             Buffer.Empty.loadDoubleAt(0)
         }
     }
 
     @Test
-    fun `Empty buffer throws on write`() {
-        assertFailsWith<IndexOutOfBoundsException> {
+    fun emptyBufferThrowsOnStore() {
+        assertFailsWith<Throwable> {
             Buffer.Empty[0] = 1
         }
-        assertFailsWith<IndexOutOfBoundsException> {
+        assertFailsWith<Throwable> {
             Buffer.Empty.storeDoubleAt(0, 0.0)
         }
     }
 
     @Test
-    fun `Allocate buffer of the specific size`() {
+    fun allocateBufferOfSpecificSize() {
         val buffer = PlatformBufferAllocator.allocate(12)
         assertEquals(buffer.size, 12)
     }
 
     @Test
-    fun `Write and read primitives in the allocated buffer`() {
+    fun storeAndLoadPrimitives() {
         val buffer = PlatformBufferAllocator.allocate(8)
-        assertFailsWith<IndexOutOfBoundsException> {
+        assertFailsWith<Throwable> {
             buffer.storeLongAt(8, 123456789L)
         }
         // TODO: test all primitives
@@ -51,7 +52,7 @@ class BufferTest {
     // TODO: test all primitive arrays
 
     @Test
-    fun `Write and copy buffer and then read from it`() {
+    fun storeCopyAndLoadPrimitives() {
         val buffer1 = PlatformBufferAllocator.allocate(8)
         val buffer2 = PlatformBufferAllocator.allocate(8)
         val value = 123451234567890L.also { buffer1.storeLongAt(0, it) }

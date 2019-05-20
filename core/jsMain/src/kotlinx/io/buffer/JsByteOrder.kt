@@ -2,6 +2,24 @@
 
 package kotlinx.io.buffer
 
+import org.khronos.webgl.*
+
+actual enum class ByteOrder {
+    BIG_ENDIAN, LITTLE_ENDIAN;
+
+    actual companion object {
+        actual val native: ByteOrder = run {
+            val buffer = ArrayBuffer(4)
+            val arr = Int32Array(buffer)
+            val view = DataView(buffer)
+
+            arr[0] = 0x11223344
+
+            if (view.getInt32(0, true) == 0x11223344) LITTLE_ENDIAN else BIG_ENDIAN
+        }
+    }
+}
+
 /**
  * Reverse number's byte order
  */

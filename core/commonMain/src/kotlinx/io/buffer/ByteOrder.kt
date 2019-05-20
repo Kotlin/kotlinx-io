@@ -2,6 +2,14 @@ package kotlinx.io.buffer
 
 import kotlinx.io.*
 
+expect enum class ByteOrder {
+    BIG_ENDIAN, LITTLE_ENDIAN;
+
+    companion object {
+        val native : ByteOrder
+    }
+}
+
 /**
  * Reverse number's byte order
  */

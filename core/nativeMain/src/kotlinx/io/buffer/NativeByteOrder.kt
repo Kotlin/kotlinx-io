@@ -2,6 +2,21 @@
 
 package kotlinx.io.buffer
 
+import kotlinx.cinterop.*
+
+actual enum class ByteOrder {
+    BIG_ENDIAN, LITTLE_ENDIAN;
+
+    actual companion object {
+        actual val native: ByteOrder = memScoped {
+            val i = alloc<IntVar>()
+            i.value = 1
+            val bytes = i.reinterpret<ByteVar>()
+            if (bytes.value == 0.toByte()) BIG_ENDIAN else LITTLE_ENDIAN
+        }
+    }
+}
+
 /**
  * Reverse number's byte order
  */

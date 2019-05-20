@@ -5,8 +5,8 @@ import kotlin.test.*
 
 class OutputTest {
     @Test
-    fun `Build bytes`() {
-        val bytes = buildBytes { 
+    fun buildBytes() {
+        val bytes = buildBytes {
             writeLong(0x0001020304050607)
             writeLong(0x08090A0B0C0D0E0F)
         }
