@@ -30,6 +30,8 @@ class Bytes {
     internal inline fun isAfterLast(index: BytesPointer) =
         index >= buffers.size
 
+    fun size() : Int = limits.sum()
+    
     fun asInput(): Input {
         return object: Input(this) {
             override fun close() {}

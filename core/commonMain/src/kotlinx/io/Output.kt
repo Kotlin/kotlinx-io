@@ -15,22 +15,55 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     private var flushed: Int = 0
 
     protected abstract fun flush(source: Buffer, length: Int): Int
-
-    fun writeLong(value: Long) {
-        writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }, { value })
-    }
     
     fun writeByte(value: Byte) {
         writePrimitive(1, { buffer, offset -> buffer.storeByteAt(offset, value) }, { value.toLong() })
     }
-    
+
     fun writeUByte(value: UByte) {
-        writePrimitive(1, { buffer, offset -> buffer.storeByteAt(offset, value) }, { value.toLong() })
+        writePrimitive(1, { buffer, offset -> buffer.storeUByteAt(offset, value) }, { value.toLong() })
     }
-    
+
+    fun writeShort(value: Short) {
+        writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }, { value.toLong() })
+    }
+
+    fun writeUShort(value: UShort) {
+        writePrimitive(2, { buffer, offset -> buffer.storeUShortAt(offset, value) }, { value.toLong() })
+    }
+
+    fun writeInt(value: Int) {
+        writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }, { value.toLong() })
+    }
+
+    fun writeUInt(value: UInt) {
+        writePrimitive(4, { buffer, offset -> buffer.storeUIntAt(offset, value) }, { value.toLong() })
+    }
+
+    fun writeLong(value: Long) {
+        writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }, { value.toLong() })
+    }
+
+    fun writeULong(value: ULong) {
+        writePrimitive(8, { buffer, offset -> buffer.storeULongAt(offset, value) }, { value.toLong() })
+    }
+
+    fun writeFloat(value: Float) {
+        writePrimitive(4, { buffer, offset -> buffer.storeFloatAt(offset, value) }, { value.toBits().toLong() })
+    }
+
+    fun writeDouble(value: Double) {
+        writePrimitive(8, { buffer, offset -> buffer.storeDoubleAt(offset, value) }, { value.toBits() })
+    }
+
     fun writeArray(array: UByteArray) {
         for (byte in array)
             writeUByte(byte)
+    }
+
+    fun writeArray(array: ByteArray) {
+        for (byte in array)
+            writeByte(byte)
     }
 
     private inline fun writePrimitive(
@@ -41,7 +74,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         val offset = position
         val size = buffer.size
         val targetLimit = offset + primitiveSize
-        if (size >= targetLimit ) {
+        if (size >= targetLimit) {
             position = targetLimit
             return writeDirect(buffer, offset)
         }
@@ -61,7 +94,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         // Nope, doesn't fit in a buffer, read byte by byte
         writeBytes(primitiveSize, longValue())
     }
-    
+
     private fun writeBytes(length: Int, value: Long) {
         var remainingValue = value
         var remaining = length

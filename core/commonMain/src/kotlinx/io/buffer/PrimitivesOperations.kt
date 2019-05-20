@@ -11,9 +11,29 @@ import kotlinx.io.internal.*
 inline fun Buffer.loadByteAt(index: Long): Byte = loadByteAt(index.toIntOrFail { "index" })
 
 /**
+ * Returns unsigned byte at [index] position.
+ */
+inline fun Buffer.loadUByteAt(index: Int): UByte = loadByteAt(index).toUByte()
+
+/**
+ * Returns unsigned byte at [index] position.
+ */
+inline fun Buffer.loadUByteAt(index: Long): UByte = loadByteAt(index).toUByte()
+
+/**
  * Write [value] at the specified [index].
  */
 inline fun Buffer.storeByteAt(index: Long, value: Byte) = storeByteAt(index.toIntOrFail { "index" }, value)
+
+/**
+ * Write [value] at the specified [index].
+ */
+inline fun Buffer.storeUByteAt(index: Int, value: UByte) = storeByteAt(index, value.toByte())
+
+/**
+ * Write [value] at the specified [index].
+ */
+inline fun Buffer.storeUByteAt(index: Long, value: UByte) = storeByteAt(index.toIntOrFail { "index" }, value.toByte())
 
 /**
  * Read short signed 16bit integer in the network byte order (Big Endian)

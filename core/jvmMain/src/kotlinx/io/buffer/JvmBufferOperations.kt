@@ -1,10 +1,11 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io.buffer
 
 import kotlinx.io.internal.*
 import java.nio.*
 import java.nio.ByteOrder
 import kotlin.contracts.*
-
 
 /**
  * Copies bytes from this buffer range from the specified [offset] and [length]
@@ -99,7 +100,7 @@ fun Buffer.copyTo(
  * to the [destination] buffer.
  */
 fun Buffer.copyTo(destination: ByteBuffer, offset: Long) {
-    copyTo(destination, offset.toIntOrFail("offset"))
+    copyTo(destination, offset.toIntOrFail { "offset" })
 }
 
 /**

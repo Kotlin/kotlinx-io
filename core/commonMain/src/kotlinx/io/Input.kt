@@ -37,19 +37,19 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         readPrimitive(8, { buffer, offset -> buffer.loadLongAt(offset) }, { it })
 
     fun readULong(): ULong =
-        readPrimitive(8, { buffer, offset -> buffer.loadLongAt(offset).toULong() }, { it.toULong() })
+        readPrimitive(8, { buffer, offset -> buffer.loadULongAt(offset) }, { it.toULong() })
 
     fun readInt(): Int =
         readPrimitive(4, { buffer, offset -> buffer.loadIntAt(offset) }, { it.toInt() })
 
     fun readUInt(): UInt =
-        readPrimitive(4, { buffer, offset -> buffer.loadIntAt(offset).toUInt() }, { it.toUInt() })
+        readPrimitive(4, { buffer, offset -> buffer.loadUIntAt(offset) }, { it.toUInt() })
 
     fun readShort(): Short =
         readPrimitive(2, { buffer, offset -> buffer.loadShortAt(offset) }, { it.toShort() })
 
     fun readUShort(): UShort =
-        readPrimitive(2, { buffer, offset -> buffer.loadShortAt(offset).toUShort() }, { it.toUShort() })
+        readPrimitive(2, { buffer, offset -> buffer.loadUShortAt(offset) }, { it.toUShort() })
 
     fun readByte(): Byte =
         readPrimitive(1, { buffer, offset -> buffer.loadByteAt(offset) }, { it.toByte() })
@@ -103,11 +103,13 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
 
         // Nope, doesn't fit in a buffer, read byte by byte
         var long = 0L
-        fetchBytes(primitiveSize) { long = (long shl 8) or it.toLong() }
+        fetchBytes(primitiveSize) { 
+            long = (long shl 8) or it.toLong() 
+        }
         return fromLong(long)
     }
 
-    private inline fun fetchBytes(length: Int, consumer: (byte: Byte) -> Unit) {
+    private inline fun fetchBytes(length: Int, consumer: (byte: UByte) -> Unit) {
         var remaining = length
         while (remaining > 0) {
             if (position == limit) {
@@ -116,7 +118,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
                 }
             }
 
-            consumer(buffer[position++])
+            consumer(buffer.loadUByteAt(position++))
             remaining--
         }
     }

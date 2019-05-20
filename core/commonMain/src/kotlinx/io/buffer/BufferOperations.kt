@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io.buffer
 
 import kotlinx.io.internal.*
@@ -22,15 +24,6 @@ inline operator fun Buffer.set(index: Long, value: Byte) = storeByteAt(index.toI
  */
 inline operator fun Buffer.set(index: Int, value: Byte) = storeByteAt(index, value)
 
-/**
- * Index write operator to write [value] at the specified [index]
- */
-inline fun Buffer.storeByteAt(index: Long, value: UByte) = storeByteAt(index.toIntOrFail { "index" }, value.toByte())
-
-/**
- * Index write operator to write [value] at the specified [index]
- */
-inline fun Buffer.storeByteAt(index: Int, value: UByte) = storeByteAt(index, value.toByte())
 
 /**
  * Fill buffer range starting at the specified [offset] with [value] repeated [count] times.

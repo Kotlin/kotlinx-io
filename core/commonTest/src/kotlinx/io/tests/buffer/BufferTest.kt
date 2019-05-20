@@ -1,5 +1,6 @@
 package kotlinx.io.tests.buffer
 
+import kotlinx.io.*
 import kotlinx.io.buffer.*
 import kotlin.test.*
 
