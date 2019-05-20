@@ -1,6 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
+import kotlinx.io.text.*
 
 // Based on https://bjoern.hoehrmann.de/utf-8/decoder/dfa/
 // 364 ints
@@ -55,7 +56,7 @@ fun Buffer.decodeUTF8(offset: Int, size: Int, consumer: (Char) -> Boolean): Int 
         when (state) {
             UTF8_STATE_REJECT -> {
                 // TODO: Attempt to recover
-                throw MalformedUTF8InputException("Invalid UTF8 input, current code point $codePoint")
+                malformedInput(codePoint)
             }
             UTF8_STATE_ACCEPT -> when {
                 codePoint ushr 16 == 0 -> {
@@ -72,13 +73,20 @@ fun Buffer.decodeUTF8(offset: Int, size: Int, consumer: (Char) -> Boolean): Int 
                         return index - offset
                 }
                 else -> {
-                    throw MalformedUTF8InputException("Malformed code-point $codePoint found")
+                    malformedInput(codePoint)
                 }
             }
         }
 
     }
     return size
+}
+
+/**
+ * Inline depth optimisation
+ */
+private fun malformedInput(codePoint: Int): Nothing {
+    throw MalformedInputException("Malformed UTF8 input, current code point $codePoint")
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -102,5 +110,3 @@ internal fun codePoint(high: Char, low: Char): Int {
 
     return highValue shl 10 or lowValue
 }
-
-class MalformedUTF8InputException(message: String) : Exception(message)

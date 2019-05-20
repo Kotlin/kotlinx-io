@@ -20,7 +20,7 @@ actual abstract class Charset(internal val _name: String) {
 
 actual val Charset.name: String get() = _name
 
-actual class MalformedInputException actual constructor(message: String) : Throwable(message)
+actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
 
 internal data class CharsetImpl(val name: String) : Charset(name) {
     override fun newEncoder(): CharsetEncoder = CharsetEncoderImpl(this)

@@ -18,16 +18,16 @@ class Bytes {
         limits.removeAt(0)
     }
 
-    inline internal fun pointed(pointer: BytesPointer, consumer: (Buffer, Int) -> Unit) =
+    internal inline fun pointed(pointer: BytesPointer, consumer: (Buffer, Int) -> Unit) =
         consumer(buffers[pointer], limits[pointer])
 
-    inline internal fun advancePointer(pointer: BytesPointer): BytesPointer =
+    internal inline fun advancePointer(pointer: BytesPointer): BytesPointer =
         pointer + 1
 
-    inline internal fun isEmpty() =
+    internal inline fun isEmpty() =
         buffers.isEmpty()
 
-    inline internal fun isAfterLast(index: BytesPointer) =
+    internal inline fun isAfterLast(index: BytesPointer) =
         index >= buffers.size
 
     fun asInput(): Input {

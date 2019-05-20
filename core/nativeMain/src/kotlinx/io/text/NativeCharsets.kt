@@ -10,4 +10,4 @@ actual object Charsets {
 
 private val platformUtf16: String by lazy { if (ByteOrder.native == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE" }
 
-actual class MalformedInputException actual constructor(message: String) : Throwable(message)
+actual open class MalformedInputException actual constructor(message: String) : Throwable(message)

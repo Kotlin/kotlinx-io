@@ -14,7 +14,7 @@ actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
 actual val CharsetDecoder.charset: Charset get() = charset()
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class MalformedInputException actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
+actual open class MalformedInputException actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
     private val _message = message
 
     override val message: String?
