@@ -87,9 +87,3 @@ class InputReadingBenchmark {
         return sum
     }
 }
-
-fun main() {
-    repeat(1000_000) {
-        InputReadingBenchmark().inputPreviewLongs()
-    }
-}
