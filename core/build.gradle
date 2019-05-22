@@ -65,7 +65,7 @@ kotlin {
         commonMain {
             dependencies {
                 api "org.jetbrains.kotlin:kotlin-stdlib"
-                //api "org.jetbrains.kotlinx:atomicfu-common:$atomic_fu_version"
+                api "org.jetbrains.kotlinx:atomicfu-common:$atomic_fu_version"
             }
         }
 
@@ -79,7 +79,7 @@ kotlin {
         jvmMain {
             dependencies {
                 api 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-                //api "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+                api "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
             }
         }
         jvmTest {
@@ -91,7 +91,7 @@ kotlin {
         jsMain {
             dependencies {
                 api 'org.jetbrains.kotlin:kotlin-stdlib-js'
-                //api "org.jetbrains.kotlinx:atomicfu-js:$atomic_fu_version"
+                api "org.jetbrains.kotlinx:atomicfu-js:$atomic_fu_version"
             }
         }
 
@@ -102,7 +102,7 @@ kotlin {
         }
 
         nativeMain.dependencies {
-            //api "org.jetbrains.kotlinx:atomicfu-native:$atomic_fu_version"
+            api "org.jetbrains.kotlinx:atomicfu-native:$atomic_fu_version"
         }
     }
     
