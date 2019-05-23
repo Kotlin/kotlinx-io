@@ -16,13 +16,13 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         }
     }
 
-    private val allocator = SingleBufferAllocator(bufferSize)
+    private val bufferPool = BufferPool(bufferSize)
 
     // Current state of the input
     private var state: Int = 0
 
     // Current buffer 
-    private var buffer: Buffer = allocator.allocate()
+    private var buffer: Buffer = bufferPool.borrow()
 
     // Current position in [buffer]
     private var position: Int = 0
@@ -209,7 +209,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         // no preview operation in progress, but we still have buffers in history, we will free used buffers
         if (previewIndex == -1) {
             // return current buffer
-            allocator.free(buffer)
+            bufferPool.recycle(buffer)
             bytes.discardFirst()
 
             if (bytes.isEmpty()) {
@@ -219,7 +219,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
                 previewBytes = null
 
                 // allocate and fetch a new buffer
-                return fillBuffer(allocator.allocate())
+                return fillBuffer(bufferPool.borrow())
             } else {
                 val oldLimit = limit
                 bytes.pointed(Bytes.StartPointer) { buffer, limit ->
@@ -251,7 +251,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         // so we need to save current one and fill some more data
 
         logln { "PVW: Preview #$previewIndex, saved buffer, $position/$limit" }
-        val fetched = fillBuffer(allocator.allocate())
+        val fetched = fillBuffer(bufferPool.borrow())
         bytes.append(buffer, limit)
         logln { "PVW: Preview #$previewIndex, filled buffer, $position/$limit" }
         return fetched

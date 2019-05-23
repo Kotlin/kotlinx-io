@@ -3,10 +3,10 @@ package kotlinx.io
 import kotlinx.io.buffer.*
 
 abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
-    private val allocator = SingleBufferAllocator(bufferSize)
+    private val bufferPool = BufferPool(bufferSize)
 
     // Current buffer 
-    private var buffer: Buffer = allocator.allocate()
+    private var buffer: Buffer = bufferPool.borrow()
 
     // Current position in [buffer]
     private var position: Int = 0
@@ -114,7 +114,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
 
     private fun flushBuffer() {
         flush(buffer, position)
-        buffer = allocator.allocate()
+        buffer = bufferPool.borrow()
         position = 0
         flushed = 0
     }

@@ -1,5 +1,7 @@
 package kotlinx.io.buffer
 
+import kotlinx.io.pool.*
+
 interface BufferAllocator {
     fun allocate(size: Int): Buffer
 
@@ -9,20 +11,13 @@ interface BufferAllocator {
 expect object PlatformBufferAllocator : BufferAllocator
 
 internal const val DEFAULT_BUFFER_SIZE: Int = 1024
+internal const val DEFAULT_POOL_CAPACITY: Int = 16
 
-internal class SingleBufferAllocator(
+internal class BufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
     private val source: BufferAllocator = PlatformBufferAllocator
-) {
-    private var free: Buffer? = null
-
-    fun allocate(): Buffer {
-        val buffer = free ?: source.allocate(bufferSize)
-        free = null
-        return buffer
-    }
-
-    fun free(instance: Buffer) {
-        free = instance
+) : DefaultPool<Buffer>(DEFAULT_POOL_CAPACITY) {
+    override fun produceInstance(): Buffer {
+        return source.allocate(bufferSize)
     }
 }
