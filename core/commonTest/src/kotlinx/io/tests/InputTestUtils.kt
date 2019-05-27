@@ -24,7 +24,7 @@ fun sequentialInfiniteInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE
     }
 }
 
-fun sequentialLimitedInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE, bytes: Int, seed : Long = 0L) =
+fun sequentialLimitedInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE, bytes: Int, seed: Long = 0L) =
     object : Input(bufferSize) {
         private var value = seed
         private var bytesLeft = bytes

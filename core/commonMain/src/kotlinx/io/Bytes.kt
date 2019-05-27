@@ -48,11 +48,11 @@ class Bytes {
 
 }
 
-fun buildBytes(builder: Output.()->Unit) : Bytes {
-    return BytesOutput().apply(builder).bytes()
+fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.()->Unit) : Bytes {
+    return BytesOutput(bufferSize).apply(builder).bytes()
 }
 
-class BytesOutput : Output() {
+class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(bufferSize) {
     private val bytes = Bytes()
 
     fun bytes(): Bytes {

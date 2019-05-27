@@ -16,7 +16,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         }
     }
 
-    private val bufferPool = BufferPool(bufferSize)
+    private val bufferPool = DefaultBufferPool(bufferSize)
 
     // Current state of the input
     private var state: Int = 0
@@ -63,6 +63,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     fun readFloat(): Float =
         readPrimitive(4, { buffer, offset -> buffer.loadFloatAt(offset) }, { Float.fromBits(it.toInt()) })
 
+    // Dangerous to use, if non-local return then position will not be updated
     internal inline fun readBuffer(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
         if (position == limit) {
             if (fetchBuffer() == 0)

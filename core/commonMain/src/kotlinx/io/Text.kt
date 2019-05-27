@@ -41,7 +41,44 @@ private inline fun IntArray.decodeUTF8Byte(
     update(newState, newCode)
 }
 
-fun Buffer.decodeUTF8(offset: Int, size: Int, consumer: (Char) -> Boolean): Int {
+internal inline fun Input.decodeUTF8(consumer: (Int) -> Boolean) {
+    val stateMachine = utf8StateMachine
+    var state = UTF8_STATE_ACCEPT
+    var codePoint = 0
+
+    while (state >= 0) {
+        readBuffer { buffer, offset, size ->
+            for (index in offset until offset + size) {
+                val byte = buffer.loadByteAt(index).toInt() and 0xff
+                stateMachine.decodeUTF8Byte(byte, state, codePoint) { s, c ->
+                    state = s
+                    codePoint = c
+                }
+
+                // TODO: Attempt to recover from bad states
+                when (state) {
+                    UTF8_STATE_ACCEPT -> when {
+                        codePoint <= MaxCodePoint -> {
+                            val giveMeMore = consumer(codePoint)
+                            if (!giveMeMore) {
+                                state = -1 // signal to exit loop
+                                return@readBuffer index - offset
+                            }
+                        }
+                        else -> malformedInput(codePoint)
+                    }
+                    UTF8_STATE_REJECT -> malformedInput(codePoint)
+                    else -> {
+                        /* need more bytes to read the code point */
+                    }
+                }
+            }
+            size
+        }
+    }
+}
+
+fun Buffer.decodeUTF8(offset: Int, size: Int, consumer: (Int) -> Boolean): Int {
     val stateMachine = utf8StateMachine
     var state = UTF8_STATE_ACCEPT
     var codePoint = 0
@@ -53,33 +90,62 @@ fun Buffer.decodeUTF8(offset: Int, size: Int, consumer: (Char) -> Boolean): Int 
             codePoint = c
         }
 
+        // TODO: Attempt to recover from bad states
         when (state) {
-            UTF8_STATE_REJECT -> {
-                // TODO: Attempt to recover
-                malformedInput(codePoint)
-            }
             UTF8_STATE_ACCEPT -> when {
-                codePoint ushr 16 == 0 -> {
-                    val ok = consumer(codePoint.toChar())
-                    if (!ok)
-                        return index - offset
-
-                }
                 codePoint <= MaxCodePoint -> {
-                    val high = highSurrogate(codePoint).toChar()
-                    val low = lowSurrogate(codePoint).toChar()
-                    val ok = consumer(high) && consumer(low)
-                    if (!ok)
+                    val giveMeMore = consumer(codePoint)
+                    if (!giveMeMore)
                         return index - offset
                 }
-                else -> {
-                    malformedInput(codePoint)
-                }
+                else -> malformedInput(codePoint)
+            }
+            UTF8_STATE_REJECT -> malformedInput(codePoint)
+            else -> { /* need more bytes to read the code point */
             }
         }
-
     }
     return size
+}
+
+internal inline fun Buffer.decodeUTF8Chars(offset: Int, size: Int, crossinline consumer: (Char) -> Boolean): Int {
+    return decodeUTF8(offset, size) { codePoint -> consumeChar(codePoint, consumer) }
+}
+
+internal inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
+    decodeUTF8 { codePoint -> consumeChar(codePoint, consumer) }
+}
+
+/*
+internal inline fun consumeChar(codePoint: Int, consumer: (Char) -> Boolean): Boolean {
+    val singleUnit = (codePoint ushr 16) == 0
+    val first = if (singleUnit) codePoint else highSurrogate(codePoint)
+    if (!consumer(first.toChar()))
+        return false
+    if (singleUnit) 
+        return true
+    val low = lowSurrogate(codePoint).toChar()
+    return consumer(low)
+}
+ */
+
+internal inline fun consumeChar(codePoint: Int, consumer: (Char) -> Boolean) = when {
+    codePoint ushr 16 == 0 -> consumer(codePoint.toChar())
+    else -> {
+        val high = highSurrogate(codePoint).toChar()
+        val low = lowSurrogate(codePoint).toChar()
+        consumer(high) && consumer(low)
+    }
+}
+
+fun Input.readUTF8StringUntilDelimiterTo(out: Appendable, delimiter: Char) =
+    decodeUTF8Chars {
+        out.append(it)
+        it != delimiter
+    }
+
+fun Input.readUTF8StringUntilDelimiter(delimiter: Char) = buildString {
+    readUTF8StringUntilDelimiterTo(this, delimiter)
 }
 
 /**
