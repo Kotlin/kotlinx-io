@@ -73,6 +73,16 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         position += consumed
         return consumed
     }
+    
+    internal inline fun readBuffer2(reader: (Buffer, startOffset: Int, endOffset: Int) -> Int): Int {
+        if (position == limit) {
+            if (fetchBuffer() == 0)
+                throw EOFException("End of file while reading buffer")
+        }
+        val consumed = reader(buffer, position, limit)
+        position += consumed
+        return consumed
+    }
 
     private inline fun <T> readPrimitive(
         primitiveSize: Int,

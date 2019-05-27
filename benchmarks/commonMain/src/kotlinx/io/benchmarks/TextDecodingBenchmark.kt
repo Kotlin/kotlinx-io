@@ -2,10 +2,13 @@ package kotlinx.io.benchmarks
 
 import kotlinx.io.*
 import org.jetbrains.gradle.benchmarks.*
+import kotlin.math.*
 
 @State(Scope.Benchmark)
 class TextDecodingBenchmark {
     private val expected = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç."
+    private val length = expected.length
+    
     // @formatter:off
     private val content = ubyteArrayOf(
         0x66u,0x69u,0x6cu,0x65u,0x20u,0x63u,0x6fu,0x6eu,0x74u,0x65u,0x6eu,0x74u,0x20u,
@@ -21,11 +24,24 @@ class TextDecodingBenchmark {
     }
 
     @Benchmark
-    fun inputText(): String {
+    fun inputTextUntil(): String {
         val input = bytes.asInput()
         val text = input.readUTF8StringUntilDelimiter('.')
+/*
         if (text != expected)
             throw IllegalStateException("Invalid outcome")
+*/
+        return text
+    }
+    
+    @Benchmark
+    fun inputText(): String {
+        val input = bytes.asInput()
+        val text = input.readUTF8String(length)
+/*
+        if (text != expected)
+            throw IllegalStateException("Invalid outcome")
+*/
         return text
     }
 }

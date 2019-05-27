@@ -20,24 +20,16 @@ class DecodeUTF8Test {
     // @formatter:on
     
     @Test
-    fun decodeUtf8FromBuffer() {
-        val buffer = PlatformBufferAllocator.allocate(1024)
-        buffer.storeUByteArray(0, content)
-        val result = buildString {
-            assertEquals(content.size, buffer.decodeUTF8Chars(0, content.size) { append(it); true })
-        }
-
+    fun decodeUtf8FromInputUntil() = bufferSizes.forEach { size ->
+        val input = buildBytes(size) { writeArray(content) }.asInput()
+        val result = input.readUTF8StringUntilDelimiter('.')
         assertEquals(expected, result)
     }
-
+    
     @Test
     fun decodeUtf8FromInput() = bufferSizes.forEach { size ->
-        val input = buildBytes(size) {
-            writeArray(content)
-        }.asInput()
-
-        val result = input.readUTF8StringUntilDelimiter('.')
-
+        val input = buildBytes(size) { writeArray(content) }.asInput()
+        val result = input.readUTF8String(expected.length)
         assertEquals(expected, result)
     }
 }
