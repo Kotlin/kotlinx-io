@@ -18,8 +18,10 @@ class Bytes {
         limits.removeAt(0)
     }
 
-    internal inline fun pointed(pointer: BytesPointer, consumer: (Buffer, Int) -> Unit) =
-        consumer(buffers[pointer], limits[pointer])
+    internal inline fun pointed(pointer: BytesPointer, consumer: (Int) -> Unit): Buffer {
+        consumer(limits[pointer])
+        return buffers[pointer]
+    }
 
     internal inline fun advancePointer(pointer: BytesPointer): BytesPointer =
         pointer + 1
@@ -30,10 +32,10 @@ class Bytes {
     internal inline fun isAfterLast(index: BytesPointer) =
         index >= buffers.size
 
-    fun size() : Int = limits.sum()
-    
+    fun size(): Int = limits.sum()
+
     fun asInput(): Input {
-        return object: Input(this) {
+        return object : Input(this) {
             override fun close() {}
             override fun fill(destination: Buffer, offset: Int, length: Int): Int = 0
         }
@@ -48,7 +50,7 @@ class Bytes {
 
 }
 
-fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.()->Unit) : Bytes {
+fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit): Bytes {
     return BytesOutput(bufferSize).apply(builder).bytes()
 }
 
@@ -59,7 +61,7 @@ class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(bufferSize) {
         close()
         return bytes
     }
-    
+
     override fun flush(source: Buffer, length: Int): Int {
         bytes.append(source, length)
         return length

@@ -12,6 +12,10 @@ internal class DefaultBufferPool(
     override fun produceInstance(): Buffer {
         return source.allocate(bufferSize)
     }
+    
+    companion object {
+        val instance = DefaultBufferPool()
+    }
 }
 
 internal class DirectAllocationBufferPool(

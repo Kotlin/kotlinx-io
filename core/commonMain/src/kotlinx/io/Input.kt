@@ -5,32 +5,34 @@ import kotlinx.io.buffer.*
 private const val stateSourceEOFMask = 0x1
 private const val stateSourceFailureMask = 0x2
 
-abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
-
-    internal constructor(bytes: Bytes) : this() {
-        previewBytes = bytes
-        previewIndex = Bytes.StartPointer // replay, not consume
-        bytes.pointed(Bytes.StartPointer) { buffer, limit ->
-            this.buffer = buffer
-            this.limit = limit
-        }
-    }
-
-    private val bufferPool = DefaultBufferPool(bufferSize)
-
-    // Current state of the input
-    private var state: Int = 0
+abstract class Input : Closeable {
+    private val bufferPool: DefaultBufferPool
 
     // Current buffer 
-    private var buffer: Buffer = bufferPool.borrow()
+    private var buffer: Buffer
 
     // Current position in [buffer]
-    private var position: Int = 0
+    var position: Int = 0
 
     // Current filled number of bytes in [buffer]
     private var limit: Int = 0
 
-    private var previewIndex: BytesPointer = Bytes.InvalidPointer
+    public constructor(bufferSize: Int = DEFAULT_BUFFER_SIZE) {
+        this.bufferPool = DefaultBufferPool(bufferSize)
+        this.buffer = bufferPool.borrow()
+        this.previewIndex = Bytes.InvalidPointer
+    }
+
+    internal constructor(bytes: Bytes) {
+        this.bufferPool = DefaultBufferPool.instance
+        previewBytes = bytes
+        previewIndex = Bytes.StartPointer // replay, not consume
+        this.buffer = bytes.pointed(Bytes.StartPointer) { limit ->
+            this.limit = limit
+        }
+    }
+
+    private var previewIndex: BytesPointer
     private var previewBytes: Bytes? = null
 
     fun readLong(): Long =
@@ -63,8 +65,8 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     fun readFloat(): Float =
         readPrimitive(4, { buffer, offset -> buffer.loadFloatAt(offset) }, { Float.fromBits(it.toInt()) })
 
-    // Dangerous to use, if non-local return then position will not be updated
-    internal inline fun readBuffer(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
+    // TODO: Dangerous to use, if non-local return then position will not be updated
+    internal inline fun readBufferLength(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
         if (position == limit) {
             if (fetchBuffer() == 0)
                 throw EOFException("End of file while reading buffer")
@@ -73,15 +75,19 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         position += consumed
         return consumed
     }
-    
-    internal inline fun readBuffer2(reader: (Buffer, startOffset: Int, endOffset: Int) -> Int): Int {
-        if (position == limit) {
+
+    // TODO: Dangerous to use, if non-local return then position will not be updated
+    internal inline fun readBufferRange(reader: (Buffer, startOffset: Int, endOffset: Int) -> Int) {
+        var startOffset = position
+        var endOffset = limit
+        if (startOffset == endOffset) {
             if (fetchBuffer() == 0)
                 throw EOFException("End of file while reading buffer")
+            startOffset = 0
+            endOffset = limit
         }
-        val consumed = reader(buffer, position, limit)
-        position += consumed
-        return consumed
+        val newPosition = reader(buffer, startOffset, endOffset)
+        position = newPosition
     }
 
     private inline fun <T> readPrimitive(
@@ -114,8 +120,8 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
 
         // Nope, doesn't fit in a buffer, read byte by byte
         var long = 0L
-        fetchBytes(primitiveSize) { 
-            long = (long shl 8) or it.toLong() 
+        fetchBytes(primitiveSize) {
+            long = (long shl 8) or it.toLong()
         }
         return fromLong(long)
     }
@@ -193,10 +199,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
 
         // restore the whole context
         previewIndex = if (initiated) -1 else markIndex
-        bytes.pointed(markIndex) { buffer, limit ->
-            this.buffer = buffer
-            this.limit = limit
-        }
+        this.buffer = bytes.pointed(markIndex) { limit -> this.limit = limit }
 
         position = markPosition
         logln { "PVW: Exit at #$markIndex @$markPosition of $limit" }
@@ -233,10 +236,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
                 return fillBuffer(bufferPool.borrow())
             } else {
                 val oldLimit = limit
-                bytes.pointed(Bytes.StartPointer) { buffer, limit ->
-                    this.buffer = buffer
-                    this.limit = limit
-                }
+                this.buffer = bytes.pointed(Bytes.StartPointer) { limit -> this.limit = limit }
                 position = 0
                 logln { "PVW: Finished @$oldLimit, using prefetched buffer, $position/$limit" }
                 return limit
@@ -249,10 +249,7 @@ abstract class Input(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         if (!bytes.isAfterLast(previewIndex)) {
             // we have a buffer already in history, i.e. replaying history inside another preview
             this.position = 0
-            bytes.pointed(previewIndex) { buffer, limit ->
-                this.buffer = buffer
-                this.limit = limit
-            }
+            this.buffer = bytes.pointed(previewIndex) { limit -> this.limit = limit }
 
             logln { "PVW: Preview #$previewIndex, using prefetched buffer, $position/$limit" }
             return limit
