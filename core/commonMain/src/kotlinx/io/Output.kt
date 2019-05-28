@@ -3,7 +3,10 @@ package kotlinx.io
 import kotlinx.io.buffer.*
 
 abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
-    private val bufferPool = DefaultBufferPool(bufferSize)
+    private val bufferPool = if (bufferSize == DEFAULT_BUFFER_SIZE)
+        DefaultBufferPool.instance
+    else
+        DefaultBufferPool(bufferSize)
 
     // Current buffer 
     private var buffer: Buffer = bufferPool.borrow()

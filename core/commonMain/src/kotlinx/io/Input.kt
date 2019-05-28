@@ -18,7 +18,10 @@ abstract class Input : Closeable {
     private var limit: Int = 0
 
     public constructor(bufferSize: Int = DEFAULT_BUFFER_SIZE) {
-        this.bufferPool = DefaultBufferPool(bufferSize)
+        this.bufferPool = if (bufferSize == DEFAULT_BUFFER_SIZE)
+            DefaultBufferPool.instance
+        else
+            DefaultBufferPool(bufferSize)
         this.buffer = bufferPool.borrow()
         this.previewIndex = Bytes.InvalidPointer
     }
