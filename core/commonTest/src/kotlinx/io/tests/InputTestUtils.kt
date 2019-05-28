@@ -9,7 +9,7 @@ fun sequentialInfiniteInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE
     private var value = 0L
     private var sliceRandom = Random(fillSize)
 
-    override fun close() {}
+    override fun closeSource() {}
 
     override fun fill(destination: Buffer, offset: Int, length: Int): Int {
         // Simulate different slices being read, not just length
@@ -30,7 +30,7 @@ fun sequentialLimitedInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE,
         private var bytesLeft = bytes
         private var sliceRandom = Random(fillSize + bytes)
 
-        override fun close() {}
+        override fun closeSource() {}
 
         override fun fill(destination: Buffer, offset: Int, length: Int): Int {
             // Simulate different slices being read, not just length

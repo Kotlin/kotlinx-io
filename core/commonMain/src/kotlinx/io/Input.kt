@@ -1,12 +1,13 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
+import kotlinx.io.pool.*
 
 private const val stateSourceEOFMask = 0x1
 private const val stateSourceFailureMask = 0x2
 
 abstract class Input : Closeable {
-    private val bufferPool: DefaultBufferPool
+    private val bufferPool: ObjectPool<Buffer>
 
     // Current buffer 
     private var buffer: Buffer
@@ -17,17 +18,21 @@ abstract class Input : Closeable {
     // Current filled number of bytes in [buffer]
     private var limit: Int = 0
 
-    public constructor(bufferSize: Int = DEFAULT_BUFFER_SIZE) {
-        this.bufferPool = if (bufferSize == DEFAULT_BUFFER_SIZE)
-            DefaultBufferPool.instance
-        else
-            DefaultBufferPool(bufferSize)
+    constructor(bufferPool: ObjectPool<Buffer>) {
+        this.bufferPool = bufferPool
         this.buffer = bufferPool.borrow()
         this.previewIndex = Bytes.InvalidPointer
     }
 
+    constructor(bufferSize: Int = DEFAULT_BUFFER_SIZE) : this(
+        if (bufferSize == DEFAULT_BUFFER_SIZE)
+            DefaultBufferPool.Instance
+        else
+            DefaultBufferPool(bufferSize)
+    )
+
     internal constructor(bytes: Bytes) {
-        this.bufferPool = DefaultBufferPool.instance
+        this.bufferPool = DefaultBufferPool.Instance
         previewBytes = bytes
         previewIndex = Bytes.StartPointer // replay, not consume
         this.buffer = bytes.pointed(Bytes.StartPointer) { limit ->
@@ -56,11 +61,24 @@ abstract class Input : Closeable {
     fun readUShort(): UShort =
         readPrimitive(2, { buffer, offset -> buffer.loadUShortAt(offset) }, { it.toUShort() })
 
-    fun readByte(): Byte =
-        readPrimitive(1, { buffer, offset -> buffer.loadByteAt(offset) }, { it.toByte() })
+    fun readByte(): Byte {
+        val offset = position
+        val targetLimit = offset + 1
 
-    fun readUByte(): UByte =
-        readPrimitive(1, { buffer, offset -> buffer.loadByteAt(offset).toUByte() }, { it.toUByte() })
+        // TODO: fetchExpand can signal EOF
+        if (limit >= targetLimit || fetchExpand(targetLimit)) {
+            position = targetLimit
+            return buffer.loadByteAt(offset)
+        }
+
+        if (fetchBuffer() == 0)
+            throw EOFException("End of file while reading buffer")
+
+        position = 1
+        return buffer.loadByteAt(0)
+    }
+
+    fun readUByte(): UByte = readByte().toUByte()
 
     fun readDouble(): Double =
         readPrimitive(8, { buffer, offset -> buffer.loadDoubleAt(offset) }, { Double.fromBits(it) })
@@ -99,15 +117,16 @@ abstract class Input : Closeable {
         fromLong: (Long) -> T
     ): T {
         val offset = position
+        val currentBufferLimit = limit
         val targetLimit = offset + primitiveSize
 
         // TODO: fetchExpand can signal EOF
-        if (limit >= targetLimit || fetchExpand(targetLimit)) {
+        if (currentBufferLimit >= targetLimit || fetchExpand(targetLimit)) {
             position = targetLimit
             return readDirect(buffer, offset)
         }
 
-        if (offset == limit) {
+        if (offset == currentBufferLimit) {
             // current buffer exhausted, we cannot expand data in this buffer, 
             // and we also don't have bytes left to be read
             // so we should fetch new buffer of data and may be read entire primitive
@@ -277,11 +296,23 @@ abstract class Input : Closeable {
     }
 
     /**
-     * Close input including the underlying source. All pending bytes will be discarded.
-     * TODO: what does it mean "not recommended"?
-     * It is not recommended to invoke it with read operations in-progress concurrently.
+     * Closes the underlying source.
      */
-    abstract override fun close()
+    abstract fun closeSource()
+
+    /**
+     * Closes input including the underlying source. All pending bytes will be discarded.
+     */
+    final override fun close() {
+        closeSource()
+        bufferPool.recycle(buffer)
+        if (DefaultBufferPool.Instance != bufferPool)
+            bufferPool.close()
+
+        if (previewBytes != null) {
+            //TODO: previewBytes.close()
+        }
+    }
 
     /**
      * Reads the next bytes into the [destination] starting at [offset] at most [length] bytes.

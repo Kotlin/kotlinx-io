@@ -4,7 +4,7 @@ import kotlinx.io.buffer.*
 
 typealias BytesPointer = Int
 
-class Bytes {
+class Bytes : Closeable {
     private val buffers: MutableList<Buffer> = mutableListOf()
     private val limits: MutableList<Int> = mutableListOf()
 
@@ -36,12 +36,16 @@ class Bytes {
 
     fun asInput(): Input {
         return object : Input(this) {
-            override fun close() {}
+            override fun closeSource() {}
             override fun fill(destination: Buffer, offset: Int, length: Int): Int = 0
         }
     }
 
     override fun toString() = "Bytes(${buffers.size} buffers)"
+
+    override fun close() {
+        // TODO: return buffers to the pool
+    }
 
     companion object {
         const val InvalidPointer = Int.MIN_VALUE

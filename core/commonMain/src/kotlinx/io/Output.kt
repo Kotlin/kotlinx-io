@@ -4,7 +4,7 @@ import kotlinx.io.buffer.*
 
 abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     private val bufferPool = if (bufferSize == DEFAULT_BUFFER_SIZE)
-        DefaultBufferPool.instance
+        DefaultBufferPool.Instance
     else
         DefaultBufferPool(bufferSize)
 
@@ -20,12 +20,20 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     protected abstract fun flush(source: Buffer, length: Int): Int
 
     fun writeByte(value: Byte) {
-        writePrimitive(1, { buffer, offset -> buffer.storeByteAt(offset, value) }, { value.toLong() })
+        val offset = position
+        val size = buffer.size
+        val targetLimit = offset + 1
+        if (size >= targetLimit) {
+            position = targetLimit
+            return buffer.storeByteAt(offset, value)
+        }
+
+        flushBuffer()
+        position = 1
+        return buffer.storeByteAt(0, value)
     }
 
-    fun writeUByte(value: UByte) {
-        writePrimitive(1, { buffer, offset -> buffer.storeUByteAt(offset, value) }, { value.toLong() })
-    }
+    fun writeUByte(value: UByte) = writeByte(value.toByte())
 
     fun writeShort(value: Short) {
         writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }, { value.toLong() })
@@ -111,7 +119,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     }
 
     private fun writeBytes(length: Int, value: Long) {
-        var remainingValue = value
+        var remainingValue = value.reverseByteOrder() shr ((8 - length) * 8)
         var remaining = length
         var size = buffer.size
         while (remaining > 0) {
@@ -124,7 +132,6 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
             remainingValue = remainingValue shr 8
             remaining--
         }
-
     }
 
     private fun flushBuffer() {

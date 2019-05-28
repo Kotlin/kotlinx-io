@@ -23,7 +23,7 @@ class InputStringTest {
     fun decodeUtf8FromInputUntil() = bufferSizes.forEach { size ->
         val input = buildBytes(size) { writeArray(content) }.asInput()
         val result = input.readUTF8StringUntilDelimiter('.')
-        assertEquals(expected, result)
+        assertEquals(expected.dropLast(1), result)
     }
     
     @Test

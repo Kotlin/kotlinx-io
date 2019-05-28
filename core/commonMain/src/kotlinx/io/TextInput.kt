@@ -2,29 +2,32 @@ package kotlinx.io
 
 import kotlinx.io.text.*
 
-
 fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: StringBuilder, delimiter: Char) =
     decodeUTF8Chars {
+        if (it == delimiter)
+            return@decodeUTF8Chars false
         stringBuilder.append(it)
-        it != delimiter
+        true
     }
 
 fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: StringBuilder, delimiters: String) =
     decodeUTF8Chars {
+        if (it in delimiters)
+            return@decodeUTF8Chars false
         stringBuilder.append(it)
-        it !in delimiters
+        true
     }
 
 
-fun Input.readUTF8StringTo(out: StringBuilder, length: Int) {
+fun Input.readUTF8StringTo(out: StringBuilder, length: Int): Int {
     var remaining = length
-    decodeUTF8Chars {
+    return decodeUTF8Chars {
         out.append(it)
         --remaining > 0
     }
 }
 
-fun Input.readUTF8Line() = buildString { 
+fun Input.readUTF8Line() = buildString {
     readUTF8LineTo(this)
 }
 
@@ -57,10 +60,11 @@ fun Input.readUTF8StringUntilDelimiters(delimiters: String) = buildString {
     readUTF8StringUntilDelimitersTo(this, delimiters)
 }
 
-private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
+private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0
     var state = STATE_UTF8
+    var count = 0
 
     while (state != STATE_FINISH) {
         readBufferRange { buffer, startOffset, endOffset ->
@@ -74,6 +78,7 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
                             state = STATE_FINISH
                             return@readBufferRange offset + 1
                         }
+                        count++
                     }
                     byteCount == 0 -> {
                         // first unicode byte
@@ -83,6 +88,7 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
                                     state = STATE_FINISH
                                     return@readBufferRange offset + 1
                                 }
+                                count++
                             }
                             byte < 0xC0 -> {
                                 byteCount = 0
@@ -118,14 +124,25 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
 
                         if (byteCount == 0) {
                             val more = when {
-                                value ushr 16 == 0 -> consumer(value.toChar())
+                                value ushr 16 == 0 -> {
+                                    if (consumer(value.toChar())) {
+                                        count++
+                                        true
+                                    } else false
+                                }
                                 else -> {
                                     if (value > MaxCodePoint)
                                         malformedInput(value)
 
                                     val high = highSurrogate(value).toChar()
                                     val low = lowSurrogate(value).toChar()
-                                    consumer(high) && consumer(low)
+                                    if (consumer(high)) {
+                                        count++
+                                        if (consumer(low)) {
+                                            count++
+                                            true
+                                        } else false
+                                    } else false
                                 }
                             }
                             if (!more) {
@@ -141,6 +158,7 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
             endOffset
         }
     }
+    return count
 }
 
 /**

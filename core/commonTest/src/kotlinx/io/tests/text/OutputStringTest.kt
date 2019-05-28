@@ -63,6 +63,61 @@ open class OutputStringTest {
         input.readArray(read)
         assertEquals(expected.contentToString(), read.contentToString())
     }
+    
+    @Test
+    fun testWriteMultiByteAtEnd() {
+        val input = buildBytes {
+            writeUTF8String("ABC\u0422")
+        }.asInput()
+
+        assertEquals("ABC\u0422", input.readUTF8String(4))
+    }
+
+    @Test
+    fun testWriteSingleByte() {
+        val input = buildBytes {
+            writeUTF8String("1")
+        }.asInput()
+
+        try {
+            assertEquals("1", input.readUTF8String(1))
+        } finally {
+            input.close()
+        }
+    }
+
+    @Test
+    fun testReadUntilDelimiter() {
+        val input = buildBytes {
+            writeUTF8String("1,23|,4.")
+        }.asInput()
+
+        val sb = StringBuilder()
+        val counts = mutableListOf<Int>()
+
+        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        assertEquals("1234", sb.toString())
+        assertEquals(listOf(1, 2, 0, 1), counts)
+    }
+    
+    @Test
+    fun testReadUntilDelimiterMulti() {
+        val input = buildBytes {
+            writeUTF8String("\u0422,\u0423|\u0424.")
+        }.asInput()
+
+        val sb = StringBuilder()
+        val counts = mutableListOf<Int>()
+
+        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        assertEquals("\u0422\u0423\u0424", sb.toString())
+        assertEquals(listOf(1, 1, 1), counts)
+    }
 
     @Test
     fun testReadLineSingleBuffer() = bufferSizes.forEach { size ->
