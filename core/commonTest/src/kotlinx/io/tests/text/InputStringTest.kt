@@ -1,19 +1,9 @@
 package kotlinx.io.tests.text
 
 import kotlinx.io.*
-import kotlinx.io.buffer.*
-import kotlinx.io.pool.*
-import kotlinx.io.tests.utility.*
 import kotlin.test.*
 
 open class InputStringTest {
-    open val pool: VerifyingObjectPool<Buffer> = VerifyingObjectPool(DirectAllocationBufferPool())
-
-    @AfterTest
-    fun verifyPool() {
-        pool.assertEmpty()
-    }
-
     @Test
     fun testReadLineSingleBuffer() {
         val p = buildBytes {
@@ -30,7 +20,7 @@ open class InputStringTest {
 }
 
 private fun Input.readUTF8Line(): String {
-    TODO()
+    return readUTF8StringUntilDelimiter('\n')
 }
 
 private fun Output.writeUTF8String(text: String) {

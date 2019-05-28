@@ -2,6 +2,40 @@ package kotlinx.io
 
 import kotlinx.io.text.*
 
+
+fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: StringBuilder, delimiter: Char) =
+    decodeUTF8Chars {
+        stringBuilder.append(it)
+        it != delimiter
+    }
+
+fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: StringBuilder, delimiters: String) =
+    decodeUTF8Chars {
+        stringBuilder.append(it)
+        it !in delimiters
+    }
+
+
+fun Input.readUTF8StringTo(out: StringBuilder, length: Int) {
+    var remaining = length
+    decodeUTF8Chars {
+        out.append(it)
+        --remaining > 0
+    }
+}
+
+fun Input.readUTF8String(length: Int): String = buildString(length) {
+    readUTF8StringTo(this, length)
+}
+
+fun Input.readUTF8StringUntilDelimiter(delimiter: Char) = buildString {
+    readUTF8StringUntilDelimiterTo(this, delimiter)
+}
+
+fun Input.readUTF8StringUntilDelimiters(delimiters: String) = buildString {
+    readUTF8StringUntilDelimitersTo(this, delimiters)
+}
+
 private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
     var byteCount = 0
     var value = 0
@@ -86,39 +120,6 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
             endOffset
         }
     }
-}
-
-fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: StringBuilder, delimiter: Char) =
-    decodeUTF8Chars {
-        stringBuilder.append(it)
-        it != delimiter
-    }
-
-fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: StringBuilder, delimiters: String) =
-    decodeUTF8Chars {
-        stringBuilder.append(it)
-        it !in delimiters
-    }
-
-
-fun Input.readUTF8StringTo(out: StringBuilder, length: Int) {
-    var remaining = length
-    decodeUTF8Chars {
-        out.append(it)
-        --remaining > 0
-    }
-}
-
-fun Input.readUTF8String(length: Int): String = buildString(length) {
-    readUTF8StringTo(this, length)
-}
-
-fun Input.readUTF8StringUntilDelimiter(delimiter: Char) = buildString {
-    readUTF8StringUntilDelimiterTo(this, delimiter)
-}
-
-fun Input.readUTF8StringUntilDelimiters(delimiters: String) = buildString {
-    readUTF8StringUntilDelimitersTo(this, delimiters)
 }
 
 /**
