@@ -15,7 +15,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     private var flushed: Int = 0
 
     protected abstract fun flush(source: Buffer, length: Int): Int
-    
+
     fun writeByte(value: Byte) {
         writePrimitive(1, { buffer, offset -> buffer.storeByteAt(offset, value) }, { value.toLong() })
     }
@@ -64,6 +64,18 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     fun writeArray(array: ByteArray) {
         for (byte in array)
             writeByte(byte)
+    }
+
+    internal inline fun writeBufferRange(writer: (buffer: Buffer, startOffset: Int, endOffset: Int) -> Int) {
+        var startOffset = position
+        var endOffset = buffer.size - 1
+        if (startOffset > endOffset) {
+            flushBuffer()
+            startOffset = position
+            endOffset = buffer.size - 1
+        }
+        val newPosition = writer(buffer, startOffset, endOffset)
+        position = newPosition
     }
 
     private inline fun writePrimitive(

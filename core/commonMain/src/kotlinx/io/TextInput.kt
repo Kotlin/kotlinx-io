@@ -24,6 +24,27 @@ fun Input.readUTF8StringTo(out: StringBuilder, length: Int) {
     }
 }
 
+fun Input.readUTF8Line() = buildString { 
+    readUTF8LineTo(this)
+}
+
+fun Input.readUTF8LineTo(out: StringBuilder) {
+    // TODO: consumes char after lonely CR
+    var seenCR = false
+    decodeUTF8Chars {
+        if (it == '\r') {
+            seenCR = true
+            return@decodeUTF8Chars true // continue & skip
+        }
+        if (it == '\n')
+            return@decodeUTF8Chars false // stop & skip
+        else if (seenCR)
+            return@decodeUTF8Chars false // lonely CR, stop & skip
+        out.append(it)
+        true
+    }
+}
+
 fun Input.readUTF8String(length: Int): String = buildString(length) {
     readUTF8StringTo(this, length)
 }
@@ -51,7 +72,7 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
                             malformedInput(value)
                         if (!consumer(byte.toChar())) {
                             state = STATE_FINISH
-                            return@readBufferRange offset
+                            return@readBufferRange offset + 1
                         }
                     }
                     byteCount == 0 -> {
@@ -60,7 +81,7 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
                             byte < 0x80 -> {
                                 if (!consumer(byte.toChar())) {
                                     state = STATE_FINISH
-                                    return@readBufferRange offset
+                                    return@readBufferRange offset + 1
                                 }
                             }
                             byte < 0xC0 -> {
@@ -109,7 +130,7 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean) {
                             }
                             if (!more) {
                                 state = STATE_FINISH
-                                return@readBufferRange offset
+                                return@readBufferRange offset + 1
                             }
 
                             value = 0
@@ -136,22 +157,10 @@ private inline fun lowSurrogate(codePoint: Int) = (codePoint and 0x3ff) + MinLow
 private inline fun highSurrogate(codePoint: Int) = (codePoint ushr 10) + HighSurrogateMagic
 
 private const val MaxCodePoint = 0x10ffff
-private const val MinLowSurrogate = 0xdc00
+internal const val MinLowSurrogate = 0xdc00
 private const val MinHighSurrogate = 0xd800
 private const val MinSupplementary = 0x10000
-private const val HighSurrogateMagic = MinHighSurrogate - (MinSupplementary ushr 10)
-
-internal fun codePoint(high: Char, low: Char): Int {
-    check(high.isHighSurrogate())
-    check(low.isLowSurrogate())
-
-    val highValue = high.toInt() - HighSurrogateMagic
-    val lowValue = low.toInt() - MinLowSurrogate
-
-    return highValue shl 10 or lowValue
-}
-
-
+internal const val HighSurrogateMagic = MinHighSurrogate - (MinSupplementary ushr 10)
 
 // Alternative implementation, slower x1.5
 // Based on https://bjoern.hoehrmann.de/utf-8/decoder/dfa/

@@ -51,9 +51,11 @@ actual fun Buffer.copyTo(
     length: Int,
     destinationOffset: Int
 ) {
-    if (buffer.hasArray() && !buffer.isReadOnly) {
+    if (buffer.hasArray()) {
+        val array = buffer.array()
+        val arrayOffset = buffer.arrayOffset()
         System.arraycopy(
-            buffer.array(), buffer.arrayOffset() + offset,
+            array, arrayOffset + offset,
             destination, destinationOffset, length
         )
         return
