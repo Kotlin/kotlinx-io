@@ -1,6 +1,5 @@
 package kotlinx.io.tests.buffer
 
-import kotlinx.io.*
 import kotlinx.io.buffer.*
 import kotlin.test.*
 
@@ -44,7 +43,7 @@ class BufferTest {
             buffer.storeLongAt(8, 123456789L)
         }
         // TODO: test all primitives
-        assertEquals(123451234567890L, 123451234567890L.also { buffer.storeLongAt(0, it) })
+        assertEquals(123451234567890L.also { buffer.storeLongAt(0, it) }, buffer.loadLongAt(0))
         assertEquals(1234567890.also { buffer.storeIntAt(0, it) }, buffer.loadIntAt(0))
         assertEquals(234.toByte().also { buffer.storeByteAt(0, it) }, buffer.loadByteAt(0))
         assertEquals(1234567890.987.also { buffer.storeDoubleAt(0, it) }, buffer.loadDoubleAt(0))

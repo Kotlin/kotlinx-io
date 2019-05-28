@@ -16,7 +16,7 @@ open class OutputStringTest {
         }
 
         assertEquals(expected.size, bytes.size(), "Size $size")
-        val input = bytes.asInput()
+        val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readArray(read)
         assertEquals(expected.contentToString(), read.contentToString())
@@ -32,7 +32,7 @@ open class OutputStringTest {
         }
 
         assertEquals(expected.size, bytes.size(), "Size $size")
-        val input = bytes.asInput()
+        val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readArray(read)
         assertEquals(expected.contentToString(), read.contentToString())
@@ -58,7 +58,7 @@ open class OutputStringTest {
 
         assertEquals(expected.size, bytes.size(), "Size $size")
 
-        val input = bytes.asInput()
+        val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readArray(read)
         assertEquals(expected.contentToString(), read.contentToString())
@@ -68,7 +68,7 @@ open class OutputStringTest {
     fun testWriteMultiByteAtEnd() {
         val input = buildBytes {
             writeUTF8String("ABC\u0422")
-        }.asInput()
+        }.input()
 
         assertEquals("ABC\u0422", input.readUTF8String(4))
     }
@@ -77,7 +77,7 @@ open class OutputStringTest {
     fun testWriteSingleByte() {
         val input = buildBytes {
             writeUTF8String("1")
-        }.asInput()
+        }.input()
 
         try {
             assertEquals("1", input.readUTF8String(1))
@@ -90,7 +90,7 @@ open class OutputStringTest {
     fun testReadUntilDelimiter() {
         val input = buildBytes {
             writeUTF8String("1,23|,4.")
-        }.asInput()
+        }.input()
 
         val sb = StringBuilder()
         val counts = mutableListOf<Int>()
@@ -107,7 +107,7 @@ open class OutputStringTest {
     fun testReadUntilDelimiterMulti() {
         val input = buildBytes {
             writeUTF8String("\u0422,\u0423|\u0424.")
-        }.asInput()
+        }.input()
 
         val sb = StringBuilder()
         val counts = mutableListOf<Int>()
@@ -123,7 +123,7 @@ open class OutputStringTest {
     fun testReadLineSingleBuffer() = bufferSizes.forEach { size ->
         val input = buildBytes(size) {
             writeUTF8String("1\r\n22\n333\n4444\n") // TODO: replace one LF with CR when we can read it 
-        }.asInput()
+        }.input()
 
         assertEquals("1", input.readUTF8Line())
         assertEquals("22", input.readUTF8Line())

@@ -24,7 +24,7 @@ private val bytes = buildBytes {
 class TextDecodingBenchmark {
     @Benchmark
     fun inputTextUntil(): String {
-        val input = bytes.asInput()
+        val input = bytes.input()
         val text = input.readUTF8StringUntilDelimiter('.')
 /*
         if (text != expected)
@@ -35,7 +35,7 @@ class TextDecodingBenchmark {
 
     @Benchmark
     fun inputText(): String {
-        val input = bytes.asInput()
+        val input = bytes.input()
         val text = input.readUTF8String(length)
 /*
         if (text != expected)
@@ -46,7 +46,7 @@ class TextDecodingBenchmark {
     
     @Benchmark
     fun inputTextShort(): String {
-        val input = bytes.asInput()
+        val input = bytes.input()
         val text = input.readUTF8String(25)
 /*
         if (text != expected)
@@ -59,7 +59,7 @@ class TextDecodingBenchmark {
 fun main() {
     var sum = 0
     repeat(10_000_000) {
-        val input = bytes.asInput()
+        val input = bytes.input()
         val text = input.readUTF8String(length)
         sum += text.hashCode()
     }

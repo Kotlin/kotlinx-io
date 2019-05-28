@@ -29,7 +29,7 @@ class BytesTest {
 
         assertEquals(2 + 2 + 2 + 4 + 8 + 4 + 8 + 8 + 3/* + 5*/, bytes.size())
 
-        val input = bytes.asInput()
+        val input = bytes.input()
         val ba = ByteArray(2)
         input.readArray(ba)
 

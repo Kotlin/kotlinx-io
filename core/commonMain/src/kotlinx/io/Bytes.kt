@@ -34,7 +34,7 @@ class Bytes : Closeable {
 
     fun size(): Int = limits.sum()
 
-    fun asInput(): Input {
+    fun input(): Input {
         return object : Input(this) {
             override fun closeSource() {}
             override fun fill(destination: Buffer, offset: Int, length: Int): Int = 0
@@ -58,7 +58,7 @@ fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit
     return BytesOutput(bufferSize).apply(builder).bytes()
 }
 
-class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(bufferSize) {
+private class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(bufferSize) {
     private val bytes = Bytes()
 
     fun bytes(): Bytes {

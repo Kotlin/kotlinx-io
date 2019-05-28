@@ -1,7 +1,6 @@
 package kotlinx.io.tests.text
 
 import kotlinx.io.*
-import kotlinx.io.buffer.*
 import kotlin.test.*
 
 class InputStringTest {
@@ -21,14 +20,14 @@ class InputStringTest {
     
     @Test
     fun decodeUtf8FromInputUntil() = bufferSizes.forEach { size ->
-        val input = buildBytes(size) { writeArray(content) }.asInput()
+        val input = buildBytes(size) { writeArray(content) }.input()
         val result = input.readUTF8StringUntilDelimiter('.')
         assertEquals(expected.dropLast(1), result)
     }
     
     @Test
     fun decodeUtf8FromInput() = bufferSizes.forEach { size ->
-        val input = buildBytes(size) { writeArray(content) }.asInput()
+        val input = buildBytes(size) { writeArray(content) }.input()
         val result = input.readUTF8String(expected.length)
         assertEquals(expected, result)
     }

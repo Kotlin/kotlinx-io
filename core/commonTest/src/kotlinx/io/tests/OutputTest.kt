@@ -10,7 +10,7 @@ class OutputTest {
             writeLong(0x0001020304050607)
             writeLong(0x08090A0B0C0D0E0F)
         }
-        bytes.asInput().apply { 
+        bytes.input().apply { 
             assertReadLong(0x0001020304050607)
             assertReadLong(0x08090A0B0C0D0E0F)
         }
