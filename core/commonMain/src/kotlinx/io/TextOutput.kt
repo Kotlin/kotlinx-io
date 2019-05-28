@@ -8,20 +8,22 @@ private const val lastASCII = 0x7F.toChar()
 fun Output.writeUTF8String(text: CharSequence, index: Int = 0, length: Int = text.length - index) {
     var textIndex = index // index in text
     val textEndIndex = index + length // index of char after last
-    var code = 0 // current left bytes to write (in inverted order)
+    var bytes = 0 // current left bytes to write (in inverted order)
 
-    while (textIndex < textEndIndex) {
+    while (textIndex < textEndIndex || bytes != 0) {
         writeBufferRange { buffer, startOffset, endOffset ->
             var offset = startOffset
 
-            while (offset <= endOffset && textIndex < textEndIndex) {
-                if (code != 0) {
+            while (offset <= endOffset) {
+                if (bytes != 0) {
                     // write remaining bytes of multibyte sequence
-                    // 6-bit blocks are reversed by initiation code below
-                    buffer[offset++] = (code and 0xFF).toByte()
-                    code = code shr 8
+                    buffer[offset++] = (bytes and 0xFF).toByte()
+                    bytes = bytes shr 8
                     continue
                 }
+
+                if (textIndex == textEndIndex)
+                    return@writeBufferRange offset
 
                 // get next character
                 val character = text[textIndex++]
@@ -32,7 +34,7 @@ fun Output.writeUTF8String(text: CharSequence, index: Int = 0, length: Int = tex
                 }
 
                 // fetch next code
-                code = when {
+                val code = when {
                     character.isHighSurrogate() -> {
                         if (textIndex == textEndIndex - 1) {
                             throw MalformedInputException("Splitted surrogate character")
@@ -44,30 +46,43 @@ fun Output.writeUTF8String(text: CharSequence, index: Int = 0, length: Int = tex
 
                 when {
                     code < 0x7ff -> {
-                        val s1 = 0xc0 or ((code shr 6) and 0x1f)
-                        val s2 = (code and 0x3f) or 0x80
-                        buffer[offset++] = s1.toByte()
-                        code = s2
+                        buffer[offset++] = (0xc0 or ((code shr 6) and 0x1f)).toByte()
+                        val byte1 = (code and 0x3f) or 0x80
+                        if (offset <= endOffset) {
+                            buffer[offset++] = byte1.toByte()
+                        } else {
+                            bytes = byte1
+                        }
                     }
                     code < 0xffff -> {
-                        val s1 = 0xe0 or ((code shr 12) and 0x0f)
-                        val s2 = ((code shr 6) and 0x3f) or 0x80
-                        val s3 = (code and 0x3f) or 0x80
-                        buffer[offset++] = s1.toByte()
-                        code = (s3 shl 8) or s2 // order is reversed for faster writes
+                        buffer[offset++] = ((code shr 12) and 0x0f or 0xe0).toByte()
+                        val byte1 = ((code shr 6) and 0x3f) or 0x80
+                        val byte2 = (code and 0x3f) or 0x80
+                        if (offset + 1 <= endOffset) {
+                            buffer[offset++] = byte1.toByte()
+                            buffer[offset++] = byte2.toByte()
+                        } else {
+                            bytes = (byte2 shl 8) or byte1 // order is reversed for writes
+                        }
                     }
                     code < 0x10ffff -> {
-                        val s1 = 0xf0 or ((code shr 18) and 0x07)
-                        val s2 = ((code shr 12) and 0x3f) or 0x80
-                        val s3 = ((code shr 6) and 0x3f) or 0x80
-                        val s4 = (code and 0x3f) or 0x80
-                        buffer[offset++] = s1.toByte()
-                        code = (s4 shl 16) or (s3 shl 8) or s2 // order is reversed for faster writes
+                        buffer[offset++] = ((code shr 18) and 0x07 or 0xf0).toByte()
+                        val byte1 = ((code shr 12) and 0x3f) or 0x80
+                        val byte2 = ((code shr 6) and 0x3f) or 0x80
+                        val byte3 = (code and 0x3f) or 0x80
+                        if (offset + 2 <= endOffset) {
+                            buffer[offset++] = byte1.toByte()
+                            buffer[offset++] = byte2.toByte()
+                            buffer[offset++] = byte3.toByte()
+                        } else {
+                            bytes =
+                                (byte3 shl 16) or (byte2 shl 8) or byte1 // order is reversed for faster writes
+                        }
                     }
                     else -> malformedCodePoint(code)
                 }
             }
-            offset - startOffset
+            offset
         }
     }
 }
