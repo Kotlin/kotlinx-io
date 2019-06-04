@@ -9,6 +9,7 @@ buildscript {
  
     repositories {
         mavenCentral()
+        maven { url 'https://kotlin.bintray.com/kotlinx' }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
         maven { url 'https://dl.bintray.com/jetbrains/kotlin-native-dependencies' }
