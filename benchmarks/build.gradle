@@ -89,13 +89,15 @@ kotlin {
 
 // Configure benchmark
 benchmark {
-    defaults {
-        iterations = 10 // number of iterations
-        iterationTime = 1000 // time in ms per iteration
+    configurations {
+        main {
+            iterations = 10 // number of iterations
+            iterationTime = 1 // time in seconds per iteration
+        }
     }
 
     // Setup configurations
-    configurations {
+    targets {
         // This one matches compilation base name, e.g. 'jvm', 'jvmTest', etc
         register("jvm") {
             jmhVersion = "1.21"

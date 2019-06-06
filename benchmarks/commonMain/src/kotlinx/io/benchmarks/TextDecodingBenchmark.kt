@@ -56,6 +56,7 @@ class TextDecodingBenchmark {
     }
 }
 
+/*
 fun main() {
     var sum = 0
     repeat(10_000_000) {
@@ -63,4 +64,4 @@ fun main() {
         val text = input.readUTF8String(length)
         sum += text.hashCode()
     }
-}
+}*/

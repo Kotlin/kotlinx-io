@@ -82,8 +82,10 @@ class InputReadingBenchmark {
     }
 }
 
+/*
 fun main() {
     repeat(1_000_000) {
         InputReadingBenchmark().inputReadBytes()
     }
 }
+*/
