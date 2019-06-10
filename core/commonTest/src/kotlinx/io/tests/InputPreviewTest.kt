@@ -58,6 +58,19 @@ class InputPreviewTest {
         assertReadLong(0x08090A0B0C0D0E0F)
         assertReadLong(0x1011121314151617)
     }
+    
+    @Test
+    fun previewInterleaved() = withInput {
+        assertReadLong(0x0001020304050607)
+        preview {
+            assertReadLong(0x08090A0B0C0D0E0F)
+        }
+        assertReadLong(0x08090A0B0C0D0E0F)
+        preview {
+            assertReadLong(0x1011121314151617)
+        }
+        assertReadLong(0x1011121314151617)
+    }
 
     @Test
     fun previewSequentialLonger() = withInput {

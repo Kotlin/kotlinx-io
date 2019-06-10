@@ -2,37 +2,61 @@ package kotlinx.io
 
 import kotlinx.io.buffer.*
 
-typealias BytesPointer = Int
+internal typealias BytesPointer = Int
 
 class Bytes : Closeable {
-    private val buffers: MutableList<Buffer> = mutableListOf()
-    private val limits: MutableList<Int> = mutableListOf()
+    private var buffers: Array<Buffer?> = arrayOfNulls(initialPreviewSize)
+    private var limits: IntArray = IntArray(initialPreviewSize) { -1 }
+    private var head: Int = 0
+    private var tail: Int = 0
 
     internal fun append(buffer: Buffer, limit: Int) {
-        buffers.add(buffer)
-        limits.add(limit)
+        if (head > 0) {
+            // if we are appending buffers after some were discarded, 
+            // compact arrays so we can store more without allocations
+            buffers.copyInto(buffers, 0, head, tail)
+            limits.copyInto(limits, 0, head, tail)
+            tail -= head
+            head = 0
+        }
+
+        if (tail == buffers.size) {
+            buffers = buffers.copyInto(arrayOfNulls(buffers.size * 2))
+            limits = limits.copyInto(IntArray(buffers.size * 2) { -1 })
+        }
+
+        buffers[tail] = buffer
+        limits[tail] = limit
+        tail++
     }
 
     internal fun discardFirst() {
-        buffers.removeAt(0)
-        limits.removeAt(0)
+        if (head == tail)
+            throw NoSuchElementException("There is no buffer to discard in this instance")
+        buffers[head] = null
+        limits[head] = -1
+        head++
     }
 
     internal inline fun pointed(pointer: BytesPointer, consumer: (Int) -> Unit): Buffer {
-        consumer(limits[pointer])
-        return buffers[pointer]
+        // Buffer is returned and not sent to `consumer` because we need to initialize field in Input's constructor
+        val index = pointer + head
+        val buffer = buffers[index] ?: throw NoSuchElementException("There is no buffer at pointer $pointer")
+        val limit = limits[index]
+        consumer(limit)
+        return buffer
     }
 
-    internal inline fun advancePointer(pointer: BytesPointer): BytesPointer =
-        pointer + 1
+    internal inline fun advancePointer(pointer: BytesPointer): BytesPointer = pointer + 1
+    internal inline fun isEmpty() = tail == head
+    internal inline fun isAfterLast(index: BytesPointer) = head + index >= tail
 
-    internal inline fun isEmpty() =
-        buffers.isEmpty()
-
-    internal inline fun isAfterLast(index: BytesPointer) =
-        index >= buffers.size
-
-    fun size(): Int = limits.sum()
+    fun size(): Int {
+        var sum = 0
+        for (index in head until tail)
+            sum += limits[index]
+        return sum
+    }
 
     fun input(): Input {
         return object : Input(this) {
@@ -41,7 +65,7 @@ class Bytes : Closeable {
         }
     }
 
-    override fun toString() = "Bytes(${buffers.size} buffers)"
+    override fun toString() = "Bytes($head..$tail)"
 
     override fun close() {
         // TODO: return buffers to the pool
@@ -50,6 +74,8 @@ class Bytes : Closeable {
     companion object {
         const val InvalidPointer = Int.MIN_VALUE
         const val StartPointer = 0
+
+        private const val initialPreviewSize = 1
     }
 
 }
