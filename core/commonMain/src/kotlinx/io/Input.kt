@@ -43,30 +43,11 @@ abstract class Input : Closeable {
     private var previewIndex: BytesPointer
     private var previewBytes: Bytes? = null
 
-    fun readLong(): Long =
-        readPrimitive(8, { buffer, offset -> buffer.loadLongAt(offset) }, { it })
-
-    fun readULong(): ULong =
-        readPrimitive(8, { buffer, offset -> buffer.loadULongAt(offset) }, { it.toULong() })
-
-    fun readInt(): Int =
-        readPrimitive(4, { buffer, offset -> buffer.loadIntAt(offset) }, { it.toInt() })
-
-    fun readUInt(): UInt =
-        readPrimitive(4, { buffer, offset -> buffer.loadUIntAt(offset) }, { it.toUInt() })
-
-    fun readShort(): Short =
-        readPrimitive(2, { buffer, offset -> buffer.loadShortAt(offset) }, { it.toShort() })
-
-    fun readUShort(): UShort =
-        readPrimitive(2, { buffer, offset -> buffer.loadUShortAt(offset) }, { it.toUShort() })
-
     fun readByte(): Byte {
         val offset = position
         val targetLimit = offset + 1
 
-        // TODO: fetchExpand can signal EOF
-        if (limit >= targetLimit || fetchExpand(targetLimit)) {
+        if (limit >= targetLimit) {
             position = targetLimit
             return buffer.loadByteAt(offset)
         }
@@ -80,12 +61,38 @@ abstract class Input : Closeable {
 
     fun readUByte(): UByte = readByte().toUByte()
 
-    fun readDouble(): Double =
-        readPrimitive(8, { buffer, offset -> buffer.loadDoubleAt(offset) }, { Double.fromBits(it) })
+    fun readLong(): Long = readPrimitive(8,
+        { buffer, offset -> buffer.loadLongAt(offset) },
+        { it })
 
-    fun readFloat(): Float =
-        readPrimitive(4, { buffer, offset -> buffer.loadFloatAt(offset) }, { Float.fromBits(it.toInt()) })
+    fun readULong(): ULong = readPrimitive(8,
+        { buffer, offset -> buffer.loadULongAt(offset) },
+        { it.toULong() })
 
+    fun readDouble(): Double = readPrimitive(8,
+        { buffer, offset -> buffer.loadDoubleAt(offset) },
+        { Double.fromBits(it) })
+
+    fun readInt(): Int = readPrimitive(4,
+        { buffer, offset -> buffer.loadIntAt(offset) },
+        { it.toInt() })
+
+    fun readUInt(): UInt = readPrimitive(4,
+        { buffer, offset -> buffer.loadUIntAt(offset) },
+        { it.toUInt() })
+
+    fun readFloat(): Float = readPrimitive(4,
+        { buffer, offset -> buffer.loadFloatAt(offset) },
+        { Float.fromBits(it.toInt()) })
+
+    fun readShort(): Short = readPrimitive(2,
+        { buffer, offset -> buffer.loadShortAt(offset) },
+        { it.toShort() })
+
+    fun readUShort(): UShort = readPrimitive(2,
+        { buffer, offset -> buffer.loadUShortAt(offset) },
+        { it.toUShort() })
+    
     // TODO: Dangerous to use, if non-local return then position will not be updated
     internal inline fun readBufferLength(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
         if (position == limit) {
@@ -116,19 +123,17 @@ abstract class Input : Closeable {
         readDirect: (buffer: Buffer, offset: Int) -> T,
         fromLong: (Long) -> T
     ): T {
-        val offset = position
-        val currentBufferLimit = limit
-        val targetLimit = offset + primitiveSize
+        val currentPosition = position
+        val currentLimit = limit
+        val targetLimit = currentPosition + primitiveSize
 
-        // TODO: fetchExpand can signal EOF
-        if (currentBufferLimit >= targetLimit || fetchExpand(targetLimit)) {
+        if (currentLimit >= targetLimit) {
             position = targetLimit
-            return readDirect(buffer, offset)
+            return readDirect(buffer, currentPosition)
         }
 
-        if (offset == currentBufferLimit) {
-            // current buffer exhausted, we cannot expand data in this buffer, 
-            // and we also don't have bytes left to be read
+        if (currentPosition == currentLimit) {
+            // current buffer exhausted and we also don't have bytes left to be read
             // so we should fetch new buffer of data and may be read entire primitive
             if (fetchBuffer() == 0)
                 throw EOFException("End of file while reading buffer")
@@ -160,30 +165,6 @@ abstract class Input : Closeable {
             consumer(buffer.loadUByteAt(position++))
             remaining--
         }
-    }
-
-    private fun fetchExpand(targetLimit: Int): Boolean {
-        if (previewIndex != Bytes.InvalidPointer)
-            return false // do not expand if in history mode TODO: expand if last buffer
-
-        var currentLimit = limit
-        val currentBuffer = buffer
-        val currentSize = currentBuffer.size
-        if (targetLimit > currentSize)
-            return false // we can't expand data into current buffer
-
-        while (currentLimit < targetLimit) {
-            val fetched = fill(currentBuffer, currentLimit, currentSize - currentLimit)
-            logln { "PGE: Loaded [$fetched]" }
-            if (fetched == 0) {
-                // TODO: set EOF
-                return false
-            }
-            currentLimit += fetched
-        }
-
-        limit = currentLimit
-        return true
     }
 
     fun <R> preview(reader: Input.() -> R): R {

@@ -7,23 +7,17 @@ import kotlin.random.*
 
 @State(Scope.Benchmark)
 class InputReadingBenchmark {
-    val bufferSize = 1024
-
     private fun sequentialInfiniteInput(): Input {
         return object : Input() {
             private var value = 0L
-            private var sliceRandom = Random(bufferSize)
 
             override fun closeSource() {}
 
             override fun fill(destination: Buffer, offset: Int, length: Int): Int {
-                // Simulate different slices being read, not just length
-                val readLength = minOf(sliceRandom.nextInt(bufferSize), length)
-
-                for (index in offset until offset + readLength) {
+                for (index in offset until offset + length) {
                     destination.storeByteAt(index, value++.toByte())
                 }
-                return readLength
+                return length
             }
         }
     }
