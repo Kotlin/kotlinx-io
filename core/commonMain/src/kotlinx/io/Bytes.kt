@@ -7,7 +7,7 @@ internal typealias BytesPointer = Int
 
 class Bytes(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
     private var buffers: Array<Buffer?> = arrayOfNulls(initialPreviewSize)
-    private var limits: IntArray = IntArray(initialPreviewSize) { -1 }
+    private var limits: IntArray = IntArray(initialPreviewSize)
     private var head: Int = 0
     private var tail: Int = 0
 
@@ -23,7 +23,7 @@ class Bytes(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
 
         if (tail == buffers.size) {
             buffers = buffers.copyInto(arrayOfNulls(buffers.size * 2))
-            limits = limits.copyInto(IntArray(buffers.size * 2) { -1 })
+            limits = limits.copyInto(IntArray(buffers.size * 2))
         }
 
         buffers[tail] = buffer
@@ -69,10 +69,15 @@ class Bytes(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
         }
     }
 
-    override fun toString() = "Bytes($head..$tail: ${(head until tail).joinToString { buffers[it]!![0].toString() }})"
+    override fun toString() = "Bytes($head..$tail)"
 
     override fun close() {
-        // TODO: return buffers to the pool
+        (head until tail).forEach { 
+            bufferPool.recycle(buffers[it]!!)
+            buffers[it] = null
+        }
+        head = 0
+        tail = 0
     }
 
     companion object {
