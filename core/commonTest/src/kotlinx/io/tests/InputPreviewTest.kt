@@ -55,6 +55,9 @@ class InputPreviewTest {
         preview {
             assertReadLong(0x08090A0B0C0D0E0F)
         }
+        preview {
+            assertReadLong(0x08090A0B0C0D0E0F)
+        }
         assertReadLong(0x08090A0B0C0D0E0F)
         assertReadLong(0x1011121314151617)
     }

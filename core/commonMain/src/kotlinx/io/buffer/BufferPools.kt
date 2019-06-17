@@ -16,7 +16,7 @@ internal class DefaultBufferPool(
     }
 
     override fun validateInstance(instance: Buffer) {
-        require(instance.size == bufferSize)
+        require(instance.size == bufferSize) { "Invalid buffer size, expected $bufferSize, got ${instance.size}"}
     }
 
     override fun disposeInstance(instance: Buffer) {

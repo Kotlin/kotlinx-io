@@ -1,10 +1,11 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
+import kotlinx.io.pool.*
 
 internal typealias BytesPointer = Int
 
-class Bytes : Closeable {
+class Bytes(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
     private var buffers: Array<Buffer?> = arrayOfNulls(initialPreviewSize)
     private var limits: IntArray = IntArray(initialPreviewSize) { -1 }
     private var head: Int = 0
@@ -51,9 +52,12 @@ class Bytes : Closeable {
     internal inline fun isEmpty() = tail == head
     internal inline fun isAfterLast(index: BytesPointer) = head + index >= tail
 
-    fun size(): Int {
+    fun size() = size(StartPointer)
+    
+    internal fun size(pointer: BytesPointer): Int {
+        // ???: if Input.ensure operations are frequent enough, consider storing running size in yet another int array 
         var sum = 0
-        for (index in head until tail)
+        for (index in (pointer + head) until tail)
             sum += limits[index]
         return sum
     }
@@ -61,11 +65,11 @@ class Bytes : Closeable {
     fun input(): Input {
         return object : Input(this) {
             override fun closeSource() {}
-            override fun fill(destination: Buffer, offset: Int, length: Int): Int = 0
+            override fun fill(buffer: Buffer): Int = 0
         }
     }
 
-    override fun toString() = "Bytes($head..$tail)"
+    override fun toString() = "Bytes($head..$tail: ${(head until tail).joinToString { buffers[it]!![0].toString() }})"
 
     override fun close() {
         // TODO: return buffers to the pool
@@ -85,7 +89,7 @@ fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit
 }
 
 private class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(bufferSize) {
-    private val bytes = Bytes()
+    private val bytes = Bytes(bufferPool)
 
     fun bytes(): Bytes {
         close()

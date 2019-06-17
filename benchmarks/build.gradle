@@ -1,6 +1,6 @@
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'kotlin-allopen'
-apply plugin: 'org.jetbrains.gradle.benchmarks.plugin'
+apply plugin: 'kotlinx.benchmark'
 
 // how to apply plugin to a specific source set?
 allOpen {
@@ -23,12 +23,7 @@ kotlin {
     }
 
     js {
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                moduleKind = "umd"
-            }
-        }
+        nodejs()
     }
 
     sourceSets.all {
@@ -48,7 +43,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
-                implementation "org.jetbrains.gradle.benchmarks:runtime:$benchmarks_version"
+                implementation "org.jetbrains.kotlinx:kotlinx.benchmark.runtime:$benchmarks_version"
                 implementation project(":kotlinx-io")
             }
         }
@@ -92,7 +87,8 @@ benchmark {
     configurations {
         main {
             iterations = 10 // number of iterations
-            iterationTime = 1 // time in seconds per iteration
+            iterationTime = 1 
+            iterationTimeUnit = "s"
         }
     }
 

@@ -1,7 +1,7 @@
 package kotlinx.io.benchmarks
 
+import kotlinx.benchmark.*
 import kotlinx.io.*
-import org.jetbrains.gradle.benchmarks.*
 
 private val expected = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç."
 private val length = expected.length

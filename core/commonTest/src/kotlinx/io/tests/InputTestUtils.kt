@@ -11,16 +11,14 @@ fun sequentialInfiniteInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE
 
     override fun closeSource() {}
 
-    override fun fill(destination: Buffer, offset: Int, length: Int): Int {
-        // Simulate different slices being read, not just length
-        val readLength = sliceRandom.nextInt(length) + 1
-
-        var index = offset
-        while (index < offset + readLength) {
-            destination.storeByteAt(index++, value.toByte())
+    override fun fill(buffer: Buffer): Int {
+        val readLength = sliceRandom.nextInt(buffer.size) + 1
+        var index = 0
+        while (index < readLength) {
+            buffer.storeByteAt(index++, value.toByte())
             value++
         }
-        return index - offset
+        return index
     }
 }
 
@@ -32,21 +30,21 @@ fun sequentialLimitedInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE,
 
         override fun closeSource() {}
 
-        override fun fill(destination: Buffer, offset: Int, length: Int): Int {
+        override fun fill(buffer: Buffer): Int {
             // Simulate different slices being read, not just length
-            val readLength = sliceRandom.nextInt(length) + 1
+            val readLength = sliceRandom.nextInt(buffer.size) + 1
 
             if (bytesLeft == 0)
                 return 0
-            var index = offset
-            while (index < offset + readLength) {
-                destination.storeByteAt(index++, value.toByte())
+            var index = 0
+            while (index < readLength) {
+                buffer.storeByteAt(index++, value.toByte())
                 value++
                 bytesLeft--
                 if (bytesLeft == 0)
-                    return index - offset
+                    return index
             }
-            return index - offset
+            return index
         }
     }
 

@@ -1,9 +1,8 @@
 package kotlinx.io.benchmarks
 
+import kotlinx.benchmark.*
 import kotlinx.io.*
 import kotlinx.io.buffer.*
-import org.jetbrains.gradle.benchmarks.*
-import kotlin.random.*
 
 @State(Scope.Benchmark)
 class InputReadingBenchmark {
@@ -13,11 +12,12 @@ class InputReadingBenchmark {
 
             override fun closeSource() {}
 
-            override fun fill(destination: Buffer, offset: Int, length: Int): Int {
-                for (index in offset until offset + length) {
-                    destination.storeByteAt(index, value++.toByte())
+            override fun fill(buffer: Buffer): Int {
+                val size = buffer.size
+                for (index in 0 until size) {
+                    buffer.storeByteAt(index, value++.toByte())
                 }
-                return length
+                return size
             }
         }
     }
@@ -74,12 +74,36 @@ class InputReadingBenchmark {
             throw Exception("Incorrect repeated read")
         return sum
     }
-}
 
-/*
-fun main() {
-    repeat(1_000_000) {
-        InputReadingBenchmark().inputReadBytes()
+    @Benchmark
+    fun inputReadLongsShort(): Long = sequentialInfiniteInput().use { input ->
+        var sum = 0L
+        repeat(64) {
+            sum += input.readLong()
+        }
+        return sum
+    }
+
+    @Benchmark
+    fun inputPreviewLongsShort(): Long = sequentialInfiniteInput().use { input ->
+        var sum = 0L
+        input.preview {
+            repeat(64) {
+                sum += input.readLong()
+            }
+        }
+
+        repeat(64) {
+            sum -= input.readLong()
+        }
+        if (sum != 0L)
+            throw Exception("Incorrect repeated read")
+        return sum
     }
 }
-*/
+
+fun main() {
+    repeat(1_000_000) {
+        InputReadingBenchmark().inputPreviewLongsShort()
+    }
+}

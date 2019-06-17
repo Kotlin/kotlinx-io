@@ -37,15 +37,7 @@ kotlin {
     }
 
     js {
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                moduleKind = "umd"
-                metaInfo = true
-                main = "call"
-                sourceMapEmbedSources = 'always'
-            }
-        }
+        nodejs()
     }
 
     sourceSets.all {

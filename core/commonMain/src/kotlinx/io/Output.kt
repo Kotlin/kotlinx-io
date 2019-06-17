@@ -1,9 +1,10 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
+import kotlinx.io.pool.*
 
 abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
-    private val bufferPool = if (bufferSize == DEFAULT_BUFFER_SIZE)
+    protected val bufferPool: ObjectPool<Buffer> = if (bufferSize == DEFAULT_BUFFER_SIZE)
         DefaultBufferPool.Instance
     else
         DefaultBufferPool(bufferSize)
