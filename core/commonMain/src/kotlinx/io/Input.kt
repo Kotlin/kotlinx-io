@@ -171,7 +171,7 @@ abstract class Input : Closeable {
             if (fetchBuffer() == 0)
                 throw EOFException("End of file while reading buffer")
         }
-        
+
         val markState = previewState
         val markIndex = previewIndex
         val markPosition = position
@@ -192,14 +192,15 @@ abstract class Input : Closeable {
         }
 
         val bytes = previewBytes!!
-
         this.buffer = bytes.pointed(markIndex) { limit -> this.limit = limit }
         previewIndex = markIndex
 
-        if (markState == stateDiscardPreview) {
-            logln { "PVW: Discarding at #$previewIndex," }
-        } else {
-            logln { "PVW: Replaying to $previewState at #$previewIndex," }
+        logln {
+            if (markState == stateDiscardPreview) {
+                "PVW: Discarding at #0"
+            } else {
+                "PVW: Replaying at #$previewIndex"
+            }
         }
 
         return result
@@ -212,68 +213,55 @@ abstract class Input : Closeable {
         }
 
         val state = previewState
-        val bytes = previewBytes ?: run {
-            when (state) {
-                stateDiscardPreview -> {
-                    // fast path, no preview operation, reuse current buffer for new data
-                    val fetched = fill(buffer)
-                    limit = fetched
-                    position = 0
-                    logln { "PVW: None, filled buffer," }
-                    return fetched
-                }
-                else -> {
-                    // we are collecting bytes, so need to allocated bytes for a buffer
-                    Bytes(bufferPool).also {
-                        previewBytes = it
-                        it.append(buffer, limit)
-                    }
-                }
+        val bytes = previewBytes ?: if (state == stateDiscardPreview) {
+            // fast path, no preview operation, reuse current buffer for new data
+            val fetched = fill(buffer)
+            limit = fetched
+            position = 0
+            logln { "PVW: None, filled buffer," }
+            return fetched
+        } else {
+            // we are collecting bytes, so need to put current buffer to maintain invariant
+            Bytes(bufferPool).also {
+                previewBytes = it
+                it.append(buffer, limit)
             }
         }
 
-        return when (state) {
-            stateDiscardPreview -> {
-                bufferPool.recycle(buffer)
-                bytes.discardFirst()
-                when {
-                    bytes.isEmpty() -> {
-                        previewBytes = null
-                        val fetched = fillBuffer(bufferPool.borrow())
-                        logln { "PVW: Completed discarding, filled buffer," }
-                        fetched
-                    }
-                    else -> {
-                        val oldLimit = limit
-                        this.buffer = bytes.pointed(Bytes.StartPointer) { limit -> this.limit = limit }
-                        position = 0
-                        logln { "PVW: Discarded $oldLimit, get next buffer," }
-                        limit
-                    }
-                }
+        if (state == stateDiscardPreview) {
+            bufferPool.recycle(buffer)
+            bytes.discardFirst()
+            if (bytes.isEmpty()) {
+                //bytes.close()
+                previewBytes = null
+                val fetched = fillBuffer(bufferPool.borrow())
+                logln { "PVW: Completed discarding, filled buffer," }
+                return fetched
             }
-            else -> {
-                val index = bytes.advancePointer(previewIndex)
-                when {
-                    bytes.isAfterLast(index) -> {
-                        val fetched = fillBuffer(bufferPool.borrow())
-                        bytes.append(buffer, limit)
-                        previewIndex = index
-                        logln { "PVW: Preview #$previewIndex, filled buffer," }
-                        fetched
-                    }
-                    else -> {
-                        // we have a buffer already in history, i.e. replaying history inside another preview
-                        this.buffer = bytes.pointed(index) { limit -> this.limit = limit }
-                        this.position = 0
-                        previewIndex = index
-
-                        logln { "PVW: Preview #$index, using prefetched buffer" }
-                        limit
-                    }
-                }
-            }
+            
+            val oldLimit = limit
+            this.buffer = bytes.pointed(Bytes.StartPointer) { limit -> this.limit = limit }
+            position = 0
+            logln { "PVW: Discarded $oldLimit, get next buffer," }
+            return limit
         }
+        
+        val nextIndex = bytes.advancePointer(previewIndex)
+        if (bytes.isAfterLast(nextIndex)) {
+            val fetched = fillBuffer(bufferPool.borrow())
+            bytes.append(buffer, limit)
+            previewIndex = nextIndex
+            logln { "PVW: Preview #$previewIndex, filled buffer," }
+            return fetched
+        }
+        
+        // we have a buffer already in history, i.e. replaying history inside another preview
+        this.buffer = bytes.pointed(nextIndex) { limit -> this.limit = limit }
+        this.position = 0
+        previewIndex = nextIndex
+
+        logln { "PVW: Preview #$nextIndex, using prefetched buffer" }
+        return limit
     }
 
     private fun fillBuffer(buffer: Buffer): Int {
