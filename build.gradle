@@ -144,3 +144,7 @@ allprojects {
         }
     }
 }
+
+afterEvaluate {
+    kotlinNpmResolve.enabled = false
+}
