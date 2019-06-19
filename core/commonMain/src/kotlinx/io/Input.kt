@@ -3,9 +3,6 @@ package kotlinx.io
 import kotlinx.io.buffer.*
 import kotlinx.io.pool.*
 
-private const val stateDiscardPreview = -1
-private const val stateCollectPreview = 1
-
 abstract class Input : Closeable {
     private val bufferPool: ObjectPool<Buffer>
 
@@ -13,7 +10,7 @@ abstract class Input : Closeable {
     private var buffer: Buffer
 
     // Current position in [buffer]
-    var position: Int = 0
+    private var position: Int = 0
 
     // Current filled number of bytes in [buffer]
     private var limit: Int = 0
@@ -39,8 +36,8 @@ abstract class Input : Closeable {
             DefaultBufferPool(bufferSize)
     )
 
-    private var previewState: Int = stateDiscardPreview
     private var previewIndex: Int = Bytes.StartPointer
+    private var previewDiscard: Boolean = true
     private var previewBytes: Bytes?
 
     fun readByte(): Byte {
@@ -172,18 +169,18 @@ abstract class Input : Closeable {
                 throw EOFException("End of file while reading buffer")
         }
 
-        val markState = previewState
+        val markDiscard = previewDiscard
         val markIndex = previewIndex
         val markPosition = position
-        logln { "PVW: Enter preview in state $markState at #$markIndex" }
+        logln { "PVW: Enter preview in state $markDiscard at #$markIndex" }
 
-        previewState = stateCollectPreview
+        previewDiscard = false
 
         val result = reader()
 
-        logln { "PVW: Finished preview in state $previewState at #$previewIndex," }
+        logln { "PVW: Finished preview in state $previewDiscard at #$previewIndex," }
 
-        previewState = markState
+        previewDiscard = markDiscard
         position = markPosition
 
         if (previewIndex == markIndex) {
@@ -196,7 +193,7 @@ abstract class Input : Closeable {
         previewIndex = markIndex
 
         logln {
-            if (markState == stateDiscardPreview) {
+            if (markDiscard) {
                 "PVW: Discarding at #0"
             } else {
                 "PVW: Replaying at #$previewIndex"
@@ -212,8 +209,8 @@ abstract class Input : Closeable {
             throw IllegalStateException("Throwing bytes away")
         }
 
-        val state = previewState
-        val bytes = previewBytes ?: if (state == stateDiscardPreview) {
+        val discard = previewDiscard
+        val bytes = previewBytes ?: if (discard) {
             // fast path, no preview operation, reuse current buffer for new data
             val fetched = fill(buffer)
             limit = fetched
@@ -228,11 +225,11 @@ abstract class Input : Closeable {
             }
         }
 
-        if (state == stateDiscardPreview) {
+        if (discard) {
             bufferPool.recycle(buffer)
             bytes.discardFirst()
             if (bytes.isEmpty()) {
-                //bytes.close()
+                bytes.close()
                 previewBytes = null
                 val fetched = fillBuffer(bufferPool.borrow())
                 logln { "PVW: Completed discarding, filled buffer," }
@@ -286,9 +283,7 @@ abstract class Input : Closeable {
         if (DefaultBufferPool.Instance != bufferPool)
             bufferPool.close()
 
-        if (previewBytes != null) {
-            //TODO: previewBytes.close()
-        }
+        previewBytes?.close()
     }
 
     /**
