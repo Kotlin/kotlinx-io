@@ -4,23 +4,39 @@ import kotlinx.io.buffer.*
 import kotlinx.io.pool.*
 
 abstract class Input : Closeable {
+    /**
+     * Pool for obtaining buffers for operations
+     */
     private val bufferPool: ObjectPool<Buffer>
 
-    // Current buffer 
+    /**
+     * Buffer for current operations 
+     * Note, that buffer can be exhausted (position == limit) 
+     */
     private var buffer: Buffer
 
-    // Current position in [buffer]
+    /**
+     * Current reading position in the [buffer]
+     */
     private var position: Int = 0
 
-    // Current filled number of bytes in [buffer]
+    /**
+     * Number of bytes loaded into the [buffer]
+     */
     private var limit: Int = 0
 
+    /**
+     * Constructs a new Input with the given `bufferPool`
+     */
     constructor(bufferPool: ObjectPool<Buffer>) {
         this.bufferPool = bufferPool
         this.buffer = bufferPool.borrow()
         previewBytes = null
     }
 
+    /**
+     * Constructs a new Input with the given [bytes], pool is taken from [bytes]
+     */
     internal constructor(bytes: Bytes) {
         this.bufferPool = bytes.bufferPool
         previewBytes = bytes
@@ -29,6 +45,9 @@ abstract class Input : Closeable {
         }
     }
 
+    /**
+     * Constructs a new Input with the default pool of buffers with the given [bufferSize]
+     */
     constructor(bufferSize: Int = DEFAULT_BUFFER_SIZE) : this(
         if (bufferSize == DEFAULT_BUFFER_SIZE)
             DefaultBufferPool.Instance
@@ -36,10 +55,26 @@ abstract class Input : Closeable {
             DefaultBufferPool(bufferSize)
     )
 
+    /**
+     * Index of a current buffer in the [previewBytes]
+     */
     private var previewIndex: Int = Bytes.StartPointer
+
+    /**
+     * Flag to indicate if current [previewBytes] are being discarded
+     * When no preview is in progress and a current [buffer] has been exhausted, it should be discarded
+     */
     private var previewDiscard: Boolean = true
+
+    /**
+     * Recorded buffers for preview operation
+     */
     private var previewBytes: Bytes?
 
+    /**
+     * Reads a [Byte] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readByte(): Byte {
         val offset = position
 
@@ -55,41 +90,81 @@ abstract class Input : Closeable {
         return buffer.loadByteAt(0)
     }
 
+    /**
+     * Reads an [UByte] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readUByte(): UByte = readByte().toUByte()
 
+    /**
+     * Reads a [Long] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readLong(): Long = readPrimitive(8,
         { buffer, offset -> buffer.loadLongAt(offset) },
         { it })
 
+    /**
+     * Reads a [ULong] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readULong(): ULong = readPrimitive(8,
         { buffer, offset -> buffer.loadULongAt(offset) },
         { it.toULong() })
 
+    /**
+     * Reads a [Double] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readDouble(): Double = readPrimitive(8,
         { buffer, offset -> buffer.loadDoubleAt(offset) },
         { Double.fromBits(it) })
 
+    /**
+     * Reads an [Int] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readInt(): Int = readPrimitive(4,
         { buffer, offset -> buffer.loadIntAt(offset) },
         { it.toInt() })
 
+    /**
+     * Reads an [UInt] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readUInt(): UInt = readPrimitive(4,
         { buffer, offset -> buffer.loadUIntAt(offset) },
         { it.toUInt() })
 
+    /**
+     * Reads a [Float] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readFloat(): Float = readPrimitive(4,
         { buffer, offset -> buffer.loadFloatAt(offset) },
         { Float.fromBits(it.toInt()) })
 
+    /**
+     * Reads a [Short] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readShort(): Short = readPrimitive(2,
         { buffer, offset -> buffer.loadShortAt(offset) },
         { it.toShort() })
 
+    /**
+     * Reads an [UShort] from this Input
+     * @throws EOFException if no more bytes can be read
+     */
     fun readUShort(): UShort = readPrimitive(2,
         { buffer, offset -> buffer.loadUShortAt(offset) },
         { it.toUShort() })
 
-    // TODO: Dangerous to use, if non-local return then position will not be updated
+    /**
+     * Allows direct read from a buffer, operates on offset+size, returns number of bytes consumed
+     * NOTE: Dangerous to use, if non-local return then position will not be updated
+     * @throws EOFException if no more bytes can be read
+     */
     internal inline fun readBufferLength(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
         if (position == limit) {
             if (fetchBuffer() == 0)
@@ -100,7 +175,11 @@ abstract class Input : Closeable {
         return consumed
     }
 
-    // TODO: Dangerous to use, if non-local return then position will not be updated
+    /**
+     * Allows direct read from a buffer, operates on startOffset + endOffset (exclusive), returns new position
+     * NOTE: Dangerous to use, if non-local return then position will not be updated
+     * @throws EOFException if no more bytes can be read
+     */
     internal inline fun readBufferRange(reader: (Buffer, startOffset: Int, endOffset: Int) -> Int) {
         var startOffset = position
         var endOffset = limit
@@ -114,6 +193,10 @@ abstract class Input : Closeable {
         position = newPosition
     }
 
+    /**
+     * Reads a primitive of [primitiveSize] either directly from a buffer with [readDirect]
+     * or byte-by-byte into a Long and using [fromLong] to convert to target type
+     */
     private inline fun <T> readPrimitive(
         primitiveSize: Int,
         readDirect: (buffer: Buffer, offset: Int) -> T,
@@ -143,14 +226,17 @@ abstract class Input : Closeable {
 
         // Nope, doesn't fit in a buffer, read byte by byte
         var long = 0L
-        fetchBytes(primitiveSize) {
+        readBytes(primitiveSize) {
             long = (long shl 8) or it.toLong()
         }
         return fromLong(long)
     }
 
-    private inline fun fetchBytes(length: Int, consumer: (byte: UByte) -> Unit) {
-        var remaining = length
+    /**
+     * Reads [size] unsigned bytes from an Input and calls [consumer] on each of them
+     */
+    private inline fun readBytes(size: Int, consumer: (byte: UByte) -> Unit) {
+        var remaining = size
         while (remaining > 0) {
             if (position == limit) {
                 if (fetchBuffer() == 0) {
@@ -163,6 +249,14 @@ abstract class Input : Closeable {
         }
     }
 
+    /**
+     * Begins a preview operation and calls [reader] with an instance of `Input` to read from during preview.
+     * 
+     * This operations saves the current state of the Input and begins to accumulate buffers for replay.
+     * When `reader` finishes, it rewinds this Input to the previos state. 
+     * 
+     * Preview operations can be nested. 
+     */
     fun <R> preview(reader: Input.() -> R): R {
         if (position == limit) {
             if (fetchBuffer() == 0)
@@ -203,6 +297,12 @@ abstract class Input : Closeable {
         return result
     }
 
+    /**
+     * Prepares this Input for reading from the next buffer, either by filling it from the underlying source
+     * or loading from a [previewBytes] after a [preview] operation or if reading from pre-supplied [Bytes]
+     * 
+     * Current [buffer] should be exhausted at this moment, i.e. [position] should be equal to [limit]
+     */
     private fun fetchBuffer(): Int {
         if (position != limit) {
             // trying to fetch a buffer when previous buffer was not exhausted is an internal error
