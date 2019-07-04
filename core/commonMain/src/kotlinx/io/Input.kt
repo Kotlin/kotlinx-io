@@ -10,8 +10,8 @@ abstract class Input : Closeable {
     private val bufferPool: ObjectPool<Buffer>
 
     /**
-     * Buffer for current operations 
-     * Note, that buffer can be exhausted (position == limit) 
+     * Buffer for current operations
+     * Note, that buffer can be exhausted (position == limit)
      */
     private var buffer: Buffer
 
@@ -249,13 +249,52 @@ abstract class Input : Closeable {
         }
     }
 
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun eof() = !prefetch(1)
+    
+    fun prefetch(size: Int): Boolean {
+        if (position == limit) {
+            if (fetchBuffer() == 0) {
+                return false
+            }
+        }
+
+        var left = size - (limit - position)
+        if (left <= 0)
+            return true // enough bytes in current buffer
+
+        // we will fetch bytes into additional buffers, so prepare preview
+        val bytes = previewBytes ?: Bytes(bufferPool).also {
+            previewBytes = it
+            it.append(buffer, limit)
+        }
+
+        var fetchIndex = previewIndex
+        while (!bytes.isAfterLast(fetchIndex)) {
+            left -= bytes.limit(fetchIndex)
+            if (left <= 0)
+                return true // enough bytes in preview bytes
+            fetchIndex = bytes.advancePointer(fetchIndex)
+        }
+
+        while (left > 0) {
+            val buffer = bufferPool.borrow()
+            val limit = fill(buffer)
+            if (limit == 0)
+                return false
+            bytes.append(buffer, limit)
+            left -= limit
+        }
+        return true
+    }
+
     /**
      * Begins a preview operation and calls [reader] with an instance of `Input` to read from during preview.
-     * 
+     *
      * This operations saves the current state of the Input and begins to accumulate buffers for replay.
-     * When `reader` finishes, it rewinds this Input to the previos state. 
-     * 
-     * Preview operations can be nested. 
+     * When `reader` finishes, it rewinds this Input to the previos state.
+     *
+     * Preview operations can be nested.
      */
     fun <R> preview(reader: Input.() -> R): R {
         if (position == limit) {
@@ -300,7 +339,7 @@ abstract class Input : Closeable {
     /**
      * Prepares this Input for reading from the next buffer, either by filling it from the underlying source
      * or loading from a [previewBytes] after a [preview] operation or if reading from pre-supplied [Bytes]
-     * 
+     *
      * Current [buffer] should be exhausted at this moment, i.e. [position] should be equal to [limit]
      */
     private fun fetchBuffer(): Int {
@@ -335,14 +374,14 @@ abstract class Input : Closeable {
                 logln { "PVW: Completed discarding, filled buffer," }
                 return fetched
             }
-            
+
             val oldLimit = limit
             this.buffer = bytes.pointed(Bytes.StartPointer) { limit -> this.limit = limit }
             position = 0
             logln { "PVW: Discarded $oldLimit, get next buffer," }
             return limit
         }
-        
+
         val nextIndex = bytes.advancePointer(previewIndex)
         if (bytes.isAfterLast(nextIndex)) {
             val fetched = fillBuffer(bufferPool.borrow())
@@ -351,7 +390,7 @@ abstract class Input : Closeable {
             logln { "PVW: Preview #$previewIndex, filled buffer," }
             return fetched
         }
-        
+
         // we have a buffer already in history, i.e. replaying history inside another preview
         this.buffer = bytes.pointed(nextIndex) { limit -> this.limit = limit }
         this.position = 0

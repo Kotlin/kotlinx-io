@@ -47,6 +47,8 @@ class Bytes(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
         consumer(limit)
         return buffer
     }
+    
+    internal inline fun limit(pointer: BytesPointer): Int = limits[pointer + head]
 
     internal inline fun advancePointer(pointer: BytesPointer): BytesPointer = pointer + 1
     internal inline fun isEmpty() = tail == head
