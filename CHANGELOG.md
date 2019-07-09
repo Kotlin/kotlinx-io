@@ -1,3 +1,7 @@
+# 0.1.11
+
+* Fixed memory leak when using a byte channel on JVM in a long-running coroutine.
+
 # 0.1.7
 > Published 6 Mar 2019
 
