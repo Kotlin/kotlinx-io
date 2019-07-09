@@ -122,10 +122,11 @@ internal class ByteBufferChannel(
             // don't cancel job
 
             // any further attempt to suspend should be resumed immediately
-            // with false result at read
-            readSuspendContinuationCache.close(false)
             // with exception for write
             writeSuspendContinuationCache.close(ClosedWriteChannelException(DEFAULT_CLOSE_MESSAGE))
+
+            // and with computed result for read
+            readSuspendContinuationCache.close(state.capacity.flush())
         }
 
         return true
