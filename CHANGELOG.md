@@ -1,3 +1,8 @@
+# 0.1.12
+> Published 23 July 2019
+
+* Fixed using charsets from K/N workers
+
 # 0.1.11
 
 * Fixed memory leak when using a byte channel on JVM in a long-running coroutine.
