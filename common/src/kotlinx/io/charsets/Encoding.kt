@@ -1,6 +1,7 @@
 package kotlinx.io.charsets
 
 import kotlinx.io.core.*
+import kotlin.native.concurrent.*
 
 expect abstract class Charset {
     @ExperimentalIoApi
@@ -30,6 +31,7 @@ fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst
      encodeToImpl(dst, input, fromIndex, toIndex)
 }
 
+@SharedImmutable
 private val EmptyByteArray = ByteArray(0)
 
 @ExperimentalIoApi

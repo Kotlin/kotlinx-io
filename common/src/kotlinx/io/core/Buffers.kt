@@ -4,6 +4,7 @@ package kotlinx.io.core
 
 import kotlinx.io.core.internal.*
 import kotlinx.io.pool.*
+import kotlin.native.concurrent.*
 
 @Deprecated(
     "Use IoBuffer instead",
@@ -264,6 +265,7 @@ expect class IoBuffer : Input, Output {
     replaceWith = ReplaceWith("IoBuffer.EmptyPool", "kotlinx.io.core.IoBuffer"),
     level = DeprecationLevel.ERROR
 )
+@SharedImmutable
 val EmptyBufferViewPool get() = IoBuffer.EmptyPool
 
 internal object EmptyBufferPoolImpl : NoPoolImpl<IoBuffer>() {
