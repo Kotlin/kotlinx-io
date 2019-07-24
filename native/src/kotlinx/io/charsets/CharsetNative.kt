@@ -58,6 +58,7 @@ private fun iconvCharsetName(name: String) = when (name) {
     else -> name
 }
 
+@SharedImmutable
 private val negativePointer = (-1L).toCPointer<IntVar>()
 
 private fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
@@ -197,6 +198,7 @@ private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDec
 
 actual val CharsetDecoder.charset: Charset get() = _charset
 
+@SharedImmutable
 private val platformUtf16: String = if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
 
 actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {

@@ -11,6 +11,7 @@ import kotlinx.io.core.internal.*
 import kotlin.native.concurrent.ThreadLocal
 
 @PublishedApi
+@SharedImmutable
 internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 actual class IoBuffer internal constructor(
