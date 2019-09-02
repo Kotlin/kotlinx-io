@@ -1,3 +1,8 @@
+# 0.1.14
+> Published 2 Sep 2019
+
+* Migrate to Kotlin 1.3.50
+
 # 0.1.12
 > Published 23 July 2019
 
