@@ -87,9 +87,11 @@ allprojects {
     kotlin {
         configure(sourceSets) {
             def srcDir = name.endsWith('Main') ? 'src' : 'test'
+            def resourcesPrefix = name.endsWith("Test") ? "test-" : ""
             def platform = name[0..-5]
 
             kotlin.srcDir "$platform/$srcDir"
+            resources.srcDirs = ["$platform/${resourcesPrefix}resources"]
 
             if (!skipPublish.contains(project.name)) {
                 languageSettings {
