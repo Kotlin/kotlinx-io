@@ -8,6 +8,3 @@ task prepareIdeInterop(type: Copy) {
     into "build/classes/kotlin/native"
 }
 
-configure([assemble]) {
-    doLast { prepareIdeInterop.execute() }
-}
