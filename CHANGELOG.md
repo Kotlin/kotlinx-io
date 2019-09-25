@@ -1,3 +1,9 @@
+# 0.1.15
+> Published 25 Sep 2019
+
+* Migrated to Gradle 5.6.1 (Gradle metadata version is updated).
+* Fixed byte channel construction from ByteArray on JS and Native.
+
 # 0.1.14
 > Published 2 Sep 2019
 
