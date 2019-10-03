@@ -98,12 +98,12 @@ kotlin {
         }
     }
     
-    targets.all { target ->
-        def publication = publishing.publications.findByName(target.name)
-
-        if (publication != null) {
-            publication.artifact emptyJavadoc
-        }
-    }
+//    targets.all { target ->
+//        def publication = publishing.publications.findByName(target.name)
+//
+//        if (publication != null) {
+//            publication.artifact emptyJavadoc
+//        }
+//    }
 
 }
