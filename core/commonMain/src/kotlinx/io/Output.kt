@@ -18,7 +18,6 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     // Current number of bytes in [buffer] that were already flushed 
     private var flushed: Int = 0
 
-    protected abstract fun flush(source: Buffer, length: Int): Int
 
     fun writeByte(value: Byte) {
         val offset = position
@@ -37,45 +36,63 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     fun writeUByte(value: UByte) = writeByte(value.toByte())
 
     fun writeShort(value: Short) {
-        writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }, { value.toLong() })
+        writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }) { value.toLong() }
     }
 
     fun writeUShort(value: UShort) {
-        writePrimitive(2, { buffer, offset -> buffer.storeUShortAt(offset, value) }, { value.toLong() })
+        writePrimitive(2, { buffer, offset -> buffer.storeUShortAt(offset, value) }) { value.toLong() }
     }
 
     fun writeInt(value: Int) {
-        writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }, { value.toLong() })
+        writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }) { value.toLong() }
     }
 
     fun writeUInt(value: UInt) {
-        writePrimitive(4, { buffer, offset -> buffer.storeUIntAt(offset, value) }, { value.toLong() })
+        writePrimitive(4, { buffer, offset -> buffer.storeUIntAt(offset, value) }) { value.toLong() }
     }
 
     fun writeLong(value: Long) {
-        writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }, { value.toLong() })
+        writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }) { value }
     }
 
     fun writeULong(value: ULong) {
-        writePrimitive(8, { buffer, offset -> buffer.storeULongAt(offset, value) }, { value.toLong() })
+        writePrimitive(8, { buffer, offset -> buffer.storeULongAt(offset, value) }) { value.toLong() }
     }
 
     fun writeFloat(value: Float) {
-        writePrimitive(4, { buffer, offset -> buffer.storeFloatAt(offset, value) }, { value.toBits().toLong() })
+        writePrimitive(4, { buffer, offset -> buffer.storeFloatAt(offset, value) }) { value.toBits().toLong() }
     }
 
     fun writeDouble(value: Double) {
-        writePrimitive(8, { buffer, offset -> buffer.storeDoubleAt(offset, value) }, { value.toBits() })
+        writePrimitive(
+            8,
+            { buffer, offset -> buffer.storeDoubleAt(offset, value) }
+        ) { value.toBits() }
     }
 
     fun writeArray(array: UByteArray) {
-        for (byte in array)
+        for (byte in array) {
             writeUByte(byte)
+        }
     }
 
     fun writeArray(array: ByteArray) {
-        for (byte in array)
+        for (byte in array) {
             writeByte(byte)
+        }
+    }
+
+    fun flush() {
+        flushBuffer()
+    }
+
+    protected abstract fun flush(source: Buffer, length: Int): Int
+
+    private fun flushBuffer() {
+        flush(buffer, position)
+        buffer = bufferPool.borrow()
+        position = 0
+        flushed = 0
     }
 
     internal inline fun writeBufferRange(writer: (buffer: Buffer, startOffset: Int, endOffset: Int) -> Int) {
@@ -133,16 +150,5 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
             remainingValue = remainingValue shr 8
             remaining--
         }
-    }
-
-    private fun flushBuffer() {
-        flush(buffer, position)
-        buffer = bufferPool.borrow()
-        position = 0
-        flushed = 0
-    }
-
-    fun flush() {
-        flushBuffer()
     }
 }

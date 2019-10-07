@@ -1,0 +1,23 @@
+ # TODO
+- Design
+    - [ ] Input: bypass source exceptions in `Input.fill`
+    - [ ] Input: `eof` vs `exhausted`
+    - [ ] `Float.reverseByteOrder`
+- Documentation
+    - [ ] Bytes
+    - [ ] Input
+    - [ ] Output
+    - [ ] Input operations
+    - [ ] Text input
+    - [ ] Text output
+- Benchmarks
+    - [ ] Input: read byte array
+- Samples
+    - Input and Output over 
+        - [ ] File
+        - [ ] Socket
+        - [ ] RSocket
+        - [ ] node.js/web stream
+- Maintenance
+    - [ ] Dokka generation
+    - [ ] Test coverage

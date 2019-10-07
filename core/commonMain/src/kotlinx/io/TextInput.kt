@@ -2,24 +2,22 @@ package kotlinx.io
 
 import kotlinx.io.text.*
 
-fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: StringBuilder, delimiter: Char) =
-    decodeUTF8Chars {
-        if (it == delimiter)
-            return@decodeUTF8Chars false
-        stringBuilder.append(it)
-        true
-    }
+fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: Char): Int = decodeUTF8Chars {
+    if (it == delimiter)
+        return@decodeUTF8Chars false
+    stringBuilder.append(it)
+    true
+}
 
-fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: StringBuilder, delimiters: String) =
-    decodeUTF8Chars {
-        if (it in delimiters)
-            return@decodeUTF8Chars false
-        stringBuilder.append(it)
-        true
-    }
+fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: Appendable, delimiters: String): Int = decodeUTF8Chars {
+    if (it in delimiters)
+        return@decodeUTF8Chars false
+    stringBuilder.append(it)
+    true
+}
 
 
-fun Input.readUTF8StringTo(out: StringBuilder, length: Int): Int {
+fun Input.readUTF8StringTo(out: Appendable, length: Int): Int {
     var remaining = length
     return decodeUTF8Chars {
         out.append(it)
@@ -27,11 +25,11 @@ fun Input.readUTF8StringTo(out: StringBuilder, length: Int): Int {
     }
 }
 
-fun Input.readUTF8Line() = buildString {
+fun Input.readUTF8Line(): String = buildString {
     readUTF8LineTo(this)
 }
 
-fun Input.readUTF8LineTo(out: StringBuilder) {
+fun Input.readUTF8LineTo(out: Appendable) {
     // TODO: consumes char after lonely CR
     var seenCR = false
     decodeUTF8Chars {
@@ -52,11 +50,11 @@ fun Input.readUTF8String(length: Int): String = buildString(length) {
     readUTF8StringTo(this, length)
 }
 
-fun Input.readUTF8StringUntilDelimiter(delimiter: Char) = buildString {
+fun Input.readUTF8StringUntilDelimiter(delimiter: Char): String = buildString {
     readUTF8StringUntilDelimiterTo(this, delimiter)
 }
 
-fun Input.readUTF8StringUntilDelimiters(delimiters: String) = buildString {
+fun Input.readUTF8StringUntilDelimiters(delimiters: String): String = buildString {
     readUTF8StringUntilDelimitersTo(this, delimiters)
 }
 
@@ -169,10 +167,10 @@ private fun malformedInput(codePoint: Int): Nothing {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun lowSurrogate(codePoint: Int) = (codePoint and 0x3ff) + MinLowSurrogate
+private inline fun lowSurrogate(codePoint: Int): Int = (codePoint and 0x3ff) + MinLowSurrogate
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun highSurrogate(codePoint: Int) = (codePoint ushr 10) + HighSurrogateMagic
+private inline fun highSurrogate(codePoint: Int): Int = (codePoint ushr 10) + HighSurrogateMagic
 
 private const val MaxCodePoint = 0x10ffff
 internal const val MinLowSurrogate = 0xdc00
