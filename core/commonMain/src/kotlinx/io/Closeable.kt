@@ -1,7 +1,7 @@
 package kotlinx.io
 
 expect interface Closeable {
-    fun close()
+    fun close(): Unit
 }
 
 inline fun <C : Closeable, R> C.use(block: (C) -> R): R {

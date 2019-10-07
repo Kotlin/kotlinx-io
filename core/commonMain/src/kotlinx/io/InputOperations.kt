@@ -2,6 +2,11 @@ package kotlinx.io
 
 import kotlinx.io.buffer.*
 
+/**
+ * Read [length] bytes from [Input] to [array] from [startIndex].
+ *
+ * @throws EOFException if not enough bytes available.
+ */
 fun Input.readArray(array: ByteArray, startIndex: Int = 0, length: Int = array.size - startIndex) {
     var remaining = length
     var consumed = 0
@@ -16,6 +21,11 @@ fun Input.readArray(array: ByteArray, startIndex: Int = 0, length: Int = array.s
     }
 }
 
+/**
+ * Read [length] bytes from [Input] to [array] from [startIndex].
+ *
+ * @throws EOFException if not enough bytes available.
+ */
 fun Input.readArray(array: UByteArray, startIndex: Int = 0, length: Int = array.size - startIndex) {
     var remaining = length
     var consumed = 0

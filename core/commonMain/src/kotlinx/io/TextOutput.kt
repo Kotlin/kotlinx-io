@@ -5,6 +5,11 @@ import kotlinx.io.text.*
 
 private const val lastASCII = 0x7F.toChar()
 
+/**
+ * Write [length] bytes in [text] starting from offset [index] to output.
+ *
+ * @throws MalformedInputException if encoding is invalid.
+ */
 fun Output.writeUTF8String(text: CharSequence, index: Int = 0, length: Int = text.length - index) {
     var textIndex = index // index in text
     val textEndIndex = index + length // index of char after last

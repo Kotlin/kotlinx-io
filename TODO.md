@@ -1,0 +1,34 @@
+ # TODO
+- Design
+    - [ ] Input: bypass source exceptions in `Input.fill`
+    - [ ] Input: `eof` vs `exhausted`
+    - [ ] `Float.reverseByteOrder`
+    - [ ] Output: `flush` size contract
+    - [ ] case: `Bytes` -> `[Input]`. When we should close `Bytes`?
+- Implementation
+    - [ ] Input
+    - [ ] Output
+        - [ ] `flushed` index unused
+    - [ ] Index preconditions
+- Documentation
+    - [ ] Bytes
+    - [ ] Input
+    - [ ] Output
+    - [ ] Input operations
+    - Interop
+        - InputStream, OutputStream
+        - okio: Source, Sink
+    - [ ] Text input
+    - [ ] Text output
+- Benchmarks
+    - [ ] Input: read byte array
+    - [ ] Output: all benchmarks
+- Samples
+    - Input and Output over 
+        - [ ] File
+        - [ ] Socket
+        - [ ] RSocket
+        - [ ] node.js/web stream
+- Maintenance
+    - [ ] Dokka generation
+    - [ ] Test coverage

@@ -21,13 +21,13 @@ expect class Buffer {
     inline fun loadByteAt(index: Int): Byte
 
     /**
-     * Write byte [value] at the specified [index]
+     * Write byte [value] at the specified [index].
      */
     inline fun storeByteAt(index: Int, value: Byte)
     
     companion object {
         /**
-         * Represents an empty buffer region
+         * Represents an empty buffer region.
          */
         val Empty: Buffer
     }
