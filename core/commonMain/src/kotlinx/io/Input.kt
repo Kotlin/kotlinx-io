@@ -4,11 +4,11 @@ import kotlinx.io.buffer.*
 import kotlinx.io.pool.*
 
 /**
- * Input is an abstract base class for synchronous byte readers.
+ * [Input] is an abstract base class for synchronous byte readers.
  *
  * It contains [read*] methods to read primitive types ([readByte], [readInt], ...) and arrays([readArray]).
  *
- * [Input] is buffered. Buffer size depends on [Buffer.size] in [bufferPool] buffer.
+ * [Input] is buffered. Buffer size depends on [Buffer.size] in the [bufferPool] buffer.
  * Buffer size is [DEFAULT_BUFFER_SIZE] by default.
  *
  * To ensure that the required amount bytes is available, you can prefetch it with the [prefetch] method.
@@ -446,9 +446,9 @@ public abstract class Input : Closeable {
      * Current [buffer] should be exhausted at this moment, i.e. [position] should be equal to [limit]
      */
     private fun fetchBuffer(): Int {
-        if (position != limit) {
+        check(position == limit) {
             // trying to fetch a buffer when previous buffer was not exhausted is an internal error
-            throw IllegalStateException("Throwing bytes away")
+            "Throwing bytes away."
         }
 
         val discard = previewDiscard

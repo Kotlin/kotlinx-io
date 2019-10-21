@@ -2,6 +2,9 @@ package kotlinx.io
 
 import kotlinx.io.text.*
 
+/**
+ * @throws MalformedInputException
+ */
 fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: Char): Int = decodeUTF8Chars {
     if (it == delimiter)
         return@decodeUTF8Chars false
@@ -9,6 +12,9 @@ fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: C
     true
 }
 
+/**
+ * @throws MalformedInputException
+ */
 fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: Appendable, delimiters: String): Int = decodeUTF8Chars {
     if (it in delimiters)
         return@decodeUTF8Chars false
@@ -16,7 +22,9 @@ fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: Appendable, delimiters:
     true
 }
 
-
+/**
+ * @throws MalformedInputException
+ */
 fun Input.readUTF8StringTo(out: Appendable, length: Int): Int {
     var remaining = length
     return decodeUTF8Chars {
@@ -25,10 +33,16 @@ fun Input.readUTF8StringTo(out: Appendable, length: Int): Int {
     }
 }
 
+/**
+ * @throws MalformedInputException
+ */
 fun Input.readUTF8Line(): String = buildString {
     readUTF8LineTo(this)
 }
 
+/**
+ * @throws MalformedInputException
+ */
 fun Input.readUTF8LineTo(out: Appendable) {
     // TODO: consumes char after lonely CR
     var seenCR = false
@@ -46,18 +60,30 @@ fun Input.readUTF8LineTo(out: Appendable) {
     }
 }
 
+/**
+ * @throws MalformedInputException
+ */
 fun Input.readUTF8String(length: Int): String = buildString(length) {
     readUTF8StringTo(this, length)
 }
 
+/**
+ * @throws MalformedInputException
+ */
 fun Input.readUTF8StringUntilDelimiter(delimiter: Char): String = buildString {
     readUTF8StringUntilDelimiterTo(this, delimiter)
 }
 
+/**
+ * @throws MalformedInputException
+ */
 fun Input.readUTF8StringUntilDelimiters(delimiters: String): String = buildString {
     readUTF8StringUntilDelimitersTo(this, delimiters)
 }
 
+/**
+ * @throws MalformedInputException
+ */
 private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0

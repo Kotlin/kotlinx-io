@@ -3,22 +3,37 @@ package kotlinx.io
 import kotlinx.io.buffer.*
 import kotlinx.io.pool.*
 
+/**
+ * [Output] is an abstract base for writable streams of bytes over some sink.
+ *
+ * [Output] is buffered. Buffer size depends on [Buffer.size] in the [bufferPool] buffer.
+ * Buffer size is [DEFAULT_BUFFER_SIZE] by default. Buffer can be flushed using [flush] method.
+ *
+ * To implement [Output] over a custom sink you should override only [fill] method.
+ */
 abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
-    protected val bufferPool: ObjectPool<Buffer> = if (bufferSize == DEFAULT_BUFFER_SIZE)
+    /**
+     * Pool for obtaining buffers for operations.
+     */
+    protected val bufferPool: ObjectPool<Buffer> = if (bufferSize == DEFAULT_BUFFER_SIZE) {
         DefaultBufferPool.Instance
-    else
+    } else {
         DefaultBufferPool(bufferSize)
+    }
 
-    // Current buffer 
+    /**
+     * Current buffer.
+     */
     private var buffer: Buffer = bufferPool.borrow()
 
-    // Current position in [buffer]
+    /**
+     * Write position in [buffer].
+     */
     private var position: Int = 0
 
-    // Current number of bytes in [buffer] that were already flushed 
-    private var flushed: Int = 0
-
-
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeByte(value: Byte) {
         val offset = position
         val size = buffer.size
@@ -33,36 +48,65 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         return buffer.storeByteAt(0, value)
     }
 
-    fun writeUByte(value: UByte) = writeByte(value.toByte())
+    /**
+     * Write a [value] to this [Input].
+     */
+    fun writeUByte(value: UByte) {
+        writeByte(value.toByte())
+    }
 
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeShort(value: Short) {
         writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }) { value.toLong() }
     }
 
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeUShort(value: UShort) {
         writePrimitive(2, { buffer, offset -> buffer.storeUShortAt(offset, value) }) { value.toLong() }
     }
 
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeInt(value: Int) {
         writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }) { value.toLong() }
     }
 
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeUInt(value: UInt) {
         writePrimitive(4, { buffer, offset -> buffer.storeUIntAt(offset, value) }) { value.toLong() }
     }
 
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeLong(value: Long) {
         writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }) { value }
     }
 
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeULong(value: ULong) {
         writePrimitive(8, { buffer, offset -> buffer.storeULongAt(offset, value) }) { value.toLong() }
     }
 
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeFloat(value: Float) {
         writePrimitive(4, { buffer, offset -> buffer.storeFloatAt(offset, value) }) { value.toBits().toLong() }
     }
 
+    /**
+     * Write a [value] to this [Input].
+     */
     fun writeDouble(value: Double) {
         writePrimitive(
             8,
@@ -70,29 +114,49 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         ) { value.toBits() }
     }
 
+    /**
+     * Write an [array] to this [Input].
+     *
+     * TODO: measure
+     */
     fun writeArray(array: UByteArray) {
         for (byte in array) {
             writeUByte(byte)
         }
     }
 
+    /**
+     * Write an [array] to this [Input].
+     *
+     * TODO: measure
+     */
     fun writeArray(array: ByteArray) {
         for (byte in array) {
             writeByte(byte)
         }
     }
 
+    /**
+     * Write all buffered bytes to underlying sink.
+     */
     fun flush() {
         flushBuffer()
     }
 
-    protected abstract fun flush(source: Buffer, length: Int): Int
+    /**
+     * Write [source] buffer to destination.
+     *
+     * May block until destination has no available space.
+     *
+     * @return flushed bytes count
+     */
+    protected abstract fun flush(source: Buffer, length: Int)
 
     private fun flushBuffer() {
+        // TODO: flush result ignored.
         flush(buffer, position)
         buffer = bufferPool.borrow()
         position = 0
-        flushed = 0
     }
 
     internal inline fun writeBufferRange(writer: (buffer: Buffer, startOffset: Int, endOffset: Int) -> Int) {
@@ -103,6 +167,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
             startOffset = position
             endOffset = buffer.size - 1
         }
+
         val newPosition = writer(buffer, startOffset, endOffset)
         position = newPosition
     }
@@ -115,6 +180,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         val offset = position
         val size = buffer.size
         val targetLimit = offset + primitiveSize
+
         if (size >= targetLimit) {
             position = targetLimit
             return writeDirect(buffer, offset)

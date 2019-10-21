@@ -23,9 +23,8 @@ private class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(buffer
         return bytes
     }
 
-    override fun flush(source: Buffer, length: Int): Int {
+    override fun flush(source: Buffer, length: Int) {
         bytes.append(source, length)
-        return length
     }
 
     override fun close() {
