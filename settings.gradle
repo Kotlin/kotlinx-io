@@ -8,21 +8,12 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'kotlinx-io-package'
 enableFeaturePreview('GRADLE_METADATA')
 
+rootProject.name = 'kotlinx-io-package'
+
 include ':core'
-project(":core").name='kotlinx-io'
-
-/*
-include ':coroutines'
-project(":coroutines").name='kotlinx-coroutines-io'
-*/
+project(":core").name = 'kotlinx-io'
 
 include ':benchmarks'
-project(":benchmarks").name='kotlinx-io-benchmarks'
-
-/*
-include ':benchmarks'
-include ':binary-compatibility-validator'
-*/
+project(":benchmarks").name = 'kotlinx-io-benchmarks'

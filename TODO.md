@@ -3,12 +3,12 @@
     - [ ] Input: bypass source exceptions in `Input.fill`
     - [ ] Input: `eof` vs `exhausted`
     - [ ] `Float.reverseByteOrder`
-    - [ ] Output: `flush` size contract
+    - [x] Output: `flush` size contract
     - [ ] case: `Bytes` -> `[Input]`. When we should close `Bytes`?
 - Implementation
     - [ ] Input
     - [ ] Output
-        - [ ] `flushed` index unused
+        - [x] `flushed` index unused
     - [ ] Index preconditions
 - Documentation
     - [ ] Bytes

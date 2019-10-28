@@ -7,7 +7,10 @@ internal inline fun <reified Owner : Any> longUpdater(p: KProperty1<Owner, Long>
     return AtomicLongFieldUpdater.newUpdater(Owner::class.java, p.name)
 }
 
-internal fun getIOIntProperty(name: String, default: Int): Int =
-    try { System.getProperty("kotlinx.io.$name") }
-    catch (e: SecurityException) { null }
-        ?.toIntOrNull() ?: default
+internal fun getIOIntProperty(name: String, default: Int): Int {
+    return try {
+        System.getProperty("kotlinx.io.$name")
+    } catch (e: SecurityException) {
+        null
+    }?.toIntOrNull() ?: default
+}

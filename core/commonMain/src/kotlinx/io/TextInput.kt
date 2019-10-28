@@ -6,8 +6,9 @@ import kotlinx.io.text.*
  * @throws MalformedInputException
  */
 fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: Char): Int = decodeUTF8Chars {
-    if (it == delimiter)
+    if (it == delimiter) {
         return@decodeUTF8Chars false
+    }
     stringBuilder.append(it)
     true
 }
