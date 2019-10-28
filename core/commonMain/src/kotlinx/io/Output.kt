@@ -147,13 +147,10 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
      * Write [source] buffer to destination.
      *
      * May block until destination has no available space.
-     *
-     * @return flushed bytes count
      */
     protected abstract fun flush(source: Buffer, length: Int)
 
     private fun flushBuffer() {
-        // TODO: flush result ignored.
         flush(buffer, position)
         buffer = bufferPool.borrow()
         position = 0

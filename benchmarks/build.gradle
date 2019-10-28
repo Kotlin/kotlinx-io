@@ -8,11 +8,11 @@ allOpen {
 }
 
 kotlin {
-    infra {
-        target('macosX64')
-        target('linuxX64')
-        target('mingwX64')
-    }
+//    infra {
+//        target('macosX64')
+//        target('linuxX64')
+//        target('mingwX64')
+//    }
 
     jvm {
         compilations.all {
@@ -86,8 +86,8 @@ kotlin {
 benchmark {
     configurations {
         main {
-            iterations = 10 // number of iterations
-            iterationTime = 1 
+            iterations = 1000 // number of iterations
+            iterationTime = 1
             iterationTimeUnit = "s"
         }
     }
