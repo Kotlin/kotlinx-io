@@ -89,13 +89,13 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
         return buffer
     }
 
-    internal inline fun limit(pointer: BytesPointer): Int = limits[pointer + head]
+    internal fun limit(pointer: BytesPointer): Int = limits[pointer + head]
 
-    internal inline fun advancePointer(pointer: BytesPointer): BytesPointer = pointer + 1
+    internal fun advancePointer(pointer: BytesPointer): BytesPointer = pointer + 1
 
-    internal inline fun isEmpty() = tail == head
+    internal fun isEmpty() = tail == head
 
-    internal inline fun isAfterLast(index: BytesPointer) = head + index >= tail
+    internal fun isAfterLast(index: BytesPointer) = head + index >= tail
 
     internal fun size(pointer: BytesPointer): Int {
         // ???: if Input.ensure operations are frequent enough, consider storing running size in yet another int array

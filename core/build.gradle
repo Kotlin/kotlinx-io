@@ -89,15 +89,17 @@ kotlin {
     }
 
     sourceSets.all {
+        def isTest = it.toString().endsWith("Test")
         kotlin.srcDirs = ["$it.name/src"]
         resources.srcDirs = ["$it.name/resources"]
         languageSettings {
             progressiveMode = true
             useExperimentalAnnotation("kotlin.Experimental")
-            useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
             useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
-            useExperimentalAnnotation("kotlinx.io.unsafe.DangerousInternalIoApi")
             useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+            if (isTest) {
+                useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+            }
         }
     }
 
