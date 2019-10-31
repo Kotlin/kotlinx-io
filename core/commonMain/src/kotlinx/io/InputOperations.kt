@@ -26,6 +26,7 @@ fun Input.readArray(array: ByteArray, startIndex: Int = 0, length: Int = array.s
  *
  * @throws EOFException if not enough bytes available.
  */
+@ExperimentalUnsignedTypes
 fun Input.readArray(array: UByteArray, startIndex: Int = 0, length: Int = array.size - startIndex) {
     var remaining = length
     var consumed = 0

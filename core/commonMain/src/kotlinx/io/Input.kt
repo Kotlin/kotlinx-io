@@ -135,6 +135,7 @@ public abstract class Input : Closeable {
      *
      * @throws EOFException if no more bytes can be read.
      */
+    @ExperimentalUnsignedTypes
     public fun readUByte(): UByte = readByte().toUByte()
 
     /**
@@ -151,6 +152,7 @@ public abstract class Input : Closeable {
      *
      * @throws EOFException if no more bytes can be read.
      */
+    @ExperimentalUnsignedTypes
     public fun readULong(): ULong = readPrimitive(
         8, { buffer, offset -> buffer.loadULongAt(offset) }
     ) { it.toULong() }
@@ -178,6 +180,7 @@ public abstract class Input : Closeable {
      *
      * @throws EOFException if no more bytes can be read.
      */
+    @ExperimentalUnsignedTypes
     public fun readUInt(): UInt = readPrimitive(
         4, { buffer, offset -> buffer.loadUIntAt(offset) }
     ) { it.toUInt() }
@@ -205,6 +208,7 @@ public abstract class Input : Closeable {
      *
      * @throws EOFException if no more bytes can be read.
      */
+    @ExperimentalUnsignedTypes
     public fun readUShort(): UShort = readPrimitive(
         2, { buffer, offset -> buffer.loadUShortAt(offset) }
     ) { it.toUShort() }
@@ -319,8 +323,6 @@ public abstract class Input : Closeable {
         previewBytes?.close()
     }
 
-    public companion object {}
-
     /**
      * Closes the underlying source.
      */
@@ -422,10 +424,9 @@ public abstract class Input : Closeable {
 
     /**
      * Reads [size] unsigned bytes from an Input and calls [consumer] on each of them.
-     *
      * @throws EOFException if no more bytes available.
      */
-    private inline fun readBytes(size: Int, consumer: (byte: UByte) -> Unit) {
+    private inline fun readBytes(size: Int, consumer: (unsignedByte: Int) -> Unit) {
         var remaining = size
         while (remaining > 0) {
             if (position == limit) {
@@ -433,8 +434,7 @@ public abstract class Input : Closeable {
                     throw EOFException("End of file while reading buffer")
                 }
             }
-
-            consumer(buffer.loadUByteAt(position++))
+            consumer(buffer.loadByteAt(position++).toInt() and 0xFF)
             remaining--
         }
     }

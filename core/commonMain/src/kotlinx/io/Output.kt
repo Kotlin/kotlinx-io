@@ -51,6 +51,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     /**
      * Write a [value] to this [Input].
      */
+    @ExperimentalUnsignedTypes
     fun writeUByte(value: UByte) {
         writeByte(value.toByte())
     }
@@ -65,6 +66,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     /**
      * Write a [value] to this [Input].
      */
+    @ExperimentalUnsignedTypes
     fun writeUShort(value: UShort) {
         writePrimitive(2, { buffer, offset -> buffer.storeUShortAt(offset, value) }) { value.toLong() }
     }
@@ -79,6 +81,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     /**
      * Write a [value] to this [Input].
      */
+    @ExperimentalUnsignedTypes
     fun writeUInt(value: UInt) {
         writePrimitive(4, { buffer, offset -> buffer.storeUIntAt(offset, value) }) { value.toLong() }
     }
@@ -93,6 +96,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     /**
      * Write a [value] to this [Input].
      */
+    @ExperimentalUnsignedTypes
     fun writeULong(value: ULong) {
         writePrimitive(8, { buffer, offset -> buffer.storeULongAt(offset, value) }) { value.toLong() }
     }
@@ -119,6 +123,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
      *
      * TODO: measure
      */
+    @ExperimentalUnsignedTypes
     fun writeArray(array: UByteArray) {
         for (byte in array) {
             writeUByte(byte)
