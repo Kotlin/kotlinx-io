@@ -17,6 +17,6 @@ public actual class Buffer constructor(val pointer: CPointer<ByteVar>, actual in
     }
 
     public actual companion object {
-        public actual val Empty: Buffer = Buffer(nativeHeap.allocArray(0), 0)
+        public actual val EMPTY: Buffer = Buffer(nativeHeap.allocArray(0), 0)
     }
 }

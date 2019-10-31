@@ -139,7 +139,7 @@ actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block: (Buff
 
     return usePinned { pinned ->
         val memory = when {
-            isEmpty() && offset == 0 && length == 0 -> Buffer.Empty
+            isEmpty() && offset == 0 && length == 0 -> Buffer.EMPTY
             else -> Buffer(pinned.addressOf(offset), length)
         }
 

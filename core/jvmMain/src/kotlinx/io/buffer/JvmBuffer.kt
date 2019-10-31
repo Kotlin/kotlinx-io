@@ -16,6 +16,6 @@ public actual inline class Buffer(val buffer: ByteBuffer) {
     }
 
     public actual companion object {
-        public actual val Empty: Buffer = Buffer(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
+        public actual val EMPTY: Buffer = Buffer(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
     }
 }
