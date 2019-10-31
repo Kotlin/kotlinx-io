@@ -4,6 +4,7 @@ package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
 import kotlinx.io.bits.internal.utils.*
+import kotlin.native.concurrent.SharedImmutable
 
 public actual class Buffer constructor(val pointer: CPointer<ByteVar>, actual inline val size: Int) {
     init {
@@ -17,6 +18,7 @@ public actual class Buffer constructor(val pointer: CPointer<ByteVar>, actual in
     }
 
     public actual companion object {
+        @SharedImmutable
         public actual val EMPTY: Buffer = Buffer(nativeHeap.allocArray(0), 0)
     }
 }
