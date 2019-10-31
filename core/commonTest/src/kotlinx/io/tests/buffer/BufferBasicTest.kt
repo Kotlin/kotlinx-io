@@ -6,7 +6,7 @@ import kotlin.test.*
 class BufferBasicTest {
     @Test
     fun emptyBufferSizeIsZero() {
-        assertEquals(Buffer.Empty.size, 0)
+        assertEquals(Buffer.EMPTY.size, 0)
     }
 
     @Test

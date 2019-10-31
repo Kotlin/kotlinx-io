@@ -28,8 +28,7 @@ public expect class Buffer {
     public companion object {
         /**
          * Represents an empty buffer region.
-         * TODO decide on its presence
          */
-        public val Empty: Buffer
+        public val EMPTY: Buffer
     }
 }
