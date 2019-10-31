@@ -2,8 +2,7 @@ package kotlinx.io.internal
 
 @PublishedApi
 @Suppress("NOTHING_TO_INLINE")
-@Deprecated("Use function with lambda for name", replaceWith = ReplaceWith("toIntOrFail { name }"))
-internal inline fun Long.toIntOrFail(name: String): Int = toIntOrFail { name }
+internal fun Long.toIntOrFail(name: String): Int = toIntOrFail { name }
 
 @PublishedApi
 internal inline fun Long.toIntOrFail(name: () -> String): Int {

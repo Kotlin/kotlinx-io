@@ -6,30 +6,33 @@ import kotlinx.io.internal.*
 
 /**
  * Read byte at the specified [index].
+ * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
  */
-inline operator fun Buffer.get(index: Int): Byte = loadByteAt(index)
+public inline operator fun Buffer.get(index: Int): Byte = loadByteAt(index)
 
 /**
  * Read byte at the specified [index].
+ * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
  */
-inline operator fun Buffer.get(index: Long): Byte = loadByteAt(index.toIntOrFail { "index" })
+public inline operator fun Buffer.get(index: Long): Byte = loadByteAt(index.toIntOrFail("index"))
 
 /**
- * Index write operator to write [value] at the specified [index]
+ * Index write operator to write [value] at the specified [index].
+ * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
  */
-inline operator fun Buffer.set(index: Long, value: Byte) = storeByteAt(index.toIntOrFail { "index" }, value)
+public inline operator fun Buffer.set(index: Long, value: Byte) = storeByteAt(index.toIntOrFail("index"), value)
 
 /**
- * Index write operator to write [value] at the specified [index]
+ * Index write operator to write [value] at the specified [index].
+ * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
  */
-inline operator fun Buffer.set(index: Int, value: Byte) = storeByteAt(index, value)
-
+public inline operator fun Buffer.set(index: Int, value: Byte) = storeByteAt(index, value)
 
 /**
  * Fill buffer range starting at the specified [offset] with [value] repeated [count] times.
  */
-fun Buffer.fill(offset: Long, count: Long, value: Byte) {
-    fill(offset.toIntOrFail { "offset" }, count.toIntOrFail { "count" }, value)
+public fun Buffer.fill(offset: Long, count: Long, value: Byte) {
+    fill(offset.toIntOrFail("offset"), count.toIntOrFail("count"), value)
 }
 
 /**
