@@ -4,34 +4,19 @@ package kotlinx.io.buffer
 
 import org.khronos.webgl.*
 
-/**
- * Represents a linear range of bytes.
- */
-actual class Buffer(val view: DataView) {
-    /**
-     * Size of memory range in bytes.
-     */
-    actual inline val size: Int get() = view.byteLength
+public actual class Buffer(public val view: DataView) {
 
-    /**
-     * Returns byte at [index] position.
-     */
-    actual inline fun loadByteAt(index: Int): Byte {
+    public actual inline val size: Int get() = view.byteLength
+
+    public actual fun loadByteAt(index: Int): Byte = checked(index) {
         return view.getInt8(index)
     }
 
-    /**
-     * Write [value] at the specified [index].
-     */
-    actual inline fun storeByteAt(index: Int, value: Byte) {
+    public actual fun storeByteAt(index: Int, value: Byte) = checked(index) {
         view.setInt8(index, value)
     }
 
-
-    actual companion object {
-        /**
-         * Represents an empty memory region
-         */
-        actual val Empty: Buffer = Buffer(DataView(ArrayBuffer(0)))
+    public actual companion object {
+        public actual val Empty: Buffer = Buffer(DataView(ArrayBuffer(0)))
     }
 }

@@ -1,34 +1,35 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
 package kotlinx.io.buffer
+
+import kotlin.IndexOutOfBoundsException
 
 /**
  * Represents a linear range of bytes.
- * All operations are guarded by range-checks by default however at some platforms they could be disabled
- * in release builds.
- *
  * Instance of this class has no additional state except the bytes themselves.
+ * TODO allocation, resources, random-access documentation
  */
-expect class Buffer {
+public expect class Buffer {
     /**
      * Size of buffer range in bytes.
      */
-    val size: Int
+    public val size: Int
 
     /**
      * Returns byte at [index] position.
+     * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
      */
-    inline fun loadByteAt(index: Int): Byte
+    public fun loadByteAt(index: Int): Byte
 
     /**
-     * Write byte [value] at the specified [index].
+     * Writes byte [value] at the specified [index].
+     * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
      */
-    inline fun storeByteAt(index: Int, value: Byte)
-    
-    companion object {
+    public fun storeByteAt(index: Int, value: Byte)
+
+    public companion object {
         /**
          * Represents an empty buffer region.
+         * TODO decide on its presence
          */
-        val Empty: Buffer
+        public val Empty: Buffer
     }
 }
