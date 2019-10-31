@@ -36,6 +36,7 @@ inline fun Buffer.loadByteArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.loadUByteArray(
     offset: Int,
     destination: UByteArray,
@@ -50,6 +51,7 @@ inline fun Buffer.loadUByteArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.loadUByteArray(
     offset: Long,
     destination: UByteArray,
@@ -90,6 +92,7 @@ inline fun Buffer.loadShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.loadUShortArray(
     offset: Int,
     destination: UShortArray,
@@ -104,6 +107,7 @@ inline fun Buffer.loadUShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.loadUShortArray(
     offset: Long,
     destination: UShortArray,
@@ -144,6 +148,7 @@ fun Buffer.loadIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.loadUIntArray(
     offset: Int,
     destination: UIntArray,
@@ -158,6 +163,7 @@ inline fun Buffer.loadUIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.loadUIntArray(
     offset: Long,
     destination: UIntArray,
@@ -198,6 +204,7 @@ inline fun Buffer.loadLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.loadULongArray(
     offset: Int,
     destination: ULongArray,
@@ -212,6 +219,7 @@ inline fun Buffer.loadULongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.loadULongArray(
     offset: Long,
     destination: ULongArray,
@@ -307,6 +315,7 @@ inline fun Buffer.storeByteArray(
  * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset].
  * @param sourceOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.storeUByteArray(
     offset: Int,
     source: UByteArray,
@@ -320,6 +329,7 @@ inline fun Buffer.storeUByteArray(
  * Copies unsigned shorts integers from the [source] array at [sourceOffset] to this buffer at the specified [offset].
  * @param sourceOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.storeUByteArray(
     offset: Long,
     source: UByteArray,
@@ -360,6 +370,7 @@ inline fun Buffer.storeShortArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.storeUShortArray(
     offset: Int,
     source: UShortArray,
@@ -374,6 +385,7 @@ inline fun Buffer.storeUShortArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.storeUShortArray(
     offset: Long,
     source: UShortArray,
@@ -414,6 +426,7 @@ inline fun Buffer.storeIntArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.storeUIntArray(
     offset: Int,
     source: UIntArray,
@@ -428,6 +441,7 @@ inline fun Buffer.storeUIntArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.storeUIntArray(
     offset: Long,
     source: UIntArray,
@@ -468,6 +482,7 @@ inline fun Buffer.storeLongArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.storeULongArray(
     offset: Int,
     source: ULongArray,
@@ -482,6 +497,7 @@ inline fun Buffer.storeULongArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
+@ExperimentalUnsignedTypes
 inline fun Buffer.storeULongArray(
     offset: Long,
     source: ULongArray,
