@@ -17,6 +17,6 @@ public actual class Buffer(public val view: DataView) {
     }
 
     public actual companion object {
-        public actual val Empty: Buffer = Buffer(DataView(ArrayBuffer(0)))
+        public actual val EMPTY: Buffer = Buffer(DataView(ArrayBuffer(0)))
     }
 }
