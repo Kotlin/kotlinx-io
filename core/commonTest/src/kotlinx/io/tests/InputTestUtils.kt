@@ -33,9 +33,7 @@ fun sequentialLimitedInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE,
         override fun fill(buffer: Buffer): Int {
             // Simulate different slices being read, not just length
             val readLength = sliceRandom.nextInt(buffer.size) + 1
-
-            if (bytesLeft == 0)
-                return 0
+            if (bytesLeft == 0) return 0
             var index = 0
             while (index < readLength) {
                 buffer.storeByteAt(index++, value.toByte())
@@ -50,37 +48,50 @@ fun sequentialLimitedInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE,
 
 fun Input.assertReadLong(expected: Long) {
     val value = readLong()
-    if (value == expected)
-        return
-
+    if (value == expected) return
     fail("Expected: ${expected.toString(16).padStart(16, '0')}, actual: ${value.toString(16).padStart(16, '0')}")
 }
 
 fun Input.assertReadULong(expected: ULong) {
     val value = readULong()
-    if (value == expected)
-        return
-
+    if (value == expected) return
     fail("Expected: ${expected.toString(16).padStart(16, '0')}, actual: ${value.toString(16).padStart(16, '0')}")
 }
 
 fun Input.assertReadInt(expected: Int) {
     val value = readInt()
-    if (value == expected)
-        return
+    if (value == expected) return
+    fail("Expected: ${expected.toString(16).padStart(8, '0')}, actual: ${value.toString(16).padStart(8, '0')}")
+}
 
+
+fun Input.assertReadUInt(expected: UInt) {
+    val value = readUInt()
+    if (value == expected) return
     fail("Expected: ${expected.toString(16).padStart(8, '0')}, actual: ${value.toString(16).padStart(8, '0')}")
 }
 
 fun Input.assertReadShort(expected: Short) {
     val value = readShort()
-    if (value == expected)
-        return
-
+    if (value == expected) return
     fail("Expected: ${expected.toString(16).padStart(8, '0')}, actual: ${value.toString(16).padStart(8, '0')}")
 }
 
-private fun Long.printit(): Long {
-    println(toString(16))
-    return this
+fun Input.assertReadUShort(expected: UShort) {
+    val value = readUShort()
+    if (value == expected) return
+    fail("Expected: ${expected.toString(16).padStart(8, '0')}, actual: ${value.toString(16).padStart(8, '0')}")
 }
+
+fun Input.assertReadByte(expected: Byte) {
+    val value = readByte()
+    if (value == expected) return
+    fail("Expected: ${expected.toString(16).padStart(8, '0')}, actual: ${value.toString(16).padStart(8, '0')}")
+}
+
+fun Input.assertReadUByte(expected: UByte) {
+    val value = readUByte()
+    if (value == expected) return
+    fail("Expected: ${expected.toString(16).padStart(8, '0')}, actual: ${value.toString(16).padStart(8, '0')}")
+}
+
