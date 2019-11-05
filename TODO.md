@@ -5,11 +5,22 @@
     - [ ] `Float.reverseByteOrder`
     - [x] Output: `flush` size contract
     - [ ] case: `Bytes` -> `[Input]`. When we should close `Bytes`?
+    - [ ] Output: Appendable
+    - [ ] `buildBytes + Input` can't replace `buildPacket + ByteReadPacket`: size, remanining
+    - [ ] `Input.discard()`, discardExact
+    - [ ] `Input.readArray()` wo length
+    - [ ] no public `ByteReadPacket`
+    - [ ] Input.copyTo
+    - [ ] non-blocking use cases(`read` wo `fill` and etc)
+    - [ ] `buildBytes` internal `preview` and `size`
+    - [ ] `readUtf8Line` throws if string ends wo `\n`
 - Implementation
     - [ ] Input
     - [ ] Output
         - [x] `flushed` index unused
     - [ ] Index preconditions
+- Test
+    - [ ] Verify pool has no leaks
 - Documentation
     - [ ] Bytes
     - [ ] Input
@@ -32,3 +43,4 @@
 - Maintenance
     - [ ] Dokka generation
     - [ ] Test coverage
+    - [ ] API Check
