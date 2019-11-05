@@ -3,6 +3,8 @@ package kotlinx.io.buffer
 import kotlinx.io.internal.*
 import org.khronos.webgl.*
 
+public actual fun Buffer.loadByteAt(index: Long): Byte = loadByteAt(index.toIntOrFail("index"))
+
 public actual fun Buffer.loadShortAt(offset: Int): Short = checked(offset) {
     return view.getInt16(offset, false)
 }
@@ -113,6 +115,10 @@ public actual fun Buffer.storeDoubleAt(offset: Int, value: Double): Unit = check
  */
 public actual fun Buffer.storeDoubleAt(offset: Long, value: Double) = checked(offset) {
     view.setFloat64(it, value, littleEndian = false)
+}
+
+public actual fun Buffer.storeByteAt(index: Long, value: Byte) = checked(index) {
+    storeByteAt(it, value)
 }
 
 @PublishedApi

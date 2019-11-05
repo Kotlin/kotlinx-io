@@ -2,13 +2,11 @@
 
 package kotlinx.io.buffer
 
-import kotlinx.io.internal.*
-
 /**
  * Returns byte at [index] position.
  * May throw [IndexOutOfBoundsException] if given [index] is negative or greater than buffer size.
  */
-public inline fun Buffer.loadByteAt(index: Long): Byte = loadByteAt(index.toIntOrFail("index"))
+public expect fun Buffer.loadByteAt(index: Long): Byte
 
 /**
  * Returns unsigned byte at [index] position.
@@ -28,7 +26,7 @@ public inline fun Buffer.loadUByteAt(index: Long): UByte = loadByteAt(index).toU
  * Write [value] at the specified [index].
  * May throw [IndexOutOfBoundsException] if given [index] is negative or greater than buffer size.
  */
-public inline fun Buffer.storeByteAt(index: Long, value: Byte) = storeByteAt(index.toIntOrFail("index"), value)
+public expect fun Buffer.storeByteAt(index: Long, value: Byte)
 
 /**
  * Write [value] at the specified [index].
@@ -42,55 +40,55 @@ public inline fun Buffer.storeUByteAt(index: Int, value: UByte) = storeByteAt(in
  * May throw [IndexOutOfBoundsException] if given [index] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
-public inline fun Buffer.storeUByteAt(index: Long, value: UByte) = storeByteAt(index.toIntOrFail("index"), value.toByte())
+public inline fun Buffer.storeUByteAt(index: Long, value: UByte) = storeByteAt(index, value.toByte())
 
 /**
- * Read short signed 16bit integer in the network byte order (Big Endian).
+ * Read short signed 16-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 public expect fun Buffer.loadShortAt(offset: Int): Short
 
 /**
- * Read short signed 16bit integer in the network byte order (Big Endian).
+ * Read short signed 16-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 public expect fun Buffer.loadShortAt(offset: Long): Short
 
 /**
- * Write short signed 16bit integer in the network byte order (Big Endian).
+ * Write short signed 16-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 public expect fun Buffer.storeShortAt(offset: Int, value: Short)
 
 /**
- * Write short signed 16bit integer in the network byte order (Big Endian).
+ * Write short signed 16-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 public expect fun Buffer.storeShortAt(offset: Long, value: Short)
 
 /**
- * Read short unsigned 16bit integer in the network byte order (Big Endian).
+ * Read short unsigned 16-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
 public inline fun Buffer.loadUShortAt(offset: Int): UShort = loadShortAt(offset).toUShort()
 
 /**
- * Read short unsigned 16bit integer in the network byte order (Big Endian).
+ * Read short unsigned 16-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
 public inline fun Buffer.loadUShortAt(offset: Long): UShort = loadShortAt(offset).toUShort()
 
 /**
- * Write short unsigned 16bit integer in the network byte order (Big Endian).
+ * Write short unsigned 16-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
 public inline fun Buffer.storeUShortAt(offset: Int, value: UShort): Unit = storeShortAt(offset, value.toShort())
 
 /**
- * Write short unsigned 16bit integer in the network byte order (Big Endian).
+ * Write short unsigned 16-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes

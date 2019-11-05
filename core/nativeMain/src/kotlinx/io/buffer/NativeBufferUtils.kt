@@ -9,7 +9,7 @@ import kotlin.contracts.*
 internal const val unalignedAccessSupported = UNALIGNED_ACCESS_ALLOWED == 1
 
 @PublishedApi
-internal inline fun Buffer.assertIndex(offset: Int, valueSize: Int): Int {
+internal fun Buffer.assertIndex(offset: Int, valueSize: Int): Int {
     assert(offset >= 0 && offset <= size - valueSize) {
         throw IndexOutOfBoundsException("offset $offset outside of range [0; ${size - valueSize})")
     }
@@ -17,14 +17,14 @@ internal inline fun Buffer.assertIndex(offset: Int, valueSize: Int): Int {
 }
 
 @PublishedApi
-internal inline fun Buffer.assertIndex(offset: Long, valueSize: Long): Long {
+internal  fun Buffer.assertIndex(offset: Long, valueSize: Long): Long {
     assert(offset >= 0 && offset <= size - valueSize) {
         throw IndexOutOfBoundsException("offset $offset outside of range [0; ${size - valueSize})")
     }
     return offset
 }
 
-internal inline fun requirePositiveIndex(value: Int, name: String) {
+internal fun requirePositiveIndex(value: Int, name: String) {
     if (value < 0) {
         throw IndexOutOfBoundsException("$name shouldn't be negative: $value")
     }
