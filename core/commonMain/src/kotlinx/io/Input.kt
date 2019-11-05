@@ -114,29 +114,10 @@ public abstract class Input : Closeable {
      *
      * @throws EOFException if no more bytes can be read.
      */
-    public fun readByte(): Byte {
-        val offset = position
-
-        if (limit > offset) {
-            position = offset + 1
-            return buffer.loadByteAt(offset)
-        }
-
-        if (fetchBuffer() == 0) {
-            throw EOFException("End of file while reading buffer")
-        }
-
-        position = 1
-        return buffer.loadByteAt(0)
-    }
-
-    /**
-     * Reads an [UByte] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
-     */
-    @ExperimentalUnsignedTypes
-    public fun readUByte(): UByte = readByte().toUByte()
+    public fun readByte(): Byte = readPrimitive(
+        1, { buffer, offset -> buffer.loadByteAt(offset) },
+        { it.toByte() }
+    )
 
     /**
      * Reads a [Long] from this Input.
@@ -144,18 +125,10 @@ public abstract class Input : Closeable {
      * @throws EOFException if no more bytes can be read.
      */
     public fun readLong(): Long = readPrimitive(
-        8, { buffer, offset -> buffer.loadLongAt(offset) }
-    ) { it }
+        8, { buffer, offset -> buffer.loadLongAt(offset) },
+        { it }
+    )
 
-    /**
-     * Reads a [ULong] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
-     */
-    @ExperimentalUnsignedTypes
-    public fun readULong(): ULong = readPrimitive(
-        8, { buffer, offset -> buffer.loadULongAt(offset) }
-    ) { it.toULong() }
 
     /**
      * Reads a [Double] from this Input.
@@ -163,8 +136,9 @@ public abstract class Input : Closeable {
      * @throws EOFException if no more bytes can be read.
      */
     public fun readDouble(): Double = readPrimitive(
-        8, { buffer, offset -> buffer.loadDoubleAt(offset) }
-    ) { Double.fromBits(it) }
+        8, { buffer, offset -> buffer.loadDoubleAt(offset) },
+        { Double.fromBits(it) }
+    )
 
     /**
      * Reads an [Int] from this Input.
@@ -172,18 +146,9 @@ public abstract class Input : Closeable {
      * @throws EOFException if no more bytes can be read.
      */
     public fun readInt(): Int = readPrimitive(
-        4, { buffer, offset -> buffer.loadIntAt(offset) }
-    ) { it.toInt() }
-
-    /**
-     * Reads an [UInt] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
-     */
-    @ExperimentalUnsignedTypes
-    public fun readUInt(): UInt = readPrimitive(
-        4, { buffer, offset -> buffer.loadUIntAt(offset) }
-    ) { it.toUInt() }
+        4, { buffer, offset -> buffer.loadIntAt(offset) },
+        { it.toInt() }
+    )
 
     /**
      * Reads a [Float] from this Input.
@@ -191,8 +156,9 @@ public abstract class Input : Closeable {
      * @throws EOFException if no more bytes can be read.
      */
     public fun readFloat(): Float = readPrimitive(
-        4, { buffer, offset -> buffer.loadFloatAt(offset) }
-    ) { Float.fromBits(it.toInt()) }
+        4, { buffer, offset -> buffer.loadFloatAt(offset) },
+        { Float.fromBits(it.toInt()) }
+    )
 
     /**
      * Reads a [Short] from this Input.
@@ -200,18 +166,9 @@ public abstract class Input : Closeable {
      * @throws EOFException if no more bytes can be read.
      */
     public fun readShort(): Short = readPrimitive(
-        2, { buffer, offset -> buffer.loadShortAt(offset) }
-    ) { it.toShort() }
-
-    /**
-     * Reads an [UShort] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
-     */
-    @ExperimentalUnsignedTypes
-    public fun readUShort(): UShort = readPrimitive(
-        2, { buffer, offset -> buffer.loadUShortAt(offset) }
-    ) { it.toUShort() }
+        2, { buffer, offset -> buffer.loadShortAt(offset) },
+        { it.toShort() }
+    )
 
     /**
      * Check if at least 1 byte available to read.
@@ -280,14 +237,9 @@ public abstract class Input : Closeable {
         val markDiscard = previewDiscard
         val markIndex = previewIndex
         val markPosition = position
-        logln { "PVW: Enter preview in state $markDiscard at #$markIndex" }
 
         previewDiscard = false
-
         val result = reader()
-
-        logln { "PVW: Finished preview in state $previewDiscard at #$previewIndex," }
-
         previewDiscard = markDiscard
         position = markPosition
 
@@ -299,15 +251,6 @@ public abstract class Input : Closeable {
         val bytes = previewBytes!!
         this.buffer = bytes.pointed(markIndex) { limit -> this.limit = limit }
         previewIndex = markIndex
-
-        logln {
-            if (markDiscard) {
-                "PVW: Discarding at #0"
-            } else {
-                "PVW: Replaying at #$previewIndex"
-            }
-        }
-
         return result
     }
 
@@ -322,6 +265,8 @@ public abstract class Input : Closeable {
 
         previewBytes?.close()
     }
+
+    public companion object {} // TODO discuss it
 
     /**
      * Closes the underlying source.
@@ -446,6 +391,7 @@ public abstract class Input : Closeable {
      * Current [buffer] should be exhausted at this moment, i.e. [position] should be equal to [limit]
      */
     private fun fetchBuffer(): Int {
+        // TODO properly clarify exception message
         check(position == limit) {
             // trying to fetch a buffer when previous buffer was not exhausted is an internal error
             "Throwing bytes away."
@@ -457,7 +403,6 @@ public abstract class Input : Closeable {
             val fetched = fill(buffer)
             limit = fetched
             position = 0
-            logln { "PVW: None, filled buffer," }
             return fetched
         } else {
             // we are collecting bytes, so need to put current buffer to maintain invariant
@@ -474,14 +419,12 @@ public abstract class Input : Closeable {
                 bytes.close()
                 previewBytes = null
                 val fetched = fillBuffer(bufferPool.borrow())
-                logln { "PVW: Completed discarding, filled buffer," }
                 return fetched
             }
 
             val oldLimit = limit
             this.buffer = bytes.pointed(Bytes.StartPointer) { limit -> this.limit = limit }
             position = 0
-            logln { "PVW: Discarded $oldLimit, get next buffer," }
             return limit
         }
 
@@ -490,7 +433,6 @@ public abstract class Input : Closeable {
             val fetched = fillBuffer(bufferPool.borrow())
             bytes.append(buffer, limit)
             previewIndex = nextIndex
-            logln { "PVW: Preview #$previewIndex, filled buffer," }
             return fetched
         }
 
@@ -498,8 +440,6 @@ public abstract class Input : Closeable {
         this.buffer = bytes.pointed(nextIndex) { limit -> this.limit = limit }
         this.position = 0
         previewIndex = nextIndex
-
-        logln { "PVW: Preview #$nextIndex, using prefetched buffer" }
         return limit
     }
 
@@ -509,9 +449,5 @@ public abstract class Input : Closeable {
         position = 0
         this.buffer = buffer
         return fetched
-    }
-
-    private inline fun logln(text: () -> String) {
-        //println(text() + " $position/$limit [${buffer[0]}, $previewBytes]")
     }
 }

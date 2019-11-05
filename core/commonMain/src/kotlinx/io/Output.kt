@@ -51,39 +51,15 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     /**
      * Write a [value] to this [Input].
      */
-    @ExperimentalUnsignedTypes
-    fun writeUByte(value: UByte) {
-        writeByte(value.toByte())
-    }
-
-    /**
-     * Write a [value] to this [Input].
-     */
     fun writeShort(value: Short) {
-        writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }) { value.toLong() }
-    }
-
-    /**
-     * Write a [value] to this [Input].
-     */
-    @ExperimentalUnsignedTypes
-    fun writeUShort(value: UShort) {
-        writePrimitive(2, { buffer, offset -> buffer.storeUShortAt(offset, value) }) { value.toLong() }
+        writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }, { value.toLong() })
     }
 
     /**
      * Write a [value] to this [Input].
      */
     fun writeInt(value: Int) {
-        writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }) { value.toLong() }
-    }
-
-    /**
-     * Write a [value] to this [Input].
-     */
-    @ExperimentalUnsignedTypes
-    fun writeUInt(value: UInt) {
-        writePrimitive(4, { buffer, offset -> buffer.storeUIntAt(offset, value) }) { value.toLong() }
+        writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }, { value.toLong() })
     }
 
     /**
@@ -96,38 +72,15 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     /**
      * Write a [value] to this [Input].
      */
-    @ExperimentalUnsignedTypes
-    fun writeULong(value: ULong) {
-        writePrimitive(8, { buffer, offset -> buffer.storeULongAt(offset, value) }) { value.toLong() }
-    }
-
-    /**
-     * Write a [value] to this [Input].
-     */
     fun writeFloat(value: Float) {
-        writePrimitive(4, { buffer, offset -> buffer.storeFloatAt(offset, value) }) { value.toBits().toLong() }
+        writePrimitive(4, { buffer, offset -> buffer.storeFloatAt(offset, value) }, { value.toBits().toLong() })
     }
 
     /**
      * Write a [value] to this [Input].
      */
     fun writeDouble(value: Double) {
-        writePrimitive(
-            8,
-            { buffer, offset -> buffer.storeDoubleAt(offset, value) }
-        ) { value.toBits() }
-    }
-
-    /**
-     * Write an [array] to this [Input].
-     *
-     * TODO: measure
-     */
-    @ExperimentalUnsignedTypes
-    fun writeArray(array: UByteArray) {
-        for (byte in array) {
-            writeUByte(byte)
-        }
+        writePrimitive(8, { buffer, offset -> buffer.storeDoubleAt(offset, value) }, { value.toBits() })
     }
 
     /**

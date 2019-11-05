@@ -28,15 +28,37 @@ fun Input.readArray(array: ByteArray, startIndex: Int = 0, length: Int = array.s
  */
 @ExperimentalUnsignedTypes
 fun Input.readArray(array: UByteArray, startIndex: Int = 0, length: Int = array.size - startIndex) {
-    var remaining = length
-    var consumed = 0
-    while (remaining > 0) {
-        readBufferLength { buffer, offset, size ->
-            val consume = minOf(size, remaining)
-            buffer.loadUByteArray(offset, array, startIndex + consumed, consume)
-            consumed += consume
-            remaining -= consume
-            consume
-        }
-    }
+    readArray(array.asByteArray(), startIndex, length)
 }
+
+/**
+ * Reads an [UByte] from this Input.
+ *
+ * @throws EOFException if no more bytes can be read.
+ */
+@ExperimentalUnsignedTypes
+public fun Input.readUByte(): UByte = readByte().toUByte()
+
+/**
+ * Reads a [ULong] from this Input.
+ *
+ * @throws EOFException if no more bytes can be read.
+ */
+@ExperimentalUnsignedTypes
+public fun Input.readULong(): ULong = readLong().toULong()
+
+/**
+ * Reads an [UInt] from this Input.
+ *
+ * @throws EOFException if no more bytes can be read.
+ */
+@ExperimentalUnsignedTypes
+public fun Input.readUInt(): UInt = readInt().toUInt()
+
+/**
+ * Reads an [UShort] from this Input.
+ *
+ * @throws EOFException if no more bytes can be read.
+ */
+@ExperimentalUnsignedTypes
+public fun Input.readUShort(): UShort = readShort().toUShort()
