@@ -2,7 +2,10 @@ plugins {
     id "kotlin-multiplatform"
     id "maven-publish"
     id "kotlinx-atomicfu"
+    id "jacoco"
 }
+
+apply plugin: "com.vanniktech.android.junit.jacoco"
 
 apply plugin: "jacoco"
 
@@ -23,7 +26,11 @@ kotlin {
     }
 
     js {
-        nodejs()
+        nodejs {
+            testTask {
+                debug = false
+            }
+        }
         browser()
     }
 
@@ -105,11 +112,13 @@ kotlin {
         resources.srcDirs = ["$it.name/resources"]
         languageSettings {
             progressiveMode = true
+
             useExperimentalAnnotation("kotlin.Experimental")
             useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
             useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
             if (isTest) {
                 useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+                useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
             }
         }
     }

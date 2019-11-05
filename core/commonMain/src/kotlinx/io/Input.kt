@@ -246,8 +246,6 @@ public abstract class Input : Closeable {
         previewBytes?.close()
     }
 
-    public companion object {} // TODO discuss it
-
     /**
      * Closes the underlying source.
      */
@@ -281,8 +279,9 @@ public abstract class Input : Closeable {
      */
     internal inline fun readBufferLength(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
         if (position == limit) {
-            if (fetchBuffer() == 0)
+            if (fetchBuffer() == 0) {
                 throw EOFException("End of file while reading buffer")
+            }
         }
         val consumed = reader(buffer, position, limit - position)
         position += consumed

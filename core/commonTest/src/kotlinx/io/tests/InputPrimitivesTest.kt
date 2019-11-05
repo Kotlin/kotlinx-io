@@ -1,6 +1,7 @@
 package kotlinx.io.tests
 
 import kotlinx.io.*
+import kotlinx.io.buffer.*
 import kotlin.math.*
 import kotlin.test.*
 
@@ -10,7 +11,9 @@ class InputPrimitivesTest {
     private val fetchSizeLimit = 128
     private val prefetchSizes = (1..256)
 
-    private fun withSequentialInput(limit: Int, seed: Long = 0L, body: Input.() -> Unit) = prefetchSizes.forEach { prefetchSize ->
+    private fun withSequentialInput(
+        limit: Int, seed: Long = 0L, body: Input.() -> Unit
+    ) = prefetchSizes.forEach { prefetchSize ->
         bufferSizes.forEach { size ->
             try {
                 val input = sequentialLimitedInput(fetchSizeLimit, size, limit, seed)
@@ -94,4 +97,63 @@ class InputPrimitivesTest {
         assertTrue(eof(), "EOF")
         assertFails { readUByte() }
     }
+
+    @Test
+    fun smokeTest() {
+        var closed = false
+        var written = false
+
+        val input = object : Input() {
+            override fun fill(buffer: Buffer): Int {
+                if (written) return 0
+                written = true
+
+                buffer.storeIntAt(0, 0x74657374) // = test
+                return 4
+            }
+
+            override fun closeSource() {
+                closed = true
+            }
+        }
+
+        val text = input.use {
+            val array = ByteArray(4)
+            input.readArray(array)
+            array
+        }
+
+        assertEquals(true, closed, "Should be closed")
+
+        @UseExperimental(ExperimentalStdlibApi::class)
+        assertEquals("test", text.decodeToString(), "Content read")
+    }
+
+    @Test
+    fun testCopy() {
+        val items = arrayListOf(
+            "test.", "123.", "zxc."
+        )
+
+        val input = object : Input() {
+            override fun fill(buffer: Buffer): Int {
+                if (items.isEmpty()) return 0
+                val next = items.removeAt(0)
+                for (index in 0 until next.length) {
+                    buffer[index] = next[index].toByte()
+                }
+                return next.length
+            }
+
+            override fun closeSource() {
+                items.clear()
+            }
+        }
+
+        val data = ByteArray(5 + 4 + 4)
+        input.readArray(data)
+        @UseExperimental(ExperimentalStdlibApi::class)
+        assertEquals("test.123.zxc.", data.decodeToString())
+    }
+
 }

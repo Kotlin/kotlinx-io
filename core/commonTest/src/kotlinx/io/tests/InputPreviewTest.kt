@@ -8,14 +8,6 @@ class InputPreviewTest {
     private val fetchSizeLimit = 128
     private val prefetchSizes = (1..256)
 
-    fun withInput(body: Input.() -> Unit) = prefetchSizes.forEach { prefetchSize ->
-        bufferSizes.forEach { size ->
-            val input = sequentialInfiniteInput(fetchSizeLimit, size)
-            assertTrue(input.prefetch(prefetchSize), "Can't prefetch bytes")
-            input.body()
-        }
-    }
-
     @Test
     fun previewFromTheBeginning() = withInput {
         preview {
@@ -96,5 +88,12 @@ class InputPreviewTest {
         assertReadLong(0x08090A0B0C0D0E0F)
         assertReadLong(0x1011121314151617)
     }
-}
 
+    private fun withInput(body: Input.() -> Unit) = prefetchSizes.forEach { prefetchSize ->
+        bufferSizes.forEach { size ->
+            val input = sequentialInfiniteInput(fetchSizeLimit, size)
+            assertTrue(input.prefetch(prefetchSize), "Can't prefetch bytes")
+            input.body()
+        }
+    }
+}
