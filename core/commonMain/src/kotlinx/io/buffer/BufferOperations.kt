@@ -14,13 +14,13 @@ public inline operator fun Buffer.get(index: Int): Byte = loadByteAt(index)
  * Read byte at the specified [index].
  * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
  */
-public inline operator fun Buffer.get(index: Long): Byte = loadByteAt(index.toIntOrFail("index"))
+public inline operator fun Buffer.get(index: Long): Byte = loadByteAt(index)
 
 /**
  * Index write operator to write [value] at the specified [index].
  * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
  */
-public inline operator fun Buffer.set(index: Long, value: Byte) = storeByteAt(index.toIntOrFail("index"), value)
+public inline operator fun Buffer.set(index: Long, value: Byte): Unit = storeByteAt(index, value)
 
 /**
  * Index write operator to write [value] at the specified [index].
