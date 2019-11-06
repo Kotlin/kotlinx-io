@@ -5,13 +5,14 @@ import kotlin.test.*
 
 class BufferBasicTest {
     @Test
-    fun emptyBufferSizeIsZero() {
-        assertEquals(Buffer.EMPTY.size, 0)
+    fun testEmptyBufferSizeIsZero() {
+        assertEquals(0, Buffer.EMPTY.size)
     }
 
     @Test
-    fun allocateBufferOfSpecificSize() {
-        val buffer = PlatformBufferAllocator.allocate(12)
-        assertEquals(buffer.size, 12)
+    fun testAllocateBufferOfSpecificSize() {
+        PlatformBufferAllocator.borrow(12) { buffer ->
+            assertEquals(12, buffer.size)
+        }
     }
 }

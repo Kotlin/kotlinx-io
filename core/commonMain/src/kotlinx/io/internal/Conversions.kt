@@ -13,8 +13,8 @@ internal inline fun Long.toIntOrFail(name: () -> String): Int {
 
 /**
  * This function is needed to avoid inlining of string building code into fast path,
- * thus reducing size of inlined bytecode and improving depth of inlining
+ * thus reducing size of inlined byte-code and improving depth of inlining
  */
 @PublishedApi
 internal fun failLongToIntConversion(value: Long, name: String): Nothing =
-    throw IllegalArgumentException("Long value $value of $name doesn't fit into 32-bit integer")
+    throw IndexOutOfBoundsException("Long value $value of $name doesn't fit into 32-bit integer")
