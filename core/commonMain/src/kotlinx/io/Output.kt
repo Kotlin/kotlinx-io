@@ -157,19 +157,17 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         writeBytes(primitiveSize, longValue())
     }
 
-    private fun writeBytes(length: Int, value: Long) {
-        var remainingValue = value.reverseByteOrder() shr ((8 - length) * 8)
-        var remaining = length
+    private fun writeBytes(primitiveSize: Int, value: Long) {
+        // 8 -- max size aka Long.SIZE_BYTES, write in BE (most significant byte first)
+        var remainingValue = value.reverseByteOrder() shr ((8 - primitiveSize) * 8)
         var size = buffer.size
-        while (remaining > 0) {
+        repeat(primitiveSize) {
             if (position == size) {
                 flushBuffer()
                 size = buffer.size
             }
-
             buffer.storeByteAt(position++, remainingValue.toByte())
             remainingValue = remainingValue shr 8
-            remaining--
         }
     }
 }
