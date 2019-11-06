@@ -4,15 +4,23 @@ plugins {
     id "kotlinx-atomicfu"
 }
 
+apply plugin: "jacoco"
+
+def ideaActive = System.getProperty('idea.active') == 'true'
+
 kotlin {
     jvm()
 
-    linuxX64()
-    mingwX64()
-    macosX64()
-    iosX64()
-    iosArm64()
-    iosArm32()
+    if (!ideaActive) {
+        linuxX64()
+        mingwX64()
+        macosX64()
+        iosX64()
+        iosArm64()
+        iosArm32()
+    } else {
+        macosX64("native")
+    }
 
     js {
         nodejs()
@@ -56,22 +64,25 @@ kotlin {
             }
         }
 
-        nativeMain {
-            dependsOn commonMain
-        }
-        nativeTest
+        if (!ideaActive) {
+            nativeMain {
+                dependsOn commonMain
+            }
 
-        configure([macosX64Main, linuxX64Main, mingwX64Main, iosX64Main, iosArm32Main, iosArm64Main]) {
-            dependsOn nativeMain
-        }
+            nativeTest
 
-        configure([macosX64Test, linuxX64Test, mingwX64Test, iosX64Test, iosArm32Test, iosArm64Test]) {
-            dependsOn nativeTest
+            configure([macosX64Main, linuxX64Main, mingwX64Main, iosX64Main, iosArm32Main, iosArm64Main]) {
+                dependsOn nativeMain
+            }
+
+            configure([macosX64Test, linuxX64Test, mingwX64Test, iosX64Test, iosArm32Test, iosArm64Test]) {
+                dependsOn nativeTest
+            }
         }
     }
 
     targets {
-        def cinteropTargets = [macosX64, linuxX64, mingwX64, iosX64, iosArm32, iosArm64]
+        def cinteropTargets = ideaActive ? [targets.getByName("native")] : [macosX64, linuxX64, mingwX64, iosX64, iosArm32, iosArm64]
         configure(cinteropTargets) {
             compilations.main {
                 cinterops {
@@ -113,5 +124,29 @@ kotlin {
         if (publication != null) {
             publication.artifact emptyJavadoc
         }
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.2"
+}
+
+task testCoverage(type: JacocoReport, dependsOn: jvmTest) {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports."
+
+    def coverageSourceDirs = [
+            "commonMain/src",
+            "jvmMain/src"
+    ]
+
+    classDirectories.from files(fileTree(dir: "${project.buildDir}/classes/kotlin/jvm/"))
+    sourceDirectories.from files(coverageSourceDirs)
+    additionalSourceDirs.from files(coverageSourceDirs)
+    executionData.from files("${project.buildDir}/jacoco/jvmTest.exec")
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
     }
 }
