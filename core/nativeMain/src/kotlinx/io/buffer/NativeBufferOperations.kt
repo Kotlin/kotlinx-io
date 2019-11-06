@@ -57,34 +57,29 @@ actual fun Buffer.copyTo(
     }
 }
 
-@PublishedApi
-internal inline fun Short.toBigEndian(): Short = when {
-    PLATFORM_BIG_ENDIAN == 1 -> this
+internal fun Short.toBigEndian(): Short = when (PLATFORM_BIG_ENDIAN) {
+    1 -> this
+    else -> swap(this)
+}
+
+internal fun Int.toBigEndian(): Int = when (PLATFORM_BIG_ENDIAN) {
+    1 -> this
+    else -> swap(this)
+}
+
+internal fun Long.toBigEndian(): Long = when (PLATFORM_BIG_ENDIAN) {
+    1 -> this
     else -> reverseByteOrder()
 }
 
-@PublishedApi
-internal inline fun Int.toBigEndian(): Int = when {
-    PLATFORM_BIG_ENDIAN == 1 -> this
-    else -> reverseByteOrder()
+internal fun Float.toBigEndian(): Float = when (PLATFORM_BIG_ENDIAN) {
+    1 -> this
+    else -> swap(this)
 }
 
-@PublishedApi
-internal inline fun Long.toBigEndian(): Long = when {
-    PLATFORM_BIG_ENDIAN == 1 -> this
-    else -> reverseByteOrder()
-}
-
-@PublishedApi
-internal inline fun Float.toBigEndian(): Float = when {
-    PLATFORM_BIG_ENDIAN == 1 -> this
-    else -> reverseByteOrder()
-}
-
-@PublishedApi
-internal inline fun Double.toBigEndian(): Double = when {
-    PLATFORM_BIG_ENDIAN == 1 -> this
-    else -> reverseByteOrder()
+internal fun Double.toBigEndian(): Double = when (PLATFORM_BIG_ENDIAN) {
+    1 -> this
+    else -> swap(this)
 }
 
 /**
@@ -94,10 +89,7 @@ actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(count, "count")
     requireRange(offset, count, size, "fill")
-    if (count.toULong() > size_t.MAX_VALUE.toULong()) {
-        throw IllegalArgumentException("count is too big: it shouldn't exceed size_t.MAX_VALUE")
-    }
-
+    require(count.toULong() <= size_t.MAX_VALUE.toULong()) { "count is too big: it shouldn't exceed size_t.MAX_VALUE" }
     memset(pointer + offset, value.toInt(), count.convert())
 }
 

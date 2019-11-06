@@ -147,10 +147,20 @@ public inline fun Buffer.storeUIntAt(offset: Int, value: UInt): Unit = storeIntA
 public inline fun Buffer.storeUIntAt(offset: Long, value: UInt): Unit = storeIntAt(offset, value.toInt())
 
 /**
- * Read short signed 64-bit integer in the network byte order (Big Endian).
+ * Read signed 64-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 public expect fun Buffer.loadLongAt(offset: Int): Long
+
+/**
+ * Read signed 64-bit integer in the given [byte order][byteOrder].
+ * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
+ */
+public fun Buffer.loadLongAt(offset: Int, byteOrder: ByteOrder): Long {
+    val long = loadLongAt(offset)
+    if (byteOrder == ByteOrder.BIG_ENDIAN) return long
+    return long.reverseByteOrder()
+}
 
 /**
  * Read short signed 64-bit integer in the network byte order (Big Endian).
@@ -163,6 +173,15 @@ public expect fun Buffer.loadLongAt(offset: Long): Long
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 public expect fun Buffer.storeLongAt(offset: Int, value: Long)
+
+/**
+ * Write signed 64-bit integer in the given [byte order][byteOrder]..
+ * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
+ */
+public fun Buffer.storeLongAt(offset: Int, value: Long, byteOrder: ByteOrder) {
+    val toStore = if (byteOrder == ByteOrder.BIG_ENDIAN) value else value.reverseByteOrder()
+    storeLongAt(offset, toStore)
+}
 
 /**
  * write short signed 64-bit integer in the network byte order (Big Endian).
