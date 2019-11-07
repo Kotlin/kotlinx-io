@@ -62,3 +62,15 @@ public fun Input.readUInt(): UInt = readInt().toUInt()
  */
 @ExperimentalUnsignedTypes
 public fun Input.readUShort(): UShort = readShort().toUShort()
+
+/**
+ * Reads a [Double] from the current [Input].
+ * @throws EOFException if no more bytes can be read.
+ */
+public fun Input.readDouble(): Double = Double.fromBits(readLong())
+
+/**
+ * Reads a [Float] from the current [Input].
+ * @throws EOFException if no more bytes can be read.
+ */
+public fun Input.readFloat(): Float = Float.fromBits(readInt())

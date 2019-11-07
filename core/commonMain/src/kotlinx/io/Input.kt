@@ -120,24 +120,13 @@ public abstract class Input : Closeable {
     )
 
     /**
-     * Reads a [Long] from this Input.
+     * Reads a [Short] from this Input.
      *
      * @throws EOFException if no more bytes can be read.
      */
-    public fun readLong(): Long = readPrimitive(
-        8, { buffer, offset -> buffer.loadLongAt(offset) },
-        { it }
-    )
-
-
-    /**
-     * Reads a [Double] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
-     */
-    public fun readDouble(): Double = readPrimitive(
-        8, { buffer, offset -> buffer.loadDoubleAt(offset) },
-        { Double.fromBits(it) }
+    public fun readShort(): Short = readPrimitive(
+        2, { buffer, offset -> buffer.loadShortAt(offset) },
+        { it.toShort() }
     )
 
     /**
@@ -151,23 +140,13 @@ public abstract class Input : Closeable {
     )
 
     /**
-     * Reads a [Float] from this Input.
+     * Reads a [Long] from this Input.
      *
      * @throws EOFException if no more bytes can be read.
      */
-    public fun readFloat(): Float = readPrimitive(
-        4, { buffer, offset -> buffer.loadFloatAt(offset) },
-        { Float.fromBits(it.toInt()) }
-    )
-
-    /**
-     * Reads a [Short] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
-     */
-    public fun readShort(): Short = readPrimitive(
-        2, { buffer, offset -> buffer.loadShortAt(offset) },
-        { it.toShort() }
+    public fun readLong(): Long = readPrimitive(
+        8, { buffer, offset -> buffer.loadLongAt(offset) },
+        { it }
     )
 
     /**
@@ -239,6 +218,7 @@ public abstract class Input : Closeable {
         val markPosition = position
 
         previewDiscard = false
+        // TODO unused expression
         val result = reader()
         previewDiscard = markDiscard
         position = markPosition
@@ -418,8 +398,7 @@ public abstract class Input : Closeable {
             if (bytes.isEmpty()) {
                 bytes.close()
                 previewBytes = null
-                val fetched = fillBuffer(bufferPool.borrow())
-                return fetched
+                return fillBuffer(bufferPool.borrow())
             }
 
             val oldLimit = limit

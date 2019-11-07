@@ -37,3 +37,17 @@ fun Output.writeArray(array: UByteArray) {
         writeUByte(byte)
     }
 }
+
+/**
+ * Write a floating-point [value] to this [Output].
+ */
+fun Output.writeFloat(value: Float) {
+    writeInt(value.toBits())
+}
+
+/**
+ * Write a double-precision [value] to this [Output].
+ */
+fun Output.writeDouble(value: Double) {
+    writeLong(value.toBits())
+}
