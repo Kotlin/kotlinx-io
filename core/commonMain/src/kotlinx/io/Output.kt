@@ -70,20 +70,6 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     }
 
     /**
-     * Write a [value] to this [Input].
-     */
-    fun writeFloat(value: Float) {
-        writePrimitive(4, { buffer, offset -> buffer.storeFloatAt(offset, value) }, { value.toBits().toLong() })
-    }
-
-    /**
-     * Write a [value] to this [Input].
-     */
-    fun writeDouble(value: Double) {
-        writePrimitive(8, { buffer, offset -> buffer.storeDoubleAt(offset, value) }, { value.toBits() })
-    }
-
-    /**
      * Write an [array] to this [Input].
      *
      * TODO: measure
