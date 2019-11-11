@@ -26,5 +26,3 @@ allprojects {
         maven { url "https://dl.bintray.com/orangy/maven" }
     }
 }
-
-
