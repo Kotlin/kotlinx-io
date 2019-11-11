@@ -1,46 +1,43 @@
  # TODO
 - Design
-    - [ ] Input: bypass source exceptions in `Input.fill`
-    - [ ] Input: `eof` vs `exhausted`
-    - [ ] `Float.reverseByteOrder`
-    - [x] Output: `flush` size contract
-    - [ ] case: `Bytes` -> `[Input]`. When we should close `Bytes`?
-    - [ ] Output: Appendable
-    - [ ] `buildBytes + Input` can't replace `buildPacket + ByteReadPacket`: size, remanining
-    - [ ] `Input.discard()`, discardExact
-    - [ ] `Input.readArray()` wo length
-    - [ ] no public `ByteReadPacket`
-    - [ ] Input.copyTo
-    - [ ] non-blocking use cases(`read` wo `fill` and etc)
-    - [ ] `buildBytes` internal `preview` and `size`
-    - [ ] `readUtf8Line` throws if string ends wo `\n`
+    - Input: bypass source exceptions in `Input.fill`
+    - Input: `eof` vs `exhausted`
+    - Output: Appendable
+    - `Input.discard()`, discardExact
+    - `readUtf8Line` throws if string ends wo `\n`
 - Implementation
-    - [ ] Input
-    - [ ] Output
-        - [x] `flushed` index unused
-    - [ ] Index preconditions
+    -  Input
+    -  Output
+    -  Index preconditions
+    - `bytesInput = buildInput { BytesOutput -> }`
+        - `Bytes.createInput()` copy on consume
+    - Introduce `BytesInput` and `BytesOutput` `(Input/Output + size, remaining)`
+    - Introduce `readByteArray(), copyTo(output)`
+    - Introduce `Input.copyAvailableTo(Output | Buffer)`: consume single buffer(wait if no buffer available)
+    - Prototype `PipedOutput`
+    - Remove `Input/Output` companion until we have no use-cases in the library.
 - Test
-    - [ ] Verify pool has no leaks
+    - Verify pool has no leaks
 - Documentation
-    - [ ] Bytes
-    - [ ] Input
-    - [ ] Output
-    - [ ] Input operations
+    - Bytes
+    - Input
+    - Output
+    - Input operations
     - Interop
-        - InputStream, OutputStream
-        - okio: Source, Sink
-    - [ ] Text input
-    - [ ] Text output
+       - InputStream, OutputStream
+       - okio: Source, Sink
+    - Text input
+    - Text output
 - Benchmarks
-    - [ ] Input: read byte array
-    - [ ] Output: all benchmarks
+    -  Input: read byte array
+    - Output: all benchmarks
 - Samples
     - Input and Output over 
-        - [ ] File
-        - [ ] Socket
-        - [ ] RSocket
-        - [ ] node.js/web stream
+        - File
+        - Socket
+        - RSocket
+        - node.js/web stream
 - Maintenance
-    - [ ] Dokka generation
-    - [ ] Test coverage
-    - [ ] API Check
+    - Dokka generation
+    - API Check
+
