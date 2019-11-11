@@ -30,31 +30,10 @@ internal fun requirePositiveIndex(value: Int, name: String) {
     }
 }
 
-internal inline fun requireRange(offset: Int, length: Int, size: Int, name: String) {
+internal fun requireRange(offset: Int, length: Int, size: Int, name: String) {
     if (offset + length > size) {
         throw IndexOutOfBoundsException("Wrong offset/count for $name: offset $offset, length $length, size $size")
     }
-}
-
-internal inline fun Buffer.isAlignedShort(offset: Int) = (pointer.toLong() + offset) and 1L == 0L
-internal inline fun Buffer.isAlignedInt(offset: Int) = (pointer.toLong() + offset) and 11L == 0L
-internal inline fun Buffer.isAlignedLong(offset: Int) = (pointer.toLong() + offset) and 111L == 0L
-
-
-internal inline fun storeArrayIndicesCheck(
-    offset: Int,
-    sourceOffset: Int,
-    count: Int,
-    itemSize: Int,
-    sourceSize: Int,
-    memorySize: Int
-) {
-    requirePositiveIndex(offset, "offset")
-    requirePositiveIndex(sourceOffset, "destinationOffset")
-    requirePositiveIndex(count, "count")
-
-    requireRange(sourceOffset, count, sourceSize, "source")
-    requireRange(offset, count * itemSize, memorySize, "memory")
 }
 
 internal fun copy(
