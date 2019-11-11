@@ -91,6 +91,7 @@ fun Output.writeUTF8String(text: CharSequence, index: Int = 0, length: Int = tex
             offset
         }
     }
+    flush()
 }
 
 internal fun codePoint(high: Char, low: Char): Int {
