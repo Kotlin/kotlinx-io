@@ -1,0 +1,7 @@
+apply plugin: 'kotlin'
+
+
+dependencies {
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    api project(":kotlinx-io")
+}
