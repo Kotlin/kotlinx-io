@@ -1,7 +1,19 @@
-apply plugin: 'kotlin'
+apply plugin: 'kotlin-multiplatform'
 
+kotlin {
+    jvm()
 
-dependencies {
+    sourceSets.all {
+        kotlin.srcDirs = ["$it.name/src"]
+        resources.srcDirs = ["$it.name/resources"]
+        languageSettings {
+            progressiveMode = true
+        }
+    }
+}
+
+kotlin.sourceSets.jvmMain.dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     api project(":kotlinx-io")
 }
+

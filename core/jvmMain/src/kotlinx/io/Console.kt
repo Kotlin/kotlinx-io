@@ -3,33 +3,10 @@ package kotlinx.io
 import kotlinx.io.buffer.*
 import java.lang.IllegalStateException
 
-/**
- * Console incorporates all system inputs and outputs in a multiplatform manner.
- * All sources are open by default, ready to read from/write to and cannot be closed.
- */
 public actual object Console {
-    /**
-     * Standard input for the platform:
-     *   * JVM -- `System.in`
-     *   * Native -- input associated with `STDIN_FILENO`
-     *   * JS -- not implemented
-     */
+
     public actual val input: Input = SystemIn
-
-    /**
-     * Standard output for the platform:
-     *   * JVM -- `System.out`
-     *   * Native -- output associated with `STDOUT_FILENO`
-     *   * JS -- output associated with `console.log`
-     */
     public actual val output: Output = SystemOut
-
-    /**
-     * Standard error output for the platform:
-     *   * JVM -- `System.err`
-     *   * Native -- output associated with `STDERR_FILENO`
-     *   * JS -- output associated with `console.error`
-     */
     public actual val error: Output = SystemErr
 }
 
@@ -96,5 +73,4 @@ private object SystemErr : Output() {
         throw IllegalStateException("Console.error cannot be closed")
     }
 }
-
 
