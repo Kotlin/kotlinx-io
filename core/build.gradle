@@ -50,7 +50,6 @@ kotlin {
 
         jvmMain {
             dependencies {
-                api "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
             }
         }
         jvmTest {
