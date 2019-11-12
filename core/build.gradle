@@ -1,111 +1,131 @@
-apply plugin: 'kotlin-multiplatform'
-
-task emptyJavadoc(type: Jar) {
-    classifier = 'javadoc'
+plugins {
+    id "kotlin-multiplatform"
+    id "maven-publish"
+    id "kotlinx-atomicfu"
+    id "jacoco"
 }
 
+apply plugin: "com.vanniktech.android.junit.jacoco"
+
+apply plugin: "jacoco"
+
+def ideaActive = System.getProperty('idea.active') == 'true'
+
 kotlin {
-    infra {
-        shared {
-            compilations.main {
-                cinterops {
-                    bits { defFile = file("nativeMain/interop/bits.def") }
-                    sockets { defFile = file("nativeMain/interop/sockets.def") }
-                }
-            }
-            compilations.test {
-                cinterops {
-                    testSockets { defFile = file("nativeTest/interop/testSockets.def") }
-                }
-            }
-        }
+    jvm()
 
-        target('macosX64')
-        target('iosX64')
-        target('iosArm64')
-        target('iosArm32')
-        target('linuxX64')
-        target('mingwX64')
-    }
-
-    jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = '1.8'
-            }
-        }
+    if (!ideaActive) {
+        linuxX64()
+        mingwX64()
+        macosX64()
+        iosX64()
+        iosArm64()
+        iosArm32()
+    } else {
+        macosX64("native")
     }
 
     js {
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                moduleKind = "umd"
-                metaInfo = true
-                main = "call"
-                sourceMapEmbedSources = 'always'
+        nodejs {
+            testTask {
+                debug = false
             }
         }
-    }
-
-    sourceSets.all {
-        kotlin.srcDirs = ["$it.name/src"]
-        resources.srcDirs = ["$it.name/resources"]
-        languageSettings {
-            progressiveMode = true
-            useExperimentalAnnotation("kotlin.Experimental")
-            useExperimentalAnnotation('kotlin.ExperimentalUnsignedTypes')
-            useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
-            useExperimentalAnnotation("kotlinx.io.core.internal.DangerousInternalIoApi")
-            useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
-        }
+        browser()
     }
 
     sourceSets {
         commonMain {
             dependencies {
                 api "org.jetbrains.kotlin:kotlin-stdlib"
-                api "org.jetbrains.kotlinx:atomicfu-common:$atomic_fu_version"
             }
         }
 
         commonTest {
             dependencies {
-                api 'org.jetbrains.kotlin:kotlin-test-common'
-                api 'org.jetbrains.kotlin:kotlin-test-annotations-common'
+                api "org.jetbrains.kotlin:kotlin-test-common"
+                api "org.jetbrains.kotlin:kotlin-test-annotations-common"
             }
         }
 
         jvmMain {
             dependencies {
-                api 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-                api "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
             }
         }
         jvmTest {
             dependencies {
-                api 'org.jetbrains.kotlin:kotlin-test-junit'
+                api "org.jetbrains.kotlin:kotlin-test-junit"
             }
         }
 
         jsMain {
             dependencies {
-                api 'org.jetbrains.kotlin:kotlin-stdlib-js'
-                api "org.jetbrains.kotlinx:atomicfu-js:$atomic_fu_version"
+                api "org.jetbrains.kotlin:kotlin-stdlib-js"
             }
         }
 
         jsTest {
             dependencies {
-                api 'org.jetbrains.kotlin:kotlin-test-js'
+                api "org.jetbrains.kotlin:kotlin-test-js"
             }
         }
 
-        nativeMain.dependencies {
-            api "org.jetbrains.kotlinx:atomicfu-native:$atomic_fu_version"
+        if (!ideaActive) {
+            nativeMain {
+                dependsOn commonMain
+            }
+
+            nativeTest
+
+            configure([macosX64Main, linuxX64Main, mingwX64Main, iosX64Main, iosArm32Main, iosArm64Main]) {
+                dependsOn nativeMain
+            }
+
+            configure([macosX64Test, linuxX64Test, mingwX64Test, iosX64Test, iosArm32Test, iosArm64Test]) {
+                dependsOn nativeTest
+            }
         }
     }
-    
+
+    targets {
+        def cinteropTargets = ideaActive ? [targets.getByName("native")] : [macosX64, linuxX64, mingwX64, iosX64, iosArm32, iosArm64]
+        configure(cinteropTargets) {
+            compilations.main {
+                cinterops {
+                    bits { defFile = file("nativeMain/interop/bits.def") }
+                    sockets { defFile = file("nativeMain/interop/sockets.def") }
+                }
+            }
+
+            compilations.test {
+                cinterops {
+                    testSockets { defFile = file("nativeTest/interop/testSockets.def") }
+                }
+            }
+        }
+    }
+
+    sourceSets.all {
+        def isTest = it.toString().endsWith("Test")
+        kotlin.srcDirs = ["$it.name/src"]
+        resources.srcDirs = ["$it.name/resources"]
+        languageSettings {
+            progressiveMode = true
+
+            useExperimentalAnnotation("kotlin.Experimental")
+            useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
+            useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+            if (isTest) {
+                useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+                useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
+            }
+        }
+    }
+
+    task emptyJavadoc(type: Jar) {
+        classifier = "javadoc"
+    }
+
     targets.all { target ->
         def publication = publishing.publications.findByName(target.name)
 
@@ -113,5 +133,28 @@ kotlin {
             publication.artifact emptyJavadoc
         }
     }
+}
 
+jacoco {
+    toolVersion = "0.8.2"
+}
+
+task testCoverage(type: JacocoReport, dependsOn: jvmTest) {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports."
+
+    def coverageSourceDirs = [
+            "commonMain/src",
+            "jvmMain/src"
+    ]
+
+    classDirectories.from files(fileTree(dir: "${project.buildDir}/classes/kotlin/jvm/"))
+    sourceDirectories.from files(coverageSourceDirs)
+    additionalSourceDirs.from files(coverageSourceDirs)
+    executionData.from files("${project.buildDir}/jacoco/jvmTest.exec")
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
 }

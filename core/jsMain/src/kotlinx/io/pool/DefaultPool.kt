@@ -30,7 +30,7 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual final overr
         }
     }
 
-    actual final override fun dispose() {
+    actual final override fun close() {
         for (i in 0 until size) {
             @Suppress("UNCHECKED_CAST")
             val instance = instances[i] as T

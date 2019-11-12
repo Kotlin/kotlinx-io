@@ -1,6 +1,6 @@
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'kotlin-allopen'
-apply plugin: 'org.jetbrains.gradle.benchmarks.plugin'
+apply plugin: 'kotlinx.benchmark'
 
 // how to apply plugin to a specific source set?
 allOpen {
@@ -8,11 +8,11 @@ allOpen {
 }
 
 kotlin {
-    infra {
-        target('macosX64')
-        target('linuxX64')
-        target('mingwX64')
-    }
+//    infra {
+//        target('macosX64')
+//        target('linuxX64')
+//        target('mingwX64')
+//    }
 
     jvm {
         compilations.all {
@@ -23,12 +23,7 @@ kotlin {
     }
 
     js {
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                moduleKind = "umd"
-            }
-        }
+        nodejs()
     }
 
     sourceSets.all {
@@ -39,7 +34,7 @@ kotlin {
             useExperimentalAnnotation("kotlin.Experimental")
             useExperimentalAnnotation('kotlin.ExperimentalUnsignedTypes')
             useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
-            useExperimentalAnnotation("kotlinx.io.core.internal.DangerousInternalIoApi")
+            useExperimentalAnnotation("kotlinx.io.unsafe.DangerousInternalIoApi")
             useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
         }
     }
@@ -48,7 +43,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
-                implementation "org.jetbrains.gradle.benchmarks:runtime:$benchmarks_version"
+                implementation "org.jetbrains.kotlinx:kotlinx.benchmark.runtime:$benchmarks_version"
                 implementation project(":kotlinx-io")
             }
         }
@@ -89,13 +84,16 @@ kotlin {
 
 // Configure benchmark
 benchmark {
-    defaults {
-        iterations = 5 // number of iterations
-        iterationTime = 300 // time in ms per iteration
+    configurations {
+        main {
+            iterations = 1000 // number of iterations
+            iterationTime = 1
+            iterationTimeUnit = "s"
+        }
     }
 
     // Setup configurations
-    configurations {
+    targets {
         // This one matches compilation base name, e.g. 'jvm', 'jvmTest', etc
         register("jvm") {
             jmhVersion = "1.21"

@@ -2,57 +2,18 @@ buildscript {
     repositories {
         jcenter()
         gradlePluginPortal()
-//        maven { url "../kotlin-libraries-infra/build/maven" }
-//        maven { url "../gradle-benchmarks/build/maven" }
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
+        maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
         maven { url "https://dl.bintray.com/orangy/maven" }
+        maven { url "https://dl.bintray.com/kotlin/kotlinx" }
     }
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
-        classpath "org.jetbrains.gradle.benchmarks:benchmarks.plugin:$benchmarks_version"
-        classpath "kotlinx.team:kotlinx.team.infra:$infra_version"
-    }
-}
-
-apply plugin: 'kotlinx.team.infra'
-
-infra {
-    teamcity {
-        bintrayUser = "orangy"
-        bintrayToken = "credentialsJSON:9a48193c-d16d-46c7-8751-2fb434b09e07"
-    }
-    
-    publishing {
-        include(":kotlinx-io")
-        include(":kotlinx-coroutines-io")
-
-        bintray {
-            organization = 'orangy'
-            repository = 'maven'
-            library = 'kotlinx-io'
-
-            username = findProperty('bintrayUser')
-            password = findProperty('bintrayApiKey')
-        }
-    }
-
-    apiCheck {
-        include(":kotlinx-io")
-        include(":kotlinx-coroutines-io")
-    }
-    
-    node {
-        version = '10.15.3'
-        mocha {
-            version = '6.0.2'
-            // headlessChromeVersion = '2.0.2'
-        }
-        
-        install("source-map-support", "0.5.11")
-        install("text-encoding", "0.7.0")
-        install("mocha-teamcity-reporter", "2.5.2")
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
+        classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
+        classpath "com.vanniktech:gradle-android-junit-jacoco-plugin:0.15.0"
     }
 }
 
@@ -63,9 +24,6 @@ allprojects {
         maven { url "https://dl.bintray.com/kotlin/kotlinx" }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
-//        maven { url rootProject.file("../gradle-benchmarks/build/maven") }
         maven { url "https://dl.bintray.com/orangy/maven" }
     }
 }
-
-

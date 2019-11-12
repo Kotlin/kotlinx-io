@@ -1,8 +1,7 @@
 package kotlinx.io.pool
 
-import kotlinx.io.utils.*
+import kotlinx.io.internal.*
 import java.util.concurrent.atomic.*
-import kotlin.jvm.*
 
 private const val MULTIPLIER = 4
 private const val PROBE_COUNT = 8 // number of attempts to find a slot
@@ -12,7 +11,7 @@ private const val MAX_CAPACITY = Int.MAX_VALUE / MULTIPLIER
 actual abstract class DefaultPool<T : Any> actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
     init {
         require(capacity > 0) { "capacity should be positive but it is $capacity" }
-        require(capacity <= MAX_CAPACITY) { "capacity should be less or equal to $MAX_CAPACITY but it is $capacity"}
+        require(capacity <= MAX_CAPACITY) { "capacity should be less or equal to $MAX_CAPACITY but it is $capacity" }
     }
 
     protected actual abstract fun produceInstance(): T // factory
@@ -32,14 +31,14 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual final overr
     private val next = IntArray(maxIndex + 1)
 
     actual final override fun borrow(): T =
-            tryPop()?.let { clearInstance(it) } ?: produceInstance()
+        tryPop()?.let { clearInstance(it) } ?: produceInstance()
 
     actual final override fun recycle(instance: T) {
         validateInstance(instance)
         if (!tryPush(instance)) disposeInstance(instance)
     }
 
-    actual final override fun dispose() {
+    actual final override fun close() {
         while (true) {
             val instance = tryPop() ?: return
             disposeInstance(instance)
@@ -48,7 +47,7 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual final overr
 
     private fun tryPush(instance: T): Boolean {
         var index = ((System.identityHashCode(instance) * MAGIC) ushr shift) + 1
-        repeat (PROBE_COUNT) {
+        repeat(PROBE_COUNT) {
             if (instances.compareAndSet(index, null, instance)) {
                 pushTop(index)
                 return true

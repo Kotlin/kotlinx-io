@@ -1,0 +1,43 @@
+ # TODO
+- Design
+    - Input: bypass source exceptions in `Input.fill`
+    - Input: `eof` vs `exhausted`
+    - Output: Appendable
+    - `Input.discard()`, discardExact
+    - `readUtf8Line` throws if string ends wo `\n`
+- Implementation
+    -  Input
+    -  Output
+    -  Index preconditions
+    - `bytesInput = buildInput { BytesOutput -> }`
+        - `Bytes.createInput()` copy on consume
+    - Introduce `BytesInput` and `BytesOutput` `(Input/Output + size, remaining)`
+    - Introduce `readByteArray(), copyTo(output)`
+    - Introduce `Input.copyAvailableTo(Output | Buffer)`: consume single buffer(wait if no buffer available)
+    - Prototype `PipedOutput`
+    - Remove `Input/Output` companion until we have no use-cases in the library.
+- Test
+    - Verify pool has no leaks
+- Documentation
+    - Bytes
+    - Input
+    - Output
+    - Input operations
+    - Interop
+       - InputStream, OutputStream
+       - okio: Source, Sink
+    - Text input
+    - Text output
+- Benchmarks
+    -  Input: read byte array
+    - Output: all benchmarks
+- Samples
+    - Input and Output over 
+        - File
+        - Socket
+        - RSocket
+        - node.js/web stream
+- Maintenance
+    - Dokka generation
+    - API Check
+
