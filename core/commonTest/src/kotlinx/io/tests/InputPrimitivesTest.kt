@@ -103,7 +103,7 @@ class InputPrimitivesTest {
         var closed = false
         var written = false
 
-        val input = object : Input() {
+        class MyInput : Input() {
             override fun fill(buffer: Buffer): Int {
                 if (written) return 0
                 written = true
@@ -117,6 +117,7 @@ class InputPrimitivesTest {
             }
         }
 
+        val input = MyInput()
         val text = input.use {
             val array = ByteArray(4)
             input.readArray(array)
@@ -135,7 +136,7 @@ class InputPrimitivesTest {
             "test.", "123.", "zxc."
         )
 
-        val input = object : Input() {
+        class MyInput: Input() {
             override fun fill(buffer: Buffer): Int {
                 if (items.isEmpty()) return 0
                 val next = items.removeAt(0)
@@ -149,6 +150,7 @@ class InputPrimitivesTest {
                 items.clear()
             }
         }
+        val input = MyInput()
 
         val data = ByteArray(5 + 4 + 4)
         input.readArray(data)
