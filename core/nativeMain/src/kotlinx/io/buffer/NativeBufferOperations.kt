@@ -72,16 +72,6 @@ internal fun Long.toBigEndian(): Long = when (PLATFORM_BIG_ENDIAN) {
     else -> reverseByteOrder()
 }
 
-internal fun Float.toBigEndian(): Float = when (PLATFORM_BIG_ENDIAN) {
-    1 -> this
-    else -> swap(this)
-}
-
-internal fun Double.toBigEndian(): Double = when (PLATFORM_BIG_ENDIAN) {
-    1 -> this
-    else -> swap(this)
-}
-
 /**
  * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
  */
