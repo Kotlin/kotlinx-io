@@ -7,7 +7,7 @@ class BytesTest {
     private val bufferSizes = (1..64)
 
     @Test
-    fun smokeSingleBufferTest() = bufferSizes.forEach { size ->
+    fun testSmokeSingleBuffer() = bufferSizes.forEach { size ->
         val bytes = buildBytes(size) {
             val array = ByteArray(2)
             array[0] = 0x11
@@ -24,10 +24,9 @@ class BytesTest {
             writeLong(0x123456789abcdef0)
 
             writeUTF8String("OK\n")
-            //listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
-        assertEquals(2 + 2 + 2 + 4 + 8 + 4 + 8 + 8 + 3/* + 5*/, bytes.size())
+        assertEquals(2 + 2 + 2 + 4 + 8 + 4 + 8 + 8 + 3, bytes.size())
 
         val input = bytes.input()
         val ba = ByteArray(2)
@@ -48,15 +47,10 @@ class BytesTest {
         assertEquals(0x123456789abcdef0, input.readLong())
 
         assertEquals("OK", input.readUTF8Line())
-/*
-        assertEquals("1|2|3", input.readUTF8Line())
-*/
-
-        //assertTrue { bytes.eof() }
     }
 
     @Test
-    fun smokeMultiBufferTest() {
+    fun testSmokeMultiBuffer() {
         buildBytes {
             writeArray(ByteArray(9999))
             writeByte(0x12)
@@ -70,7 +64,6 @@ class BytesTest {
             val text = listOf(1, 2, 3).joinToString(separator = "|")
             writeUTF8String("$text\n")
         }.useInput {
-            //        assertEquals(9999 + 1 + 2 + 4 + 8 + 4 + 8 + 3 + 5, p.remaining)
             readArray(ByteArray(9999))
             assertEquals(0x12, readByte())
             assertEquals(0x1234, readShort())
@@ -91,7 +84,6 @@ class BytesTest {
             writeArray(ByteArray(9999))
         }.use { buffer ->
             val input = buffer.input()
-//            assertEquals(9999, input.discard(10000))
             input.readArray(ByteArray(9999))
             assertTrue { input.eof() }
         }
@@ -102,7 +94,6 @@ class BytesTest {
         buildBytes {
             writeArray("ABC123\n".toByteArray0())
         }.useInput {
-            //            assertEquals(3, it.discard(3))
             readArray(ByteArray(3))
             assertEquals("123", readUTF8Line())
             assertTrue { eof() }
@@ -141,7 +132,6 @@ class BytesTest {
         buildBytes {
             writeArray(ByteArray(99999))
         }.useInput {
-            //            assertEquals(99999, it.discard(1000000))
             assertTrue { eof() }
         }
 
@@ -153,7 +143,6 @@ class BytesTest {
             writeArray(ByteArray(99999))
             writeArray("ABC123\n".toByteArray0())
         }.useInput {
-            //            assertEquals(99999 + 3, it.discard(99999 + 3))
             readArray(ByteArray(99999 + 3))
             assertEquals("123", readUTF8Line())
             assertTrue { eof() }
@@ -167,7 +156,6 @@ class BytesTest {
                 writeByte(1)
             }
         }.useInput {
-            //            assertEquals(PACKET_BUFFER_SIZE + 3, it.remaining.toInt())
             readArray(ByteArray(PACKET_BUFFER_SIZE - 1))
             assertEquals(0x01010101, readInt())
             assertTrue { eof() }

@@ -9,7 +9,7 @@ class InputPreviewTest {
     private val prefetchSizes = (1..256)
 
     @Test
-    fun previewFromTheBeginning() = withInput {
+    fun testPreviewFromTheBeginning() = withInput {
         preview {
             assertReadLong(0x0001020304050607)
             assertReadLong(0x08090A0B0C0D0E0F)
@@ -20,7 +20,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun previewAfterRead() = withInput {
+    fun testPreviewAfterRead() = withInput {
         assertReadLong(0x0001020304050607)
         preview {
             assertReadLong(0x08090A0B0C0D0E0F)
@@ -30,7 +30,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun previewNested() = withInput {
+    fun testPreviewNested() = withInput {
         assertReadLong(0x0001020304050607)
         preview {
             assertReadLong(0x08090A0B0C0D0E0F)
@@ -44,7 +44,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun previewSequential() = withInput {
+    fun testPreviewSequential() = withInput {
         assertReadLong(0x0001020304050607)
         preview {
             assertReadLong(0x08090A0B0C0D0E0F)
@@ -73,7 +73,7 @@ class InputPreviewTest {
     }
 
     @Test
-    fun previewSequentialLonger() = withInput {
+    fun testPreviewSequentialLonger() = withInput {
         preview {
             assertReadLong(0x0001020304050607)
             assertReadLong(0x08090A0B0C0D0E0F)

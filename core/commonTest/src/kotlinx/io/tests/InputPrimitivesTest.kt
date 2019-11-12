@@ -27,7 +27,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun readLong() = withSequentialInput(31) {
+    fun testReadLong() = withSequentialInput(31) {
         assertReadLong(0x0001020304050607)
         assertReadLong(0x08090A0B0C0D0E0F)
         assertReadLong(0x1011121314151617)
@@ -36,7 +36,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun readULong() = withSequentialInput(31, 0x70) {
+    fun testReadULong() = withSequentialInput(31, 0x70) {
         assertReadULong(0x7071727374757677u)
         assertReadULong(0x78797a7b7c7d7e7fu)
         assertReadULong(0x8081828384858687u)
@@ -45,7 +45,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun readInt() = withSequentialInput(15) {
+    fun testReadInt() = withSequentialInput(15) {
         assertReadInt(0x00010203)
         assertReadInt(0x04050607)
         assertReadInt(0x08090a0b)
@@ -54,7 +54,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun readUInt() = withSequentialInput(15) {
+    fun testReadUInt() = withSequentialInput(15) {
         assertReadUInt(0x00010203u)
         assertReadUInt(0x04050607u)
         assertReadUInt(0x08090a0bu)
@@ -63,7 +63,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun readShort() = withSequentialInput(7) {
+    fun testReadShort() = withSequentialInput(7) {
         assertReadShort(0x0001)
         assertReadShort(0x0203)
         assertReadShort(0x0405)
@@ -72,7 +72,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun readUShort() = withSequentialInput(7) {
+    fun testReadUShort() = withSequentialInput(7) {
         assertReadUShort(0x0001u)
         assertReadUShort(0x0203u)
         assertReadUShort(0x0405u)
@@ -81,7 +81,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun readByte() = withSequentialInput(3) {
+    fun testReadByte() = withSequentialInput(3) {
         assertReadByte(0x0)
         assertReadByte(0x1)
         assertReadByte(0x2)
@@ -90,7 +90,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun readUByte() = withSequentialInput(3) {
+    fun testReadUByte() = withSequentialInput(3) {
         assertReadUByte(0x0u)
         assertReadUByte(0x1u)
         assertReadUByte(0x2u)
@@ -99,7 +99,7 @@ class InputPrimitivesTest {
     }
 
     @Test
-    fun smokeTest() {
+    fun testSmoke() {
         var closed = false
         var written = false
 
