@@ -15,5 +15,7 @@ kotlin {
 kotlin.sourceSets.jvmMain.dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     api project(":kotlinx-io")
+    api "com.squareup.okio:okio:1.0.0"
+
 }
 

@@ -5,9 +5,9 @@ import kotlinx.io.text.*
 /**
  * @throws MalformedInputException
  */
-fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: Char): Int = decodeUTF8Chars {
+fun Input.readUtf8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: Char): Int = decodeUtf8Chars {
     if (it == delimiter) {
-        return@decodeUTF8Chars false
+        return@decodeUtf8Chars false
     }
     stringBuilder.append(it)
     true
@@ -16,9 +16,9 @@ fun Input.readUTF8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: C
 /**
  * @throws MalformedInputException
  */
-fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: Appendable, delimiters: String): Int = decodeUTF8Chars {
+fun Input.readUtf8StringUntilDelimitersTo(stringBuilder: Appendable, delimiters: String): Int = decodeUtf8Chars {
     if (it in delimiters)
-        return@decodeUTF8Chars false
+        return@decodeUtf8Chars false
     stringBuilder.append(it)
     true
 }
@@ -26,9 +26,9 @@ fun Input.readUTF8StringUntilDelimitersTo(stringBuilder: Appendable, delimiters:
 /**
  * @throws MalformedInputException
  */
-fun Input.readUTF8StringTo(out: Appendable, length: Int): Int {
+fun Input.readUtf8StringTo(out: Appendable, length: Int): Int {
     var remaining = length
-    return decodeUTF8Chars {
+    return decodeUtf8Chars {
         out.append(it)
         --remaining > 0
     }
@@ -37,25 +37,25 @@ fun Input.readUTF8StringTo(out: Appendable, length: Int): Int {
 /**
  * @throws MalformedInputException
  */
-fun Input.readUTF8Line(): String = buildString {
-    readUTF8LineTo(this)
+fun Input.readUtf8Line(): String = buildString {
+    readUtf8LineTo(this)
 }
 
 /**
  * @throws MalformedInputException
  */
-fun Input.readUTF8LineTo(out: Appendable) {
+fun Input.readUtf8LineTo(out: Appendable) {
     // TODO: consumes char after lonely CR
     var seenCR = false
-    decodeUTF8Chars {
+    decodeUtf8Chars {
         if (it == '\r') {
             seenCR = true
-            return@decodeUTF8Chars true // continue & skip
+            return@decodeUtf8Chars true // continue & skip
         }
         if (it == '\n')
-            return@decodeUTF8Chars false // stop & skip
+            return@decodeUtf8Chars false // stop & skip
         else if (seenCR)
-            return@decodeUTF8Chars false // lonely CR, stop & skip
+            return@decodeUtf8Chars false // lonely CR, stop & skip
         out.append(it)
         true
     }
@@ -64,31 +64,31 @@ fun Input.readUTF8LineTo(out: Appendable) {
 /**
  * @throws MalformedInputException
  */
-fun Input.readUTF8String(length: Int): String = buildString(length) {
-    readUTF8StringTo(this, length)
+fun Input.readUtf8String(length: Int): String = buildString(length) {
+    readUtf8StringTo(this, length)
 }
 
 /**
  * @throws MalformedInputException
  */
-fun Input.readUTF8StringUntilDelimiter(delimiter: Char): String = buildString {
-    readUTF8StringUntilDelimiterTo(this, delimiter)
+fun Input.readUtf8StringUntilDelimiter(delimiter: Char): String = buildString {
+    readUtf8StringUntilDelimiterTo(this, delimiter)
 }
 
 /**
  * @throws MalformedInputException
  */
-fun Input.readUTF8StringUntilDelimiters(delimiters: String): String = buildString {
-    readUTF8StringUntilDelimitersTo(this, delimiters)
+fun Input.readUtf8StringUntilDelimiters(delimiters: String): String = buildString {
+    readUtf8StringUntilDelimitersTo(this, delimiters)
 }
 
 /**
  * @throws MalformedInputException
  */
-private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean): Int {
+private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0
-    var state = STATE_UTF8
+    var state = STATE_Utf8
     var count = 0
 
     while (state != STATE_FINISH) {
@@ -190,7 +190,7 @@ private inline fun Input.decodeUTF8Chars(consumer: (Char) -> Boolean): Int {
  * Inline depth optimisation
  */
 private fun malformedInput(codePoint: Int): Nothing {
-    throw MalformedInputException("Malformed UTF8 input, current code point $codePoint")
+    throw MalformedInputException("Malformed Utf8 input, current code point $codePoint")
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -209,7 +209,7 @@ internal const val HighSurrogateMagic = MinHighSurrogate - (MinSupplementary ush
 // Based on https://bjoern.hoehrmann.de/utf-8/decoder/dfa/
 // 364 ints
 
-private val utf8StateMachine = intArrayOf(
+private val Utf8StateMachine = intArrayOf(
     // types
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -238,13 +238,13 @@ private val utf8StateMachine = intArrayOf(
 )
 
 private const val STATE_FINISH = -2
-//private const val UTF8_STATE_ASCII = -1
-private const val STATE_UTF8 = 0
+//private const val Utf8_STATE_ASCII = -1
+private const val STATE_Utf8 = 0
 private const val STATE_REJECT = 1
 
-private inline fun Input.decodeUTF8(consumer: (Int) -> Boolean) {
-    val stateMachine = utf8StateMachine
-    var state = STATE_UTF8
+private inline fun Input.decodeUtf8(consumer: (Int) -> Boolean) {
+    val stateMachine = Utf8StateMachine
+    var state = STATE_Utf8
     var codePoint = 0
 
     while (state != STATE_FINISH) {
@@ -253,7 +253,7 @@ private inline fun Input.decodeUTF8(consumer: (Int) -> Boolean) {
                 val byte = buffer.loadByteAt(index).toInt() and 0xff
 
                 val type = stateMachine[byte]
-                codePoint = if (state == STATE_UTF8)
+                codePoint = if (state == STATE_Utf8)
                     (0xff ushr type) and byte
                 else
                     (byte and 0x3f) or (codePoint shl 6)
@@ -261,7 +261,7 @@ private inline fun Input.decodeUTF8(consumer: (Int) -> Boolean) {
 
                 // TODO: Attempt to recover from bad states
                 when (state) {
-                    STATE_UTF8 -> when {
+                    STATE_Utf8 -> when {
                         codePoint <= MaxCodePoint -> {
                             if (!consumer(codePoint)) {
                                 state = STATE_FINISH // signal to exit loop
@@ -282,8 +282,8 @@ private inline fun Input.decodeUTF8(consumer: (Int) -> Boolean) {
     }
 }
 
-private inline fun Input.decodeUTF8CharsAlt(consumer: (Char) -> Boolean) {
-    decodeUTF8 { codePoint ->
+private inline fun Input.decodeUtf8CharsAlt(consumer: (Char) -> Boolean) {
+    decodeUtf8 { codePoint ->
         when {
             codePoint ushr 16 == 0 -> consumer(codePoint.toChar())
             else -> {

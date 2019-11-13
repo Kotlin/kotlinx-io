@@ -16,7 +16,6 @@
     - Introduce `readByteArray(), copyTo(output)`
     - Introduce `Input.copyAvailableTo(Output | Buffer)`: consume single buffer(wait if no buffer available)
     - Prototype `PipedOutput`
-    - Remove `Input/Output` companion until we have no use-cases in the library.
 - Test
     - Verify pool has no leaks
 - Documentation

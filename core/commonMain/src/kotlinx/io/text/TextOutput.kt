@@ -10,7 +10,7 @@ private const val lastASCII = 0x7F.toChar()
  *
  * @throws MalformedInputException if encoding is invalid.
  */
-fun Output.writeUTF8String(text: CharSequence, index: Int = 0, length: Int = text.length - index) {
+fun Output.writeUtf8String(text: CharSequence, index: Int = 0, length: Int = text.length - index) {
     var textIndex = index // index in text
     val textEndIndex = index + length // index of char after last
     var bytes = 0 // current left bytes to write (in inverted order)
@@ -49,7 +49,7 @@ fun Output.writeUTF8String(text: CharSequence, index: Int = 0, length: Int = tex
                     else -> character.toInt()
                 }
 
-                // write utf8 bytes to buffer or queue them for write in `bytes` if not enough space
+                // write Utf8 bytes to buffer or queue them for write in `bytes` if not enough space
                 when {
                     code < 0x7ff -> {
                         buffer[offset++] = (0xc0 or ((code shr 6) and 0x1f)).toByte()
@@ -106,5 +106,5 @@ internal fun codePoint(high: Char, low: Char): Int {
 
 private fun malformedCodePoint(codePoint: Int): Nothing {
     // TODO: revise exceptions
-    throw MalformedInputException("Malformed UTF8 code point $codePoint")
+    throw MalformedInputException("Malformed Utf8 code point $codePoint")
 }
