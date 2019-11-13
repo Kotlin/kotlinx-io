@@ -12,7 +12,7 @@ open class OutputStringTest {
         val expected = ubyteArrayOf(0x66u, 0x69u, 0x6cu, 0x65u, 0x2eu)
 
         val bytes = buildBytes(size) {
-            writeUTF8String(text)
+            writeUtf8String(text)
         }
 
         assertEquals(expected.size, bytes.size(), "Size $size")
@@ -29,7 +29,7 @@ open class OutputStringTest {
         val expected = ubyteArrayOf(0x2eu, 0xf0u, 0x9fu, 0x8cu, 0x80u, 0x2eu)
 
         val bytes = buildBytes(size) {
-            writeUTF8String(text)
+            writeUtf8String(text)
         }
 
         assertEquals(expected.size, bytes.size(), "Size $size")
@@ -55,7 +55,7 @@ open class OutputStringTest {
         // @formatter:on
 
         val bytes = buildBytes(size) {
-            writeUTF8String(text)
+            writeUtf8String(text)
         }
 
         assertEquals(expected.size, bytes.size(), "Size $size")
@@ -70,21 +70,21 @@ open class OutputStringTest {
     @Test
     fun testWriteMultiByteAtEnd() {
         val input = buildBytes {
-            writeUTF8String("ABC\u0422")
+            writeUtf8String("ABC\u0422")
         }.input()
 
-        assertEquals("ABC\u0422", input.readUTF8String(4))
+        assertEquals("ABC\u0422", input.readUtf8String(4))
         assertTrue(input.eof(), "EOF")
     }
 
     @Test
     fun testWriteSingleByte() {
         val input = buildBytes {
-            writeUTF8String("1")
+            writeUtf8String("1")
         }.input()
 
         try {
-            assertEquals("1", input.readUTF8String(1))
+            assertEquals("1", input.readUtf8String(1))
             assertTrue(input.eof(), "EOF")
         } finally {
             input.close()
@@ -94,16 +94,16 @@ open class OutputStringTest {
     @Test
     fun testReadUntilDelimiter() {
         val input = buildBytes {
-            writeUTF8String("1,23|,4.")
+            writeUtf8String("1,23|,4.")
         }.input()
 
         val sb = StringBuilder()
         val counts = mutableListOf<Int>()
 
-        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
-        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
-        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
-        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
         assertTrue(input.eof(), "EOF")
         assertEquals("1234", sb.toString())
         assertEquals(listOf(1, 2, 0, 1), counts)
@@ -112,15 +112,15 @@ open class OutputStringTest {
     @Test
     fun testReadUntilDelimiterMulti() {
         val input = buildBytes {
-            writeUTF8String("\u0422,\u0423|\u0424.")
+            writeUtf8String("\u0422,\u0423|\u0424.")
         }.input()
 
         val sb = StringBuilder()
         val counts = mutableListOf<Int>()
 
-        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
-        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
-        counts.add(input.readUTF8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
         assertTrue(input.eof(), "EOF")
         assertEquals("\u0422\u0423\u0424", sb.toString())
         assertEquals(listOf(1, 1, 1), counts)
@@ -129,15 +129,15 @@ open class OutputStringTest {
     @Test
     fun testReadLineSingleBuffer() = bufferSizes.forEach { size ->
         val input = buildBytes(size) {
-            writeUTF8String("1\r\n22\n333\n4444\n") // TODO: replace one LF with CR when we can read it 
+            writeUtf8String("1\r\n22\n333\n4444\n") // TODO: replace one LF with CR when we can read it
         }.input()
 
-        assertEquals("1", input.readUTF8Line())
-        assertEquals("22", input.readUTF8Line())
-        assertEquals("333", input.readUTF8Line())
-        assertEquals("4444", input.readUTF8Line())
+        assertEquals("1", input.readUtf8Line())
+        assertEquals("22", input.readUtf8Line())
+        assertEquals("333", input.readUtf8Line())
+        assertEquals("4444", input.readUtf8Line())
         assertTrue(input.eof(), "EOF")
-        assertFails { input.readUTF8Line() }
+        assertFails { input.readUtf8Line() }
     }
 }
 

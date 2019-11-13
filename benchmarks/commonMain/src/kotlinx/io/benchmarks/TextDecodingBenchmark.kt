@@ -25,7 +25,7 @@ class TextDecodingBenchmark {
     @Benchmark
     fun inputTextUntil(): String {
         val input = bytes.input()
-        val text = input.readUTF8StringUntilDelimiter('.')
+        val text = input.readUtf8StringUntilDelimiter('.')
 /*
         if (text != expected)
             throw IllegalStateException("Invalid outcome")
@@ -36,7 +36,7 @@ class TextDecodingBenchmark {
     @Benchmark
     fun inputText(): String {
         val input = bytes.input()
-        val text = input.readUTF8String(length)
+        val text = input.readUtf8String(length)
 /*
         if (text != expected)
             throw IllegalStateException("Invalid outcome")
@@ -47,7 +47,7 @@ class TextDecodingBenchmark {
     @Benchmark
     fun inputTextShort(): String {
         val input = bytes.input()
-        val text = input.readUTF8String(25)
+        val text = input.readUtf8String(25)
 /*
         if (text != expected)
             throw IllegalStateException("Invalid outcome")
@@ -61,7 +61,7 @@ fun main() {
     var sum = 0
     repeat(10_000_000) {
         val input = bytes.input()
-        val text = input.readUTF8String(length)
+        val text = input.readUtf8String(length)
         sum += text.hashCode()
     }
 }*/
