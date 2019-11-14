@@ -1,7 +1,6 @@
 package kotlinx.io.gzip
 
 import kotlinx.io.*
-import kotlinx.io.bytes.*
 
 @ExperimentalStdlibApi
 fun main() {
@@ -10,7 +9,7 @@ fun main() {
     val gzipOutput = GzipOutput(bao)
     gzipOutput.writeUtf8String(str)
     gzipOutput.close()
-    val array = bao.toArray()
+    val array = bao.toByteArray()
     println("Original: " + str.encodeToByteArray().contentToString())
     println("Compressed: " +  array.contentToString())
 
