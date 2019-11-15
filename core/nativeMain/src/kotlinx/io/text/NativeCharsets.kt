@@ -1,6 +1,6 @@
 package kotlinx.io.text
 
-import kotlinx.io.buffer.*
+import kotlinx.io.*
 
 actual object Charsets {
     actual val UTF_8: Charset = CharsetImpl("UTF-8")

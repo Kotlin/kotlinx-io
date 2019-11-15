@@ -1,6 +1,6 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package kotlinx.io.buffer
+package kotlinx.io
 
 import kotlinx.cinterop.*
 import kotlin.native.concurrent.SharedImmutable

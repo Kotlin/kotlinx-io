@@ -1,4 +1,4 @@
-package kotlinx.io.buffer
+package kotlinx.io
 
 /**
  * Enumeration that represent an endianness of the arbitrary binary data.

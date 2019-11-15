@@ -4,7 +4,7 @@ import kotlinx.cinterop.*
 import kotlinx.io.bits.internal.utils.*
 import platform.posix.*
 import kotlin.contracts.*
-
+import kotlinx.io.*
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].

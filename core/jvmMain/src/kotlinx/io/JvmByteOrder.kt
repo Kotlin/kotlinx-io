@@ -1,6 +1,6 @@
 @file:JvmName("ByteOrderJVMKt")
 
-package kotlinx.io.buffer
+package kotlinx.io
 
 public actual enum class ByteOrder  {
     BIG_ENDIAN,

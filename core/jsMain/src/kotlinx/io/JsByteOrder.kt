@@ -1,6 +1,6 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package kotlinx.io.buffer
+package kotlinx.io
 
 import org.khronos.webgl.*
 

@@ -1,6 +1,8 @@
-@file:Suppress("NOTHING_TO_INLINE")
 
+@file:Suppress("NOTHING_TO_INLINE")
 package kotlinx.io.buffer
+
+import kotlinx.io.*
 
 /**
  * Returns byte at [index] position.
