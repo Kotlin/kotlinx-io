@@ -3,6 +3,7 @@ plugins {
     id "maven-publish"
     id "kotlinx-atomicfu"
     id "jacoco"
+    id "scientifik.publish"
 }
 
 apply plugin: "com.vanniktech.android.junit.jacoco"

@@ -400,7 +400,7 @@ public abstract class Input : Closeable {
                 return fillBuffer(bufferPool.borrow())
             }
 
-            val oldLimit = limit
+            //val oldLimit = limit
             this.buffer = bytes.pointed(Bytes.StartPointer) { limit -> this.limit = limit }
             position = 0
             return limit
