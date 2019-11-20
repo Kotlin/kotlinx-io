@@ -5,6 +5,7 @@
     - Output: Appendable
     - `Input.discard()`, discardExact
     - `readUtf8Line` throws if string ends wo `\n`
+    - Idempotent close
 - Implementation
     -  Input
     -  Output

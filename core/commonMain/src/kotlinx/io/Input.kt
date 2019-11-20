@@ -247,7 +247,8 @@ public abstract class Input : Closeable {
     }
 
     /**
-     * Closes the underlying source.
+     * Closes the underlying source of data used by this input.
+     * This method is invoked once the input is [closed][close].
      */
     protected abstract fun closeSource()
 
