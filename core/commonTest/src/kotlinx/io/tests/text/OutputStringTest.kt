@@ -15,7 +15,7 @@ open class OutputStringTest {
             writeUTF8String(text)
         }
 
-        assertEquals(expected.size, bytes.size(), "Size $size")
+        assertEquals(expected.size, bytes.size, "Size $size")
         val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readArray(read)
@@ -32,7 +32,7 @@ open class OutputStringTest {
             writeUTF8String(text)
         }
 
-        assertEquals(expected.size, bytes.size(), "Size $size")
+        assertEquals(expected.size, bytes.size, "Size $size")
         val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readArray(read)
@@ -58,7 +58,7 @@ open class OutputStringTest {
             writeUTF8String(text)
         }
 
-        assertEquals(expected.size, bytes.size(), "Size $size")
+        assertEquals(expected.size, bytes.size, "Size $size")
 
         val input = bytes.input()
         val read = UByteArray(expected.size)

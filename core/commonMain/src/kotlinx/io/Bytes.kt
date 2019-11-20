@@ -1,7 +1,7 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-import kotlinx.io.pool.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.pool.ObjectPool
 
 internal typealias BytesPointer = Int
 
@@ -19,7 +19,7 @@ internal typealias BytesPointer = Int
  * 2. close
  * 3. example
  */
-class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
+class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : Closeable, Binary {
     private var buffers: Array<Buffer?> = arrayOfNulls(initialPreviewSize)
     private var limits: IntArray = IntArray(initialPreviewSize)
     private var head: Int = 0
@@ -28,7 +28,7 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
     /**
      * Calculate size of [Bytes].
      */
-    fun size(): Int = size(StartPointer)
+    override val size: BinarySize by lazy { size(StartPointer) }
 
     /**
      * Create [Input] view on content.
@@ -37,6 +37,9 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
         override fun closeSource() {}
         override fun fill(buffer: Buffer): Int = 0
     }
+
+    @Suppress("OVERRIDE_BY_INLINE")
+    override inline fun <R> read(reader: Input.() -> R): R = input().use(reader)
 
     override fun toString() = "Bytes($head..$tail)"
 

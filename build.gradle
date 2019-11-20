@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        mavenLocal()
         jcenter()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
@@ -16,7 +17,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
         classpath "com.vanniktech:gradle-android-junit-jacoco-plugin:0.15.0"
-        classpath "scientifik:gradle-tools:0.2.4"
+        classpath "scientifik:gradle-tools:0.2.5"
     }
 }
 

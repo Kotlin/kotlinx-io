@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        mavenLocal()
         mavenCentral()
         jcenter()
         gradlePluginPortal()
@@ -8,7 +9,7 @@ pluginManagement {
     }
 }
 
-//enableFeaturePreview('GRADLE_METADATA')
+enableFeaturePreview('GRADLE_METADATA')
 
 rootProject.name = 'kotlinx-io-package'
 
