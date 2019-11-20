@@ -43,7 +43,7 @@ public object SystemOut : Output() {
         }
     }
 
-    override fun close() {
+    override fun closeSource() {
         throw IllegalStateException("System.out cannot be closed")
     }
 }
@@ -58,7 +58,7 @@ public object SystemErr : Output() {
         }
     }
 
-    override fun close() {
+    override fun closeSource() {
         throw IllegalStateException("System.err cannot be closed")
     }
 }

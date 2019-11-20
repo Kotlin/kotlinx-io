@@ -31,7 +31,7 @@ private open class ConsolePrinter(private val printer: (String) -> Unit, private
         printer(decoder.decode(buffer))
     }
 
-    override fun close() {
+    override fun closeSource() {
         throw IllegalStateException("Console.$name cannot be closed")
     }
 }

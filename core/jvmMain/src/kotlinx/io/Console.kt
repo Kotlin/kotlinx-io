@@ -53,7 +53,7 @@ private object SystemOut : Output() {
         out.flush()
     }
 
-    override fun close() {
+    override fun closeSource() {
         throw IllegalStateException("Console.output cannot be closed")
     }
 }
@@ -69,7 +69,7 @@ private object SystemErr : Output() {
         out.flush()
     }
 
-    override fun close() {
+    override fun closeSource() {
         throw IllegalStateException("Console.error cannot be closed")
     }
 }
