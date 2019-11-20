@@ -1,7 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlinx.io.pool.*
+import kotlinx.io.pool.ObjectPool
 
 /**
  * [Input] is an abstract base class for synchronous byte readers.
@@ -361,6 +361,14 @@ public abstract class Input : Closeable {
             consumer(buffer.loadByteAt(position++).toInt() and 0xFF)
             remaining--
         }
+    }
+
+    /**
+     * Discard exactly [size] bytes from input.
+     * @throws EOFException if no more bytes available.
+     */
+    fun skipBytes(size: Int) {
+        readBytes(size) {}
     }
 
     /**

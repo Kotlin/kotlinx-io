@@ -24,3 +24,19 @@ interface Binary {
         val INFINITE = BinarySize.MAX_VALUE
     }
 }
+
+/**
+ * A Binary with random access functionality
+ */
+interface RandomAccessBinary : Binary {
+    /**
+     * Read at most [size] of bytes starting at [from] offset from the beginning of the binary.
+     * This method could be called multiple times simultaneously.
+     *
+     */
+    fun <R> read(from: BinarySize, size: BinarySize = Binary.INFINITE, block: Input.() -> R): R
+
+    override fun <R> read(reader: Input.() -> R): R = read(0, BinarySize.MAX_VALUE, reader)
+}
+
+//TODO Add basic RandomAccessBinary implementation that wraps regular binary
