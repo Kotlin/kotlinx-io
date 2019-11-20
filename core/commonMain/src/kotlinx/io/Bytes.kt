@@ -8,7 +8,7 @@ internal typealias BytesPointer = Int
 /**
  * Read-only bytes container.
  *
- * Use [input] to create readable [Input].
+ * Use [read] to safely create and dispose an input
  * All inputs from a [Bytes] instance are share the same buffers.
  *
  * ```
@@ -32,13 +32,15 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
 
     /**
      * Create [Input] view on content.
+     *
      */
+    @Deprecated(message = "Unsafe input usage", level = DeprecationLevel.WARNING)
     fun input(): Input = object : Input(this@Bytes) {
         override fun closeSource() {}
         override fun fill(buffer: Buffer): Int = 0
     }
 
-    @Suppress("OVERRIDE_BY_INLINE")
+    @Suppress("OVERRIDE_BY_INLINE", "DEPRECATION")
     override inline fun <R> read(reader: Input.() -> R): R = input().use(reader)
 
     override fun toString() = "Bytes($head..$tail)"

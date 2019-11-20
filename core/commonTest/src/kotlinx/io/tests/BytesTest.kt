@@ -28,25 +28,26 @@ class BytesTest {
 
         assertEquals(2 + 2 + 2 + 4 + 8 + 4 + 8 + 8 + 3, bytes.size)
 
-        val input = bytes.input()
-        val ba = ByteArray(2)
-        input.readArray(ba)
+        bytes.read {
+            val ba = ByteArray(2)
+            readArray(ba)
 
-        assertEquals(0x11, ba[0])
-        assertEquals(0x22, ba[1])
+            assertEquals(0x11, ba[0])
+            assertEquals(0x22, ba[1])
 
-        assertEquals(0x12, input.readByte())
-        assertEquals(0x82u, input.readUByte())
-        assertEquals(0x3456, input.readShort())
-        assertEquals(0x789abcde, input.readInt())
-        assertEquals(1.25, input.readDouble())
-        assertEquals(1.25f, input.readFloat())
+            assertEquals(0x12, readByte())
+            assertEquals(0x82u, readUByte())
+            assertEquals(0x3456, readShort())
+            assertEquals(0x789abcde, readInt())
+            assertEquals(1.25, readDouble())
+            assertEquals(1.25f, readFloat())
 
-        val ll = (1..8).map { input.readByte().toInt() and 0xff }.joinToString()
-        assertEquals("18, 52, 86, 120, 154, 188, 222, 240", ll)
-        assertEquals(0x123456789abcdef0, input.readLong())
+            val ll = (1..8).map { readByte().toInt() and 0xff }.joinToString()
+            assertEquals("18, 52, 86, 120, 154, 188, 222, 240", ll)
+            assertEquals(0x123456789abcdef0, readLong())
 
-        assertEquals("OK", input.readUTF8Line())
+            assertEquals("OK", readUTF8Line())
+        }
     }
 
     @Test
@@ -83,9 +84,10 @@ class BytesTest {
         buildBytes {
             writeArray(ByteArray(9999))
         }.use { buffer ->
-            val input = buffer.input()
-            input.readArray(ByteArray(9999))
-            assertTrue { input.eof() }
+            buffer.read {
+                readArray(ByteArray(9999))
+                assertTrue { eof() }
+            }
         }
     }
 
@@ -122,8 +124,6 @@ class BytesTest {
             }
             assertTrue { eof() }
         }
-
-
     }
 
     @Test
@@ -134,7 +134,6 @@ class BytesTest {
         }.read {
             assertTrue { eof() }
         }
-
     }
 
     @Test
