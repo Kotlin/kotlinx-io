@@ -367,6 +367,7 @@ public abstract class Input : Closeable {
      * Discard exactly [size] bytes from input.
      * @throws EOFException if no more bytes available.
      */
+    @ExperimentalIoApi
     fun skipBytes(size: Int) {
         readBytes(size) {}
     }

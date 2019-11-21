@@ -1,6 +1,7 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
+import kotlinx.io.buffer.copyTo
+import kotlin.math.min
 
 /**
  * Write a [value] to this [Input].
@@ -12,7 +13,7 @@ fun Output.writeUByte(value: UByte): Unit = writeByte(value.toByte())
  * Write a [value] to this [Input].
  */
 @ExperimentalUnsignedTypes
-fun Output.writeUShort(value: UShort) : Unit = writeShort(value.toShort())
+fun Output.writeUShort(value: UShort): Unit = writeShort(value.toShort())
 
 /**
  * Write a [value] to this [Input].
@@ -50,4 +51,30 @@ fun Output.writeFloat(value: Float) {
  */
 fun Output.writeDouble(value: Double) {
     writeLong(value.toBits())
+}
+
+/**
+ * Copy [atMost] bytes from input to this output.
+ * @return number of bytes actually written
+ */
+@ExperimentalIoApi
+fun Output.writeInput(input: Input, atMost: Int = Int.MAX_VALUE): Int {
+    var written = 0
+    while (!input.eof() && written < atMost) {
+        input.readBufferLength { inputBuffer, inputOffset, inputSize ->
+            val read = min(inputSize, atMost - written)
+            var toRead = read
+            while (toRead > 0) {
+                writeBufferRange { outputBuffer, outputStart, outputEnd ->
+                    val toWrite = min(toRead, outputEnd - outputStart)
+                    inputBuffer.copyTo(outputBuffer, inputOffset, toWrite, outputStart)
+                    toRead -= toWrite
+                    return@writeBufferRange toWrite
+                }
+            }
+            written += read
+            return@readBufferLength inputSize
+        }
+    }
+    return written
 }
