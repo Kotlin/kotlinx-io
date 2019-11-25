@@ -1,4 +1,4 @@
-@file:Suppress("NOTHING_TO_INLINE", "ConstantConditionIf")
+@file:Suppress("ConstantConditionIf")
 
 package kotlinx.io.buffer
 
