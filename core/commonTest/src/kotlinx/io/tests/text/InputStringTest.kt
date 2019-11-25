@@ -1,6 +1,7 @@
 package kotlinx.io.tests.text
 
 import kotlinx.io.*
+import kotlinx.io.text.*
 import kotlin.test.*
 
 class InputStringTest {

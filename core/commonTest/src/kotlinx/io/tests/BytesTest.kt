@@ -1,6 +1,7 @@
 package kotlinx.io.tests
 
 import kotlinx.io.*
+import kotlinx.io.text.*
 import kotlin.test.*
 
 class BytesTest {
@@ -102,14 +103,13 @@ class BytesTest {
 
     @Test
     fun testSingleBufferSkipExact() {
-        val p = buildBytes {
+        buildBytes {
             writeArray("ABC123".toByteArray0())
         }.useInput {
             readArray(ByteArray(3))
             assertEquals("123", readUtf8String(3))
             assertTrue { eof() }
         }
-
     }
 
     @Test
@@ -122,8 +122,6 @@ class BytesTest {
             }
             assertTrue { eof() }
         }
-
-
     }
 
     @Test
