@@ -1,296 +1,51 @@
-package kotlinx.io
+package kotlinx.io.text
 
-import kotlinx.io.text.*
-
-/**
- * @throws MalformedInputException
- */
-fun Input.readUtf8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: Char): Int = decodeUtf8Chars {
-    if (it == delimiter) {
-        return@decodeUtf8Chars false
-    }
-    stringBuilder.append(it)
-    true
-}
+import kotlinx.io.*
 
 /**
- * @throws MalformedInputException
+ * Reads the line in UTF-8 encoding from the input until the next line break or until the input is exhausted.
+ * A line break is either `"\n"` or `"\r\n"` and is not included in the result.
+ * @throws EOFException if the input is already exhausted
  */
-fun Input.readUtf8StringUntilDelimitersTo(stringBuilder: Appendable, delimiters: String): Int = decodeUtf8Chars {
-    if (it in delimiters)
-        return@decodeUtf8Chars false
-    stringBuilder.append(it)
-    true
-}
-
-/**
- * @throws MalformedInputException
- */
-fun Input.readUtf8StringTo(out: Appendable, length: Int): Int {
-    var remaining = length
-    return decodeUtf8Chars {
-        out.append(it)
-        --remaining > 0
+public fun Input.readUtf8Line(): String {
+    checkExhausted()
+    return buildString {
+        readUtf8LineTo(this)
     }
 }
 
 /**
- * @throws MalformedInputException
+ * Reads the whole input as a list of UTF-8 encoded lines separated by a line break
+ * and closes the input when it is exhausted.
+ * A line break is either `"\n"` or `"\r\n"` and is not included in resulting strings.
+ *
+ * @throws EOFException if the input is already exhausted
  */
-fun Input.readUtf8Line(): String = buildString {
-    readUtf8LineTo(this)
-}
-
-/**
- * @throws MalformedInputException
- */
-fun Input.readUtf8LineTo(out: Appendable) {
-    // TODO: consumes char after lonely CR
-    var seenCR = false
-    decodeUtf8Chars {
-        if (it == '\r') {
-            seenCR = true
-            return@decodeUtf8Chars true // continue & skip
-        }
-        if (it == '\n')
-            return@decodeUtf8Chars false // stop & skip
-        else if (seenCR)
-            return@decodeUtf8Chars false // lonely CR, stop & skip
-        out.append(it)
-        true
-    }
-}
-
-/**
- * @throws MalformedInputException
- */
-fun Input.readUtf8String(length: Int): String = buildString(length) {
-    readUtf8StringTo(this, length)
-}
-
-/**
- * @throws MalformedInputException
- */
-fun Input.readUtf8StringUntilDelimiter(delimiter: Char): String = buildString {
-    readUtf8StringUntilDelimiterTo(this, delimiter)
-}
-
-/**
- * @throws MalformedInputException
- */
-fun Input.readUtf8StringUntilDelimiters(delimiters: String): String = buildString {
-    readUtf8StringUntilDelimitersTo(this, delimiters)
-}
-
-/**
- * @throws MalformedInputException
- */
-private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
-    var byteCount = 0
-    var value = 0
-    var state = STATE_Utf8
-    var count = 0
-
-    while (state != STATE_FINISH) {
-        readBufferRange { buffer, startOffset, endOffset ->
-            for (offset in startOffset until endOffset) {
-                val byte = buffer.loadByteAt(offset).toInt() and 0xff
-                when {
-                    byte and 0x80 == 0 -> { // ASCII
-                        if (byteCount != 0)
-                            malformedInput(value)
-                        if (!consumer(byte.toChar())) {
-                            state = STATE_FINISH
-                            return@readBufferRange offset + 1
-                        }
-                        count++
-                    }
-                    byteCount == 0 -> {
-                        // first unicode byte
-                        when {
-                            byte < 0x80 -> {
-                                if (!consumer(byte.toChar())) {
-                                    state = STATE_FINISH
-                                    return@readBufferRange offset + 1
-                                }
-                                count++
-                            }
-                            byte < 0xC0 -> {
-                                byteCount = 0
-                                value = byte and 0x7F
-                            }
-                            byte < 0xE0 -> {
-                                byteCount = 1
-                                value = byte and 0x3F
-                            }
-                            byte < 0xF0 -> {
-                                byteCount = 2
-                                value = byte and 0x1F
-                            }
-                            byte < 0xF8 -> {
-                                byteCount = 3
-                                value = byte and 0xF
-                            }
-                            byte < 0xFC -> {
-                                byteCount = 4
-                                value = byte and 0x7
-                            }
-                            byte < 0xFE -> {
-                                byteCount = 5
-                                value = byte and 0x3
-                            }
-                        }
-
-                    }
-                    else -> {
-                        // trailing unicode byte
-                        value = (value shl 6) or (byte and 0x7f)
-                        byteCount--
-
-                        if (byteCount == 0) {
-                            val more = when {
-                                value ushr 16 == 0 -> {
-                                    if (consumer(value.toChar())) {
-                                        count++
-                                        true
-                                    } else false
-                                }
-                                else -> {
-                                    if (value > MaxCodePoint)
-                                        malformedInput(value)
-
-                                    val high = highSurrogate(value).toChar()
-                                    val low = lowSurrogate(value).toChar()
-                                    if (consumer(high)) {
-                                        count++
-                                        if (consumer(low)) {
-                                            count++
-                                            true
-                                        } else false
-                                    } else false
-                                }
-                            }
-                            if (!more) {
-                                state = STATE_FINISH
-                                return@readBufferRange offset + 1
-                            }
-
-                            value = 0
-                        }
-                    }
-                }
-            }
-            endOffset
+public fun Input.readUtf8Lines(): List<String> {
+    checkExhausted()
+    val list = ArrayList<String>()
+    use {
+        while (!eof()) {
+            list += readUtf8Line()
         }
     }
-    return count
+    return list
 }
 
 /**
- * Inline depth optimisation
+ * Iterates through each line of the input, calls [action] for each line read
+ * and closes the input when it is exhausted.
+ *
+ * @throws EOFException if the input is already exhausted
  */
-private fun malformedInput(codePoint: Int): Nothing {
-    throw MalformedInputException("Malformed Utf8 input, current code point $codePoint")
-}
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun lowSurrogate(codePoint: Int): Int = (codePoint and 0x3ff) + MinLowSurrogate
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun highSurrogate(codePoint: Int): Int = (codePoint ushr 10) + HighSurrogateMagic
-
-private const val MaxCodePoint = 0x10ffff
-internal const val MinLowSurrogate = 0xdc00
-private const val MinHighSurrogate = 0xd800
-private const val MinSupplementary = 0x10000
-internal const val HighSurrogateMagic = MinHighSurrogate - (MinSupplementary ushr 10)
-
-// Alternative implementation, slower x1.5
-// Based on https://bjoern.hoehrmann.de/utf-8/decoder/dfa/
-// 364 ints
-
-private val Utf8StateMachine = intArrayOf(
-    // types
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-    8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    10, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 11, 6, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-
-    // Transitions
-    0, 12, 24, 36, 60, 96, 84, 12, 12, 12, 48, 72, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-    12, 0, 12, 12, 12, 12, 12, 0, 12, 0, 12, 12, 12, 24, 12, 12, 12, 12, 12, 24, 12, 24, 12, 12,
-    12, 12, 12, 12, 12, 12, 12, 24, 12, 12, 12, 12, 12, 24, 12, 12, 12, 12, 12, 12, 12, 24, 12, 12,
-    12, 12, 12, 12, 12, 12, 12, 36, 12, 36, 12, 12, 12, 36, 12, 12, 12, 12, 12, 36, 12, 36, 12, 12,
-    12, 36, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12
-
-/*
-    // filler to 512, unused
-    , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-*/
-)
-
-private const val STATE_FINISH = -2
-//private const val Utf8_STATE_ASCII = -1
-private const val STATE_Utf8 = 0
-private const val STATE_REJECT = 1
-
-private inline fun Input.decodeUtf8(consumer: (Int) -> Boolean) {
-    val stateMachine = Utf8StateMachine
-    var state = STATE_Utf8
-    var codePoint = 0
-
-    while (state != STATE_FINISH) {
-        readBufferRange { buffer, startOffset, endOffset ->
-            for (index in startOffset until endOffset) {
-                val byte = buffer.loadByteAt(index).toInt() and 0xff
-
-                val type = stateMachine[byte]
-                codePoint = if (state == STATE_Utf8)
-                    (0xff ushr type) and byte
-                else
-                    (byte and 0x3f) or (codePoint shl 6)
-                state = stateMachine[256 + state + type]
-
-                // TODO: Attempt to recover from bad states
-                when (state) {
-                    STATE_Utf8 -> when {
-                        codePoint <= MaxCodePoint -> {
-                            if (!consumer(codePoint)) {
-                                state = STATE_FINISH // signal to exit loop
-                                // must return consumed bytes for Input positions to be updated in readBuffer
-                                return@readBufferRange index - startOffset
-                            }
-                        }
-                        else -> malformedInput(codePoint)
-                    }
-                    STATE_REJECT -> malformedInput(codePoint)
-                    else -> {
-                        /* need more bytes to read the code point */
-                    }
-                }
-            }
-            endOffset - startOffset
+public inline fun Input.forEachUtf8Line(action: (String) -> Unit) {
+    use {
+        while (!eof()) {
+            action(readUtf8Line())
         }
     }
 }
 
-private inline fun Input.decodeUtf8CharsAlt(consumer: (Char) -> Boolean) {
-    decodeUtf8 { codePoint ->
-        when {
-            codePoint ushr 16 == 0 -> consumer(codePoint.toChar())
-            else -> {
-                val high = highSurrogate(codePoint).toChar()
-                val low = lowSurrogate(codePoint).toChar()
-                consumer(high) && consumer(low)
-            }
-        }
-    }
+private fun Input.checkExhausted() {
+    if (eof()) throw EOFException("Unexpected EOF while reading UTF-8 line")
 }

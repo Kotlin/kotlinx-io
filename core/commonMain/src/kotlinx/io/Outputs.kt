@@ -33,17 +33,18 @@ public class ByteArrayOutput(initialCapacity: Int = 16) : Output() {
     }
 
     /** @suppress */
-    override fun close() {
+    override fun closeSource() {
         // Nothing by default
     }
 
-    @UseExperimental(ExperimentalStdlibApi::class)
     private fun ensureCapacity(length: Int) {
         if (array.size < size + length) {
             val minCapacity = size + length
-            val powOf2 =
-                if (minCapacity >= 1 shl 30) minCapacity else (1 shl (32 - (minCapacity - 1).countLeadingZeroBits()))
+            val powOf2 = powOf2(minCapacity)
             array = array.copyOf(powOf2)
         }
     }
+
+    @UseExperimental(ExperimentalStdlibApi::class)
+    private fun powOf2(minCapacity: Int) = if (minCapacity >= 1 shl 30) minCapacity else (1 shl (32 - (minCapacity - 1).countLeadingZeroBits()))
 }

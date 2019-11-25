@@ -1,6 +1,7 @@
 package kotlinx.io.tests.text
 
 import kotlinx.io.*
+import kotlinx.io.text.*
 import kotlin.test.*
 
 open class OutputStringTest {
@@ -137,7 +138,6 @@ open class OutputStringTest {
         assertEquals("333", input.readUtf8Line())
         assertEquals("4444", input.readUtf8Line())
         assertTrue(input.eof(), "EOF")
-        assertFails { input.readUtf8Line() }
     }
 }
 

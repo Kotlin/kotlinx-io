@@ -1,5 +1,6 @@
-package kotlinx.io
+package kotlinx.io.text
 
+import kotlinx.io.*
 import kotlinx.io.buffer.*
 import kotlinx.io.text.*
 

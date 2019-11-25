@@ -1,6 +1,7 @@
 package kotlinx.io.gzip
 
 import kotlinx.io.*
+import kotlinx.io.text.*
 
 @ExperimentalStdlibApi
 fun main() {
