@@ -90,7 +90,7 @@ fun Project.build(platform: String) = platform(platform, "Build") {
             name = "Build and Test $platform Binaries"
             jdkHome = "%env.JDK_18_x64%"
             jvmArgs = "-Xmx1g"
-            tasks = "clean publishToBuildLocal check"
+            tasks = "clean check"
             // --continue is needed to run tests for all targets even if one target fails
             gradleParams = "--info --stacktrace -P$versionSuffixParameter=SNAPSHOT -P$teamcitySuffixParameter=%build.counter% --continue"
             buildFile = ""
