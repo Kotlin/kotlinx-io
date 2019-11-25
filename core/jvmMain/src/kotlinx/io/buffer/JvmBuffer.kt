@@ -2,7 +2,7 @@
 
 package kotlinx.io.buffer
 
-import java.nio.*
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")

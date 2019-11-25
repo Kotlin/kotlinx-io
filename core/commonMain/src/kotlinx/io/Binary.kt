@@ -1,5 +1,6 @@
 package kotlinx.io
 
+//TODO decide what to use: Int, Long or UInt
 typealias BinarySize = Int
 
 /**
@@ -21,7 +22,7 @@ interface Binary {
         /**
          * Designates that the binary does not have fixed size, but instead is read until EOF
          */
-        val INFINITE = BinarySize.MAX_VALUE
+        val INFINITE: BinarySize = BinarySize.MAX_VALUE
     }
 }
 
@@ -30,13 +31,25 @@ interface Binary {
  */
 interface RandomAccessBinary : Binary {
     /**
-     * Read at most [size] of bytes starting at [from] offset from the beginning of the binary.
+     * Read at most [atMost] bytes starting at [from] offset from the beginning of the binary.
      * This method could be called multiple times simultaneously.
      *
      */
-    fun <R> read(from: BinarySize, size: BinarySize = Binary.INFINITE, block: Input.() -> R): R
+    fun <R> read(from: BinarySize, atMost: BinarySize = Binary.INFINITE, block: Input.() -> R): R
 
     override fun <R> read(reader: Input.() -> R): R = read(0, BinarySize.MAX_VALUE, reader)
+}
+
+/**
+ * A special case for empty binary. There is not input associated with the binary.
+ * It throws [EOFException] on any attempt of read.
+ */
+object EmptyBinary: RandomAccessBinary{
+    override val size: BinarySize = 0
+
+    override fun <R> read(from: BinarySize, atMost: BinarySize, block: Input.() -> R): R {
+        throw EOFException("Reading from empty binary")
+    }
 }
 
 //TODO Add basic RandomAccessBinary implementation that wraps regular binary

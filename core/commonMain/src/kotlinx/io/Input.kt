@@ -369,7 +369,17 @@ public abstract class Input : Closeable {
      */
     @ExperimentalIoApi
     fun skipBytes(size: Int) {
-        readBytes(size) {}
+        var remaining = size
+        while (remaining > 0) {
+            if (position == limit) {
+                if (fetchBuffer() == 0) {
+                    throw EOFException("End of file while reading buffer")
+                }
+            }
+            val toSkip = kotlin.math.min(remaining, limit - position)
+            position += toSkip
+            remaining -= toSkip
+        }
     }
 
     /**

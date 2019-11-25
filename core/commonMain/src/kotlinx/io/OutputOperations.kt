@@ -58,9 +58,9 @@ fun Output.writeDouble(value: Double) {
  * @return number of bytes actually written
  */
 @ExperimentalIoApi
-fun Output.writeInput(input: Input, atMost: Int = Int.MAX_VALUE): Int {
+fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
     var written = 0
-    while (!input.eof() && written < atMost) {
+    while (!input.eof() && (atMost == Binary.INFINITE || written < atMost) ) {
         input.readBufferLength { inputBuffer, inputOffset, inputSize ->
             val read = min(inputSize, atMost - written)
             var toRead = read
@@ -76,5 +76,18 @@ fun Output.writeInput(input: Input, atMost: Int = Int.MAX_VALUE): Int {
             return@readBufferLength inputSize
         }
     }
+    flush()
     return written
+}
+
+/**
+ * Write content of this binary to given output
+ */
+@ExperimentalIoApi
+fun Binary.writeTo(output: Output) {
+    read {
+        output.run {
+            writeInput(this@read, atMost = size)
+        }
+    }
 }
