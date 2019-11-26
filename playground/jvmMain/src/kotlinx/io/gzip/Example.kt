@@ -1,7 +1,9 @@
 package kotlinx.io.gzip
 
-import kotlinx.io.*
-import kotlinx.io.bytes.*
+import kotlinx.io.ByteArrayInput
+import kotlinx.io.bytes.ByteArrayOutput
+import kotlinx.io.readUTF8String
+import kotlinx.io.writeUTF8String
 
 @ExperimentalStdlibApi
 fun main() {

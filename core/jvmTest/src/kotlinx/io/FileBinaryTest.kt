@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 
+@ExperimentalIoApi
 internal class FileBinaryTest {
     lateinit var testFile: Path
 

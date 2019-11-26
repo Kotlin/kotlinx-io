@@ -6,6 +6,7 @@ typealias BinarySize = Int
 /**
  * A generic representation of reusable input.
  */
+@ExperimentalIoApi
 interface Binary {
     /**
      * The size of the input in bytes or [INFINITE] in case the size could not be estimated
@@ -29,6 +30,7 @@ interface Binary {
 /**
  * A Binary with random access functionality
  */
+@ExperimentalIoApi
 interface RandomAccessBinary : Binary {
     /**
      * Read at most [atMost] bytes starting at [from] offset from the beginning of the binary.
@@ -44,6 +46,7 @@ interface RandomAccessBinary : Binary {
  * A special case for empty binary. There is not input associated with the binary.
  * It throws [EOFException] on any attempt of read.
  */
+@ExperimentalIoApi
 object EmptyBinary: RandomAccessBinary{
     override val size: BinarySize = 0
 
@@ -53,3 +56,23 @@ object EmptyBinary: RandomAccessBinary{
 }
 
 //TODO Add basic RandomAccessBinary implementation that wraps regular binary
+
+/**
+ * Convert given binary into [ByteArray]
+ */
+@ExperimentalIoApi
+fun Binary.toByteArray(): ByteArray = read {
+    ByteArray(size).also {
+        readArray(it)
+    }
+}
+
+/**
+ * Convert fragment of [RandomAccessBinary] to [ByteArray]
+ */
+@ExperimentalIoApi
+fun RandomAccessBinary.toByteArray(from: Int, size: Int): ByteArray = read(from, size) {
+    ByteArray(size).also {
+        readArray(it)
+    }
+}
