@@ -1,6 +1,6 @@
 package kotlinx.io
 
-import kotlinx.io.text.*
+import kotlinx.io.text.MalformedInputException
 
 /**
  * @throws MalformedInputException
@@ -31,6 +31,18 @@ fun Input.readUTF8StringTo(out: Appendable, length: Int): Int {
     return decodeUTF8Chars {
         out.append(it)
         --remaining > 0
+    }
+}
+
+/**
+ * Read UTF8 string consuming the whole input
+ *
+ * @throws MalformedInputException
+ */
+fun Input.readUTF8StringTo(out: Appendable): Int {
+    return decodeUTF8Chars {
+        out.append(it)
+        !eof()
     }
 }
 
@@ -67,6 +79,15 @@ fun Input.readUTF8LineTo(out: Appendable) {
 fun Input.readUTF8String(length: Int): String = buildString(length) {
     readUTF8StringTo(this, length)
 }
+
+/**
+ * Build UTF8 string consuming the whole output
+ * @throws MalformedInputException
+ */
+fun Input.readUTF8String(): String = buildString {
+    readUTF8StringTo(this)
+}
+
 
 /**
  * @throws MalformedInputException
