@@ -4,8 +4,8 @@
     - Input: `eof` vs `exhausted`
     - Output: Appendable
     - `Input.discard()`, discardExact
-    - `readUtf8Line` throws if string ends wo `\n`
     - Idempotent close
+    - Make `fill` public (and then rename it) to enable zero-copy delegates
 - Implementation
     -  Input
     -  Output
