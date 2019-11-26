@@ -13,7 +13,6 @@ buildscript {
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
-        classpath "com.vanniktech:gradle-android-junit-jacoco-plugin:0.15.0"
     }
 }
 

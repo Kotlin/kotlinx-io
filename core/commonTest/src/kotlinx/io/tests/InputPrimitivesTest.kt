@@ -120,7 +120,7 @@ class InputPrimitivesTest {
         val input = MyInput()
         val text = input.use {
             val array = ByteArray(4)
-            input.readArray(array)
+            input.readByteArray(array)
             array
         }
 
@@ -153,7 +153,7 @@ class InputPrimitivesTest {
         val input = MyInput()
 
         val data = ByteArray(5 + 4 + 4)
-        input.readArray(data)
+        input.readByteArray(data)
         @UseExperimental(ExperimentalStdlibApi::class)
         assertEquals("test.123.zxc.", data.decodeToString())
     }

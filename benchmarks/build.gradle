@@ -22,9 +22,9 @@ kotlin {
         }
     }
 
-    js {
-        nodejs()
-    }
+//    js {
+//        nodejs()
+//    }
 
     sourceSets.all {
         kotlin.srcDirs = ["$it.name/src"]
@@ -86,7 +86,7 @@ kotlin {
 benchmark {
     configurations {
         main {
-            iterations = 1000 // number of iterations
+            iterations = 10 // number of iterations
             iterationTime = 1
             iterationTimeUnit = "s"
         }

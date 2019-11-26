@@ -3,10 +3,12 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
-import kotlinx.io.bits.internal.utils.*
-import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.*
 
-public actual class Buffer constructor(val pointer: CPointer<ByteVar>, actual inline val size: Int) {
+public actual class Buffer constructor(
+    val pointer: CPointer<ByteVar>,
+    actual inline val size: Int
+) {
     init {
         requirePositiveIndex(size, "size")
     }
@@ -21,4 +23,8 @@ public actual class Buffer constructor(val pointer: CPointer<ByteVar>, actual in
         @SharedImmutable
         public actual val EMPTY: Buffer = Buffer(nativeHeap.allocArray(0), 0)
     }
+}
+
+internal actual fun bufferOf(array: ByteArray, start: Int, end: Int): Buffer {
+    TODO("Not yet implemented")
 }

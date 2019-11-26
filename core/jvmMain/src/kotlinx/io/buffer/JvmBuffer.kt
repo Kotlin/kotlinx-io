@@ -19,3 +19,7 @@ public actual inline class Buffer(val buffer: ByteBuffer) {
         public actual val EMPTY: Buffer = Buffer(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
     }
 }
+
+internal actual fun bufferOf(array: ByteArray, start: Int, end: Int): Buffer {
+    return Buffer(ByteBuffer.wrap(array, start, end - start))
+}

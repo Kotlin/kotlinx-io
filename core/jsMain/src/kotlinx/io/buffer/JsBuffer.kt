@@ -20,3 +20,9 @@ public actual class Buffer(public val view: DataView) {
         public actual val EMPTY: Buffer = Buffer(DataView(ArrayBuffer(0)))
     }
 }
+
+internal actual fun bufferOf(array: ByteArray, start: Int, end: Int): Buffer {
+    val uint8Array = array as Uint8Array
+    val view = DataView(uint8Array.buffer, uint8Array.byteOffset + start, end - start)
+    return Buffer(view)
+}

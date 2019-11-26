@@ -8,6 +8,8 @@ interface BufferAllocator {
 
 expect object PlatformBufferAllocator : BufferAllocator
 
+expect object UnmanagedBufferAllocator : BufferAllocator
+
 /**
  * Allocates the buffer of the given [size], executes the given [block] function on this buffer
  * and then frees it correctly whether an exception is thrown or not.

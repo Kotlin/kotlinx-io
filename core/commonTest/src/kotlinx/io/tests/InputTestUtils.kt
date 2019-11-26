@@ -5,7 +5,9 @@ import kotlinx.io.buffer.*
 import kotlin.random.*
 import kotlin.test.*
 
-fun sequentialInfiniteInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE) = object : Input(bufferSize) {
+fun sequentialInfiniteInput(
+    fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE
+): Input = object : Input(bufferSize) {
     private var value = 0L
     private var sliceRandom = Random(fillSize)
 
@@ -22,8 +24,9 @@ fun sequentialInfiniteInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE
     }
 }
 
-fun sequentialLimitedInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE, bytes: Int, seed: Long = 0L) =
-    object : Input(bufferSize) {
+fun sequentialLimitedInput(
+    fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE, bytes: Int, seed: Long = 0L
+): Input = object : Input(bufferSize) {
         private var value = seed
         private var bytesLeft = bytes
         private var sliceRandom = Random(fillSize + bytes)

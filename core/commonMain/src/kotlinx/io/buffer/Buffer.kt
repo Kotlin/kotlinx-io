@@ -59,3 +59,5 @@ public expect class Buffer {
         public val EMPTY: Buffer
     }
 }
+
+internal expect fun bufferOf(array: ByteArray, start: Int, end: Int): Buffer

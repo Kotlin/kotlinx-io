@@ -26,7 +26,7 @@ class ByteArrayOutputTest {
 
     private fun testOutput(arr: ByteArray) {
        val output = ByteArrayOutput()
-        output.writeArray(arr)
+        output.writeByteArray(arr)
         output.flush()
         assertTrue(arr.contentEquals(output.toByteArray()))
     }

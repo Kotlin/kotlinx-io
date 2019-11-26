@@ -10,13 +10,13 @@ internal class DefaultBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
     private val source: BufferAllocator = PlatformBufferAllocator
 ) : DefaultPool<Buffer>(DEFAULT_POOL_CAPACITY) {
-    
+
     override fun produceInstance(): Buffer {
         return source.allocate(bufferSize)
     }
 
     override fun validateInstance(instance: Buffer) {
-        require(instance.size == bufferSize) { "Invalid buffer size, expected $bufferSize, got ${instance.size}"}
+        require(instance.size == bufferSize) { "Invalid buffer size, expected $bufferSize, got ${instance.size}" }
     }
 
     override fun disposeInstance(instance: Buffer) {
@@ -27,15 +27,5 @@ internal class DefaultBufferPool(
     companion object {
         @ThreadLocal
         val Instance = DefaultBufferPool()
-    }
-}
-
-internal class DirectAllocationBufferPool(
-    private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    private val source: BufferAllocator = PlatformBufferAllocator
-) : DirectAllocationPool<Buffer>() {
-
-    override fun borrow(): Buffer {
-        return source.allocate(bufferSize)
     }
 }

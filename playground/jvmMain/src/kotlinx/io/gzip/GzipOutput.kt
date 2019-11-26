@@ -18,7 +18,7 @@ class GzipOutput(private val original: Output) : Output() {
 
     override fun closeSource() {
         deflater.close()
-        original.writeArray(baos.toByteArray())
+        original.writeByteArray(baos.toByteArray())
         original.flush()
         original.close()
     }

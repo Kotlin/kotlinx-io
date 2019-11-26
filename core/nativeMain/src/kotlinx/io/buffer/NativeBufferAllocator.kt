@@ -4,6 +4,8 @@ import kotlinx.cinterop.*
 
 actual object PlatformBufferAllocator : BufferAllocator by NativeBufferAllocator(nativeHeap)
 
+actual object UnmanagedBufferAllocator : BufferAllocator by PlatformBufferAllocator
+
 internal inline class NativeBufferAllocator(private val placement: NativeFreeablePlacement) : BufferAllocator {
     override fun allocate(size: Int): Buffer = Buffer(placement.allocArray(size), size)
 

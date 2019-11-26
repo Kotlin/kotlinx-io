@@ -10,3 +10,5 @@ actual object PlatformBufferAllocator : BufferAllocator {
 
     override fun free(instance: Buffer) {}
 }
+
+actual typealias UnmanagedBufferAllocator = PlatformBufferAllocator

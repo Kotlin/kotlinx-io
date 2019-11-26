@@ -1,6 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
+import kotlinx.io.bytes.*
 import kotlinx.io.pool.*
 
 /**
@@ -11,16 +12,9 @@ import kotlinx.io.pool.*
  *
  * To implement [Output] over a custom sink you should override only [fill] method.
  */
-abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
-    /**
-     * Pool for obtaining buffers for operations.
-     */
-    protected val bufferPool: ObjectPool<Buffer> = if (bufferSize == DEFAULT_BUFFER_SIZE) {
-        DefaultBufferPool.Instance
-    } else {
-        DefaultBufferPool(bufferSize)
-    }
-
+public abstract class Output(
+    private val bufferPool: ObjectPool<Buffer>
+) : Closeable {
     /**
      * Current buffer.
      */
@@ -31,10 +25,14 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
      */
     private var position: Int = 0
 
+    protected constructor(
+        bufferSize: Int = DEFAULT_BUFFER_SIZE
+    ) : this(poolOfBuffers(bufferSize))
+
     /**
      * Write a [value] to this [Input].
      */
-    fun writeByte(value: Byte) {
+    public fun writeByte(value: Byte) {
         val offset = position
         val size = buffer.size
         val targetLimit = offset + 1
@@ -51,21 +49,21 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     /**
      * Write a [value] to this [Input].
      */
-    fun writeShort(value: Short) {
+    public fun writeShort(value: Short) {
         writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }, { value.toLong() })
     }
 
     /**
      * Write a [value] to this [Input].
      */
-    fun writeInt(value: Int) {
+    public fun writeInt(value: Int) {
         writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }, { value.toLong() })
     }
 
     /**
      * Write a [value] to this [Input].
      */
-    fun writeLong(value: Long) {
+    public fun writeLong(value: Long) {
         writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }) { value }
     }
 
@@ -74,7 +72,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
      *
      * TODO: measure
      */
-    fun writeArray(array: ByteArray) {
+    public fun writeByteArray(array: ByteArray) {
         for (byte in array) {
             writeByte(byte)
         }
@@ -83,7 +81,11 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     /**
      * Write all buffered bytes to underlying sink.
      */
-    fun flush() {
+    public fun flush() {
+        if (position == 0) {
+            return
+        }
+
         flushBuffer()
     }
 
@@ -136,6 +138,10 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
 
         val newPosition = writer(buffer, startOffset, endOffset)
         position = newPosition
+    }
+
+    internal fun size(): Int {
+        return position
     }
 
     private inline fun writePrimitive(
