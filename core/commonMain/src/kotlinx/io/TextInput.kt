@@ -35,7 +35,7 @@ fun Input.readUTF8StringTo(out: Appendable, length: Int): Int {
 }
 
 /**
- * Read UTF8 string consuming the whole input
+ * Read UTF8 string to [out] consuming the whole input
  *
  * @throws MalformedInputException
  */
@@ -81,7 +81,7 @@ fun Input.readUTF8String(length: Int): String = buildString(length) {
 }
 
 /**
- * Build UTF8 string consuming the whole output
+ * Build UTF8 string consuming the whole input
  * @throws MalformedInputException
  */
 fun Input.readUTF8String(): String = buildString {
@@ -313,5 +313,27 @@ private inline fun Input.decodeUTF8CharsAlt(consumer: (Char) -> Boolean) {
                 consumer(high) && consumer(low)
             }
         }
+    }
+}
+
+/**
+ * Read a string interpreting each byte as a character. Throws [EOFException] in case of preliminary end of input.
+ */
+@ExperimentalIoApi
+fun Input.readRawString(length: Int): String = buildString(length) {
+    var remaining = length
+    while (remaining > 0) {
+        append(readByte().toChar())
+        remaining--
+    }
+}
+
+/**
+ * Read the whole input as a raw string
+ */
+@ExperimentalIoApi
+fun Input.readRawString(): String = buildString(16) {
+    while (!eof() ) {
+        append(readByte().toChar())
     }
 }

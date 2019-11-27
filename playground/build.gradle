@@ -10,6 +10,13 @@ kotlin {
             progressiveMode = true
         }
     }
+    sourceSets {
+        jvmMain {
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-script-runtime:1.3.60"
+            }
+        }
+    }
 }
 
 kotlin.sourceSets.jvmMain.dependencies {

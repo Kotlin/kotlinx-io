@@ -225,5 +225,29 @@ open class OutputStringTest {
             assertFails { readUTF8Line() }
         }
     }
+
+    @Test
+    fun testCorrectRawString(){
+        val str = "This is raw string in ASCII"
+        buildBytes {
+            writeRawString(str)
+        }.read {
+            assertEquals(str, readRawString())
+        }
+    }
+
+    @Test
+    fun testIncorrectRawString(){
+        assertFails {
+            buildBytes {
+                writeRawString("ABC\u0422")
+            }
+        }
+        assertFails {
+            buildBytes {
+                writeRawString("бяка")
+            }
+        }
+    }
 }
 

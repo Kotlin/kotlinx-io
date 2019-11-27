@@ -1,7 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlinx.io.text.*
+import kotlinx.io.text.MalformedInputException
 
 private const val lastASCII = 0x7F.toChar()
 
@@ -107,4 +107,17 @@ internal fun codePoint(high: Char, low: Char): Int {
 private fun malformedCodePoint(codePoint: Int): Nothing {
     // TODO: revise exceptions
     throw MalformedInputException("Malformed UTF8 code point $codePoint")
+}
+
+/**
+ * Write string interpreting each [Char] as a single [Byte].
+ * Unicode characters cause error since they could not be decoded back safely.
+ * @throws MalformedInputException
+ */
+@ExperimentalIoApi
+fun Output.writeRawString(text: CharSequence, index: Int = 0, length: Int = text.length - index) {
+    text.subSequence(index, index + length).forEach {
+        if(it.toInt() > 255) throw MalformedInputException("Unicode character '$it' in raw string")
+        writeByte(it.toByte())
+    }
 }
