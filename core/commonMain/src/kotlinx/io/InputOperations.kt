@@ -1,6 +1,6 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
+import kotlinx.io.buffer.loadByteArray
 
 /**
  * Read [length] bytes from [Input] to [array] from [startIndex].
@@ -74,3 +74,18 @@ public fun Input.readDouble(): Double = Double.fromBits(readLong())
  * @throws EOFException if no more bytes can be read.
  */
 public fun Input.readFloat(): Float = Float.fromBits(readInt())
+
+/**
+ * Run an action on an [Input], but can read only [limit] bytes from origin before reporting EOF.
+ * After block is finished, initial input could continue to read from the offset that equals [limit].
+ *
+ * The performance of this operation could be limited due to specifics of Input implementation
+ */
+@ExperimentalIoApi
+public inline fun Input.withLimit(limit: BinarySize, block: Input.() -> Unit) {
+    //TODO replace by optimized version
+    require(limit > 0) { "The limit should be positive" }
+    buildBytes {
+        writeInput(this@withLimit, limit)
+    }.read(block)
+}

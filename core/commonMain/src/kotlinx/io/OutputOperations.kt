@@ -7,25 +7,25 @@ import kotlin.math.min
  * Write a [value] to this [Input].
  */
 @ExperimentalUnsignedTypes
-fun Output.writeUByte(value: UByte): Unit = writeByte(value.toByte())
+public fun Output.writeUByte(value: UByte): Unit = writeByte(value.toByte())
 
 /**
  * Write a [value] to this [Input].
  */
 @ExperimentalUnsignedTypes
-fun Output.writeUShort(value: UShort): Unit = writeShort(value.toShort())
+public fun Output.writeUShort(value: UShort): Unit = writeShort(value.toShort())
 
 /**
  * Write a [value] to this [Input].
  */
 @ExperimentalUnsignedTypes
-fun Output.writeUInt(value: UInt): Unit = writeInt(value.toInt())
+public fun Output.writeUInt(value: UInt): Unit = writeInt(value.toInt())
 
 /**
  * Write a [value] to this [Input].
  */
 @ExperimentalUnsignedTypes
-fun Output.writeULong(value: ULong): Unit = writeLong(value.toLong())
+public fun Output.writeULong(value: ULong): Unit = writeLong(value.toLong())
 
 /**
  * Write an [array] to this [Input].
@@ -33,7 +33,7 @@ fun Output.writeULong(value: ULong): Unit = writeLong(value.toLong())
  * TODO: measure
  */
 @ExperimentalUnsignedTypes
-fun Output.writeArray(array: UByteArray) {
+public fun Output.writeArray(array: UByteArray) {
     for (byte in array) {
         writeUByte(byte)
     }
@@ -42,14 +42,14 @@ fun Output.writeArray(array: UByteArray) {
 /**
  * Write a floating-point [value] to this [Output].
  */
-fun Output.writeFloat(value: Float) {
+public fun Output.writeFloat(value: Float) {
     writeInt(value.toBits())
 }
 
 /**
  * Write a double-precision [value] to this [Output].
  */
-fun Output.writeDouble(value: Double) {
+public fun Output.writeDouble(value: Double) {
     writeLong(value.toBits())
 }
 
@@ -58,7 +58,7 @@ fun Output.writeDouble(value: Double) {
  * @return number of bytes actually written
  */
 @ExperimentalIoApi
-fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
+public fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
     var written = 0
     while (!input.eof() && (atMost == Binary.INFINITE || written < atMost) ) {
         input.readBufferLength { inputBuffer, inputOffset, inputSize ->
@@ -81,10 +81,20 @@ fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
 }
 
 /**
+ * Write a [Binary] (including [Bytes]) to the [Output]
+ */
+@ExperimentalIoApi
+public fun Output.writeBinary(binary: Binary){
+    binary.read {
+        writeInput(this, binary.size)
+    }
+}
+
+/**
  * Write content of this binary to given output
  */
 @ExperimentalIoApi
-fun Binary.writeTo(output: Output) {
+public fun Binary.writeTo(output: Output) {
     read {
         output.run {
             writeInput(this@read, atMost = size)
