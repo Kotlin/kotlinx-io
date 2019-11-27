@@ -82,10 +82,10 @@ public fun Input.readFloat(): Float = Float.fromBits(readInt())
  * The performance of this operation could be limited due to specifics of Input implementation
  */
 @ExperimentalIoApi
-public inline fun Input.withLimit(limit: BinarySize, block: Input.() -> Unit) {
+public inline fun <R> Input.withLimit(limit: BinarySize, block: Input.() -> R): R {
     //TODO replace by optimized version
     require(limit > 0) { "The limit should be positive" }
-    buildBytes {
+    return buildBytes {
         writeInput(this@withLimit, limit)
     }.read(block)
 }
