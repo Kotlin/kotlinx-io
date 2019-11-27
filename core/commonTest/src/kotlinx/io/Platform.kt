@@ -1,4 +1,4 @@
-package kotlinx.io.tests
+package kotlinx.io
 
 enum class Platform {
     JVM,

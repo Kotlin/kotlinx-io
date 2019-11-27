@@ -1,4 +1,4 @@
-package kotlinx.io.tests.buffer
+package kotlinx.io.buffer
 
 import kotlinx.io.*
 import kotlinx.io.buffer.*
