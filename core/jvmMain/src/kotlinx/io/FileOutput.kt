@@ -30,7 +30,7 @@ private class FileOutput(path: Path, offset: Int = 0) : Output() {
         channel.write(duplicate)
     }
 
-    override fun close() {
+    override fun closeSource() {
         flush()
         channel.close()
     }

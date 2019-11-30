@@ -1,6 +1,8 @@
 package kotlinx.io.text
 
-import kotlinx.io.*
+import kotlinx.io.EOFException
+import kotlinx.io.ExperimentalIoApi
+import kotlinx.io.Input
 
 
 /**
@@ -42,13 +44,13 @@ fun Input.readUtf8StringTo(out: Appendable, length: Int): Int {
  * @throws MalformedInputException
  */
 @ExperimentalStdlibApi
-fun Input.readUTF8StringTo(out: Appendable): Int {
+fun Input.readUtf8StringTo(out: Appendable): Int {
     var counter = 0
     try {
-        decodeUTF8Chars {
+        decodeUtf8Chars {
             out.append(it)
             counter++
-            return@decodeUTF8Chars true
+            return@decodeUtf8Chars true
         }
         return counter
     } catch (ex: EOFException) {
@@ -89,8 +91,8 @@ fun Input.readUtf8String(length: Int): String = buildString(length) {
  * @throws MalformedInputException
  */
 @ExperimentalStdlibApi
-fun Input.readUTF8String(): String = buildString {
-    readUTF8StringTo(this)
+fun Input.readUtf8String(): String = buildString {
+    readUtf8StringTo(this)
 }
 
 

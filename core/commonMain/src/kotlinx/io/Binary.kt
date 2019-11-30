@@ -3,7 +3,6 @@ package kotlinx.io
 /**
  * A generic representation of reusable input.
  */
-@ExperimentalIoApi
 interface Binary {
     /**
      * The size of the input in bytes or [INFINITE] in case the size could not be estimated

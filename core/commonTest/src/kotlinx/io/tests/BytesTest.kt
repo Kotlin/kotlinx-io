@@ -1,7 +1,9 @@
 package kotlinx.io.tests
 
 import kotlinx.io.*
-import kotlinx.io.text.*
+import kotlinx.io.text.readUtf8Line
+import kotlinx.io.text.readUtf8String
+import kotlinx.io.text.writeUtf8String
 import kotlin.test.*
 
 class BytesTest {
@@ -47,7 +49,8 @@ class BytesTest {
             assertEquals("18, 52, 86, 120, 154, 188, 222, 240", ll)
             assertEquals(0x123456789abcdef0, readLong())
 
-        assertEquals("OK", input.readUtf8Line())
+            assertEquals("OK", readUtf8Line())
+        }
     }
 
     @Test

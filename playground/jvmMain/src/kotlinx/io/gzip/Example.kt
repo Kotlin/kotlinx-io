@@ -1,7 +1,9 @@
 package kotlinx.io.gzip
 
-import kotlinx.io.*
-import kotlinx.io.text.*
+import kotlinx.io.ByteArrayOutput
+import kotlinx.io.asBinary
+import kotlinx.io.text.readUtf8String
+import kotlinx.io.text.writeUtf8String
 
 @ExperimentalStdlibApi
 fun main() {
@@ -14,6 +16,7 @@ fun main() {
     println("Original: " + str.encodeToByteArray().contentToString())
     println("Compressed: " +  array.contentToString())
 
-    val gzipInput = GzipInput(ByteArrayInput(array))
-    println(gzipInput.readUtf8String(str.length))
+    array.asBinary().readGzip {
+        println(readUtf8String(str.length))
+    }
 }

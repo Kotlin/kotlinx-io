@@ -82,18 +82,3 @@ public fun Input.readFloat(): Float = Float.fromBits(readInt())
 public fun Input.readRemaining(): ByteArray = buildBytes {
     writeInput(this@readRemaining)
 }.toByteArray()
-
-/**
- * Run an action on an [Input], but can read only [limit] bytes from origin before reporting EOF.
- * After block is finished, initial input could continue to read from the offset that equals [limit].
- *
- * The performance of this operation could be limited due to specifics of Input implementation
- */
-@ExperimentalIoApi
-public inline fun <R> Input.withLimit(limit: Int, block: Input.() -> R): R {
-    //TODO replace by optimized version
-    require(limit > 0) { "The limit should be positive" }
-    return buildBytes {
-        writeInput(this@withLimit, limit)
-    }.read(block)
-}

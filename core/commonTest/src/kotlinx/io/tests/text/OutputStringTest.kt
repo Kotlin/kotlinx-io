@@ -1,6 +1,7 @@
 package kotlinx.io.tests.text
 
-import kotlinx.io.*
+import kotlinx.io.buildBytes
+import kotlinx.io.readArray
 import kotlinx.io.text.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -48,7 +49,7 @@ open class OutputStringTest {
 
 
     @Test
-    fun testWriteUtf8() = bufferSizes.forEach { size ->
+    fun testwriteUtf8() = bufferSizes.forEach { size ->
         val text = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç."
         // @formatter:off
         val expected = ubyteArrayOf(
@@ -77,9 +78,9 @@ open class OutputStringTest {
     @Test
     fun testWriteMultiByteAtEnd() {
         buildBytes {
-            writeUTF8String("ABC\u0422")
+            writeUtf8String("ABC\u0422")
         }.read {
-            assertEquals("ABC\u0422", readUTF8String(4))
+            assertEquals("ABC\u0422", readUtf8String(4))
             assertTrue(eof(), "EOF")
         }
     }
@@ -87,9 +88,9 @@ open class OutputStringTest {
     @Test
     fun testWriteSingleByte() {
         buildBytes {
-            writeUTF8String("1")
+            writeUtf8String("1")
         }.read {
-            assertEquals("1", readUTF8String(1))
+            assertEquals("1", readUtf8String(1))
             assertTrue(eof(), "EOF")
         }
     }
@@ -103,10 +104,10 @@ open class OutputStringTest {
             val sb = StringBuilder()
             val counts = mutableListOf<Int>()
 
-            counts.add(readUTF8StringUntilDelimitersTo(sb, "|,."))
-            counts.add(readUTF8StringUntilDelimitersTo(sb, "|,."))
-            counts.add(readUTF8StringUntilDelimitersTo(sb, "|,."))
-            counts.add(readUTF8StringUntilDelimitersTo(sb, "|,."))
+            counts.add(readUtf8StringUntilDelimitersTo(sb, "|,."))
+            counts.add(readUtf8StringUntilDelimitersTo(sb, "|,."))
+            counts.add(readUtf8StringUntilDelimitersTo(sb, "|,."))
+            counts.add(readUtf8StringUntilDelimitersTo(sb, "|,."))
             assertTrue(eof(), "EOF")
             assertEquals("1234", sb.toString())
             assertEquals(listOf(1, 2, 0, 1), counts)
@@ -122,9 +123,9 @@ open class OutputStringTest {
             val sb = StringBuilder()
             val counts = mutableListOf<Int>()
 
-            counts.add(readUTF8StringUntilDelimitersTo(sb, "|,."))
-            counts.add(readUTF8StringUntilDelimitersTo(sb, "|,."))
-            counts.add(readUTF8StringUntilDelimitersTo(sb, "|,."))
+            counts.add(readUtf8StringUntilDelimitersTo(sb, "|,."))
+            counts.add(readUtf8StringUntilDelimitersTo(sb, "|,."))
+            counts.add(readUtf8StringUntilDelimitersTo(sb, "|,."))
             assertTrue(eof(), "EOF")
             assertEquals("\u0422\u0423\u0424", sb.toString())
             assertEquals(listOf(1, 1, 1), counts)
@@ -134,14 +135,14 @@ open class OutputStringTest {
     @Test
     fun testReadLineSingleBuffer() = bufferSizes.forEach { size ->
         buildBytes(size) {
-            writeUTF8String("1\r\n22\n333\n4444\n") // TODO: replace one LF with CR when we can read it
+            writeUtf8String("1\r\n22\n333\n4444\n") // TODO: replace one LF with CR when we can read it
         }.read {
-            assertEquals("1", readUTF8Line())
-            assertEquals("22", readUTF8Line())
-            assertEquals("333", readUTF8Line())
-            assertEquals("4444", readUTF8Line())
+            assertEquals("1", readUtf8Line())
+            assertEquals("22", readUtf8Line())
+            assertEquals("333", readUtf8Line())
+            assertEquals("4444", readUtf8Line())
             assertTrue(eof(), "EOF")
-            assertFails { readUTF8Line() }
+            assertFails { readUtf8Line() }
         }
     }
 

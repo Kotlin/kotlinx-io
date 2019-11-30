@@ -1,10 +1,11 @@
 package kotlinx.io.internal
 
-import kotlinx.io.*
+import kotlinx.io.Input
 import kotlinx.io.buffer.*
 
 internal class ByteArrayInput(
-    private val source: ByteArray, startIndex: Int,
+    private val source: ByteArray, 
+    startIndex: Int,
     private val endIndex: Int
 ) : Input() {
 

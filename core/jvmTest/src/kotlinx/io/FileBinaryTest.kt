@@ -1,5 +1,8 @@
 package kotlinx.io
 
+import kotlinx.io.text.readUtf8Line
+import kotlinx.io.text.readUtf8String
+import kotlinx.io.text.writeUtf8String
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.*
@@ -68,21 +71,21 @@ internal class FileBinaryTest {
             writeDouble(22.2)
         }
         file.write {
-            writeUTF8String("Header\n")
+            writeUtf8String("Header\n")
             repeat(10) {
                 writeInt(it)
             }
             writeBinary(binary)
-            writeUTF8String("Footer")
+            writeUtf8String("Footer")
         }
         println(file.toUri())
         file.read {
-            assertEquals("Header", readUTF8Line())
+            assertEquals("Header", readUtf8Line())
             val ints = IntArray(10) { readInt() }
             assertEquals(5, ints[5])
             assertEquals(8, readInt())
             assertEquals(22.2, readDouble())
-            assertEquals("Footer", readUTF8String())
+            assertEquals("Footer", readUtf8String())
         }
     }
 }

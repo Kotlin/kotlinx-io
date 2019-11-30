@@ -1,14 +1,16 @@
 package kotlinx.io.gzip
 
-import kotlinx.io.*
+import kotlinx.io.Binary
+import kotlinx.io.Input
 import kotlinx.io.buffer.*
-import java.io.*
-import java.util.zip.*
+import kotlinx.io.readIt
+import java.io.InputStream
+import java.util.zip.InflaterInputStream
 
 class GzipInput(private val original: Input) : Input() {
     private val inputStream = object : InputStream() {
         override fun read(): Int {
-           if (original.eof()) return -1
+            if (original.eof()) return -1
             return original.readByte().toInt()
         }
     }
@@ -25,4 +27,8 @@ class GzipInput(private val original: Input) : Input() {
         }
         return buffer.size
     }
+}
+
+inline fun <R> Binary.readGzip(crossinline block: Input.() -> R): R = readIt { input ->
+    GzipInput(input).block()
 }
