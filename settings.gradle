@@ -16,8 +16,8 @@ rootProject.name = 'kotlinx-io-package'
 include ':core'
 project(":core").name = 'kotlinx-io'
 
-//include ':benchmarks'
-//project(":benchmarks").name = 'kotlinx-io-benchmarks'
+include ':benchmarks'
+project(":benchmarks").name = 'kotlinx-io-benchmarks'
 
 include ':playground'
 project(":playground").name = 'kotlinx-io-playground'
