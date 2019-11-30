@@ -29,7 +29,7 @@ private class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(buffer
         bytes.append(source, length)
     }
 
-    override fun close() {
-        flush()
+    override fun closeSource() {
+        // Nothing, cannot be closed
     }
 }

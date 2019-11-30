@@ -4,7 +4,8 @@
     - Input: `eof` vs `exhausted`
     - Output: Appendable
     - `Input.discard()`, discardExact
-    - `readUtf8Line` throws if string ends wo `\n`
+    - Idempotent close
+    - Make `fill` public (and then rename it) to enable zero-copy delegates
 - Implementation
     -  Input
     -  Output
@@ -15,7 +16,6 @@
     - Introduce `readByteArray(), copyTo(output)`
     - Introduce `Input.copyAvailableTo(Output | Buffer)`: consume single buffer(wait if no buffer available)
     - Prototype `PipedOutput`
-    - Remove `Input/Output` companion until we have no use-cases in the library.
 - Test
     - Verify pool has no leaks
 - Documentation

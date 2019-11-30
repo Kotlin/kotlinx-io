@@ -3,7 +3,7 @@ package kotlinx.io.bytes
 import kotlinx.io.*
 import kotlinx.io.buffer.*
 
-class ByteArrayOutput(initialSize: Int = 16 ) : Output() {
+class ByteArrayOutput(initialSize: Int = 16) : Output() {
     init {
         require(initialSize > 0)
     }
@@ -26,7 +26,7 @@ class ByteArrayOutput(initialSize: Int = 16 ) : Output() {
         }
     }
 
-    override fun close() {
+    override fun closeSource() {
         // Do nothing
     }
 }

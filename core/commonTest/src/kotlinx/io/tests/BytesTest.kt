@@ -1,6 +1,7 @@
 package kotlinx.io.tests
 
 import kotlinx.io.*
+import kotlinx.io.text.*
 import kotlin.test.*
 
 class BytesTest {
@@ -23,7 +24,7 @@ class BytesTest {
             writeLong(0x123456789abcdef0)
             writeLong(0x123456789abcdef0)
 
-            writeUTF8String("OK\n")
+            writeUtf8String("OK\n")
         }
 
         assertEquals(2 + 2 + 2 + 4 + 8 + 4 + 8 + 8 + 3, bytes.size)
@@ -46,8 +47,7 @@ class BytesTest {
             assertEquals("18, 52, 86, 120, 154, 188, 222, 240", ll)
             assertEquals(0x123456789abcdef0, readLong())
 
-            assertEquals("OK", readUTF8Line())
-        }
+        assertEquals("OK", input.readUtf8Line())
     }
 
     @Test
@@ -61,9 +61,9 @@ class BytesTest {
             writeFloat(1.25f)
             writeLong(0x123456789abcdef0)
 
-            writeUTF8String("OK\n")
+            writeUtf8String("OK\n")
             val text = listOf(1, 2, 3).joinToString(separator = "|")
-            writeUTF8String("$text\n")
+            writeUtf8String("$text\n")
         }.read {
             readArray(ByteArray(9999))
             assertEquals(0x12, readByte())
@@ -73,8 +73,8 @@ class BytesTest {
             assertEquals(1.25f, readFloat())
             assertEquals(0x123456789abcdef0, readLong())
 
-            assertEquals("OK", readUTF8Line())
-            assertEquals("1|2|3", readUTF8Line())
+            assertEquals("OK", readUtf8Line())
+            assertEquals("1|2|3", readUtf8Line())
             assertTrue { eof() }
         }
     }
@@ -97,7 +97,7 @@ class BytesTest {
             writeArray("ABC123\n".toByteArray0())
         }.read {
             readArray(ByteArray(3))
-            assertEquals("123", readUTF8Line())
+            assertEquals("123", readUtf8Line())
             assertTrue { eof() }
         }
     }
@@ -108,10 +108,9 @@ class BytesTest {
             writeArray("ABC123".toByteArray0())
         }.read {
             readArray(ByteArray(3))
-            assertEquals("123", readUTF8String(3))
+            assertEquals("123", readUtf8String(3))
             assertTrue { eof() }
         }
-
     }
 
     @Test
@@ -143,7 +142,7 @@ class BytesTest {
             writeArray("ABC123\n".toByteArray0())
         }.read {
             readArray(ByteArray(99999 + 3))
-            assertEquals("123", readUTF8Line())
+            assertEquals("123", readUtf8Line())
             assertTrue { eof() }
         }
     }

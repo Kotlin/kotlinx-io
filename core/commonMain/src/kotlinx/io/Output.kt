@@ -88,6 +88,31 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     }
 
     /**
+     * Closes the underlying source of data used by this output.
+     * This method is invoked once the output is [closed][close].
+     */
+    protected abstract fun closeSource()
+
+    /**
+     * Closes the current output, flushing all buffered data to the underlying source
+     * and [closing][closeSource] it
+     */
+    public final override fun close() {
+        val flushException = runCatching { flush() }.exceptionOrNull()
+        val closeException = runCatching { closeSource() }.exceptionOrNull()
+        if (flushException !== null) {
+            if (closeException !== null && closeException !== flushException) {
+                flushException.addSuppressedInternal(closeException)
+            }
+            throw flushException
+        }
+
+        if (closeException !== null) {
+            throw closeException
+        }
+    }
+
+    /**
      * Write [source] buffer to destination.
      *
      * May block until destination has no available space.

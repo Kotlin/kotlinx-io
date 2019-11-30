@@ -2,6 +2,7 @@ package kotlinx.io.benchmarks
 
 import kotlinx.benchmark.*
 import kotlinx.io.*
+import kotlinx.io.text.*
 
 private const val content = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç."
 
@@ -10,7 +11,7 @@ class TextEncodingBenchmark {
     @Benchmark
     fun outputText(): Int {
         val p = buildBytes {
-            writeUTF8String(content)
+            writeUtf8String(content)
         }
         return p.size()
     }
@@ -18,7 +19,7 @@ class TextEncodingBenchmark {
     @Benchmark
     fun outputTextShort(): Int {
         val p = buildBytes {
-            writeUTF8String(content, 0, 25)
+            writeUtf8String(content, 0, 25)
         }
         return p.size()
     }
