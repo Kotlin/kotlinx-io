@@ -9,8 +9,8 @@ import java.nio.file.StandardOpenOption
 @ExperimentalIoApi
 private class FileInput(
     val path: Path,
-    val offset: BinarySize = 0,
-    size: BinarySize = Files.size(path).toInt() - offset
+    val offset: Int = 0,
+    size: Int = Files.size(path).toInt() - offset
 ) : Input() {
 
     val fileChannel = FileChannel.open(path, StandardOpenOption.READ).also {
@@ -48,9 +48,9 @@ private class FileInput(
  * A lazily opened read-only file binary block with path [path], offset [offset] from the start of the file and length [size]
  */
 @ExperimentalIoApi
-class FileBinary(val path: Path, private val offset: BinarySize = 0, size: BinarySize? = null) : RandomAccessBinary {
+class FileBinary(val path: Path, private val offset: Int = 0, size: Int? = null) : RandomAccessBinary {
 
-    override val size: BinarySize = size ?: (Files.size(path) - offset).toInt()
+    override val size: Int = size ?: (Files.size(path) - offset).toInt()
 
     init {
         if (size != null && Files.size(path) < offset.toLong() + size.toLong()) {
@@ -58,7 +58,7 @@ class FileBinary(val path: Path, private val offset: BinarySize = 0, size: Binar
         }
     }
 
-    override fun <R> read(from: BinarySize, atMost: BinarySize, block: Input.() -> R): R {
+    override fun <R> read(from: Int, atMost: Int, block: Input.() -> R): R {
         val input = FileInput(path, offset + from, kotlin.math.min(atMost, this@FileBinary.size))
         return input.use(block)
     }
@@ -69,12 +69,12 @@ class FileBinary(val path: Path, private val offset: BinarySize = 0, size: Binar
  * Multiple reads could be done simultaneously.
  */
 @ExperimentalIoApi
-fun Path.asBinary(offset: BinarySize = 0, size: BinarySize? = null): FileBinary = FileBinary(this, offset, size)
+fun Path.asBinary(offset: Int = 0, size: Int? = null): FileBinary = FileBinary(this, offset, size)
 
 /**
  * Read from file once and close it after read
  */
 @ExperimentalIoApi
-fun <R> Path.read(offset: BinarySize = 0, block: Input.() -> R): R {
+fun <R> Path.read(offset: Int = 0, block: Input.() -> R): R {
     return FileInput(this, offset).use(block)
 }

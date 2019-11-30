@@ -1,8 +1,5 @@
 package kotlinx.io
 
-//TODO decide what to use: Int, Long or UInt
-typealias BinarySize = Int
-
 /**
  * A generic representation of reusable input.
  */
@@ -11,7 +8,7 @@ interface Binary {
     /**
      * The size of the input in bytes or [INFINITE] in case the size could not be estimated
      */
-    val size: BinarySize
+    val size: Int
 
     /**
      * Open the input, read and transform it to given result type then close it.
@@ -23,7 +20,7 @@ interface Binary {
         /**
          * Designates that the binary does not have fixed size, but instead is read until EOF
          */
-        val INFINITE: BinarySize = BinarySize.MAX_VALUE
+        const val INFINITE: Int = Int.MAX_VALUE
     }
 }
 
@@ -37,9 +34,9 @@ interface RandomAccessBinary : Binary {
      * This method could be called multiple times simultaneously.
      *
      */
-    fun <R> read(from: BinarySize, atMost: BinarySize = Binary.INFINITE, block: Input.() -> R): R
+    fun <R> read(from: Int, atMost: Int = Binary.INFINITE, block: Input.() -> R): R
 
-    override fun <R> read(reader: Input.() -> R): R = read(0, BinarySize.MAX_VALUE, reader)
+    override fun <R> read(reader: Input.() -> R): R = read(0, Int.MAX_VALUE, reader)
 }
 
 /**
@@ -48,9 +45,9 @@ interface RandomAccessBinary : Binary {
  */
 @ExperimentalIoApi
 object EmptyBinary: RandomAccessBinary{
-    override val size: BinarySize = 0
+    override val size: Int = 0
 
-    override fun <R> read(from: BinarySize, atMost: BinarySize, block: Input.() -> R): R {
+    override fun <R> read(from: Int, atMost: Int, block: Input.() -> R): R {
         throw EOFException("Reading from empty binary")
     }
 }

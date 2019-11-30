@@ -6,8 +6,8 @@ import kotlin.math.min
 
 class ByteArrayInput(
     private val input: ByteArray,
-    val offset: BinarySize = 0,
-    val size: BinarySize = input.size - offset
+    val offset: Int = 0,
+    val size: Int = input.size - offset
 ) : Input() {
     private var consumed = 0
 
@@ -34,9 +34,9 @@ class ByteArrayInput(
  */
 @ExperimentalIoApi
 inline class ArrayBinary(val array: ByteArray) : RandomAccessBinary {
-    override val size: BinarySize get() = array.size
+    override val size: Int get() = array.size
 
-    override fun <R> read(from: BinarySize, atMost: BinarySize, block: Input.() -> R): R {
+    override fun <R> read(from: Int, atMost: Int, block: Input.() -> R): R {
         return ByteArrayInput(array, from, min(atMost, array.size - from)).use(block)
     }
 }

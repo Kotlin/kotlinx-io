@@ -35,14 +35,24 @@ fun Input.readUTF8StringTo(out: Appendable, length: Int): Int {
 }
 
 /**
- * Read UTF8 string to [out] consuming the whole input
+ * Read UTF8 string to [out] consuming the whole input.
  *
+ * @return number of chars consumed.
  * @throws MalformedInputException
  */
+@ExperimentalStdlibApi
 fun Input.readUTF8StringTo(out: Appendable): Int {
-    return decodeUTF8Chars {
-        out.append(it)
-        !eof()
+    var counter = 0
+    try {
+        decodeUTF8Chars {
+            out.append(it)
+            counter++
+            return@decodeUTF8Chars true
+        }
+        return counter
+    } catch (ex: EOFException) {
+        //TODO replace with gracefult exit
+        return counter
     }
 }
 
@@ -84,6 +94,7 @@ fun Input.readUTF8String(length: Int): String = buildString(length) {
  * Build UTF8 string consuming the whole input
  * @throws MalformedInputException
  */
+@ExperimentalStdlibApi
 fun Input.readUTF8String(): String = buildString {
     readUTF8StringTo(this)
 }
@@ -333,7 +344,7 @@ fun Input.readRawString(length: Int): String = buildString(length) {
  */
 @ExperimentalIoApi
 fun Input.readRawString(): String = buildString(16) {
-    while (!eof() ) {
+    while (!eof()) {
         append(readByte().toChar())
     }
 }

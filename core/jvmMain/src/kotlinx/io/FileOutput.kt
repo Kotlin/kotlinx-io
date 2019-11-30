@@ -9,7 +9,7 @@ import java.nio.file.StandardOpenOption
  * File-based output
  */
 @ExperimentalIoApi
-private class FileOutput(path: Path, offset: BinarySize = 0) : Output() {
+private class FileOutput(path: Path, offset: Int = 0) : Output() {
 
     val channel: FileChannel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
 
@@ -19,11 +19,14 @@ private class FileOutput(path: Path, offset: BinarySize = 0) : Output() {
 
     override fun flush(source: Buffer, length: Int) {
         require(length <= source.size)
-        if( length<= source.size)
-        source.buffer.rewind()
+        if (length > source.size) error("Can't read $length bytes from buffer with size ${source.size}")
+
         val duplicate = source.buffer.duplicate().apply {
+            //rewind()
+            position(0)
             limit(length)
         }
+
         channel.write(duplicate)
     }
 
@@ -38,4 +41,4 @@ private class FileOutput(path: Path, offset: BinarySize = 0) : Output() {
  * Creates file if it does not exist.
  */
 @ExperimentalIoApi
-fun Path.write(offset: BinarySize = 0, block: Output.() -> Unit) = FileOutput(this, offset).use(block)
+fun Path.write(offset: Int = 0, block: Output.() -> Unit) = FileOutput(this, offset).use(block)

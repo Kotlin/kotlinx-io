@@ -60,7 +60,7 @@ public fun Output.writeDouble(value: Double) {
 @ExperimentalIoApi
 public fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
     var written = 0
-    while (!input.eof() && (atMost == Binary.INFINITE || written < atMost) ) {
+    while (!input.eof() && (atMost == Binary.INFINITE || written < atMost)) {
         input.readBufferLength { inputBuffer, inputOffset, inputSize ->
             val read = min(inputSize, atMost - written)
             var toRead = read
@@ -69,7 +69,7 @@ public fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
                     val toWrite = min(toRead, outputEnd - outputStart)
                     inputBuffer.copyTo(outputBuffer, inputOffset, toWrite, outputStart)
                     toRead -= toWrite
-                    return@writeBufferRange toWrite
+                    return@writeBufferRange toWrite + outputStart // return absolute position after write
                 }
             }
             written += read
@@ -84,7 +84,7 @@ public fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
  * Write a [Binary] (including [Bytes]) to the [Output]
  */
 @ExperimentalIoApi
-public fun Output.writeBinary(binary: Binary){
+public fun Output.writeBinary(binary: Binary) {
     binary.read {
         writeInput(this, binary.size)
     }

@@ -76,13 +76,21 @@ public fun Input.readDouble(): Double = Double.fromBits(readLong())
 public fun Input.readFloat(): Float = Float.fromBits(readInt())
 
 /**
+ * Read all remaining bytes as byte array
+ */
+@ExperimentalIoApi
+public fun Input.readRemaining(): ByteArray = buildBytes {
+    writeInput(this@readRemaining)
+}.toByteArray()
+
+/**
  * Run an action on an [Input], but can read only [limit] bytes from origin before reporting EOF.
  * After block is finished, initial input could continue to read from the offset that equals [limit].
  *
  * The performance of this operation could be limited due to specifics of Input implementation
  */
 @ExperimentalIoApi
-public inline fun <R> Input.withLimit(limit: BinarySize, block: Input.() -> R): R {
+public inline fun <R> Input.withLimit(limit: Int, block: Input.() -> R): R {
     //TODO replace by optimized version
     require(limit > 0) { "The limit should be positive" }
     return buildBytes {

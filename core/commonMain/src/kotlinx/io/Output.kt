@@ -1,7 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlinx.io.pool.*
+import kotlinx.io.pool.ObjectPool
 
 /**
  * [Output] is an abstract base for writable streams of bytes over some sink.
@@ -100,6 +100,9 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         position = 0
     }
 
+    /**
+     * @return absolute position in the output buffer after write
+     */
     internal inline fun writeBufferRange(writer: (buffer: Buffer, startOffset: Int, endOffset: Int) -> Int) {
         var startOffset = position
         var endOffset = buffer.size - 1

@@ -28,7 +28,7 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
     /**
      * Calculate size of [Bytes].
      */
-    override val size: BinarySize by lazy { size(StartPointer) }
+    override val size: Int by lazy { size(StartPointer) }
 
     /**
      * Create [Input] view on content.

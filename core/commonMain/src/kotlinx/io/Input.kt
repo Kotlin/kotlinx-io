@@ -275,6 +275,7 @@ public abstract class Input : Closeable {
      * Allows direct read from a buffer, operates on offset+size, returns number of bytes consumed.
      * NOTE: Dangerous to use, if non-local return then position will not be updated.
      *
+     * @return Number of bytes read
      * @throws EOFException if no more bytes can be read.
      */
     internal inline fun readBufferLength(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
@@ -292,6 +293,7 @@ public abstract class Input : Closeable {
      * Allows direct read from a buffer, operates on startOffset + endOffset (exclusive), returns new position.
      * NOTE: Dangerous to use, if non-local return then position will not be updated.
      *
+     * @return absolute position after read
      * @throws EOFException if no more bytes can be read.
      */
     internal inline fun readBufferRange(reader: (Buffer, startOffset: Int, endOffset: Int) -> Int) {
