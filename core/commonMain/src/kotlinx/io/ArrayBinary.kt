@@ -42,4 +42,7 @@ inline class ArrayBinary(val array: ByteArray) : RandomAccessBinary {
 }
 
 @ExperimentalIoApi
-fun ByteArray.asBinary() = ArrayBinary(this)
+public fun ByteArray.asBinary(): ArrayBinary = ArrayBinary(this)
+
+@ExperimentalIoApi
+public fun <R> ByteArray.read(block: Input.() -> R): R = asBinary().read(block)

@@ -72,7 +72,6 @@ internal class FileBinaryTest {
             repeat(10) {
                 writeInt(it)
             }
-            //flush()
             writeBinary(binary)
             writeUTF8String("Footer")
         }

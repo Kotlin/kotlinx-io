@@ -114,7 +114,6 @@ private fun malformedCodePoint(codePoint: Int): Nothing {
  * Unicode characters cause error since they could not be decoded back safely.
  * @throws MalformedInputException
  */
-@ExperimentalIoApi
 fun Output.writeRawString(text: CharSequence, index: Int = 0, length: Int = text.length - index) {
     text.subSequence(index, index + length).forEach {
         if(it.toInt() > 255) throw MalformedInputException("Unicode character '$it' in raw string")

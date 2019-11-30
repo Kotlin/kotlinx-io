@@ -1,8 +1,9 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
+import kotlinx.io.buffer.Buffer
 import kotlinx.io.buffer.DEFAULT_BUFFER_SIZE
-import kotlin.contracts.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Create [Bytes] with [bufferSize] and fills it from [builder].
@@ -12,7 +13,8 @@ fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }
 
-    return BytesOutput(bufferSize).apply(builder).bytes()
+    //Need to flush the Output after it is built to ensure that everything is written
+    return BytesOutput(bufferSize).apply(builder).apply { flush() }.bytes()
 }
 
 private class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(bufferSize) {

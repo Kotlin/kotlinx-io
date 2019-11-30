@@ -25,6 +25,11 @@ interface Binary {
 }
 
 /**
+ * A convenience method to use [Input] as parameter instead of receiver. Useful for nested input reads.
+ */
+public inline fun <R> Binary.readIt(crossinline block: (Input) -> R): R = read{block(this)}
+
+/**
  * A Binary with random access functionality
  */
 @ExperimentalIoApi

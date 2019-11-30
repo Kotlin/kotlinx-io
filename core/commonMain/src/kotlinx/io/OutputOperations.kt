@@ -66,7 +66,7 @@ public fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
             var toRead = read
             while (toRead > 0) {
                 writeBufferRange { outputBuffer, outputStart, outputEnd ->
-                    val toWrite = min(toRead, outputEnd - outputStart)
+                    val toWrite = min(toRead, outputEnd - outputStart + 1)
                     inputBuffer.copyTo(outputBuffer, inputOffset, toWrite, outputStart)
                     toRead -= toWrite
                     return@writeBufferRange toWrite + outputStart // return absolute position after write
@@ -76,7 +76,7 @@ public fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
             return@readBufferLength inputSize
         }
     }
-    flush()
+    flush() //TODO why do we need it?
     return written
 }
 
