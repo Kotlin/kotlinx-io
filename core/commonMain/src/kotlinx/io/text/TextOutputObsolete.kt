@@ -1,8 +1,7 @@
 package kotlinx.io.text
 
-import kotlinx.io.*
+import kotlinx.io.Output
 import kotlinx.io.buffer.*
-import kotlinx.io.text.MalformedInputException
 
 private const val lastASCII = 0x7F.toChar()
 
@@ -92,7 +91,7 @@ fun Output.writeUtf8String(text: CharSequence, index: Int = 0, length: Int = tex
             offset
         }
     }
-    flush()
+    flush() // Why flush here?
 }
 
 internal fun codePoint(high: Char, low: Char): Int {

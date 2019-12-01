@@ -1,8 +1,11 @@
 package kotlinx.io.tests
 
 import kotlinx.io.*
-import kotlinx.io.buffer.*
-import kotlinx.io.text.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.DEFAULT_BUFFER_SIZE
+import kotlinx.io.text.forEachUtf8Line
+import kotlinx.io.text.readUtf8Line
+import kotlinx.io.text.readUtf8Lines
 import kotlin.test.*
 
 class LimitingInputTest {
@@ -53,6 +56,23 @@ class LimitingInputTest {
 
         input.limit(1).forEachUtf8Line { fail() }
         assertTrue(closed)
+    }
+
+    @Test
+    fun testMixedLimit() {
+        buildBytes {
+            writeDouble(22.1)
+            repeat(20) {
+                writeInt(it)
+            }
+        }.read {
+            readDouble()
+            withLimit(40) {
+                val ints = IntArray(8) { readInt() }
+                assertEquals(6, ints[6])
+            }
+            assertEquals(10,readInt())
+        }
     }
 
     private fun StringInput(str: String) = ByteArrayInput(str.encodeToByteArray())

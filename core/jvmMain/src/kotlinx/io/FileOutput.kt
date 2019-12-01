@@ -31,7 +31,6 @@ private class FileOutput(path: Path, offset: Int = 0) : Output() {
     }
 
     override fun closeSource() {
-        flush()
         channel.close()
     }
 }

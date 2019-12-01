@@ -43,8 +43,11 @@ fun Input.readUtf8StringTo(out: Appendable, length: Int): Int {
  * @return number of chars consumed.
  * @throws MalformedInputException
  */
-@ExperimentalStdlibApi
+@ExperimentalIoApi
 fun Input.readUtf8StringTo(out: Appendable): Int {
+//    val array = readRemaining()
+//    out.append(array.decodeToString())
+//    return array.size
     var counter = 0
     try {
         decodeUtf8Chars {

@@ -13,7 +13,7 @@ inline class ArrayBinary(val array: ByteArray) : RandomAccessBinary {
         return ByteArrayInput(
             array,
             from,
-            min(from + atMost, array.size - 1)
+            min(from + atMost, array.size)
         ).use(block)
     }
 }

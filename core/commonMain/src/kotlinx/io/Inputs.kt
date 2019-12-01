@@ -1,6 +1,6 @@
 package kotlinx.io
 
-import kotlinx.io.internal.*
+import kotlinx.io.internal.LimitingInput
 
 /**
  * Creates an input from the given byte array, starting from inclusively [startIndex] and until [endIndex] exclusively.
@@ -29,3 +29,5 @@ public fun Input.limit(limit: Long): Input {
  * or [limit] bytes is read.
  */
 public fun Input.limit(limit: Int) = limit(limit.toLong())
+
+public fun <R> Input.withLimit(limit: Int, block: Input.() -> R): R = limit(limit).run(block)

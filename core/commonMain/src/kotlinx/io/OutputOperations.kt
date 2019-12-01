@@ -76,7 +76,6 @@ public fun Output.writeInput(input: Input, atMost: Int = Binary.INFINITE): Int {
             return@readBufferLength inputSize
         }
     }
-    flush() //TODO why do we need it?
     return written
 }
 

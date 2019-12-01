@@ -1,6 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.DEFAULT_BUFFER_SIZE
 import kotlinx.io.pool.ObjectPool
 
 internal typealias BytesPointer = Int
@@ -28,7 +29,8 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
     /**
      * Calculate size of [Bytes].
      */
-    override val size: Int by lazy { size(StartPointer) }
+    override val size: Int
+        get() = size(StartPointer)
 
     /**
      * Create [Input] view on content.
@@ -41,7 +43,8 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
     }
 
     @Suppress("OVERRIDE_BY_INLINE", "DEPRECATION")
-    override inline fun <R> read(reader: Input.() -> R): R = input().use(reader)
+    override inline fun <R> read(reader: Input.() -> R): R = input().run(reader)
+    // we can avoid disposing Input since it does not borrow its own buffers
 
     override fun toString() = "Bytes($head..$tail)"
 
@@ -115,5 +118,7 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
         internal const val StartPointer = 0
 
         private const val initialPreviewSize = 1
+
+        fun write(bufferSize: Int = DEFAULT_BUFFER_SIZE, block: Output.() -> Unit) = buildBytes(bufferSize, block)
     }
 }
