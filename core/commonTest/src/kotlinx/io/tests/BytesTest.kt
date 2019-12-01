@@ -198,6 +198,20 @@ class BytesTest {
         }
     }
 
+    @Test
+    fun testDoubleRead() {
+        val bytes = buildBytes {
+            repeat(10) {
+                writeInt(it)
+            }
+        }
+        repeat(2) {
+            bytes.read {
+                assertEquals(0, readInt())
+            }
+        }
+    }
+
     private fun String.toByteArray0(): ByteArray {
         val result = ByteArray(length)
 
@@ -214,5 +228,3 @@ class BytesTest {
         const val PACKET_BUFFER_SIZE: Int = 4096
     }
 }
-
-

@@ -42,7 +42,7 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
     }
 
     @Suppress("OVERRIDE_BY_INLINE", "DEPRECATION")
-    override inline fun <R> read(reader: Input.() -> R): R = input().use(reader)
+    override inline fun <R> read(reader: Input.() -> R): R = input().run(reader)
 
     override fun toString() = "Bytes($head..$tail)"
 
