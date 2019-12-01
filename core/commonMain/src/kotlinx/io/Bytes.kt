@@ -1,6 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.DEFAULT_BUFFER_SIZE
 import kotlinx.io.pool.ObjectPool
 
 internal typealias BytesPointer = Int
@@ -115,5 +116,7 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
         internal const val StartPointer = 0
 
         private const val initialPreviewSize = 1
+
+        fun write(bufferSize: Int = DEFAULT_BUFFER_SIZE, block: Output.() -> Unit) = buildBytes(bufferSize, block)
     }
 }
