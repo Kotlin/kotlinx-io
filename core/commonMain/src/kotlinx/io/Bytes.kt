@@ -29,7 +29,8 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
     /**
      * Calculate size of [Bytes].
      */
-    override val size: Int by lazy { size(StartPointer) }
+    override val size: Int
+        get() = size(StartPointer)
 
     /**
      * Create [Input] view on content.
@@ -43,6 +44,7 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
 
     @Suppress("OVERRIDE_BY_INLINE", "DEPRECATION")
     override inline fun <R> read(reader: Input.() -> R): R = input().run(reader)
+    // we can avoid disposing Input since it does not borrow its own buffers
 
     override fun toString() = "Bytes($head..$tail)"
 

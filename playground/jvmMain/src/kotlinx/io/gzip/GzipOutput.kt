@@ -1,9 +1,10 @@
 package kotlinx.io.gzip
 
-import kotlinx.io.*
-import kotlinx.io.buffer.*
-import java.io.*
-import java.util.zip.*
+import kotlinx.io.Output
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.get
+import java.io.ByteArrayOutputStream
+import java.util.zip.DeflaterOutputStream
 
 class GzipOutput(private val original: Output) : Output() {
     // Do not judge me
@@ -19,7 +20,7 @@ class GzipOutput(private val original: Output) : Output() {
     override fun closeSource() {
         deflater.close()
         original.writeArray(baos.toByteArray())
-        original.flush()
+        //original.flush()
         original.close()
     }
 }

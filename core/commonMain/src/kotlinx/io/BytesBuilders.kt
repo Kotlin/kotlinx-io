@@ -13,8 +13,7 @@ fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }
 
-    //Need to flush the Output after it is built to ensure that everything is written
-    return BytesOutput(bufferSize).apply(builder).apply { flush() }.bytes()
+    return BytesOutput(bufferSize).apply(builder).bytes()
 }
 
 private class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(bufferSize) {
