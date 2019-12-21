@@ -15,13 +15,13 @@ NOTE: This part represents the target vision of the package. Most modules are st
 
 `kotlinx-io` package has many modules and you can use as much as you need. 
 
-* `core` – defines all the low-level functionality for working with binary data and basic text.
-* `async` – (unavailable) implements asynchronous versions of input and output data streams.
-* `platform` – (unavailable) provides low-level platform facilities such as reading or writing from/to a file.
-* `sockets` – (unavailable) provides low-level functionality for interacting with network.
-* `cryptography` – (unavailable) provides encryption & decryption functionality.
-* `compression` – (unavailable) provides compression & decompression functionality.
-* `files` – (unavailable) provides advanced file system functionality such as working with paths and directories. 
+ - [x] `core` – defines all the low-level functionality for working with binary data and basic text.
+ - [ ] `async` – implements asynchronous versions of input and output data streams.
+ - [ ] `platform` – provides low-level platform facilities such as reading or writing from/to a file.
+ - [ ] `sockets` – provides low-level functionality for interacting with network.
+ - [ ] `cryptography` – provides encryption & decryption functionality.
+ - [ ] `compression` – provides compression & decompression functionality.
+ - [ ] `files` – provides advanced file system functionality such as working with paths and directories. 
 
 # Core 
 
