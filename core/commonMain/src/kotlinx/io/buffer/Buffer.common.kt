@@ -59,3 +59,8 @@ public expect class Buffer {
         public val EMPTY: Buffer
     }
 }
+
+/**
+ * Wrap [array] into [Buffer] from [startIndex] to [endIndex].
+ */
+internal expect fun bufferOf(array: ByteArray, startIndex: Int = 0, endIndex: Int = array.size): Buffer

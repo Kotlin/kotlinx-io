@@ -1,16 +1,17 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
+import kotlinx.io.*
 import kotlinx.io.bits.internal.utils.*
 import platform.posix.*
 import kotlin.contracts.*
-import kotlinx.io.*
+
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  * Copying bytes from a memory to itself is allowed.
  */
-actual fun Buffer.copyTo(destination: Buffer, offset: Int, length: Int, destinationOffset: Int) {
+public actual fun Buffer.copyTo(destination: Buffer, offset: Int, length: Int, destinationOffset: Int) {
     require(offset >= 0) { "offset shouldn't be negative: $offset" }
     require(length >= 0) { "length shouldn't be negative: $length" }
     require(destinationOffset >= 0) { "destinationOffset shouldn't be negative: $destinationOffset" }
@@ -26,17 +27,22 @@ actual fun Buffer.copyTo(destination: Buffer, offset: Int, length: Int, destinat
 
     if (length == 0) return
 
-    memcpy(
-        destination.pointer + destinationOffset,
-        pointer + offset, length.convert()
-    )
+    usePointer { source ->
+        destination.usePointer { destinationPointer ->
+            memcpy(
+                destinationPointer + destinationOffset,
+                source + offset, length.convert()
+            )
+        }
+    }
+
 }
 
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  */
-actual fun Buffer.copyTo(
+public actual fun Buffer.copyTo(
     destination: ByteArray,
     offset: Int,
     length: Int,
@@ -47,13 +53,13 @@ actual fun Buffer.copyTo(
         return
     }
 
-    destination.usePinned { pinned ->
-        copyTo(
-            destination = Buffer(pinned.addressOf(0), destination.size),
-            offset = offset,
-            length = length,
-            destinationOffset = destinationOffset
-        )
+    usePointer { source ->
+        destination.usePinned { array ->
+            memcpy(
+                array.addressOf(0) + destinationOffset,
+                source + offset, length.convert()
+            )
+        }
     }
 }
 
@@ -75,19 +81,21 @@ internal fun Long.toBigEndian(): Long = when (PLATFORM_BIG_ENDIAN) {
 /**
  * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
  */
-actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
+public actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(count, "count")
     requireRange(offset, count, size, "fill")
     require(count.toULong() <= size_t.MAX_VALUE.toULong()) { "count is too big: it shouldn't exceed size_t.MAX_VALUE" }
-    memset(pointer + offset, value.toInt(), count.convert())
+    usePointer {
+        memset(it + offset, value.toInt(), count.convert())
+    }
 }
 
 /**
  * Copy content bytes to the memory addressed by the [destination] pointer with
  * the specified [destinationOffset] in bytes.
  */
-fun Buffer.copyTo(
+public fun Buffer.copyTo(
     destination: CPointer<ByteVar>,
     offset: Int,
     length: Int,
@@ -98,33 +106,42 @@ fun Buffer.copyTo(
     requirePositiveIndex(destinationOffset, "destinationOffset")
     requireRange(offset, length, size, "source memory")
 
-    memcpy(destination + destinationOffset, pointer + offset, length.convert())
+    usePointer {
+        memcpy(destination + destinationOffset, it + offset, length.convert())
+    }
 }
 
 /**
  * Copy [length] bytes to the [destination] at the specified [destinationOffset]
  * from the memory addressed by this pointer with [offset] in bytes.
  */
-fun CPointer<ByteVar>.copyTo(destination: Buffer, offset: Int, length: Int, destinationOffset: Int) {
+public fun CPointer<ByteVar>.copyTo(destination: Buffer, offset: Int, length: Int, destinationOffset: Int) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(length, "length")
     requirePositiveIndex(destinationOffset, "destinationOffset")
     requireRange(destinationOffset, length, destination.size, "source memory")
 
-    memcpy(destination.pointer + destinationOffset, this + offset, length.convert())
+    destination.usePointer {
+        memcpy(it + destinationOffset, this + offset, length.convert())
+    }
 }
 
-actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block: (Buffer) -> R): R {
+/**
+ * Execute [block] of code providing a temporary instance of [Buffer] view of this byte array range
+ * starting at the specified [offset] and having the specified bytes [length].
+ * By default, if neither [offset] nor [length] specified, the whole array is used.
+ * An instance of [Buffer] provided into the [block] should be never captured and used outside of lambda.
+ */
+public actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block: (Buffer) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 
-    return usePinned { pinned ->
-        val memory = when {
-            isEmpty() && offset == 0 && length == 0 -> Buffer.EMPTY
-            else -> Buffer(pinned.addressOf(offset), length)
-        }
-
-        block(memory)
+    val buffer = if (isEmpty() && length == 0) {
+        Buffer.EMPTY
+    } else {
+        Buffer(this, offset, length)
     }
+
+    return block(buffer)
 }

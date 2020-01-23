@@ -21,7 +21,9 @@ public object SystemIn : Input() {
     override fun fill(buffer: Buffer): Int {
         // Read no more than Int.MAX_VALUE and SSIZE_MAX
         val bytesToRead = buffer.size.coerceAtMost(MAX_POSIX_READ)
-        val read = read(STDIN_FILENO, buffer.pointer, bytesToRead.convert()).toInt()
+        val read = buffer.usePointer {
+            read(STDIN_FILENO, it, bytesToRead.convert()).toInt()
+        }
         if (read == -1) {
             throw IOException("Posix write error: $errno")
         }
@@ -37,7 +39,9 @@ public object SystemIn : Input() {
 public object SystemOut : Output() {
 
     override fun flush(source: Buffer, length: Int) {
-        val error = write(STDOUT_FILENO, source.pointer, length.convert()).toInt()
+        val error = source.usePointer {
+            write(STDOUT_FILENO, it, length.convert()).toInt()
+        }
         if (error == -1) {
             throw IOException("Posix write error: $errno")
         }
@@ -52,7 +56,9 @@ public object SystemOut : Output() {
 public object SystemErr : Output() {
 
     override fun flush(source: Buffer, length: Int) {
-        val error = write(STDERR_FILENO, source.pointer, length.convert()).toInt()
+        val error = source.usePointer {
+            write(STDERR_FILENO, it, length.convert()).toInt()
+        }
         if (error == -1) {
             throw IOException("Posix write error: $errno")
         }

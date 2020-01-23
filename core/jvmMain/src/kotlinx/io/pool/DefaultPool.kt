@@ -59,7 +59,11 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual final overr
 
     private fun tryPop(): T? {
         val index = popTop()
-        return if (index == 0) null else instances.getAndSet(index, null)
+        return if (index == 0) {
+            null
+        } else {
+            instances.getAndSet(index, null)
+        }
     }
 
     private fun pushTop(index: Int) {

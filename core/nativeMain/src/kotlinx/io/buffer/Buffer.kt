@@ -3,22 +3,41 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
-import kotlinx.io.bits.internal.utils.*
-import kotlin.native.concurrent.SharedImmutable
+import kotlinx.io.*
+import kotlin.native.concurrent.*
 
-public actual class Buffer constructor(val pointer: CPointer<ByteVar>, actual inline val size: Int) {
+public actual class Buffer constructor(
+    val array: ByteArray,
+    inline val offset: Int = 0,
+    actual inline val size: Int = array.size - offset
+) {
     init {
         requirePositiveIndex(size, "size")
     }
 
-    public actual inline fun loadByteAt(index: Int): Byte = pointer[assertIndex(index, 1)]
+    public actual inline fun loadByteAt(index: Int): Byte = array[assertIndex(offset + index, 1)]
 
     public actual inline fun storeByteAt(index: Int, value: Byte) {
-        pointer[assertIndex(index, 1)] = value
+        array[assertIndex(offset + index, 1)] = value
     }
 
     public actual companion object {
         @SharedImmutable
-        public actual val EMPTY: Buffer = Buffer(nativeHeap.allocArray(0), 0)
+        public actual val EMPTY: Buffer = Buffer(ByteArray(0))
     }
 }
+
+/**
+ * Executes block with raw [pointer] to [Buffer] memory area.
+ *
+ * Consider using it only in interop calls.
+ */
+public inline fun <R> Buffer.usePointer(block: (pointer: CPointer<ByteVar>) -> R) = array.usePinned {
+    block((it.addressOf(0) + offset)!!)
+}
+
+/**
+ * Wrap [array] into [Buffer] from [startIndex] to [endIndex].
+ */
+internal actual fun bufferOf(array: ByteArray, startIndex: Int, endIndex: Int): Buffer =
+    Buffer(array, startIndex, endIndex - startIndex)

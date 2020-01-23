@@ -1,7 +1,5 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-
 /**
  * Write a [value] to this [Input].
  */
@@ -12,7 +10,7 @@ fun Output.writeUByte(value: UByte): Unit = writeByte(value.toByte())
  * Write a [value] to this [Input].
  */
 @ExperimentalUnsignedTypes
-fun Output.writeUShort(value: UShort) : Unit = writeShort(value.toShort())
+fun Output.writeUShort(value: UShort): Unit = writeShort(value.toShort())
 
 /**
  * Write a [value] to this [Input].
