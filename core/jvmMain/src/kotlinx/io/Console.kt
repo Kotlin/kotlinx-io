@@ -73,4 +73,3 @@ private object SystemErr : Output() {
         throw IllegalStateException("Console.error cannot be closed")
     }
 }
-

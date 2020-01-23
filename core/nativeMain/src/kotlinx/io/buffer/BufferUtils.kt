@@ -3,7 +3,6 @@ package kotlinx.io.buffer
 import kotlinx.cinterop.*
 import kotlinx.io.bits.internal.utils.*
 import platform.posix.*
-import kotlin.contracts.*
 
 @PublishedApi
 internal const val unalignedAccessSupported = UNALIGNED_ACCESS_ALLOWED == 1
@@ -17,11 +16,11 @@ internal fun Buffer.assertIndex(offset: Int, valueSize: Int): Int {
 }
 
 @PublishedApi
-internal  fun Buffer.assertIndex(offset: Long, valueSize: Long): Long {
+internal fun Buffer.assertIndex(offset: Long, valueSize: Long): Int {
     assert(offset >= 0 && offset <= size - valueSize) {
         throw IndexOutOfBoundsException("offset $offset outside of range [0; ${size - valueSize})")
     }
-    return offset
+    return offset.toInt()
 }
 
 internal fun requirePositiveIndex(value: Int, name: String) {

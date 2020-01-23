@@ -3,87 +3,86 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
-import kotlinx.io.internal.*
 import kotlin.experimental.*
 
-public actual fun Buffer.loadByteAt(index: Long): Byte = pointer[assertIndex(index, 1)]
+public actual fun Buffer.loadByteAt(index: Long): Byte = array[assertIndex(index, 1)]
 
-public actual fun Buffer.loadShortAt(offset: Int): Short {
+public actual fun Buffer.loadShortAt(offset: Int): Short = usePointer {
     assertIndex(offset, 2)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
 
     return if (unalignedAccessSupported) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
     else loadShortSlowAt(pointer)
 }
 
-public actual fun Buffer.loadShortAt(offset: Long): Short {
-    assertIndex(offset, 2)
-    val pointer = pointer.plus(offset)!!
+public actual fun Buffer.loadShortAt(offset: Long): Short = usePointer {
+    assertIndex(offset.toInt(), 2)
+    val pointer = it.plus(offset)!!
     return if (unalignedAccessSupported) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
     else loadShortSlowAt(pointer)
 }
 
-public actual fun Buffer.loadIntAt(offset: Int): Int {
+public actual fun Buffer.loadIntAt(offset: Int): Int = usePointer {
     assertIndex(offset, 4)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     return if (unalignedAccessSupported) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
     else loadIntSlowAt(pointer)
 }
 
-public actual fun Buffer.loadIntAt(offset: Long): Int {
+public actual fun Buffer.loadIntAt(offset: Long): Int = usePointer {
     assertIndex(offset, 4)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     return if (unalignedAccessSupported) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
     else loadIntSlowAt(pointer)
 }
 
-public actual fun Buffer.loadLongAt(offset: Int): Long {
+public actual fun Buffer.loadLongAt(offset: Int): Long = usePointer {
     assertIndex(offset, 8)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     return if (unalignedAccessSupported) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
     else loadLongSlowAt(pointer)
 }
 
-public actual fun Buffer.loadLongAt(offset: Long): Long {
+public actual fun Buffer.loadLongAt(offset: Long): Long = usePointer {
     assertIndex(offset, 8)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
 
     return if (unalignedAccessSupported) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
     else loadLongSlowAt(pointer)
 }
 
-public actual fun Buffer.loadFloatAt(offset: Int): Float {
+public actual fun Buffer.loadFloatAt(offset: Int): Float = usePointer {
     assertIndex(offset, 4)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
 
     return if (unalignedAccessSupported) Float.fromBits(pointer.reinterpret<IntVar>().pointed.value.toBigEndian())
     else loadFloatSlowAt(pointer)
 }
 
-public actual fun Buffer.loadFloatAt(offset: Long): Float {
+public actual fun Buffer.loadFloatAt(offset: Long): Float = usePointer {
     assertIndex(offset, 4)
-    val pointer = pointer.plus(offset)!!
-    return if (unalignedAccessSupported)  Float.fromBits(pointer.reinterpret<IntVar>().pointed.value.toBigEndian())
+    val pointer = it.plus(offset)!!
+    return if (unalignedAccessSupported) Float.fromBits(pointer.reinterpret<IntVar>().pointed.value.toBigEndian())
     else loadFloatSlowAt(pointer)
 }
 
-public actual fun Buffer.loadDoubleAt(offset: Int): Double {
+public actual fun Buffer.loadDoubleAt(offset: Int): Double = usePointer {
     assertIndex(offset, 8)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     return if (unalignedAccessSupported) Double.fromBits(pointer.reinterpret<LongVar>().pointed.value.toBigEndian())
     else loadDoubleSlowAt(pointer)
 }
 
-public actual fun Buffer.loadDoubleAt(offset: Long): Double {
+public actual fun Buffer.loadDoubleAt(offset: Long): Double = usePointer {
     assertIndex(offset, 8)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     return if (unalignedAccessSupported) Double.fromBits(pointer.reinterpret<LongVar>().pointed.value.toBigEndian())
     else loadDoubleSlowAt(pointer)
 }
 
-public actual fun Buffer.storeIntAt(offset: Int, value: Int) {
+public actual fun Buffer.storeIntAt(offset: Int, value: Int) = usePointer {
     assertIndex(offset, 4)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
         pointer.reinterpret<IntVar>().pointed.value = value.toBigEndian()
     } else {
@@ -91,9 +90,9 @@ public actual fun Buffer.storeIntAt(offset: Int, value: Int) {
     }
 }
 
-public actual fun Buffer.storeIntAt(offset: Long, value: Int) {
+public actual fun Buffer.storeIntAt(offset: Long, value: Int) = usePointer {
     assertIndex(offset, 4)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
         pointer.reinterpret<IntVar>().pointed.value = value.toBigEndian()
     } else {
@@ -101,9 +100,9 @@ public actual fun Buffer.storeIntAt(offset: Long, value: Int) {
     }
 }
 
-public actual fun Buffer.storeShortAt(offset: Int, value: Short) {
+public actual fun Buffer.storeShortAt(offset: Int, value: Short) = usePointer {
     assertIndex(offset, 2)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
         pointer.reinterpret<ShortVar>().pointed.value = value.toBigEndian()
     } else {
@@ -111,9 +110,9 @@ public actual fun Buffer.storeShortAt(offset: Int, value: Short) {
     }
 }
 
-public actual fun Buffer.storeShortAt(offset: Long, value: Short) {
+public actual fun Buffer.storeShortAt(offset: Long, value: Short) = usePointer {
     assertIndex(offset, 2)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
         pointer.reinterpret<ShortVar>().pointed.value = value.toBigEndian()
     } else {
@@ -121,9 +120,9 @@ public actual fun Buffer.storeShortAt(offset: Long, value: Short) {
     }
 }
 
-public actual fun Buffer.storeLongAt(offset: Int, value: Long) {
+public actual fun Buffer.storeLongAt(offset: Int, value: Long) = usePointer {
     assertIndex(offset, 8)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
         pointer.reinterpret<LongVar>().pointed.value = value.toBigEndian()
     } else {
@@ -131,9 +130,9 @@ public actual fun Buffer.storeLongAt(offset: Int, value: Long) {
     }
 }
 
-public actual fun Buffer.storeLongAt(offset: Long, value: Long) {
+public actual fun Buffer.storeLongAt(offset: Long, value: Long) = usePointer {
     assertIndex(offset, 8)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
         pointer.reinterpret<LongVar>().pointed.value = value.toBigEndian()
     } else {
@@ -141,9 +140,9 @@ public actual fun Buffer.storeLongAt(offset: Long, value: Long) {
     }
 }
 
-public actual fun Buffer.storeFloatAt(offset: Int, value: Float) {
+public actual fun Buffer.storeFloatAt(offset: Int, value: Float) = usePointer {
     assertIndex(offset, 4)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
 
     if (unalignedAccessSupported) {
         pointer.reinterpret<IntVar>().pointed.value = value.toRawBits().toBigEndian()
@@ -152,9 +151,9 @@ public actual fun Buffer.storeFloatAt(offset: Int, value: Float) {
     }
 }
 
-public actual fun Buffer.storeFloatAt(offset: Long, value: Float) {
+public actual fun Buffer.storeFloatAt(offset: Long, value: Float) = usePointer {
     assertIndex(offset, 4)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
 
     if (unalignedAccessSupported) {
         pointer.reinterpret<IntVar>().pointed.value = value.toRawBits().toBigEndian()
@@ -163,9 +162,9 @@ public actual fun Buffer.storeFloatAt(offset: Long, value: Float) {
     }
 }
 
-public actual fun Buffer.storeDoubleAt(offset: Int, value: Double) {
+public actual fun Buffer.storeDoubleAt(offset: Int, value: Double) = usePointer {
     assertIndex(offset, 8)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
 
     if (unalignedAccessSupported) {
         pointer.reinterpret<LongVar>().pointed.value = value.toRawBits().toBigEndian()
@@ -174,9 +173,9 @@ public actual fun Buffer.storeDoubleAt(offset: Int, value: Double) {
     }
 }
 
-public actual fun Buffer.storeDoubleAt(offset: Long, value: Double) {
+public actual fun Buffer.storeDoubleAt(offset: Long, value: Double) = usePointer {
     assertIndex(offset, 8)
-    val pointer = pointer.plus(offset)!!
+    val pointer = it.plus(offset)!!
 
     if (unalignedAccessSupported) {
         pointer.reinterpret<LongVar>().pointed.value = value.toRawBits().toBigEndian()
@@ -185,8 +184,8 @@ public actual fun Buffer.storeDoubleAt(offset: Long, value: Double) {
     }
 }
 
-public actual fun Buffer.storeByteAt(index: Long, value: Byte) {
-    pointer[assertIndex(index, 1)] = value
+public actual fun Buffer.storeByteAt(index: Long, value: Byte) = usePointer {
+    it[assertIndex(index, 1)] = value
 }
 
 internal fun storeShortSlowAt(pointer: CPointer<ByteVar>, value: Short) {

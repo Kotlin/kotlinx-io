@@ -11,7 +11,7 @@ internal class ByteArrayInput(
     private var currentIndex = startIndex
 
     override fun closeSource() {
-        // Nothing by default
+       // Nothing by default
     }
 
     override fun fill(buffer: Buffer): Int {

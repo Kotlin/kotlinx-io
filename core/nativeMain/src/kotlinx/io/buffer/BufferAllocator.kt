@@ -1,13 +1,9 @@
 package kotlinx.io.buffer
 
-import kotlinx.cinterop.*
+actual object PlatformBufferAllocator : BufferAllocator by NativeBufferAllocator()
 
-actual object PlatformBufferAllocator : BufferAllocator by NativeBufferAllocator(nativeHeap)
+internal class NativeBufferAllocator : BufferAllocator {
+    override fun allocate(size: Int): Buffer = Buffer(ByteArray(size))
 
-internal inline class NativeBufferAllocator(private val placement: NativeFreeablePlacement) : BufferAllocator {
-    override fun allocate(size: Int): Buffer = Buffer(placement.allocArray(size), size)
-
-    override fun free(instance: Buffer) {
-        placement.free(instance.pointer)
-    }
+    override fun free(instance: Buffer) {}
 }

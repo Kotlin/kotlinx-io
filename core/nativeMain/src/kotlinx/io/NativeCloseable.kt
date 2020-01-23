@@ -1,6 +1,10 @@
 package kotlinx.io
 
-actual interface Closeable {
+
+/**
+ * Closeable resource.
+ */
+public actual interface Closeable {
     actual fun close()
 }
 

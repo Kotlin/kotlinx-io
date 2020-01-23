@@ -2,8 +2,6 @@
 
 package kotlinx.io.buffer
 
-import kotlinx.io.internal.*
-
 /**
  * Copies bytes from this buffer range from the specified [offset] and [count]
  * to the [destination] at [destinationOffset].

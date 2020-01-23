@@ -30,4 +30,3 @@ inline fun <T : Any, R> ObjectPool<T>.useInstance(block: (T) -> R): R {
         recycle(instance)
     }
 }
-
