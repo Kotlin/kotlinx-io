@@ -5,10 +5,6 @@ plugins {
     id "jacoco"
 }
 
-apply plugin: "com.vanniktech.android.junit.jacoco"
-
-apply plugin: "jacoco"
-
 def ideaActive = System.getProperty('idea.active') == 'true'
 
 kotlin {
@@ -136,7 +132,8 @@ kotlin {
 }
 
 jacoco {
-    toolVersion = "0.8.2"
+    toolVersion = "0.8.5"
+    reportsDir = file("${buildDir}/jacoco-reports")
 }
 
 task testCoverage(type: JacocoReport, dependsOn: jvmTest) {
@@ -148,13 +145,16 @@ task testCoverage(type: JacocoReport, dependsOn: jvmTest) {
             "jvmMain/src"
     ]
 
-    classDirectories.from files(fileTree(dir: "${project.buildDir}/classes/kotlin/jvm/"))
+    classDirectories.from files(fileTree(dir: "${buildDir}/classes/kotlin/jvm/"))
     sourceDirectories.from files(coverageSourceDirs)
     additionalSourceDirs.from files(coverageSourceDirs)
-    executionData.from files("${project.buildDir}/jacoco/jvmTest.exec")
+    executionData.from files("${buildDir}/jacoco/jvmTest.exec")
 
     reports {
-        xml.enabled = true
-        html.enabled = true
+        xml.enabled false
+        csv.enabled false
+        html.enabled true
+
+        html.destination file("${buildDir}/jacoco-reports/html")
     }
 }
