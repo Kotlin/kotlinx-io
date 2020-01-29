@@ -22,9 +22,10 @@ kotlin {
         }
     }
 
-    js {
-        nodejs()
-    }
+// TODO: lookup benchmark configuration for js
+//    js {
+//        nodejs()
+//    }
 
     sourceSets.all {
         kotlin.srcDirs = ["$it.name/src"]
