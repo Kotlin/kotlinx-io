@@ -70,6 +70,34 @@ open class OutputStringTest {
     }
 
     @Test
+    fun testWriteUtf8Chars() = bufferSizes.forEach { size ->
+        val text = "file content with unicode  : здороваться : 여보세요 : 你好 : ñç."
+        // @formatter:off
+        val expected = ubyteArrayOf(
+            0x66u, 0x69u, 0x6cu, 0x65u, 0x20u, 0x63u, 0x6fu, 0x6eu, 0x74u, 0x65u, 0x6eu, 0x74u, 0x20u,
+            0x77u, 0x69u, 0x74u, 0x68u, 0x20u, 0x75u, 0x6eu, 0x69u, 0x63u, 0x6fu, 0x64u, 0x65u, 0x20u, // ascii ends
+            0x20u, 0x3au, 0x20u, 0xd0u, 0xb7u, 0xd0u, 0xb4u, 0xd0u, 0xbeu,
+            0xd1u, 0x80u, 0xd0u, 0xbeu, 0xd0u, 0xb2u, 0xd0u, 0xb0u, 0xd1u, 0x82u, 0xd1u, 0x8cu, 0xd1u,
+            0x81u, 0xd1u, 0x8fu, 0x20u, 0x3au, 0x20u, 0xecu, 0x97u, 0xacu, 0xebu, 0xb3u, 0xb4u, 0xecu,
+            0x84u, 0xb8u, 0xecu, 0x9au, 0x94u, 0x20u, 0x3au, 0x20u, 0xe4u, 0xbdu, 0xa0u,
+            0xe5u, 0xa5u, 0xbdu, 0x20u, 0x3au, 0x20u, 0xc3u, 0xb1u, 0xc3u, 0xa7u, 0x2eu
+        )
+        // @formatter:on
+
+        val bytes = buildBytes(size) {
+            text.forEach { writeUtf8Char(it) }
+        }
+
+        assertEquals(expected.size, bytes.size(), "Size $size")
+
+        val input = bytes.input()
+        val read = UByteArray(expected.size)
+        input.readByteArray(read)
+        assertTrue(input.exhausted(), "EOF")
+        assertEquals(expected.contentToString(), read.contentToString())
+    }
+
+    @Test
     fun testWriteMultiByteAtEnd() {
         val input = buildBytes {
             writeUtf8String("ABC\u0422")
@@ -139,6 +167,33 @@ open class OutputStringTest {
         assertEquals("333", input.readUtf8Line())
         assertEquals("4444", input.readUtf8Line())
         assertTrue(input.exhausted(), "EOF")
+    }
+
+    @Test
+    fun testWriteSingleUnicode() {
+        val text = """🤔"""
+        buildBytes {
+            writeUtf8String(text, 0, text.length)
+        }.useInput {
+            val actual = buildString {
+                readUtf8LineTo(this)
+            }
+            assertEquals(text, actual)
+        }
+    }
+
+    @Test
+    fun testParseGlyph() {
+        val text = """􏿿"""
+        buildBytes {
+            writeUtf8String(text, 0, text.length)
+        }.useInput {
+            val actual = buildString {
+                readUtf8LineTo(this)
+            }
+
+            assertEquals(text, actual)
+        }
     }
 }
 
