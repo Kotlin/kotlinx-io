@@ -255,8 +255,8 @@ private val Utf8StateMachine = intArrayOf(
 
 private const val STATE_FINISH = -2
 //private const val Utf8_STATE_ASCII = -1
-private const val STATE_UTF_8 = 0
-private const val STATE_REJECT = 1
+internal const val STATE_UTF_8 = 0
+internal const val STATE_REJECT = 1
 
 private inline fun Input.decodeUtf8(consumer: (Int) -> Boolean) {
     val stateMachine = Utf8StateMachine
