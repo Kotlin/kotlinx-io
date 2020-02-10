@@ -8,15 +8,16 @@ internal class LimitingInput(private val original: Input, private var bytesLeft:
     /*
      * Unfortunately, `fill` cannot be implemented in a zero-copy manner
      */
-    override fun fill(buffer: Buffer): Int {
-        if (bytesLeft <= 0L || original.eof()) return 0
-        val limit = min(bytesLeft, buffer.size.toLong()).toInt() // Can always be safely cast to int
-        repeat(limit) {
-            if (original.eof()) return it
-            buffer[it] = original.readByte()
-            --bytesLeft
-        }
-        return limit
+    override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
+        if (bytesLeft <= 0L) return 0
+
+        val space = endIndex - startIndex
+        val count = min(space.toLong(), bytesLeft).toInt()
+
+        val result = original.readAvailableTo(buffer, startIndex, startIndex + count)
+        bytesLeft -= result
+
+        return result
     }
 
     override fun closeSource() = original.close()

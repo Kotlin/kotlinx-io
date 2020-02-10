@@ -1,6 +1,5 @@
 package kotlinx.io
 
-import kotlinx.io.*
 import kotlinx.io.buffer.*
 import kotlin.math.*
 import kotlin.test.*
@@ -104,11 +103,11 @@ class InputPrimitivesTest {
         var written = false
 
         class MyInput : Input() {
-            override fun fill(buffer: Buffer): Int {
+            override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
                 if (written) return 0
                 written = true
 
-                buffer.storeIntAt(0, 0x74657374) // = test
+                buffer.storeIntAt(startIndex, 0x74657374) // = test
                 return 4
             }
 
@@ -120,7 +119,7 @@ class InputPrimitivesTest {
         val input = MyInput()
         val text = input.use {
             val array = ByteArray(4)
-            input.readArray(array)
+            input.readByteArray(array)
             array
         }
 
@@ -136,12 +135,12 @@ class InputPrimitivesTest {
             "test.", "123.", "zxc."
         )
 
-        class MyInput: Input() {
-            override fun fill(buffer: Buffer): Int {
+        class MyInput : Input() {
+            override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
                 if (items.isEmpty()) return 0
                 val next = items.removeAt(0)
                 for (index in 0 until next.length) {
-                    buffer[index] = next[index].toByte()
+                    buffer[startIndex + index] = next[index].toByte()
                 }
                 return next.length
             }
@@ -150,10 +149,11 @@ class InputPrimitivesTest {
                 items.clear()
             }
         }
+
         val input = MyInput()
 
         val data = ByteArray(5 + 4 + 4)
-        input.readArray(data)
+        input.readByteArray(data)
         @UseExperimental(ExperimentalStdlibApi::class)
         assertEquals("test.123.zxc.", data.decodeToString())
     }

@@ -1,6 +1,5 @@
 package kotlinx.io
 
-import kotlinx.io.*
 import kotlinx.io.buffer.*
 import kotlin.test.*
 
@@ -25,8 +24,8 @@ class ByteArrayOutputTest {
     }
 
     private fun testOutput(arr: ByteArray) {
-       val output = ByteArrayOutput()
-        output.writeArray(arr)
+        val output = ByteArrayOutput()
+        output.writeByteArray(arr)
         output.flush()
         assertTrue(arr.contentEquals(output.toByteArray()))
     }

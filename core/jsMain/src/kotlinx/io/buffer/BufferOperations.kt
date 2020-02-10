@@ -133,3 +133,22 @@ fun Buffer.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.s
 fun Buffer.Companion.of(view: ArrayBufferView, offset: Int = 0, length: Int = view.byteLength): Buffer {
     return Buffer.of(view.buffer, view.byteOffset + offset, length)
 }
+
+/**
+ * Compact [Buffer].
+ * Move content from [startIndex] to [endIndex] exclusive to beginning of the buffer.
+ *
+ * @return [endIndex] - [startIndex] (copied bytes count).
+ */
+internal actual fun Buffer.compact(startIndex: Int, endIndex: Int): Int {
+    if (startIndex == 0) {
+        return endIndex
+    }
+
+    val array = Int8ArrayView
+
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray/copyWithin
+    js("array.copyWithin(0, startIndex, endIndex)")
+
+    return endIndex - startIndex
+}

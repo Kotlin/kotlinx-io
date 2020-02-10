@@ -4,7 +4,6 @@ package kotlinx.io.buffer
 
 import kotlinx.io.internal.*
 import java.nio.*
-import java.nio.ByteOrder
 import kotlin.contracts.*
 
 /**
@@ -158,4 +157,24 @@ actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block: (Buff
         ByteBuffer.wrap(this, offset, length)
             .slice().order(ByteOrder.BIG_ENDIAN)
     ).let(block)
+}
+
+/**
+ * Compact [Buffer].
+ * Move content from [startIndex] to [endIndex] exclusive to beginning of the buffer.
+ *
+ * @return [endIndex] - [startIndex] (copied bytes count).
+ */
+internal actual fun Buffer.compact(startIndex: Int, endIndex: Int): Int {
+    if (startIndex == 0) {
+        return endIndex
+    }
+
+    buffer.apply {
+        position(startIndex)
+        limit(endIndex)
+        compact()
+    }
+
+    return buffer.limit()
 }

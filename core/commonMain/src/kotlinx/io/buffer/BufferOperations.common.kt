@@ -89,3 +89,11 @@ public fun Buffer.toByteArray(offset: Int, length: Int): ByteArray {
  * An instance of [Buffer] provided into the [block] should be never captured and used outside of lambda.
  */
 public expect fun <R> ByteArray.useBuffer(offset: Int = 0, length: Int = size - offset, block: (Buffer) -> R): R
+
+/**
+ * Compact [Buffer].
+ * Move content from [startIndex] to [endIndex] exclusive to beginning of the buffer.
+ *
+ * @return [endIndex] - [startIndex] (copied bytes count).
+ */
+internal expect fun Buffer.compact(startIndex: Int, endIndex: Int): Int

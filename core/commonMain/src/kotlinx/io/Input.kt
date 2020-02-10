@@ -2,11 +2,12 @@ package kotlinx.io
 
 import kotlinx.io.buffer.*
 import kotlinx.io.pool.*
+import kotlin.math.*
 
 /**
  * [Input] is an abstract base class for synchronous byte readers.
  *
- * It contains [read*] methods to read primitive types ([readByte], [readInt], ...) and arrays([readArray]).
+ * It contains [read*] methods to read primitive types ([readByte], [readInt], ...) and arrays([readByteArray]).
  *
  * [Input] is buffered. Buffer size depends on [Buffer.size] in the [bufferPool] buffer.
  * Buffer size is [DEFAULT_BUFFER_SIZE] by default.
@@ -64,39 +65,9 @@ public abstract class Input : Closeable {
     private var limit: Int = 0
 
     /**
-     * Constructs a new Input with the given `bufferPool`.
-     */
-    protected constructor(bufferPool: ObjectPool<Buffer>) {
-        this.bufferPool = bufferPool
-        this.buffer = bufferPool.borrow()
-        previewBytes = null
-    }
-
-    /**
-     * Constructs a new Input with the given [bytes], pool is taken from [bytes].
-     */
-    protected constructor(bytes: Bytes) {
-        this.bufferPool = bytes.bufferPool
-        previewBytes = bytes
-        this.buffer = bytes.pointed(Bytes.StartPointer) { limit ->
-            this.limit = limit
-        }
-    }
-
-    /**
-     * Constructs a new Input with the default pool of buffers with the given [bufferSize].
-     */
-    protected constructor(bufferSize: Int = DEFAULT_BUFFER_SIZE) : this(
-        if (bufferSize == DEFAULT_BUFFER_SIZE)
-            DefaultBufferPool.Instance
-        else
-            DefaultBufferPool(bufferSize)
-    )
-
-    /**
      * Index of a current buffer in the [previewBytes].
      */
-    private var previewIndex: Int = Bytes.StartPointer
+    private var previewIndex: Int = 0
 
     /**
      * Flag to indicate if current [previewBytes] are being discarded.
@@ -107,47 +78,135 @@ public abstract class Input : Closeable {
     /**
      * Recorded buffers for preview operation.
      */
-    private var previewBytes: Bytes?
+    private var previewBytes: Bytes? = null
 
     /**
-     * Reads a [Byte] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
+     * Constructs a new Input with the given `bufferPool`.
      */
-    public fun readByte(): Byte = readPrimitive(
-        1, { buffer, offset -> buffer.loadByteAt(offset) },
-        { it.toByte() }
-    )
+    constructor(pool: ObjectPool<Buffer>) {
+        bufferPool = pool
+        buffer = pool.borrow()
+    }
 
     /**
-     * Reads a [Short] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
+     * Constructs a new Input with the given [bytes], pool is taken from [bytes].
      */
-    public fun readShort(): Short = readPrimitive(
-        2, { buffer, offset -> buffer.loadShortAt(offset) },
-        { it.toShort() }
-    )
+    internal constructor(bytes: Bytes, pool: ObjectPool<Buffer>) {
+        bufferPool = pool
+        if (bytes.size() == 0) {
+            buffer = Buffer.EMPTY
+            return
+        }
+
+        previewBytes = bytes
+
+        bytes.pointed(0) { firstBuffer, firstLimit ->
+            buffer = firstBuffer
+            limit = firstLimit
+        }
+    }
 
     /**
-     * Reads an [Int] from this Input.
-     *
-     * @throws EOFException if no more bytes can be read.
+     * Constructs a new Input with the default pool of buffers with the given [bufferSize].
      */
-    public fun readInt(): Int = readPrimitive(
-        4, { buffer, offset -> buffer.loadIntAt(offset) },
-        { it.toInt() }
-    )
+    protected constructor() : this(DefaultBufferPool.Instance)
 
     /**
-     * Reads a [Long] from this Input.
+     * Read content of this [Input] to [destination] [Output].
      *
-     * @throws EOFException if no more bytes can be read.
+     * If there is no bytes in cache(stored from last [fill] or in [preview]), [fill] will be called on [destination]
+     * buffer directly without extra copy.
+     *
+     * If there are bytes in cache, it'll be flushed to [destination].
+     *
+     * Please note that if [Input] and [destination] [Output] aren't sharing same [bufferPool]s or [Input] is in
+     * [preview], bytes will be copied.
      */
-    public fun readLong(): Long = readPrimitive(
-        8, { buffer, offset -> buffer.loadLongAt(offset) },
-        { it }
-    )
+    public fun readAvailableTo(destination: Output): Int {
+        if (!previewDiscard) {
+            return copyAvailableTo(destination)
+        }
+
+        val preview = previewBytes
+
+        // Do we have single byte in cache?
+        if (position != limit || preview != null && previewIndex < preview.tail) {
+
+            if (bufferPool !== destination.bufferPool) {
+                // Can't share buffers between different pools.
+                return copyAvailableTo(destination)
+            }
+
+            return readBufferRange { buffer, startOffset, endOffset ->
+                destination.writeBuffer(buffer, startOffset, endOffset)
+                endOffset
+            }
+        }
+
+        // No bytes in cache: fill [destination] buffer direct.
+        return destination.writeBuffer { buffer, startIndex, endIndex ->
+            startIndex + fill(buffer, startIndex, endIndex)
+        }
+    }
+
+    /**
+     * Attempt to move chunk from [Input] to [destination].
+     */
+    public fun readAvailableTo(
+        destination: Buffer,
+        startIndex: Int = 0,
+        endIndex: Int = destination.size - startIndex
+    ): Int {
+        checkBufferAndIndexes(destination, startIndex, endIndex)
+
+        // If we have any cached byte, we should copy it
+        if (position != limit || previewBytes != null) {
+            return copyAvailableTo(destination, startIndex, endIndex)
+        }
+
+        // No bytes in cache: fill [destination] buffer direct.
+        return fill(destination, startIndex, endIndex)
+    }
+
+    /**
+     * Allows reading from [Input] in the [reader] block without consuming its content.
+     *
+     * This operation saves the state of the [Input] before [reader] and accumulates buffers for replay.
+     * When the [reader] finishes, it rewinds this [Input] to the state before the [reader] block.
+     * Please note that [Input] holds accumulated buffers until they are't consumed outside of the [preview].
+     *
+     * Preview operations can be nested.
+     */
+    public fun <R> preview(reader: Input.() -> R): R {
+        if (position == limit && fetchCachedOrFill() == 0) {
+            throw EOFException("End of file while reading buffer")
+        }
+
+        val markDiscard = previewDiscard
+        val markIndex = previewIndex
+        val markPosition = position
+
+        previewDiscard = false
+
+        val result = reader()
+
+        previewDiscard = markDiscard
+        position = markPosition
+
+        if (previewIndex == markIndex) {
+            // we are at the same buffer, just restore the position & state above
+            return result
+        }
+
+        val bytes = previewBytes!!
+        bytes.pointed(markIndex) { buffer, limit ->
+            this.buffer = buffer
+            this.limit = limit
+        }
+
+        previewIndex = markIndex
+        return result
+    }
 
     /**
      * Check if at least 1 byte available to read.
@@ -163,35 +222,46 @@ public abstract class Input : Closeable {
      * @return true if this [Input] contains at least [size] bytes.
      */
     public fun prefetch(size: Int): Boolean {
-        if (position == limit) {
-            if (fetchBuffer() == 0) {
-                return false
-            }
+        checkSize(size)
+
+        if (position == limit && fetchCachedOrFill() == 0) {
+            return false
         }
 
         var left = size - (limit - position)
-        if (left <= 0)
-            return true // enough bytes in current buffer
-
-        // we will fetch bytes into additional buffers, so prepare preview
-        val bytes = previewBytes ?: Bytes(bufferPool).also {
-            previewBytes = it
-            it.append(buffer, limit)
+        if (left <= 0) {
+            return true // Enough bytes in current buffer
         }
+
+        // We will fetch bytes into additional buffers, so prepare preview
+        val bytes = previewBytes ?: startPreview()
 
         var fetchIndex = previewIndex
         while (!bytes.isAfterLast(fetchIndex)) {
             left -= bytes.limit(fetchIndex)
-            if (left <= 0)
-                return true // enough bytes in preview bytes
-            fetchIndex = bytes.advancePointer(fetchIndex)
+            if (left <= 0) {
+                // Enough bytes in preview bytes
+                return true
+            }
+
+            fetchIndex++
         }
 
         while (left > 0) {
-            val buffer = bufferPool.borrow()
-            val limit = fill(buffer)
-            if (limit == 0)
+            val (buffer, limit) = try {
+                val buffer = bufferPool.borrow()
+                val limit = fill(buffer)
+                buffer to limit
+            } catch (cause: Throwable) {
+                bufferPool.recycle(buffer)
+                throw cause
+            }
+
+            if (limit == 0) {
+                bufferPool.recycle(buffer)
                 return false
+            }
+
             bytes.append(buffer, limit)
             left -= limit
         }
@@ -199,39 +269,26 @@ public abstract class Input : Closeable {
     }
 
     /**
-     * Allows reading from [Input] in the [reader] block without consuming its content.
-     *
-     * This operation saves the state of the [Input] before [reader] and accumulates buffers for replay.
-     * When the [reader] finishes, it rewinds this [Input] to the state before the [reader] block.
-     * Please note that [Input] holds accumulated buffers until they are't consumed outside of the [preview].
-     *
-     * Preview operations can be nested.
+     * Skip [count] bytes from input.
      */
-    public fun <R> preview(reader: Input.() -> R): R {
-        if (position == limit) {
-            if (fetchBuffer() == 0)
-                throw EOFException("End of file while reading buffer")
+    public fun discard(count: Int) {
+        checkCount(count)
+
+        var remaining = count
+        while (remaining > 0) {
+            val skipCount = readBufferRange { _, startOffset, endOffset ->
+                val skipCount = min(remaining, endOffset - startOffset)
+
+
+                startOffset + skipCount
+            }
+
+            if (skipCount == 0) {
+                throw EOFException("Fail to skip $count bytes, remaining $remaining.")
+            }
+
+            remaining -= skipCount
         }
-
-        val markDiscard = previewDiscard
-        val markIndex = previewIndex
-        val markPosition = position
-
-        previewDiscard = false
-        // TODO unused expression
-        val result = reader()
-        previewDiscard = markDiscard
-        position = markPosition
-
-        if (previewIndex == markIndex) {
-            // we are at the same buffer, just restore the position & state above
-            return result
-        }
-
-        val bytes = previewBytes!!
-        this.buffer = bytes.pointed(markIndex) { limit -> this.limit = limit }
-        previewIndex = markIndex
-        return result
     }
 
     /**
@@ -239,28 +296,32 @@ public abstract class Input : Closeable {
      */
     public final override fun close() {
         closeSource()
-        bufferPool.recycle(buffer)
-        if (DefaultBufferPool.Instance != bufferPool)
-            bufferPool.close()
 
-        previewBytes?.close()
+        limit = position
+        bufferPool.recycle(buffer)
+
+        val preview = previewBytes ?: return
+        previewBytes = null
+
+        preview.discardFirst()
+        while (!preview.isEmpty()) {
+            preview.pointed(0) { buffer, _ ->
+                bufferPool.recycle(buffer)
+            }
+            preview.discardFirst()
+        }
     }
 
     /**
-     * Closes the underlying source of data used by this input.
-     * This method is invoked once the input is [closed][close].
-     */
-    protected abstract fun closeSource()
-
-    /**
-     * Reads the next bytes into the [buffer]
-     * May block until at least one byte is available.
+     * Request to fill [buffer] from [startIndex] to [endIndex] exclusive with bytes from source. This method will block and wait
+     * if no bytes available.
      *
-     * TODO: ?? Usually bypass all exceptions from the underlying source.
+     * This method copy bytes from source to [buffer] from [startIndex] to [startIndex] + `return-value`. Other bytes
+     * won't be touched.
      *
-     * @return number of bytes were copied or `0` if no more input is available.
+     * @return number of bytes were filled(`[endIndex] - [startIndex]` at most) or `0` if no more input is available.
      */
-    protected abstract fun fill(buffer: Buffer): Int
+    protected abstract fun fill(buffer: Buffer, startIndex: Int = 0, endIndex: Int = buffer.size - startIndex): Int
 
     /**
      * Read next bytes into the [destinations].
@@ -273,50 +334,19 @@ public abstract class Input : Closeable {
     protected open fun fill(destinations: Array<Buffer>): Int = destinations.sumBy { fill(it) }
 
     /**
-     * Allows direct read from a buffer, operates on offset+size, returns number of bytes consumed.
-     * NOTE: Dangerous to use, if non-local return then position will not be updated.
-     *
-     * @throws EOFException if no more bytes can be read.
+     * Closes the underlying source of data used by this input.
+     * This method is invoked once the input is [closed][close].
      */
-    internal inline fun readBufferLength(reader: (Buffer, offset: Int, size: Int) -> Int): Int {
-        if (position == limit) {
-            if (fetchBuffer() == 0) {
-                throw EOFException("End of file while reading buffer")
-            }
-        }
-        val consumed = reader(buffer, position, limit - position)
-        position += consumed
-        return consumed
-    }
-
-    /**
-     * Allows direct read from a buffer, operates on startOffset + endOffset (exclusive), returns new position.
-     * NOTE: Dangerous to use, if non-local return then position will not be updated.
-     *
-     * @throws EOFException if no more bytes can be read.
-     */
-    internal inline fun readBufferRange(reader: (Buffer, startOffset: Int, endOffset: Int) -> Int) {
-        var startOffset = position
-        var endOffset = limit
-        if (startOffset == endOffset) {
-            if (fetchBuffer() == 0)
-                throw EOFException("End of file while reading buffer")
-            startOffset = 0
-            endOffset = limit
-        }
-        val newPosition = reader(buffer, startOffset, endOffset)
-        position = newPosition
-    }
+    protected abstract fun closeSource()
 
     /**
      * Reads a primitive of [primitiveSize] either directly from a buffer with [readDirect]
      * or byte-by-byte into a Long and using [fromLong] to convert to target type.
      */
-    private inline fun <T> readPrimitive(
+    internal fun readPrimitive(
         primitiveSize: Int,
-        readDirect: (buffer: Buffer, offset: Int) -> T,
-        fromLong: (Long) -> T
-    ): T {
+        readDirect: (buffer: Buffer, offset: Int) -> Long
+    ): Long {
         val currentPosition = position
         val currentLimit = limit
         val targetLimit = currentPosition + primitiveSize
@@ -329,8 +359,9 @@ public abstract class Input : Closeable {
         if (currentLimit == currentPosition) {
             // current buffer exhausted and we also don't have bytes left to be read
             // so we should fetch new buffer of data and may be read entire primitive
-            if (fetchBuffer() == 0)
+            if (fetchCachedOrFill() == 0) {
                 throw EOFException("End of file while reading buffer")
+            }
 
             // we know we are at zero position here, but limit & buffer could've changed, so can't use cached value
             if (limit >= primitiveSize) {
@@ -340,93 +371,178 @@ public abstract class Input : Closeable {
         }
 
         // Nope, doesn't fit in a buffer, read byte by byte
-        var long = 0L
+        var result = 0L
         readBytes(primitiveSize) {
-            long = (long shl 8) or it.toLong()
+            result = (result shl 8) or it.toLong()
         }
-        return fromLong(long)
+
+        return result
     }
 
     /**
      * Reads [size] unsigned bytes from an Input and calls [consumer] on each of them.
      * @throws EOFException if no more bytes available.
      */
-    private inline fun readBytes(size: Int, consumer: (unsignedByte: Int) -> Unit) {
+    private fun readBytes(size: Int, consumer: (unsignedByte: Int) -> Unit) {
         var remaining = size
+
+        var current = position
+        var currentLimit = limit
         while (remaining > 0) {
-            if (position == limit) {
-                if (fetchBuffer() == 0) {
+            if (current == currentLimit) {
+                if (fetchCachedOrFill() == 0) {
                     throw EOFException("End of file while reading buffer")
                 }
+
+                current = position
+                currentLimit = limit
             }
-            consumer(buffer.loadByteAt(position++).toInt() and 0xFF)
+
+            val byte = buffer.loadByteAt(current).toInt() and 0xFF
+            consumer(byte)
+
+            current++
             remaining--
         }
+
+        position = current
+        limit = currentLimit
+    }
+
+    /**
+     * Allows direct read from a buffer, operates on startOffset + endOffset (exclusive), returns new position.
+     * NOTE: Dangerous to use, if non-local return then position will not be updated.
+     *
+     * @return consumed bytes count
+     */
+    internal fun readBufferRange(reader: (Buffer, startOffset: Int, endOffset: Int) -> Int): Int {
+        if (position == limit && fetchCachedOrFill() == 0) {
+            return 0
+        }
+
+        val newPosition = reader(buffer, position, limit)
+        val result = newPosition - position
+        position = newPosition
+        return result
+    }
+
+    /**
+     * Copy buffered bytes to [destination]. If no bytes buffered it will block until [fill] is finished.
+     *
+     * @return transferred bytes count.
+     */
+    private fun copyAvailableTo(destination: Output): Int = destination.writeBuffer { buffer, startIndex, endIndex ->
+        startIndex + copyAvailableTo(buffer, startIndex, endIndex)
+    }
+
+    /**
+     * Copy buffered bytes to [destination]. If no bytes buffered it will call [fill] on [destination] directly.
+     *
+     * @return transferred bytes count.
+     */
+    private fun copyAvailableTo(destination: Buffer, startIndex: Int, endIndex: Int): Int {
+        if (position == limit && fetchCachedOrFill() == 0) {
+            return 0
+        }
+
+        val length = min(endIndex - startIndex, limit - position)
+        buffer.copyTo(destination, position, length, startIndex)
+        position += length
+
+        return length
     }
 
     /**
      * Prepares this Input for reading from the next buffer, either by filling it from the underlying source
-     * or loading from a [previewBytes] after a [preview] operation or if reading from pre-supplied [Bytes]
+     * or loading from a [previewBytes] after a [preview] operation or if reading from pre-supplied [Bytes].
      *
-     * Current [buffer] should be exhausted at this moment, i.e. [position] should be equal to [limit]
+     * Current [buffer] should be exhausted at this moment, i.e. [position] should be equal to [limit].
      */
-    private fun fetchBuffer(): Int {
-        // TODO properly clarify exception message
-        check(position == limit) {
-            // trying to fetch a buffer when previous buffer was not exhausted is an internal error
-            "Throwing bytes away."
-        }
-
+    private fun fetchCachedOrFill(): Int {
         val discard = previewDiscard
-        val bytes = previewBytes ?: if (discard) {
-            // fast path, no preview operation, reuse current buffer for new data
-            val fetched = fill(buffer)
-            limit = fetched
-            position = 0
-            return fetched
-        } else {
-            // we are collecting bytes, so need to put current buffer to maintain invariant
-            Bytes(bufferPool).also {
-                previewBytes = it
-                it.append(buffer, limit)
-            }
-        }
+        val preview = previewBytes
 
         if (discard) {
-            bufferPool.recycle(buffer)
-            bytes.discardFirst()
-            if (bytes.isEmpty()) {
-                bytes.close()
-                previewBytes = null
-                return fillBuffer(bufferPool.borrow())
+            if (preview == null) {
+                return fillFromSource()
             }
 
-            val oldLimit = limit
-            this.buffer = bytes.pointed(Bytes.StartPointer) { limit -> this.limit = limit }
-            position = 0
-            return limit
+            return fetchFromPreviewAndDiscard(preview)
         }
 
-        val nextIndex = bytes.advancePointer(previewIndex)
+        val bytes = preview ?: startPreview()
+        return readThroughPreview(bytes)
+    }
+
+    /**
+     * Instantiate [previewBytes] and fill it.
+     */
+    private fun startPreview(): Bytes {
+        val bytes = Bytes(bufferPool).apply {
+            append(buffer, limit)
+        }
+
+        previewBytes = bytes
+        return bytes
+    }
+
+    /**
+     * Fetch buffer from [bytes].
+     * The [bytes] shouldn't be empty.
+     */
+    private fun fetchFromPreviewAndDiscard(bytes: Bytes): Int {
+        bufferPool.recycle(buffer)
+        bytes.discardFirst()
+
+        if (bytes.isEmpty()) {
+            previewBytes = null
+            return fillFromSource()
+        }
+
+        bytes.pointed(0) { newBuffer, newLimit ->
+            position = 0
+            buffer = newBuffer
+            limit = newLimit
+        }
+
+        return limit
+    }
+
+    private fun readThroughPreview(bytes: Bytes): Int {
+        val nextIndex = previewIndex + 1
+
         if (bytes.isAfterLast(nextIndex)) {
-            val fetched = fillBuffer(bufferPool.borrow())
-            bytes.append(buffer, limit)
+            val fetched = fillFromSource() // received data can be empty
+            bytes.append(buffer, limit) // buffer can be empty
             previewIndex = nextIndex
             return fetched
         }
 
         // we have a buffer already in history, i.e. replaying history inside another preview
-        this.buffer = bytes.pointed(nextIndex) { limit -> this.limit = limit }
-        this.position = 0
+        bytes.pointed(nextIndex) { buffer, limit ->
+            this.buffer = buffer
+            this.limit = limit
+        }
+
+        position = 0
         previewIndex = nextIndex
         return limit
     }
 
-    private fun fillBuffer(buffer: Buffer): Int {
-        val fetched = fill(buffer)
+    private fun fillFromSource(): Int {
+        val source = bufferPool.borrow()
+        val fetched = fill(source)
         limit = fetched
         position = 0
-        this.buffer = buffer
+        buffer = source
         return fetched
+    }
+
+    /**
+     * Calculates how many bytes remaining in current preview instance.
+     */
+    internal fun remainingCacheSize(): Int {
+        val previewSize = previewBytes?.size(previewIndex) ?: limit
+        return previewSize - position
     }
 }

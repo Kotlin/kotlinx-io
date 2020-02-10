@@ -12,9 +12,9 @@ class InputReadingBenchmark {
 
             override fun closeSource() {}
 
-            override fun fill(buffer: Buffer): Int {
+            override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
                 val size = buffer.size
-                for (index in 0 until size) {
+                for (index in startIndex until endIndex) {
                     buffer.storeByteAt(index, value++.toByte())
                 }
                 return size

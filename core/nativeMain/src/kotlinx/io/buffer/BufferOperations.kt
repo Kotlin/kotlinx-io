@@ -35,7 +35,6 @@ public actual fun Buffer.copyTo(destination: Buffer, offset: Int, length: Int, d
             )
         }
     }
-
 }
 
 /**
@@ -144,4 +143,19 @@ public actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block
     }
 
     return block(buffer)
+}
+
+/**
+ * Compact [Buffer].
+ * Move content from [startIndex] to [endIndex] exclusive to beginning of the buffer.
+ *
+ * @return [endIndex] - [startIndex] (copied bytes count).
+ */
+internal actual fun Buffer.compact(startIndex: Int, endIndex: Int): Int {
+    val length = endIndex - startIndex
+    usePointer {
+        memmove(it, it + startIndex, length.convert())
+    }
+
+    return length
 }

@@ -1,7 +1,6 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import java.lang.IllegalStateException
 
 public actual object Console {
 
@@ -12,29 +11,29 @@ public actual object Console {
 
 private object SystemIn : Input() {
 
-    override fun fill(buffer: Buffer): Int {
+    override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
         /*
          * Implementation is optimized for the **default** System.in that
          * is buffered and provides precise information about available bytes.
          */
         val sin = System.`in`
-        var filled = 0
+        var current = startIndex
         if (sin.available() <= 0) {
             val byte = sin.read().toByte()
             if (byte < 0) {
-                return filled
+                return current - startIndex
             }
-            buffer[filled++] = byte
+            buffer[current++] = byte
         }
 
         repeat(sin.available()) {
             val byte = sin.read().toByte()
             if (byte < 0) {
-                return filled
+                return current
             }
-            buffer[filled++] = byte
+            buffer[current++] = byte
         }
-        return filled
+        return current - startIndex
     }
 
     override fun closeSource() {
@@ -45,9 +44,9 @@ private object SystemIn : Input() {
 
 private object SystemOut : Output() {
 
-    override fun flush(source: Buffer, length: Int) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
         val out = System.out
-        for (i in 0 until length) {
+        for (i in startIndex until endIndex) {
             out.write(source[i].toInt())
         }
         out.flush()
@@ -61,9 +60,9 @@ private object SystemOut : Output() {
 
 private object SystemErr : Output() {
 
-    override fun flush(source: Buffer, length: Int) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
         val out = System.err
-        for (i in 0 until length) {
+        for (i in startIndex until endIndex) {
             out.write(source[i].toInt())
         }
         out.flush()

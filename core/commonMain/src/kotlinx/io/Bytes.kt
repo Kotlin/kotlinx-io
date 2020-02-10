@@ -2,6 +2,7 @@ package kotlinx.io
 
 import kotlinx.io.buffer.*
 import kotlinx.io.pool.*
+import kotlin.contracts.*
 
 internal typealias BytesPointer = Int
 
@@ -20,10 +21,10 @@ internal typealias BytesPointer = Int
  * 3. example
  */
 class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
-    private var buffers: Array<Buffer?> = arrayOfNulls(initialPreviewSize)
-    private var limits: IntArray = IntArray(initialPreviewSize)
-    private var head: Int = 0
-    private var tail: Int = 0
+    internal var buffers: Array<Buffer?> = arrayOfNulls(initialPreviewSize)
+    internal var limits: IntArray = IntArray(initialPreviewSize)
+    internal var head: Int = 0
+    internal var tail: Int = 0
 
     /**
      * Calculate size of [Bytes].
@@ -33,9 +34,9 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
     /**
      * Create [Input] view on content.
      */
-    fun input(): Input = object : Input(this@Bytes) {
+    fun input(): Input = object : Input(this@Bytes, bufferPool) {
+        override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int = 0
         override fun closeSource() {}
-        override fun fill(buffer: Buffer): Int = 0
     }
 
     override fun toString() = "Bytes($head..$tail)"
@@ -80,28 +81,17 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
         head++
     }
 
-    internal inline fun pointed(pointer: BytesPointer, consumer: (Int) -> Unit): Buffer {
-        // Buffer is returned and not sent to `consumer` because we need to initialize field in Input's constructor
-        val index = pointer + head
-        val buffer = buffers[index] ?: throw NoSuchElementException("There is no buffer at pointer $pointer")
-        val limit = limits[index]
-        consumer(limit)
-        return buffer
-    }
-
     internal fun limit(pointer: BytesPointer): Int = limits[pointer + head]
-
-    internal fun advancePointer(pointer: BytesPointer): BytesPointer = pointer + 1
 
     internal fun isEmpty() = tail == head
 
     internal fun isAfterLast(index: BytesPointer) = head + index >= tail
 
     internal fun size(pointer: BytesPointer): Int {
-        // ???: if Input.ensure operations are frequent enough, consider storing running size in yet another int array
         var sum = 0
-        for (index in (pointer + head) until tail)
+        for (index in (pointer + head) until tail) {
             sum += limits[index]
+        }
         return sum
     }
 
@@ -111,4 +101,18 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
 
         private const val initialPreviewSize = 1
     }
+}
+
+/**
+ * Get [Buffer] and limit according to [pointer] offset in [Bytes.buffers].
+ */
+internal inline fun Bytes.pointed(pointer: Int, consumer: (buffer: Buffer, limit: Int) -> Unit) {
+    contract {
+        callsInPlace(consumer, kind = InvocationKind.EXACTLY_ONCE)
+    }
+
+    val index = pointer + head
+    val buffer = buffers[index] ?: throw NoSuchElementException("There is no buffer at pointer $pointer.")
+    val limit = limits[index]
+    consumer(buffer, limit)
 }

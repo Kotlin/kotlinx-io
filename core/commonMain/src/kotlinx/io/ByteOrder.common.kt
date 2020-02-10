@@ -19,7 +19,7 @@ public expect enum class ByteOrder {
         /**
          * The native byte order of the underlying platform.
          */
-        public val native : ByteOrder
+        public val native: ByteOrder
     }
 }
 
