@@ -46,7 +46,7 @@ class LimitingInputTest {
                 closed = true
             }
 
-            override fun fill(buffer: Buffer): Int {
+            override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
                 return 0
             }
         }

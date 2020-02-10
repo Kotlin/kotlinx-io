@@ -35,7 +35,6 @@ public actual fun Buffer.copyTo(destination: Buffer, offset: Int, length: Int, d
             )
         }
     }
-
 }
 
 /**
@@ -79,7 +78,7 @@ internal fun Long.toBigEndian(): Long = when (PLATFORM_BIG_ENDIAN) {
 }
 
 /**
- * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ * Fills the memory range starting at the specified [offset] with [value] repeated [count] times.
  */
 public actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
     requirePositiveIndex(offset, "offset")
@@ -92,7 +91,7 @@ public actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
 }
 
 /**
- * Copy content bytes to the memory addressed by the [destination] pointer with
+ * Copies the content bytes to the memory addressed by the [destination] pointer with
  * the specified [destinationOffset] in bytes.
  */
 public fun Buffer.copyTo(
@@ -112,7 +111,7 @@ public fun Buffer.copyTo(
 }
 
 /**
- * Copy [length] bytes to the [destination] at the specified [destinationOffset]
+ * Copies the [length] bytes to the [destination] at the specified [destinationOffset]
  * from the memory addressed by this pointer with [offset] in bytes.
  */
 public fun CPointer<ByteVar>.copyTo(destination: Buffer, offset: Int, length: Int, destinationOffset: Int) {
@@ -127,7 +126,7 @@ public fun CPointer<ByteVar>.copyTo(destination: Buffer, offset: Int, length: In
 }
 
 /**
- * Execute [block] of code providing a temporary instance of [Buffer] view of this byte array range
+ * Executes the [block] of code providing a temporary instance of [Buffer] view of this byte array range
  * starting at the specified [offset] and having the specified bytes [length].
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Buffer] provided into the [block] should be never captured and used outside of lambda.
@@ -144,4 +143,19 @@ public actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block
     }
 
     return block(buffer)
+}
+
+/**
+ * Compacts the [Buffer]. Move content from ([startIndex], [endIndex]) range to (0, 'endIndex - startIndex') range.
+ * The copying ranges can overlap.
+ *
+ * @return [endIndex] - [startIndex] (copied bytes count) or updated [endIndex]
+ */
+internal actual fun Buffer.compact(startIndex: Int, endIndex: Int): Int {
+    val length = endIndex - startIndex
+    usePointer {
+        memmove(it, it + startIndex, length.convert())
+    }
+
+    return length
 }

@@ -74,7 +74,7 @@ public fun Buffer.copyTo(destination: Buffer, offset: Long, length: Long, destin
 )
 
 /**
- * Copy buffer content with specified [length] from [offset] to new [ByteArray].
+ * Copies buffer content with specified [length] from [offset] to new [ByteArray].
  */
 public fun Buffer.toByteArray(offset: Int, length: Int): ByteArray {
     val result = ByteArray(length)
@@ -83,9 +83,17 @@ public fun Buffer.toByteArray(offset: Int, length: Int): ByteArray {
 }
 
 /**
- * Execute [block] of code providing a temporary instance of [Buffer] view of this byte array range
+ * Executes [block] of code providing a temporary instance of [Buffer] view of this byte array range
  * starting at the specified [offset] and having the specified bytes [length].
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Buffer] provided into the [block] should be never captured and used outside of lambda.
  */
 public expect fun <R> ByteArray.useBuffer(offset: Int = 0, length: Int = size - offset, block: (Buffer) -> R): R
+
+/**
+ * Compacts the [Buffer]. Move content from ([startIndex], [endIndex]) range to (0, 'endIndex - startIndex') range.
+ * The copying ranges can overlap.
+ *
+ * @return [endIndex] - [startIndex] (copied bytes count) or updated [endIndex]
+ */
+internal expect fun Buffer.compact(startIndex: Int, endIndex: Int): Int

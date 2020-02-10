@@ -4,7 +4,6 @@ package kotlinx.io.buffer
 
 import kotlinx.io.internal.*
 import java.nio.*
-import java.nio.ByteOrder
 import kotlin.contracts.*
 
 /**
@@ -106,7 +105,7 @@ fun Buffer.copyTo(destination: ByteBuffer, offset: Long) {
 }
 
 /**
- * Copy byte from this buffer moving it's position to the [destination] at [offset].
+ * Copies byte from this buffer moving it's position to the [destination] at [offset].
  */
 fun ByteBuffer.copyTo(destination: Buffer, offset: Int) {
     if (hasArray() && !isReadOnly) {
@@ -135,7 +134,7 @@ internal fun ByteBuffer.sliceSafe(offset: Int, length: Int): ByteBuffer {
 }
 
 /**
- * Fill buffer range starting at the specified [offset] with [value] repeated [count] times.
+ * Fills the buffer range starting at the specified [offset] with [value] repeated [count] times.
  */
 actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
     for (index in offset until offset + count) {
@@ -144,7 +143,7 @@ actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
 }
 
 /**
- * Execute [block] of code providing a temporary instance of [Buffer] view of this byte array range
+ * ExecuteS THE [block] of code providing a temporary instance of [Buffer] view of this byte array range
  * starting at the specified [offset] and having the specified bytes [length].
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Buffer] provided into the [block] should be never captured and used outside of lambda.
@@ -158,4 +157,24 @@ actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block: (Buff
         ByteBuffer.wrap(this, offset, length)
             .slice().order(ByteOrder.BIG_ENDIAN)
     ).let(block)
+}
+
+/**
+ * Compacts the [Buffer]. Move content from ([startIndex], [endIndex]) range to (0, 'endIndex - startIndex') range.
+ * The copying ranges can overlap.
+ *
+ * @return [endIndex] - [startIndex] (copied bytes count) or updated [endIndex]
+ */
+internal actual fun Buffer.compact(startIndex: Int, endIndex: Int): Int {
+    if (startIndex == 0) {
+        return endIndex
+    }
+
+    buffer.apply {
+        position(startIndex)
+        limit(endIndex)
+        compact()
+    }
+
+    return buffer.limit()
 }

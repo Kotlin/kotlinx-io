@@ -1,8 +1,8 @@
 plugins {
     id "kotlin-multiplatform"
     id "maven-publish"
-    id "kotlinx-atomicfu"
     id "jacoco"
+    id 'org.jetbrains.dokka' version '0.10.1'
 }
 
 def ideaActive = System.getProperty('idea.active') == 'true'
@@ -129,6 +129,11 @@ kotlin {
             publication.artifact emptyJavadoc
         }
     }
+}
+
+dokka {
+    outputFormat = 'gfm'
+    outputDirectory = "$buildDir/dokka"
 }
 
 jacoco {

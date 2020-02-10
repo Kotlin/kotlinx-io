@@ -1,8 +1,8 @@
 package kotlinx.io
 
 /**
- * Console incorporates all system inputs and outputs in a multiplatform manner.
- * All sources are open by default, ready to read from/write to and cannot be closed.
+ * [Console] incorporates all system inputs and outputs in a multiplatform manner.
+ * All sources are open by default, ready to read from/write to, and cannot be closed.
  */
 public expect object Console {
     /**

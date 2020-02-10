@@ -1,4 +1,4 @@
-package kotlinx.io
+package kotlinx.io.bytes
 
 import kotlinx.io.*
 import kotlinx.io.text.*
@@ -13,7 +13,7 @@ class BytesTest {
             val array = ByteArray(2)
             array[0] = 0x11
             array[1] = 0x22
-            writeArray(array)
+            writeByteArray(array)
 
             writeByte(0x12)
             writeUByte(0x82u)
@@ -26,12 +26,12 @@ class BytesTest {
 
             writeUtf8String("OK\n")
         }
+        val input = bytes.input()
 
         assertEquals(2 + 2 + 2 + 4 + 8 + 4 + 8 + 8 + 3, bytes.size())
 
-        val input = bytes.input()
         val ba = ByteArray(2)
-        input.readArray(ba)
+        input.readByteArray(ba)
 
         assertEquals(0x11, ba[0])
         assertEquals(0x22, ba[1])
@@ -53,7 +53,7 @@ class BytesTest {
     @Test
     fun testSmokeMultiBuffer() {
         buildBytes {
-            writeArray(ByteArray(9999))
+            writeByteArray(ByteArray(9999))
             writeByte(0x12)
             writeShort(0x1234)
             writeInt(0x12345678)
@@ -65,7 +65,7 @@ class BytesTest {
             val text = listOf(1, 2, 3).joinToString(separator = "|")
             writeUtf8String("$text\n")
         }.useInput {
-            readArray(ByteArray(9999))
+            readByteArray(ByteArray(9999))
             assertEquals(0x12, readByte())
             assertEquals(0x1234, readShort())
             assertEquals(0x12345678, readInt())
@@ -82,20 +82,19 @@ class BytesTest {
     @Test
     fun testSingleBufferSkipTooMuch() {
         buildBytes {
-            writeArray(ByteArray(9999))
-        }.use { buffer ->
-            val input = buffer.input()
-            input.readArray(ByteArray(9999))
-            assertTrue { input.eof() }
+            writeByteArray(ByteArray(9999))
+        }.useInput {
+            readByteArray(ByteArray(9999))
+            assertTrue { eof() }
         }
     }
 
     @Test
     fun testSingleBufferSkip() {
         buildBytes {
-            writeArray("ABC123\n".toByteArray0())
+            writeByteArray("ABC123\n".toByteArray0())
         }.useInput {
-            readArray(ByteArray(3))
+            readByteArray(ByteArray(3))
             assertEquals("123", readUtf8Line())
             assertTrue { eof() }
         }
@@ -104,9 +103,9 @@ class BytesTest {
     @Test
     fun testSingleBufferSkipExact() {
         buildBytes {
-            writeArray("ABC123".toByteArray0())
+            writeByteArray("ABC123".toByteArray0())
         }.useInput {
-            readArray(ByteArray(3))
+            readByteArray(ByteArray(3))
             assertEquals("123", readUtf8String(3))
             assertTrue { eof() }
         }
@@ -115,21 +114,21 @@ class BytesTest {
     @Test
     fun testSingleBufferSkipExactTooMuch() {
         buildBytes {
-            writeArray("ABC123".toByteArray0())
+            writeByteArray("ABC123".toByteArray0())
         }.useInput {
             assertFailsWith<EOFException> {
-                readArray(ByteArray(1000))
+                readByteArray(ByteArray(1000))
             }
             assertTrue { eof() }
         }
     }
 
     @Test
-    @Ignore
     fun testMultiBufferSkipTooMuch() {
         buildBytes {
-            writeArray(ByteArray(99999))
+            writeByteArray(ByteArray(99999))
         }.useInput {
+            discard(99999)
             assertTrue { eof() }
         }
 
@@ -138,10 +137,10 @@ class BytesTest {
     @Test
     fun testMultiBufferSkip() {
         buildBytes {
-            writeArray(ByteArray(99999))
-            writeArray("ABC123\n".toByteArray0())
+            writeByteArray(ByteArray(99999))
+            writeByteArray("ABC123\n".toByteArray0())
         }.useInput {
-            readArray(ByteArray(99999 + 3))
+            readByteArray(ByteArray(99999 + 3))
             assertEquals("123", readUtf8Line())
             assertTrue { eof() }
         }
@@ -154,7 +153,7 @@ class BytesTest {
                 writeByte(1)
             }
         }.useInput {
-            readArray(ByteArray(PACKET_BUFFER_SIZE - 1))
+            readByteArray(ByteArray(PACKET_BUFFER_SIZE - 1))
             assertEquals(0x01010101, readInt())
             assertTrue { eof() }
         }
@@ -167,7 +166,7 @@ class BytesTest {
                 writeByte(1)
             }
         }.useInput {
-            readArray(ByteArray(PACKET_BUFFER_SIZE - 1))
+            readByteArray(ByteArray(PACKET_BUFFER_SIZE - 1))
 
             try {
                 readInt()

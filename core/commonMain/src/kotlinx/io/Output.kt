@@ -6,25 +6,20 @@ import kotlinx.io.pool.*
 /**
  * [Output] is an abstract base for writable streams of bytes over some sink.
  *
- * [Output] is buffered. Buffer size depends on [Buffer.size] in the [bufferPool] buffer.
- * Buffer size is [DEFAULT_BUFFER_SIZE] by default. Buffer can be flushed using [flush] method.
+ * [Output] is buffered. Buffer size depends on [Buffer.size] in the [pool] buffer.
+ * Buffer size is [DEFAULT_BUFFER_SIZE] by default. Buffer can be flushed using [flush()].
  *
- * To implement [Output] over a custom sink you should override only [fill] method.
+ * To implement [Output] over a custom sink, you should override only [fill] method.
  */
-abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
-    /**
-     * Pool for obtaining buffers for operations.
-     */
-    protected val bufferPool: ObjectPool<Buffer> = if (bufferSize == DEFAULT_BUFFER_SIZE) {
-        DefaultBufferPool.Instance
-    } else {
-        DefaultBufferPool(bufferSize)
-    }
+public abstract class Output(
+    protected val pool: ObjectPool<Buffer> = DefaultBufferPool.Instance
+) : Closeable {
+    internal val bufferPool: ObjectPool<Buffer> get() = pool
 
     /**
      * Current buffer.
      */
-    private var buffer: Buffer = bufferPool.borrow()
+    private var buffer: Buffer = pool.borrow()
 
     /**
      * Write position in [buffer].
@@ -32,9 +27,9 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     private var position: Int = 0
 
     /**
-     * Write a [value] to this [Input].
+     * Write byte to this [Input].
      */
-    fun writeByte(value: Byte) {
+    public fun writeByte(value: Byte) {
         val offset = position
         val size = buffer.size
         val targetLimit = offset + 1
@@ -49,53 +44,33 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     }
 
     /**
-     * Write a [value] to this [Input].
+     * Bypass [data] from the [startOffset] to [endOffset] by using [Output.flush].
+     * If [Output] is not empty, all data will be flushed beforehand.
      */
-    fun writeShort(value: Short) {
-        writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }, { value.toLong() })
-    }
+    public fun writeBuffer(data: Buffer, startIndex: Int = 0, endIndex: Int = data.size) {
+        checkBufferAndIndexes(data, startIndex, endIndex)
 
-    /**
-     * Write a [value] to this [Input].
-     */
-    fun writeInt(value: Int) {
-        writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }, { value.toLong() })
-    }
-
-    /**
-     * Write a [value] to this [Input].
-     */
-    fun writeLong(value: Long) {
-        writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }) { value }
-    }
-
-    /**
-     * Write an [array] to this [Input].
-     *
-     * TODO: measure
-     */
-    fun writeArray(array: ByteArray) {
-        for (byte in array) {
-            writeByte(byte)
+        if (position != 0) {
+            flushBuffer()
         }
+
+        flush(data, startIndex, endIndex)
     }
 
     /**
      * Write all buffered bytes to underlying sink.
      */
-    fun flush() {
+    public fun flush() {
+        if (position == 0) {
+            return
+        }
+
         flushBuffer()
     }
 
     /**
-     * Closes the underlying source of data used by this output.
-     * This method is invoked once the output is [closed][close].
-     */
-    protected abstract fun closeSource()
-
-    /**
      * Closes the current output, flushing all buffered data to the underlying source
-     * and [closing][closeSource] it
+     * and [closing][closeSource] it.
      */
     public final override fun close() {
         val flushException = runCatching { flush() }.exceptionOrNull()
@@ -113,32 +88,46 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
     }
 
     /**
-     * Write [source] buffer to destination.
+     * Write the [source] buffer from [startIndex] to [endIndex] exclusive to destination.
      *
-     * May block until destination has no available space.
+     * This method won't modify [source] and will block until all bytes from [source] won't be flushed.
      */
-    protected abstract fun flush(source: Buffer, length: Int)
+    protected abstract fun flush(source: Buffer, startIndex: Int, endIndex: Int)
+
+    /**
+     * Closes the underlying source of data used by this output.
+     * This method is invoked once the output is [closed][close].
+     */
+    protected abstract fun closeSource()
 
     private fun flushBuffer() {
-        flush(buffer, position)
-        buffer = bufferPool.borrow()
+        flush(buffer, 0, position)
+        buffer = pool.borrow()
         position = 0
     }
 
-    internal inline fun writeBufferRange(writer: (buffer: Buffer, startOffset: Int, endOffset: Int) -> Int) {
-        var startOffset = position
-        var endOffset = buffer.size - 1
-        if (startOffset > endOffset) {
+    /**
+     * Calls [writer] block to pefrorm write from [bufferStart] to [bufferEnd].
+     * The [writer] expected to return a new [buffer] position.
+     *
+     * @return number of written bytes.
+     */
+    internal inline fun writeBuffer(writer: (buffer: Buffer, bufferStart: Int, bufferEnd: Int) -> Int): Int {
+        if (position == buffer.size) {
             flushBuffer()
-            startOffset = position
-            endOffset = buffer.size - 1
         }
 
-        val newPosition = writer(buffer, startOffset, endOffset)
+        val newPosition = writer(buffer, position, buffer.size)
+        val result = newPosition - position
         position = newPosition
+        return result
     }
 
-    private inline fun writePrimitive(
+    internal fun size(): Int {
+        return position
+    }
+
+    internal inline fun writePrimitive(
         primitiveSize: Int,
         writeDirect: (buffer: Buffer, offset: Int) -> Unit,
         longValue: () -> Long
@@ -153,9 +142,9 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
         }
 
         if (offset == size) {
-            // current buffer exhausted, we cannot expand data in this buffer, 
-            // and we also don't have bytes left to be read
-            // so we should fetch new buffer of data and may be read entire primitive
+            // The current buffer is exhausted. We cannot expand data in this buffer,
+            // and we also don't have bytes left to be read,
+            // so we should fetch a new buffer of data and may be read entire primitive
             flushBuffer()
             // we know we are at zero position here
             if (size >= primitiveSize) {
@@ -164,7 +153,7 @@ abstract class Output(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Closeable {
             }
         }
 
-        // Nope, doesn't fit in a buffer, read byte by byte
+        // Nope, doesn't fit in a buffer, write byte by byte
         writeBytes(primitiveSize, longValue())
     }
 

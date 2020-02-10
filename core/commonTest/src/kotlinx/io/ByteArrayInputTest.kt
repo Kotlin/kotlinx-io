@@ -1,6 +1,5 @@
 package kotlinx.io
 
-import kotlinx.io.*
 import kotlinx.io.buffer.*
 import kotlin.test.*
 
@@ -96,13 +95,5 @@ class ByteArrayInputTest {
     fun testString() {
         val line = "Hello, world\n"
         assertEquals(line, ByteArrayInput(line.encodeToByteArray()).readByteArray().decodeToString())
-    }
-
-    private fun Input.readByteArray(): ByteArray {
-        val result = ArrayList<Byte>()
-        while (!eof()) {
-            result += readByte()
-        }
-        return result.toByteArray()
     }
 }

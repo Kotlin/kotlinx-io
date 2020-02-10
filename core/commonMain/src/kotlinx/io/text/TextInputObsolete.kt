@@ -4,41 +4,51 @@ import kotlinx.io.*
 
 
 /**
- * @throws MalformedInputException
+ * Read UTF-8 string until [delimiter] to [output].
+ *
+ * @throws MalformedInputException if decoder fail to recognize charset.
  */
-fun Input.readUtf8StringUntilDelimiterTo(stringBuilder: Appendable, delimiter: Char): Int = decodeUtf8Chars {
+public fun Input.readUtf8StringUntilDelimiterTo(output: Appendable, delimiter: Char): Int = decodeUtf8Chars {
     if (it == delimiter) {
         return@decodeUtf8Chars false
     }
-    stringBuilder.append(it)
+    output.append(it)
     true
 }
 
 /**
- * @throws MalformedInputException
+ * Read UTF-8 string until any of the [delimiters] to [output]. The delimiter will be consumed from [Input]
+ * @throws MalformedInputException if decoder fail to recognize charset.
  */
-fun Input.readUtf8StringUntilDelimitersTo(stringBuilder: Appendable, delimiters: String): Int = decodeUtf8Chars {
-    if (it in delimiters)
+public fun Input.readUtf8StringUntilDelimitersTo(output: Appendable, delimiters: String): Int = decodeUtf8Chars {
+    if (it in delimiters) {
         return@decodeUtf8Chars false
-    stringBuilder.append(it)
+    }
+
+    output.append(it)
     true
 }
 
 /**
- * @throws MalformedInputException
+ * Read fixed [length] UTF-8 string to [output].
+ *
+ * @throws MalformedInputException if decoder fail to recognize charset.
  */
-fun Input.readUtf8StringTo(out: Appendable, length: Int): Int {
+public fun Input.readUtf8StringTo(output: Appendable, length: Int): Int {
     var remaining = length
     return decodeUtf8Chars {
-        out.append(it)
+        output.append(it)
         --remaining > 0
     }
 }
 
 /**
- * @throws MalformedInputException
+ * Read UTF-8 string to [output] until CRLF("\r\n") chars.
+ *
+ * @throws MalformedInputException if decoder fail to recognize charset.
  */
-fun Input.readUtf8LineTo(out: Appendable) {
+public fun Input.readUtf8LineTo(output: Appendable, limit: Int = Int.MAX_VALUE) {
+    var remaining = limit
     // TODO: consumes char after lonely CR
     var seenCR = false
     decodeUtf8Chars {
@@ -46,38 +56,50 @@ fun Input.readUtf8LineTo(out: Appendable) {
             seenCR = true
             return@decodeUtf8Chars true // continue & skip
         }
-        if (it == '\n')
+
+        if (it == '\n') {
             return@decodeUtf8Chars false // stop & skip
-        else if (seenCR)
-            return@decodeUtf8Chars false // lonely CR, stop & skip
-        out.append(it)
-        true
+        } else if (seenCR) {
+            return@decodeUtf8Chars false
+        } // lonely CR, stop & skip
+
+        output.append(it)
+        remaining--
+        remaining > 0
     }
 }
 
 /**
- * @throws MalformedInputException
+ * Read fixed [length] UTF-8 string.
+ *
+ * @throws MalformedInputException if decoder fail to recognize charset.
  */
-fun Input.readUtf8String(length: Int): String = buildString(length) {
+public fun Input.readUtf8String(length: Int): String = buildString(length) {
     readUtf8StringTo(this, length)
 }
 
 /**
- * @throws MalformedInputException
+ * Read UTF-8 string until [delimiter].
+ *
+ * @throws MalformedInputException if decoder fail to recognize charset.
  */
-fun Input.readUtf8StringUntilDelimiter(delimiter: Char): String = buildString {
+public fun Input.readUtf8StringUntilDelimiter(delimiter: Char): String = buildString {
     readUtf8StringUntilDelimiterTo(this, delimiter)
 }
 
 /**
- * @throws MalformedInputException
+ * Read UTF-8 string until any of the [delimiters].
+ *
+ * @throws MalformedInputException if decoder fail to recognize charset.
  */
-fun Input.readUtf8StringUntilDelimiters(delimiters: String): String = buildString {
+public fun Input.readUtf8StringUntilDelimiters(delimiters: String): String = buildString {
     readUtf8StringUntilDelimitersTo(this, delimiters)
 }
 
 /**
- * @throws MalformedInputException
+ * Feed [consumer] with chars from [Input]. [consumer] returns should we continue to decode.
+ *
+ * @throws MalformedInputException if decoder fail to recognize charset.
  */
 private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
