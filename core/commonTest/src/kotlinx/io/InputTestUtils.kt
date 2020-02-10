@@ -1,50 +1,58 @@
 package kotlinx.io
 
-import kotlinx.io.*
 import kotlinx.io.buffer.*
 import kotlin.random.*
 import kotlin.test.*
 
-fun sequentialInfiniteInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE) = object : Input(bufferSize) {
+
+fun sequentialInfiniteInput(
+    fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE
+): Input = object : Input(DefaultBufferPool(bufferSize)) {
     private var value = 0L
     private var sliceRandom = Random(fillSize)
 
     override fun closeSource() {}
 
-    override fun fill(buffer: Buffer): Int {
+    override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
         val readLength = sliceRandom.nextInt(buffer.size) + 1
         var index = 0
         while (index < readLength) {
-            buffer.storeByteAt(index++, value.toByte())
+            buffer.storeByteAt(startIndex + index++, value.toByte())
             value++
         }
         return index
     }
 }
 
-fun sequentialLimitedInput(fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE, bytes: Int, seed: Long = 0L) =
-    object : Input(bufferSize) {
-        private var value = seed
-        private var bytesLeft = bytes
-        private var sliceRandom = Random(fillSize + bytes)
+fun sequentialLimitedInput(
+    fillSize: Int, bufferSize: Int = DEFAULT_BUFFER_SIZE, bytes: Int, seed: Long = 0L
+): Input = object : Input(DefaultBufferPool(bufferSize)) {
+    private var value = seed
+    private var bytesLeft = bytes
+    private var sliceRandom = Random(fillSize + bytes)
 
-        override fun closeSource() {}
+    override fun closeSource() {}
 
-        override fun fill(buffer: Buffer): Int {
-            // Simulate different slices being read, not just length
-            val readLength = sliceRandom.nextInt(buffer.size) + 1
-            if (bytesLeft == 0) return 0
-            var index = 0
-            while (index < readLength) {
-                buffer.storeByteAt(index++, value.toByte())
-                value++
-                bytesLeft--
-                if (bytesLeft == 0)
-                    return index
-            }
-            return index
+    override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
+        // Simulate different slices being read, not just length
+        val readLength = sliceRandom.nextInt(buffer.size) + 1
+        if (bytesLeft == 0) return 0
+        var index = 0
+        while (index < readLength) {
+            buffer.storeByteAt(startIndex + index++, value.toByte())
+            value++
+            bytesLeft--
+            if (bytesLeft == 0)
+                return index
         }
+        return index
     }
+}
+
+class LambdaInput(private val block: (buffer: Buffer, startIndex: Int, endIndex: Int) -> Int) : Input() {
+    override fun closeSource() {}
+    override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int = block(buffer, startIndex, endIndex)
+}
 
 fun Input.assertReadLong(expected: Long) {
     val value = readLong()

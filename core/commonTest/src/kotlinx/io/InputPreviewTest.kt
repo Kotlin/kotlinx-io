@@ -1,6 +1,5 @@
 package kotlinx.io
 
-import kotlinx.io.*
 import kotlin.test.*
 
 class InputPreviewTest {
@@ -89,11 +88,13 @@ class InputPreviewTest {
         assertReadLong(0x1011121314151617)
     }
 
-    private fun withInput(body: Input.() -> Unit) = prefetchSizes.forEach { prefetchSize ->
-        bufferSizes.forEach { size ->
-            val input = sequentialInfiniteInput(fetchSizeLimit, size)
-            assertTrue(input.prefetch(prefetchSize), "Can't prefetch bytes")
-            input.body()
+    private fun withInput(body: Input.() -> Unit) {
+        prefetchSizes.forEach { prefetchSize ->
+            bufferSizes.forEach { size ->
+                val input = sequentialInfiniteInput(fetchSizeLimit, size)
+                assertTrue(input.prefetch(prefetchSize), "Can't prefetch bytes")
+                input.body()
+            }
         }
     }
 }

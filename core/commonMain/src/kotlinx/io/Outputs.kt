@@ -3,14 +3,14 @@ package kotlinx.io
 import kotlinx.io.buffer.*
 
 /**
- * Output which uses byte array as its data storage.
- * Byte array grows automatically as data is written to it and
+ * Output which uses a byte array as its data storage.
+ * Byte array automatically grows as data is written to it and
  * can be accessed with [toByteArray].
- * Initial capacity of the underlying array can be specified with [initialCapacity] parameter.
+ * The initial capacity of the underlying array can be specified with [initialCapacity] parameter.
  *
  * Calling [close][Output.close] on this class has no effect.
  */
-public class ByteArrayOutput(initialCapacity: Int = 16) : Output() {
+public class ByteArrayOutput(initialCapacity: Int = 16) : Output(UnmanagedBufferPool.Instance) {
     init {
         require(initialCapacity > 0) { "Initial capacity should be greater than 0, but has $initialCapacity" }
     }
@@ -21,15 +21,18 @@ public class ByteArrayOutput(initialCapacity: Int = 16) : Output() {
     /**
      * Returns a copy of all bytes that were written to the current output.
      */
-    public fun toByteArray(): ByteArray = array.copyOf(size)
+    public fun toByteArray(): ByteArray {
+        flush()
+        return array.copyOf(size)
+    }
 
     /** @suppress */
-    override fun flush(source: Buffer, length: Int) {
-        ensureCapacity(length)
-        for (i in 0 until length) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+        ensureCapacity(endIndex - startIndex)
+        for (i in startIndex until endIndex) {
             array[size + i] = source[i]
         }
-        size += length
+        size += endIndex
     }
 
     /** @suppress */

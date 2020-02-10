@@ -40,7 +40,7 @@ actual fun Buffer.copyTo(
 }
 
 /**
- * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
+ * Fills memory range starting at the specified [offset] with [value] repeated [count] times.
  */
 actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
     for (index in offset until offset + count) {
@@ -94,7 +94,7 @@ fun ArrayBufferView.copyTo(destination: Buffer, offset: Int, length: Int, destin
 internal val Buffer.Int8ArrayView: Int8Array get() = Int8Array(view.buffer, view.byteOffset, view.byteLength)
 
 /**
- * Execute [block] of code providing a temporary instance of [Memory] view of this byte array range
+ * Executes the [block] of code providing a temporary instance of [Memory] view of this byte array range
  * starting at the specified [offset] and having the specified bytes [length].
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
@@ -107,19 +107,19 @@ actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block: (Buff
 }
 
 /**
- * Create [Memory] view for the specified [view].
+ * Creates the [Memory] view for the specified [view].
  */
 fun Buffer.Companion.of(view: DataView): Buffer = Buffer(view)
 
 /**
- * Create [Memory] view for the specified [buffer] range starting at [offset] and the specified bytes [length].
+ * Creates the [Memory] view for the specified [buffer] range starting at [offset] and the specified bytes [length].
  */
 fun Buffer.Companion.of(buffer: ArrayBuffer, offset: Int = 0, length: Int = buffer.byteLength - offset): Buffer {
     return Buffer.of(DataView(buffer, offset, length))
 }
 
 /**
- * Create [Memory] view for the specified [array] range starting at [offset] and the specified bytes [length].
+ * Creates the [Memory] view for the specified [array] range starting at [offset] and the specified bytes [length].
  */
 fun Buffer.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Buffer {
     @Suppress("UnsafeCastFromDynamic")
@@ -128,8 +128,27 @@ fun Buffer.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.s
 }
 
 /**
- * Create [Memory] view for the specified [view] range starting at [offset] and the specified bytes [length].
+ * Creates the [Memory] view for the specified [view] range starting at [offset] and the specified bytes [length].
  */
 fun Buffer.Companion.of(view: ArrayBufferView, offset: Int = 0, length: Int = view.byteLength): Buffer {
     return Buffer.of(view.buffer, view.byteOffset + offset, length)
+}
+
+/**
+ * Compacts the [Buffer]. Move content from ([startIndex], [endIndex]) range to (0, 'endIndex - startIndex') range.
+ * The copying ranges can overlap.
+ *
+ * @return [endIndex] - [startIndex] (copied bytes count) or updated [endIndex]
+ */
+internal actual fun Buffer.compact(startIndex: Int, endIndex: Int): Int {
+    if (startIndex == 0) {
+        return endIndex
+    }
+
+    val array = Int8ArrayView
+
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray/copyWithin
+    js("array.copyWithin(0, startIndex, endIndex)")
+
+    return endIndex - startIndex
 }

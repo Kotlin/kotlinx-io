@@ -26,4 +26,19 @@ class BufferBasicTest {
             slice.contentEquals(expected)
         }
     }
+
+    @Test
+    fun testCompact() {
+        val first = ByteArray(1022) { 42 }
+        val second = ByteArray(1021) { 16 }
+
+        val buffer = bufferOf(first + second)
+
+        assertTrue {
+            val length = buffer.compact(1022, buffer.size)
+            val result = ByteArray(length)
+            buffer.loadByteArray(0, result)
+            second.contentEquals(second)
+        }
+    }
 }
