@@ -93,6 +93,52 @@ public fun Output.writeUtf8String(text: CharSequence, index: Int = 0, length: In
     flush()
 }
 
+/**
+ * Write single Utf8 [character] to [Output].
+ *
+ * @return count of written bytes
+ * @throws MalformedInputException if [character] is splitted surrogate or invalid.
+ */
+public fun Output.writeUtf8Char(character: Char): Int {
+    // ASCII character
+    if (character <= lastASCII) {
+        writeByte(character.toByte())
+        return 1
+    }
+
+    if (character.isHighSurrogate()) {
+        throw MalformedInputException("Splitted surrogate character: $character")
+    }
+
+    val code = character.toInt()
+
+    return when {
+        code < 0x7ff -> {
+            val byte0 = (0xc0 or ((code shr 6) and 0x1f))
+            val byte1 = (code and 0x3f) or 0x80
+            writeShort(((byte0 shl 8) or byte1).toShort())
+            2
+        }
+        code < 0xffff -> {
+            val byte0 = ((code shr 12) and 0x0f or 0xe0).toByte()
+            val byte1 = ((code shr 6) and 0x3f) or 0x80
+            val byte2 = (code and 0x3f) or 0x80
+            writeByte(byte0)
+            writeShort(((byte1 shl 8) or byte2).toShort())
+            3
+        }
+        code < 0x10ffff -> {
+            val byte0 = ((code shr 18) and 0x07 or 0xf0)
+            val byte1 = ((code shr 12) and 0x3f) or 0x80
+            val byte2 = ((code shr 6) and 0x3f) or 0x80
+            val byte3 = (code and 0x3f) or 0x80
+            writeInt((byte0 shl 24) or (byte1 shl 16) or (byte2 shl 8) or byte3)
+            4
+        }
+        else -> malformedCodePoint(code)
+    }
+}
+
 internal fun codePoint(high: Char, low: Char): Int {
     check(high.isHighSurrogate())
     check(low.isLowSurrogate())
