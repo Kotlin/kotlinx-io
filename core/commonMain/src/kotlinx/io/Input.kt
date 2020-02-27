@@ -7,7 +7,7 @@ import kotlin.math.*
 /**
  * [Input] is an abstract base class for synchronous byte readers.
  *
- * It contains [read*] methods to read primitive types ([readByte], [readInt], ...) and arrays ([readByteArray]).
+ * It contains `read*` methods to read primitive types ([readByte], [readInt], ...) and arrays ([readByteArray]).
  *
  * [Input] is buffered. Buffer size depends on [Buffer.size] in the [bufferPool] buffer.
  * Buffer size is [DEFAULT_BUFFER_SIZE] by default.
@@ -20,21 +20,21 @@ import kotlin.math.*
  *
  * To implement [Input] over a custom source, you should override [fill] and [closeSource] methods:
  * ```
- * class Input42 : Input() {
- *  private var closed: Boolean = false
+ * class ConstantInput : Input() {
+ *     private var closed: Boolean = false
  *
- *   override fun fill(buffer: Buffer): Int {
- *      if (closed) {
- *          return 0
- *      }
+ *     override fun fill(buffer: Buffer): Int {
+ *         if (closed) {
+ *            return 0
+ *         }
  *
- *      buffer.storeByteAt(index = 0, value = 42)
- *      return 1
- *   }
+ *         buffer.storeByteAt(index = 0, value = 42)
+ *         return 1
+ *     }
  *
- *   override fun closeSource() {
- *      closed = true
- *   }
+ *     override fun closeSource() {
+ *         closed = true
+ *     }
  * }
  * ```
  *
@@ -107,20 +107,19 @@ public abstract class Input : Closeable {
     }
 
     /**
-     * Constructs a new Input with the default pool of buffers with the given [bufferSize].
+     * Constructs a new Input with the default pool of buffers.
      */
     protected constructor() : this(DefaultBufferPool.Instance)
 
     /**
-     * Reads the content of this [Input] to [destination] [Output].
+     * Reads the available content in current [Input] to the [destination].
+     * If no bytes are available in the input, [fill] method will be called directly on
+     * the [destination] underlying buffer without an extra copy.
+     * Otherwise, available bytes are copied to the destination.
      *
-     * If there are no bytes in cache(stored from last [fill] or in [preview]), [fill] will be called on the
-     * [destination] buffer directly without an extra copy.
-     *
-     * If there are bytes in cache, it'll be flushed to [destination].
-     *
-     * Please note that if [Input] and [destination] [Output] aren't sharing same [bufferPool]s or [Input] is in
-     * [preview], bytes will be copied.
+     * TODO: fix this one along all the codebase
+     * If [Input] and [Output] have different buffer pools, available bytes are copied and
+     * no direct transfer is performed
      */
     public fun readAvailableTo(destination: Output): Int {
         if (!previewDiscard) {
@@ -128,10 +127,8 @@ public abstract class Input : Closeable {
         }
 
         val preview = previewBytes
-
         // Do we have single byte in cache?
         if (position != limit || preview != null && previewIndex < preview.tail) {
-
             if (bufferPool !== destination.bufferPool) {
                 // Can't share buffers between different pools.
                 return copyAvailableTo(destination)
@@ -142,7 +139,6 @@ public abstract class Input : Closeable {
                 endOffset
             }
         }
-
         // No bytes in cache: fill [destination] buffer direct.
         return destination.writeBuffer { buffer, startIndex, endIndex ->
             startIndex + fill(buffer, startIndex, endIndex)
@@ -150,7 +146,11 @@ public abstract class Input : Closeable {
     }
 
     /**
-     * Attempts to move chunk from this [Input] to the [destination].
+     * Reads the available content in current [Input] to the [destination] buffer.
+     *
+     * If no bytes are available in the input, [fill] method will be called directly on
+     * the [destination] buffer without an extra copy.
+     * Otherwise, available bytes are copied to the destination.
      */
     public fun readAvailableTo(
         destination: Buffer,
@@ -163,7 +163,6 @@ public abstract class Input : Closeable {
         if (position != limit || previewBytes != null) {
             return copyAvailableTo(destination, startIndex, endIndex)
         }
-
         // No bytes in cache: fill [destination] buffer direct.
         return fill(destination, startIndex, endIndex)
     }
@@ -187,9 +186,7 @@ public abstract class Input : Closeable {
         val markPosition = position
 
         previewDiscard = false
-
         val result = reader()
-
         previewDiscard = markDiscard
         position = markPosition
 
@@ -209,9 +206,7 @@ public abstract class Input : Closeable {
     }
 
     /**
-     * Check if at least 1 byte available to read.
-     *
-     * The method could block until source provides a byte.
+     * Check if at least one byte is available to read.
      */
     @Suppress("NOTHING_TO_INLINE")
     public inline fun eof(): Boolean = !prefetch(1)
@@ -278,8 +273,6 @@ public abstract class Input : Closeable {
         while (remaining > 0) {
             val skipCount = readBufferRange { _, startOffset, endOffset ->
                 val skipCount = min(remaining, endOffset - startOffset)
-
-
                 startOffset + skipCount
             }
 
@@ -313,16 +306,13 @@ public abstract class Input : Closeable {
     }
 
     /**
-     * Requests to fill [buffer] from [startIndex] to [endIndex] exclusive with bytes from source. This method will block and wait
-     * if no bytes available.
-     *
-     * This method copies bytes from source to [buffer] from [startIndex] to [startIndex] + `return-value`. Other bytes
-     * should not be touched.
+     * Requests to fill [buffer] from [startIndex] to [endIndex] exclusive from the underlying source.
+     * This method may block and wait if no bytes are available.
+     * This method copies bytes from source to [buffer] from [startIndex] to [startIndex] + `return-value`.
      *
      * The [startIndex] cannot be negative, the [endIndex] should be greater than [startIndex]
      * The [buffer] size should be positive, [endIndex] cannot be greater than [buffer] size.
-     *
-     * Writing to [buffer] outside of the given range leads to unspecified behaviour.
+     * Writing and reading to the [buffer] outside of the given range leads to unspecified behaviour.
      *
      * @return number of bytes were filled (`endIndex - startIndex` at most) or `0` if no more input is available.
      */
@@ -351,13 +341,22 @@ public abstract class Input : Closeable {
         primitiveSize: Int,
         readDirect: (buffer: Buffer, offset: Int) -> Long
     ): Long {
+        val position = preparePrimitiveReadPosition(primitiveSize)
+        if (position != -1) {
+            return readDirect(buffer, position)
+        }
+        // Nope, doesn't fit in a buffer, read byte by byte
+        return readPrimitive(primitiveSize)
+    }
+
+    private fun preparePrimitiveReadPosition(primitiveSize: Int): Int {
         val currentPosition = position
         val currentLimit = limit
         val targetLimit = currentPosition + primitiveSize
 
         if (currentLimit >= targetLimit) {
             position = targetLimit
-            return readDirect(buffer, currentPosition)
+            return currentPosition
         }
 
         if (currentLimit == currentPosition) {
@@ -370,28 +369,17 @@ public abstract class Input : Closeable {
             // we know we are at zero position here, but limit & buffer could've changed, so can't use cached value
             if (limit >= primitiveSize) {
                 position = primitiveSize
-                return readDirect(buffer, 0)
+                return 0
             }
         }
-
-        // Nope, doesn't fit in a buffer, read byte by byte
-        var result = 0L
-        readBytes(primitiveSize) {
-            result = (result shl 8) or it.toLong()
-        }
-
-        return result
+        return -1
     }
 
-    /**
-     * Reads [size] unsigned bytes from an Input and calls [consumer] on each of them.
-     * @throws EOFException if no more bytes available.
-     */
-    private inline fun readBytes(size: Int, consumer: (unsignedByte: Int) -> Unit) {
+    private fun readPrimitive(size: Int): Long {
         var remaining = size
-
         var current = position
         var currentLimit = limit
+        var result = 0L
         while (remaining > 0) {
             if (current == currentLimit) {
                 if (fetchCachedOrFill() == 0) {
@@ -403,14 +391,14 @@ public abstract class Input : Closeable {
             }
 
             val byte = buffer.loadByteAt(current).toInt() and 0xFF
-            consumer(byte)
-
+            result = (result shl 8) or byte.toLong()
             current++
             remaining--
         }
 
         position = current
         limit = currentLimit
+        return result
     }
 
     /**
