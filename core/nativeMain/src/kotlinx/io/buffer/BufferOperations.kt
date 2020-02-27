@@ -146,7 +146,7 @@ public actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block
 }
 
 /**
- * Compacts the [Buffer]. Move content from ([startIndex], [endIndex]) range to (0, 'endIndex - startIndex') range.
+ * Compacts the [Buffer]. Moves the of the buffer content from [startIndex] to [endIndex] range to the beginning of the buffer.
  * The copying ranges can overlap.
  *
  * @return [endIndex] - [startIndex] (copied bytes count) or updated [endIndex]

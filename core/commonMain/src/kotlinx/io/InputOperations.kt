@@ -8,11 +8,10 @@ import kotlin.math.*
  * The [Input] is not closed at the end of the copy.
  *
  * @return transferred bytes count.
- *
- * This method isn't using `eof()` to avoid a copy in `prefetch()`.
  */
 public fun Input.copyTo(destination: Output): Int {
     var count = 0
+    // This method isn't using `eof()` to avoid a copy in `prefetch()`.
     while (true) {
         val chunkSize = readAvailableTo(destination)
         if (chunkSize == 0) {
@@ -29,14 +28,12 @@ public fun Input.copyTo(destination: Output): Int {
  * Copies [size] bytes from the [Input] to the given [destination].
  * The [Input] is not closed at the end of the copy.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  * @return transferred bytes count.
- *
- * This method isn't using `eof()` to avoid a copy in `prefetch()`.
  */
 public fun Input.copyTo(destination: Output, size: Int): Int {
     checkSize(size)
-
+    //  This method isn't using `eof()` to avoid a copy in `prefetch()`
     var remaining = size
     while (remaining > 0) {
         val chunkSize = destination.writeBuffer { buffer, startIndex, endIndex ->
@@ -45,7 +42,7 @@ public fun Input.copyTo(destination: Output, size: Int): Int {
         }
 
         if (chunkSize == 0) {
-            throw EOFException("Can't read more bytes from closed Input[$this]. Expected ${size - remaining} of $size")
+            throw EOFException("cannot read more bytes from closed Input[$this]. Expected ${size - remaining} of $size")
         }
 
         remaining -= chunkSize
@@ -58,7 +55,7 @@ public fun Input.copyTo(destination: Output, size: Int): Int {
  * Reads [ByteArray] of fixed [size] from [Input].
  * The [Input] is not closed at the end of the reading.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 public fun Input.readByteArray(size: Int): ByteArray {
     checkSize(size)
@@ -74,7 +71,7 @@ public fun Input.readByteArray(size: Int): ByteArray {
         }
 
         if (count == 0) {
-            throw EOFException("Can't read more bytes from closed Input[$this]. Expected ${size - position} of $size")
+            throw EOFException("cannot read more bytes from closed Input[$this]. Expected ${size - position} of $size")
         }
 
         position += count
@@ -85,7 +82,6 @@ public fun Input.readByteArray(size: Int): ByteArray {
 
 /**
  * Reads entire [Input] to [ByteArray].
- *
  * The [Input] is not closed at the end of the copy.
  */
 public fun Input.readByteArray(): ByteArray {
@@ -102,7 +98,7 @@ public fun Input.readByteArray(): ByteArray {
 /**
  * Reads [length] bytes from [Input] to [array] from [startIndex].
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 public fun Input.readByteArray(array: ByteArray, startIndex: Int = 0, length: Int = array.size - startIndex) {
     checkArrayStartAndLength(array, startIndex, length)
@@ -127,7 +123,7 @@ public fun Input.readByteArray(array: ByteArray, startIndex: Int = 0, length: In
 /**
  * Reads [length] bytes from [Input] to [array] from [startIndex].
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 @ExperimentalUnsignedTypes
 public fun Input.readByteArray(array: UByteArray, startIndex: Int = 0, length: Int = array.size - startIndex) {
@@ -135,36 +131,36 @@ public fun Input.readByteArray(array: UByteArray, startIndex: Int = 0, length: I
 }
 
 /**
- * Readss a [Byte] from this Input.
+ * Reads a [Byte] from this Input.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 public fun Input.readByte(): Byte = readPrimitive(
     1
 ) { buffer, offset -> buffer.loadByteAt(offset).toLong() }.toByte()
 
 /**
- * Reads a [Short] from this Input.
+ * Reads a single [Short] from this Input.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 public fun Input.readShort(): Short = readPrimitive(
     2
 ) { buffer, offset -> buffer.loadShortAt(offset).toLong() }.toShort()
 
 /**
- * Reads an [Int] from this Input.
+ * Reads a single [Int] from this Input.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 public fun Input.readInt(): Int = readPrimitive(
     4
 ) { buffer, offset -> buffer.loadIntAt(offset).toLong() }.toInt()
 
 /**
- * Reads a [Long] from this Input.
+ * Reads a single [Long] from this Input.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 public fun Input.readLong(): Long = readPrimitive(
     8
@@ -173,7 +169,7 @@ public fun Input.readLong(): Long = readPrimitive(
 /**
  * Reads an [UByte] from this Input.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 @ExperimentalUnsignedTypes
 public fun Input.readUByte(): UByte = readByte().toUByte()
@@ -181,7 +177,7 @@ public fun Input.readUByte(): UByte = readByte().toUByte()
 /**
  * Reads a [ULong] from this Input.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 @ExperimentalUnsignedTypes
 public fun Input.readULong(): ULong = readLong().toULong()
@@ -189,7 +185,7 @@ public fun Input.readULong(): ULong = readLong().toULong()
 /**
  * Reads an [UInt] from this Input.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 @ExperimentalUnsignedTypes
 public fun Input.readUInt(): UInt = readInt().toUInt()
@@ -197,7 +193,7 @@ public fun Input.readUInt(): UInt = readInt().toUInt()
 /**
  * Reads an [UShort] from this Input.
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 @ExperimentalUnsignedTypes
 public fun Input.readUShort(): UShort = readShort().toUShort()
@@ -205,13 +201,13 @@ public fun Input.readUShort(): UShort = readShort().toUShort()
 /**
  * Reads a [Double] from the current [Input].
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 public fun Input.readDouble(): Double = Double.fromBits(readLong())
 
 /**
  * Reads a [Float] from the current [Input].
  *
- * @throws EOFException if Input can't provide enough bytes.
+ * @throws EOFException if Input cannot provide enough bytes.
  */
 public fun Input.readFloat(): Float = Float.fromBits(readInt())

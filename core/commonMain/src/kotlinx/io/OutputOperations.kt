@@ -56,21 +56,21 @@ public fun Output.writeByteArray(array: UByteArray) {
  * Writes the short [value] to this [Input].
  */
 public fun Output.writeShort(value: Short) {
-    writePrimitive(2, { buffer, offset -> buffer.storeShortAt(offset, value) }, { value.toLong() })
+    writePrimitive(2, value.toLong()) { buffer, offset -> buffer.storeShortAt(offset, value) }
 }
 
 /**
  * Writes the integer [value] to this [Input].
  */
 public fun Output.writeInt(value: Int) {
-    writePrimitive(4, { buffer, offset -> buffer.storeIntAt(offset, value) }, { value.toLong() })
+    writePrimitive(4, value.toLong()) { buffer, offset -> buffer.storeIntAt(offset, value) }
 }
 
 /**
  * Writes the [value] to this [Input].
  */
 public fun Output.writeLong(value: Long) {
-    writePrimitive(8, { buffer, offset -> buffer.storeLongAt(offset, value) }) { value }
+    writePrimitive(8, value) { buffer, offset -> buffer.storeLongAt(offset, value) }
 }
 
 /**

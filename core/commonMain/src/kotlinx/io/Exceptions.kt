@@ -16,9 +16,6 @@ internal fun checkBufferAndIndexes(buffer: Buffer, startIndex: Int, endIndex: In
     }
 }
 
-/**
-
- */
 internal fun checkArrayStartAndLength(array: ByteArray, startIndex: Int, length: Int) {
     require(startIndex >= 0) { "Start index ($startIndex) should be positive." }
     require(length >= 0) { "Length ($length) should be positive." }

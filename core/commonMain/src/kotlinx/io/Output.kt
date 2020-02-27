@@ -44,16 +44,14 @@ public abstract class Output(
     }
 
     /**
-     * Bypass [data] from the [startOffset] to [endOffset] by using [Output.flush].
+     * Bypass [data] from the [startIndex] to [endIndex] by using [Output.flush].
      * If [Output] is not empty, all data will be flushed beforehand.
      */
-    public fun writeBuffer(data: Buffer, startIndex: Int = 0, endIndex: Int = data.size) {
+    internal fun writeBuffer(data: Buffer, startIndex: Int = 0, endIndex: Int = data.size) {
         checkBufferAndIndexes(data, startIndex, endIndex)
-
         if (position != 0) {
             flushBuffer()
         }
-
         flush(data, startIndex, endIndex)
     }
 
@@ -64,7 +62,6 @@ public abstract class Output(
         if (position == 0) {
             return
         }
-
         flushBuffer()
     }
 
@@ -107,7 +104,7 @@ public abstract class Output(
     }
 
     /**
-     * Calls [writer] block to pefrorm write from [bufferStart] to [bufferEnd].
+     * Calls [writer] block to perform write from [bufferStart] to [bufferEnd].
      * The [writer] expected to return a new [buffer] position.
      *
      * @return number of written bytes.
@@ -127,18 +124,13 @@ public abstract class Output(
         return position
     }
 
-    internal inline fun writePrimitive(
-        primitiveSize: Int,
-        writeDirect: (buffer: Buffer, offset: Int) -> Unit,
-        longValue: () -> Long
-    ) {
+    private fun preparePrimitiveWriteOffset(primitiveSize: Int): Int {
         val offset = position
         val size = buffer.size
         val targetLimit = offset + primitiveSize
-
         if (size >= targetLimit) {
             position = targetLimit
-            return writeDirect(buffer, offset)
+            return offset
         }
 
         if (offset == size) {
@@ -149,12 +141,24 @@ public abstract class Output(
             // we know we are at zero position here
             if (size >= primitiveSize) {
                 position = primitiveSize
-                return writeDirect(buffer, 0)
+                return 0
             }
         }
 
+        return -1
+    }
+
+    internal inline fun writePrimitive(
+        primitiveSize: Int,
+        primitive: Long,
+        writeDirect: (buffer: Buffer, offset: Int) -> Unit
+    ) {
+        val offset = preparePrimitiveWriteOffset(primitiveSize)
+        if (offset != -1) {
+            return writeDirect(buffer, offset)
+        }
         // Nope, doesn't fit in a buffer, write byte by byte
-        writeBytes(primitiveSize, longValue())
+        writeBytes(primitiveSize, primitive)
     }
 
     private fun writeBytes(primitiveSize: Int, value: Long) {

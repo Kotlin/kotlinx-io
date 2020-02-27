@@ -91,7 +91,7 @@ public fun Buffer.toByteArray(offset: Int, length: Int): ByteArray {
 public expect fun <R> ByteArray.useBuffer(offset: Int = 0, length: Int = size - offset, block: (Buffer) -> R): R
 
 /**
- * Compacts the [Buffer]. Move content from ([startIndex], [endIndex]) range to (0, 'endIndex - startIndex') range.
+ * Compacts the [Buffer]. Moves content from ([startIndex], [endIndex]) range to (0, 'endIndex - startIndex') range.
  * The copying ranges can overlap.
  *
  * @return [endIndex] - [startIndex] (copied bytes count) or updated [endIndex]

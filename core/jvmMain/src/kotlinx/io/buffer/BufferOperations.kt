@@ -143,7 +143,7 @@ actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
 }
 
 /**
- * ExecuteS THE [block] of code providing a temporary instance of [Buffer] view of this byte array range
+ * Executes the given [block] of code providing a temporary instance of [Buffer] view of this byte array range
  * starting at the specified [offset] and having the specified bytes [length].
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Buffer] provided into the [block] should be never captured and used outside of lambda.
@@ -160,7 +160,7 @@ actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block: (Buff
 }
 
 /**
- * Compacts the [Buffer]. Move content from ([startIndex], [endIndex]) range to (0, 'endIndex - startIndex') range.
+ * Compacts the [Buffer]. Moves the of the buffer content from [startIndex] to [endIndex] range to the beginning of the buffer.
  * The copying ranges can overlap.
  *
  * @return [endIndex] - [startIndex] (copied bytes count) or updated [endIndex]
