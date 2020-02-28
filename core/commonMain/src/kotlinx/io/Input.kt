@@ -151,11 +151,13 @@ public abstract class Input : Closeable {
      * If no bytes are available in the input, [fill] method will be called directly on
      * the [destination] buffer without an extra copy.
      * Otherwise, available bytes are copied to the destination.
+     *
+     * @return number of bytes written in the [destination].
      */
     public fun readAvailableTo(
         destination: Buffer,
         startIndex: Int = 0,
-        endIndex: Int = destination.size - startIndex
+        endIndex: Int = destination.size
     ): Int {
         checkBufferAndIndexes(destination, startIndex, endIndex)
 
