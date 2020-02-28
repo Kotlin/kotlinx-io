@@ -1,3 +1,4 @@
+@file:Suppress("FORBIDDEN_IDENTITY_EQUALS")
 package kotlinx.io
 
 import kotlinx.io.buffer.*
@@ -136,6 +137,26 @@ class InputOutputTest {
         assertEquals(size, count)
 
         assertArrayEquals(content.sliceArray(0 until size), output.toByteArray())
+    }
+
+    @Test
+    fun testReadAvailableToRange() {
+        var executed = false
+        val input: Input = object : Input() {
+            override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
+                assertEquals(1024, endIndex)
+                executed = true
+                return endIndex - startIndex
+            }
+
+            override fun closeSource() {
+            }
+
+        }
+        val buffer = bufferOf(ByteArray(1024))
+        val end = input.readAvailableTo(buffer, 1)
+        assertTrue(executed)
+        assertEquals(1023, end)
     }
 
     private fun checkException(block: () -> Unit) {
