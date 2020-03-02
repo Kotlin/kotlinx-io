@@ -1,9 +1,10 @@
 package kotlinx.io.text
 
 import kotlinx.io.*
+import kotlinx.io.bytes.*
 import kotlin.test.*
 
-open class OutputStringTest {
+class OutputStringTest {
     private val bufferSizes = (1..64)
 
     @Test
@@ -11,12 +12,11 @@ open class OutputStringTest {
         val text = "file."
         val expected = ubyteArrayOf(0x66u, 0x69u, 0x6cu, 0x65u, 0x2eu)
 
-        val bytes = buildBytes(size) {
+        val input = buildInput(size) {
             writeUtf8String(text)
         }
 
-        assertEquals(expected.size, bytes.size(), "Size $size")
-        val input = bytes.input()
+        assertEquals(expected.size, input.remaining, "Size $size")
         val read = UByteArray(expected.size)
         input.readByteArray(read)
         assertTrue(input.exhausted(), "EOF")
@@ -28,18 +28,16 @@ open class OutputStringTest {
         val text = ".🌀."
         val expected = ubyteArrayOf(0x2eu, 0xf0u, 0x9fu, 0x8cu, 0x80u, 0x2eu)
 
-        val bytes = buildBytes(size) {
+        val input = buildInput(size) {
             writeUtf8String(text)
         }
 
-        assertEquals(expected.size, bytes.size(), "Size $size")
-        val input = bytes.input()
+        assertEquals(expected.size, input.remaining, "Size $size")
         val read = UByteArray(expected.size)
         input.readByteArray(read)
         assertTrue(input.exhausted(), "EOF")
         assertEquals(expected.contentToString(), read.contentToString())
     }
-
 
     @Test
     fun testWriteUtf8() = bufferSizes.forEach { size ->
@@ -56,13 +54,12 @@ open class OutputStringTest {
         )
         // @formatter:on
 
-        val bytes = buildBytes(size) {
+        val input = buildInput(size) {
             writeUtf8String(text)
         }
 
-        assertEquals(expected.size, bytes.size(), "Size $size")
+        assertEquals(expected.size, input.remaining, "Size $size")
 
-        val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readByteArray(read)
         assertTrue(input.exhausted(), "EOF")
@@ -84,13 +81,12 @@ open class OutputStringTest {
         )
         // @formatter:on
 
-        val bytes = buildBytes(size) {
+        val input = buildInput(size) {
             text.forEach { writeUtf8Char(it) }
         }
 
-        assertEquals(expected.size, bytes.size(), "Size $size")
+        assertEquals(expected.size, input.remaining, "Size $size")
 
-        val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readByteArray(read)
         assertTrue(input.exhausted(), "EOF")
@@ -99,9 +95,9 @@ open class OutputStringTest {
 
     @Test
     fun testWriteMultiByteAtEnd() {
-        val input = buildBytes {
+        val input = buildInput {
             writeUtf8String("ABC\u0422")
-        }.input()
+        }
 
         assertEquals("ABC\u0422", input.readUtf8String(4))
         assertTrue(input.exhausted(), "EOF")
@@ -109,23 +105,19 @@ open class OutputStringTest {
 
     @Test
     fun testWriteSingleByte() {
-        val input = buildBytes {
+        val input = buildInput {
             writeUtf8String("1")
-        }.input()
-
-        try {
-            assertEquals("1", input.readUtf8String(1))
-            assertTrue(input.exhausted(), "EOF")
-        } finally {
-            input.close()
         }
+
+        assertEquals("1", input.readUtf8String(1))
+        assertTrue(input.exhausted(), "EOF")
     }
 
     @Test
     fun testReadUntilDelimiter() {
-        val input = buildBytes {
+        val input = buildInput {
             writeUtf8String("1,23|,4.")
-        }.input()
+        }
 
         val sb = StringBuilder()
         val counts = mutableListOf<Int>()
@@ -141,26 +133,30 @@ open class OutputStringTest {
 
     @Test
     fun testReadUntilDelimiterMulti() {
-        val input = buildBytes {
+        val input = buildInput {
             writeUtf8String("\u0422,\u0423|\u0424.")
-        }.input()
+        }
 
-        val sb = StringBuilder()
+        assertEquals(9, input.remaining)
+        val builder = StringBuilder()
         val counts = mutableListOf<Int>()
 
-        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
-        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
-        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(builder, "|,."))
+        assertEquals(6, input.remaining)
+        counts.add(input.readUtf8StringUntilDelimitersTo(builder, "|,."))
+        assertEquals(3, input.remaining)
+        counts.add(input.readUtf8StringUntilDelimitersTo(builder, "|,."))
+        assertEquals(0, input.remaining)
+        assertEquals("\u0422\u0423\u0424", builder.toString())
         assertTrue(input.exhausted(), "EOF")
-        assertEquals("\u0422\u0423\u0424", sb.toString())
         assertEquals(listOf(1, 1, 1), counts)
     }
 
     @Test
     fun testReadLineSingleBuffer() = bufferSizes.forEach { size ->
-        val input = buildBytes(size) {
+        val input = buildInput(size) {
             writeUtf8String("1\r\n22\n333\n4444\n") // TODO: replace one LF with CR when we can read it
-        }.input()
+        }
 
         assertEquals("1", input.readUtf8Line())
         assertEquals("22", input.readUtf8Line())
@@ -172,28 +168,21 @@ open class OutputStringTest {
     @Test
     fun testWriteSingleUnicode() {
         val text = """🤔"""
-        buildBytes {
+        val input = buildInput {
             writeUtf8String(text, 0, text.length)
-        }.useInput {
-            val actual = buildString {
-                readUtf8LineTo(this)
-            }
-            assertEquals(text, actual)
         }
+
+        assertEquals(text, input.readUtf8String())
     }
 
     @Test
     fun testParseGlyph() {
         val text = """􏿿"""
-        buildBytes {
+        val input = buildInput {
             writeUtf8String(text, 0, text.length)
-        }.useInput {
-            val actual = buildString {
-                readUtf8LineTo(this)
-            }
-
-            assertEquals(text, actual)
         }
+
+        assertEquals(text, input.readUtf8String())
     }
 }
 
