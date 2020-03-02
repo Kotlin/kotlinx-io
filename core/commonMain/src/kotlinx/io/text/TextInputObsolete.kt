@@ -2,6 +2,7 @@ package kotlinx.io.text
 
 import kotlinx.io.*
 
+private const val DEFAULT_CAPACITY: Int = 32
 
 /**
  * Read UTF-8 string until [delimiter] to [output].
@@ -34,7 +35,7 @@ public fun Input.readUtf8StringUntilDelimitersTo(output: Appendable, delimiters:
  *
  * @throws MalformedInputException if decoder fail to recognize charset.
  */
-public fun Input.readUtf8StringTo(output: Appendable, length: Int): Int {
+public fun Input.readUtf8StringTo(output: Appendable, length: Int = Int.MAX_VALUE): Int {
     var remaining = length
     return decodeUtf8Chars {
         output.append(it)
@@ -74,8 +75,11 @@ public fun Input.readUtf8LineTo(output: Appendable, limit: Int = Int.MAX_VALUE) 
  *
  * @throws MalformedInputException if decoder fail to recognize charset.
  */
-public fun Input.readUtf8String(length: Int): String = buildString(length) {
-    readUtf8StringTo(this, length)
+public fun Input.readUtf8String(length: Int = Int.MAX_VALUE): String {
+    val capacity = if (length == Int.MAX_VALUE) DEFAULT_CAPACITY else length
+    return buildString(capacity) {
+        readUtf8StringTo(this, length)
+    }
 }
 
 /**
