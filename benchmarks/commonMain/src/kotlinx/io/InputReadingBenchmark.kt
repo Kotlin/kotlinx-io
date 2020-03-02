@@ -1,7 +1,6 @@
-package kotlinx.io.benchmarks
+package kotlinx.io
 
 import kotlinx.benchmark.*
-import kotlinx.io.*
 import kotlinx.io.buffer.*
 
 @State(Scope.Benchmark)
@@ -102,8 +101,3 @@ class InputReadingBenchmark {
     }
 }
 
-fun main() {
-    repeat(1_000_000) {
-        InputReadingBenchmark().inputPreviewLongsShort()
-    }
-}
