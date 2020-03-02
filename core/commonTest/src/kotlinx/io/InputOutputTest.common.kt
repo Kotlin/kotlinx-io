@@ -3,6 +3,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
+import kotlinx.io.bytes.*
 import kotlinx.io.pool.DefaultPool
 import kotlin.test.*
 
@@ -48,6 +49,155 @@ class InputOutputTest {
 
         assertNotNull(instance)
         assertTrue(instance === result)
+    }
+
+    @Test
+    fun testCopyToOutput() {
+        val source = ByteArray(4 * 1024 + 1) { it.toByte() }
+        val input = buildInput {
+            writeByteArray(source)
+        }
+
+        val output = ByteArrayOutput()
+        input.copyTo(output)
+
+        val result = output.toByteArray()
+        assertArrayEquals(source, result)
+    }
+
+    @Test
+    fun testCopyToWithSize() {
+        val source = ByteArray(4 * 1024 + 1) { it.toByte() }
+        val input = buildInput {
+            writeByteArray(source)
+        }
+
+        val output = ByteArrayOutput()
+        input.copyTo(output, 4 * 1024)
+
+        val lastByte = input.readByte()
+        val result = output.toByteArray()
+
+        assertTrue(input.exhausted())
+        assertArrayEquals(source, result + lastByte)
+    }
+
+    @Test
+    fun testReadByteArray() {
+        val source = ByteArray(4 * 1024 + 1) { it.toByte() }
+
+        val input = buildInput {
+            writeByteArray(source)
+        }
+
+        val result = input.readByteArray()
+        assertArrayEquals(source, result)
+    }
+
+    @Test
+    fun testCopyAvailableToOnEmpty() {
+        val input = buildInput { }
+        val output = ByteArrayOutput()
+
+        input.readAvailableTo(output)
+
+        assertTrue(input.exhausted())
+        assertArrayEquals(ByteArray(0), output.toByteArray())
+    }
+
+    @Test
+    fun testCopyAvailableToInPreview() {
+        val size = 2048 * 3 + 42
+        val array = ByteArray(size)
+        val input = buildInput { writeByteArray(array) }
+        val output = ByteArrayOutput()
+
+        input.preview {
+            copyTo(output)
+            assertTrue(exhausted())
+        }
+
+        assertTrue(!input.exhausted())
+        assertArrayEquals(array, output.toByteArray())
+    }
+
+    @Test
+    fun testCloseAfterPreview() {
+        val size = 2048 * 3 + 42
+        val array = ByteArray(size)
+        val input = buildInput { writeByteArray(array) }
+        val output = ByteArrayOutput()
+
+        input.preview {
+            copyTo(output)
+            assertTrue(exhausted())
+        }
+
+        input.close()
+        assertFails {
+            input.readByte()
+        }
+    }
+
+    @Test
+    fun testCloseInPreview() {
+        val size = 2048 * 3 + 42
+        val array = ByteArray(size)
+        val input = buildInput { writeByteArray(array) }
+        val output = ByteArrayOutput()
+
+        input.preview {
+            close()
+            assertFails { readByte() }
+
+            assertEquals(0, copyTo(output))
+            assertTrue(exhausted())
+
+            assertFails { preview { } }
+        }
+
+        assertFails { input.readByte() }
+        assertEquals(0, input.copyTo(output))
+
+        input.close()
+
+        assertFails { input.readByte() }
+        assertEquals(0, input.copyTo(output))
+    }
+
+    @Test
+    fun testCustomPools() {
+        val inputBuffer = bufferOf(ByteArray(10))
+        val inputPool = SingleShotPool(inputBuffer)
+        val outputBuffer = bufferOf(ByteArray(10))
+        val outputPool = SingleShotPool(outputBuffer)
+
+        val input = object : Input(inputPool) {
+            override fun closeSource() {
+            }
+
+            override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
+                assertTrue { outputBuffer === buffer }
+                buffer.storeByteAt(startIndex, 42)
+                return 1
+            }
+        }
+
+
+        val output = object : Output(outputPool) {
+            override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+                assertTrue(source === outputBuffer)
+                assertTrue(endIndex == 1)
+
+            }
+
+            override fun closeSource() {
+            }
+
+        }
+
+        input.readAvailableTo(output)
+        output.flush()
     }
 
     @Test
@@ -117,6 +267,17 @@ class InputOutputTest {
     }
 
     @Test
+    fun testWriteDirectAfterSmallWrites() {
+        val input = buildInput {
+            writeByte(42)
+            writeBuffer(bufferOf(ByteArray(4097)))
+        }
+
+        assertEquals(42, input.readByte())
+        assertArrayEquals(ByteArray(4097), input.readByteArray())
+    }
+
+    @Test
     fun testInputCopyTo() {
         val content = ByteArray(1024) { it.toByte() }
         val input = ByteArrayInput(content)
@@ -138,8 +299,8 @@ class InputOutputTest {
 
         val count = input.copyTo(output, size)
 
-        assertTrue(!input.exhausted())
         assertEquals(size, count)
+        assertTrue(!input.exhausted())
 
         assertArrayEquals(content.sliceArray(0 until size), output.toByteArray())
     }

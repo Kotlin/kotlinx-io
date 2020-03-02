@@ -16,6 +16,16 @@ class BufferBasicTest {
     }
 
     @Test
+    fun testBufferOfBackedByArray() {
+        val array = ByteArray(1024) { it.toByte() }
+        val buffer = bufferOf(array)
+
+        assertEquals(0, buffer.loadByteAt(0))
+        array[0] = 1
+        assertEquals(1, buffer.loadByteAt(0))
+    }
+
+    @Test
     @Ignore
     fun testToByteArray() {
         val array = ByteArray(100) { it.toByte() }

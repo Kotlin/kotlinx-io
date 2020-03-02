@@ -1,6 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
+import kotlinx.io.bytes.*
 import kotlinx.io.pool.*
 import kotlin.math.*
 
@@ -483,7 +484,7 @@ public abstract class Input : Closeable {
      * Instantiates [previewBytes] and fill it.
      */
     private fun startPreview(): Bytes {
-        val bytes = Bytes(bufferPool).apply {
+        val bytes = Bytes().apply {
             append(buffer, limit)
         }
 
