@@ -131,6 +131,24 @@ public fun Input.readByteArray(array: UByteArray, startIndex: Int = 0, length: I
 }
 
 /**
+ * Discards exact [count] of bytes.
+ *
+ * @throws [EOFException] if this input ends before discard finished.
+ * @return discarded bytes count
+ */
+public fun Input.discardExact(count: Int): Int {
+    checkCount(count)
+
+    val skipped = discard(count)
+    if (skipped < count) {
+        unexpectedEOF("Fail to skip $count bytes, remaining ${count - skipped}.")
+    }
+
+    return count
+}
+
+
+/**
  * Reads a [Byte] from this Input.
  *
  * @throws EOFException if Input cannot provide enough bytes.

@@ -31,3 +31,5 @@ internal fun checkSize(size: Int) {
 internal fun checkCount(count: Int) {
     require(count >= 0) { "Count ($count) should be positive." }
 }
+
+internal fun unexpectedEOF(text: String): Nothing = throw EOFException(text)

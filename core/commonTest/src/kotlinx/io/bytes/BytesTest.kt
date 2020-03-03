@@ -128,7 +128,7 @@ class BytesTest {
         buildBytes {
             writeByteArray(ByteArray(99999))
         }.useInput {
-            discard(99999)
+            discardExact(99999)
             assertTrue { eof() }
         }
 

@@ -267,8 +267,10 @@ public abstract class Input : Closeable {
 
     /**
      * Skips [count] bytes from input.
+     *
+     * @return skipped bytes count. It could be less than [count] if no more bytes available.
      */
-    public fun discard(count: Int) {
+    public fun discard(count: Int): Int {
         checkCount(count)
 
         var remaining = count
@@ -279,11 +281,13 @@ public abstract class Input : Closeable {
             }
 
             if (skipCount == 0) {
-                throw EOFException("Fail to skip $count bytes, remaining $remaining.")
+                break
             }
 
             remaining -= skipCount
         }
+
+        return count - remaining
     }
 
     /**

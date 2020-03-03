@@ -69,10 +69,15 @@ class InputOutputTest {
     }
 
     @Test
-    fun testDiscardOnEmpty() {
+    fun testDiscardExactOnEmpty() {
         assertFails {
-            EmptyInput.discard(1)
+            EmptyInput.discardExact(1)
         }
+    }
+
+    @Test
+    fun testDiscardOnEmpty() {
+        assertEquals(0, EmptyInput.discard(1))
     }
 
     @Test
@@ -90,7 +95,7 @@ class InputOutputTest {
         checkException { ErrorInput.readByte() }
         checkException { ErrorInput.preview { } }
         checkException { ErrorInput.prefetch(1) }
-        checkException { ErrorInput.discard(1) }
+        checkException { ErrorInput.discardExact(1) }
         checkException { ErrorInput.eof() }
         checkException {
             ErrorInput.readAvailableTo(

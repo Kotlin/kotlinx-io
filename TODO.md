@@ -3,18 +3,10 @@
     - Input: bypass source exceptions in `Input.fill`
     - Input: `eof` vs `exhausted`
     - Output: Appendable
-    - `Input.discard()`, discardExact
     - Idempotent close
     - Make `fill` public (and then rename it) to enable zero-copy delegates
 - Implementation
-    -  Input
-    -  Output
-    -  Index preconditions
-    - `bytesInput = buildInput { BytesOutput -> }`
-        - `Bytes.createInput()` copy on consume
-    - Introduce `BytesInput` and `BytesOutput` `(Input/Output + size, remaining)`
-    - Introduce `readByteArray(), copyTo(output)`
-    - Introduce `Input.copyAvailableTo(Output | Buffer)`: consume single buffer(wait if no buffer available)
+    - Index preconditions
     - Prototype `PipedOutput`
 - Test
     - Verify pool has no leaks
