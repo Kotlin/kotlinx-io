@@ -75,7 +75,7 @@ class BytesTest {
 
             assertEquals("OK", readUtf8Line())
             assertEquals("1|2|3", readUtf8Line())
-            assertTrue { eof() }
+            assertTrue { exhausted() }
         }
     }
 
@@ -85,7 +85,7 @@ class BytesTest {
             writeByteArray(ByteArray(9999))
         }.useInput {
             readByteArray(ByteArray(9999))
-            assertTrue { eof() }
+            assertTrue { exhausted() }
         }
     }
 
@@ -96,7 +96,7 @@ class BytesTest {
         }.useInput {
             readByteArray(ByteArray(3))
             assertEquals("123", readUtf8Line())
-            assertTrue { eof() }
+            assertTrue { exhausted() }
         }
     }
 
@@ -107,7 +107,7 @@ class BytesTest {
         }.useInput {
             readByteArray(ByteArray(3))
             assertEquals("123", readUtf8String(3))
-            assertTrue { eof() }
+            assertTrue { exhausted() }
         }
     }
 
@@ -119,7 +119,7 @@ class BytesTest {
             assertFailsWith<EOFException> {
                 readByteArray(ByteArray(1000))
             }
-            assertTrue { eof() }
+            assertTrue { exhausted() }
         }
     }
 
@@ -129,7 +129,7 @@ class BytesTest {
             writeByteArray(ByteArray(99999))
         }.useInput {
             discardExact(99999)
-            assertTrue { eof() }
+            assertTrue { exhausted() }
         }
 
     }
@@ -142,7 +142,7 @@ class BytesTest {
         }.useInput {
             readByteArray(ByteArray(99999 + 3))
             assertEquals("123", readUtf8Line())
-            assertTrue { eof() }
+            assertTrue { exhausted() }
         }
     }
 
@@ -155,7 +155,7 @@ class BytesTest {
         }.useInput {
             readByteArray(ByteArray(PACKET_BUFFER_SIZE - 1))
             assertEquals(0x01010101, readInt())
-            assertTrue { eof() }
+            assertTrue { exhausted() }
         }
     }
 

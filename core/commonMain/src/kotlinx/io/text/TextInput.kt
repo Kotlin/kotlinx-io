@@ -25,7 +25,7 @@ public fun Input.readUtf8Lines(): List<String> {
     checkExhausted()
     val list = ArrayList<String>()
     use {
-        while (!eof()) {
+        while (!exhausted()) {
             list += readUtf8Line()
         }
     }
@@ -40,12 +40,12 @@ public fun Input.readUtf8Lines(): List<String> {
  */
 public inline fun Input.forEachUtf8Line(action: (String) -> Unit) {
     use {
-        while (!eof()) {
+        while (!exhausted()) {
             action(readUtf8Line())
         }
     }
 }
 
 private fun Input.checkExhausted() {
-    if (eof()) throw EOFException("Unexpected EOF while reading UTF-8 line")
+    if (exhausted()) throw EOFException("Unexpected EOF while reading UTF-8 line")
 }

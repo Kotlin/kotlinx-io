@@ -2,7 +2,6 @@ package kotlinx.io.text
 
 import kotlinx.io.*
 import kotlinx.io.buffer.*
-import kotlinx.io.text.*
 import kotlin.test.*
 
 class LinesTest {
@@ -53,7 +52,7 @@ class LinesTest {
     private fun testLineByLine(data: ByteArray, expectedLines: List<String>) {
         val input = ByteArrayInput(data)
         val result = ArrayList<String>()
-        while (!input.eof()) {
+        while (!input.exhausted()) {
             result += input.readUtf8Line()
         }
         assertEquals(expectedLines, result)

@@ -19,7 +19,7 @@ open class OutputStringTest {
         val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readByteArray(read)
-        assertTrue(input.eof(), "EOF")
+        assertTrue(input.exhausted(), "EOF")
         assertEquals(expected.contentToString(), read.contentToString())
     }
 
@@ -36,7 +36,7 @@ open class OutputStringTest {
         val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readByteArray(read)
-        assertTrue(input.eof(), "EOF")
+        assertTrue(input.exhausted(), "EOF")
         assertEquals(expected.contentToString(), read.contentToString())
     }
 
@@ -65,7 +65,7 @@ open class OutputStringTest {
         val input = bytes.input()
         val read = UByteArray(expected.size)
         input.readByteArray(read)
-        assertTrue(input.eof(), "EOF")
+        assertTrue(input.exhausted(), "EOF")
         assertEquals(expected.contentToString(), read.contentToString())
     }
 
@@ -76,7 +76,7 @@ open class OutputStringTest {
         }.input()
 
         assertEquals("ABC\u0422", input.readUtf8String(4))
-        assertTrue(input.eof(), "EOF")
+        assertTrue(input.exhausted(), "EOF")
     }
 
     @Test
@@ -87,7 +87,7 @@ open class OutputStringTest {
 
         try {
             assertEquals("1", input.readUtf8String(1))
-            assertTrue(input.eof(), "EOF")
+            assertTrue(input.exhausted(), "EOF")
         } finally {
             input.close()
         }
@@ -106,7 +106,7 @@ open class OutputStringTest {
         counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
         counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
         counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
-        assertTrue(input.eof(), "EOF")
+        assertTrue(input.exhausted(), "EOF")
         assertEquals("1234", sb.toString())
         assertEquals(listOf(1, 2, 0, 1), counts)
     }
@@ -123,7 +123,7 @@ open class OutputStringTest {
         counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
         counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
         counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
-        assertTrue(input.eof(), "EOF")
+        assertTrue(input.exhausted(), "EOF")
         assertEquals("\u0422\u0423\u0424", sb.toString())
         assertEquals(listOf(1, 1, 1), counts)
     }
@@ -138,7 +138,7 @@ open class OutputStringTest {
         assertEquals("22", input.readUtf8Line())
         assertEquals("333", input.readUtf8Line())
         assertEquals("4444", input.readUtf8Line())
-        assertTrue(input.eof(), "EOF")
+        assertTrue(input.exhausted(), "EOF")
     }
 }
 

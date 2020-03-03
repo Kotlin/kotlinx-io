@@ -1,6 +1,5 @@
 package kotlinx.io
 
-import kotlinx.io.*
 import kotlinx.io.buffer.*
 import kotlinx.io.text.*
 import kotlin.test.*
@@ -30,7 +29,7 @@ class LimitingInputTest {
     @Test
     fun testZeroLimit() {
         val input = StringInput("long\nlong\nline").limit(0)
-        assertTrue(input.eof())
+        assertTrue(input.exhausted())
     }
 
     @Test

@@ -96,7 +96,7 @@ class InputOutputTest {
         checkException { ErrorInput.preview { } }
         checkException { ErrorInput.prefetch(1) }
         checkException { ErrorInput.discardExact(1) }
-        checkException { ErrorInput.eof() }
+        checkException { ErrorInput.exhausted() }
         checkException {
             ErrorInput.readAvailableTo(
                 object : Output() {
@@ -124,7 +124,7 @@ class InputOutputTest {
 
         val count = input.copyTo(output)
 
-        assertTrue(input.eof())
+        assertTrue(input.exhausted())
         assertEquals(content.size, count)
 
         assertArrayEquals(content, output.toByteArray())
@@ -138,7 +138,7 @@ class InputOutputTest {
 
         val count = input.copyTo(output, size)
 
-        assertTrue(!input.eof())
+        assertTrue(!input.exhausted())
         assertEquals(size, count)
 
         assertArrayEquals(content.sliceArray(0 until size), output.toByteArray())

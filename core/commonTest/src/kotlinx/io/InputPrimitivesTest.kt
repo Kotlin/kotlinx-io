@@ -30,7 +30,7 @@ class InputPrimitivesTest {
         assertReadLong(0x0001020304050607)
         assertReadLong(0x08090A0B0C0D0E0F)
         assertReadLong(0x1011121314151617)
-        assertFalse(eof(), "EOF")
+        assertFalse(exhausted(), "EOF")
         assertFails { readLong() }
     }
 
@@ -39,7 +39,7 @@ class InputPrimitivesTest {
         assertReadULong(0x7071727374757677u)
         assertReadULong(0x78797a7b7c7d7e7fu)
         assertReadULong(0x8081828384858687u)
-        assertFalse(eof(), "EOF")
+        assertFalse(exhausted(), "EOF")
         assertFails { readULong() }
     }
 
@@ -48,7 +48,7 @@ class InputPrimitivesTest {
         assertReadInt(0x00010203)
         assertReadInt(0x04050607)
         assertReadInt(0x08090a0b)
-        assertFalse(eof(), "EOF")
+        assertFalse(exhausted(), "EOF")
         assertFails { readInt() }
     }
 
@@ -57,7 +57,7 @@ class InputPrimitivesTest {
         assertReadUInt(0x00010203u)
         assertReadUInt(0x04050607u)
         assertReadUInt(0x08090a0bu)
-        assertFalse(eof(), "EOF")
+        assertFalse(exhausted(), "EOF")
         assertFails { readInt() }
     }
 
@@ -66,7 +66,7 @@ class InputPrimitivesTest {
         assertReadShort(0x0001)
         assertReadShort(0x0203)
         assertReadShort(0x0405)
-        assertFalse(eof(), "EOF")
+        assertFalse(exhausted(), "EOF")
         assertFails { readShort() }
     }
 
@@ -75,7 +75,7 @@ class InputPrimitivesTest {
         assertReadUShort(0x0001u)
         assertReadUShort(0x0203u)
         assertReadUShort(0x0405u)
-        assertFalse(eof(), "EOF")
+        assertFalse(exhausted(), "EOF")
         assertFails { readShort() }
     }
 
@@ -84,7 +84,7 @@ class InputPrimitivesTest {
         assertReadByte(0x0)
         assertReadByte(0x1)
         assertReadByte(0x2)
-        assertTrue(eof(), "EOF")
+        assertTrue(exhausted(), "EOF")
         assertFails { readByte() }
     }
 
@@ -93,7 +93,7 @@ class InputPrimitivesTest {
         assertReadUByte(0x0u)
         assertReadUByte(0x1u)
         assertReadUByte(0x2u)
-        assertTrue(eof(), "EOF")
+        assertTrue(exhausted(), "EOF")
         assertFails { readUByte() }
     }
 

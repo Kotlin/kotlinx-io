@@ -8,7 +8,7 @@ import java.util.zip.*
 class GzipInput(private val original: Input) : Input() {
     private val inputStream = object : InputStream() {
         override fun read(): Int {
-            if (original.eof()) return -1
+            if (original.exhausted()) return -1
             return original.readByte().toInt()
         }
     }
