@@ -27,7 +27,6 @@ kotlin {
                 debug = false
             }
         }
-        browser()
     }
 
     sourceSets {
