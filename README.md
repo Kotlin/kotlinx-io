@@ -6,6 +6,7 @@ interacting with the platform,
 and performing other low level operations.  
 
 ![Experimental](https://img.shields.io/badge/kotlinx-experimental-orange.svg?style=flat)
+[![Download](https://api.bintray.com/packages/kotlin/kotlinx/kotlinx.serialization.runtime/images/download.svg) ](https://bintray.com/kotlin/kotlinx/kotlinx.io/_latestVersion)
 
 NOTE: This library is *experimental*. Any API is a subject to change.
 
