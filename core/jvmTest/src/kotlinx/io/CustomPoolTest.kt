@@ -4,7 +4,7 @@ package kotlinx.io
 import kotlinx.io.buffer.*
 import kotlin.test.*
 
-class InputOutputTestJvm {
+class CustomPoolTest {
 
     @Test
     fun testCustomPools() {

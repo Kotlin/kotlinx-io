@@ -1,6 +1,5 @@
 package kotlinx.io.pool
 
-import kotlinx.io.internal.*
 import java.util.concurrent.atomic.*
 
 private const val MULTIPLIER = 4
@@ -92,7 +91,6 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual final overr
     }
 
     companion object {
-        // todo: replace with atomicfu, remove companion object
-        private val Top = longUpdater(DefaultPool<*>::top)
+        private val Top = AtomicLongFieldUpdater.newUpdater(DefaultPool::class.java, DefaultPool<*>::top.name)
     }
 }

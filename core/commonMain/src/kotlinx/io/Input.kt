@@ -146,13 +146,12 @@ public abstract class Input : Closeable {
     }
 
     /**
-     * Reads the available content in current [Input] to the [destination] buffer.
+     * Reads the available content in the current [Input] to the [destination] buffer.
      *
-     * If no bytes are available in the input, [fill] method will be called directly on
-     * the [destination] buffer without an extra copy.
+     * If no bytes are available, [fill] method will be called directly on the [destination] buffer without an extra copy.
      * Otherwise, available bytes are copied to the destination.
      *
-     * @return number of bytes written in the [destination].
+     * @return number of bytes written to the [destination].
      */
     public fun readAvailableTo(
         destination: Buffer,

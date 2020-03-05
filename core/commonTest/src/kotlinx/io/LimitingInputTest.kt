@@ -54,5 +54,4 @@ class LimitingInputTest {
         assertTrue(closed)
     }
 
-    private fun StringInput(str: String) = ByteArrayInput(str.encodeToByteArray())
 }
