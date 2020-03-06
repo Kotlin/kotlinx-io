@@ -1,5 +1,8 @@
 package kotlinx.io
 
+import kotlinx.io.buffer.*
+import kotlinx.io.internal.*
+import kotlinx.io.pool.*
 import kotlin.test.*
 
 fun assertArrayEquals(expected: ByteArray, actual: ByteArray) {
@@ -12,3 +15,17 @@ fun ByteArray.toHexString(): String = "0x" + joinToString("") {
 }
 
 public fun StringInput(string: String) = ByteArrayInput(string.encodeToByteArray())
+
+public open class LeakDetector {
+    protected lateinit var pool: ObjectPool<Buffer>
+
+    @BeforeTest
+    fun before() {
+        pool = LeakDetectingPool()
+    }
+
+    @AfterTest
+    fun after() {
+        pool.close()
+    }
+}

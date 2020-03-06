@@ -4,7 +4,7 @@ import kotlinx.io.buffer.*
 import kotlin.math.*
 import kotlin.test.*
 
-class InputPrimitivesTest {
+class InputPrimitivesTest : LeakDetector() {
 
     private val bufferSizes = (1..64)
     private val fetchSizeLimit = 128
@@ -14,13 +14,15 @@ class InputPrimitivesTest {
         limit: Int, seed: Long = 0L, body: Input.() -> Unit
     ) = prefetchSizes.forEach { prefetchSize ->
         bufferSizes.forEach { size ->
+            val input = sequentialLimitedInput(fetchSizeLimit, pool, limit, seed)
             try {
-                val input = sequentialLimitedInput(fetchSizeLimit, size, limit, seed)
                 assertTrue(input.prefetch(min(prefetchSize, limit)), "Can't prefetch bytes")
                 input.body()
             } catch (e: Throwable) {
                 println("Failed at size $size")
                 throw e
+            } finally {
+                input.close()
             }
         }
     }

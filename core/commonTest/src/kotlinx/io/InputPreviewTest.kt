@@ -1,5 +1,6 @@
 package kotlinx.io
 
+import kotlinx.io.internal.*
 import kotlin.test.*
 
 class InputPreviewTest {
@@ -91,7 +92,8 @@ class InputPreviewTest {
     private fun withInput(body: Input.() -> Unit) {
         prefetchSizes.forEach { prefetchSize ->
             bufferSizes.forEach { size ->
-                val input = sequentialInfiniteInput(fetchSizeLimit, size)
+                val pool = LeakDetectingPool(size)
+                val input = sequentialInfiniteInput(fetchSizeLimit, pool)
                 assertTrue(input.prefetch(prefetchSize), "Can't prefetch bytes")
                 input.body()
             }

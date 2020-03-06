@@ -3,7 +3,6 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
-import kotlinx.io.*
 import kotlin.native.concurrent.*
 
 public actual class Buffer constructor(
@@ -45,3 +44,11 @@ public inline fun <R> Buffer.usePointer(block: (pointer: CPointer<ByteVar>) -> R
  */
 internal actual fun bufferOf(array: ByteArray, startIndex: Int, endIndex: Int): Buffer =
     Buffer(array, startIndex, endIndex - startIndex)
+
+internal actual fun Buffer.sameAs(other: Buffer): Boolean {
+    return usePointer { thisPointer ->
+        other.usePointer { otherPointer ->
+            thisPointer == otherPointer
+        }
+    }
+}
