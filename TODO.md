@@ -8,6 +8,7 @@
 - Implementation
     - Index preconditions
     - Prototype `PipedOutput`
+    - Benchmark overhead `java.io` integration
 - Test
     - Verify pool has no leaks
 - Documentation

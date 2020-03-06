@@ -147,7 +147,6 @@ public fun Input.discardExact(count: Int): Int {
     return count
 }
 
-
 /**
  * Reads a [Byte] from this Input.
  *

@@ -3,7 +3,7 @@ package kotlinx.io
 import kotlin.test.*
 
 fun assertArrayEquals(expected: ByteArray, actual: ByteArray) {
-    assertEquals(expected.size, actual.size)
+    assertEquals(expected.size, actual.size, "Expected array lengths to be equal")
     assertEquals(expected.toHexString(), actual.toHexString())
 }
 
@@ -18,3 +18,5 @@ internal fun Bytes.useInput(block: Input.() -> Unit) {
         close()
     }
 }
+
+public fun StringInput(string: String) = ByteArrayInput(string.encodeToByteArray())
