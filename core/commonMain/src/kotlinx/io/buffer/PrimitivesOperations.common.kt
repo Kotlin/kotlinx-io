@@ -1,5 +1,5 @@
-
 @file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io.buffer
 
 import kotlinx.io.*

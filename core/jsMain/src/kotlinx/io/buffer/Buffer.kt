@@ -2,7 +2,6 @@
 
 package kotlinx.io.buffer
 
-import kotlinx.io.*
 import org.khronos.webgl.*
 
 public actual class Buffer(public val view: DataView) {

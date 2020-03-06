@@ -47,7 +47,7 @@ public abstract class Input : Closeable {
     /**
      * Buffer pool used by this [Input] for copy and cache operations.
      */
-    val bufferPool: ObjectPool<Buffer>
+    public val bufferPool: ObjectPool<Buffer>
 
     /**
      * Buffer for current operations.
@@ -84,7 +84,7 @@ public abstract class Input : Closeable {
     /**
      * Constructs a new Input with the given `bufferPool`.
      */
-    constructor(pool: ObjectPool<Buffer>) {
+    public constructor(pool: ObjectPool<Buffer>) {
         bufferPool = pool
         buffer = pool.borrow()
     }
