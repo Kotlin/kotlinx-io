@@ -6,7 +6,7 @@ import kotlinx.io.buffer.*
 import kotlinx.io.bytes.*
 import kotlin.test.*
 
-class OutputTest {
+class OutputTest : LeakDetector() {
     @Test
     fun testBuildBytes() {
         val input = buildInput {
@@ -50,12 +50,13 @@ class OutputTest {
     @Test
     fun testWriteBufferDirect() {
         val origin = bufferOf(ByteArray(10))
-        val output = LambdaOutput { buffer, startIndex, endIndex ->
+        val output = LambdaOutput(pool) { buffer, startIndex, endIndex ->
             assertTrue { buffer === origin }
             true
         }
 
         output.writeBuffer(origin)
+        output.close()
     }
 }
 

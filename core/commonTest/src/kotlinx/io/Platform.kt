@@ -7,5 +7,3 @@ enum class Platform {
 }
 
 expect val platform: Platform
-
-val isNative: Boolean get() = platform == Platform.NATIVE

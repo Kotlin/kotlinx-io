@@ -1,7 +1,7 @@
 package kotlinx.io
 
-import kotlinx.io.*
 import kotlinx.io.buffer.*
+import kotlinx.io.pool.*
 
 class LambdaOutput(
     pool: ObjectPool<Buffer>,

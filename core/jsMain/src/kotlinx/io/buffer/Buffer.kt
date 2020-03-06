@@ -31,3 +31,5 @@ internal actual fun bufferOf(array: ByteArray, startIndex: Int, endIndex: Int): 
     )
     return Buffer(view)
 }
+
+internal actual fun Buffer.sameAs(other: Buffer): Boolean = view == other.view

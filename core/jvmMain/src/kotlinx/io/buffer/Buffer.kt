@@ -25,3 +25,5 @@ public actual inline class Buffer(public val buffer: ByteBuffer) {
 internal actual fun bufferOf(array: ByteArray, startIndex: Int, endIndex: Int): Buffer {
     return Buffer(ByteBuffer.wrap(array, startIndex, endIndex - startIndex))
 }
+
+internal actual fun Buffer.sameAs(other: Buffer): Boolean = buffer === other.buffer
