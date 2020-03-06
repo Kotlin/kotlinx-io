@@ -38,7 +38,7 @@ public object SystemIn : Input() {
 @ThreadLocal
 public object SystemOut : Output() {
 
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
         val error = source.usePointer {
             val size = endIndex - startIndex
             write(STDOUT_FILENO, it + startIndex, size.convert()).toInt()
@@ -46,6 +46,8 @@ public object SystemOut : Output() {
         if (error == -1) {
             throw IOException("Posix write error: $errno")
         }
+
+        return true
     }
 
     override fun closeSource() {
@@ -56,7 +58,7 @@ public object SystemOut : Output() {
 @ThreadLocal
 public object SystemErr : Output() {
 
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
         val error = source.usePointer {
             val size = startIndex - endIndex
             write(STDERR_FILENO, it + startIndex, size.convert()).toInt()
@@ -64,6 +66,8 @@ public object SystemErr : Output() {
         if (error == -1) {
             throw IOException("Posix write error: $errno")
         }
+
+        return true
     }
 
     override fun closeSource() {
