@@ -30,6 +30,7 @@ class ByteArrayInputTest {
         testIndices(ByteArray(42) { it.toByte() }, startIndex = 1)
         testIndices(ByteArray(42) { it.toByte() }, startIndex = 21)
         testIndices(ByteArray(42) { it.toByte() }, startIndex = 42)
+
         val largeSize = DEFAULT_BUFFER_SIZE * 3 + 1
         testIndices(ByteArray(largeSize) { it.toByte() }, startIndex = 1)
         testIndices(ByteArray(largeSize) { it.toByte() }, startIndex = DEFAULT_BUFFER_SIZE)
@@ -43,6 +44,7 @@ class ByteArrayInputTest {
         testIndices(ByteArray(42) { it.toByte() }, endIndex = 1)
         testIndices(ByteArray(42) { it.toByte() }, endIndex = 21)
         testIndices(ByteArray(42) { it.toByte() }, endIndex = 42)
+
         val largeSize = DEFAULT_BUFFER_SIZE * 3 + 1
         testIndices(ByteArray(largeSize) { it.toByte() }, endIndex = 1)
         testIndices(ByteArray(largeSize) { it.toByte() }, endIndex = DEFAULT_BUFFER_SIZE)
@@ -55,6 +57,7 @@ class ByteArrayInputTest {
         testIndices(ByteArray(42) { it.toByte() }, startIndex = 0, endIndex = 1)
         testIndices(ByteArray(42) { it.toByte() }, startIndex = 0, endIndex = 21)
         testIndices(ByteArray(42) { it.toByte() }, startIndex = 41, endIndex = 42)
+
         val largeSize = DEFAULT_BUFFER_SIZE * 3 + 1
         testIndices(ByteArray(largeSize) { it.toByte() }, startIndex = 0, endIndex = 1)
         testIndices(

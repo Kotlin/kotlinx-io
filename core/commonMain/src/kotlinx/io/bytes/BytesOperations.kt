@@ -7,7 +7,7 @@ import kotlin.contracts.*
 /**
  * Create [BytesInput] with content from [block] using specified [bufferSize].
  */
-fun buildInput(bufferSize: Int = DEFAULT_BUFFER_SIZE, block: BytesOutput.() -> Unit): BytesInput {
+public fun buildInput(bufferSize: Int = DEFAULT_BUFFER_SIZE, block: BytesOutput.() -> Unit): BytesInput {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
