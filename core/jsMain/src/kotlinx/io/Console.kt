@@ -21,7 +21,7 @@ private object ConsoleOut : ConsolePrinter({ console.log(it) }, "output")
 private object ConsoleErr : ConsolePrinter({ console.error(it) }, "error")
 
 private open class ConsolePrinter(private val printer: (String) -> Unit, private val name: String) : Output() {
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
         val buffer = source.view.buffer.slice(startIndex, endIndex)
         val decoder = if (isNodeJs) {
             js("new (require('util').TextDecoder)('utf-8')")
@@ -29,6 +29,8 @@ private open class ConsolePrinter(private val printer: (String) -> Unit, private
             TextDecoder("utf-8")
         }
         printer(decoder.decode(buffer))
+
+        return true
     }
 
     override fun closeSource() {

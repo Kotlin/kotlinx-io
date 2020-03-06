@@ -26,9 +26,11 @@ class CustomPoolTest {
         val outputPool = SingleShotPool(outputBuffer)
 
         val output = object : Output(outputPool) {
-            override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+            override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
                 assertTrue(source === outputBuffer)
                 assertTrue(endIndex == 1)
+
+                return true
             }
 
             override fun closeSource() {

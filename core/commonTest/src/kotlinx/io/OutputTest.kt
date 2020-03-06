@@ -52,6 +52,7 @@ class OutputTest {
         val origin = bufferOf(ByteArray(10))
         val output = LambdaOutput { buffer, startIndex, endIndex ->
             assertTrue { buffer === origin }
+            true
         }
 
         output.writeBuffer(origin)

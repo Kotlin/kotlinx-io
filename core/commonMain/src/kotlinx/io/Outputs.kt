@@ -27,12 +27,14 @@ public class ByteArrayOutput(initialCapacity: Int = 16) : Output(UnmanagedBuffer
     }
 
     /** @suppress */
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
         ensureCapacity(endIndex - startIndex)
         for (i in startIndex until endIndex) {
             array[size + i] = source[i]
         }
         size += endIndex
+
+        return true
     }
 
     /** @suppress */

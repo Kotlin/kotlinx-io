@@ -44,12 +44,14 @@ private object SystemIn : Input() {
 
 private object SystemOut : Output() {
 
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
         val out = System.out
         for (i in startIndex until endIndex) {
             out.write(source[i].toInt())
         }
         out.flush()
+
+        return true
     }
 
     override fun closeSource() {
@@ -60,12 +62,14 @@ private object SystemOut : Output() {
 
 private object SystemErr : Output() {
 
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
         val out = System.err
         for (i in startIndex until endIndex) {
             out.write(source[i].toInt())
         }
         out.flush()
+
+        return true
     }
 
     override fun closeSource() {

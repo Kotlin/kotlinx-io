@@ -25,6 +25,9 @@ kotlin {
         nodejs {
             testTask {
                 debug = false
+                useMocha {
+                    timeout = "0"
+                }
             }
         }
     }
@@ -101,6 +104,11 @@ kotlin {
                     testSockets { defFile = file("nativeTest/interop/testSockets.def") }
                 }
             }
+        }
+
+
+        configure(cinteropTargets) {
+            binaries.getTest("DEBUG").optimized = true
         }
     }
 

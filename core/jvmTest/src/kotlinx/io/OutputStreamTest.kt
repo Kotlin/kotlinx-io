@@ -43,8 +43,8 @@ class OutputStreamTest {
     fun testOutputAsOutputStreamClose() {
         var closed = false
         val output = object : Output() {
-            override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
-
+            override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
+                return true
             }
 
             override fun closeSource() {

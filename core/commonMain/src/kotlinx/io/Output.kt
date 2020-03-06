@@ -85,14 +85,18 @@ public abstract class Output(
         if (closeException !== null) {
             throw closeException
         }
+
+        bufferPool.recycle(buffer)
     }
 
     /**
-     * Write the [source] buffer from [startIndex] to [endIndex] exclusive to destination.
+     * Write the [source] buffer from the [startIndex] to the [endIndex] exclusive to the destination.
+     * This method won't modify the [source] and will block until all bytes from the [source] won't be flushed.
      *
-     * This method won't modify [source] and will block until all bytes from [source] won't be flushed.
+     * @return true if the [source] can be reused for the next operations. Otherwise, [Output] implementation is
+     * responsible for the [source] recycling in the [bufferPool].
      */
-    protected abstract fun flush(source: Buffer, startIndex: Int, endIndex: Int)
+    protected abstract fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean
 
     /**
      * Closes the underlying source of data used by this output.
@@ -101,8 +105,10 @@ public abstract class Output(
     protected abstract fun closeSource()
 
     private fun flushBuffer() {
-        flush(buffer, 0, position)
-        buffer = pool.borrow()
+        if (!flush(buffer, 0, position)) {
+            buffer = bufferPool.borrow()
+        }
+
         position = 0
     }
 
