@@ -39,8 +39,8 @@ internal class InputFromInputStream(private val inputStream: InputStream) : Inpu
     override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
         // Zero-copy attempt
         if (buffer.buffer.hasArray()) {
-            return inputStream.read(buffer.buffer.array(), startIndex, endIndex - startIndex)
-                .coerceAtLeast(0) // -1 when IS is closed
+            val result = inputStream.read(buffer.buffer.array(), startIndex, endIndex - startIndex)
+            return result.coerceAtLeast(0) // -1 when IS is closed
         }
 
         for (i in startIndex until endIndex) {
