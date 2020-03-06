@@ -45,9 +45,9 @@ import kotlin.math.*
  */
 public abstract class Input : Closeable {
     /**
-     * Pool for obtaining buffers for operations.
+     * Buffer pool used by this [Input] for copy and cache operations.
      */
-    private val bufferPool: ObjectPool<Buffer>
+    val bufferPool: ObjectPool<Buffer>
 
     /**
      * Buffer for current operations.

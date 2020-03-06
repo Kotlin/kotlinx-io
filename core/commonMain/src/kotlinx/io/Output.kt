@@ -14,7 +14,10 @@ import kotlinx.io.pool.*
 public abstract class Output(
     protected val pool: ObjectPool<Buffer> = DefaultBufferPool.Instance
 ) : Closeable {
-    internal val bufferPool: ObjectPool<Buffer> get() = pool
+    /**
+     * Buffer pool used by this [Input] for copy and cache operations.
+     */
+    val bufferPool: ObjectPool<Buffer> get() = pool
 
     /**
      * Current buffer.
