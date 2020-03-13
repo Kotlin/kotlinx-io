@@ -164,6 +164,52 @@ class InputOutputTest {
         assertEquals(1023, end)
     }
 
+    @Test
+    fun testReadAvailableToReturnValue() {
+        var readIndex = 0
+        var writeIndex = 0
+
+        val input = object : Input() {
+            override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
+                readIndex++
+
+                buffer.storeByteAt(startIndex, 42)
+                return 1
+            }
+
+            override fun closeSource() {
+                return
+            }
+        }
+
+        val output = object : Output() {
+            override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+                writeIndex++
+
+                assertEquals(startIndex + 1, endIndex)
+                assertEquals(42, source.loadByteAt(startIndex))
+            }
+
+            override fun closeSource() {
+            }
+        }
+
+        repeat(DEFAULT_BUFFER_SIZE * 2) {
+            assertEquals(1, input.readAvailableTo(output))
+            output.flush()
+            assertEquals(it + 1, readIndex)
+            assertEquals(it + 1, writeIndex)
+        }
+
+        repeat(DEFAULT_BUFFER_SIZE * 2) {
+            input.prefetch(1)
+            assertEquals(1, input.readAvailableTo(output))
+
+            assertEquals(DEFAULT_BUFFER_SIZE * 2 + it + 1, readIndex)
+            assertEquals(DEFAULT_BUFFER_SIZE * 2 + it + 1, writeIndex)
+        }
+    }
+
     private fun checkException(block: () -> Unit) {
         var fail = false
         try {
