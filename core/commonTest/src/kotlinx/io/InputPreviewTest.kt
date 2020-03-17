@@ -1,6 +1,6 @@
 package kotlinx.io
 
-import kotlinx.io.internal.*
+import kotlinx.io.utils.LeakDetectingPool
 import kotlin.test.*
 
 class InputPreviewTest {

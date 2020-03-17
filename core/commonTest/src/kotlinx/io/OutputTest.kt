@@ -52,7 +52,6 @@ class OutputTest : LeakDetector() {
         val origin = bufferOf(ByteArray(10))
         val output = LambdaOutput(pool) { buffer, startIndex, endIndex ->
             assertTrue { buffer === origin }
-            true
         }
 
         output.writeBuffer(origin)

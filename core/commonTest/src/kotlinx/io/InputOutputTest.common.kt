@@ -1,5 +1,3 @@
-@file:Suppress("FORBIDDEN_IDENTITY_EQUALS")
-
 package kotlinx.io
 
 import kotlinx.io.buffer.*
@@ -41,14 +39,13 @@ class InputOutputTest : LeakDetector() {
         val output = LambdaOutput(pool) { source, startIndex, endIndex ->
             result = source
             assertEquals(42, endIndex)
-            true
         }
 
         input.readAvailableTo(output)
         output.flush()
 
         assertNotNull(instance)
-        assertTrue(instance === result)
+        assertTrue(instance.sameAs(result))
 
         input.close()
         output.close()
@@ -180,7 +177,7 @@ class InputOutputTest : LeakDetector() {
             }
 
             override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
-                assertTrue { outputBuffer === buffer }
+                assertTrue { outputBuffer.sameAs(buffer) }
                 buffer.storeByteAt(startIndex, 42)
                 return 1
             }
@@ -188,11 +185,9 @@ class InputOutputTest : LeakDetector() {
 
 
         val output = object : Output(outputPool) {
-            override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
-                assertTrue(source === outputBuffer)
+            override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+                assertTrue(source.sameAs(outputBuffer))
                 assertTrue(endIndex == 1)
-
-                return true
             }
 
             override fun closeSource() {
@@ -209,7 +204,7 @@ class InputOutputTest : LeakDetector() {
         val myBuffer = bufferOf(ByteArray(1024))
         val input = object : Input() {
             override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
-                assertTrue { myBuffer === buffer }
+                assertTrue { myBuffer.sameAs(buffer) }
                 buffer[startIndex] = 42
                 return 1
             }
@@ -254,7 +249,7 @@ class InputOutputTest : LeakDetector() {
         checkException {
             ErrorInput.readAvailableTo(
                 object : Output() {
-                    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
+                    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
                         error("flush")
                     }
 
@@ -357,6 +352,6 @@ internal class SingleShotPool(private val buffer: Buffer) : DefaultPool<Buffer>(
         assertFalse(disposed)
         disposed = false
 
-        assertTrue { buffer === instance }
+        assertTrue { buffer.sameAs(instance) }
     }
 }

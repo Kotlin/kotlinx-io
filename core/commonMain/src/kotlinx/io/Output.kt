@@ -47,7 +47,7 @@ public abstract class Output(
     }
 
     /**
-     * Bypass [data] from the [startIndex] to [endIndex] by using [Output.flush].
+     * Bypass [data] from the [startIndex] to [endIndex] by using [Output.flushConsuming].
      * If [Output] is not empty, all data will be flushed beforehand.
      */
     internal fun writeBuffer(data: Buffer, startIndex: Int = 0, endIndex: Int = data.size) {
@@ -55,7 +55,7 @@ public abstract class Output(
         if (position != 0) {
             flushBuffer()
         }
-        flush(data, startIndex, endIndex)
+        flushConsuming(data, startIndex, endIndex)
     }
 
     /**
@@ -93,10 +93,21 @@ public abstract class Output(
      * Write the [source] buffer from the [startIndex] to the [endIndex] exclusive to the destination.
      * This method won't modify the [source] and will block until all bytes from the [source] won't be flushed.
      *
-     * @return true if the [source] can be reused for the next operations. Otherwise, [Output] implementation is
+     * Doesn't consume [source] by default. If you want to save the [soruce], consider overriding [flushConsuming].
+     */
+    protected abstract fun flush(source: Buffer, startIndex: Int, endIndex: Int)
+
+    /**
+     * Write the [source] buffer from the [startIndex] to the [endIndex] exclusive to the destination.
+     * This method won't modify the [source] and will block until all bytes from the [source] won't be flushed.
+     *
+     * @return false if the [source] can be reused for the next operations. Otherwise, [Output] implementation is
      * responsible for the [source] recycling in the [bufferPool].
      */
-    protected abstract fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean
+    protected open fun flushConsuming(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
+        flush(source, startIndex, endIndex)
+        return false
+    }
 
     /**
      * Closes the underlying source of data used by this output.
@@ -105,7 +116,7 @@ public abstract class Output(
     protected abstract fun closeSource()
 
     private fun flushBuffer() {
-        if (!flush(buffer, 0, position)) {
+        if (flushConsuming(buffer, 0, position)) {
             buffer = bufferPool.borrow()
         }
 

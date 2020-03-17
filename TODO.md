@@ -1,10 +1,10 @@
  # TODO
 - Design
     - Input: bypass source exceptions in `Input.fill`
-    - Input: `eof` vs `exhausted`
     - Output: Appendable
     - Idempotent close
     - Make `fill` public (and then rename it) to enable zero-copy delegates
+    - flushConsuming considerations
 - Implementation
     - Index preconditions
     - Prototype `PipedOutput`

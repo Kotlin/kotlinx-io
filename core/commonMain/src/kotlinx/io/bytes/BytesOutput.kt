@@ -33,13 +33,16 @@ public class BytesOutput(
         return BytesInput(bytes.snapshot(), bufferSize)
     }
 
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
         if (startIndex > 0) {
             source.compact(startIndex, endIndex)
         }
         bytes.append(source, endIndex)
+    }
 
-        return false
+    override fun flushConsuming(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
+        flush(source, startIndex, endIndex)
+        return true
     }
 
     override fun closeSource() {

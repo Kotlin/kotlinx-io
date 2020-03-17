@@ -10,12 +10,10 @@ class GzipOutput(private val original: Output) : Output() {
     private val baos = ByteArrayOutputStream()
     private val deflater = DeflaterOutputStream(baos)
 
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
         for (i in startIndex until endIndex) {
             deflater.write(source[i].toInt())
         }
-
-        return true
     }
 
     override fun closeSource() {

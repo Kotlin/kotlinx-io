@@ -1,8 +1,8 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlinx.io.internal.*
 import kotlinx.io.pool.*
+import kotlinx.io.utils.LeakDetectingPool
 import kotlin.test.*
 
 fun assertArrayEquals(expected: ByteArray, actual: ByteArray) {

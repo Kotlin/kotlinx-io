@@ -80,16 +80,14 @@ internal class OutputFromOutputStream(private val outputStream: OutputStream) : 
         outputStream.close()
     }
 
-    override fun flush(source: Buffer, startIndex: Int, endIndex: Int): Boolean {
+    override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
         if (source.buffer.hasArray()) {
             outputStream.write(source.buffer.array(), startIndex, endIndex - startIndex)
-            return true
+            return
         }
 
         for (i in startIndex until endIndex) {
             outputStream.write(source[i].toInt())
         }
-
-        return true
     }
 }
