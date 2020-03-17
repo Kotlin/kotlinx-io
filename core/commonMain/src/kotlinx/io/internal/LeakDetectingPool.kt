@@ -39,8 +39,4 @@ internal class LeakDetectingPool(private val size: Int = DEFAULT_BUFFER_SIZE) : 
             "Memory leak: $liveBuffers buffers still in use. Total allocated: ${allocated.size}"
         }
     }
-
-    companion object {
-        private var poolCounter: Byte = 0
-    }
 }

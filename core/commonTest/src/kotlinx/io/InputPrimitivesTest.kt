@@ -1,7 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlin.math.*
+import kotlin.math.min
 import kotlin.test.*
 
 class InputPrimitivesTest : LeakDetector() {
@@ -14,15 +14,14 @@ class InputPrimitivesTest : LeakDetector() {
         limit: Int, seed: Long = 0L, body: Input.() -> Unit
     ) = prefetchSizes.forEach { prefetchSize ->
         bufferSizes.forEach { size ->
-            val input = sequentialLimitedInput(fetchSizeLimit, pool, limit, seed)
-            try {
-                assertTrue(input.prefetch(min(prefetchSize, limit)), "Can't prefetch bytes")
-                input.body()
-            } catch (e: Throwable) {
-                println("Failed at size $size")
-                throw e
-            } finally {
-                input.close()
+            sequentialLimitedInput(fetchSizeLimit, pool, limit, seed).use { input ->
+                try {
+                    assertTrue(input.prefetch(min(prefetchSize, limit)), "Can't prefetch bytes")
+                    input.body()
+                } catch (cause: Throwable) {
+                    println("Failed at size $size")
+                    throw cause
+                }
             }
         }
     }
