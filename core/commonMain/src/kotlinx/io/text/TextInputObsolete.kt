@@ -1,6 +1,6 @@
 package kotlinx.io.text
 
-import kotlinx.io.*
+import kotlinx.io.Input
 
 private const val DEFAULT_CAPACITY: Int = 32
 
@@ -128,13 +128,6 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
                     byteCount == 0 -> {
                         // first unicode byte
                         when {
-                            byte < 0x80 -> {
-                                if (!consumer(byte.toChar())) {
-                                    state = STATE_FINISH
-                                    return@readBufferRange offset - startOffset + 1
-                                }
-                                count++
-                            }
                             byte < 0xC0 -> {
                                 byteCount = 0
                                 value = byte and 0x7F
@@ -258,6 +251,7 @@ private val Utf8StateMachine = intArrayOf(
 )
 
 private const val STATE_FINISH = -2
+
 //private const val Utf8_STATE_ASCII = -1
 internal const val STATE_UTF_8 = 0
 internal const val STATE_REJECT = 1
