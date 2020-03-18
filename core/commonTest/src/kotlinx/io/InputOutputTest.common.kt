@@ -1,8 +1,9 @@
 @file:Suppress("FORBIDDEN_IDENTITY_EQUALS")
+
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlinx.io.pool.*
+import kotlinx.io.pool.DefaultPool
 import kotlin.test.*
 
 class InputOutputTest {
@@ -48,7 +49,6 @@ class InputOutputTest {
         assertNotNull(instance)
         assertTrue(instance === result)
     }
-
 
     @Test
     fun testFillDirect() {
@@ -207,6 +207,60 @@ class InputOutputTest {
 
             assertEquals(DEFAULT_BUFFER_SIZE * 2 + it + 1, readIndex)
             assertEquals(DEFAULT_BUFFER_SIZE * 2 + it + 1, writeIndex)
+        }
+    }
+
+    @Test
+    fun testReadAvailableToReturnValueAfterSkipByte() {
+        var readIndex = 0
+        var writeIndex = 0
+
+        val input = object : Input() {
+            override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
+                check(startIndex + 10 <= endIndex)
+                readIndex += 10
+                return 10
+            }
+
+            override fun closeSource() {
+                return
+            }
+        }
+
+        val output = object : Output() {
+            override fun flush(source: Buffer, startIndex: Int, endIndex: Int) {
+                val count = endIndex - startIndex
+                writeIndex += count
+                assertEquals(9, count)
+            }
+
+            override fun closeSource() {
+            }
+        }
+
+
+        repeat(DEFAULT_BUFFER_SIZE * 2) {
+            input.readByte()
+            assertEquals(9, input.readAvailableTo(output))
+            output.flush()
+
+            assertEquals((it + 1) * 10, readIndex)
+            assertEquals((it + 1) * 9, writeIndex)
+        }
+
+        var previousRead = readIndex
+        var previousWrite = writeIndex
+        repeat(DEFAULT_BUFFER_SIZE * 2) {
+            input.prefetch(20)
+            input.readByte()
+            assertEquals(9, input.readAvailableTo(output))
+            input.readByte()
+            assertEquals(9, input.readAvailableTo(output))
+
+            assertEquals(20, readIndex - previousRead)
+            assertEquals(18, writeIndex - previousWrite)
+            previousRead = readIndex
+            previousWrite = writeIndex
         }
     }
 
