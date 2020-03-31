@@ -1,7 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlin.math.*
+import kotlin.math.min
 
 /**
  * Copies the [Input] content to [destination].
@@ -61,7 +61,7 @@ public fun Input.readByteArray(size: Int): ByteArray {
     checkSize(size)
 
     val result = ByteArray(size)
-    var position = size
+    var position = 0
     while (position < size) {
         val count = readBufferRange { buffer, startOffset, endOffset ->
             val length = min(endOffset - startOffset, size - position)

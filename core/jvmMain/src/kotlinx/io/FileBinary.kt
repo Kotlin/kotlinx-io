@@ -12,9 +12,9 @@ import kotlin.math.min
  * @param end absolute read limit relative to the start of file
  */
 internal class FileInput(
-    val file: Path,
-    val start: Int,
-    val end: Int
+    private val file: Path,
+    start: Int,
+    private val end: Int
 ) : CountingInput(UnmanagedBufferPool.Instance) {
 
     private val channel = Files.newByteChannel(file, StandardOpenOption.READ)
@@ -53,18 +53,19 @@ internal class FileInput(
  */
 public class FileBinary(
     val file: Path,
-    val startIndex: Int = 0,
-    override val size: Int = Files.size(file).toInt() - startIndex
+    val start: Int = 0,
+    override val size: Int = Files.size(file).toInt() - start
 ) : Binary {
     init {
         if (!Files.exists(file)) error("File with path $file does not exist")
     }
 
     override fun <R> read(offset: Int, atMost: Int, block: Input.() -> R): R {
+        require(offset >= 0) { "Offset must be positive" }
         return FileInput(
             file,
-            offset + startIndex,
-            min(offset + startIndex + atMost, startIndex + size)
+            offset + start,
+            min(offset + start + atMost, start + size)
         ).block()
     }
 }
