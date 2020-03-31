@@ -1,6 +1,8 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.UnmanagedBufferPool
+import kotlinx.io.buffer.get
 
 /**
  * Output which uses a byte array as its data storage.
@@ -50,6 +52,6 @@ public class ByteArrayOutput(initialCapacity: Int = 16) : Output(UnmanagedBuffer
         }
     }
 
-    @UseExperimental(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class)
     private fun powOf2(minCapacity: Int) = if (minCapacity >= 1 shl 30) minCapacity else (1 shl (32 - (minCapacity - 1).countLeadingZeroBits()))
 }

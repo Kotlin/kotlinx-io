@@ -557,4 +557,15 @@ public abstract class Input : Closeable {
         val previewSize = previewBytes?.size(previewIndex) ?: limit
         return previewSize - position
     }
+
+    /**
+     * Read a [Binary] of given [size] if possible. The resulting binary is independent from this input and could be used
+     * separately.
+     */
+    public open fun readBinary(size: Int): Binary = readByteArray(size).asBinary()
+
+    /**
+     * Current read position in a current buffer.
+     */
+    protected fun bufferPosition() = position
 }
