@@ -21,7 +21,7 @@ public interface Binary {
 
 public class ByteArrayBinary(
     internal val array: ByteArray,
-    private val start: Int = 0,
+    internal val start: Int = 0,
     override val size: Int = array.size - start
 ) : Binary {
 
@@ -50,9 +50,10 @@ public fun Binary.toByteArray(): ByteArray = if (this is ByteArrayBinary) {
     }
 }
 
-public fun Output.writeBinary(binary: Binary) {
-    if (binary is ByteArrayBinary) {
-        writeByteArray(binary.array)
+public fun Output.writeBinary(binary: Binary): Int {
+    return if (binary is ByteArrayBinary) {
+        writeByteArray(binary.array, binary.start, binary.start + binary.size)
+        binary.size
     } else {
         binary.read {
             copyTo(this@writeBinary)
