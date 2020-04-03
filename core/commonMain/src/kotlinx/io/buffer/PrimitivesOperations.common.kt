@@ -192,28 +192,28 @@ public fun Buffer.storeLongAt(offset: Int, value: Long, byteOrder: ByteOrder) {
 public expect fun Buffer.storeLongAt(offset: Long, value: Long)
 
 /**
- * Read short signed 64-bit integer in the network byte order (Big Endian).
+ * Read short unsigned 64-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
 public inline fun Buffer.loadULongAt(offset: Int): ULong = loadLongAt(offset).toULong()
 
 /**
- * Read short signed 64-bit integer in the network byte order (Big Endian).
+ * Read short unsigned 64-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
 public inline fun Buffer.loadULongAt(offset: Long): ULong = loadLongAt(offset).toULong()
 
 /**
- * Write short signed 64-bit integer in the network byte order (Big Endian).
+ * Write short unsigned 64-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
 public inline fun Buffer.storeULongAt(offset: Int, value: ULong): Unit = storeLongAt(offset, value.toLong())
 
 /**
- * Write short signed 64-bit integer in the network byte order (Big Endian).
+ * Write short unsigned 64-bit integer in the network byte order (Big Endian).
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
