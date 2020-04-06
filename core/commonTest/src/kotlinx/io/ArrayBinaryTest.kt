@@ -37,9 +37,12 @@ class ArrayBinaryTest {
             }
         }
 
+        //check second read
         sub.read {
             val res = readByteArray(10)
-            assertEquals(10, res[0])
+            assertEquals(10,res.size)
+            assertEquals(12, res[2])
+            assertEquals(20,readByte())
         }
     }
 }
