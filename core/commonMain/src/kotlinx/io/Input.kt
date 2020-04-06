@@ -1,9 +1,10 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlinx.io.bytes.*
-import kotlinx.io.pool.*
-import kotlin.math.*
+import kotlinx.io.bytes.Bytes
+import kotlinx.io.bytes.pointed
+import kotlinx.io.pool.ObjectPool
+import kotlin.math.min
 
 /**
  * [Input] is an abstract base class for synchronous byte readers.
@@ -567,5 +568,5 @@ public abstract class Input : Closeable {
     /**
      * Current read position in a current buffer.
      */
-    protected fun bufferPosition() = position
+    protected fun bufferPosition(): Int = position
 }

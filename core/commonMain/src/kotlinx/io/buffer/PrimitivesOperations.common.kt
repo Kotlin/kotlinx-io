@@ -2,7 +2,8 @@
 
 package kotlinx.io.buffer
 
-import kotlinx.io.*
+import kotlinx.io.ByteOrder
+import kotlinx.io.reverseByteOrder
 
 /**
  * Returns byte at [index] position.
@@ -35,14 +36,14 @@ public expect fun Buffer.storeByteAt(index: Long, value: Byte)
  * May throw [IndexOutOfBoundsException] if given [index] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
-public inline fun Buffer.storeUByteAt(index: Int, value: UByte) = storeByteAt(index, value.toByte())
+public inline fun Buffer.storeUByteAt(index: Int, value: UByte): Unit = storeByteAt(index, value.toByte())
 
 /**
  * Write [value] at the specified [index].
  * May throw [IndexOutOfBoundsException] if given [index] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
-public inline fun Buffer.storeUByteAt(index: Long, value: UByte) = storeByteAt(index, value.toByte())
+public inline fun Buffer.storeUByteAt(index: Long, value: UByte): Unit = storeByteAt(index, value.toByte())
 
 /**
  * Read short signed 16-bit integer in the network byte order (Big Endian).

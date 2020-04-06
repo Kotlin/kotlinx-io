@@ -1,7 +1,7 @@
 package kotlinx.io.text
 
-actual abstract class CharsetEncoder(internal val _charset: Charset)
+public actual abstract class CharsetEncoder(internal val _charset: Charset)
 internal data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
 
-actual val CharsetEncoder.charset: Charset get() = _charset
+public actual val CharsetEncoder.charset: Charset get() = _charset
 

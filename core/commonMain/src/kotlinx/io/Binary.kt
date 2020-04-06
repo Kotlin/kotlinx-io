@@ -10,16 +10,16 @@ import kotlin.math.min
  */
 public interface Binary {
 
-    val size: Int
+    public val size: Int
 
     /**
      * Read maximum of [atMost] bytes as input from the binary, starting at [offset]. The generated input is always closed
      * when leaving scope, so it could not be leaked outside of scope of [block].
      */
-    fun <R> read(offset: Int = 0, atMost: Int = size - offset, block: Input.() -> R): R
+    public fun <R> read(offset: Int = 0, atMost: Int = size - offset, block: Input.() -> R): R
 
-    companion object {
-        val EMPTY: Binary = ByteArrayBinary(ByteArray(0))
+    public companion object {
+        public val EMPTY: Binary = ByteArrayBinary(ByteArray(0))
     }
 }
 

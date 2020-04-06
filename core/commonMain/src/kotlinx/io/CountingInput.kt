@@ -6,7 +6,7 @@ import kotlinx.io.pool.ObjectPool
 /**
  * An input that can track its current reader position relative to input start
  */
-abstract class CountingInput(pool: ObjectPool<Buffer>) : Input(pool) {
+public abstract class CountingInput(pool: ObjectPool<Buffer>) : Input(pool) {
     private var bufferIndex: Int = 0
     private var lastBufferSize: Int = 0
 
@@ -20,12 +20,12 @@ abstract class CountingInput(pool: ObjectPool<Buffer>) : Input(pool) {
      * Fill buffer appending counter
      * @param absoluteBufferIndex is the absolute start index of buffer start in the input
      */
-    abstract fun fillCounting(buffer: Buffer, startIndex: Int, endIndex: Int, absoluteBufferIndex: Int): Int
+    public abstract fun fillCounting(buffer: Buffer, startIndex: Int, endIndex: Int, absoluteBufferIndex: Int): Int
 
     /**
      * Absolute read position relative to input start or last reset position
      */
-    fun absolutePosition(): Int = bufferIndex + bufferPosition()
+    public fun absolutePosition(): Int = bufferIndex + bufferPosition()
 
     /**
      * Reset counter and read position if it is applicable

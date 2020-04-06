@@ -41,7 +41,14 @@ kotlin {
                 }
             }
         }
-        browser()
+        browser{
+            testTask {
+                debug = false
+                useMocha {
+                    timeout = "0"
+                }
+            }
+        }
     }
 
     sourceSets {

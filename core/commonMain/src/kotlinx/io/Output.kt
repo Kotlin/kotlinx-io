@@ -1,7 +1,10 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-import kotlinx.io.pool.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.DEFAULT_BUFFER_SIZE
+import kotlinx.io.buffer.DefaultBufferPool
+import kotlinx.io.buffer.fill
+import kotlinx.io.pool.ObjectPool
 
 /**
  * [Output] is an abstract base for writable streams of bytes over some sink.
@@ -17,7 +20,7 @@ public abstract class Output(
     /**
      * Buffer pool used by this [Input] for copy and cache operations.
      */
-    val bufferPool: ObjectPool<Buffer> get() = pool
+    public val bufferPool: ObjectPool<Buffer> get() = pool
 
     /**
      * Current buffer.

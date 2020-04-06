@@ -3,8 +3,8 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlinx.io.bytes.*
-import kotlinx.io.pool.*
+import kotlinx.io.bytes.buildInput
+import kotlinx.io.pool.DefaultPool
 import kotlin.test.*
 
 class InputOutputTest : LeakDetector() {
@@ -33,12 +33,12 @@ class InputOutputTest : LeakDetector() {
         var instance: Buffer = Buffer.EMPTY
         var result: Buffer = Buffer.EMPTY
 
-        val input: Input = LambdaInput(pool) { buffer, start, end ->
+        val input: Input = LambdaInput(pool) { buffer, _, _ ->
             instance = buffer
             return@LambdaInput 42
         }
 
-        val output = LambdaOutput(pool) { source, startIndex, endIndex ->
+        val output = LambdaOutput(pool) { source, _, endIndex ->
             result = source
             assertEquals(42, endIndex)
             true

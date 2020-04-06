@@ -1,12 +1,12 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
+import kotlinx.io.buffer.Buffer
 
-expect open class IOException(message: String, cause: Throwable?) : Exception {
-    constructor(message: String)
+public expect open class IOException(message: String, cause: Throwable?) : Exception {
+    public constructor(message: String)
 }
 
-expect open class EOFException(message: String) : IOException
+public expect open class EOFException(message: String) : IOException
 
 internal fun checkBufferAndIndexes(buffer: Buffer, startIndex: Int, endIndex: Int) {
     require(startIndex >= 0) { "Start index ($startIndex) should be positive." }

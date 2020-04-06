@@ -2,9 +2,12 @@
 
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-import kotlinx.io.bytes.*
-import kotlin.test.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.bufferOf
+import kotlinx.io.bytes.buildInput
+import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class OutputTest : LeakDetector() {
     @Test
@@ -50,7 +53,7 @@ class OutputTest : LeakDetector() {
     @Test
     fun testWriteBufferDirect() {
         val origin = bufferOf(ByteArray(10))
-        val output = LambdaOutput(pool) { buffer, startIndex, endIndex ->
+        val output = LambdaOutput(pool) { buffer, _, _ ->
             assertTrue { buffer === origin }
             true
         }

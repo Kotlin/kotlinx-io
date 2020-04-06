@@ -1,6 +1,6 @@
 package kotlinx.io.text
 
-expect object Charsets {
-    val UTF_8: Charset
-    val ISO_8859_1: Charset
+public expect object Charsets {
+    public val UTF_8: Charset
+    public val ISO_8859_1: Charset
 }
