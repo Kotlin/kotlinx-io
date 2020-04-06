@@ -1,7 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.Buffer
-import kotlinx.io.buffer.UnmanagedBufferPool
+import kotlinx.io.buffer.DefaultBufferPool
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -15,7 +15,7 @@ internal class FileInput(
     private val file: Path,
     start: Int,
     private val end: Int
-) : CountingInput(UnmanagedBufferPool.Instance) {
+) : CountingInput(DefaultBufferPool.Instance) {
 
     private val channel = Files.newByteChannel(file, StandardOpenOption.READ)
 

@@ -17,9 +17,13 @@ public interface Binary {
      * when leaving scope, so it could not be leaked outside of scope of [block].
      */
     fun <R> read(offset: Int = 0, atMost: Int = size - offset, block: Input.() -> R): R
+
+    companion object {
+        val EMPTY: Binary = ByteArrayBinary(ByteArray(0))
+    }
 }
 
-public class ByteArrayBinary(
+internal class ByteArrayBinary(
     internal val array: ByteArray,
     internal val start: Int = 0,
     override val size: Int = array.size - start
@@ -50,6 +54,9 @@ public fun Binary.toByteArray(): ByteArray = if (this is ByteArrayBinary) {
     }
 }
 
+/**
+ * Direct write of binary to the output. Returns the number of bytes written
+ */
 public fun Output.writeBinary(binary: Binary): Int {
     return if (binary is ByteArrayBinary) {
         writeByteArray(binary.array, binary.start, binary.start + binary.size)
