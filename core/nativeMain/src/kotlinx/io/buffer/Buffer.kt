@@ -22,7 +22,6 @@ public actual class Buffer constructor(
     }
 
     public actual companion object {
-        @SharedImmutable
         public actual val EMPTY: Buffer = Buffer(ByteArray(0))
     }
 }
