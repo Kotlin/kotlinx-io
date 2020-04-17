@@ -162,3 +162,23 @@ task testCoverage(type: JacocoReport, dependsOn: jvmTest) {
         html.destination file("${buildDir}/jacoco-reports/html")
     }
 }
+
+// Workaround: register and publish the cinterop klibs as outputs of intermediate source sets:
+
+if (!ideaActive) {
+    apply from: "$rootDir/gradle/interop-as-source-set-klib.gradle"
+
+    kotlin.sourceSets {
+        bitsInterop
+        socketsInterop
+        nativeMain {
+            dependsOn(bitsInterop)
+            dependsOn(socketsInterop)
+        }
+
+        def linuxInterops = kotlin.linuxX64().compilations["main"].cinterops
+
+        registerInteropAsSourceSetOutput(linuxInterops.bits, bitsInterop)
+        registerInteropAsSourceSetOutput(linuxInterops.sockets, socketsInterop)
+    }
+}
