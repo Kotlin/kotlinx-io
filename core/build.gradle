@@ -4,7 +4,7 @@ buildscript{
     }
 
     dependencies {
-        classpath 'scientifik:gradle-tools:0.4.1'
+        classpath 'scientifik:gradle-tools:0.4.2'
     }
 }
 
@@ -13,7 +13,7 @@ plugins {
     id "maven-publish"
     id "jacoco"
     id 'org.jetbrains.dokka' version '0.10.1'
-    id "scientifik.publish" version "0.4.1"
+    id "scientifik.publish" version "0.4.2"
 }
 
 def ideaActive = System.getProperty('idea.active') == 'true'
