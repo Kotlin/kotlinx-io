@@ -1,7 +1,8 @@
 package kotlinx.io.text
 
-import kotlinx.io.*
+import kotlinx.io.Input
 
+private const val DEFAULT_CAPACITY: Int = 32
 
 /**
  * Read UTF-8 string until [delimiter] to [output].
@@ -34,7 +35,7 @@ public fun Input.readUtf8StringUntilDelimitersTo(output: Appendable, delimiters:
  *
  * @throws MalformedInputException if decoder fail to recognize charset.
  */
-public fun Input.readUtf8StringTo(output: Appendable, length: Int): Int {
+public fun Input.readUtf8StringTo(output: Appendable, length: Int = Int.MAX_VALUE): Int {
     var remaining = length
     return decodeUtf8Chars {
         output.append(it)
@@ -74,8 +75,11 @@ public fun Input.readUtf8LineTo(output: Appendable, limit: Int = Int.MAX_VALUE) 
  *
  * @throws MalformedInputException if decoder fail to recognize charset.
  */
-public fun Input.readUtf8String(length: Int): String = buildString(length) {
-    readUtf8StringTo(this, length)
+public fun Input.readUtf8String(length: Int = Int.MAX_VALUE): String {
+    val capacity = if (length == Int.MAX_VALUE) DEFAULT_CAPACITY else length
+    return buildString(capacity) {
+        readUtf8StringTo(this, length)
+    }
 }
 
 /**
@@ -117,20 +121,13 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
                             malformedInput(value)
                         if (!consumer(byte.toChar())) {
                             state = STATE_FINISH
-                            return@readBufferRange offset + 1
+                            return@readBufferRange offset - startOffset + 1
                         }
                         count++
                     }
                     byteCount == 0 -> {
                         // first unicode byte
                         when {
-                            byte < 0x80 -> {
-                                if (!consumer(byte.toChar())) {
-                                    state = STATE_FINISH
-                                    return@readBufferRange offset + 1
-                                }
-                                count++
-                            }
                             byte < 0xC0 -> {
                                 byteCount = 0
                                 value = byte and 0x7F
@@ -188,7 +185,7 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
                             }
                             if (!more) {
                                 state = STATE_FINISH
-                                return@readBufferRange offset + 1
+                                return@readBufferRange offset - startOffset + 1
                             }
 
                             value = 0
@@ -196,7 +193,7 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
                     }
                 }
             }
-            endOffset
+            endOffset - startOffset
         }
     }
     return count
@@ -254,6 +251,7 @@ private val Utf8StateMachine = intArrayOf(
 )
 
 private const val STATE_FINISH = -2
+
 //private const val Utf8_STATE_ASCII = -1
 internal const val STATE_UTF_8 = 0
 internal const val STATE_REJECT = 1

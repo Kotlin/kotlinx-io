@@ -21,6 +21,10 @@ public actual class Buffer constructor(
         array[assertIndex(offset + index, 1)] = value
     }
 
+    public override fun toString(): String = usePointer {
+        "Buffer[$it:$size]"
+    }
+
     public actual companion object {
         @SharedImmutable
         public actual val EMPTY: Buffer = Buffer(ByteArray(0))
@@ -32,7 +36,7 @@ public actual class Buffer constructor(
  *
  * Consider using it only in interop calls.
  */
-public inline fun <R> Buffer.usePointer(block: (pointer: CPointer<ByteVar>) -> R) = array.usePinned {
+public inline fun <R> Buffer.usePointer(block: (pointer: CPointer<ByteVar>) -> R): R = array.usePinned {
     block((it.addressOf(0) + offset)!!)
 }
 
