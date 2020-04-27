@@ -105,9 +105,9 @@ class OutputStringTest {
 
     @Test
     fun testWriteMultiByteAtEndParts() {
-        val input = buildBytes {
+        val input = buildInput {
             writeUtf8String("ABC\u0422")
-        }.input()
+        }
 
         assertEquals("ABC", input.readUtf8String(3))
         assertEquals("\u0422", input.readUtf8String(1))
@@ -145,9 +145,9 @@ class OutputStringTest {
     @Test
     fun testReadUntilDelimiterUnicode() {
         // 134 139 195
-        val input = buildBytes {
+        val input = buildInput {
             writeUtf8String("1,23|,4.🤔.1.\u0422")
-        }.input()
+        }
 
         val sb = StringBuilder()
         val counts = mutableListOf<Int>()
