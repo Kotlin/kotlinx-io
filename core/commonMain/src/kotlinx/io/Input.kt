@@ -214,7 +214,9 @@ public abstract class Input : Closeable {
      * performance-critical code.
      */
     @Suppress("NOTHING_TO_INLINE")
-    public inline fun exhausted(): Boolean = !prefetch(1)
+    public fun exhausted(): Boolean {
+        return position == limit && fetchCachedOrFill() == 0
+    }
 
     /**
      * Checks that [size] bytes are fetched in [Input].
