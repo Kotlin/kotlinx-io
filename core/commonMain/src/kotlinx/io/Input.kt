@@ -213,8 +213,9 @@ public abstract class Input : Closeable {
      * This method can use [fill] if no bytes are available in the cache. Please consider using [readAvailableTo] in
      * performance-critical code.
      */
-    @Suppress("NOTHING_TO_INLINE")
-    public inline fun exhausted(): Boolean = !prefetch(1)
+    public fun exhausted(): Boolean {
+        return position == limit && fetchCachedOrFill() == 0
+    }
 
     /**
      * Checks that [size] bytes are fetched in [Input].
