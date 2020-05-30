@@ -5,30 +5,54 @@ import kotlin.math.min
 /**
  * An immutable sequence of bytes that can be read multiple times.
  */
-public interface Binary : Iterable<Byte> {
+abstract class Binary : Iterable<Byte> {
 
     /**
      * The size of the sequence of bytes this [Binary] represents
      */
-    public val size: Int
+    abstract val size: Int
+
+    val utf8: String by lazy {
+        TODO()
+    }
+
+    val base64: String by lazy {
+        TODO()
+    }
+
+    val md5: String by lazy {
+        TODO()
+    }
+
+    val sha1: String by lazy {
+        TODO()
+    }
+
+    val sha256: String by lazy {
+        TODO()
+    }
+
+    val sha512: String by lazy {
+        TODO()
+    }
 
     /**
      * Get a single byte at [index]. When requesting a byte at index outside of range
      * [0, size) throw [IndexOutOfBoundsException]
      */
-    public operator fun get(index: Int): Byte
+    abstract operator fun get(index: Int): Byte
 
     /**
      * Checks if [byte] is contained in this [Binary]
      */
-    public operator fun contains(byte: Byte): Boolean
+     abstract operator fun contains(byte: Byte): Boolean
 
     /**
      * Returns a [ByteArray] containing a copy of the bytes contained within this [Binary]
      */
-    public fun toByteArray(): ByteArray
+     open fun toByteArray(): ByteArray = ByteArray(size) { get(it) }
 
-    public override fun iterator(): Iterator<Byte> = object : Iterator<Byte> {
+     override fun iterator(): Iterator<Byte> = object : Iterator<Byte> {
 
         private var currentIndex: Int = 0
 
@@ -37,22 +61,21 @@ public interface Binary : Iterable<Byte> {
         override fun next(): Byte = this@Binary[currentIndex++]
     }
 
-    public override fun equals(other: Any?): Boolean
+     override fun equals(other: Any?): Boolean {
+         if (other !is Binary) return false
+         if (size != other.size) return false
 
-    public override fun hashCode(): Int
+         forEachIndexed { index, byte ->
+             if (byte != other[index]) return false
+         }
+
+         return true
+     }
+
+     abstract override fun hashCode(): Int
 }
 
-private fun genericBinaryEquals(first: Binary, second: Binary): Boolean {
-    if (first.size != second.size) return false
-
-    first.forEachIndexed { index, byte ->
-        if (byte != second[index]) return false
-    }
-
-    return true
-}
-
-internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCopy: Boolean) : Binary {
+internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCopy: Boolean) : Binary() {
 
     private val data = if (defensiveCopy) data.copyOf() else data
 
@@ -66,7 +89,7 @@ internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCo
 
     override fun equals(other: Any?): Boolean = when (other) {
         is ByteArrayBinary -> other.data.contentEquals(data)
-        is Binary -> genericBinaryEquals(this, other)
+        is Binary -> super.equals(other)
         else -> false
     }
 
@@ -79,13 +102,13 @@ internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCo
  * Get a [Binary] wrapper around [this]. In order to ensure immutability of the underlying resource,
  * you should set [defensiveCopy] to true.
  */
-public fun ByteArray.asBinary(defensiveCopy: Boolean = true): Binary = ByteArrayBinary(this, defensiveCopy)
+ fun ByteArray.asBinary(defensiveCopy: Boolean = true): Binary = ByteArrayBinary(this, defensiveCopy)
 
 /**
  * A view into a subset of [this] where index 0 correspends to [startIndex] and the last index corresponds to
  * [endIndex].
  */
-public fun Binary.slice(startIndex: Int = 0, endIndex: Int = size - 1): Binary = object : Binary {
+ fun Binary.slice(startIndex: Int = 0, endIndex: Int = size - 1): Binary = object : Binary() {
 
     init {
         require(startIndex >= 0) { "startIndex shouldn't be negative but was $startIndex" }
@@ -112,13 +135,6 @@ public fun Binary.slice(startIndex: Int = 0, endIndex: Int = size - 1): Binary =
         return false
     }
 
-    override fun toByteArray(): ByteArray = ByteArray(size) { get(it) }
-
-    override fun equals(other: Any?): Boolean = when (other) {
-        is Binary -> genericBinaryEquals(this, other)
-        else -> false
-    }
-
     override fun hashCode(): Int {
         TODO("Not yet implemented")
     }
@@ -131,7 +147,7 @@ public fun Binary.slice(startIndex: Int = 0, endIndex: Int = size - 1): Binary =
  * This oprator does not allocate any new memeory under the hood, and instead uses [slice]
  * to produce the chunks of data.
  */
-public fun Binary.chunked(chunkSize: Int): List<Binary> {
+ fun Binary.chunked(chunkSize: Int): List<Binary> {
     val result = mutableListOf<Binary>()
 
     val lastIndex = if (size % chunkSize == 0) size else (size / chunkSize) + size
@@ -144,9 +160,3 @@ public fun Binary.chunked(chunkSize: Int): List<Binary> {
 
     return result
 }
-
-public fun Binary.decodeAsUtf8(): String = TODO()
-
-public fun Binary.encodeBase64(): String = TODO()
-
-public fun Binary.encodeHex(): String = TODO()
