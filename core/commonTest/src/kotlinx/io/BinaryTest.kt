@@ -157,7 +157,7 @@ class BinaryTest {
         val data = "Foo Bar Baz Bax".encodeToByteArray().asBinary()
 
         // act
-        val result = data.chunked(chunkSize = 3)
+        val result = data.chunked(size = 3)
 
         // assert
         assertEquals(5, result.size)
@@ -170,7 +170,7 @@ class BinaryTest {
         val expected = data.chunked(size = 3).map { it.encodeToByteArray().asBinary() }
 
         // act
-        val result = data.encodeToByteArray().asBinary().chunked(chunkSize = 3)
+        val result = data.encodeToByteArray().asBinary().chunked(size = 3)
 
         // assert
         assertEquals(expected, result)
@@ -181,7 +181,7 @@ class BinaryTest {
         val data = "Foo Bar Baz Bax".encodeToByteArray().asBinary()
 
         // act
-        val result = data.chunked(chunkSize = 4)
+        val result = data.chunked(size = 4)
 
         // assert
         assertEquals(3, result.last().size)
@@ -193,7 +193,7 @@ class BinaryTest {
         val expected = data.chunked(size = 4).map { it.encodeToByteArray().asBinary() }
 
         // act
-        val result = data.encodeToByteArray().asBinary().chunked(chunkSize = 4)
+        val result = data.encodeToByteArray().asBinary().chunked(size = 4)
 
         // assert
         assertEquals(expected, result)
@@ -219,5 +219,75 @@ class BinaryTest {
 
         // assert
         assertTrue("Hello".encodeToByteArray().contentEquals(result))
+    }
+
+    @Test fun `encoding binary value as hex prodices string of correct size`() {
+        // arrange
+        val binary = "Hello".encodeToByteArray().asBinary()
+
+        // act
+        val result = binary.hex
+
+        // assert
+        assertEquals(10, result.length)
+    }
+
+    @Test fun `encoding binary value as hex produces the right string`() {
+        // arrange
+        val binary = "Hello".encodeToByteArray().asBinary()
+
+        // act
+        val result = binary.hex
+
+        // assert
+        assertEquals("48656c6c6f", result)
+    }
+
+    @Test fun `decoding hex string to binary fails when not byte aligned`() {
+        // arrange
+        val invalid = "484"
+
+        // assert
+        assertFailsWith(IllegalArgumentException::class) {
+            // act
+            Binary.fromHexString(invalid)
+        }
+    }
+
+    @Test fun `decoding hex string with invalid characters fails`() {
+        // arrange
+        val invalid = "0k"
+
+        // assert
+        assertFailsWith(IllegalArgumentException::class) {
+            // act
+            Binary.fromHexString(invalid)
+        }
+    }
+
+    @Test fun `decoding valid hex string produces binary with correct value`() {
+        // arrange
+        val hexString = "cafebabe"
+
+        // act
+        val binary = Binary.fromHexString(hexString)
+
+        // assert
+        assertEquals(byteArrayOf(-54, -2, -70, -66).asBinary(), binary)
+    }
+
+    @Test fun `decoding valid uppercase hex string produces binary with correct value`() {
+        // arrange
+        val hexString = "CAFEBABE"
+
+        // act
+        val binary = Binary.fromHexString(hexString)
+
+        // assert
+        assertEquals(byteArrayOf(-54, -2, -70, -66).asBinary(), binary)
+    }
+
+    @Test fun `encoding binary as base64 produces correct value`() {
+
     }
 }
