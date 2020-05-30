@@ -23,6 +23,11 @@ public interface Binary : Iterable<Byte> {
      */
     public operator fun contains(byte: Byte): Boolean
 
+    /**
+     * Returns a [ByteArray] containing a copy of the bytes contained within this [Binary]
+     */
+    public fun toByteArray(): ByteArray
+
     public override fun iterator(): Iterator<Byte> = object : Iterator<Byte> {
 
         private var currentIndex: Int = 0
@@ -37,6 +42,16 @@ public interface Binary : Iterable<Byte> {
     public override fun hashCode(): Int
 }
 
+private fun genericBinaryEquals(first: Binary, second: Binary): Boolean {
+    if (first.size != second.size) return false
+
+    first.forEachIndexed { index, byte ->
+        if (byte != second[index]) return false
+    }
+
+    return true
+}
+
 internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCopy: Boolean) : Binary {
 
     private val data = if (defensiveCopy) data.copyOf() else data
@@ -46,6 +61,8 @@ internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCo
     override fun get(index: Int): Byte = data[index]
 
     override fun contains(byte: Byte): Boolean = byte in data
+
+    override fun toByteArray(): ByteArray = data.copyOf()
 
     override fun equals(other: Any?): Boolean = when (other) {
         is ByteArrayBinary -> other.data.contentEquals(data)
@@ -95,6 +112,8 @@ public fun Binary.slice(startIndex: Int = 0, endIndex: Int = size - 1): Binary =
         return false
     }
 
+    override fun toByteArray(): ByteArray = ByteArray(size) { get(it) }
+
     override fun equals(other: Any?): Boolean = when (other) {
         is Binary -> genericBinaryEquals(this, other)
         else -> false
@@ -126,12 +145,8 @@ public fun Binary.chunked(chunkSize: Int): List<Binary> {
     return result
 }
 
-private fun genericBinaryEquals(first: Binary, second: Binary): Boolean {
-    if (first.size != second.size) return false
+public fun Binary.decodeAsUtf8(): String = TODO()
 
-    first.forEachIndexed { index, byte ->
-        if (byte != second[index]) return false
-    }
+public fun Binary.encodeBase64(): String = TODO()
 
-    return true
-}
+public fun Binary.encodeHex(): String = TODO()

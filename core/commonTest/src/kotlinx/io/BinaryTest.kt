@@ -198,4 +198,26 @@ class BinaryTest {
         // assert
         assertEquals(expected, result)
     }
+
+    @Test fun `getting byte array from array binary has correct data`() {
+        // arrange
+        val arrayBinary = "Hello".encodeToByteArray().asBinary()
+
+        // act
+        val result = arrayBinary.toByteArray()
+
+        // assert
+        assertTrue("Hello".encodeToByteArray().contentEquals(result))
+    }
+
+    @Test fun `getting byte array from slice binary has correct data`() {
+        // arrange
+        val arrayBinary = "Hello".encodeToByteArray().asBinary().slice()
+
+        // act
+        val result = arrayBinary.toByteArray()
+
+        // assert
+        assertTrue("Hello".encodeToByteArray().contentEquals(result))
+    }
 }
