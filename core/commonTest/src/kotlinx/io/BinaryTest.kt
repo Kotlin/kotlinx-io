@@ -287,7 +287,58 @@ class BinaryTest {
         assertEquals(byteArrayOf(-54, -2, -70, -66).asBinary(), binary)
     }
 
-    @Test fun `encoding binary as base64 produces correct value`() {
+    @Test fun `encoding empty binary as base64 produces correct value`() {
+        // arrange
+        val binary = byteArrayOf().asBinary()
 
+        // act
+        val result = binary.base64
+
+        // assert
+        assertEquals("", result)
+    }
+
+    @Test fun `encoding non-empty binary value as base64 produces correct value`() {
+        // arrange
+        val binary = "Hello, I am a developer.".encodeToByteArray().asBinary()
+
+        // act
+        val result = binary.base64
+
+        // assert
+        assertEquals("SGVsbG8sIEkgYW0gYSBkZXZlbG9wZXIu", result)
+    }
+
+    @Test fun `encoding size 18 binary has no padding`() {
+        // arrange
+        val binary = "The quick blue fox".encodeToByteArray().asBinary()
+
+        // act
+        val result = binary.base64
+
+        // assert
+        assertEquals("VGhlIHF1aWNrIGJsdWUgZm94", result)
+    }
+
+    @Test fun `encoding size 19 binary has 2 padding characters`() {
+        // arrange
+        val binary = "The quick brown fox".encodeToByteArray().asBinary()
+
+        // act
+        val result = binary.base64
+
+        // assert
+        assertEquals("VGhlIHF1aWNrIGJyb3duIGZveA==", result)
+    }
+
+    @Test fun `encoding size 20 binary has 1 padding character`() {
+        // arrange
+        val binary = "The quick orange fox".encodeToByteArray().asBinary()
+
+        // act
+        val result = binary.base64
+
+        // assert
+        assertEquals("VGhlIHF1aWNrIG9yYW5nZSBmb3g=", result)
     }
 }

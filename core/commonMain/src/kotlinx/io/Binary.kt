@@ -3,6 +3,10 @@ package kotlinx.io
 import kotlin.math.min
 
 private const val HEX_DIGIT_CHARS = "0123456789abcdef"
+private const val BASE_64_DIGIT_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+private operator fun CharSequence.component1(): Char = this[0]
+private operator fun CharSequence.component2(): Char = this[1]
 
 /**
  * An immutable sequence of bytes that can be read multiple times.
@@ -33,11 +37,45 @@ abstract class Binary : Iterable<Byte> {
 
     /**
      * Encode this [Binary] as a [Base64](http://www.ietf.org/rfc/rfc2045.txt) text.
+     * This implementation omits newline delimiters.
      *
      * This calculation is lazy and will be cached after the first access to this property.
      */
     val base64: String by lazy {
-        TODO()
+        val chars = CharArray(size = (size + 2) / 3 * 4)
+        var index = 0
+
+        // grab in increments of 3 bytes for 24 bits total.
+        for (binary in chunked(size = 3)) {
+            when (binary.size) {
+                3 -> {
+                    val first = binary[0].toInt()
+                    val second = binary[1].toInt()
+                    val third = binary[2].toInt()
+                    chars[index++] = BASE_64_DIGIT_CHARS[first and 0xff shr 2]
+                    chars[index++] = BASE_64_DIGIT_CHARS[(first and 0x03 shl 4) or (second and 0xff shr 4)]
+                    chars[index++] = BASE_64_DIGIT_CHARS[(second and 0x0f shl 2) or (third and 0xff shr 6)]
+                    chars[index++] = BASE_64_DIGIT_CHARS[third and 0x3f]
+                }
+                2 -> {
+                    val first = binary[0].toInt()
+                    val second = binary[1].toInt()
+                    chars[index++] = BASE_64_DIGIT_CHARS[first and 0xff shr 2]
+                    chars[index++] = BASE_64_DIGIT_CHARS[(first and 0x03 shl 4) or (second and 0xff shr 4)]
+                    chars[index++] = BASE_64_DIGIT_CHARS[second and 0x0f shl 2]
+                    chars[index++] = '='
+                }
+                1 -> {
+                    val first = binary[0].toInt()
+                    chars[index++] = BASE_64_DIGIT_CHARS[first and 0xff shr 2]
+                    chars[index++] = BASE_64_DIGIT_CHARS[first and 0x03 shl 4]
+                    chars[index++] = '='
+                    chars[index++] = '='
+                }
+            }
+        }
+
+        String(chars)
     }
 
     /**
@@ -75,6 +113,8 @@ abstract class Binary : Iterable<Byte> {
      * [0, size) throw [IndexOutOfBoundsException]
      */
     abstract operator fun get(index: Int): Byte
+
+    fun getOrNull(index: Int): Byte? = if (index >= size) null else this[index]
 
     /**
      * Checks if [byte] is contained in this [Binary]
@@ -157,13 +197,13 @@ internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCo
  * Note: Utility functions that are cached like [Binary.hex] are not guaranteed to be correct if a
  * defensive copy is not used and the underlying resource is mutated.
  */
- fun ByteArray.asBinary(defensiveCopy: Boolean = true): Binary = ByteArrayBinary(this, defensiveCopy)
+fun ByteArray.asBinary(defensiveCopy: Boolean = true): Binary = ByteArrayBinary(this, defensiveCopy)
 
 /**
  * A subset view into [this] where index 0 correspends to [startIndex] and the last index corresponds to
  * [endIndex].
  */
- fun Binary.slice(startIndex: Int = 0, endIndex: Int = size - 1): Binary = object : Binary() {
+fun Binary.slice(startIndex: Int = 0, endIndex: Int = size - 1): Binary = object : Binary() {
 
     init {
         require(startIndex >= 0) { "startIndex shouldn't be negative but was $startIndex" }
@@ -192,13 +232,13 @@ internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCo
 }
 
 /**
- * Splits the data contained in [this] into [Binary] chunks of size [size].
+ * Splits the data contained in [this] into [Binary] chunks of [size] bytes.
  * The final chunk of this list may be smaller than [size].
  *
- * This oprator does not allocate any new memeory under the hood, and instead uses [slice]
+ * This oprator does not allocate any new memory under the hood, and instead uses [slice]
  * to produce the chunks of data.
  */
- fun Binary.chunked(size: Int): List<Binary> {
+fun Binary.chunked(size: Int): List<Binary> {
     val result = mutableListOf<Binary>()
     val lastIndex = if (this.size % size == 0) this.size else (this.size / size) + this.size
 
@@ -210,7 +250,3 @@ internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCo
 
     return result
 }
-
-private operator fun CharSequence.component1(): Char = this[0]
-
-private operator fun CharSequence.component2(): Char = this[1]
