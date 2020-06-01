@@ -15,6 +15,8 @@ private operator fun CharSequence.component4(): Char? = getOrNull(3)
  */
 abstract class Binary : Iterable<Byte> {
 
+    protected var cachedHashCode: Int = 0
+
     /**
      * The size of the sequence of bytes this [Binary] represents
      */
@@ -101,26 +103,18 @@ abstract class Binary : Iterable<Byte> {
      *
      * This calculation is lazy and will be cached after the first access to this property.
      */
-    val md5: String by lazy {
-        TODO()
-    }
+    val md5: String by lazy { TODO() }
 
     /**
      * Calculate the SHA1 hash of this [Binary].
      *
      * This calculation is lazy and will be cached after the first access to this property.
      */
-    val sha1: String by lazy {
-        TODO()
-    }
+    val sha1: String by lazy { TODO() }
 
-    val sha256: String by lazy {
-        TODO()
-    }
+    val sha256: String by lazy { TODO() }
 
-    val sha512: String by lazy {
-        TODO()
-    }
+    val sha512: String by lazy { TODO() }
 
     /**
      * Get a single byte at [index]. When requesting a byte at index outside of range
@@ -158,7 +152,19 @@ abstract class Binary : Iterable<Byte> {
         return true
     }
 
-    abstract override fun hashCode(): Int
+    /**
+     * By default, generates a copy of the underlying bytes of this [Binary]
+     * and returns the result of that [ByteArray.contentHashCode].
+     *
+     * This operation is cached.
+     */
+    override fun hashCode(): Int {
+        if (cachedHashCode == 0) {
+            cachedHashCode = toByteArray().contentHashCode()
+        }
+
+        return cachedHashCode
+    }
 
     companion object {
 
@@ -254,7 +260,13 @@ internal class ByteArrayBinary internal constructor(data: ByteArray, defensiveCo
         else -> super.equals(other)
     }
 
-    override fun hashCode(): Int = TODO()
+    override fun hashCode(): Int {
+        if (cachedHashCode == 0) {
+            cachedHashCode = data.contentHashCode()
+        }
+
+        return cachedHashCode
+    }
 }
 
 /**
@@ -294,8 +306,6 @@ fun Binary.slice(startIndex: Int = 0, endIndex: Int = size - 1): Binary = object
 
         return false
     }
-
-    override fun hashCode() = TODO()
 }
 
 /**
