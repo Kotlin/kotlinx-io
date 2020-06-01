@@ -51,26 +51,35 @@ abstract class Binary : Iterable<Byte> {
         for (binary in chunked(size = 3)) {
             when (binary.size) {
                 3 -> {
-                    val first = binary[0].toInt()
-                    val second = binary[1].toInt()
+                    val first = binary[0].toInt() shl 16
+                    val second = binary[1].toInt() shl 8
                     val third = binary[2].toInt()
-                    chars[index++] = BASE_64_DIGIT_CHARS[first and 0xff shr 2]
-                    chars[index++] = BASE_64_DIGIT_CHARS[(first and 0x03 shl 4) or (second and 0xff shr 4)]
-                    chars[index++] = BASE_64_DIGIT_CHARS[(second and 0x0f shl 2) or (third and 0xff shr 6)]
-                    chars[index++] = BASE_64_DIGIT_CHARS[third and 0x3f]
+
+                    val accumulator = first + second + third
+
+                    chars[index++] = BASE_64_DIGIT_CHARS[(accumulator shr 18) and 0x3f]
+                    chars[index++] = BASE_64_DIGIT_CHARS[(accumulator shr 12) and 0x3f]
+                    chars[index++] = BASE_64_DIGIT_CHARS[(accumulator shr 6) and 0x3f]
+                    chars[index++] = BASE_64_DIGIT_CHARS[accumulator and 0x3f]
                 }
                 2 -> {
-                    val first = binary[0].toInt()
+                    val first = binary[0].toInt() shl 8
                     val second = binary[1].toInt()
-                    chars[index++] = BASE_64_DIGIT_CHARS[first and 0xff shr 2]
-                    chars[index++] = BASE_64_DIGIT_CHARS[(first and 0x03 shl 4) or (second and 0xff shr 4)]
-                    chars[index++] = BASE_64_DIGIT_CHARS[second and 0x0f shl 2]
+
+                    val accumulator = (first + second) shl 2 // align to 18 bits
+
+                    chars[index++] = BASE_64_DIGIT_CHARS[(accumulator shr 12) and 0x3f]
+                    chars[index++] = BASE_64_DIGIT_CHARS[(accumulator shr 6) and 0x3f]
+                    chars[index++] = BASE_64_DIGIT_CHARS[accumulator and 0x3f]
                     chars[index++] = '='
                 }
                 1 -> {
                     val first = binary[0].toInt()
-                    chars[index++] = BASE_64_DIGIT_CHARS[first and 0xff shr 2]
-                    chars[index++] = BASE_64_DIGIT_CHARS[first and 0x03 shl 4]
+
+                    val accumulator = first shl 4 // align to 12 bits
+
+                    chars[index++] = BASE_64_DIGIT_CHARS[(accumulator shr 6) and 0x3f]
+                    chars[index++] = BASE_64_DIGIT_CHARS[accumulator and 0x3f]
                     chars[index++] = '='
                     chars[index++] = '='
                 }
@@ -85,9 +94,7 @@ abstract class Binary : Iterable<Byte> {
      *
      * This calculation is lazy and will be cached after the first access to this property.
      */
-    val utf8: String by lazy {
-        TODO()
-    }
+    val utf8: String by lazy { TODO() }
 
     /**
      * Calculate the MD5 hash of this [Binary].
@@ -98,6 +105,11 @@ abstract class Binary : Iterable<Byte> {
         TODO()
     }
 
+    /**
+     * Calculate the SHA1 hash of this [Binary].
+     *
+     * This calculation is lazy and will be cached after the first access to this property.
+     */
     val sha1: String by lazy {
         TODO()
     }
@@ -164,6 +176,9 @@ abstract class Binary : Iterable<Byte> {
             }.toByteArray().asBinary()
         }
 
+        /**
+         * Decode the Base64 encoded string [base64] into a [Binary] object.
+         */
         fun fromBase64(base64: String): Binary {
             require(base64.length % 4 == 0) { "Expected input to be 4 byte aligned but has length ${base64.length}" }
             val stripped = base64.filter { it != '=' }
