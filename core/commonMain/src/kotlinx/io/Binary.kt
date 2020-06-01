@@ -7,6 +7,8 @@ private const val BASE_64_DIGIT_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm
 
 private operator fun CharSequence.component1(): Char = this[0]
 private operator fun CharSequence.component2(): Char = this[1]
+private operator fun CharSequence.component3(): Char? = getOrNull(2)
+private operator fun CharSequence.component4(): Char? = getOrNull(3)
 
 /**
  * An immutable sequence of bytes that can be read multiple times.
@@ -114,8 +116,6 @@ abstract class Binary : Iterable<Byte> {
      */
     abstract operator fun get(index: Int): Byte
 
-    fun getOrNull(index: Int): Byte? = if (index >= size) null else this[index]
-
     /**
      * Checks if [byte] is contained in this [Binary]
      */
@@ -162,6 +162,58 @@ abstract class Binary : Iterable<Byte> {
 
                 ((HEX_DIGIT_CHARS.indexOf(first) shl 4) or HEX_DIGIT_CHARS.indexOf(second)).toByte()
             }.toByteArray().asBinary()
+        }
+
+        fun fromBase64(base64: String): Binary {
+            require(base64.length % 4 == 0) { "Expected input to be 4 byte aligned but has length ${base64.length}" }
+            val stripped = base64.filter { it != '=' }
+            require(stripped.all { it in BASE_64_DIGIT_CHARS }) { "Illegal character in input $base64" }
+
+            val size = ((stripped.length / 4) * 3) + when (base64.length - stripped.length) {
+                0 -> 0
+                1 -> 2
+                2 -> 1
+                else -> error("Stripped more than two padding characters")
+            }
+
+            var index = 0
+            val array = ByteArray(size)
+            for ((first, second, third, fourth) in stripped.chunked(size = 4)) {
+                when {
+                    third == null && fourth == null -> {
+                        val firstIndex = BASE_64_DIGIT_CHARS.indexOf(first) and 0x3f shl 6
+                        val secondIndex = BASE_64_DIGIT_CHARS.indexOf(second) and 0x3f
+
+                        val accumulate = firstIndex + secondIndex
+
+                        array[index++] = (accumulate shr 4).toByte()
+                    }
+                    third != null && fourth == null -> {
+                        val firstIndex = BASE_64_DIGIT_CHARS.indexOf(first) and 0x3f shl 12
+                        val secondIndex = BASE_64_DIGIT_CHARS.indexOf(second) and 0x3f shl 6
+                        val thirdIndex = BASE_64_DIGIT_CHARS.indexOf(third) and 0x3f
+
+                        val accumulate = firstIndex + secondIndex + thirdIndex
+
+                        array[index++] = ((accumulate and 0x3fc00) shr 10).toByte()
+                        array[index++] = ((accumulate and 0x3fc) shr 2).toByte()
+                    }
+                    third != null && fourth != null -> {
+                        val firstIndex = BASE_64_DIGIT_CHARS.indexOf(first) and 0x3f shl 18
+                        val secondIndex = BASE_64_DIGIT_CHARS.indexOf(second) and 0x3f shl 12
+                        val thirdIndex = BASE_64_DIGIT_CHARS.indexOf(third) and 0x3f shl 6
+                        val fourthIndex = BASE_64_DIGIT_CHARS.indexOf(fourth) and 0x3f
+
+                        val accumulate = firstIndex + secondIndex + thirdIndex + fourthIndex
+
+                        array[index++] = (accumulate shr 16 and 0xff).toByte()
+                        array[index++] = (accumulate shr 8 and 0xff).toByte()
+                        array[index++] = (accumulate and 0xff).toByte()
+                    }
+                }
+            }
+
+            return array.asBinary(defensiveCopy = false)
         }
     }
 }

@@ -341,4 +341,102 @@ class BinaryTest {
         // assert
         assertEquals("VGhlIHF1aWNrIG9yYW5nZSBmb3g=", result)
     }
+
+    @Test fun `encoding non-trivial data produces correct output`() {
+        // arrange
+        val binary = "This is kotlinx-io, a first class Kotlin library for low level input/output interactions."
+            .encodeToByteArray()
+            .asBinary()
+
+        // act
+        val result = binary.base64
+
+        // assert
+        assertEquals(
+            "VGhpcyBpcyBrb3RsaW54LWlvLCBhIGZpcnN0IGNsYXNzIEtvdGxpbiBsaWJyYXJ5IGZvciBsb3cgbGV2ZWwgaW5wdXQvb3V0cHV0IGludGVyYWN0aW9ucy4=",
+            result
+        )
+    }
+
+    @Test fun `decoding base64 string that is not 4 byte aligned fails`() {
+        // arrange
+        val base64 = "1"
+
+        // assert
+        assertFailsWith(IllegalArgumentException::class) {
+            // act
+            Binary.fromBase64(base64)
+        }
+    }
+
+    @Test fun `decoding base64 string with invalid character fails`() {
+        // arrange
+        val base64 = "%"
+
+        // assert
+        assertFailsWith(IllegalArgumentException::class) {
+            // act
+            Binary.fromBase64(base64)
+        }
+    }
+
+    @Test fun `decoding empty base64 string produces empty binary`() {
+        // arrange
+        val base64 = ""
+
+        // act
+        val result = Binary.fromBase64(base64)
+
+        // assert
+        assertEquals(byteArrayOf().asBinary(), result)
+    }
+
+    @Test fun `decoding unpadded base64 string produces correct binary`() {
+        // arrange
+        val base64 = "VGhlIHF1aWNrIGJsdWUgZm94"
+
+        // act
+        val result = Binary.fromBase64(base64)
+
+        // assert
+        assertEquals("The quick blue fox".encodeToByteArray().asBinary(), result)
+    }
+
+    @Test fun `decoding single padded base64 string produces correct binary`() {
+        // arrange
+        val base64 = "VGhlIHF1aWNrIG9yYW5nZSBmb3g="
+
+        // act
+        val result = Binary.fromBase64(base64)
+
+        // assert
+        assertEquals("The quick orange fox".encodeToByteArray().asBinary(), result)
+    }
+
+    @Test fun `decoding double padded base64 string produces correct binary`() {
+        // arrange
+        val base64 = "VGhlIHF1aWNrIGJyb3duIGZveA=="
+
+        // act
+        val result = Binary.fromBase64(base64)
+
+        // assert
+        assertEquals(("The quick brown fox").encodeToByteArray().asBinary(), result)
+    }
+
+    @Test fun `decoding non-trivial data produces correct binary`() {
+        // arrange
+        val base64 = "VGhpcyBpcyBrb3RsaW54LWlvLCBhIGZpcnN0IGNsYXNzIEtvdGxpbiBsaWJyYXJ5IGZvciBsb3cgbGV2ZWwgaW5wdXQvb3V0cHV0IGludGVyYWN0aW9ucy4="
+
+        // act
+        val result = Binary.fromBase64(base64)
+
+        // assert
+        assertEquals(
+            "This is kotlinx-io, a first class Kotlin library for low level input/output interactions."
+                .encodeToByteArray()
+                .asBinary(),
+            result
+        )
+    }
 }
