@@ -3,12 +3,11 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
-import kotlin.native.concurrent.*
 
 public actual class Buffer constructor(
-    val array: ByteArray,
-    inline val offset: Int = 0,
-    actual inline val size: Int = array.size - offset
+    public val array: ByteArray,
+    public inline val offset: Int = 0,
+    public actual inline val size: Int = array.size - offset
 ) {
     init {
         requirePositiveIndex(size, "size")
@@ -25,7 +24,6 @@ public actual class Buffer constructor(
     }
 
     public actual companion object {
-        @SharedImmutable
         public actual val EMPTY: Buffer = Buffer(ByteArray(0))
     }
 }

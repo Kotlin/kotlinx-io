@@ -1,6 +1,7 @@
 package kotlinx.io.pool
 
-import java.util.concurrent.atomic.*
+import java.util.concurrent.atomic.AtomicLongFieldUpdater
+import java.util.concurrent.atomic.AtomicReferenceArray
 
 private const val MULTIPLIER = 4
 private const val PROBE_COUNT = 8 // number of attempts to find a slot
@@ -14,7 +15,7 @@ public actual abstract class DefaultPool<T : Any> actual constructor(actual fina
     }
 
     protected actual abstract fun produceInstance(): T // factory
-    protected actual open fun clearInstance(instance: T) = instance // optional cleaning of poped items
+    protected actual open fun clearInstance(instance: T): T = instance // optional cleaning of poped items
     protected actual open fun validateInstance(instance: T) {} // optional validation for recycled items
     protected actual open fun disposeInstance(instance: T) {} // optional destruction of unpoolable items
 
@@ -90,7 +91,7 @@ public actual abstract class DefaultPool<T : Any> actual constructor(actual fina
         }
     }
 
-    companion object {
+    public companion object {
         private val Top = AtomicLongFieldUpdater.newUpdater(DefaultPool::class.java, DefaultPool<*>::top.name)
     }
 }

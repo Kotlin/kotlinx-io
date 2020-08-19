@@ -2,8 +2,12 @@
 
 package kotlinx.io.internal
 
-import kotlinx.io.buffer.*
-import kotlinx.io.pool.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.DEFAULT_BUFFER_SIZE
+import kotlinx.io.buffer.bufferOf
+import kotlinx.io.buffer.sameAs
+import kotlinx.io.pool.ObjectPool
+import kotlin.native.concurrent.ThreadLocal
 
 /**
  * The pool that tracks every borrowed object and check if it belongs to this pool.
@@ -40,6 +44,7 @@ internal class LeakDetectingPool(private val size: Int = DEFAULT_BUFFER_SIZE) : 
         }
     }
 
+    @ThreadLocal
     companion object {
         private var poolCounter: Byte = 0
     }

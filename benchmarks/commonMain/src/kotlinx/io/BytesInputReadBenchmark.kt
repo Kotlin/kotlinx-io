@@ -1,7 +1,7 @@
 package kotlinx.io
 
 import kotlinx.benchmark.*
-import kotlinx.io.bytes.*
+import kotlinx.io.bytes.buildInput
 
 /**
  * Benchmark with prebuilt ByteInput
@@ -13,7 +13,7 @@ class BytesInputReadBenchmark {
     lateinit var input: Input
 
     @Param("2097152")
-    open var size: Int = 42
+    var size: Int = 42
 
     @Setup
     fun setup() {

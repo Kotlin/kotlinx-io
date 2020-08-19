@@ -2,7 +2,7 @@
 
 package kotlinx.io.buffer
 
-import kotlinx.io.internal.*
+import kotlinx.io.internal.toIntOrFail
 
 public actual inline fun Buffer.loadByteAt(index: Long): Byte = loadByteAt(index.toIntOrFail("index"))
 
@@ -86,4 +86,4 @@ public actual inline fun Buffer.storeDoubleAt(offset: Long, value: Double) {
     storeDoubleAt(offset.toIntOrFail("offset"), value)
 }
 
-public actual inline fun Buffer.storeByteAt(index: Long, value: Byte) = storeByteAt(index.toIntOrFail("index"), value)
+public actual inline fun Buffer.storeByteAt(index: Long, value: Byte): Unit = storeByteAt(index.toIntOrFail("index"), value)

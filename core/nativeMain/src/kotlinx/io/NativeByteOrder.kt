@@ -3,13 +3,11 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
-import kotlin.native.concurrent.SharedImmutable
 
 public actual enum class ByteOrder {
     BIG_ENDIAN, LITTLE_ENDIAN;
 
     public actual companion object {
-        @SharedImmutable
         public actual val native: ByteOrder = memScoped {
             val i = alloc<IntVar>()
             i.value = 1

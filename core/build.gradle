@@ -1,10 +1,12 @@
 buildscript{
     repositories{
-        maven { url "https://dl.bintray.com/mipt-npm/scientifik" }
+        jcenter()
+        mavenLocal()
+        maven { url "https://dl.bintray.com/mipt-npm/kscience" }
     }
 
     dependencies {
-        classpath 'scientifik:gradle-tools:0.4.2'
+        classpath 'ru.mipt.npm:gradle-tools:0.6.0'
     }
 }
 
@@ -12,8 +14,8 @@ plugins {
     id "kotlin-multiplatform"
     id "maven-publish"
     id "jacoco"
-    id 'org.jetbrains.dokka' version '0.10.1'
-    id "scientifik.publish" version "0.4.2"
+    id 'org.jetbrains.dokka' version '1.4.0-rc'
+    id "kscience.publish" version "0.6.0"
 }
 
 def ideaActive = System.getProperty('idea.active') == 'true'
@@ -32,7 +34,7 @@ kotlin {
         macosX64("native")
     }
 
-    js {
+    js(BOTH) {
         nodejs {
             testTask {
                 debug = false
@@ -161,8 +163,7 @@ kotlin {
     }
 }
 
-dokka {
-    outputFormat = 'gfm'
+dokkaGfm {
     outputDirectory = "$buildDir/dokka"
 }
 

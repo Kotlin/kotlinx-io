@@ -52,8 +52,8 @@ internal class FileInput(
  * A binary wrapped around a file or a block inside file
  */
 public class FileBinary(
-    val file: Path,
-    val start: Int = 0,
+    private val file: Path,
+    private val start: Int = 0,
     override val size: Int = Files.size(file).toInt() - start
 ) : Binary {
     init {
@@ -70,6 +70,6 @@ public class FileBinary(
     }
 }
 
-fun Path.asBinary(): FileBinary = FileBinary(this)
+public fun Path.asBinary(): FileBinary = FileBinary(this)
 
-fun File.asBinary(): FileBinary = toPath().asBinary()
+public fun File.asBinary(): FileBinary = toPath().asBinary()
