@@ -1,7 +1,7 @@
 package kotlinx.io.buffer
 
-import kotlinx.io.buffer.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class BufferPrimitivesTest {
     @Test

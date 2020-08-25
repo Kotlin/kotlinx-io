@@ -3,13 +3,11 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
-import kotlinx.io.*
-import kotlin.native.concurrent.*
 
 public actual class Buffer constructor(
-    val array: ByteArray,
-    inline val offset: Int = 0,
-    actual inline val size: Int = array.size - offset
+    public val array: ByteArray,
+    public inline val offset: Int = 0,
+    public actual inline val size: Int = array.size - offset
 ) {
     init {
         requirePositiveIndex(size, "size")
@@ -31,7 +29,7 @@ public actual class Buffer constructor(
 }
 
 /**
- * Executes block with raw [pointer] to [Buffer] memory area.
+ * Executes block with raw pointer to [Buffer] memory area.
  *
  * Consider using it only in interop calls.
  */

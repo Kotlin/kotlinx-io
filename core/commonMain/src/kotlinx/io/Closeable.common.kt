@@ -4,7 +4,7 @@ package kotlinx.io
  * Closeable resource.
  */
 public expect interface Closeable {
-    fun close(): Unit
+    public fun close()
 }
 
 /**

@@ -80,7 +80,7 @@ public actual fun Buffer.loadDoubleAt(offset: Long): Double = usePointer {
     else loadDoubleSlowAt(pointer)
 }
 
-public actual fun Buffer.storeIntAt(offset: Int, value: Int) = usePointer {
+public actual fun Buffer.storeIntAt(offset: Int, value: Int): Unit = usePointer {
     assertIndex(offset, 4)
     val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
@@ -90,7 +90,7 @@ public actual fun Buffer.storeIntAt(offset: Int, value: Int) = usePointer {
     }
 }
 
-public actual fun Buffer.storeIntAt(offset: Long, value: Int) = usePointer {
+public actual fun Buffer.storeIntAt(offset: Long, value: Int): Unit = usePointer {
     assertIndex(offset, 4)
     val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
@@ -100,7 +100,7 @@ public actual fun Buffer.storeIntAt(offset: Long, value: Int) = usePointer {
     }
 }
 
-public actual fun Buffer.storeShortAt(offset: Int, value: Short) = usePointer {
+public actual fun Buffer.storeShortAt(offset: Int, value: Short): Unit = usePointer {
     assertIndex(offset, 2)
     val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
@@ -110,7 +110,7 @@ public actual fun Buffer.storeShortAt(offset: Int, value: Short) = usePointer {
     }
 }
 
-public actual fun Buffer.storeShortAt(offset: Long, value: Short) = usePointer {
+public actual fun Buffer.storeShortAt(offset: Long, value: Short): Unit = usePointer {
     assertIndex(offset, 2)
     val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
@@ -120,7 +120,7 @@ public actual fun Buffer.storeShortAt(offset: Long, value: Short) = usePointer {
     }
 }
 
-public actual fun Buffer.storeLongAt(offset: Int, value: Long) = usePointer {
+public actual fun Buffer.storeLongAt(offset: Int, value: Long): Unit = usePointer {
     assertIndex(offset, 8)
     val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
@@ -130,7 +130,7 @@ public actual fun Buffer.storeLongAt(offset: Int, value: Long) = usePointer {
     }
 }
 
-public actual fun Buffer.storeLongAt(offset: Long, value: Long) = usePointer {
+public actual fun Buffer.storeLongAt(offset: Long, value: Long): Unit = usePointer {
     assertIndex(offset, 8)
     val pointer = it.plus(offset)!!
     if (unalignedAccessSupported) {
@@ -140,7 +140,7 @@ public actual fun Buffer.storeLongAt(offset: Long, value: Long) = usePointer {
     }
 }
 
-public actual fun Buffer.storeFloatAt(offset: Int, value: Float) = usePointer {
+public actual fun Buffer.storeFloatAt(offset: Int, value: Float): Unit = usePointer {
     assertIndex(offset, 4)
     val pointer = it.plus(offset)!!
 
@@ -151,7 +151,7 @@ public actual fun Buffer.storeFloatAt(offset: Int, value: Float) = usePointer {
     }
 }
 
-public actual fun Buffer.storeFloatAt(offset: Long, value: Float) = usePointer {
+public actual fun Buffer.storeFloatAt(offset: Long, value: Float): Unit = usePointer {
     assertIndex(offset, 4)
     val pointer = it.plus(offset)!!
 
@@ -162,7 +162,7 @@ public actual fun Buffer.storeFloatAt(offset: Long, value: Float) = usePointer {
     }
 }
 
-public actual fun Buffer.storeDoubleAt(offset: Int, value: Double) = usePointer {
+public actual fun Buffer.storeDoubleAt(offset: Int, value: Double): Unit = usePointer {
     assertIndex(offset, 8)
     val pointer = it.plus(offset)!!
 
@@ -173,7 +173,7 @@ public actual fun Buffer.storeDoubleAt(offset: Int, value: Double) = usePointer 
     }
 }
 
-public actual fun Buffer.storeDoubleAt(offset: Long, value: Double) = usePointer {
+public actual fun Buffer.storeDoubleAt(offset: Long, value: Double): Unit = usePointer {
     assertIndex(offset, 8)
     val pointer = it.plus(offset)!!
 
@@ -184,7 +184,7 @@ public actual fun Buffer.storeDoubleAt(offset: Long, value: Double) = usePointer
     }
 }
 
-public actual fun Buffer.storeByteAt(index: Long, value: Byte) = usePointer {
+public actual fun Buffer.storeByteAt(index: Long, value: Byte): Unit = usePointer {
     it[assertIndex(index, 1)] = value
 }
 

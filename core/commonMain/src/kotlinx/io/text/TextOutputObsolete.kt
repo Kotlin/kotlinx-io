@@ -43,7 +43,7 @@ public fun Output.writeUtf8String(text: CharSequence, index: Int = 0, length: In
                 val code = when {
                     character.isHighSurrogate() -> {
                         if (textIndex == textEndIndex) {
-                            splittedSurogate()
+                            splittedSurrogate()
                         }
                         codePoint(character, text[textIndex++])
                     }
@@ -155,6 +155,6 @@ private fun malformedCodePoint(codePoint: Int): Nothing {
     throw MalformedInputException("Malformed Utf8 code point $codePoint")
 }
 
-internal fun splittedSurogate(): Nothing {
+internal fun splittedSurrogate(): Nothing {
     throw MalformedInputException("Splitted surrogate character")
 }

@@ -1,8 +1,8 @@
 package kotlinx.io.text
 
-expect abstract class CharsetEncoder
+public expect abstract class CharsetEncoder
 
-expect val CharsetEncoder.charset: Charset
+public expect val CharsetEncoder.charset: Charset
 
 /*
 expect fun CharsetEncoder.encodeToByteArray(

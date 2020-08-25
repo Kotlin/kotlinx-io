@@ -9,7 +9,7 @@ public actual enum class ByteOrder {
     LITTLE_ENDIAN;
 
     public actual companion object {
-        actual val native: ByteOrder = run {
+        public actual val native: ByteOrder = run {
             val buffer = ArrayBuffer(4)
             val arr = Int32Array(buffer)
             val view = DataView(buffer)

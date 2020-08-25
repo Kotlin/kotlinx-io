@@ -1,8 +1,10 @@
 @file:Suppress("FORBIDDEN_IDENTITY_EQUALS")
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-import kotlin.test.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.bufferOf
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class CustomPoolTest {
 

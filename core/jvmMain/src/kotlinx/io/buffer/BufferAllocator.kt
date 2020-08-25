@@ -1,9 +1,9 @@
 package kotlinx.io.buffer
 
-import java.nio.*
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-actual object PlatformBufferAllocator : BufferAllocator {
+public actual object PlatformBufferAllocator : BufferAllocator {
     override fun allocate(size: Int): Buffer {
         return Buffer(ByteBuffer.allocate(size).order(ByteOrder.BIG_ENDIAN))
     }

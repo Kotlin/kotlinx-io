@@ -29,10 +29,7 @@ public actual fun Buffer.copyTo(destination: Buffer, offset: Int, length: Int, d
 
     usePointer { source ->
         destination.usePointer { destinationPointer ->
-            memcpy(
-                destinationPointer + destinationOffset,
-                source + offset, length.convert()
-            )
+            memcpy(destinationPointer + destinationOffset, source + offset, length.convert())
         }
     }
 }

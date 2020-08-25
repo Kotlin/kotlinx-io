@@ -83,7 +83,7 @@ public abstract class Input : Closeable {
     /**
      * Constructs a new Input with the given `bufferPool`.
      */
-    constructor(pool: ObjectPool<Buffer>) {
+    public constructor(pool: ObjectPool<Buffer>) {
         bufferPool = pool
         buffer = pool.borrow()
     }
@@ -174,7 +174,7 @@ public abstract class Input : Closeable {
      *
      * This operation saves the state of the [Input] before [reader] and accumulates buffers for replay.
      * When the [reader] finishes, it rewinds this [Input] to the state before the [reader] block.
-     * Please note that [Input] holds accumulated buffers until they are't consumed outside of the [preview].
+     * Please note that [Input] holds accumulated buffers until they aren't consumed outside of the [preview].
      *
      * Preview operations can be nested.
      */

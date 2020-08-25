@@ -30,15 +30,15 @@ class InputOutputTest {
 
     @Test
     fun testReadAvailableToWithSameBuffer() {
-        var instance: Buffer = Buffer.EMPTY
-        var result: Buffer = Buffer.EMPTY
+        var instance = Buffer.EMPTY
+        var result = Buffer.EMPTY
 
-        val input: Input = LambdaInput { buffer, start, end ->
+        val input = LambdaInput { buffer, _, _ ->
             instance = buffer
             return@LambdaInput 42
         }
 
-        val output = LambdaOutput { source, startIndex, endIndex ->
+        val output = LambdaOutput { source, _, endIndex ->
             result = source
             assertEquals(42, endIndex)
         }
@@ -53,6 +53,7 @@ class InputOutputTest {
     @Test
     fun testFillDirect() {
         val myBuffer = bufferOf(ByteArray(1024))
+
         val input = object : Input() {
             override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
                 assertTrue { myBuffer === buffer }
@@ -60,9 +61,7 @@ class InputOutputTest {
                 return 1
             }
 
-            override fun closeSource() {
-
-            }
+            override fun closeSource() = Unit
         }
 
         assertEquals(1, input.readAvailableTo(myBuffer))

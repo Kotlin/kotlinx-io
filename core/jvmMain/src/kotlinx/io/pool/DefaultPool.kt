@@ -7,14 +7,14 @@ private const val PROBE_COUNT = 8 // number of attempts to find a slot
 private const val MAGIC = 2654435769.toInt() // fractional part of golden ratio
 private const val MAX_CAPACITY = Int.MAX_VALUE / MULTIPLIER
 
-actual abstract class DefaultPool<T : Any> actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
+public actual abstract class DefaultPool<T : Any> actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
     init {
         require(capacity > 0) { "capacity should be positive but it is $capacity" }
         require(capacity <= MAX_CAPACITY) { "capacity should be less or equal to $MAX_CAPACITY but it is $capacity" }
     }
 
     protected actual abstract fun produceInstance(): T // factory
-    protected actual open fun clearInstance(instance: T) = instance // optional cleaning of poped items
+    protected actual open fun clearInstance(instance: T): T = instance // optional cleaning of popped items
     protected actual open fun validateInstance(instance: T) {} // optional validation for recycled items
     protected actual open fun disposeInstance(instance: T) {} // optional destruction of unpoolable items
 
@@ -90,7 +90,7 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual final overr
         }
     }
 
-    companion object {
+    public companion object {
         private val Top = AtomicLongFieldUpdater.newUpdater(DefaultPool::class.java, DefaultPool<*>::top.name)
     }
 }

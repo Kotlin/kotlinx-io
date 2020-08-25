@@ -1,7 +1,7 @@
 package kotlinx.io.buffer
 
-import kotlinx.io.pool.*
-import kotlin.native.concurrent.*
+import kotlinx.io.pool.ObjectPool
+import kotlin.native.concurrent.ThreadLocal
 
 internal class UnmanagedBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE
@@ -16,7 +16,6 @@ internal class UnmanagedBufferPool(
 
     @ThreadLocal
     companion object {
-        @ThreadLocal
         val Instance = UnmanagedBufferPool()
     }
 }

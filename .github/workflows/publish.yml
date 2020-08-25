@@ -1,0 +1,25 @@
+name: Gradle build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up JDK 8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: Build with Gradle
+        run: ./gradlew publish
+        env:
+          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
+          VCS_URL: https://github.com/CommanderTvis/kotlinx-io
+          BINTRAY_ORG: commandertvis
+          BINTRAY_REPO: kotlinx-io
+          BINTRAY_USER: commandertvis

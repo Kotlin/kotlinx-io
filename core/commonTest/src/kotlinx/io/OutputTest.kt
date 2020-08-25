@@ -2,8 +2,11 @@
 
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-import kotlin.test.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.bufferOf
+import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class OutputTest {
     @Test
@@ -47,10 +50,7 @@ class OutputTest {
     @Test
     fun testWriteBufferDirect() {
         val origin = bufferOf(ByteArray(10))
-        val output = LambdaOutput { buffer, startIndex, endIndex ->
-            assertTrue { buffer === origin }
-        }
-
+        val output = LambdaOutput { buffer, _, _ -> assertTrue { buffer === origin } }
         output.writeBuffer(origin)
     }
 }

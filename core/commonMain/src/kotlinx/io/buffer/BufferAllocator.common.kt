@@ -1,12 +1,12 @@
 package kotlinx.io.buffer
 
-interface BufferAllocator {
-    fun allocate(size: Int): Buffer
+public interface BufferAllocator {
+    public fun allocate(size: Int): Buffer
 
-    fun free(instance: Buffer)
+    public fun free(instance: Buffer)
 }
 
-expect object PlatformBufferAllocator : BufferAllocator
+public expect object PlatformBufferAllocator : BufferAllocator
 
 /**
  * Allocates the buffer of the given [size], executes the given [block] function on this buffer

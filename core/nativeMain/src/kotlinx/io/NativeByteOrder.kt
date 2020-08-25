@@ -3,7 +3,6 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
-import kotlin.native.concurrent.SharedImmutable
 
 public actual enum class ByteOrder {
     BIG_ENDIAN, LITTLE_ENDIAN;

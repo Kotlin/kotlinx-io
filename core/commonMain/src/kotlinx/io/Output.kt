@@ -104,7 +104,7 @@ public abstract class Output(
     }
 
     /**
-     * Calls [writer] block to perform write from [bufferStart] to [bufferEnd].
+     * Calls [writer] block to perform write from bufferStart to bufferEnd.
      * The [writer] expected to return a new [buffer] position.
      *
      * @return number of written bytes.

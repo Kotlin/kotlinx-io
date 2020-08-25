@@ -6,7 +6,7 @@ import kotlinx.io.buffer.*
  * Output which uses a byte array as its data storage.
  * Byte array automatically grows as data is written to it and
  * can be accessed with [toByteArray].
- * The initial capacity of the underlying array can be specified with [initialCapacity] parameter.
+ * The initial capacity of the underlying array can be specified with initialCapacity parameter.
  *
  * Calling [close][Output.close] on this class has no effect.
  */
@@ -48,6 +48,5 @@ public class ByteArrayOutput(initialCapacity: Int = 16) : Output(UnmanagedBuffer
         }
     }
 
-    @UseExperimental(ExperimentalStdlibApi::class)
     private fun powOf2(minCapacity: Int) = if (minCapacity >= 1 shl 30) minCapacity else (1 shl (32 - (minCapacity - 1).countLeadingZeroBits()))
 }

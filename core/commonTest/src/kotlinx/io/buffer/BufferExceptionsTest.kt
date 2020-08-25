@@ -1,7 +1,8 @@
 package kotlinx.io.buffer
 
 import kotlinx.io.buffer.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
 
 class BufferExceptionsTest {
     // Note: Buffer on K/N is long-addressed

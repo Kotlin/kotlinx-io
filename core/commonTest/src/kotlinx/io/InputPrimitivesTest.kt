@@ -1,7 +1,7 @@
 package kotlinx.io
 
 import kotlinx.io.buffer.*
-import kotlin.math.*
+import kotlin.math.min
 import kotlin.test.*
 
 class InputPrimitivesTest {
@@ -124,8 +124,6 @@ class InputPrimitivesTest {
         }
 
         assertEquals(true, closed, "Should be closed")
-
-        @UseExperimental(ExperimentalStdlibApi::class)
         assertEquals("test", text.decodeToString(), "Content read")
     }
 
@@ -139,9 +137,7 @@ class InputPrimitivesTest {
             override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int {
                 if (items.isEmpty()) return 0
                 val next = items.removeAt(0)
-                for (index in 0 until next.length) {
-                    buffer[startIndex + index] = next[index].toByte()
-                }
+                for (index in next.indices) buffer[startIndex + index] = next[index].toByte()
                 return next.length
             }
 
@@ -154,8 +150,6 @@ class InputPrimitivesTest {
 
         val data = ByteArray(5 + 4 + 4)
         input.readByteArray(data)
-        @UseExperimental(ExperimentalStdlibApi::class)
         assertEquals("test.123.zxc.", data.decodeToString())
     }
-
 }

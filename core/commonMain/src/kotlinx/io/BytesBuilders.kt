@@ -6,7 +6,7 @@ import kotlin.contracts.*
 /**
  * Create [Bytes] with [bufferSize] and fills it from [builder].
  */
-fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit): Bytes {
+public fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit): Bytes {
     contract {
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }

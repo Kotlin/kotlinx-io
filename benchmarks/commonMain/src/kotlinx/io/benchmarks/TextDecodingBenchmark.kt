@@ -4,8 +4,8 @@ import kotlinx.benchmark.*
 import kotlinx.io.*
 import kotlinx.io.text.*
 
-private val expected = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç."
-private val length = expected.length
+private const val expected = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç."
+private const val length = expected.length
 
 // @formatter:off
 private val content = ubyteArrayOf(

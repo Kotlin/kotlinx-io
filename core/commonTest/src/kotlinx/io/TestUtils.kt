@@ -19,4 +19,4 @@ internal fun Bytes.useInput(block: Input.() -> Unit) {
     }
 }
 
-public fun StringInput(string: String) = ByteArrayInput(string.encodeToByteArray())
+fun StringInput(string: String) = ByteArrayInput(string.encodeToByteArray())

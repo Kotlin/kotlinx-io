@@ -1,8 +1,8 @@
 package kotlinx.io.buffer
 
-import kotlinx.io.*
-import kotlinx.io.buffer.*
-import kotlin.test.*
+import kotlinx.io.ByteOrder
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ReverseByteOrderTest {
 
