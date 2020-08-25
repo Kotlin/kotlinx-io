@@ -16,10 +16,18 @@ jobs:
         with:
           java-version: 8
       - name: Build with Gradle
-        run: ./gradlew publish
+        run: ./gradlew publish --build-cache
         env:
           BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
           VCS_URL: https://github.com/CommanderTvis/kotlinx-io
           BINTRAY_ORG: commandertvis
           BINTRAY_REPO: kotlinx-io
           BINTRAY_USER: commandertvis
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-

@@ -81,14 +81,14 @@ kotlin {
     targets.forEach { target ->
         publishing
             .publications
-            .filterIsInstance<MavenPublication>()
+            .withType<MavenPublication>()
             .find { it.name == target.name }?.artifact(emptyJavadoc)
     }
 }
 
 tasks.dokkaGfm.get().outputDirectory = "$buildDir/dokka"
 
-project.configure<PublishingExtension> {
+publishing {
     val vcs = System.getenv("VCS_URL")
 
     // Process each publication we have in this project
@@ -119,9 +119,8 @@ project.configure<PublishingExtension> {
 
         repositories.maven {
             name = "bintray"
-            url = uri(
-                "https://api.bintray.com/maven/$bintrayOrg/$bintrayRepo/$projectName/;publish=0;override=1"
-            )
+            url = uri("https://api.bintray.com/maven/$bintrayOrg/$bintrayRepo/$projectName/")
+
             credentials {
                 username = bintrayUser
                 password = bintrayKey
