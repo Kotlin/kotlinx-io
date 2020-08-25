@@ -136,9 +136,10 @@ public abstract class Input : Closeable {
 
             return readBufferRange { buffer, startOffset, endOffset ->
                 destination.writeBuffer(buffer, startOffset, endOffset)
-                endOffset
+                endOffset - startOffset
             }
         }
+
         // No bytes in cache: fill [destination] buffer direct.
         return destination.writeBuffer { buffer, startIndex, endIndex ->
             startIndex + fill(buffer, startIndex, endIndex)
@@ -212,8 +213,9 @@ public abstract class Input : Closeable {
      * This method can use [fill] if no bytes are available in the cache. Please consider using [readAvailableTo] in
      * performance-critical code.
      */
-    @Suppress("NOTHING_TO_INLINE")
-    public inline fun exhausted(): Boolean = !prefetch(1)
+    public fun exhausted(): Boolean {
+        return position == limit && fetchCachedOrFill() == 0
+    }
 
     /**
      * Checks that [size] bytes are fetched in [Input].
@@ -278,8 +280,7 @@ public abstract class Input : Closeable {
         var remaining = count
         while (remaining > 0) {
             val skipCount = readBufferRange { _, startOffset, endOffset ->
-                val skipCount = min(remaining, endOffset - startOffset)
-                startOffset + skipCount
+                min(remaining, endOffset - startOffset)
             }
 
             if (skipCount == 0) {
@@ -410,7 +411,7 @@ public abstract class Input : Closeable {
     }
 
     /**
-     * Allows direct read from a buffer, operates on startOffset + endOffset (exclusive), returns new position.
+     * Allows direct read from a buffer, operates on startOffset + endOffset (exclusive), returns consumed bytes count.
      * NOTE: Dangerous to use, if non-local return then position will not be updated.
      *
      * @return consumed bytes count
@@ -420,10 +421,9 @@ public abstract class Input : Closeable {
             return 0
         }
 
-        val newPosition = reader(buffer, position, limit)
-        val result = newPosition - position
-        position = newPosition
-        return result
+        val consumed = reader(buffer, position, limit)
+        position += consumed
+        return consumed
     }
 
     /**
@@ -473,7 +473,11 @@ public abstract class Input : Closeable {
         }
 
         val bytes = preview ?: startPreview()
-        return readThroughPreview(bytes)
+        return fillAndStoreInPreview(bytes)
+    }
+
+    private fun prepareNewBuffer() {
+        buffer = bufferPool.borrow()
     }
 
     /**
@@ -493,13 +497,14 @@ public abstract class Input : Closeable {
      * The [bytes] shouldn't be empty.
      */
     private fun fetchFromPreviewAndDiscard(bytes: Bytes): Int {
-        bufferPool.recycle(buffer)
         bytes.discardFirst()
 
         if (bytes.isEmpty()) {
             previewBytes = null
             return fillFromSource()
         }
+
+        bufferPool.recycle(buffer)
 
         bytes.pointed(0) { newBuffer, newLimit ->
             position = 0
@@ -510,12 +515,13 @@ public abstract class Input : Closeable {
         return limit
     }
 
-    private fun readThroughPreview(bytes: Bytes): Int {
+    private fun fillAndStoreInPreview(bytes: Bytes): Int {
         val nextIndex = previewIndex + 1
 
         if (bytes.isAfterLast(nextIndex)) {
+            prepareNewBuffer()
             val fetched = fillFromSource() // received data can be empty
-            bytes.append(buffer, limit) // buffer can be empty
+            bytes.append(buffer, fetched) // buffer can be empty
             previewIndex = nextIndex
             return fetched
         }
@@ -532,11 +538,9 @@ public abstract class Input : Closeable {
     }
 
     private fun fillFromSource(): Int {
-        val source = bufferPool.borrow()
-        val fetched = fill(source)
-        limit = fetched
+        val fetched = fill(buffer, 0, buffer.size)
         position = 0
-        buffer = source
+        limit = fetched
         return fetched
     }
 

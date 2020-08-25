@@ -108,6 +108,17 @@ open class OutputStringTest {
     }
 
     @Test
+    fun testWriteMultiByteAtEndParts() {
+        val input = buildBytes {
+            writeUtf8String("ABC\u0422")
+        }.input()
+
+        assertEquals("ABC", input.readUtf8String(3))
+        assertEquals("\u0422", input.readUtf8String(1))
+        assertTrue(input.exhausted(), "EOF")
+    }
+
+    @Test
     fun testWriteSingleByte() {
         val input = buildBytes {
             writeUtf8String("1")
@@ -137,6 +148,28 @@ open class OutputStringTest {
         assertTrue(input.exhausted(), "EOF")
         assertEquals("1234", sb.toString())
         assertEquals(listOf(1, 2, 0, 1), counts)
+    }
+
+    @Test
+    fun testReadUntilDelimiterUnicode() {
+        // 134 139 195
+        val input = buildBytes {
+            writeUtf8String("1,23|,4.🤔.1.\u0422")
+        }.input()
+
+        val sb = StringBuilder()
+        val counts = mutableListOf<Int>()
+
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        counts.add(input.readUtf8StringUntilDelimitersTo(sb, "|,."))
+        assertTrue(input.exhausted(), "EOF")
+        assertEquals("1234🤔1\u0422", sb.toString())
+        assertEquals(listOf(1, 2, 0, 1, 2, 1, 1), counts)
     }
 
     @Test

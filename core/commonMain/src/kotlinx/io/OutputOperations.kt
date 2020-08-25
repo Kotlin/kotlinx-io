@@ -4,7 +4,7 @@ import kotlinx.io.buffer.*
 import kotlin.math.*
 
 /**
- * Writes the unsigined byte [value] to this [Input].
+ * Writes the unsigned byte [value] to this [Input].
  */
 @ExperimentalUnsignedTypes
 public fun Output.writeUByte(value: UByte): Unit = writeByte(value.toByte())

@@ -18,16 +18,23 @@ class InputStringTest {
     )
 
     @Test
-    fun decodeUtf8FromInputUntil() = bufferSizes.forEach { size ->
+    fun testDecodeUtf8FromInputUntil() = bufferSizes.forEach { size ->
         val input = buildBytes(size) { writeByteArray(content) }.input()
         val result = input.readUtf8StringUntilDelimiter('.')
         assertEquals(expected.dropLast(1), result)
     }
 
     @Test
-    fun decodeUtf8FromInput() = bufferSizes.forEach { size ->
+    fun testDecodeUtf8FromInput() = bufferSizes.forEach { size ->
         val input = buildBytes(size) { writeByteArray(content) }.input()
         val result = input.readUtf8String(expected.length)
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun testDecodeUtf8FromInputWithoutLength() = bufferSizes.forEach { size ->
+        val input = buildBytes(size) { writeByteArray(content) }.input()
+        val result = input.readUtf8String()
         assertEquals(expected, result)
     }
 }
