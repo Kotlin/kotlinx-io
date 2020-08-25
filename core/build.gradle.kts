@@ -108,23 +108,18 @@ publishing {
         }
     }
 
-    val bintrayOrg = System.getenv("BINTRAY_ORG")
     val bintrayUser = System.getenv("BINTRAY_USER")
     val bintrayKey = System.getenv("BINTRAY_KEY")
-    val bintrayRepo = System.getenv("BINTRAY_REPO")
-    val projectName = project.name
 
-    if (bintrayRepo != null && bintrayUser != null && bintrayKey != null) {
-        project.logger.info("Adding bintray publishing to project [$projectName]")
+    if (bintrayUser != null && bintrayKey != null) repositories.maven {
+        name = "bintray"
+        url = uri("https://api.bintray.com/maven/commandertvis/kotlinx-io/kotlinx-io/;publish=1;override=1")
 
-        repositories.maven {
-            name = "bintray"
-            url = uri("https://api.bintray.com/maven/$bintrayOrg/$bintrayRepo/$projectName/")
+        this.
 
-            credentials {
-                username = bintrayUser
-                password = bintrayKey
-            }
+        credentials {
+            username = bintrayUser
+            password = bintrayKey
         }
     }
 }
