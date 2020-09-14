@@ -1,6 +1,9 @@
-apply plugin: 'kotlin-multiplatform'
-apply plugin: 'kotlin-allopen'
-apply plugin: 'kotlinx.benchmark'
+plugins{
+    id "org.jetbrains.kotlin.multiplatform"
+    id "org.jetbrains.kotlin.plugin.allopen"
+    id "kotlinx.benchmark"
+}
+
 
 // how to apply plugin to a specific source set?
 allOpen {

@@ -1,5 +1,5 @@
-buildscript{
-    repositories{
+buildscript {
+    repositories {
         jcenter()
         mavenLocal()
         maven { url "https://dl.bintray.com/mipt-npm/kscience" }
@@ -11,11 +11,11 @@ buildscript{
 }
 
 plugins {
-    id "kotlin-multiplatform"
+    id "org.jetbrains.kotlin.multiplatform"
     id "maven-publish"
     id "jacoco"
-    id 'org.jetbrains.dokka' version '1.4.0-rc'
-    id "kscience.publish" version "0.6.0"
+    id 'org.jetbrains.dokka' version '1.4.0'
+    id "ru.mipt.npm.publish" version "0.6.0"
 }
 
 def ideaActive = System.getProperty('idea.active') == 'true'
@@ -43,7 +43,7 @@ kotlin {
                 }
             }
         }
-        browser{
+        browser {
             testTask {
                 debug = false
                 useMocha {
@@ -163,8 +163,8 @@ kotlin {
     }
 }
 
-dokkaGfm {
-    outputDirectory = "$buildDir/dokka"
+dokkaGfm.configure {
+    outputDirectory.set(file("$buildDir/dokka"))
 }
 
 jacoco {
