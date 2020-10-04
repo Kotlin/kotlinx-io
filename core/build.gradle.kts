@@ -17,7 +17,7 @@ kotlin {
     when {
         hostOs == "Mac OS X" -> {
             nativeTargets += macosX64()
-//            nativeTargets += iosX64()
+            nativeTargets += iosX64()
 //            nativeTargets += iosArm64()
 //            nativeTargets += iosArm32()
         }
@@ -84,8 +84,8 @@ kotlin {
         }
     }
 
-    val emptyJavadoc = task<Jar>("emptyJavadoc") {
-        classifier = "javadoc"
+    val emptyJavadoc by tasks.creating(Jar::class) {
+        archiveClassifier.set("javadoc")
     }
 
     targets.forEach { target ->
