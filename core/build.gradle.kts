@@ -15,12 +15,7 @@ kotlin {
     val nativeTargets = mutableListOf<KotlinNativeTarget>()
 
     when {
-        hostOs == "Mac OS X" -> {
-            nativeTargets += macosX64()
-            nativeTargets += iosX64()
-//            nativeTargets += iosArm64()
-//            nativeTargets += iosArm32()
-        }
+        hostOs == "Mac OS X" -> nativeTargets += macosX64()
 
         hostOs == "Linux" -> nativeTargets += linuxX64()
         hostOs.startsWith("Windows") -> nativeTargets += mingwX64()
