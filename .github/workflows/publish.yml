@@ -33,7 +33,7 @@ jobs:
           key: ${{ runner.os }}-konan-1.4.10
           restore-keys: ${{ runner.os }}-konan-1.4.10
       - name: Build with Gradle
-        run: ./gradlew publish --build-cache
+        run: ./gradlew -Dorg.gradle.daemon=false publish --build-cache
         env:
           BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
           VCS_URL: https://github.com/CommanderTvis/kotlinx-io
@@ -66,7 +66,7 @@ jobs:
           key: ${{ runner.os }}-konan-1.4.10
           restore-keys: ${{ runner.os }}-konan-1.4.10
       - name: Build with Gradle
-        run: ./gradlew publish --build-cache
+        run: ./gradlew -Dorg.gradle.daemon=false publish --build-cache
         env:
           BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
           VCS_URL: https://github.com/CommanderTvis/kotlinx-io
