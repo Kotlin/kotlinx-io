@@ -19,12 +19,12 @@ kotlin {
     when {
         hostOs == "Mac OS X" -> {
             nativeTargets += macosX64()
-            nativeTargets += iosX64()
-            nativeTargets += iosArm64()
-            nativeTargets += iosArm32()
+//            nativeTargets += iosX64()
+//            nativeTargets += iosArm64()
+//            nativeTargets += iosArm32()
         }
 
-        hostOs == "Linux" -> nativeTargets += linuxX64()
+        hostOs == "Linux" -> nativeTargets += linuxX64("native")
         hostOs.startsWith("Windows") -> nativeTargets += mingwX64()
         else -> throw GradleException("Host OS '$hostOs' is not supported in Kotlin/Native $project.")
     }
@@ -47,12 +47,12 @@ kotlin {
 
         val jvmTest by getting { dependencies { api(kotlin("test-junit")) } }
         val jsTest by getting { dependencies { api(kotlin("test-js")) } }
-        val nativeMain by creating { dependsOn(commonMain.get()) }
-        val nativeTest by creating { dependsOn(commonTest.get()) }
+        val nativeMain by getting { dependsOn(commonMain.get()) }
+        val nativeTest by getting { dependsOn(commonTest.get()) }
 
         configure(nativeTargets) {
-            val main by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeMain) } }
-            val test by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeTest) } }
+//            val main by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeMain) } }
+//            val test by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeTest) } }
         }
 
         all {
