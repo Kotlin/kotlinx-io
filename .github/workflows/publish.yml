@@ -15,12 +15,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 8
-      - name: Build with Gradle
-        run: ./gradlew publish --build-cache
-        env:
-          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
-          VCS_URL: https://github.com/CommanderTvis/kotlinx-io
-          BINTRAY_USER: commandertvis
       - name: Cache gradle
         uses: actions/cache@v2
         with:
@@ -38,6 +32,13 @@ jobs:
             ~/.konan/kotlin-native-prebuilt-linux-1.4.10
           key: ${{ runner.os }}-konan-1.4.10
           restore-keys: ${{ runner.os }}-konan-1.4.10
+      - name: Build with Gradle
+        run: ./gradlew publish --build-cache
+        env:
+          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
+          VCS_URL: https://github.com/CommanderTvis/kotlinx-io
+          BINTRAY_USER: commandertvis
+
   build-osx:
     runs-on: macos-latest
 
@@ -47,12 +48,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 8
-      - name: Build with Gradle
-        run: ./gradlew publish --build-cache
-        env:
-          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
-          VCS_URL: https://github.com/CommanderTvis/kotlinx-io
-          BINTRAY_USER: commandertvis
       - name: Cache gradle
         uses: actions/cache@v2
         with:
@@ -70,6 +65,12 @@ jobs:
             ~/.konan/kotlin-native-prebuilt-macos-1.4.10
           key: ${{ runner.os }}-konan-1.4.10
           restore-keys: ${{ runner.os }}-konan-1.4.10
+      - name: Build with Gradle
+        run: ./gradlew publish --build-cache
+        env:
+          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
+          VCS_URL: https://github.com/CommanderTvis/kotlinx-io
+          BINTRAY_USER: commandertvis
   build-windows:
     runs-on: windows-latest
 
@@ -81,12 +82,6 @@ jobs:
           java-version: 8
       - name: Add msys to path
         run: SETX PATH "%PATH%;C:\msys64\mingw64\bin"
-      - name: Build with Gradle
-        run: ./gradlew publish --build-cache
-        env:
-          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
-          VCS_URL: https://github.com/CommanderTvis/kotlinx-io
-          BINTRAY_USER: commandertvis
       - name: Cache gradle
         uses: actions/cache@v2
         with:
@@ -104,3 +99,9 @@ jobs:
             ~/.konan/kotlin-native-prebuilt-mingw-1.4.10
           key: ${{ runner.os }}-konan-1.4.10
           restore-keys: ${{ runner.os }}-konan-1.4.10
+      - name: Build with Gradle
+        run: ./gradlew publish --build-cache
+        env:
+          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
+          VCS_URL: https://github.com/CommanderTvis/kotlinx-io
+          BINTRAY_USER: commandertvis
