@@ -7,12 +7,11 @@ pluginManagement {
         mavenCentral()
         jcenter()
         gradlePluginPortal()
-        maven(url = "https://dl.bintray.com/orangy/maven")
         maven(url = "https://dl.bintray.com/kotlin/kotlinx")
     }
 
     plugins {
-        id("org.jetbrains.dokka") version "1.4.0-rc"
+        id("org.jetbrains.dokka") version kotlin_version
         kotlin(module = "plugin.allopen") version kotlin_version
         kotlin(module = "multiplatform") version kotlin_version
     }

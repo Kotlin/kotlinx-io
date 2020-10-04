@@ -97,7 +97,7 @@ kotlin {
     }
 }
 
-tasks.dokkaGfm.get().outputDirectory = "$buildDir/dokka"
+tasks.dokkaGfm.get().outputDirectory.set(file("$buildDir/dokka"))
 
 publishing {
     val vcs = System.getenv("VCS_URL")

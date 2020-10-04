@@ -1,4 +1,4 @@
-@file:Suppress("PropertyName")
+@file:Suppress("PropertyName", "UNUSED_VARIABLE")
 
 val benchmarks_version: String by project
 
