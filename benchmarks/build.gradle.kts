@@ -81,11 +81,8 @@ benchmark {
     // Setup configurations
     targets {
         // This one matches compilation base name, e.g. 'jvm', 'jvmTest', etc
-//        register("jvm") {
-////            jmhVersion = "1.21"
-//        }
-//
-//        register("js") {}
-//        register("native") {}
+        register("jvm") {}
+        register("js") {}
+        register("native") {}
     }
 }

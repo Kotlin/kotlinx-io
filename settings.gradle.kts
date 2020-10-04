@@ -1,6 +1,7 @@
 @file:Suppress("LocalVariableName")
 
 pluginManagement {
+    val benchmarks_version: String by settings
     val kotlin_version: String by settings
 
     repositories {
@@ -11,13 +12,13 @@ pluginManagement {
     }
 
     plugins {
+        id("kotlinx.benchmark") version benchmarks_version
         id("org.jetbrains.dokka") version kotlin_version
         kotlin(module = "plugin.allopen") version kotlin_version
         kotlin(module = "multiplatform") version kotlin_version
     }
 }
 
-enableFeaturePreview("GRADLE_METADATA")
 rootProject.name = "kotlinx-io-package"
 include(":core")
 project(":core").name = "kotlinx-io"
