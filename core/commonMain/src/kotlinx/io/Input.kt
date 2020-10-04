@@ -2,6 +2,7 @@ package kotlinx.io
 
 import kotlinx.io.buffer.*
 import kotlinx.io.pool.*
+import kotlin.contracts.contract
 import kotlin.math.*
 
 /**
@@ -417,9 +418,8 @@ public abstract class Input : Closeable {
      * @return consumed bytes count
      */
     internal inline fun readBufferRange(reader: (Buffer, startOffset: Int, endOffset: Int) -> Int): Int {
-        if (position == limit && fetchCachedOrFill() == 0) {
+        if (position == limit && fetchCachedOrFill() == 0)
             return 0
-        }
 
         val consumed = reader(buffer, position, limit)
         position += consumed

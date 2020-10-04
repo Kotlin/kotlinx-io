@@ -3,6 +3,8 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 public actual class Buffer constructor(
     public val array: ByteArray,
@@ -33,8 +35,9 @@ public actual class Buffer constructor(
  *
  * Consider using it only in interop calls.
  */
-public inline fun <R> Buffer.usePointer(block: (pointer: CPointer<ByteVar>) -> R): R = array.usePinned {
-    block((it.addressOf(0) + offset)!!)
+public inline fun <R> Buffer.usePointer(block: (pointer: CPointer<ByteVar>) -> R): R {
+    contract { callsInPlace(block,InvocationKind.AT_MOST_ONCE) }
+    return array.usePinned { block((it.addressOf(0) + offset)!!) }
 }
 
 /**

@@ -1,13 +1,19 @@
 package kotlinx.io.internal
 
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+
 @PublishedApi
 @Suppress("NOTHING_TO_INLINE")
 internal fun Long.toIntOrFail(name: String): Int = toIntOrFail { name }
 
 @PublishedApi
 internal inline fun Long.toIntOrFail(name: () -> String): Int {
+    contract { callsInPlace(name, InvocationKind.EXACTLY_ONCE) }
+
     if (this >= Int.MAX_VALUE)
         failLongToIntConversion(this, name())
+
     return toInt()
 }
 
