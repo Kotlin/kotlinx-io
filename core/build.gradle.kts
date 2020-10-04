@@ -1,5 +1,3 @@
-@file:Suppress("UNUSED_VARIABLE")
-
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
@@ -24,7 +22,7 @@ kotlin {
 //            nativeTargets += iosArm32()
         }
 
-        hostOs == "Linux" -> nativeTargets += linuxX64("native")
+        hostOs == "Linux" -> nativeTargets += linuxX64()
         hostOs.startsWith("Windows") -> nativeTargets += mingwX64()
         else -> throw GradleException("Host OS '$hostOs' is not supported in Kotlin/Native $project.")
     }
@@ -47,12 +45,12 @@ kotlin {
 
         val jvmTest by getting { dependencies { api(kotlin("test-junit")) } }
         val jsTest by getting { dependencies { api(kotlin("test-js")) } }
-        val nativeMain by getting { dependsOn(commonMain.get()) }
-        val nativeTest by getting { dependsOn(commonTest.get()) }
+        val nativeMain by creating { dependsOn(commonMain.get()) }
+        val nativeTest by creating { dependsOn(commonTest.get()) }
 
         configure(nativeTargets) {
-//            val main by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeMain) } }
-//            val test by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeTest) } }
+            val main by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeMain) } }
+            val test by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeTest) } }
         }
 
         all {
