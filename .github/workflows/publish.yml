@@ -80,7 +80,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 8
-          jdkFile: https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u265-b01/OpenJDK8U-jdk_x64_windows_hotspot_8u265b01.zip
+          jdkFile: ./OpenJDK8U-jdk_x64_windows_hotspot_8u265b01.zip
       - name: Add msys to path
         run: SETX PATH "%PATH%;C:\msys64\mingw64\bin"
       - name: Cache gradle
