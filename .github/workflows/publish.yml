@@ -84,7 +84,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 8
-          jdkFile: ./jdk.zip
+          jdkFile: D:\a\kotlinx-io\kotlinx-io\jdk.zip
       - name: Add msys to path
         run: SETX PATH "%PATH%;C:\msys64\mingw64\bin"
       - name: Cache gradle
