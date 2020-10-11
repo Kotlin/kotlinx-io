@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: Download JDK
-        run: curl https://download.bell-sw.com/java/8u265+1/bellsoft-jdk8u265+1-windows-amd64.zip
+        run: wget https://download.bell-sw.com/java/8u265+1/bellsoft-jdk8u265+1-windows-amd64.zip
       - uses: actions/checkout@v2
       - name: Set up JDK 8
         uses: actions/setup-java@v1
