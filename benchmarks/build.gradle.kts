@@ -78,5 +78,5 @@ benchmark {
         }
     }
 
-    targets.register("jvm") {}
+    targets.register("jvm")
 }
