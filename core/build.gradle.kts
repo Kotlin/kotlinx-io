@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_VARIABLE")
+
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
@@ -19,16 +21,6 @@ kotlin {
         hostOs == "Linux" -> linuxX64()
         hostOs.startsWith("Windows") -> mingwX64()
         else -> throw GradleException("Host OS '$hostOs' is not supported in Kotlin/Native $project.")
-    }
-
-    configure(listOf(targets["metadata"], jvm(), js())) {
-        mavenPublication {
-            val targetPublication = this@mavenPublication
-
-            tasks.withType<AbstractPublishToMaven>()
-                .matching { it.publication == targetPublication }
-                .all { onlyIf { findProperty("isMainHost") == "true" } }
-        }
     }
 
     sourceSets {
@@ -77,26 +69,24 @@ kotlin {
             val testSockets by cinterops.creating { defFile = file("nativeTest/interop/testSockets.def") }
         }
     }
+}
 
-    val emptyJavadoc by tasks.creating(Jar::class) {
-        archiveClassifier.set("javadoc")
-    }
-
-    targets.forEach { target ->
-        publishing
-            .publications
-            .withType<MavenPublication>()
-            .find { it.name == target.name }
-            ?.artifact(emptyJavadoc)
-    }
+internal val emptyJavadoc by tasks.creating(Jar::class) {
+    archiveClassifier.set("javadoc")
 }
 
 tasks.dokkaGfm.get().outputDirectory.set(file("$buildDir/dokka"))
 
 publishing {
+    kotlin.targets.forEach { target ->
+        publications
+            .withType<MavenPublication>()
+            .find { it.name == target.name }
+            ?.artifact(emptyJavadoc)
+    }
+
     val vcs = System.getenv("VCS_URL")
 
-    // Process each publication we have in this project
     publications.withType<MavenPublication>().forEach { publication ->
         publication.pom {
             name.set(project.name)
@@ -120,61 +110,14 @@ publishing {
         name = "bintray"
         url = uri("https://api.bintray.com/maven/commandertvis/kotlinx-io/kotlinx-io/;publish=1;override=1")
 
-        this.
-
-        credentials {
+        this.credentials {
             username = bintrayUser
             password = bintrayKey
         }
     }
 }
 
-//tasks.jacoco {
-//    toolVersion = "0.8.5"
-//    reportsDir = file("${buildDir}/jacoco-reports")
-//}
-//
-//task<JacocoReport>("testCoverage") {
-//    dependsOn(tasks.jvmTest)
-//    group = "Reporting"
-//    description = "Generate Jacoco coverage reports."
-//
-//    val coverageSourceDirs = listOf(
-//        "commonMain/src",
-//        "jvmMain/src"
-//    )
-//
-////    classDirectories.from files (fileTree(dir = "${buildDir}/classes/kotlin/jvm/"))
-////    sourceDirectories.from files (coverageSourceDirs)
-////    additionalSourceDirs.from files (coverageSourceDirs)
-////    executionData.from files ("${buildDir}/jacoco/jvmTest.exec")
-//
-//    reports {
-//        //TODO
-////        xml.enabled = false
-////        csv.enabled = false
-////        html.enabled = true
-//
-////        html.destination file ("${buildDir}/jacoco-reports/html")
-//    }
-//}
-//
-//// Workaround: register and publish the cinterop klibs as outputs of intermediate source sets:
-//
-//if (!false) {
-//    apply from : "$rootDir/gradle/interop-as-source-set-klib.gradle"
-//
-//    kotlin.sourceSets {
-//        bitsInterop
-//        socketsInterop
-//        nativeMain {
-//            dependsOn(bitsInterop)
-//            dependsOn(socketsInterop)
-//        }
-//
-//        def linuxInterops = kotlin . linuxX64 ().compilations["main"].cinterops
-//
-//        registerInteropAsSourceSetOutput(linuxInterops.bits, bitsInterop)
-//        registerInteropAsSourceSetOutput(linuxInterops.sockets, socketsInterop)
-//    }
-//}
+jacoco {
+    toolVersion = "0.8.5"
+    reportsDir = file("${buildDir}/jacoco-reports")
+}

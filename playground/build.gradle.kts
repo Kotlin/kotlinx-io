@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_VARIABLE")
+
 plugins { kotlin("multiplatform") }
 
 kotlin {
@@ -14,7 +16,6 @@ kotlin.sourceSets {
     val jvmMain by getting {
         dependencies {
             api(project(":kotlinx-io"))
-            api("com.squareup.okio:okio:1.0.0")
         }
     }
 }

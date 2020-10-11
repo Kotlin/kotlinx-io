@@ -8,7 +8,6 @@ plugins {
     id("kotlinx.benchmark")
 }
 
-// how to apply plugin to a specific source set?
 allOpen.annotation("org.openjdk.jmh.annotations.State")
 
 
@@ -64,7 +63,7 @@ kotlin {
             }
         }
 
-        val nativeMain by creating {}
+        val nativeMain by creating
     }
 }
 
