@@ -78,11 +78,5 @@ benchmark {
         }
     }
 
-    // Setup configurations
-    targets {
-        // This one matches compilation base name, e.g. 'jvm', 'jvmTest', etc
-        register("jvm") {}
-        register("js") {}
-        register("native") {}
-    }
+    targets.register("jvm") {}
 }
