@@ -78,17 +78,12 @@ internal val emptyJavadoc by tasks.creating(Jar::class) {
 tasks.dokkaGfm.get().outputDirectory.set(file("$buildDir/dokka"))
 
 publishing {
-    kotlin.targets.forEach { target ->
-        publications
-            .withType<MavenPublication>()
-            .find { it.name == target.name }
-            ?.artifact(emptyJavadoc)
-    }
-
     val vcs = System.getenv("VCS_URL")
 
-    publications.withType<MavenPublication>().forEach { publication ->
-        publication.pom {
+    publications.withType<MavenPublication> {
+        artifact(emptyJavadoc)
+
+        pom {
             name.set(project.name)
             description.set(project.description)
             url.set(vcs)
@@ -118,6 +113,6 @@ publishing {
 }
 
 jacoco {
-    toolVersion = "0.8.5"
+    toolVersion = "0.8.6"
     reportsDir = file("${buildDir}/jacoco-reports")
 }
