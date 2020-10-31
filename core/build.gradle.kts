@@ -1,10 +1,10 @@
 @file:Suppress("UNUSED_VARIABLE")
 
 plugins {
-    kotlin("multiplatform")
     `maven-publish`
-    jacoco
     id("org.jetbrains.dokka")
+    jacoco
+    kotlin("multiplatform")
 }
 
 kotlin {
@@ -71,15 +71,12 @@ internal val emptyJavadoc by tasks.creating(Jar::class) {
 tasks.dokkaGfm.get().outputDirectory.set(file("$buildDir/dokka"))
 
 publishing {
-    val vcs = System.getenv("VCS_URL")
-
     publications.withType<MavenPublication> {
         artifact(emptyJavadoc)
 
         pom {
-            name.set(project.name)
             description.set(project.description)
-            url.set(vcs)
+            url.set(System.getenv("VCS_URL"))
 
             licenses {
                 license {
@@ -96,7 +93,7 @@ publishing {
 
     if (bintrayUser != null && bintrayKey != null) repositories.maven {
         name = "bintray"
-        url = uri("https://api.bintray.com/maven/commandertvis/kotlinx-io/kotlinx-io/;publish=1")
+        url = uri("https://api.bintray.com/maven/commandertvis/kotlinx-io/kotlinx-io/;publish=1;override=1")
 
         credentials {
             username = bintrayUser

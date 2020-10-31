@@ -10,17 +10,8 @@ plugins {
 
 allOpen.annotation("org.openjdk.jmh.annotations.State")
 
-
 kotlin {
-//    infra {
-//        target('macosX64')
-//        target('linuxX64')
-//        target('mingwX64')
-//    }
-
-    jvm {
-        compilations.all { kotlinOptions.jvmTarget = "1.8" }
-    }
+    jvm().compilations.all { kotlinOptions.jvmTarget = "1.8" }
 
 // TODO: lookup benchmark configuration for js
 //    js {
