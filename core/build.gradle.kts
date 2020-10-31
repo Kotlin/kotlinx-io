@@ -64,27 +64,40 @@ kotlin {
     }
 }
 
+jacoco {
+    toolVersion = "0.8.6"
+    reportsDir = file("${buildDir}/jacoco-reports")
+}
+
+internal val emptySourcesJar by tasks.creating(Jar::class) {
+    archiveClassifier.set("sources")
+}
+
 internal val emptyJavadoc by tasks.creating(Jar::class) {
     archiveClassifier.set("javadoc")
 }
 
-tasks.dokkaGfm.get().outputDirectory.set(file("$buildDir/dokka"))
-
 publishing {
-    publications.withType<MavenPublication> {
-        artifact(emptyJavadoc)
+    publications {
+        withType<MavenPublication> {
+            artifact(emptyJavadoc)
 
-        pom {
-            description.set(project.description)
-            url.set(System.getenv("VCS_URL"))
+            pom {
+                description.set(project.description)
+                url.set(System.getenv("VCS_URL"))
 
-            licenses {
-                license {
-                    name.set("The Apache Software License, Version 2.0")
-                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    distribution.set("repo")
+                licenses {
+                    license {
+                        name.set("The Apache Software License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        distribution.set("repo")
+                    }
                 }
             }
+        }
+
+        val kotlinMultiplatform by getting(MavenPublication::class) {
+            artifact(emptySourcesJar)
         }
     }
 
@@ -102,7 +115,23 @@ publishing {
     }
 }
 
-jacoco {
-    toolVersion = "0.8.6"
-    reportsDir = file("${buildDir}/jacoco-reports")
+tasks {
+    dokkaGfm.get().outputDirectory.set(file("$buildDir/dokka"))
+
+    val publishMac by creating {
+        dependsOn("publishMacosX64PublicationToMavenRepository")
+    }
+
+    val publishWindows by creating {
+        dependsOn("publishMingwX64PublicationToMavenRepository")
+    }
+
+    val publishLinux by creating {
+        dependsOn("publishJvmPublicationToMavenRepository")
+        dependsOn("publishJsPublicationToMavenRepository")
+        dependsOn("publishLinuxX64PublicationToMavenRepository")
+        dependsOn("publishMetadataPublicationToMavenRepository")
+        dependsOn("publishKotlinMultiplatformPublicationToMavenRepository")
+    }
 }
+

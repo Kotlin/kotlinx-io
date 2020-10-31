@@ -111,10 +111,11 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
     var state = STATE_UTF_8
     var count = 0
 
-    while (state != STATE_FINISH && !exhausted()) {
+    while (state != STATE_FINISH && !exhausted())
         readBufferRange { buffer, startOffset, endOffset ->
             for (offset in startOffset until endOffset) {
                 val byte = buffer.loadByteAt(offset).toInt() and 0xff
+
                 when {
                     byte and 0x80 == 0 -> { // ASCII
                         if (byteCount != 0)
@@ -125,6 +126,7 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
                         }
                         count++
                     }
+
                     byteCount == 0 -> {
                         // first unicode byte
                         when {
@@ -132,22 +134,27 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
                                 byteCount = 0
                                 value = byte and 0x7F
                             }
+
                             byte < 0xE0 -> {
                                 byteCount = 1
                                 value = byte and 0x3F
                             }
+
                             byte < 0xF0 -> {
                                 byteCount = 2
                                 value = byte and 0x1F
                             }
+
                             byte < 0xF8 -> {
                                 byteCount = 3
                                 value = byte and 0xF
                             }
+
                             byte < 0xFC -> {
                                 byteCount = 4
                                 value = byte and 0x7
                             }
+
                             byte < 0xFE -> {
                                 byteCount = 5
                                 value = byte and 0x3
@@ -155,6 +162,7 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
                         }
 
                     }
+
                     else -> {
                         // trailing unicode byte
                         value = (value shl 6) or (byte and 0x7f)
@@ -166,23 +174,30 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
                                     if (consumer(value.toChar())) {
                                         count++
                                         true
-                                    } else false
+                                    } else
+                                        false
                                 }
+
                                 else -> {
                                     if (value > MaxCodePoint)
                                         malformedInput(value)
 
                                     val high = highSurrogate(value).toChar()
                                     val low = lowSurrogate(value).toChar()
+
                                     if (consumer(high)) {
                                         count++
+
                                         if (consumer(low)) {
                                             count++
                                             true
-                                        } else false
-                                    } else false
+                                        } else
+                                            false
+                                    } else
+                                        false
                                 }
                             }
+
                             if (!more) {
                                 state = STATE_FINISH
                                 return@readBufferRange offset - startOffset + 1
@@ -195,7 +210,7 @@ private inline fun Input.decodeUtf8Chars(consumer: (Char) -> Boolean): Int {
             }
             endOffset - startOffset
         }
-    }
+
     return count
 }
 
@@ -261,45 +276,47 @@ private inline fun Input.decodeUtf8(consumer: (Int) -> Boolean) {
     var state = STATE_UTF_8
     var codePoint = 0
 
-    while (state != STATE_FINISH) {
+    while (state != STATE_FINISH)
         readBufferRange { buffer, startOffset, endOffset ->
             for (index in startOffset until endOffset) {
                 val byte = buffer.loadByteAt(index).toInt() and 0xff
-
                 val type = stateMachine[byte]
+
                 codePoint = if (state == STATE_UTF_8)
                     (0xff ushr type) and byte
                 else
                     (byte and 0x3f) or (codePoint shl 6)
+
                 state = stateMachine[256 + state + type]
 
                 // TODO: Attempt to recover from bad states
                 when (state) {
                     STATE_UTF_8 -> when {
-                        codePoint <= MaxCodePoint -> {
-                            if (!consumer(codePoint)) {
-                                state = STATE_FINISH // signal to exit loop
-                                // must return consumed bytes for Input positions to be updated in readBuffer
-                                return@readBufferRange index - startOffset
-                            }
+                        codePoint <= MaxCodePoint -> if (!consumer(codePoint)) {
+                            state = STATE_FINISH // signal to exit loop
+                            // must return consumed bytes for Input positions to be updated in readBuffer
+                            return@readBufferRange index - startOffset
                         }
+
                         else -> malformedInput(codePoint)
                     }
+
                     STATE_REJECT -> malformedInput(codePoint)
-                    else -> {
-                        /* need more bytes to read the code point */
-                    }
+
+                    /* need more bytes to read the code point */
+                    else -> Unit
                 }
             }
+
             endOffset - startOffset
         }
-    }
 }
 
 private inline fun Input.decodeUtf8CharsAlt(consumer: (Char) -> Boolean) {
     decodeUtf8 { codePoint ->
         when {
             codePoint ushr 16 == 0 -> consumer(codePoint.toChar())
+
             else -> {
                 val high = highSurrogate(codePoint).toChar()
                 val low = lowSurrogate(codePoint).toChar()

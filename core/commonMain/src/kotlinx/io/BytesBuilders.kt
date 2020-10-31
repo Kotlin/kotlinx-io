@@ -1,12 +1,16 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-import kotlin.contracts.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.DEFAULT_BUFFER_SIZE
+import kotlinx.io.buffer.DefaultBufferPool
+import kotlinx.io.buffer.compact
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Create [Bytes] with [bufferSize] and fills it from [builder].
  */
-public fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit): Bytes {
+public inline fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit): Bytes {
     contract {
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }
@@ -14,7 +18,8 @@ public fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() 
     return BytesOutput(bufferSize).apply(builder).bytes()
 }
 
-private class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(
+@PublishedApi
+internal class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(
     if (bufferSize == DEFAULT_BUFFER_SIZE) DefaultBufferPool.Instance else DefaultBufferPool(bufferSize)
 ) {
     private val bytes = Bytes(pool)

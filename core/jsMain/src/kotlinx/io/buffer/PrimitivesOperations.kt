@@ -1,7 +1,9 @@
 package kotlinx.io.buffer
 
-import kotlinx.io.internal.*
-import org.khronos.webgl.*
+import kotlinx.io.internal.toIntOrFail
+import org.khronos.webgl.DataView
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 public actual fun Buffer.loadByteAt(index: Long): Byte = loadByteAt(index.toIntOrFail("index"))
 
@@ -123,6 +125,10 @@ public actual fun Buffer.storeByteAt(index: Long, value: Byte): Unit = checked(i
 
 @PublishedApi
 internal inline fun <T> Buffer.checked(offset: Int, block: DataView.() -> T): T {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     try {
         return view.block()
     } catch (e: RangeError) {
@@ -132,6 +138,10 @@ internal inline fun <T> Buffer.checked(offset: Int, block: DataView.() -> T): T 
 
 @PublishedApi
 internal inline fun <T> Buffer.checked(offset: Long, block: DataView.(offset: Int) -> T): T {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     try {
         return view.block(offset.toIntOrFail("offset"))
     } catch (e: RangeError) {

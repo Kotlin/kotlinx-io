@@ -9,7 +9,9 @@ internal fun Long.toIntOrFail(name: String): Int = toIntOrFail { name }
 
 @PublishedApi
 internal inline fun Long.toIntOrFail(name: () -> String): Int {
-    contract { callsInPlace(name, InvocationKind.EXACTLY_ONCE) }
+    contract {
+        callsInPlace(name, InvocationKind.AT_MOST_ONCE)
+    }
 
     if (this >= Int.MAX_VALUE)
         failLongToIntConversion(this, name())

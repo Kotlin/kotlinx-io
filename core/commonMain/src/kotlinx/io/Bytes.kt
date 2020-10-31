@@ -1,8 +1,9 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-import kotlinx.io.pool.*
-import kotlin.contracts.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.pool.ObjectPool
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 internal typealias BytesPointer = Int
 
@@ -21,9 +22,15 @@ internal typealias BytesPointer = Int
  * 3. example
  */
 public class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
+    @PublishedApi
     internal var buffers: Array<Buffer?> = arrayOfNulls(initialPreviewSize)
+
+    @PublishedApi
     internal var limits: IntArray = IntArray(initialPreviewSize)
+
+    @PublishedApi
     internal var head: Int = 0
+
     internal var tail: Int = 0
 
     /**
@@ -106,9 +113,10 @@ public class Bytes internal constructor(internal val bufferPool: ObjectPool<Buff
 /**
  * Get [Buffer] and limit according to [pointer] offset in [Bytes.buffers].
  */
+@PublishedApi
 internal inline fun Bytes.pointed(pointer: Int, consumer: (buffer: Buffer, limit: Int) -> Unit) {
     contract {
-        callsInPlace(consumer, kind = InvocationKind.EXACTLY_ONCE)
+        callsInPlace(consumer, InvocationKind.EXACTLY_ONCE)
     }
 
     val index = pointer + head

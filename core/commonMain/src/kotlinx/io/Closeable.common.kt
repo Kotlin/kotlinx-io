@@ -18,7 +18,10 @@ public expect interface Closeable {
  * @return the result of [block] function invoked on this resource.
  */
 public inline fun <C : Closeable, R> C.use(block: (C) -> R): R {
-    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     var closed = false
 
     return try {

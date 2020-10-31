@@ -1,6 +1,8 @@
 package kotlinx.io.text
 
-import org.khronos.webgl.*
+import org.khronos.webgl.Int8Array
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 // I don't know any characters that have longer characters
 internal const val MAX_CHARACTERS_SIZE_IN_BYTES: Int = 8
@@ -9,9 +11,8 @@ private const val MAX_CHARACTERS_COUNT = Int.MAX_VALUE / MAX_CHARACTERS_SIZE_IN_
 internal data class DecodeBufferResult(val charactersDecoded: String, val bytesConsumed: Int)
 
 internal fun Int8Array.decodeBufferImpl(nativeDecoder: TextDecoder, maxCharacters: Int): DecodeBufferResult {
-    if (maxCharacters == 0) {
+    if (maxCharacters == 0)
         return DecodeBufferResult("", 0)
-    }
 
     // fast-path: try to assume that we have 1 byte per character content
     try {
@@ -33,12 +34,13 @@ private fun Int8Array.decodeBufferImplSlow(nativeDecoder: TextDecoder, maxCharac
     }.coerceAtMost(byteLength)
 
     var sizeInBytes = maxBytes
+
     while (sizeInBytes > MAX_CHARACTERS_SIZE_IN_BYTES) {
         try {
             val text = nativeDecoder.decode(subarray(0, sizeInBytes))
-            if (text.length <= maxCharacters) {
+
+            if (text.length <= maxCharacters)
                 return DecodeBufferResult(text, sizeInBytes)
-            }
         } catch (_: dynamic) {
         }
 
@@ -46,6 +48,7 @@ private fun Int8Array.decodeBufferImplSlow(nativeDecoder: TextDecoder, maxCharac
     }
 
     sizeInBytes = MAX_CHARACTERS_SIZE_IN_BYTES
+
     while (sizeInBytes > 0) {
         try {
             val text = nativeDecoder.decode(subarray(0, sizeInBytes))
@@ -69,6 +72,10 @@ private fun Int8Array.decodeBufferImplSlow(nativeDecoder: TextDecoder, maxCharac
 }
 
 internal inline fun <R> decodeWrap(block: () -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+    }
+
     try {
         return block()
     } catch (t: Throwable) {

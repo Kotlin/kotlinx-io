@@ -4,6 +4,8 @@ package kotlinx.io
 
 import kotlinx.io.buffer.*
 import kotlinx.io.pool.DefaultPool
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.test.*
 
 class InputOutputTest {
@@ -263,8 +265,13 @@ class InputOutputTest {
         }
     }
 
-    private fun checkException(block: () -> Unit) {
+    private inline fun checkException(block: () -> Unit) {
+        contract {
+            callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+        }
+
         var fail = false
+
         try {
             block()
         } catch (exception: Throwable) {

@@ -95,7 +95,8 @@ public fun ArrayBufferView.copyTo(destination: Buffer, offset: Int, length: Int,
     buffer.copyTo(destination, offset + byteOffset, length, destinationOffset)
 }
 
-internal val Buffer.Int8ArrayView: Int8Array get() = Int8Array(view.buffer, view.byteOffset, view.byteLength)
+internal val Buffer.Int8ArrayView: Int8Array
+    get() = Int8Array(view.buffer, view.byteOffset, view.byteLength)
 
 /**
  * Executes the given [block] of code providing a temporary instance of [Buffer] view of this byte array range
@@ -107,6 +108,7 @@ public actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
+
     return Buffer.of(this, offset, length).let(block)
 }
 
@@ -118,9 +120,8 @@ public fun Buffer.Companion.of(view: DataView): Buffer = Buffer(view)
 /**
  * Creates the [Buffer] view for the specified [buffer] range starting at [offset] and the specified bytes [length].
  */
-public fun Buffer.Companion.of(buffer: ArrayBuffer, offset: Int = 0, length: Int = buffer.byteLength - offset): Buffer {
-    return Buffer.of(DataView(buffer, offset, length))
-}
+public fun Buffer.Companion.of(buffer: ArrayBuffer, offset: Int = 0, length: Int = buffer.byteLength - offset): Buffer =
+    Buffer.of(DataView(buffer, offset, length))
 
 /**
  * Creates the [Buffer] view for the specified [array] range starting at [offset] and the specified bytes [length].

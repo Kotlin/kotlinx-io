@@ -1,6 +1,8 @@
 package kotlinx.io.text
 
-import kotlinx.io.*
+import kotlinx.io.EOFException
+import kotlinx.io.Input
+import kotlinx.io.use
 
 /**
  * Reads the line in UTF-8 encoding from the input until the next line break or until the input is exhausted.
@@ -9,6 +11,7 @@ import kotlinx.io.*
  */
 public fun Input.readUtf8Line(): String {
     checkExhausted()
+
     return buildString {
         readUtf8LineTo(this)
     }
@@ -24,11 +27,12 @@ public fun Input.readUtf8Line(): String {
 public fun Input.readUtf8Lines(): List<String> {
     checkExhausted()
     val list = ArrayList<String>()
+
     use {
-        while (!exhausted()) {
+        while (!exhausted())
             list += readUtf8Line()
-        }
     }
+
     return list
 }
 
@@ -40,12 +44,12 @@ public fun Input.readUtf8Lines(): List<String> {
  */
 public inline fun Input.forEachUtf8Line(action: (String) -> Unit) {
     use {
-        while (!exhausted()) {
+        while (!exhausted())
             action(readUtf8Line())
-        }
     }
 }
 
 private fun Input.checkExhausted() {
-    if (exhausted()) throw EOFException("Unexpected EOF while reading UTF-8 line")
+    if (exhausted())
+        throw EOFException("Unexpected EOF while reading UTF-8 line")
 }

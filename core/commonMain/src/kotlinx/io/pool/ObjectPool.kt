@@ -25,7 +25,10 @@ public interface ObjectPool<T : Any> : Closeable {
  * Borrows and instance of [T] from the pool, invokes [block] with it and finally recycles it
  */
 public inline fun <T : Any, R> ObjectPool<T>.useInstance(block: (T) -> R): R {
-    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     val instance = borrow()
 
     try {

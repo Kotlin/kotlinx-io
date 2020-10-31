@@ -1,10 +1,12 @@
 package kotlinx.io.buffer
 
 import kotlinx.cinterop.*
-import kotlinx.io.*
 import kotlinx.io.bits.internal.utils.*
+import kotlinx.io.reverseByteOrder
+import kotlinx.io.swap
 import platform.posix.*
-import kotlin.contracts.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]
@@ -16,14 +18,13 @@ public actual fun Buffer.copyTo(destination: Buffer, offset: Int, length: Int, d
     require(length >= 0) { "length shouldn't be negative: $length" }
     require(destinationOffset >= 0) { "destinationOffset shouldn't be negative: $destinationOffset" }
 
-    if (offset + length > size) {
+    if (offset + length > size)
         throw IndexOutOfBoundsException("offset + length > size: $offset + $length > $size")
-    }
-    if (destinationOffset + length > destination.size) {
+
+    if (destinationOffset + length > destination.size)
         throw IndexOutOfBoundsException(
             "dst offset + length > size: $destinationOffset + $length > ${destination.size}"
         )
-    }
 
     if (length == 0) return
 
@@ -82,6 +83,7 @@ public actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
     requirePositiveIndex(count, "count")
     requireRange(offset, count, size, "fill")
     require(count.toULong() <= size_t.MAX_VALUE.toULong()) { "count is too big: it shouldn't exceed size_t.MAX_VALUE" }
+
     usePointer {
         memset(it + offset, value.toInt(), count.convert())
     }
@@ -91,12 +93,7 @@ public actual fun Buffer.fill(offset: Int, count: Int, value: Byte) {
  * Copies the content bytes to the memory addressed by the [destination] pointer with
  * the specified [destinationOffset] in bytes.
  */
-public fun Buffer.copyTo(
-    destination: CPointer<ByteVar>,
-    offset: Int,
-    length: Int,
-    destinationOffset: Int
-) {
+public fun Buffer.copyTo(destination: CPointer<ByteVar>, offset: Int, length: Int, destinationOffset: Int) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(length, "length")
     requirePositiveIndex(destinationOffset, "destinationOffset")
@@ -133,11 +130,10 @@ public actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 
-    val buffer = if (isEmpty() && length == 0) {
+    val buffer = if (isEmpty() && length == 0)
         Buffer.EMPTY
-    } else {
+    else
         Buffer(this, offset, length)
-    }
 
     return block(buffer)
 }
@@ -150,6 +146,7 @@ public actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block
  */
 internal actual fun Buffer.compact(startIndex: Int, endIndex: Int): Int {
     val length = endIndex - startIndex
+
     usePointer {
         memmove(it, it + startIndex, length.convert())
     }
