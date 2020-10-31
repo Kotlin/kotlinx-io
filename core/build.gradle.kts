@@ -119,19 +119,19 @@ tasks {
     dokkaGfm.get().outputDirectory.set(file("$buildDir/dokka"))
 
     val publishMac by creating {
-        dependsOn("publishMacosX64PublicationToMavenRepository")
+        dependsOn("publishMacosX64PublicationToBintrayRepository")
     }
 
     val publishWindows by creating {
-        dependsOn("publishMingwX64PublicationToMavenRepository")
+        dependsOn("publishMingwX64PublicationToBintrayRepository")
     }
 
     val publishLinux by creating {
-        dependsOn("publishJvmPublicationToMavenRepository")
-        dependsOn("publishJsPublicationToMavenRepository")
-        dependsOn("publishLinuxX64PublicationToMavenRepository")
-        dependsOn("publishMetadataPublicationToMavenRepository")
-        dependsOn("publishKotlinMultiplatformPublicationToMavenRepository")
+        dependsOn("publishJvmPublicationToBintrayRepository")
+        dependsOn("publishJsPublicationToBintrayRepository")
+        dependsOn("publishLinuxX64PublicationToBintrayRepository")
+        dependsOn("publishMetadataPublicationToBintrayRepository")
+        dependsOn("publishKotlinMultiplatformPublicationToBintrayRepository")
     }
 }
 
