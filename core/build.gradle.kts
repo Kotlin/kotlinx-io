@@ -1,7 +1,5 @@
 @file:Suppress("UNUSED_VARIABLE")
 
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-
 plugins {
     kotlin("multiplatform")
     `maven-publish`
@@ -14,9 +12,8 @@ kotlin {
     jvm()
     js { nodejs { testTask { debug = false } } }
     val hostOs = System.getProperty("os.name")
-    val nativeTargets = mutableListOf<KotlinNativeTarget>()
 
-    nativeTargets += when {
+    val nativeTarget = when {
         hostOs == "Mac OS X" -> macosX64()
         hostOs == "Linux" -> linuxX64()
         hostOs.startsWith("Windows") -> mingwX64()
@@ -34,13 +31,12 @@ kotlin {
         val nativeMain by creating { dependsOn(commonMain.get()) }
         val nativeTest by creating { dependsOn(commonTest.get()) }
 
-        configure(nativeTargets) {
+        nativeTarget.apply {
             val main by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeMain) } }
             val test by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeTest) } }
         }
 
         all {
-            val isTest = toString().endsWith("Test")
             kotlin.srcDir("$name/src")
             resources.srcDir("$name/resources")
 
@@ -50,16 +46,13 @@ kotlin {
                 useExperimentalAnnotation("kotlin.Experimental")
                 useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
                 useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
-
-                if (isTest) {
-                    useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
-                    useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
-                }
+                useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+                useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
             }
         }
     }
 
-    configure(nativeTargets) {
+    nativeTarget.apply {
         val main by compilations.getting {
             val bits by cinterops.creating { defFile = file("nativeMain/interop/bits.def") }
             val sockets by cinterops.creating { defFile = file("nativeMain/interop/sockets.def") }
@@ -103,9 +96,9 @@ publishing {
 
     if (bintrayUser != null && bintrayKey != null) repositories.maven {
         name = "bintray"
-        url = uri("https://api.bintray.com/maven/commandertvis/kotlinx-io/kotlinx-io/;publish=1;override=1")
+        url = uri("https://api.bintray.com/maven/commandertvis/kotlinx-io/kotlinx-io/;publish=1")
 
-        this.credentials {
+        credentials {
             username = bintrayUser
             password = bintrayKey
         }
