@@ -28,10 +28,8 @@ version = "2018.2"
 val versionSuffixParameter = "versionSuffix"
 val teamcitySuffixParameter = "teamcitySuffix"
 val releaseVersionParameter = "releaseVersion"
-
 val bintrayUserName = "orangy"
 val bintrayToken = "credentialsJSON:9a48193c-d16d-46c7-8751-2fb434b09e07"
-
 val platforms = listOf("Windows", "Linux", "Mac OS X")
 
 project {
@@ -42,6 +40,7 @@ project {
 
     val buildAll = buildAll()
     val builds = platforms.map { build(it) }
+
     builds.forEach { build ->
         buildAll.dependsOn(build) {
             snapshot {
@@ -49,6 +48,7 @@ project {
                 onDependencyCancel = FailureAction.CANCEL
             }
         }
+
         buildAll.dependsOn(build) {
             artifacts {
                 artifactRules = "+:maven=>maven"
@@ -58,6 +58,7 @@ project {
 
     val deployConfigure = deployConfigure()
     val deploys = platforms.map { deploy(it, deployConfigure) }
+
     val deployPublish = deployPublish(deployConfigure).apply {
         deploys.forEach {
             dependsOnSnapshot(it)
@@ -87,6 +88,7 @@ fun Project.buildAll() = BuildType {
 fun Project.build(platform: String) = platform(platform, "Build") {
     steps {
         gradle {
+            param("env.LIBCLANG_DISABLE_CRASH_RECOVERY", "1")
             name = "Build and Test $platform Binaries"
             jdkHome = "%env.JDK_18_x64%"
             jvmArgs = "-Xmx1g"
@@ -139,6 +141,7 @@ fun Project.deployConfigure() = BuildType {
 
     steps {
         gradle {
+            param("env.LIBCLANG_DISABLE_CRASH_RECOVERY", "1")
             name = "Verify Gradle Configuration"
             tasks = "clean publishBintrayCreateVersion"
             gradleParams = "--info --stacktrace -P$versionSuffixParameter=%$versionSuffixParameter% -P$releaseVersionParameter=%$releaseVersionParameter% -PbintrayApiKey=%bintray-key% -PbintrayUser=%bintray-user%"
@@ -152,13 +155,14 @@ fun Project.deployPublish(configureBuild: BuildType) = BuildType {
     id("Deploy_Publish")
     this.name = "Deploy (Publish)"
     type = BuildTypeSettings.Type.COMPOSITE
+
     params {
         param(versionSuffixParameter, "${configureBuild.depParamRefs[versionSuffixParameter]}")
         param(releaseVersionParameter, "${configureBuild.depParamRefs[releaseVersionParameter]}")
     }
+
     commonConfigure()
 }.also { buildType(it) }.dependsOnSnapshot(configureBuild)
-
 
 fun Project.deploy(platform: String, configureBuild: BuildType) = platform(platform, "Deploy") {
     type = BuildTypeSettings.Type.DEPLOYMENT
@@ -177,6 +181,7 @@ fun Project.deploy(platform: String, configureBuild: BuildType) = platform(platf
 
     steps {
         gradle {
+            param("env.LIBCLANG_DISABLE_CRASH_RECOVERY", "1")
             name = "Deploy $platform Binaries"
             jdkHome = "%env.JDK_18_x64%"
             jvmArgs = "-Xmx1g"
