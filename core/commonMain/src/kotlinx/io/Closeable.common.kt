@@ -6,7 +6,7 @@ import kotlin.contracts.contract
 /**
  * Closeable resource.
  */
-public expect interface Closeable {
+public expect fun interface Closeable {
     public fun close()
 }
 
