@@ -1,6 +1,5 @@
 package kotlinx.io
 
-
 /**
  * Closeable resource.
  */
@@ -11,4 +10,3 @@ public actual fun interface Closeable {
 @PublishedApi
 internal actual fun Throwable.addSuppressedInternal(other: Throwable) {
 }
-

@@ -36,9 +36,7 @@ public inline fun <C : Closeable, R> C.use(block: (C) -> R): R {
 
         throw first
     } finally {
-        if (!closed) {
-            close()
-        }
+        if (!closed) close()
     }
 }
 

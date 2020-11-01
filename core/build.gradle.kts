@@ -44,7 +44,7 @@ kotlin {
                 progressiveMode = true
                 enableLanguageFeature("InlineClasses")
                 useExperimentalAnnotation("kotlin.Experimental")
-                useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
+                useExperimentalAnnotation("kotlinx.io.ExperimentalIoApi")
                 useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
                 useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
                 useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")

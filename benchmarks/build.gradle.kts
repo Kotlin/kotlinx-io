@@ -28,7 +28,7 @@ kotlin {
             progressiveMode = true
             useExperimentalAnnotation("kotlin.Experimental")
             useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
-            useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
+            useExperimentalAnnotation("kotlinx.io.ExperimentalIoApi")
             useExperimentalAnnotation("kotlinx.io.unsafe.DangerousInternalIoApi")
             useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
         }
