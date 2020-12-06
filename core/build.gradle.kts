@@ -168,7 +168,6 @@ tasks {
         dependsOn("publishJvmPublicationToBintrayRepository")
         dependsOn("publishJsPublicationToBintrayRepository")
         dependsOn("publishLinuxX64PublicationToBintrayRepository")
-        dependsOn("publishMetadataPublicationToBintrayRepository")
         dependsOn("publishKotlinMultiplatformPublicationToBintrayRepository")
     }
 }
