@@ -5,7 +5,7 @@ import kotlinx.io.bits.internal.utils.*
 import platform.posix.*
 
 @PublishedApi
-internal const val unalignedAccessSupported = UNALIGNED_ACCESS_ALLOWED == 1
+internal const val unalignedAccessSupported: Boolean = UNALIGNED_ACCESS_ALLOWED == 1
 
 @PublishedApi
 internal fun Buffer.assertIndex(offset: Int, valueSize: Int): Int {
