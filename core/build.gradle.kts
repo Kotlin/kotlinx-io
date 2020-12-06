@@ -1,5 +1,7 @@
 @file:Suppress("UNUSED_VARIABLE")
 
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
+
 plugins {
     `maven-publish`
     id("org.jetbrains.dokka")
@@ -148,6 +150,10 @@ publishing {
 }
 
 tasks {
+    withType<KotlinCompile<*>> {
+        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    }
+
     dokkaGfm.get().outputDirectory.set(file("$buildDir/dokka"))
 
     val publishMac by creating {
