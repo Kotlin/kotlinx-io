@@ -10,7 +10,13 @@ plugins {
 kotlin {
     explicitApi()
     jvm()
-    js { nodejs { testTask { debug = false } } }
+
+    js().nodejs {
+        testTask {
+            debug = false
+        }
+    }
+
     val hostOs = System.getProperty("os.name")
 
     val nativeTarget = when {
@@ -26,14 +32,34 @@ kotlin {
             api(kotlin("test-annotations-common"))
         }
 
-        val jvmTest by getting { dependencies { api(kotlin("test-junit")) } }
-        val jsTest by getting { dependencies { api(kotlin("test-js")) } }
-        val nativeMain by creating { dependsOn(commonMain.get()) }
-        val nativeTest by creating { dependsOn(commonTest.get()) }
+        val jvmTest by getting {
+            dependencies {
+                api(kotlin("test-junit"))
+            }
+        }
+
+        val jsTest by getting {
+            dependencies {
+                api(kotlin("test-js"))
+            }
+        }
+
+        val nativeMain by creating {
+            dependsOn(commonMain.get())
+        }
+
+        val nativeTest by creating {
+            dependsOn(commonTest.get())
+        }
 
         nativeTarget.apply {
-            val main by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeMain) } }
-            val test by compilations.getting { kotlinSourceSets.forEach { it.dependsOn(nativeTest) } }
+            val main by compilations.getting {
+                kotlinSourceSets.forEach { it.dependsOn(nativeMain) }
+            }
+
+            val test by compilations.getting {
+                kotlinSourceSets.forEach { it.dependsOn(nativeTest) }
+            }
         }
 
         all {
@@ -43,7 +69,6 @@ kotlin {
             languageSettings.apply {
                 progressiveMode = true
                 enableLanguageFeature("InlineClasses")
-                useExperimentalAnnotation("kotlin.Experimental")
                 useExperimentalAnnotation("kotlinx.io.ExperimentalIoApi")
                 useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
                 useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
@@ -54,12 +79,19 @@ kotlin {
 
     nativeTarget.apply {
         val main by compilations.getting {
-            val bits by cinterops.creating { defFile = file("nativeMain/interop/bits.def") }
-            val sockets by cinterops.creating { defFile = file("nativeMain/interop/sockets.def") }
+            val bits by cinterops.creating {
+                defFile = file("nativeMain/interop/bits.def")
+            }
+
+            val sockets by cinterops.creating {
+                defFile = file("nativeMain/interop/sockets.def")
+            }
         }
 
         val test by compilations.getting {
-            val testSockets by cinterops.creating { defFile = file("nativeTest/interop/testSockets.def") }
+            val testSockets by cinterops.creating {
+                defFile = file("nativeTest/interop/testSockets.def")
+            }
         }
     }
 }

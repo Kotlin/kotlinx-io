@@ -1,21 +1,25 @@
 package kotlinx.io
 
-import kotlinx.io.buffer.*
-import kotlinx.io.text.*
-import org.junit.Test
-import java.io.*
-import kotlin.io.DEFAULT_BUFFER_SIZE
-import kotlin.test.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.text.writeUtf8String
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class OutputStreamTest {
 
     @Test
     fun testOutputAsOutputStream() {
         val output = ByteArrayOutput()
-        val writer = output.asOutputStream().bufferedWriter()
-        writer.write("a\n")
-        writer.write("b")
-        writer.close()
+
+        output.asOutputStream().bufferedWriter().use {
+            it.write("a\n")
+            it.write("b")
+        }
+
         assertEquals("a\nb", output.toByteArray().decodeToString())
     }
 
@@ -23,9 +27,7 @@ class OutputStreamTest {
     fun testOutputAsOutputStreamBufferBoundary() {
         val baseline = "1".repeat(DEFAULT_BUFFER_SIZE + 1) + "\n" + "2".repeat(DEFAULT_BUFFER_SIZE + 1)
         val output = ByteArrayOutput()
-        val writer = output.asOutputStream().bufferedWriter()
-        writer.write(baseline)
-        writer.close()
+        output.asOutputStream().bufferedWriter().use { it.write(baseline) }
         assertEquals(baseline, output.toByteArray().decodeToString())
     }
 

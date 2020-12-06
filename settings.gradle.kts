@@ -12,10 +12,10 @@ pluginManagement {
     }
 
     plugins {
+        kotlin(module = "multiplatform") version kotlin_version
+        kotlin(module = "plugin.allopen") version kotlin_version
         id("kotlinx.benchmark") version benchmarks_version
         id("org.jetbrains.dokka") version kotlin_version
-        kotlin(module = "plugin.allopen") version kotlin_version
-        kotlin(module = "multiplatform") version kotlin_version
     }
 }
 

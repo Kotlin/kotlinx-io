@@ -2,7 +2,6 @@ package kotlinx.io
 
 import kotlinx.io.buffer.*
 import kotlinx.io.text.*
-import org.junit.Test
 import java.io.*
 import kotlin.io.DEFAULT_BUFFER_SIZE
 import kotlin.random.*

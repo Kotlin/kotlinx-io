@@ -10,9 +10,9 @@ private const val DEFAULT_CAPACITY: Int = 32
  * @throws MalformedInputException if decoder fail to recognize charset.
  */
 public fun Input.readUtf8StringUntilDelimiterTo(output: Appendable, delimiter: Char): Int = decodeUtf8Chars {
-    if (it == delimiter) {
+    if (it == delimiter)
         return@decodeUtf8Chars false
-    }
+
     output.append(it)
     true
 }

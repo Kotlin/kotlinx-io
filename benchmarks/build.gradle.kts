@@ -26,7 +26,6 @@ kotlin {
 
         languageSettings.apply {
             progressiveMode = true
-            useExperimentalAnnotation("kotlin.Experimental")
             useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
             useExperimentalAnnotation("kotlinx.io.ExperimentalIoApi")
             useExperimentalAnnotation("kotlinx.io.unsafe.DangerousInternalIoApi")
