@@ -2,6 +2,7 @@
 
 pluginManagement {
     val benchmarks_version: String by settings
+    val dokka_version: String by settings
     val kotlin_version: String by settings
 
     repositories {
@@ -15,7 +16,7 @@ pluginManagement {
         kotlin(module = "multiplatform") version kotlin_version
         kotlin(module = "plugin.allopen") version kotlin_version
         id("kotlinx.benchmark") version benchmarks_version
-        id("org.jetbrains.dokka") version kotlin_version
+        id("org.jetbrains.dokka") version dokka_version
     }
 }
 
