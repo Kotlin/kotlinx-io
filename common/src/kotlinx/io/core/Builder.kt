@@ -408,6 +408,10 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
     internal var tail: IoBuffer = IoBuffer.Empty
 
     final override fun writeFully(src: ByteArray, offset: Int, length: Int) {
+        require(length >= 0) { "length shouldn't be negative: $length" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
+
         if (length == 0) return
 
         var copied = 0
@@ -446,7 +450,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
     override fun writeFully(src: ShortArray, offset: Int, length: Int) {
         require(length >= 0) { "length shouldn't be negative: $length" }
-        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         if (length == 0) return
 
@@ -464,7 +469,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
     override fun writeFully(src: IntArray, offset: Int, length: Int) {
         require(length >= 0) { "length shouldn't be negative: $length" }
-        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         var start = offset
         var remaining = length
@@ -480,7 +486,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
     override fun writeFully(src: LongArray, offset: Int, length: Int) {
         require(length >= 0) { "length shouldn't be negative: $length" }
-        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         var start = offset
         var remaining = length
@@ -496,7 +503,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
     override fun writeFully(src: FloatArray, offset: Int, length: Int) {
         require(length >= 0) { "length shouldn't be negative: $length" }
-        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         var start = offset
         var remaining = length
@@ -512,7 +520,8 @@ abstract class BytePacketBuilderBase internal constructor(protected val pool: Ob
 
     override fun writeFully(src: DoubleArray, offset: Int, length: Int) {
         require(length >= 0) { "length shouldn't be negative: $length" }
-        require(offset + length < src.lastIndex) { "offset ($offset) + length ($length) >= src.lastIndex (${src.lastIndex})" }
+        require(offset >= 0) { "offset shouldn't be negative: $offset" }
+        require(offset + length <= src.size) { "offset ($offset) + length ($length) > src.size (${src.size})" }
 
         var start = offset
         var remaining = length
