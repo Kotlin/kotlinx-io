@@ -35,7 +35,7 @@ Provides direct positional read and write operations for primitives and arrays o
 for processing bytes without discarding them. 
 * `Output` – represents a destination for bytes. Provides sequential writing functionality. 
 * `Bytes` – represents binary data of arbitrary size, potentially spanned across several buffers.
-Can be built using using `Output` and can be read using `Input`.
+Can be built using `Output` and can be read using `Input`.
 
 It also has basic facilities for working with text, with UTF-8 implemented efficiently in core, 
 and `Charsets` giving access to platform-dependent functionality for converting text into bytes and back.
