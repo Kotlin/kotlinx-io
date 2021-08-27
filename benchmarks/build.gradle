@@ -1,6 +1,6 @@
 apply plugin: 'kotlin-multiplatform'
 apply plugin: 'kotlin-allopen'
-apply plugin: 'kotlinx.benchmark'
+apply plugin: 'org.jetbrains.kotlinx.benchmark'
 
 // how to apply plugin to a specific source set?
 allOpen {
@@ -32,11 +32,11 @@ kotlin {
         resources.srcDirs = ["$it.name/resources"]
         languageSettings {
             progressiveMode = true
-            useExperimentalAnnotation("kotlin.Experimental")
+            /*useExperimentalAnnotation("kotlin.Experimental")
             useExperimentalAnnotation('kotlin.ExperimentalUnsignedTypes')
             useExperimentalAnnotation("kotlinx.io.core.ExperimentalIoApi")
             useExperimentalAnnotation("kotlinx.io.unsafe.DangerousInternalIoApi")
-            useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+            useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")*/
         }
     }
 
@@ -44,7 +44,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
-                implementation "org.jetbrains.kotlinx:kotlinx.benchmark.runtime:$benchmarks_version"
+                implementation "org.jetbrains.kotlinx:kotlinx-benchmark-runtime:$benchmarks_version"
                 implementation project(":kotlinx-io")
             }
         }

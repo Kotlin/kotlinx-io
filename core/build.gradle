@@ -2,7 +2,7 @@ plugins {
     id "kotlin-multiplatform"
     id "maven-publish"
     id "jacoco"
-    id 'org.jetbrains.dokka' version '0.10.1'
+    id 'org.jetbrains.dokka' version '1.5.0'
 }
 
 def ideaActive = System.getProperty('idea.active') == 'true'
@@ -130,10 +130,10 @@ kotlin {
     }
 }
 
-dokka {
+/*dokka {
     outputFormat = 'gfm'
     outputDirectory = "$buildDir/dokka"
-}
+}*/
 
 jacoco {
     toolVersion = "0.8.5"

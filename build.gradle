@@ -1,28 +1,18 @@
 buildscript {
     repositories {
-        jcenter()
-        gradlePluginPortal()
-        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
-        maven { url "https://dl.bintray.com/orangy/maven" }
-        maven { url "https://dl.bintray.com/kotlin/kotlinx" }
+        maven { url "https://plugins.gradle.org/m2/" }
     }
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
-        classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
-        classpath "com.vanniktech:gradle-android-junit-jacoco-plugin:0.15.0"
+        classpath "org.jetbrains.kotlinx:kotlinx-benchmark-plugin:$benchmarks_version"
+        classpath "gradle.plugin.com.vanniktech:gradle-android-junit-jacoco-plugin:0.16.0"
     }
 }
 
 allprojects {
     repositories {
-        mavenLocal()
-        jcenter()
-        maven { url "https://dl.bintray.com/kotlin/kotlinx" }
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
-        maven { url "https://dl.bintray.com/orangy/maven" }
+        mavenCentral()
     }
 }
