@@ -1,7 +1,9 @@
 package kotlinx.io.buffer
 
 import kotlin.IndexOutOfBoundsException
-import kotlinx.io.*
+import kotlinx.io.Input
+import kotlinx.io.Output
+import kotlinx.io.Bytes
 
 /**
  * [Buffer] represents a linear range of sequentially placed and randomly accessible bytes.
@@ -51,14 +53,13 @@ public expect class Buffer {
      * May throw [IndexOutOfBoundsException] if index is negative or greater than buffer size.
      */
     public fun storeByteAt(index: Int, value: Byte)
-
-    public companion object {
-        /**
-         * Represents an empty buffer.
-         */
-        public val EMPTY: Buffer
-    }
+    companion object
 }
+
+/**
+ * Represents an empty buffer.
+ */
+public expect val EMPTY: Buffer
 
 /**
  * Wrap [array] into [Buffer] from [startIndex] to [endIndex].

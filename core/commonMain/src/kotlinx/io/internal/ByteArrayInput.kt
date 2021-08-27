@@ -1,13 +1,15 @@
 package kotlinx.io.internal
 
-import kotlinx.io.*
-import kotlinx.io.buffer.*
+import kotlinx.io.Input
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.storeByteArray
+import kotlinx.io.buffer.unmanagedBufferPool
 
 internal class ByteArrayInput(
     private val source: ByteArray,
     startIndex: Int,
     private val endIndex: Int
-) : Input(UnmanagedBufferPool.Instance) {
+) : Input(unmanagedBufferPool) {
 
     private var currentIndex = startIndex
 

@@ -1,7 +1,7 @@
 package kotlinx.io.buffer
 
-import kotlinx.io.pool.*
-import kotlin.native.concurrent.*
+import kotlin.native.concurrent.ThreadLocal
+import kotlinx.io.pool.ObjectPool
 
 internal class UnmanagedBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE
@@ -12,11 +12,8 @@ internal class UnmanagedBufferPool(
 
     override fun recycle(instance: Buffer) {}
 
-    override fun close() {}
-
-    @ThreadLocal
-    companion object {
-        @ThreadLocal
-        val Instance = UnmanagedBufferPool()
-    }
+    override fun close(): Unit = Unit
 }
+
+@ThreadLocal
+internal val unmanagedBufferPool: UnmanagedBufferPool = UnmanagedBufferPool()

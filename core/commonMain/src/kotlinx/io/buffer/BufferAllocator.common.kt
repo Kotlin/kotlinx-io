@@ -4,6 +4,8 @@ interface BufferAllocator {
     fun allocate(size: Int): Buffer
 
     fun free(instance: Buffer)
+
+    companion object
 }
 
 expect object PlatformBufferAllocator : BufferAllocator

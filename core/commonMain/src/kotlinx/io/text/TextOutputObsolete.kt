@@ -35,7 +35,7 @@ public fun Output.writeUtf8String(text: CharSequence, index: Int = 0, length: In
                 val character = text[textIndex++]
                 if (character <= lastASCII) {
                     // write simple ascii (fast path)
-                    buffer[offset++] = character.toByte()
+                    buffer[offset++] = character.code.toByte()
                     continue
                 }
 
@@ -47,7 +47,7 @@ public fun Output.writeUtf8String(text: CharSequence, index: Int = 0, length: In
                         }
                         codePoint(character, text[textIndex++])
                     }
-                    else -> character.toInt()
+                    else -> character.code
                 }
 
                 // write Utf8 bytes to buffer or queue them for write in `bytes` if not enough space
@@ -103,7 +103,7 @@ public fun Output.writeUtf8String(text: CharSequence, index: Int = 0, length: In
 public fun Output.writeUtf8Char(character: Char): Int {
     // ASCII character
     if (character <= lastASCII) {
-        writeByte(character.toByte())
+        writeByte(character.code.toByte())
         return 1
     }
 
@@ -111,7 +111,7 @@ public fun Output.writeUtf8Char(character: Char): Int {
         throw MalformedInputException("Splitted surrogate character: $character")
     }
 
-    val code = character.toInt()
+    val code = character.code
 
     return when {
         code <= 0x7ff -> {
@@ -144,8 +144,8 @@ internal fun codePoint(high: Char, low: Char): Int {
     check(high.isHighSurrogate())
     check(low.isLowSurrogate())
 
-    val highValue = high.toInt() - HighSurrogateMagic
-    val lowValue = low.toInt() - MinLowSurrogate
+    val highValue = high.code - HighSurrogateMagic
+    val lowValue = low.code - MinLowSurrogate
 
     return highValue shl 10 or lowValue
 }

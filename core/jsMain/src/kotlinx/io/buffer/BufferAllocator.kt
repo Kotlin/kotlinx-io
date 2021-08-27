@@ -1,6 +1,6 @@
 package kotlinx.io.buffer
 
-import org.khronos.webgl.*
+import org.khronos.webgl.ArrayBuffer
 
 actual object PlatformBufferAllocator : BufferAllocator by JsBufferAllocator()
 

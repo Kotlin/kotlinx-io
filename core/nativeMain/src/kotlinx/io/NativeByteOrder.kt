@@ -2,21 +2,24 @@
 
 package kotlinx.io
 
-import kotlinx.cinterop.*
 import kotlin.native.concurrent.SharedImmutable
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.value
 
 public actual enum class ByteOrder {
     BIG_ENDIAN, LITTLE_ENDIAN;
+}
 
-    public actual companion object {
-        @SharedImmutable
-        public actual val native: ByteOrder = memScoped {
-            val i = alloc<IntVar>()
-            i.value = 1
-            val bytes = i.reinterpret<ByteVar>()
-            if (bytes.value == 0.toByte()) BIG_ENDIAN else LITTLE_ENDIAN
-        }
-    }
+@SharedImmutable
+public actual val native: ByteOrder = memScoped {
+    val i = alloc<IntVar>()
+    i.value = 1
+    val bytes = i.reinterpret<ByteVar>()
+    if (bytes.value == 0.toByte()) ByteOrder.BIG_ENDIAN else ByteOrder.LITTLE_ENDIAN
 }
 
 internal actual fun Long.reverseByteOrder(): Long = swap(this)

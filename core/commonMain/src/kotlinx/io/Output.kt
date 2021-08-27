@@ -12,7 +12,7 @@ import kotlinx.io.pool.*
  * To implement [Output] over a custom sink, you should override only [fill] method.
  */
 public abstract class Output(
-    protected val pool: ObjectPool<Buffer> = DefaultBufferPool.Instance
+    protected val pool: ObjectPool<Buffer> = defaultBufferPool
 ) : Closeable {
     internal val bufferPool: ObjectPool<Buffer> get() = pool
 

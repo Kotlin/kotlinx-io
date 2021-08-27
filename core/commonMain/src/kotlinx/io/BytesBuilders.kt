@@ -6,7 +6,7 @@ import kotlin.contracts.*
 /**
  * Create [Bytes] with [bufferSize] and fills it from [builder].
  */
-fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit): Bytes {
+public fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit): Bytes {
     contract {
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }
@@ -15,7 +15,7 @@ fun buildBytes(bufferSize: Int = DEFAULT_BUFFER_SIZE, builder: Output.() -> Unit
 }
 
 private class BytesOutput(bufferSize: Int = DEFAULT_BUFFER_SIZE) : Output(
-    if (bufferSize == DEFAULT_BUFFER_SIZE) DefaultBufferPool.Instance else DefaultBufferPool(bufferSize)
+    if (bufferSize == DEFAULT_BUFFER_SIZE) defaultBufferPool else DefaultBufferPool(bufferSize)
 ) {
     private val bytes = Bytes(pool)
 

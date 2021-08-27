@@ -1,8 +1,9 @@
-
 @file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io.buffer
 
-import kotlinx.io.*
+import kotlinx.io.ByteOrder
+import kotlinx.io.reverseByteOrder
 
 /**
  * Returns byte at [index] position.
@@ -35,14 +36,14 @@ public expect fun Buffer.storeByteAt(index: Long, value: Byte)
  * May throw [IndexOutOfBoundsException] if given [index] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
-public inline fun Buffer.storeUByteAt(index: Int, value: UByte) = storeByteAt(index, value.toByte())
+public inline fun Buffer.storeUByteAt(index: Int, value: UByte): Unit = storeByteAt(index, value.toByte())
 
 /**
  * Write [value] at the specified [index].
  * May throw [IndexOutOfBoundsException] if given [index] is negative or greater than buffer size.
  */
 @ExperimentalUnsignedTypes
-public inline fun Buffer.storeUByteAt(index: Long, value: UByte) = storeByteAt(index, value.toByte())
+public inline fun Buffer.storeUByteAt(index: Long, value: UByte): Unit = storeByteAt(index, value.toByte())
 
 /**
  * Read short signed 16-bit integer in the network byte order (Big Endian).
@@ -159,9 +160,9 @@ public expect fun Buffer.loadLongAt(offset: Int): Long
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 public fun Buffer.loadLongAt(offset: Int, byteOrder: ByteOrder): Long {
-    val long = loadLongAt(offset)
-    if (byteOrder == ByteOrder.BIG_ENDIAN) return long
-    return long.reverseByteOrder()
+  val long = loadLongAt(offset)
+  if (byteOrder == ByteOrder.BIG_ENDIAN) return long
+  return long.reverseByteOrder()
 }
 
 /**
@@ -181,8 +182,8 @@ public expect fun Buffer.storeLongAt(offset: Int, value: Long)
  * May throw [IndexOutOfBoundsException] if given [offset] is negative or greater than buffer size.
  */
 public fun Buffer.storeLongAt(offset: Int, value: Long, byteOrder: ByteOrder) {
-    val toStore = if (byteOrder == ByteOrder.BIG_ENDIAN) value else value.reverseByteOrder()
-    storeLongAt(offset, toStore)
+  val toStore = if (byteOrder == ByteOrder.BIG_ENDIAN) value else value.reverseByteOrder()
+  storeLongAt(offset, toStore)
 }
 
 /**

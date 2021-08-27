@@ -2,14 +2,16 @@
 
 package kotlinx.io.buffer
 
-import kotlinx.cinterop.*
-import kotlinx.io.*
-import kotlin.native.concurrent.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.plus
+import kotlinx.cinterop.usePinned
 
 public actual class Buffer constructor(
-    val array: ByteArray,
-    inline val offset: Int = 0,
-    actual inline val size: Int = array.size - offset
+    public val array: ByteArray,
+    public inline val offset: Int = 0,
+    public actual inline val size: Int = array.size - offset
 ) {
     init {
         requirePositiveIndex(size, "size")
@@ -25,11 +27,11 @@ public actual class Buffer constructor(
         "Buffer[$it:$size]"
     }
 
-    public actual companion object {
-        @SharedImmutable
-        public actual val EMPTY: Buffer = Buffer(ByteArray(0))
-    }
+    public actual companion object
 }
+
+@SharedImmutable
+public actual val EMPTY: Buffer = Buffer(ByteArray(0))
 
 /**
  * Executes block with raw [pointer] to [Buffer] memory area.

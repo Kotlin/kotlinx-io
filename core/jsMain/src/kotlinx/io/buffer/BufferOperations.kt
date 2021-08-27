@@ -1,8 +1,11 @@
 package kotlinx.io.buffer
 
-import org.khronos.webgl.*
-import kotlin.contracts.*
-
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.ArrayBufferView
+import org.khronos.webgl.DataView
+import org.khronos.webgl.Int8Array
 
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]

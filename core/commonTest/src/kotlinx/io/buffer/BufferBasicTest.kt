@@ -1,11 +1,14 @@
 package kotlinx.io.buffer
 
-import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class BufferBasicTest {
     @Test
     fun testEmptyBufferSizeIsZero() {
-        assertEquals(0, Buffer.EMPTY.size)
+        assertEquals(0, EMPTY.size)
     }
 
     @Test

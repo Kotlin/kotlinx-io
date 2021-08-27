@@ -20,7 +20,7 @@ internal typealias BytesPointer = Int
  * 2. close
  * 3. example
  */
-class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
+public class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : Closeable {
     internal var buffers: Array<Buffer?> = arrayOfNulls(initialPreviewSize)
     internal var limits: IntArray = IntArray(initialPreviewSize)
     internal var head: Int = 0
@@ -29,17 +29,17 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
     /**
      * Calculate the size of [Bytes].
      */
-    fun size(): Int = size(StartPointer)
+    public fun size(): Int = size(StartPointer)
 
     /**
      * Create [Input] view on content.
      */
-    fun input(): Input = object : Input(this@Bytes, bufferPool) {
+    public fun input(): Input = object : Input(this@Bytes, bufferPool) {
         override fun fill(buffer: Buffer, startIndex: Int, endIndex: Int): Int = 0
         override fun closeSource() {}
     }
 
-    override fun toString() = "Bytes($head..$tail)"
+    override fun toString(): String = "Bytes($head..$tail)"
 
     /**
      * Release all data, brokes all input produced by [input()].
@@ -95,7 +95,7 @@ class Bytes internal constructor(internal val bufferPool: ObjectPool<Buffer>) : 
         return sum
     }
 
-    companion object {
+    public companion object {
         internal const val InvalidPointer = Int.MIN_VALUE
         internal const val StartPointer = 0
 

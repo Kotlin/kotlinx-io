@@ -2,8 +2,10 @@
 
 package kotlinx.io.buffer
 
-import kotlinx.io.*
-import org.khronos.webgl.*
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.DataView
+import org.khronos.webgl.Int8Array
+
 
 public actual class Buffer(public val view: DataView) {
 
@@ -17,10 +19,10 @@ public actual class Buffer(public val view: DataView) {
         view.setInt8(index, value)
     }
 
-    public actual companion object {
-        public actual val EMPTY: Buffer = Buffer(DataView(ArrayBuffer(0)))
-    }
+    actual companion object
 }
+
+public actual val EMPTY: Buffer = Buffer(DataView(ArrayBuffer(0)))
 
 /**
  * Wrap [array] into [Buffer] from [startIndex] to [endIndex].

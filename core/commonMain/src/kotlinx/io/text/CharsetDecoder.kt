@@ -7,4 +7,4 @@ expect abstract class CharsetDecoder
  */
 expect val CharsetDecoder.charset: Charset
 
-expect open class MalformedInputException(message: String) : Throwable
+public expect open class MalformedInputException(message: String) : Throwable

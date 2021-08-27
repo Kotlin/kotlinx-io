@@ -1,10 +1,21 @@
 package kotlinx.io.buffer
 
-import kotlinx.cinterop.*
-import kotlinx.io.*
-import kotlinx.io.bits.internal.utils.*
-import platform.posix.*
-import kotlin.contracts.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.plus
+import kotlinx.cinterop.usePinned
+import kotlinx.io.bits.internal.utils.PLATFORM_BIG_ENDIAN
+import kotlinx.io.reverseByteOrder
+import kotlinx.io.swap
+import platform.posix.memcpy
+import platform.posix.memmove
+import platform.posix.memset
+import platform.posix.size_t
+
 
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]
@@ -137,7 +148,7 @@ public actual inline fun <R> ByteArray.useBuffer(offset: Int, length: Int, block
     }
 
     val buffer = if (isEmpty() && length == 0) {
-        Buffer.EMPTY
+        EMPTY
     } else {
         Buffer(this, offset, length)
     }

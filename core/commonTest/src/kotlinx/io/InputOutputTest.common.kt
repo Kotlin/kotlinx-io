@@ -2,9 +2,19 @@
 
 package kotlinx.io
 
-import kotlinx.io.buffer.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.buffer.DEFAULT_BUFFER_SIZE
+import kotlinx.io.buffer.EMPTY
+import kotlinx.io.buffer.bufferOf
+import kotlinx.io.buffer.set
 import kotlinx.io.pool.DefaultPool
-import kotlin.test.*
 
 class InputOutputTest {
 
@@ -30,15 +40,15 @@ class InputOutputTest {
 
     @Test
     fun testReadAvailableToWithSameBuffer() {
-        var instance: Buffer = Buffer.EMPTY
-        var result: Buffer = Buffer.EMPTY
+        var instance: Buffer = EMPTY
+        var result: Buffer = EMPTY
 
-        val input: Input = LambdaInput { buffer, start, end ->
+        val input: Input = LambdaInput { buffer, _, end ->
             instance = buffer
             return@LambdaInput 42
         }
 
-        val output = LambdaOutput { source, startIndex, endIndex ->
+        val output = LambdaOutput { source, _, endIndex ->
             result = source
             assertEquals(42, endIndex)
         }
@@ -47,7 +57,7 @@ class InputOutputTest {
         output.flush()
 
         assertNotNull(instance)
-        assertTrue(instance === result)
+        assertSame(instance, result)
     }
 
     @Test
