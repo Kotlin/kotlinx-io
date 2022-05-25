@@ -5,8 +5,7 @@ working with memory blocks,
 interacting with the platform,
 and performing other low level operations.  
 
-![Experimental](https://img.shields.io/badge/kotlinx-experimental-orange.svg?style=flat)
-[![Download](https://api.bintray.com/packages/kotlin/kotlinx/kotlinx.io/images/download.svg) ](https://bintray.com/kotlin/kotlinx/kotlinx.io/_latestVersion)
+[![JetBrains obsolete project](https://jb.gg/badges/obsolete.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 
 NOTE: master contains version 0.2.x and is *experimental*. Any API is a subject to change. If you're looking for multiplatform releases of older versions, you can check [ktor-io](https://github.com/ktorio/ktor/tree/master/ktor-io). See https://github.com/Kotlin/kotlinx-io/issues/54 for more details.
 
