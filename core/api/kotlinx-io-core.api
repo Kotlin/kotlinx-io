@@ -1,0 +1,216 @@
+public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/ByteChannel, kotlinx/io/Sink, kotlinx/io/Source {
+	public fun <init> ()V
+	public fun buffer ()Lkotlinx/io/Buffer;
+	public fun cancel ()V
+	public final fun clear ()V
+	public synthetic fun clone ()Ljava/lang/Object;
+	public fun clone ()Lkotlinx/io/Buffer;
+	public fun close ()V
+	public final fun completeSegmentByteCount ()J
+	public final fun copy ()Lkotlinx/io/Buffer;
+	public final fun copyTo (Ljava/io/OutputStream;)Lkotlinx/io/Buffer;
+	public final fun copyTo (Ljava/io/OutputStream;J)Lkotlinx/io/Buffer;
+	public final fun copyTo (Ljava/io/OutputStream;JJ)Lkotlinx/io/Buffer;
+	public final fun copyTo (Lkotlinx/io/Buffer;J)Lkotlinx/io/Buffer;
+	public final fun copyTo (Lkotlinx/io/Buffer;JJ)Lkotlinx/io/Buffer;
+	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJILjava/lang/Object;)Lkotlinx/io/Buffer;
+	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Lkotlinx/io/Buffer;JILjava/lang/Object;)Lkotlinx/io/Buffer;
+	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Lkotlinx/io/Buffer;JJILjava/lang/Object;)Lkotlinx/io/Buffer;
+	public fun emit ()Lkotlinx/io/Buffer;
+	public synthetic fun emit ()Lkotlinx/io/Sink;
+	public fun emitCompleteSegments ()Lkotlinx/io/Buffer;
+	public synthetic fun emitCompleteSegments ()Lkotlinx/io/Sink;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun exhausted ()Z
+	public fun flush ()V
+	public fun getBuffer ()Lkotlinx/io/Buffer;
+	public final fun getByte (J)B
+	public fun hashCode ()I
+	public fun indexOf (B)J
+	public fun indexOf (BJ)J
+	public fun indexOf (BJJ)J
+	public fun inputStream ()Ljava/io/InputStream;
+	public fun isOpen ()Z
+	public fun outputStream ()Ljava/io/OutputStream;
+	public fun peek ()Lkotlinx/io/Source;
+	public fun read (Ljava/nio/ByteBuffer;)I
+	public fun read (Lkotlinx/io/Buffer;J)J
+	public fun read ([B)I
+	public fun read ([BII)I
+	public fun readAll (Lkotlinx/io/RawSink;)J
+	public fun readByte ()B
+	public fun readByteArray ()[B
+	public fun readByteArray (J)[B
+	public fun readDecimalLong ()J
+	public final fun readFrom (Ljava/io/InputStream;)Lkotlinx/io/Buffer;
+	public final fun readFrom (Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
+	public fun readFully (Lkotlinx/io/Buffer;J)V
+	public fun readFully ([B)V
+	public fun readHexadecimalUnsignedLong ()J
+	public fun readInt ()I
+	public fun readIntLe ()I
+	public fun readLong ()J
+	public fun readLongLe ()J
+	public fun readShort ()S
+	public fun readShortLe ()S
+	public fun readString (JLjava/nio/charset/Charset;)Ljava/lang/String;
+	public fun readString (Ljava/nio/charset/Charset;)Ljava/lang/String;
+	public fun readUtf8 ()Ljava/lang/String;
+	public fun readUtf8 (J)Ljava/lang/String;
+	public fun readUtf8CodePoint ()I
+	public fun readUtf8Line ()Ljava/lang/String;
+	public fun readUtf8LineStrict ()Ljava/lang/String;
+	public fun readUtf8LineStrict (J)Ljava/lang/String;
+	public fun request (J)Z
+	public fun require (J)V
+	public final fun size ()J
+	public fun skip (J)V
+	public fun toString ()Ljava/lang/Void;
+	public fun write (Ljava/nio/ByteBuffer;)I
+	public fun write (Lkotlinx/io/Buffer;J)V
+	public fun write (Lkotlinx/io/RawSource;J)Lkotlinx/io/Buffer;
+	public synthetic fun write (Lkotlinx/io/RawSource;J)Lkotlinx/io/Sink;
+	public fun write ([B)Lkotlinx/io/Buffer;
+	public synthetic fun write ([B)Lkotlinx/io/Sink;
+	public fun write ([BII)Lkotlinx/io/Buffer;
+	public synthetic fun write ([BII)Lkotlinx/io/Sink;
+	public fun writeAll (Lkotlinx/io/RawSource;)J
+	public fun writeByte (I)Lkotlinx/io/Buffer;
+	public synthetic fun writeByte (I)Lkotlinx/io/Sink;
+	public fun writeDecimalLong (J)Lkotlinx/io/Buffer;
+	public synthetic fun writeDecimalLong (J)Lkotlinx/io/Sink;
+	public fun writeHexadecimalUnsignedLong (J)Lkotlinx/io/Buffer;
+	public synthetic fun writeHexadecimalUnsignedLong (J)Lkotlinx/io/Sink;
+	public fun writeInt (I)Lkotlinx/io/Buffer;
+	public synthetic fun writeInt (I)Lkotlinx/io/Sink;
+	public fun writeIntLe (I)Lkotlinx/io/Buffer;
+	public synthetic fun writeIntLe (I)Lkotlinx/io/Sink;
+	public fun writeLong (J)Lkotlinx/io/Buffer;
+	public synthetic fun writeLong (J)Lkotlinx/io/Sink;
+	public fun writeLongLe (J)Lkotlinx/io/Buffer;
+	public synthetic fun writeLongLe (J)Lkotlinx/io/Sink;
+	public fun writeShort (I)Lkotlinx/io/Buffer;
+	public synthetic fun writeShort (I)Lkotlinx/io/Sink;
+	public fun writeShortLe (I)Lkotlinx/io/Buffer;
+	public synthetic fun writeShortLe (I)Lkotlinx/io/Sink;
+	public fun writeString (Ljava/lang/String;IILjava/nio/charset/Charset;)Lkotlinx/io/Buffer;
+	public synthetic fun writeString (Ljava/lang/String;IILjava/nio/charset/Charset;)Lkotlinx/io/Sink;
+	public fun writeString (Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/Buffer;
+	public synthetic fun writeString (Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/Sink;
+	public final fun writeTo (Ljava/io/OutputStream;)Lkotlinx/io/Buffer;
+	public final fun writeTo (Ljava/io/OutputStream;J)Lkotlinx/io/Buffer;
+	public static synthetic fun writeTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JILjava/lang/Object;)Lkotlinx/io/Buffer;
+	public fun writeUtf8 (Ljava/lang/String;)Lkotlinx/io/Buffer;
+	public synthetic fun writeUtf8 (Ljava/lang/String;)Lkotlinx/io/Sink;
+	public fun writeUtf8 (Ljava/lang/String;II)Lkotlinx/io/Buffer;
+	public synthetic fun writeUtf8 (Ljava/lang/String;II)Lkotlinx/io/Sink;
+	public fun writeUtf8CodePoint (I)Lkotlinx/io/Buffer;
+	public synthetic fun writeUtf8CodePoint (I)Lkotlinx/io/Sink;
+}
+
+public final class kotlinx/io/Buffer$UnsafeCursor : java/io/Closeable {
+	public field buffer Lkotlinx/io/Buffer;
+	public field data [B
+	public field end I
+	public field offset J
+	public field readWrite Z
+	public field start I
+	public fun <init> ()V
+	public fun close ()V
+	public final fun expandBuffer (I)J
+	public final fun next ()I
+	public final fun resizeBuffer (J)J
+	public final fun seek (J)I
+}
+
+public abstract interface class kotlinx/io/RawSink : java/io/Closeable, java/io/Flushable {
+	public abstract fun cancel ()V
+	public abstract fun close ()V
+	public abstract fun flush ()V
+	public abstract fun write (Lkotlinx/io/Buffer;J)V
+}
+
+public abstract interface class kotlinx/io/RawSource : java/io/Closeable {
+	public abstract fun cancel ()V
+	public abstract fun close ()V
+	public abstract fun read (Lkotlinx/io/Buffer;J)J
+}
+
+public abstract interface class kotlinx/io/Sink : java/nio/channels/WritableByteChannel, kotlinx/io/RawSink {
+	public abstract fun buffer ()Lkotlinx/io/Buffer;
+	public abstract fun emit ()Lkotlinx/io/Sink;
+	public abstract fun emitCompleteSegments ()Lkotlinx/io/Sink;
+	public abstract fun flush ()V
+	public abstract fun getBuffer ()Lkotlinx/io/Buffer;
+	public abstract fun outputStream ()Ljava/io/OutputStream;
+	public abstract fun write (Lkotlinx/io/RawSource;J)Lkotlinx/io/Sink;
+	public abstract fun write ([B)Lkotlinx/io/Sink;
+	public abstract fun write ([BII)Lkotlinx/io/Sink;
+	public abstract fun writeAll (Lkotlinx/io/RawSource;)J
+	public abstract fun writeByte (I)Lkotlinx/io/Sink;
+	public abstract fun writeDecimalLong (J)Lkotlinx/io/Sink;
+	public abstract fun writeHexadecimalUnsignedLong (J)Lkotlinx/io/Sink;
+	public abstract fun writeInt (I)Lkotlinx/io/Sink;
+	public abstract fun writeIntLe (I)Lkotlinx/io/Sink;
+	public abstract fun writeLong (J)Lkotlinx/io/Sink;
+	public abstract fun writeLongLe (J)Lkotlinx/io/Sink;
+	public abstract fun writeShort (I)Lkotlinx/io/Sink;
+	public abstract fun writeShortLe (I)Lkotlinx/io/Sink;
+	public abstract fun writeString (Ljava/lang/String;IILjava/nio/charset/Charset;)Lkotlinx/io/Sink;
+	public abstract fun writeString (Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/Sink;
+	public abstract fun writeUtf8 (Ljava/lang/String;)Lkotlinx/io/Sink;
+	public abstract fun writeUtf8 (Ljava/lang/String;II)Lkotlinx/io/Sink;
+	public abstract fun writeUtf8CodePoint (I)Lkotlinx/io/Sink;
+}
+
+public abstract interface class kotlinx/io/Source : java/nio/channels/ReadableByteChannel, kotlinx/io/RawSource {
+	public abstract fun buffer ()Lkotlinx/io/Buffer;
+	public abstract fun exhausted ()Z
+	public abstract fun getBuffer ()Lkotlinx/io/Buffer;
+	public abstract fun indexOf (B)J
+	public abstract fun indexOf (BJ)J
+	public abstract fun indexOf (BJJ)J
+	public abstract fun inputStream ()Ljava/io/InputStream;
+	public abstract fun peek ()Lkotlinx/io/Source;
+	public abstract fun read ([B)I
+	public abstract fun read ([BII)I
+	public abstract fun readAll (Lkotlinx/io/RawSink;)J
+	public abstract fun readByte ()B
+	public abstract fun readByteArray ()[B
+	public abstract fun readByteArray (J)[B
+	public abstract fun readDecimalLong ()J
+	public abstract fun readFully (Lkotlinx/io/Buffer;J)V
+	public abstract fun readFully ([B)V
+	public abstract fun readHexadecimalUnsignedLong ()J
+	public abstract fun readInt ()I
+	public abstract fun readIntLe ()I
+	public abstract fun readLong ()J
+	public abstract fun readLongLe ()J
+	public abstract fun readShort ()S
+	public abstract fun readShortLe ()S
+	public abstract fun readString (JLjava/nio/charset/Charset;)Ljava/lang/String;
+	public abstract fun readString (Ljava/nio/charset/Charset;)Ljava/lang/String;
+	public abstract fun readUtf8 ()Ljava/lang/String;
+	public abstract fun readUtf8 (J)Ljava/lang/String;
+	public abstract fun readUtf8CodePoint ()I
+	public abstract fun readUtf8Line ()Ljava/lang/String;
+	public abstract fun readUtf8LineStrict ()Ljava/lang/String;
+	public abstract fun readUtf8LineStrict (J)Ljava/lang/String;
+	public abstract fun request (J)Z
+	public abstract fun require (J)V
+	public abstract fun skip (J)V
+}
+
+public final class kotlinx/io/Utf8 {
+	public static final fun size (Ljava/lang/String;)J
+	public static final fun size (Ljava/lang/String;I)J
+	public static final fun size (Ljava/lang/String;II)J
+	public static synthetic fun size$default (Ljava/lang/String;IIILjava/lang/Object;)J
+}
+
+public final class kotlinx/io/internal/_Utf8Kt {
+	public static final fun commonAsUtf8ToByteArray (Ljava/lang/String;)[B
+	public static final fun commonToUtf8String ([BII)Ljava/lang/String;
+	public static synthetic fun commonToUtf8String$default ([BIIILjava/lang/Object;)Ljava/lang/String;
+}
+

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.*
+
 plugins {
     kotlin("multiplatform")
 }
@@ -35,5 +37,25 @@ kotlin {
         val jsTest by getting
         val nativeMain by getting
         val nativeTest by getting
+    }
+
+    // TODO quite a lot of effort, should be done after the initial set of API is migrated
+//    explicitApi()
+    sourceSets.configureEach {
+        configureSourceSet()
+    }
+}
+
+fun KotlinSourceSet.configureSourceSet() {
+    val srcDir = if (name.endsWith("Main")) "src" else "test"
+    val platform = name.dropLast(4)
+    kotlin.srcDir("$platform/$srcDir")
+    if (name == "jvmMain") {
+        resources.srcDir("$platform/resources")
+    } else if (name == "jvmTest") {
+        resources.srcDir("$platform/test-resources")
+    }
+    languageSettings {
+        progressiveMode = true
     }
 }
