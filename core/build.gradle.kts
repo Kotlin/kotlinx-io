@@ -11,9 +11,9 @@ kotlin {
             useJUnitPlatform()
         }
     }
-    js(IR) {
-        nodejs()
-    }
+//    js(IR) {
+//        nodejs()
+//    }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
     val nativeTarget = when {
@@ -33,8 +33,8 @@ kotlin {
         }
         val jvmMain by getting
         val jvmTest by getting
-        val jsMain by getting
-        val jsTest by getting
+//        val jsMain by getting
+//        val jsTest by getting
         val nativeMain by getting
         val nativeTest by getting
     }

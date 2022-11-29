@@ -837,13 +837,13 @@ internal inline fun Buffer.commonReadUtf8LineStrict(limit: Long): String {
   }
   val data = Buffer()
   copyTo(data, 0, minOf(32, size))
-  TODO()
-//  throw EOFException(
-//    "\\n not found: limit=${minOf(
-//      size,
-//      limit
-//    )} content=${data.readByteString().hex()}${'…'}"
-//  )
+  // TODO fzhinkin
+  throw EOFException(
+    "\\n not found: limit=${minOf(
+      size,
+      limit
+    )} content=#{NOT IMPLEMENTED}${'…'}"
+  )
 }
 
 internal inline fun Buffer.commonReadUtf8CodePoint(): Int {

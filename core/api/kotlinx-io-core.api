@@ -65,7 +65,7 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun require (J)V
 	public final fun size ()J
 	public fun skip (J)V
-	public fun toString ()Ljava/lang/Void;
+	public fun toString ()Ljava/lang/String;
 	public fun write (Ljava/nio/ByteBuffer;)I
 	public fun write (Lkotlinx/io/Buffer;J)V
 	public fun write (Lkotlinx/io/RawSource;J)Lkotlinx/io/Buffer;
