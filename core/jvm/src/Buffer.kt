@@ -72,8 +72,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   override fun request(byteCount: Long) = size >= byteCount
 
   override fun peek(): Source {
-    TODO("Not implemented")
-//    return PeekSource(this).buffer()
+    return PeekSource(this).buffer()
   }
 
   override fun inputStream(): InputStream {
@@ -530,7 +529,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    * Returns a human-readable string that describes the contents of this buffer. Typically this
    * is a string like `[text=Hello]` or `[hex=0000ffff]`.
    */
-  override fun toString() = "" //snapshot().toString()
+  override fun toString() = commonString(size.toInt())
 
   actual fun copy(): Buffer = commonCopy()
 

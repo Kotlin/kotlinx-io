@@ -374,8 +374,7 @@ internal inline fun RealSource.commonIndexOf(b: Byte, fromIndex: Long, toIndex: 
 //}
 
 internal inline fun RealSource.commonPeek(): Source {
-  TODO()
-//  return PeekSource(this).buffer()
+  return PeekSource(this).buffer()
 }
 
 internal inline fun RealSource.commonClose() {

@@ -37,7 +37,7 @@ actual class Buffer : Source, Sink {
 
   override fun request(byteCount: Long): Boolean = size >= byteCount
 
-  override fun peek(): Source = TODO("Not implemented") //PeekSource(this).buffer()
+  override fun peek(): Source = PeekSource(this).buffer()
 
   actual fun copyTo(
     out: Buffer,

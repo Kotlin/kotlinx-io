@@ -1497,6 +1497,61 @@ internal inline fun Buffer.commonCopy(): Buffer {
 //  return SegmentedByteString(segments as Array<ByteArray>, directory)
 //}
 
+internal inline fun Buffer.commonString(byteCount: Int): String {
+  if (byteCount == 0) return ""
+  checkOffsetAndCount(size, 0, byteCount.toLong())
+
+  // Walk through the buffer to count how many segments we'll need.
+  var offset = 0
+  var segmentCount = 0
+  var s = head
+  while (offset < byteCount) {
+    if (s!!.limit == s.pos) {
+      throw AssertionError("s.limit == s.pos") // Empty segment. This should not happen!
+    }
+    offset += s.limit - s.pos
+    segmentCount++
+    s = s.next
+  }
+
+  // Walk through the buffer again to assign segments and build the directory.
+  val segments = arrayOfNulls<ByteArray?>(segmentCount)
+  val directory = IntArray(segmentCount * 2)
+  offset = 0
+  segmentCount = 0
+  s = head
+  while (offset < byteCount) {
+    segments[segmentCount] = s!!.data
+    offset += s.limit - s.pos
+    // Despite sharing more bytes, only report having up to byteCount.
+    directory[segmentCount] = minOf(offset, byteCount)
+    directory[segmentCount + segments.size] = s.pos
+    s.shared = true
+    segmentCount++
+    s = s.next
+  }
+
+  return SegmentedByteString(segments as Array<ByteArray>, directory).toString()
+}
+
+internal inline fun forEachSegment(
+  segments: Array<ByteArray>,
+  directory: IntArray,
+  action: (data: ByteArray, offset: Int, byteCount: Int) -> Unit
+) {
+  val segmentCount = segments.size
+  var s = 0
+  var pos = 0
+  while (s < segmentCount) {
+    val segmentPos = directory[segmentCount + s]
+    val nextSegmentOffset = directory[s]
+
+    action(segments[s], segmentPos, nextSegmentOffset - pos)
+    pos = nextSegmentOffset
+    s++
+  }
+}
+
 internal fun Buffer.commonReadUnsafe(unsafeCursor: UnsafeCursor): UnsafeCursor {
   val unsafeCursor = resolveDefaultParameter(unsafeCursor)
   check(unsafeCursor.buffer == null) { "already attached to a buffer" }

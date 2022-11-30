@@ -123,6 +123,13 @@ public final class kotlinx/io/Buffer$UnsafeCursor : java/io/Closeable {
 	public final fun seek (J)I
 }
 
+public final class kotlinx/io/CoreKt {
+	public static final fun blackhole ()Lkotlinx/io/RawSink;
+	public static final fun buffer (Lkotlinx/io/RawSink;)Lkotlinx/io/Sink;
+	public static final fun buffer (Lkotlinx/io/RawSource;)Lkotlinx/io/Source;
+	public static final fun use (Ljava/io/Closeable;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
 public abstract interface class kotlinx/io/RawSink : java/io/Closeable, java/io/Flushable {
 	public abstract fun cancel ()V
 	public abstract fun close ()V
