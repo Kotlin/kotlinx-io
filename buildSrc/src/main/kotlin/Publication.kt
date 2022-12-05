@@ -63,8 +63,8 @@ fun mavenRepositoryUri(): URI {
     }
 }
 
-fun configureMavenPublication(rh: RepositoryHandler, project: Project) {
-    rh.maven {
+fun RepositoryHandler.configureMavenPublication( project: Project) {
+    maven {
         url = mavenRepositoryUri()
         credentials {
             username = project.getSensitiveProperty("libs.sonatype.user")
@@ -73,18 +73,17 @@ fun configureMavenPublication(rh: RepositoryHandler, project: Project) {
     }
 
     // Something that's easy to "clean" for development, not mavenLocal
-    rh.maven("${project.rootProject.buildDir}/repo") {
+    maven("${project.rootProject.buildDir}/repo") {
         name = "buildRepo"
     }
 }
 
-fun MavenPublication.configureEmptyJavadocArtifact(project: Project) {
-    if (name != "jvm") return
+fun Project.configureEmptyJavadocArtifact(): Jar {
     val javadocJar by project.tasks.creating(Jar::class) {
         archiveClassifier.set("javadoc")
         // contents are deliberately left empty
     }
-    artifact(javadocJar)
+    return javadocJar
 }
 
 fun signPublicationIfKeyPresent(project: Project, publication: MavenPublication) {

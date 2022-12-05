@@ -18,24 +18,33 @@ buildscript {
 }
 
 allprojects {
+    properties["DeployVersion"]?.let { version = it }
     repositories {
         mavenCentral()
     }
 }
 
-properties["DeployVersion"]?.let { version = it }
+apply(plugin = "maven-publish")
+apply(plugin = "signing")
+
 subprojects {
     repositories {
         mavenCentral()
     }
+
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
 
     publishing {
+        repositories {
+            configureMavenPublication(project)
+        }
+
+        val javadocJar = project.configureEmptyJavadocArtifact()
         publications.withType(MavenPublication::class).all {
             pom.configureMavenCentralMetadata(project)
-            configureEmptyJavadocArtifact(project)
             signPublicationIfKeyPresent(project, this)
+            artifact(javadocJar)
         }
     }
 }
