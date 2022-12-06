@@ -194,10 +194,14 @@ internal inline fun RealSource.commonReadUtf8LineStrict(limit: Long): String {
   }
   val data = Buffer()
   buffer.copyTo(data, 0, minOf(32, buffer.size))
-  TODO()
+  throw EOFException(
+    "\\n not found: limit=" + minOf(buffer.size, limit) +
+      " content=" + data + '…'.toString()
+  )
+
 //  throw EOFException(
 //    "\\n not found: limit=" + minOf(buffer.size, limit) +
-//      " content=" + data.readByteString().hex() + '…'.toString()
+//            " content=" + data.readByteString().hex() + '…'.toString()
 //  )
 }
 
