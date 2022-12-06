@@ -130,6 +130,19 @@ public final class kotlinx/io/CoreKt {
 	public static final fun use (Ljava/io/Closeable;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class kotlinx/io/JvmCoreKt {
+	public static final fun appendingSink (Ljava/io/File;)Lkotlinx/io/RawSink;
+	public static final fun sink (Ljava/io/File;Z)Lkotlinx/io/RawSink;
+	public static final fun sink (Ljava/io/OutputStream;)Lkotlinx/io/RawSink;
+	public static final fun sink (Ljava/net/Socket;)Lkotlinx/io/RawSink;
+	public static final fun sink (Ljava/nio/file/Path;[Ljava/nio/file/OpenOption;)Lkotlinx/io/RawSink;
+	public static synthetic fun sink$default (Ljava/io/File;ZILjava/lang/Object;)Lkotlinx/io/RawSink;
+	public static final fun source (Ljava/io/File;)Lkotlinx/io/RawSource;
+	public static final fun source (Ljava/io/InputStream;)Lkotlinx/io/RawSource;
+	public static final fun source (Ljava/net/Socket;)Lkotlinx/io/RawSource;
+	public static final fun source (Ljava/nio/file/Path;[Ljava/nio/file/OpenOption;)Lkotlinx/io/RawSource;
+}
+
 public abstract interface class kotlinx/io/RawSink : java/io/Closeable, java/io/Flushable {
 	public abstract fun cancel ()V
 	public abstract fun close ()V
@@ -213,6 +226,15 @@ public final class kotlinx/io/Utf8 {
 	public static final fun size (Ljava/lang/String;I)J
 	public static final fun size (Ljava/lang/String;II)J
 	public static synthetic fun size$default (Ljava/lang/String;IIILjava/lang/Object;)J
+}
+
+public final class kotlinx/io/files/Path {
+}
+
+public final class kotlinx/io/files/PathsKt {
+	public static final fun Path (Ljava/lang/String;)Lkotlinx/io/files/Path;
+	public static final fun sink (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
+	public static final fun source (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 }
 
 public final class kotlinx/io/internal/_Utf8Kt {
