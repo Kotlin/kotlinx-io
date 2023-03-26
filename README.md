@@ -11,5 +11,5 @@ improvements or bugfixes.
 
 ### Future replacement
 
-Future replacement is to be discussed, currently we do recomment using [Okio](https://github.com/square/okio/)
+Future replacement is to be discussed, currently we do recommend using [Okio](https://github.com/square/okio/)
 for multiplatform IO primitives.
