@@ -54,4 +54,4 @@ Please use [GitHub issues](https://github.com/Kotlin/kotlinx-io/issues) for fili
 This project and the corresponding community are governed by the [JetBrains Open Source and Community Code of Conduct](https://confluence.jetbrains.com/display/ALL/JetBrains+Open+Source+and+Community+Code+of+Conduct). Please make sure you read it.
 
 ## License
-kotlinx-io is licensed under the [Apache 2.0 License](LICENSE.txt).
+kotlinx-io is licensed under the [Apache 2.0 License](LICENSE).
