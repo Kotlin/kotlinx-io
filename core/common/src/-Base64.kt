@@ -1,4 +1,9 @@
 /*
+ * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENCE file.
+ */
+
+/*
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
