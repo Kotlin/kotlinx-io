@@ -102,3 +102,6 @@ fun bufferWithSegments(vararg segments: String): Buffer {
 //  b: Path,
 //  sameAsNio: Boolean = true,
 //): IllegalArgumentException
+
+expect fun createTempFile(): String
+expect fun deleteFile(path: String)

@@ -21,13 +21,13 @@ public actual fun Path(path: String): Path = Path(path, null)
 
 public actual fun Path.source(): Source {
     val openFile: CPointer<FILE> = fopen(path, "r")
-        ?: throw IOException("Failed to open $path with $errno")
+        ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
     return FileSource(openFile).buffer()
 }
 
 public actual fun Path.sink(): Sink {
-    val openFile: CPointer<FILE> = fopen(path, "wx")
-        ?: throw IOException("Failed to open $path with $errno")
+    val openFile: CPointer<FILE> = fopen(path, "w")
+        ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
     return FileSink(openFile).buffer()
 }
 
