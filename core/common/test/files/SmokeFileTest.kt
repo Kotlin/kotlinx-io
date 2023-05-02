@@ -4,10 +4,21 @@ import kotlinx.io.*
 import kotlin.test.*
 
 class SmokeFileTest {
+    private var tempFile: String? = null
+
+    @BeforeTest
+    fun setup() {
+        tempFile = createTempFile()
+    }
+
+    @AfterTest
+    fun cleanup() {
+        deleteFile(tempFile!!)
+    }
 
     @Test
     fun testBasicFile() {
-        val path = Path("test.txt")
+        val path = Path(tempFile!!)
         path.sink().use {
             it.writeUtf8("example")
         }
