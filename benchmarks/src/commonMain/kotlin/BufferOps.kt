@@ -143,3 +143,35 @@ open class Utf8CodePointOps {
     @Benchmark
     fun utf8long() = buffer.writeUtf8CodePoint('å'.code).readUtf8CodePoint()
 }
+
+@State(Scope.Benchmark)
+open class ReadWholeBuffer {
+    private var source = Buffer()
+    private var destination = Buffer()
+
+    @Param("0", "1", "8196", "10000", "40000")
+    var size: Int = 0
+
+    @Setup
+    fun setupSource() {
+        source = Buffer().write(ByteArray(size))
+    }
+
+    @Benchmark
+    fun readAll() {
+        destination.readAll(source)
+        swapBuffers()
+    }
+
+    @Benchmark
+    fun writeAll() {
+        source.writeAll(destination)
+        swapBuffers()
+    }
+
+    private fun swapBuffers() {
+        val tmp = source
+        source = destination
+        destination = tmp
+    }
+}
