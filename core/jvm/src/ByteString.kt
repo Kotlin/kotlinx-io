@@ -35,7 +35,7 @@ import java.security.MessageDigest
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-internal actual open class ByteString
+actual open class ByteString
 internal actual constructor(
   internal actual val data: ByteArray
 ) : Serializable, Comparable<ByteString> {

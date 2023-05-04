@@ -131,94 +131,94 @@ internal inline fun <T> Buffer.seek(
  *     and one option may be a prefix of another. For example, this returns -2 if the buffer
  *     contains [ab] and the options are [abc, a].
  */
-//internal fun Buffer.selectPrefix(options: Options, selectTruncated: Boolean = false): Int {
-//  val head = head ?: return if (selectTruncated) -2 else -1
-//
-//  var s: Segment? = head
-//  var data = head.data
-//  var pos = head.pos
-//  var limit = head.limit
-//
-//  val trie = options.trie
-//  var triePos = 0
-//
-//  var prefixIndex = -1
-//
-//  navigateTrie@
-//  while (true) {
-//    val scanOrSelect = trie[triePos++]
-//
-//    val possiblePrefixIndex = trie[triePos++]
-//    if (possiblePrefixIndex != -1) {
-//      prefixIndex = possiblePrefixIndex
-//    }
-//
-//    val nextStep: Int
-//
-//    if (s == null) {
-//      break@navigateTrie
-//    } else if (scanOrSelect < 0) {
-//      // Scan: take multiple bytes from the buffer and the trie, looking for any mismatch.
-//      val scanByteCount = -1 * scanOrSelect
-//      val trieLimit = triePos + scanByteCount
-//      while (true) {
-//        val byte = data[pos++] and 0xff
-//        if (byte != trie[triePos++]) return prefixIndex // Fail 'cause we found a mismatch.
-//        val scanComplete = (triePos == trieLimit)
-//
-//        // Advance to the next buffer segment if this one is exhausted.
-//        if (pos == limit) {
-//          s = s!!.next!!
-//          pos = s.pos
-//          data = s.data
-//          limit = s.limit
-//          if (s === head) {
-//            if (!scanComplete) break@navigateTrie // We were exhausted before the scan completed.
-//            s = null // We were exhausted at the end of the scan.
-//          }
-//        }
-//
-//        if (scanComplete) {
-//          nextStep = trie[triePos]
-//          break
-//        }
-//      }
-//    } else {
-//      // Select: take one byte from the buffer and find a match in the trie.
-//      val selectChoiceCount = scanOrSelect
-//      val byte = data[pos++] and 0xff
-//      val selectLimit = triePos + selectChoiceCount
-//      while (true) {
-//        if (triePos == selectLimit) return prefixIndex // Fail 'cause we didn't find a match.
-//
-//        if (byte == trie[triePos]) {
-//          nextStep = trie[triePos + selectChoiceCount]
-//          break
-//        }
-//
-//        triePos++
-//      }
-//
-//      // Advance to the next buffer segment if this one is exhausted.
-//      if (pos == limit) {
-//        s = s.next!!
-//        pos = s.pos
-//        data = s.data
-//        limit = s.limit
-//        if (s === head) {
-//          s = null // No more segments! The next trie node will be our last.
-//        }
-//      }
-//    }
-//
-//    if (nextStep >= 0) return nextStep // Found a matching option.
-//    triePos = -nextStep // Found another node to continue the search.
-//  }
-//
-//  // We break out of the loop above when we've exhausted the buffer without exhausting the trie.
-//  if (selectTruncated) return -2 // The buffer is a prefix of at least one option.
-//  return prefixIndex // Return any matches we encountered while searching for a deeper match.
-//}
+internal fun Buffer.selectPrefix(options: Options, selectTruncated: Boolean = false): Int {
+  val head = head ?: return if (selectTruncated) -2 else -1
+
+  var s: Segment? = head
+  var data = head.data
+  var pos = head.pos
+  var limit = head.limit
+
+  val trie = options.trie
+  var triePos = 0
+
+  var prefixIndex = -1
+
+  navigateTrie@
+  while (true) {
+    val scanOrSelect = trie[triePos++]
+
+    val possiblePrefixIndex = trie[triePos++]
+    if (possiblePrefixIndex != -1) {
+      prefixIndex = possiblePrefixIndex
+    }
+
+    val nextStep: Int
+
+    if (s == null) {
+      break@navigateTrie
+    } else if (scanOrSelect < 0) {
+      // Scan: take multiple bytes from the buffer and the trie, looking for any mismatch.
+      val scanByteCount = -1 * scanOrSelect
+      val trieLimit = triePos + scanByteCount
+      while (true) {
+        val byte = data[pos++] and 0xff
+        if (byte != trie[triePos++]) return prefixIndex // Fail 'cause we found a mismatch.
+        val scanComplete = (triePos == trieLimit)
+
+        // Advance to the next buffer segment if this one is exhausted.
+        if (pos == limit) {
+          s = s!!.next!!
+          pos = s.pos
+          data = s.data
+          limit = s.limit
+          if (s === head) {
+            if (!scanComplete) break@navigateTrie // We were exhausted before the scan completed.
+            s = null // We were exhausted at the end of the scan.
+          }
+        }
+
+        if (scanComplete) {
+          nextStep = trie[triePos]
+          break
+        }
+      }
+    } else {
+      // Select: take one byte from the buffer and find a match in the trie.
+      val selectChoiceCount = scanOrSelect
+      val byte = data[pos++] and 0xff
+      val selectLimit = triePos + selectChoiceCount
+      while (true) {
+        if (triePos == selectLimit) return prefixIndex // Fail 'cause we didn't find a match.
+
+        if (byte == trie[triePos]) {
+          nextStep = trie[triePos + selectChoiceCount]
+          break
+        }
+
+       triePos++
+      }
+
+      // Advance to the next buffer segment if this one is exhausted.
+      if (pos == limit) {
+        s = s.next!!
+        pos = s.pos
+        data = s.data
+        limit = s.limit
+        if (s === head) {
+          s = null // No more segments! The next trie node will be our last.
+        }
+      }
+    }
+
+    if (nextStep >= 0) return nextStep // Found a matching option.
+    triePos = -nextStep // Found another node to continue the search.
+  }
+
+  // We break out of the loop above when we've exhausted the buffer without exhausting the trie.
+  if (selectTruncated) return -2 // The buffer is a prefix of at least one option.
+  return prefixIndex // Return any matches we encountered while searching for a deeper match.
+}
 
 // TODO Kotlin's expect classes can't have default implementations, so platform implementations
 // have to call these functions. Remove all this nonsense when expect class allow actual code.
@@ -769,15 +769,15 @@ internal inline fun Buffer.commonReadHexadecimalUnsignedLong(): Long {
 //  }
 //}
 
-//internal inline fun Buffer.commonSelect(options: Options): Int {
-//  val index = selectPrefix(options)
-//  if (index == -1) return -1
-//
-//  // If the prefix match actually matched a full byte string, consume it and return it.
-//  val selectedSize = options.byteStrings[index].size
-//  skip(selectedSize.toLong())
-//  return index
-//}
+internal inline fun Buffer.commonSelect(options: Options): Int {
+  val index = selectPrefix(options)
+  if (index == -1) return -1
+
+  // If the prefix match actually matched a full byte string, consume it and return it.
+  val selectedSize = options.byteStrings[index].size
+  skip(selectedSize.toLong())
+  return index
+}
 
 internal inline fun Buffer.commonReadFully(sink: Buffer, byteCount: Long) {
   if (size < byteCount) {

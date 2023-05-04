@@ -23,7 +23,7 @@ package kotlinx.io
 
 import kotlinx.io.internal.*
 
-internal actual open class ByteString
+actual open class ByteString
 internal actual constructor(
   internal actual val data: ByteArray
 ) : Comparable<ByteString> {

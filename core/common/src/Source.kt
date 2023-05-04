@@ -271,7 +271,7 @@ expect sealed interface Source : RawSource {
    * assertEquals('\n', buffer.readByte());
    * ```
    */
-//  fun select(options: Options): Int
+  fun select(options: Options): Int
 
   /** Removes all bytes from this and returns them as a byte array. */
   fun readByteArray(): ByteArray

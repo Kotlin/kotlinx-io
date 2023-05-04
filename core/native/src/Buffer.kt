@@ -97,7 +97,7 @@ actual class Buffer : Source, Sink {
 
   override fun readUtf8CodePoint(): Int = commonReadUtf8CodePoint()
 
-//  override fun select(options: Options): Int = commonSelect(options)
+  override fun select(options: Options): Int = commonSelect(options)
 
   override fun readByteArray(): ByteArray = commonReadByteArray()
 
@@ -213,14 +213,14 @@ actual class Buffer : Source, Sink {
 //
 //  actual fun snapshot(byteCount: Int): ByteString = commonSnapshot(byteCount)
 //
-//  actual fun md5() = digest(Md5())
-//
-//  actual fun sha1() = digest(Sha1())
-//
-//  actual fun sha256() = digest(Sha256())
-//
-//  actual fun sha512() = digest(Sha512())
-//
+  actual fun md5(): ByteString { throw UnsupportedOperationException() }
+
+  actual fun sha1(): ByteString { throw UnsupportedOperationException() }
+
+  actual fun sha256(): ByteString { throw UnsupportedOperationException() }
+
+  actual fun sha512(): ByteString { throw UnsupportedOperationException() }
+
 //  /** Returns the 160-bit SHA-1 HMAC of this buffer.  */
 //  actual fun hmacSha1(key: ByteString) = digest(Hmac.sha1(key))
 //

@@ -99,14 +99,14 @@ expect class Buffer() : Source, Sink {
    */
   internal fun writableSegment(minimumCapacity: Int): Segment
 
-//  fun md5(): ByteString
-//
-//  fun sha1(): ByteString
-//
-//  fun sha256(): ByteString
-//
-//  fun sha512(): ByteString
-//
+  fun md5(): ByteString
+
+  fun sha1(): ByteString
+
+  fun sha256(): ByteString
+
+  fun sha512(): ByteString
+
 //  /** Returns the 160-bit SHA-1 HMAC of this buffer.  */
 //  fun hmacSha1(key: ByteString): ByteString
 //

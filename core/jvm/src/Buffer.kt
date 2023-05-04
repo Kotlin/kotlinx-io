@@ -246,8 +246,8 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 //
 //  @Throws(EOFException::class)
 //  override fun readByteString(byteCount: Long) = commonReadByteString(byteCount)
-//
-//  override fun select(options: Options): Int = commonSelect(options)
+
+  override fun select(options: Options): Int = commonSelect(options)
 
   @Throws(EOFException::class)
   override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)
@@ -466,39 +466,39 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     // Not cancelable.
   }
 
-//  /**
-//   * Returns the 128-bit MD5 hash of this buffer.
-//   *
-//   * MD5 has been vulnerable to collisions since 2004. It should not be used in new code.
-//   */
-//  actual fun md5() = digest("MD5")
-//
-//  /**
-//   * Returns the 160-bit SHA-1 hash of this buffer.
-//   *
-//   * SHA-1 has been vulnerable to collisions since 2017. It should not be used in new code.
-//   */
-//  actual fun sha1() = digest("SHA-1")
-//
-//  /** Returns the 256-bit SHA-256 hash of this buffer. */
-//  actual fun sha256() = digest("SHA-256")
-//
-//  /** Returns the 512-bit SHA-512 hash of this buffer. */
-//  actual fun sha512() = digest("SHA-512")
-//
-//  private fun digest(algorithm: String): ByteString {
-//    val messageDigest = MessageDigest.getInstance(algorithm)
-//    head?.let { head ->
-//      messageDigest.update(head.data, head.pos, head.limit - head.pos)
-//      var s = head.next!!
-//      while (s !== head) {
-//        messageDigest.update(s.data, s.pos, s.limit - s.pos)
-//        s = s.next!!
-//      }
-//    }
-//    return ByteString(messageDigest.digest())
-//  }
-//
+  /**
+   * Returns the 128-bit MD5 hash of this buffer.
+   *
+   * MD5 has been vulnerable to collisions since 2004. It should not be used in new code.
+   */
+  actual fun md5() = digest("MD5")
+
+  /**
+   * Returns the 160-bit SHA-1 hash of this buffer.
+   *
+   * SHA-1 has been vulnerable to collisions since 2017. It should not be used in new code.
+   */
+  actual fun sha1() = digest("SHA-1")
+
+  /** Returns the 256-bit SHA-256 hash of this buffer. */
+  actual fun sha256() = digest("SHA-256")
+
+  /** Returns the 512-bit SHA-512 hash of this buffer. */
+  actual fun sha512() = digest("SHA-512")
+
+  private fun digest(algorithm: String): ByteString {
+    val messageDigest = MessageDigest.getInstance(algorithm)
+    head?.let { head ->
+      messageDigest.update(head.data, head.pos, head.limit - head.pos)
+      var s = head.next!!
+      while (s !== head) {
+        messageDigest.update(s.data, s.pos, s.limit - s.pos)
+        s = s.next!!
+      }
+    }
+    return ByteString(messageDigest.digest())
+  }
+
 //  /** Returns the 160-bit SHA-1 HMAC of this buffer. */
 //  actual fun hmacSha1(key: ByteString) = hmac("HmacSHA1", key)
 //

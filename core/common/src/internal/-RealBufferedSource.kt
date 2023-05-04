@@ -72,28 +72,28 @@ internal inline fun RealSource.commonReadByte(): Byte {
 //  return buffer.readByteString(byteCount)
 //}
 
-//internal inline fun RealSource.commonSelect(options: Options): Int {
-//  check(!closed) { "closed" }
-//
-//  while (true) {
-//    val index = buffer.selectPrefix(options, selectTruncated = true)
-//    when (index) {
-//      -1 -> {
-//        return -1
-//      }
-//      -2 -> {
-//        // We need to grow the buffer. Do that, then try it all again.
-//        if (source.read(buffer, Segment.SIZE.toLong()) == -1L) return -1
-//      }
-//      else -> {
-//        // We matched a full byte string: consume it and return it.
-//        val selectedSize = options.byteStrings[index].size
-//        buffer.skip(selectedSize.toLong())
-//        return index
-//      }
-//    }
-//  }
-//}
+internal inline fun RealSource.commonSelect(options: Options): Int {
+  check(!closed) { "closed" }
+
+  while (true) {
+    val index = buffer.selectPrefix(options, selectTruncated = true)
+    when (index) {
+      -1 -> {
+        return -1
+      }
+      -2 -> {
+        // We need to grow the buffer. Do that, then try it all again.
+        if (source.read(buffer, Segment.SIZE.toLong()) == -1L) return -1
+      }
+      else -> {
+        // We matched a full byte string: consume it and return it.
+        val selectedSize = options.byteStrings[index].size
+        buffer.skip(selectedSize.toLong())
+        return index
+      }
+    }
+  }
+}
 
 internal inline fun RealSource.commonReadByteArray(): ByteArray {
   buffer.writeAll(source)

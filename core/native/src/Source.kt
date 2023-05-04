@@ -53,7 +53,7 @@ actual sealed interface Source : RawSource {
 //
 //  actual fun readByteString(byteCount: Long): ByteString
 //
-//  actual fun select(options: Options): Int
+  actual fun select(options: Options): Int
 
   actual fun readByteArray(): ByteArray
 
