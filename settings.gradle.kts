@@ -14,4 +14,6 @@ pluginManagement {
 rootProject.name = "kotlinx-io"
 
 include(":kotlinx-io-core")
+include(":kotlinx-io-benchmarks")
 project(":kotlinx-io-core").projectDir = file("./core")
+project(":kotlinx-io-benchmarks").projectDir = file("./benchmarks")
