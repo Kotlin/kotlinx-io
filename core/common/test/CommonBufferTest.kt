@@ -93,25 +93,25 @@ class CommonBufferTest {
     val buffer = Buffer()
 
     // Take 2 * MAX_SIZE segments. This will drain the pool, even if other tests filled it.
-    buffer.write(ByteArray(SegmentPool.MAX_SIZE))
-    buffer.write(ByteArray(SegmentPool.MAX_SIZE))
-    assertEquals(0, SegmentPool.byteCount)
+    buffer.write(ByteArray(buffer.pool.MAX_SIZE))
+    buffer.write(ByteArray(buffer.pool.MAX_SIZE))
+    assertEquals(0, buffer.pool.byteCount)
 
     // Recycle MAX_SIZE segments. They're all in the pool.
-    buffer.skip(SegmentPool.MAX_SIZE.toLong())
-    assertEquals(SegmentPool.MAX_SIZE, SegmentPool.byteCount)
+    buffer.skip(buffer.pool.MAX_SIZE.toLong())
+    assertEquals(buffer.pool.MAX_SIZE, buffer.pool.byteCount)
 
     // Recycle MAX_SIZE more segments. The pool is full so they get garbage collected.
-    buffer.skip(SegmentPool.MAX_SIZE.toLong())
-    assertEquals(SegmentPool.MAX_SIZE, SegmentPool.byteCount)
+    buffer.skip(buffer.pool.MAX_SIZE.toLong())
+    assertEquals(buffer.pool.MAX_SIZE, buffer.pool.byteCount)
 
     // Take MAX_SIZE segments to drain the pool.
-    buffer.write(ByteArray(SegmentPool.MAX_SIZE))
-    assertEquals(0, SegmentPool.byteCount)
+    buffer.write(ByteArray(buffer.pool.MAX_SIZE))
+    assertEquals(0, buffer.pool.byteCount)
 
     // Take MAX_SIZE more segments. The pool is drained so these will need to be allocated.
-    buffer.write(ByteArray(SegmentPool.MAX_SIZE))
-    assertEquals(0, SegmentPool.byteCount)
+    buffer.write(ByteArray(buffer.pool.MAX_SIZE))
+    assertEquals(0, buffer.pool.byteCount)
   }
 
   @Test fun moveBytesBetweenBuffersShareSegment() {

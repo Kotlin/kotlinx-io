@@ -24,7 +24,7 @@ package kotlinx.io
  * A collection of unused segments, necessary to avoid GC churn and zero-fill.
  * This pool is a thread-safe static singleton.
  */
-internal expect object SegmentPool {
+interface SegmentPool {
   val MAX_SIZE: Int
 
   /**
@@ -39,3 +39,5 @@ internal expect object SegmentPool {
   /** Recycle a segment that the caller no longer needs. */
   fun recycle(segment: Segment)
 }
+
+internal expect val DefaultSegmentPool: SegmentPool

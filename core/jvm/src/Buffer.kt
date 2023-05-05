@@ -106,7 +106,7 @@ internal fun Segment.toString(fromIndex: Int, byteCount: Int, charset: Charset):
   }
 }
 
-actual class Buffer : Source, Sink, Cloneable, ByteChannel {
+actual class Buffer actual constructor(actual val pool: SegmentPool) : Source, Sink, Cloneable, ByteChannel {
   @JvmField internal actual var head: Segment? = null
 
   @get:JvmName("size")
@@ -238,7 +238,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
         val toRecycle = s
         s = toRecycle.pop()
         head = s
-        SegmentPool.recycle(toRecycle)
+        toRecycle.recycle()
       }
     }
 
@@ -271,7 +271,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
         if (tail.pos == tail.limit) {
           // We allocated a tail segment, but didn't end up needing it. Recycle!
           head = tail.pop()
-          SegmentPool.recycle(tail)
+          tail.recycle()
         }
         if (forever) return
         throw EOFException()
@@ -352,7 +352,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
     if (s.pos == s.limit) {
       head = s.pop()
-      SegmentPool.recycle(s)
+      s.recycle()
     }
 
     return result
@@ -395,7 +395,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
     if (s.pos == s.limit) {
       head = s.pop()
-      SegmentPool.recycle(s)
+      s.recycle()
     }
 
     return toCopy

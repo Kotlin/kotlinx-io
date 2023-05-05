@@ -20,9 +20,6 @@
  */
 package kotlinx.io
 
-import kotlinx.io.SegmentPool.LOCK
-import kotlinx.io.SegmentPool.recycle
-import kotlinx.io.SegmentPool.take
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -44,13 +41,13 @@ import java.util.concurrent.atomic.AtomicReference
  * has a limit that's one segment size greater than its successor element. The maximum size of the
  * pool is a product of [MAX_SIZE] and [HASH_BUCKET_COUNT].
  */
-internal actual object SegmentPool {
+internal class ByteArraySegmentPool : SegmentPool {
   /** The maximum number of bytes to pool per hash bucket. */
   // TODO: Is 64 KiB a good maximum size? Do we ever have that many idle segments?
-  actual val MAX_SIZE = 64 * 1024 // 64 KiB.
+  override val MAX_SIZE = 64 * 1024 // 64 KiB.
 
   /** A sentinel segment to indicate that the linked list is currently being modified. */
-  private val LOCK = ByteArraySegment(ByteArray(0), pos = 0, limit = 0, shared = false, owner = false)
+  private val LOCK = ByteArraySegment(ByteArray(0), pos = 0, limit = 0, shared = false, owner = false, this)
 
   /**
    * The number of hash buckets. This number needs to balance keeping the pool small and contention
@@ -67,34 +64,35 @@ internal actual object SegmentPool {
    * We don't use [ThreadLocal] because we don't know how many threads the host process has and we
    * don't want to leak memory for the duration of a thread's life.
    */
-  private val hashBuckets: Array<AtomicReference<Segment?>> = Array(HASH_BUCKET_COUNT) {
-    AtomicReference<Segment?>() // null value implies an empty bucket
+  private val hashBuckets: Array<AtomicReference<ByteArraySegment?>> = Array(HASH_BUCKET_COUNT) {
+    AtomicReference<ByteArraySegment?>() // null value implies an empty bucket
   }
 
-  actual val byteCount: Int
+  override val byteCount: Int
     get() {
       val first = firstRef().get() ?: return 0
       return first.limit
     }
 
-  @JvmStatic
-  actual fun take(): Segment {
+  //@JvmStatic
+  override fun take(): ByteArraySegment {
     val firstRef = firstRef()
 
     val first = firstRef.getAndSet(LOCK)
     when {
       first === LOCK -> {
         // We didn't acquire the lock. Don't take a pooled segment.
-        return ByteArraySegment()
+        return ByteArraySegment(this)
       }
       first == null -> {
         // We acquired the lock but the pool was empty. Unlock and return a new segment.
         firstRef.set(null)
-        return ByteArraySegment()
+        return ByteArraySegment(this)
       }
       else -> {
         // We acquired the lock and the pool was not empty. Pop the first element and return it.
-        firstRef.set(first.next)
+        val next = first.next
+        firstRef.set(if (next == null) null else next as ByteArraySegment)
         first.next = null
         first.limit = 0
         return first
@@ -102,9 +100,10 @@ internal actual object SegmentPool {
     }
   }
 
-  @JvmStatic
-  actual fun recycle(segment: Segment) {
+  //@JvmStatic
+  override fun recycle(segment: Segment) {
     require(segment.next == null && segment.prev == null)
+    require(segment is ByteArraySegment)
     if (segment.shared) return // This segment cannot be recycled.
 
     val firstRef = firstRef()
@@ -124,9 +123,11 @@ internal actual object SegmentPool {
     }
   }
 
-  private fun firstRef(): AtomicReference<Segment?> {
+  private fun firstRef(): AtomicReference<ByteArraySegment?> {
     // Get a value in [0..HASH_BUCKET_COUNT) based on the current thread.
     val hashBucket = (Thread.currentThread().id and (HASH_BUCKET_COUNT - 1L)).toInt()
     return hashBuckets[hashBucket]
   }
 }
+
+internal actual val DefaultSegmentPool: SegmentPool = ByteArraySegmentPool()

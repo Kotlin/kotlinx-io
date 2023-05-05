@@ -58,7 +58,7 @@ private open class OutputStreamSink(
 
       if (head.pos == head.limit) {
         source.head = head.pop()
-        SegmentPool.recycle(head)
+        head.recycle()
       }
     }
   }
@@ -92,7 +92,7 @@ private open class InputStreamSource(
         if (tail.pos == tail.limit) {
           // We allocated a tail segment, but didn't end up needing it. Recycle!
           sink.head = tail.pop()
-          SegmentPool.recycle(tail)
+          tail.recycle()
         }
         return -1
       }

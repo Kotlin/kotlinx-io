@@ -38,7 +38,7 @@ import kotlin.jvm.JvmField
  * limits, prev, and next references are not shared.
  */
 
-internal abstract class Segment {
+abstract class Segment {
   //abstract val data: ByteArray
 
   /** The next byte of application data byte to read in this segment. */
@@ -64,21 +64,25 @@ internal abstract class Segment {
   /** Previous segment in a circularly-linked list. */
   @JvmField var prev: Segment? = null
 
+  var pool: SegmentPool
+
   abstract operator fun get(idx: Int): Byte
   abstract operator fun set(idx: Int, byte: Byte)
 
-  constructor() {
+  constructor(pool: SegmentPool) {
     // this.data = ByteArray(SIZE)
     this.owner = true
     this.shared = false
+    this.pool = pool
   }
 
-  constructor(/*data: ByteArray, */pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
+  constructor(/*data: ByteArray, */pos: Int, limit: Int, shared: Boolean, owner: Boolean, pool: SegmentPool) {
     // this.data = data
     this.pos = pos
     this.limit = limit
     this.shared = shared
     this.owner = owner
+    this.pool = pool
   }
 
   /**
@@ -140,7 +144,7 @@ internal abstract class Segment {
     if (byteCount >= SHARE_MINIMUM) {
       prefix = sharedCopy()
     } else {
-      prefix = SegmentPool.take()
+      prefix = pool.take()
 //      data.copyInto(prefix.data, startIndex = pos, endIndex = pos + byteCount)
       copyInto(prefix, pos, pos + byteCount)
     }
@@ -163,7 +167,7 @@ internal abstract class Segment {
     if (byteCount > availableByteCount) return // Cannot compact: not enough writable space.
     writeTo(prev!!, byteCount)
     pop()
-    SegmentPool.recycle(this)
+    pool.recycle(this)
   }
 
   /** Moves `byteCount` bytes from this segment to `sink`.  */
@@ -188,6 +192,10 @@ internal abstract class Segment {
     pos += byteCount
   }
 
+  fun recycle() {
+    pool.recycle(this)
+  }
+
   companion object {
     /** The size of all segments in bytes.  */
     const val SIZE = 8192
@@ -208,12 +216,12 @@ internal inline fun Segment.forEachSet(from: Int = pos, to: Int = limit, lambda:
 internal class ByteArraySegment : Segment {
   val data: ByteArray
 
-  constructor() {
+  constructor(pool: SegmentPool) : super(pool) {
     data = ByteArray(SIZE)
   }
 
-  constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean)
-          : super(pos, limit, shared, owner) {
+  constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean, pool: SegmentPool)
+          : super(pos, limit, shared, owner, pool) {
     this.data = data
   }
 
@@ -225,10 +233,10 @@ internal class ByteArraySegment : Segment {
 
   override fun sharedCopy(): Segment {
     shared = true
-    return ByteArraySegment(data, pos, limit, true, false)
+    return ByteArraySegment(data, pos, limit, true, false, pool)
   }
 
-  override fun unsharedCopy(): Segment = ByteArraySegment(data.copyOf(), pos, limit, false, true)
+  override fun unsharedCopy(): Segment = ByteArraySegment(data.copyOf(), pos, limit, false, true, pool)
 }
 
 internal expect fun Segment.copyInto(dst: Segment, dstOffset: Int, startIndex: Int, endIndex: Int)

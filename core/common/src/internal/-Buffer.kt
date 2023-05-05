@@ -296,7 +296,7 @@ internal inline fun Buffer.commonReadByte(): Byte {
 
   if (pos == limit) {
     head = segment.pop()
-    SegmentPool.recycle(segment)
+    segment.recycle()
   } else {
     segment.pos = pos
   }
@@ -323,7 +323,7 @@ internal inline fun Buffer.commonReadShort(): Short {
 
   if (pos == limit) {
     head = segment.pop()
-    SegmentPool.recycle(segment)
+    segment.recycle()
   } else {
     segment.pos = pos
   }
@@ -359,7 +359,7 @@ internal inline fun Buffer.commonReadInt(): Int {
 
   if (pos == limit) {
     head = segment.pop()
-    SegmentPool.recycle(segment)
+    segment.recycle()
   } else {
     segment.pos = pos
   }
@@ -397,7 +397,7 @@ internal inline fun Buffer.commonReadLong(): Long {
 
   if (pos == limit) {
     head = segment.pop()
-    SegmentPool.recycle(segment)
+    segment.recycle()
   } else {
     segment.pos = pos
   }
@@ -426,7 +426,7 @@ internal inline fun Buffer.commonSkip(byteCount: Long) {
 
     if (head.pos == head.limit) {
       this.head = head.pop()
-      SegmentPool.recycle(head)
+      head.recycle()
     }
   }
 }
@@ -553,7 +553,7 @@ internal inline fun Buffer.commonWritableSegment(minimumCapacity: Int): Segment 
   require(minimumCapacity >= 1 && minimumCapacity <= Segment.SIZE) { "unexpected capacity" }
 
   if (head == null) {
-    val result = SegmentPool.take() // Acquire a first segment.
+    val result = pool.take() // Acquire a first segment.
     head = result
     result.prev = result
     result.next = result
@@ -562,7 +562,7 @@ internal inline fun Buffer.commonWritableSegment(minimumCapacity: Int): Segment 
 
   var tail = head!!.prev
   if (tail!!.limit + minimumCapacity > Segment.SIZE || !tail.owner) {
-    tail = tail.push(SegmentPool.take()) // Append a new empty segment to fill up.
+    tail = tail.push(pool.take()) // Append a new empty segment to fill up.
   }
   return tail
 }
@@ -632,7 +632,7 @@ internal inline fun Buffer.commonRead(sink: ByteArray, offset: Int, byteCount: I
 
   if (s.pos == s.limit) {
     head = s.pop()
-    SegmentPool.recycle(s)
+    s.recycle()
   }
 
   return toCopy
@@ -686,7 +686,7 @@ internal inline fun Buffer.commonReadDecimalLong(): Long {
 
     if (pos == limit) {
       head = segment.pop()
-      SegmentPool.recycle(segment)
+      segment.recycle()
     } else {
       segment.pos = pos
     }
@@ -753,7 +753,7 @@ internal inline fun Buffer.commonReadHexadecimalUnsignedLong(): Long {
 
     if (pos == limit) {
       head = segment.pop()
-      SegmentPool.recycle(segment)
+      segment.recycle()
     } else {
       segment.pos = pos
     }
@@ -827,7 +827,7 @@ internal inline fun Buffer.commonReadUtf8(byteCount: Long): String {
 
   if (s.pos == s.limit) {
     head = s.pop()
-    SegmentPool.recycle(s)
+    s.recycle()
   }
 
   return result
@@ -1684,7 +1684,7 @@ internal inline fun UnsafeCursor.commonResizeBuffer(newSize: Long): Long {
       val tailSize = tail!!.limit - tail.pos
       if (tailSize <= bytesToSubtract) {
         buffer.head = tail.pop()
-        SegmentPool.recycle(tail)
+        tail.recycle()
         bytesToSubtract -= tailSize.toLong()
       } else {
         tail.limit -= bytesToSubtract.toInt()

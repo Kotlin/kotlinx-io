@@ -35,8 +35,9 @@ import kotlin.jvm.JvmField
  * zero-fill the requested array before returning it to you. Even if you're going to write over that
  * space anyway. This class avoids zero-fill and GC churn by pooling byte arrays.
  */
-expect class Buffer() : Source, Sink {
+expect class Buffer(pool: SegmentPool = DefaultSegmentPool) : Source, Sink {
   internal var head: Segment?
+  val pool: SegmentPool
 
   var size: Long
     internal set

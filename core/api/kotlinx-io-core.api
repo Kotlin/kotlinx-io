@@ -1,5 +1,7 @@
 public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/ByteChannel, kotlinx/io/Sink, kotlinx/io/Source {
 	public fun <init> ()V
+	public fun <init> (Lkotlinx/io/SegmentPool;)V
+	public synthetic fun <init> (Lkotlinx/io/SegmentPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun buffer ()Lkotlinx/io/Buffer;
 	public fun cancel ()V
 	public final fun clear ()V
@@ -25,6 +27,7 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun flush ()V
 	public fun getBuffer ()Lkotlinx/io/Buffer;
 	public final fun getByte (J)B
+	public final fun getPool ()Lkotlinx/io/SegmentPool;
 	public fun hashCode ()I
 	public fun indexOf (B)J
 	public fun indexOf (BJ)J
@@ -253,6 +256,42 @@ public abstract interface class kotlinx/io/RawSource : java/io/Closeable {
 	public abstract fun cancel ()V
 	public abstract fun close ()V
 	public abstract fun read (Lkotlinx/io/Buffer;J)J
+}
+
+public abstract class kotlinx/io/Segment {
+	public static final field Companion Lkotlinx/io/Segment$Companion;
+	public static final field SHARE_MINIMUM I
+	public static final field SIZE I
+	public field limit I
+	public field next Lkotlinx/io/Segment;
+	public field owner Z
+	public field pos I
+	public field prev Lkotlinx/io/Segment;
+	public field shared Z
+	public fun <init> (IIZZLkotlinx/io/SegmentPool;)V
+	public fun <init> (Lkotlinx/io/SegmentPool;)V
+	public final fun compact ()V
+	public abstract fun get (I)B
+	public final fun getPool ()Lkotlinx/io/SegmentPool;
+	public final fun pop ()Lkotlinx/io/Segment;
+	public final fun push (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
+	public final fun recycle ()V
+	public abstract fun set (IB)V
+	public final fun setPool (Lkotlinx/io/SegmentPool;)V
+	public abstract fun sharedCopy ()Lkotlinx/io/Segment;
+	public final fun split (I)Lkotlinx/io/Segment;
+	public abstract fun unsharedCopy ()Lkotlinx/io/Segment;
+	public final fun writeTo (Lkotlinx/io/Segment;I)V
+}
+
+public final class kotlinx/io/Segment$Companion {
+}
+
+public abstract interface class kotlinx/io/SegmentPool {
+	public abstract fun getByteCount ()I
+	public abstract fun getMAX_SIZE ()I
+	public abstract fun recycle (Lkotlinx/io/Segment;)V
+	public abstract fun take ()Lkotlinx/io/Segment;
 }
 
 public abstract interface class kotlinx/io/Sink : java/nio/channels/WritableByteChannel, kotlinx/io/RawSink {
