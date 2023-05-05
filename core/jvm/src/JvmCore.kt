@@ -50,7 +50,7 @@ private open class OutputStreamSink(
       // kotlinx.io TODO: detect Interruption.
       val head = source.head!!
       val toCopy = minOf(remaining, head.limit - head.pos).toInt()
-      out.write(head.data, head.pos, toCopy)
+      out.write(head, head.pos, toCopy)
 
       head.pos += toCopy
       remaining -= toCopy
@@ -87,7 +87,7 @@ private open class InputStreamSource(
     try {
       val tail = sink.writableSegment(1)
       val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()
-      val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
+      val bytesRead = input.read(tail, tail.limit, maxToCopy)
       if (bytesRead == -1) {
         if (tail.pos == tail.limit) {
           // We allocated a tail segment, but didn't end up needing it. Recycle!

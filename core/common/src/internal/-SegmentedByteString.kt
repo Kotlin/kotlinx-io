@@ -150,9 +150,10 @@ internal inline fun SegmentedByteString.commonToByteArray(): ByteArray {
   return result
 }
 
+// TODO: replace BAS with flexible segment type
 internal inline fun SegmentedByteString.commonWrite(buffer: Buffer, offset: Int, byteCount: Int) {
   forEachSegment(offset, offset + byteCount) { data, offset, byteCount ->
-    val segment = Segment(data, offset, offset + byteCount, true, false)
+    val segment = ByteArraySegment(data, offset, offset + byteCount, true, false)
     if (buffer.head == null) {
       segment.prev = segment
       segment.next = segment.prev

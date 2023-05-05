@@ -115,7 +115,6 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 
 public final class kotlinx/io/Buffer$UnsafeCursor : java/io/Closeable {
 	public field buffer Lkotlinx/io/Buffer;
-	public field data [B
 	public field end I
 	public field offset J
 	public field readWrite Z

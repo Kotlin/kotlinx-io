@@ -12,7 +12,7 @@ plugins {
 
 kotlin {
     jvm()
-    macosArm64("native")
+    // macosArm64("native")
 
     sourceSets {
         commonMain {
@@ -25,10 +25,12 @@ kotlin {
         val jvmMain by getting {
             dependsOn(commonMain.get())
         }
-
+/*
         val nativeMain by getting {
             dependsOn(commonMain.get())
         }
+
+ */
     }
 }
 
@@ -38,6 +40,6 @@ benchmark {
             this as JvmBenchmarkTarget
             jmhVersion = "1.36"
         }
-        register("native")
+        //register("native")
     }
 }

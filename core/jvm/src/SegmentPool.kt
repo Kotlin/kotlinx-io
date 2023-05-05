@@ -50,7 +50,7 @@ internal actual object SegmentPool {
   actual val MAX_SIZE = 64 * 1024 // 64 KiB.
 
   /** A sentinel segment to indicate that the linked list is currently being modified. */
-  private val LOCK = Segment(ByteArray(0), pos = 0, limit = 0, shared = false, owner = false)
+  private val LOCK = ByteArraySegment(ByteArray(0), pos = 0, limit = 0, shared = false, owner = false)
 
   /**
    * The number of hash buckets. This number needs to balance keeping the pool small and contention
@@ -85,12 +85,12 @@ internal actual object SegmentPool {
     when {
       first === LOCK -> {
         // We didn't acquire the lock. Don't take a pooled segment.
-        return Segment()
+        return ByteArraySegment()
       }
       first == null -> {
         // We acquired the lock but the pool was empty. Unlock and return a new segment.
         firstRef.set(null)
-        return Segment()
+        return ByteArraySegment()
       }
       else -> {
         // We acquired the lock and the pool was not empty. Pop the first element and return it.

@@ -26,14 +26,24 @@ package kotlinx.io.internal
 
 import kotlinx.io.*
 import kotlinx.io.Buffer.UnsafeCursor
-import kotlin.native.concurrent.SharedImmutable
+//import kotlin.native.concurrent.SharedImmutable
 
-@SharedImmutable
+//@SharedImmutable
 internal val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
 
 // Threshold determined empirically via ReadByteStringBenchmark
 /** Create SegmentedByteString when size is greater than this many bytes.  */
 internal const val SEGMENTING_THRESHOLD = 4096
+
+internal inline fun Segment.copyInto(dst: ByteArray, dstPos: Int, fromIndex: Int, toIndex: Int) {
+  when (this) {
+    is ByteArraySegment -> data.copyInto(dst, dstPos, fromIndex, toIndex)
+    else -> {
+      var idx = dstPos
+      forEach(fromIndex, toIndex) { dst[idx++] = it }
+    }
+  }
+}
 
 /**
  * Returns true if the range within this buffer starting at `segmentPos` in `segment` is equal to
@@ -49,18 +59,16 @@ internal fun rangeEquals(
   var segment = segment
   var segmentPos = segmentPos
   var segmentLimit = segment.limit
-  var data = segment.data
 
   var i = bytesOffset
   while (i < bytesLimit) {
     if (segmentPos == segmentLimit) {
       segment = segment.next!!
-      data = segment.data
       segmentPos = segment.pos
       segmentLimit = segment.limit
     }
 
-    if (data[segmentPos] != bytes[i]) {
+    if (segment[segmentPos] != bytes[i]) {
       return false
     }
 
@@ -135,7 +143,7 @@ internal fun Buffer.selectPrefix(options: Options, selectTruncated: Boolean = fa
   val head = head ?: return if (selectTruncated) -2 else -1
 
   var s: Segment? = head
-  var data = head.data
+  //var data = head.data
   var pos = head.pos
   var limit = head.limit
 
@@ -162,15 +170,15 @@ internal fun Buffer.selectPrefix(options: Options, selectTruncated: Boolean = fa
       val scanByteCount = -1 * scanOrSelect
       val trieLimit = triePos + scanByteCount
       while (true) {
-        val byte = data[pos++] and 0xff
+        val byte = s!![pos++] and 0xff
         if (byte != trie[triePos++]) return prefixIndex // Fail 'cause we found a mismatch.
         val scanComplete = (triePos == trieLimit)
 
         // Advance to the next buffer segment if this one is exhausted.
         if (pos == limit) {
-          s = s!!.next!!
+          s = s.next!!
           pos = s.pos
-          data = s.data
+          //data = s.data
           limit = s.limit
           if (s === head) {
             if (!scanComplete) break@navigateTrie // We were exhausted before the scan completed.
@@ -186,7 +194,7 @@ internal fun Buffer.selectPrefix(options: Options, selectTruncated: Boolean = fa
     } else {
       // Select: take one byte from the buffer and find a match in the trie.
       val selectChoiceCount = scanOrSelect
-      val byte = data[pos++] and 0xff
+      val byte = s[pos++] and 0xff
       val selectLimit = triePos + selectChoiceCount
       while (true) {
         if (triePos == selectLimit) return prefixIndex // Fail 'cause we didn't find a match.
@@ -203,7 +211,7 @@ internal fun Buffer.selectPrefix(options: Options, selectTruncated: Boolean = fa
       if (pos == limit) {
         s = s.next!!
         pos = s.pos
-        data = s.data
+        //data = s.data
         limit = s.limit
         if (s === head) {
           s = null // No more segments! The next trie node will be our last.
@@ -282,8 +290,8 @@ internal inline fun Buffer.commonReadByte(): Byte {
   var pos = segment.pos
   val limit = segment.limit
 
-  val data = segment.data
-  val b = data[pos++]
+  // val data = segment.data
+  val b = segment[pos++]
   size -= 1L
 
   if (pos == limit) {
@@ -309,8 +317,8 @@ internal inline fun Buffer.commonReadShort(): Short {
     return s.toShort()
   }
 
-  val data = segment.data
-  val s = data[pos++] and 0xff shl 8 or (data[pos++] and 0xff)
+  //val data = segment.data
+  val s = segment[pos++] and 0xff shl 8 or (segment[pos++] and 0xff)
   size -= 2L
 
   if (pos == limit) {
@@ -340,12 +348,12 @@ internal inline fun Buffer.commonReadInt(): Int {
       )
   }
 
-  val data = segment.data
+//  val data = segment.data
   val i = (
-    data[pos++] and 0xff shl 24
-      or (data[pos++] and 0xff shl 16)
-      or (data[pos++] and 0xff shl 8)
-      or (data[pos++] and 0xff)
+    segment[pos++] and 0xff shl 24
+      or (segment[pos++] and 0xff shl 16)
+      or (segment[pos++] and 0xff shl 8)
+      or (segment[pos++] and 0xff)
     )
   size -= 4L
 
@@ -374,16 +382,16 @@ internal inline fun Buffer.commonReadLong(): Long {
       )
   }
 
-  val data = segment.data
+  //val data = segment.data
   val v = (
-    data[pos++] and 0xffL shl 56
-      or (data[pos++] and 0xffL shl 48)
-      or (data[pos++] and 0xffL shl 40)
-      or (data[pos++] and 0xffL shl 32)
-      or (data[pos++] and 0xffL shl 24)
-      or (data[pos++] and 0xffL shl 16)
-      or (data[pos++] and 0xffL shl 8) // ktlint-disable no-multi-spaces
-      or (data[pos++] and 0xffL)
+    segment[pos++] and 0xffL shl 56
+      or (segment[pos++] and 0xffL shl 48)
+      or (segment[pos++] and 0xffL shl 40)
+      or (segment[pos++] and 0xffL shl 32)
+      or (segment[pos++] and 0xffL shl 24)
+      or (segment[pos++] and 0xffL shl 16)
+      or (segment[pos++] and 0xffL shl 8) // ktlint-disable no-multi-spaces
+      or (segment[pos++] and 0xffL)
     )
   size -= 8L
 
@@ -400,7 +408,7 @@ internal inline fun Buffer.commonReadLong(): Long {
 internal inline fun Buffer.commonGet(pos: Long): Byte {
   checkOffsetAndCount(size, pos, 1L)
   seek(pos) { s, offset ->
-    return s!!.data[(s.pos + pos - offset).toInt()]
+    return s!![(s.pos + pos - offset).toInt()]
   }
 }
 
@@ -482,15 +490,15 @@ internal inline fun Buffer.commonWriteDecimalLong(v: Long): Buffer {
   }
 
   val tail = writableSegment(width)
-  val data = tail.data
+  //val data = tail.data
   var pos = tail.limit + width // We write backwards from right to left.
   while (v != 0L) {
     val digit = (v % 10).toInt()
-    data[--pos] = HEX_DIGIT_BYTES[digit]
+    tail[--pos] = HEX_DIGIT_BYTES[digit]
     v /= 10
   }
   if (negative) {
-    data[--pos] = '-'.code.toByte()
+    tail[--pos] = '-'.code.toByte()
   }
 
   tail.limit += width
@@ -528,11 +536,11 @@ internal inline fun Buffer.commonWriteHexadecimalUnsignedLong(v: Long): Buffer {
   val width = ((x + 3) / 4).toInt()
 
   val tail = writableSegment(width)
-  val data = tail.data
+  //val data = tail.data
   var pos = tail.limit + width - 1
   val start = tail.limit
   while (pos >= start) {
-    data[pos] = HEX_DIGIT_BYTES[(v and 0xF).toInt()]
+    tail[pos] = HEX_DIGIT_BYTES[(v and 0xF).toInt()]
     v = v ushr 4
     pos--
   }
@@ -574,12 +582,13 @@ internal inline fun Buffer.commonWrite(
     val tail = writableSegment(1)
 
     val toCopy = minOf(limit - offset, Segment.SIZE - tail.limit)
-    source.copyInto(
-      destination = tail.data,
-      destinationOffset = tail.limit,
-      startIndex = offset,
-      endIndex = offset + toCopy
-    )
+    when (tail) {
+      is ByteArraySegment -> source.copyInto(tail.data, tail.limit, offset, offset + toCopy)
+      else -> {
+        var idx = offset
+        tail.forEachSet(tail.limit, tail.limit + toCopy) { source[idx++] }
+      }
+    }
 
     offset += toCopy
     tail.limit += toCopy
@@ -616,9 +625,7 @@ internal inline fun Buffer.commonRead(sink: ByteArray, offset: Int, byteCount: I
 
   val s = head ?: return -1
   val toCopy = minOf(byteCount, s.limit - s.pos)
-  s.data.copyInto(
-    destination = sink, destinationOffset = offset, startIndex = s.pos, endIndex = s.pos + toCopy
-  )
+  s.copyInto(sink, offset, s.pos, s.pos + toCopy)
 
   s.pos += toCopy
   size -= toCopy.toLong()
@@ -648,12 +655,12 @@ internal inline fun Buffer.commonReadDecimalLong(): Long {
   do {
     val segment = head!!
 
-    val data = segment.data
+    //val data = segment.data
     var pos = segment.pos
     val limit = segment.limit
 
     while (pos < limit) {
-      val b = data[pos]
+      val b = segment[pos]
       if (b >= '0'.code.toByte() && b <= '9'.code.toByte()) {
         val digit = '0'.code.toByte() - b
 
@@ -707,14 +714,14 @@ internal inline fun Buffer.commonReadHexadecimalUnsignedLong(): Long {
   do {
     val segment = head!!
 
-    val data = segment.data
+    //val data = segment.data
     var pos = segment.pos
     val limit = segment.limit
 
     while (pos < limit) {
       val digit: Int
 
-      val b = data[pos]
+      val b = segment[pos]
       if (b >= '0'.code.toByte() && b <= '9'.code.toByte()) {
         digit = b - '0'.code.toByte()
       } else if (b >= 'a'.code.toByte() && b <= 'f'.code.toByte()) {
@@ -807,7 +814,14 @@ internal inline fun Buffer.commonReadUtf8(byteCount: Long): String {
     return readByteArray(byteCount).commonToUtf8String()
   }
 
-  val result = s.data.commonToUtf8String(s.pos, s.pos + byteCount.toInt())
+  val result = when (s) {
+    is ByteArraySegment -> s.data.commonToUtf8String(s.pos, s.pos + byteCount.toInt())
+    else -> {
+      val byteArray = ByteArray(byteCount.toInt())
+      s.copyInto(byteArray, 0, s.pos, s.pos + byteCount.toInt())
+      String(byteArray, Charsets.UTF_8)
+    }
+  }
   s.pos += byteCount.toInt()
   size -= byteCount
 
@@ -939,19 +953,19 @@ internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endI
     when {
       c < 0x80 -> {
         val tail = writableSegment(1)
-        val data = tail.data
+        //val data = tail.data
         val segmentOffset = tail.limit - i
         val runLimit = minOf(endIndex, Segment.SIZE - segmentOffset)
 
         // Emit a 7-bit character with 1 byte.
-        data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+        tail[segmentOffset + i++] = c.toByte() // 0xxxxxxx
 
         // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
         // improvement over independent calls to writeByte().
         while (i < runLimit) {
           c = string[i].code
           if (c >= 0x80) break
-          data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+          tail[segmentOffset + i++] = c.toByte() // 0xxxxxxx
         }
 
         val runSize = i + segmentOffset - tail.limit // Equivalent to i - (previous i).
@@ -963,8 +977,8 @@ internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endI
         // Emit a 11-bit character with 2 bytes.
         val tail = writableSegment(2)
         /* ktlint-disable no-multi-spaces */
-        tail.data[tail.limit    ] = (c shr 6          or 0xc0).toByte() // 110xxxxx
-        tail.data[tail.limit + 1] = (c       and 0x3f or 0x80).toByte() // 10xxxxxx
+        tail[tail.limit    ] = (c shr 6          or 0xc0).toByte() // 110xxxxx
+        tail[tail.limit + 1] = (c       and 0x3f or 0x80).toByte() // 10xxxxxx
         /* ktlint-enable no-multi-spaces */
         tail.limit += 2
         size += 2L
@@ -975,9 +989,9 @@ internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endI
         // Emit a 16-bit character with 3 bytes.
         val tail = writableSegment(3)
         /* ktlint-disable no-multi-spaces */
-        tail.data[tail.limit    ] = (c shr 12          or 0xe0).toByte() // 1110xxxx
-        tail.data[tail.limit + 1] = (c shr  6 and 0x3f or 0x80).toByte() // 10xxxxxx
-        tail.data[tail.limit + 2] = (c        and 0x3f or 0x80).toByte() // 10xxxxxx
+        tail[tail.limit    ] = (c shr 12          or 0xe0).toByte() // 1110xxxx
+        tail[tail.limit + 1] = (c shr  6 and 0x3f or 0x80).toByte() // 10xxxxxx
+        tail[tail.limit + 2] = (c        and 0x3f or 0x80).toByte() // 10xxxxxx
         /* ktlint-enable no-multi-spaces */
         tail.limit += 3
         size += 3L
@@ -1001,10 +1015,10 @@ internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endI
           // Emit a 21-bit character with 4 bytes.
           val tail = writableSegment(4)
           /* ktlint-disable no-multi-spaces */
-          tail.data[tail.limit    ] = (codePoint shr 18          or 0xf0).toByte() // 11110xxx
-          tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
-          tail.data[tail.limit + 2] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxyyyy
-          tail.data[tail.limit + 3] = (codePoint        and 0x3f or 0x80).toByte() // 10yyyyyy
+          tail[tail.limit    ] = (codePoint shr 18          or 0xf0).toByte() // 11110xxx
+          tail[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
+          tail[tail.limit + 2] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxyyyy
+          tail[tail.limit + 3] = (codePoint        and 0x3f or 0x80).toByte() // 10yyyyyy
           /* ktlint-enable no-multi-spaces */
           tail.limit += 4
           size += 4L
@@ -1027,8 +1041,8 @@ internal inline fun Buffer.commonWriteUtf8CodePoint(codePoint: Int): Buffer {
       // Emit a 11-bit code point with 2 bytes.
       val tail = writableSegment(2)
       /* ktlint-disable no-multi-spaces */
-      tail.data[tail.limit    ] = (codePoint shr 6          or 0xc0).toByte() // 110xxxxx
-      tail.data[tail.limit + 1] = (codePoint       and 0x3f or 0x80).toByte() // 10xxxxxx
+      tail[tail.limit    ] = (codePoint shr 6          or 0xc0).toByte() // 110xxxxx
+      tail[tail.limit + 1] = (codePoint       and 0x3f or 0x80).toByte() // 10xxxxxx
       /* ktlint-enable no-multi-spaces */
       tail.limit += 2
       size += 2L
@@ -1041,9 +1055,9 @@ internal inline fun Buffer.commonWriteUtf8CodePoint(codePoint: Int): Buffer {
       // Emit a 16-bit code point with 3 bytes.
       val tail = writableSegment(3)
       /* ktlint-disable no-multi-spaces */
-      tail.data[tail.limit    ] = (codePoint shr 12          or 0xe0).toByte() // 1110xxxx
-      tail.data[tail.limit + 1] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxxxxx
-      tail.data[tail.limit + 2] = (codePoint        and 0x3f or 0x80).toByte() // 10xxxxxx
+      tail[tail.limit    ] = (codePoint shr 12          or 0xe0).toByte() // 1110xxxx
+      tail[tail.limit + 1] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxxxxx
+      tail[tail.limit + 2] = (codePoint        and 0x3f or 0x80).toByte() // 10xxxxxx
       /* ktlint-enable no-multi-spaces */
       tail.limit += 3
       size += 3L
@@ -1052,10 +1066,10 @@ internal inline fun Buffer.commonWriteUtf8CodePoint(codePoint: Int): Buffer {
       // Emit a 21-bit code point with 4 bytes.
       val tail = writableSegment(4)
       /* ktlint-disable no-multi-spaces */
-      tail.data[tail.limit    ] = (codePoint shr 18          or 0xf0).toByte() // 11110xxx
-      tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
-      tail.data[tail.limit + 2] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxyyyy
-      tail.data[tail.limit + 3] = (codePoint        and 0x3f or 0x80).toByte() // 10yyyyyy
+      tail[tail.limit    ] = (codePoint shr 18          or 0xf0).toByte() // 11110xxx
+      tail[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
+      tail[tail.limit + 2] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxyyyy
+      tail[tail.limit + 3] = (codePoint        and 0x3f or 0x80).toByte() // 10yyyyyy
       /* ktlint-enable no-multi-spaces */
       tail.limit += 4
       size += 4L
@@ -1090,17 +1104,17 @@ internal inline fun Buffer.commonWrite(source: RawSource, byteCount: Long): Buff
 
 internal inline fun Buffer.commonWriteByte(b: Int): Buffer {
   val tail = writableSegment(1)
-  tail.data[tail.limit++] = b.toByte()
+  tail[tail.limit++] = b.toByte()
   size += 1L
   return this
 }
 
 internal inline fun Buffer.commonWriteShort(s: Int): Buffer {
   val tail = writableSegment(2)
-  val data = tail.data
+  //val data = tail.data
   var limit = tail.limit
-  data[limit++] = (s ushr 8 and 0xff).toByte()
-  data[limit++] = (s        and 0xff).toByte() // ktlint-disable no-multi-spaces
+  tail[limit++] = (s ushr 8 and 0xff).toByte()
+  tail[limit++] = (s        and 0xff).toByte() // ktlint-disable no-multi-spaces
   tail.limit = limit
   size += 2L
   return this
@@ -1108,12 +1122,12 @@ internal inline fun Buffer.commonWriteShort(s: Int): Buffer {
 
 internal inline fun Buffer.commonWriteInt(i: Int): Buffer {
   val tail = writableSegment(4)
-  val data = tail.data
+  //val data = tail.data
   var limit = tail.limit
-  data[limit++] = (i ushr 24 and 0xff).toByte()
-  data[limit++] = (i ushr 16 and 0xff).toByte()
-  data[limit++] = (i ushr  8 and 0xff).toByte() // ktlint-disable no-multi-spaces
-  data[limit++] = (i         and 0xff).toByte() // ktlint-disable no-multi-spaces
+  tail[limit++] = (i ushr 24 and 0xff).toByte()
+  tail[limit++] = (i ushr 16 and 0xff).toByte()
+  tail[limit++] = (i ushr  8 and 0xff).toByte() // ktlint-disable no-multi-spaces
+  tail[limit++] = (i         and 0xff).toByte() // ktlint-disable no-multi-spaces
   tail.limit = limit
   size += 4L
   return this
@@ -1121,16 +1135,16 @@ internal inline fun Buffer.commonWriteInt(i: Int): Buffer {
 
 internal inline fun Buffer.commonWriteLong(v: Long): Buffer {
   val tail = writableSegment(8)
-  val data = tail.data
+  //val data = tail.data
   var limit = tail.limit
-  data[limit++] = (v ushr 56 and 0xffL).toByte()
-  data[limit++] = (v ushr 48 and 0xffL).toByte()
-  data[limit++] = (v ushr 40 and 0xffL).toByte()
-  data[limit++] = (v ushr 32 and 0xffL).toByte()
-  data[limit++] = (v ushr 24 and 0xffL).toByte()
-  data[limit++] = (v ushr 16 and 0xffL).toByte()
-  data[limit++] = (v ushr  8 and 0xffL).toByte() // ktlint-disable no-multi-spaces
-  data[limit++] = (v         and 0xffL).toByte() // ktlint-disable no-multi-spaces
+  tail[limit++] = (v ushr 56 and 0xffL).toByte()
+  tail[limit++] = (v ushr 48 and 0xffL).toByte()
+  tail[limit++] = (v ushr 40 and 0xffL).toByte()
+  tail[limit++] = (v ushr 32 and 0xffL).toByte()
+  tail[limit++] = (v ushr 24 and 0xffL).toByte()
+  tail[limit++] = (v ushr 16 and 0xffL).toByte()
+  tail[limit++] = (v ushr  8 and 0xffL).toByte() // ktlint-disable no-multi-spaces
+  tail[limit++] = (v         and 0xffL).toByte() // ktlint-disable no-multi-spaces
   tail.limit = limit
   size += 8L
   return this
@@ -1252,11 +1266,11 @@ internal inline fun Buffer.commonIndexOf(b: Byte, fromIndex: Long, toIndex: Long
 
     // Scan through the segments, searching for b.
     while (offset < toIndex) {
-      val data = s.data
+      //val data = s.data
       val limit = minOf(s.limit.toLong(), s.pos + toIndex - offset).toInt()
       var pos = (s.pos + fromIndex - offset).toInt()
       while (pos < limit) {
-        if (data[pos] == b) {
+        if (s[pos] == b) {
           return pos - s.pos + offset
         }
         pos++
@@ -1404,7 +1418,7 @@ internal inline fun Buffer.commonEquals(other: Any?): Boolean {
     count = minOf(sa.limit - posA, sb.limit - posB).toLong()
 
     for (i in 0L until count) {
-      if (sa.data[posA++] != sb.data[posB++]) return false
+      if (sa[posA++] != sb[posB++]) return false
     }
 
     if (posA == sa.limit) {
@@ -1429,7 +1443,7 @@ internal inline fun Buffer.commonHashCode(): Int {
     var pos = s.pos
     val limit = s.limit
     while (pos < limit) {
-      result = 31 * result + s.data[pos]
+      result = 31 * result + s[pos]
       pos++
     }
     s = s.next!!
@@ -1526,7 +1540,11 @@ internal inline fun Buffer.commonString(byteCount: Int): String {
   segmentCount = 0
   s = head
   while (offset < byteCount) {
-    segments[segmentCount] = s!!.data
+    val seg = s!!
+    segments[segmentCount] = when (seg) {
+      is ByteArraySegment -> seg.data
+      else -> throw UnsupportedOperationException()
+    }
     offset += s.limit - s.pos
     // Despite sharing more bytes, only report having up to byteCount.
     directory[segmentCount] = minOf(offset, byteCount)
@@ -1589,7 +1607,7 @@ internal inline fun UnsafeCursor.commonSeek(offset: Long): Int {
   if (offset == -1L || offset == buffer.size) {
     this.segment = null
     this.offset = offset
-    this.data = null
+    // this.data = null
     this.start = -1
     this.end = -1
     return -1
@@ -1646,8 +1664,8 @@ internal inline fun UnsafeCursor.commonSeek(offset: Long): Int {
   // Update this cursor to the requested offset within the found segment.
   this.segment = next
   this.offset = offset
-  this.data = next!!.data
-  this.start = next.pos + (offset - nextOffset).toInt()
+  //this.data = next!!.data
+  this.start = next!!.pos + (offset - nextOffset).toInt()
   this.end = next.limit
   return end - start
 }
@@ -1676,7 +1694,7 @@ internal inline fun UnsafeCursor.commonResizeBuffer(newSize: Long): Long {
     // Seek to the end.
     this.segment = null
     this.offset = newSize
-    this.data = null
+    // this.data = null
     this.start = -1
     this.end = -1
   } else if (newSize > oldSize) {
@@ -1693,7 +1711,7 @@ internal inline fun UnsafeCursor.commonResizeBuffer(newSize: Long): Long {
       if (needsToSeek) {
         this.segment = tail
         this.offset = oldSize
-        this.data = tail.data
+        //this.data = tail.data
         this.start = tail.limit - segmentBytesToAdd
         this.end = tail.limit
         needsToSeek = false
@@ -1721,7 +1739,7 @@ internal inline fun UnsafeCursor.commonExpandBuffer(minByteCount: Int): Long {
   // Seek to the old size.
   this.segment = tail
   this.offset = oldSize
-  this.data = tail.data
+  // this.data = tail.data
   this.start = Segment.SIZE - result
   this.end = Segment.SIZE
 
@@ -1735,7 +1753,7 @@ internal inline fun UnsafeCursor.commonClose() {
   buffer = null
   segment = null
   offset = -1L
-  data = null
+  // data = null
   start = -1
   end = -1
 }

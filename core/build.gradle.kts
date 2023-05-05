@@ -17,7 +17,7 @@ kotlin {
         }
     }
 
-    configureNativePlatforms()
+    // configureNativePlatforms()
     sourceSets {
         val commonMain by getting
         val commonTest by getting {
@@ -28,8 +28,8 @@ kotlin {
         val jvmMain by getting
         val jvmTest by getting
 
-        createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
-        createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
+        // createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
+        // createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
     }
 
     // TODO quite a lot of effort, should be done after the initial set of API is migrated

@@ -37,8 +37,9 @@ import kotlin.jvm.JvmField
  * `limit` and beyond. There is a single owning segment for each byte array. Positions,
  * limits, prev, and next references are not shared.
  */
-internal class Segment {
-  @JvmField val data: ByteArray
+
+internal abstract class Segment {
+  //abstract val data: ByteArray
 
   /** The next byte of application data byte to read in this segment. */
   @JvmField var pos: Int = 0
@@ -63,14 +64,17 @@ internal class Segment {
   /** Previous segment in a circularly-linked list. */
   @JvmField var prev: Segment? = null
 
+  abstract operator fun get(idx: Int): Byte
+  abstract operator fun set(idx: Int, byte: Byte)
+
   constructor() {
-    this.data = ByteArray(SIZE)
+    // this.data = ByteArray(SIZE)
     this.owner = true
     this.shared = false
   }
 
-  constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
-    this.data = data
+  constructor(/*data: ByteArray, */pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
+    // this.data = data
     this.pos = pos
     this.limit = limit
     this.shared = shared
@@ -82,13 +86,15 @@ internal class Segment {
    * are safe but writes are forbidden. This also marks the current segment as shared, which
    * prevents it from being pooled.
    */
-  fun sharedCopy(): Segment {
-    shared = true
-    return Segment(data, pos, limit, true, false)
-  }
+//  fun sharedCopy(): Segment {
+//    shared = true
+//    return Segment(data, pos, limit, true, false)
+//  }
+  abstract fun sharedCopy(): Segment
 
   /** Returns a new segment that its own private copy of the underlying byte array.  */
-  fun unsharedCopy() = Segment(data.copyOf(), pos, limit, false, true)
+//  fun unsharedCopy() = Segment(data.copyOf(), pos, limit, false, true)
+  abstract fun unsharedCopy(): Segment
 
   /**
    * Removes this segment of a circularly-linked list and returns its successor.
@@ -135,7 +141,8 @@ internal class Segment {
       prefix = sharedCopy()
     } else {
       prefix = SegmentPool.take()
-      data.copyInto(prefix.data, startIndex = pos, endIndex = pos + byteCount)
+//      data.copyInto(prefix.data, startIndex = pos, endIndex = pos + byteCount)
+      copyInto(prefix, pos, pos + byteCount)
     }
 
     prefix.limit = prefix.pos + byteCount
@@ -166,15 +173,17 @@ internal class Segment {
       // We can't fit byteCount bytes at the sink's current position. Shift sink first.
       if (sink.shared) throw IllegalArgumentException()
       if (sink.limit + byteCount - sink.pos > SIZE) throw IllegalArgumentException()
-      sink.data.copyInto(sink.data, startIndex = sink.pos, endIndex = sink.limit)
+//      sink.data.copyInto(sink.data, startIndex = sink.pos, endIndex = sink.limit)
+      sink.copyInto(sink, sink.pos, sink.limit)
       sink.limit -= sink.pos
       sink.pos = 0
     }
 
-    data.copyInto(
-      sink.data, destinationOffset = sink.limit, startIndex = pos,
-      endIndex = pos + byteCount
-    )
+//    data.copyInto(
+//      sink.data, destinationOffset = sink.limit, startIndex = pos,
+//      endIndex = pos + byteCount
+//    )
+    copyInto(sink, sink.limit, pos, pos + byteCount)
     sink.limit += byteCount
     pos += byteCount
   }
@@ -187,3 +196,40 @@ internal class Segment {
     const val SHARE_MINIMUM = 1024
   }
 }
+
+internal inline fun Segment.forEach(from: Int = pos, to: Int = limit, lambda: (Byte) -> Unit) {
+  for (idx in pos until limit) lambda(this[idx])
+}
+
+internal inline fun Segment.forEachSet(from: Int = pos, to: Int = limit, lambda: () -> Byte) {
+  for (idx in pos until limit) this[idx] = lambda()
+}
+
+internal class ByteArraySegment : Segment {
+  val data: ByteArray
+
+  constructor() {
+    data = ByteArray(SIZE)
+  }
+
+  constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean)
+          : super(pos, limit, shared, owner) {
+    this.data = data
+  }
+
+  override fun get(idx: Int): Byte = data[idx]
+
+  override fun set(idx: Int, byte: Byte) {
+    data[idx] = byte
+  }
+
+  override fun sharedCopy(): Segment {
+    shared = true
+    return ByteArraySegment(data, pos, limit, true, false)
+  }
+
+  override fun unsharedCopy(): Segment = ByteArraySegment(data.copyOf(), pos, limit, false, true)
+}
+
+internal expect fun Segment.copyInto(dst: Segment, dstOffset: Int, startIndex: Int, endIndex: Int)
+internal expect fun Segment.copyInto(dst: Segment, startIndex: Int, endIndex: Int)

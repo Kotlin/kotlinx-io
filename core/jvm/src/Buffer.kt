@@ -33,6 +33,78 @@ import java.security.InvalidKeyException
 import java.security.MessageDigest
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
+import kotlin.math.sign
+
+internal inline fun OutputStream.write(segment: Segment, fromIndex: Int, bytesCount: Int) {
+  when (segment) {
+    is ByteArraySegment -> this.write(segment.data, fromIndex, bytesCount)
+    else -> segment.forEach(fromIndex, fromIndex + bytesCount) { this.write(it.toInt()) }
+  }
+}
+
+internal inline fun InputStream.read(segment: Segment, fromIndex: Int, byteCount: Int): Int {
+  return when (segment) {
+    is ByteArraySegment -> this.read(segment.data, fromIndex, byteCount)
+    else -> {
+      var bytesRead = 0
+      for (idx in fromIndex until fromIndex + byteCount) {
+        val b = read()
+        if (b == -1) break
+        bytesRead++
+        segment[idx] = b.toByte()
+      }
+      bytesRead
+    }
+  }
+}
+
+internal inline fun ByteBuffer.put(segment: Segment, fromIndex: Int, byteCount: Int) {
+  when (segment) {
+    is ByteArraySegment -> this.put(segment.data, fromIndex, byteCount)
+    else -> segment.forEach(fromIndex, fromIndex + byteCount) { this.put(it) }
+  }
+}
+
+internal inline fun ByteBuffer.get(segment: Segment, fromIndex: Int, byteCount: Int) {
+  when (segment) {
+    is ByteArraySegment -> this.get(segment.data, fromIndex, byteCount)
+    else -> segment.forEachSet(fromIndex, fromIndex + byteCount) {
+      return@forEachSet this.get()
+    }
+  }
+}
+
+internal actual fun Segment.copyInto(dst: Segment, dstOffset: Int, startIndex: Int, endIndex: Int) {
+  var startIndex = startIndex
+  when (this) {
+    is ByteArraySegment -> when (dst) {
+      is ByteArraySegment -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      else -> dst.forEachSet(dstOffset, dstOffset + endIndex - startIndex) { data[startIndex++] }
+    }
+    else -> dst.forEachSet(dstOffset, dstOffset + endIndex - startIndex) { this[startIndex++] }
+  }
+}
+
+internal actual fun Segment.copyInto(dst: Segment, startIndex: Int, endIndex: Int) {
+  copyInto(dst, 0, startIndex, endIndex)
+}
+
+internal fun Segment.messageDigest(digest: MessageDigest) {
+  when (this) {
+    is ByteArraySegment -> digest.update(data, pos, limit - pos)
+    else -> forEach { digest.update(it) }
+  }
+}
+
+internal fun Segment.toString(fromIndex: Int, byteCount: Int, charset: Charset): String = when (this) {
+  is ByteArraySegment -> String(data, fromIndex, byteCount, charset)
+  else -> {
+    val byteArray = ByteArray(byteCount)
+    var idx = 0
+    forEach(fromIndex, fromIndex + byteCount) { byteArray[idx++] = it }
+    String(byteArray, charset)
+  }
+}
 
 actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   @JvmField internal actual var head: Segment? = null
@@ -126,7 +198,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     while (byteCount > 0L) {
       val pos = (s!!.pos + offset).toInt()
       val toCopy = minOf(s.limit - pos, byteCount).toInt()
-      out.write(s.data, pos, toCopy)
+      out.write(s, pos, toCopy)
       byteCount -= toCopy.toLong()
       offset = 0L
       s = s.next
@@ -156,7 +228,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     var s = head
     while (byteCount > 0L) {
       val toCopy = minOf(byteCount, s!!.limit - s.pos).toInt()
-      out.write(s.data, s.pos, toCopy)
+      out.write(s, s.pos, toCopy)
 
       s.pos += toCopy
       size -= toCopy.toLong()
@@ -194,7 +266,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     while (byteCount > 0L || forever) {
       val tail = writableSegment(1)
       val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()
-      val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
+      val bytesRead = input.read(tail, tail.limit, maxToCopy)
       if (bytesRead == -1) {
         if (tail.pos == tail.limit) {
           // We allocated a tail segment, but didn't end up needing it. Recycle!
@@ -274,7 +346,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
       return String(readByteArray(byteCount), charset)
     }
 
-    val result = String(s.data, s.pos, byteCount.toInt(), charset)
+    val result = s.toString(s.pos, byteCount.toInt(), charset)
     s.pos += byteCount.toInt()
     size -= byteCount
 
@@ -316,7 +388,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     val s = head ?: return -1
 
     val toCopy = minOf(sink.remaining(), s.limit - s.pos)
-    sink.put(s.data, s.pos, toCopy)
+    sink.put(s, s.pos, toCopy)
 
     s.pos += toCopy
     size -= toCopy.toLong()
@@ -382,7 +454,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
       val tail = writableSegment(1)
 
       val toCopy = minOf(remaining, Segment.SIZE - tail.limit)
-      source.get(tail.data, tail.limit, toCopy)
+      source.get(tail, tail.limit, toCopy)
 
       remaining -= toCopy
       tail.limit += toCopy
@@ -489,10 +561,10 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   private fun digest(algorithm: String): ByteString {
     val messageDigest = MessageDigest.getInstance(algorithm)
     head?.let { head ->
-      messageDigest.update(head.data, head.pos, head.limit - head.pos)
+      head.messageDigest(messageDigest)
       var s = head.next!!
       while (s !== head) {
-        messageDigest.update(s.data, s.pos, s.limit - s.pos)
+        s.messageDigest(messageDigest)
         s = s.next!!
       }
     }
@@ -558,7 +630,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
     internal actual var segment: Segment? = null
     @JvmField actual var offset = -1L
-    @JvmField actual var data: ByteArray? = null
+    // @JvmField actual var data: ByteArray? = null
     @JvmField actual var start = -1
     @JvmField actual var end = -1
 

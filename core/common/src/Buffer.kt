@@ -350,7 +350,7 @@ expect class Buffer() : Source, Sink {
 
     internal var segment: Segment?
     @JvmField var offset: Long
-    @JvmField var data: ByteArray?
+    //@JvmField var data: ByteArray?
     @JvmField var start: Int
     @JvmField var end: Int
 
