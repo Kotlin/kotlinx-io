@@ -38,6 +38,9 @@ import kotlin.math.sign
 internal inline fun OutputStream.write(segment: Segment, fromIndex: Int, bytesCount: Int) {
   when (segment) {
     is ByteArraySegment -> this.write(segment.data, fromIndex, bytesCount)
+    is ByteArraySegment2 -> this.write(segment.data, fromIndex, bytesCount)
+    is ByteArraySegment3 -> this.write(segment.data, fromIndex, bytesCount)
+    is ByteArraySegment4 -> this.write(segment.data, fromIndex, bytesCount)
     else -> segment.forEach(fromIndex, fromIndex + bytesCount) { this.write(it.toInt()) }
   }
 }
@@ -45,6 +48,9 @@ internal inline fun OutputStream.write(segment: Segment, fromIndex: Int, bytesCo
 internal inline fun InputStream.read(segment: Segment, fromIndex: Int, byteCount: Int): Int {
   return when (segment) {
     is ByteArraySegment -> this.read(segment.data, fromIndex, byteCount)
+    is ByteArraySegment2 -> this.read(segment.data, fromIndex, byteCount)
+    is ByteArraySegment3 -> this.read(segment.data, fromIndex, byteCount)
+    is ByteArraySegment4 -> this.read(segment.data, fromIndex, byteCount)
     else -> {
       var bytesRead = 0
       for (idx in fromIndex until fromIndex + byteCount) {
@@ -61,6 +67,9 @@ internal inline fun InputStream.read(segment: Segment, fromIndex: Int, byteCount
 internal inline fun ByteBuffer.put(segment: Segment, fromIndex: Int, byteCount: Int) {
   when (segment) {
     is ByteArraySegment -> this.put(segment.data, fromIndex, byteCount)
+    is ByteArraySegment2 -> this.put(segment.data, fromIndex, byteCount)
+    is ByteArraySegment3 -> this.put(segment.data, fromIndex, byteCount)
+    is ByteArraySegment4 -> this.put(segment.data, fromIndex, byteCount)
     else -> segment.forEach(fromIndex, fromIndex + byteCount) { this.put(it) }
   }
 }
@@ -68,6 +77,9 @@ internal inline fun ByteBuffer.put(segment: Segment, fromIndex: Int, byteCount: 
 internal inline fun ByteBuffer.get(segment: Segment, fromIndex: Int, byteCount: Int) {
   when (segment) {
     is ByteArraySegment -> this.get(segment.data, fromIndex, byteCount)
+    is ByteArraySegment2 -> this.get(segment.data, fromIndex, byteCount)
+    is ByteArraySegment3 -> this.get(segment.data, fromIndex, byteCount)
+    is ByteArraySegment4 -> this.get(segment.data, fromIndex, byteCount)
     else -> segment.forEachSet(fromIndex, fromIndex + byteCount) {
       return@forEachSet this.get()
     }
@@ -79,6 +91,30 @@ internal actual fun Segment.copyInto(dst: Segment, dstOffset: Int, startIndex: I
   when (this) {
     is ByteArraySegment -> when (dst) {
       is ByteArraySegment -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment2 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment3 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment4 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      else -> dst.forEachSet(dstOffset, dstOffset + endIndex - startIndex) { data[startIndex++] }
+    }
+    is ByteArraySegment2 -> when (dst) {
+      is ByteArraySegment -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment2 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment3 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment4 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      else -> dst.forEachSet(dstOffset, dstOffset + endIndex - startIndex) { data[startIndex++] }
+    }
+    is ByteArraySegment3 -> when (dst) {
+      is ByteArraySegment -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment2 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment3 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment4 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      else -> dst.forEachSet(dstOffset, dstOffset + endIndex - startIndex) { data[startIndex++] }
+    }
+    is ByteArraySegment4 -> when (dst) {
+      is ByteArraySegment -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment2 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment3 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
+      is ByteArraySegment4 -> data.copyInto(dst.data, dstOffset, startIndex, endIndex)
       else -> dst.forEachSet(dstOffset, dstOffset + endIndex - startIndex) { data[startIndex++] }
     }
     else -> dst.forEachSet(dstOffset, dstOffset + endIndex - startIndex) { this[startIndex++] }
@@ -92,12 +128,18 @@ internal actual fun Segment.copyInto(dst: Segment, startIndex: Int, endIndex: In
 internal fun Segment.messageDigest(digest: MessageDigest) {
   when (this) {
     is ByteArraySegment -> digest.update(data, pos, limit - pos)
+    is ByteArraySegment2 -> digest.update(data, pos, limit - pos)
+    is ByteArraySegment3 -> digest.update(data, pos, limit - pos)
+    is ByteArraySegment4 -> digest.update(data, pos, limit - pos)
     else -> forEach { digest.update(it) }
   }
 }
 
 internal fun Segment.toString(fromIndex: Int, byteCount: Int, charset: Charset): String = when (this) {
   is ByteArraySegment -> String(data, fromIndex, byteCount, charset)
+  is ByteArraySegment2 -> String(data, fromIndex, byteCount, charset)
+  is ByteArraySegment3 -> String(data, fromIndex, byteCount, charset)
+  is ByteArraySegment4 -> String(data, fromIndex, byteCount, charset)
   else -> {
     val byteArray = ByteArray(byteCount)
     var idx = 0
@@ -105,6 +147,31 @@ internal fun Segment.toString(fromIndex: Int, byteCount: Int, charset: Charset):
     String(byteArray, charset)
   }
 }
+actual inline fun Segment.copyInto(dst: ByteArray, dstPos: Int, fromIndex: Int, toIndex: Int) {
+  when (this) {
+    is ByteArraySegment -> data.copyInto(dst, dstPos, fromIndex, toIndex)
+    is ByteArraySegment2 -> data.copyInto(dst, dstPos, fromIndex, toIndex)
+    is ByteArraySegment3 -> data.copyInto(dst, dstPos, fromIndex, toIndex)
+    is ByteArraySegment4 -> data.copyInto(dst, dstPos, fromIndex, toIndex)
+    else -> {
+      var idx = dstPos
+      forEach(fromIndex, toIndex) { dst[idx++] = it }
+    }
+  }
+}
+actual inline fun ByteArray.copyInfo(dst: Segment, offset: Int, toCopy: Int) {
+  when (dst) {
+    is ByteArraySegment -> this.copyInto(dst.data, dst.limit, offset, offset + toCopy)
+    is ByteArraySegment2 -> this.copyInto(dst.data, dst.limit, offset, offset + toCopy)
+    is ByteArraySegment3 -> this.copyInto(dst.data, dst.limit, offset, offset + toCopy)
+    is ByteArraySegment4 -> this.copyInto(dst.data, dst.limit, offset, offset + toCopy)
+    else -> {
+      var idx = offset
+      dst.forEachSet(dst.limit, dst.limit + toCopy) { this[idx++] }
+    }
+  }
+}
+
 
 actual class Buffer actual constructor(actual val pool: SegmentPool) : Source, Sink, Cloneable, ByteChannel {
   @JvmField internal actual var head: Segment? = null

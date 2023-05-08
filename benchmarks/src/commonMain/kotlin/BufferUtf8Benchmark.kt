@@ -13,7 +13,7 @@ import kotlinx.benchmark.*
 import kotlinx.io.Buffer
 
 @State(Scope.Benchmark)
-open class BufferUtf8Benchmark {
+open class BufferUtf8Benchmark : BufferBenchmarkBase() {
     private val strings = mapOf(
     "ascii" to
     "Um, I'll tell you the problem with the scientific power that you're using here, "
@@ -44,8 +44,6 @@ open class BufferUtf8Benchmark {
     "4bytes" to "\ud835\udeca",
     // high surrogate, 'a', low surrogate, and 'a'
     "bad" to "\ud800\u0061\udc00\u0061")
-
-    private val buffer = Buffer()
 
     @Param("20", "2000", "200000")
     var length = 0

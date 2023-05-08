@@ -10,8 +10,7 @@ import kotlinx.io.Buffer
 import kotlinx.io.ByteString
 
 @State(Scope.Benchmark)
-open class MessageDigestBenchmark {
-    private val buffer = Buffer()
+open class MessageDigestBenchmark : BufferBenchmarkBase() {
     private var digestFunction: Buffer.() -> ByteString = {ByteString.EMPTY}
 
     @Param("0", "1", "16", "1024", "8196", "10000")
@@ -20,9 +19,12 @@ open class MessageDigestBenchmark {
     @Param("MD5", "SHA-1", "SHA-256", "SHA-512")
     var algorithm: String = ""
 
+    override fun afterBufferSetup() {
+        buffer.write(ByteArray(size) {it.toByte()})
+    }
+
     @Setup
     fun fillBuffer() {
-        buffer.write(ByteArray(size) {it.toByte()})
         digestFunction = when (algorithm) {
             "MD5" -> Buffer::md5
             "SHA-1" -> Buffer::sha1

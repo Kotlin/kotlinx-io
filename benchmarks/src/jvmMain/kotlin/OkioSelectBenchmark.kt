@@ -15,7 +15,7 @@ import kotlinx.io.ByteString.Companion.encodeUtf8
 import kotlin.random.Random
 
 @State(Scope.Benchmark)
-open class OkioSelectBenchmark {
+open class OkioSelectBenchmark : BufferBenchmarkBase() {
     /** Representative sample field names as one might find in a JSON document.  */
     private val sampleValues: List<String> = listOf(
         "id", "name", "description", "type", "sku_ids",
@@ -39,7 +39,6 @@ open class OkioSelectBenchmark {
     @Param("2048")
     var selectCount = 0
 
-    private var buffer = Buffer()
     private var options = Options.of()
     private var sampleData = ByteArray(0)
 

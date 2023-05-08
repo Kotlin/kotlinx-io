@@ -5,12 +5,33 @@
 package kotlinx.io.benchmark
 
 import kotlinx.benchmark.*
-import kotlinx.io.Buffer
+import kotlinx.io.*
+import org.openjdk.jmh.annotations.Level
+import org.openjdk.jmh.infra.IterationParams
+import org.openjdk.jmh.runner.IterationType
 
 @State(Scope.Benchmark)
-open class PrimitiveOps {
-    private val buffer = Buffer()
+abstract class BufferBenchmarkBase {
+    protected var buffer = Buffer()
 
+    @Param("false")
+    var useRandomPool: Boolean = false;
+
+    @Setup(Level.Iteration)
+    fun setupBuffer(params: IterationParams) {
+        buffer = when  {
+            params.type == IterationType.WARMUP && useRandomPool -> Buffer(randomSegmentPool)
+            else -> Buffer(DefaultSegmentPool)
+        }
+        afterBufferSetup()
+    }
+
+    open fun afterBufferSetup() {
+    }
+}
+
+@State(Scope.Benchmark)
+open class PrimitiveOps : BufferBenchmarkBase() {
     @Benchmark
     fun readWriteByte() = buffer.writeByte(42).readByte()
 
@@ -62,6 +83,7 @@ open class PrimitiveOps {
     @Benchmark
     fun writeLong() {
         buffer.writeLong(42)
+        buffer.clear()
     }
 
     @Benchmark
@@ -94,9 +116,7 @@ open class PrimitiveOps {
 }
 
 @State(Scope.Benchmark)
-open class CopyBuffer {
-    private val buffer = Buffer()
-
+open class CopyBuffer : BufferBenchmarkBase() {
     @Param("0", "1", "8192", "10000", "40000")
     var size: Int = 0
 
@@ -110,8 +130,7 @@ open class CopyBuffer {
 }
 
 @State(Scope.Benchmark)
-open class ByteArrayOps {
-    private val buffer = Buffer()
+open class ByteArrayOps : BufferBenchmarkBase() {
     private var array = ByteArray(0)
 
     @Param("0", "1", "8192", "10000", "40000")
@@ -131,9 +150,7 @@ open class ByteArrayOps {
 }
 
 @State(Scope.Benchmark)
-open class Utf8CodePointOps {
-    private val buffer = Buffer()
-
+open class Utf8CodePointOps : BufferBenchmarkBase() {
     @Benchmark
     fun ascii() = buffer.writeUtf8CodePoint('a'.code).readUtf8CodePoint()
 
@@ -152,9 +169,19 @@ open class ReadWholeBuffer {
     @Param("0", "1", "8196", "10000", "40000")
     var size: Int = 0
 
-    @Setup
-    fun setupSource() {
-        source = Buffer().write(ByteArray(size))
+    @Setup(Level.Iteration)
+    fun setupSource(iterationParams: IterationParams) {
+        when (iterationParams.type) {
+            IterationType.WARMUP -> {
+                source = Buffer(randomSegmentPool)
+                destination = Buffer(randomSegmentPool)
+            }
+            else -> {
+                source = Buffer(DefaultSegmentPool)
+                destination = Buffer(DefaultSegmentPool)
+            }
+        }
+        source = source.write(ByteArray(size))
     }
 
     @Benchmark

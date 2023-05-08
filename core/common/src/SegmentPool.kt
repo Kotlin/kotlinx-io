@@ -40,4 +40,4 @@ interface SegmentPool {
   fun recycle(segment: Segment)
 }
 
-internal expect val DefaultSegmentPool: SegmentPool
+expect val DefaultSegmentPool: SegmentPool

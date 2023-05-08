@@ -21,6 +21,7 @@
 package kotlinx.io
 
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.random.Random
 
 /**
  * This class pools segments in a lock-free singly-linked stack. Though this code is lock-free it
@@ -103,7 +104,10 @@ internal class ByteArraySegmentPool : SegmentPool {
   //@JvmStatic
   override fun recycle(segment: Segment) {
     require(segment.next == null && segment.prev == null)
-    require(segment is ByteArraySegment)
+    if (segment !is ByteArraySegment) {
+      segment.pos = 0
+      return
+    }
     if (segment.shared) return // This segment cannot be recycled.
 
     val firstRef = firstRef()
@@ -130,4 +134,4 @@ internal class ByteArraySegmentPool : SegmentPool {
   }
 }
 
-internal actual val DefaultSegmentPool: SegmentPool = ByteArraySegmentPool()
+actual val DefaultSegmentPool: SegmentPool = ByteArraySegmentPool()

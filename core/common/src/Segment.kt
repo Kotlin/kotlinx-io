@@ -167,7 +167,8 @@ abstract class Segment {
     if (byteCount > availableByteCount) return // Cannot compact: not enough writable space.
     writeTo(prev!!, byteCount)
     pop()
-    pool.recycle(this)
+    //pool.recycle(this)
+    recycle()
   }
 
   /** Moves `byteCount` bytes from this segment to `sink`.  */
@@ -196,6 +197,30 @@ abstract class Segment {
     pool.recycle(this)
   }
 
+  open fun readLong(): Long {
+    var p = pos
+    return ((this[p++] and 0xffL shl 56)
+            or (this[p++] and 0xffL shl 48)
+            or (this[p++] and 0xffL shl 40)
+            or (this[p++] and 0xffL shl 32)
+            or (this[p++] and 0xffL shl 24)
+            or (this[p++] and 0xffL shl 16)
+            or (this[p++] and 0xffL shl 8)
+            or (this[p++] and 0xffL))
+  }
+
+  open fun writeLong(v: Long) {
+    var p = limit
+    this[p++] = (v ushr 56 and 0xffL).toByte()
+    this[p++] = (v ushr 48 and 0xffL).toByte()
+    this[p++] = (v ushr 40 and 0xffL).toByte()
+    this[p++] = (v ushr 32 and 0xffL).toByte()
+    this[p++] = (v ushr 24 and 0xffL).toByte()
+    this[p++] = (v ushr 16 and 0xffL).toByte()
+    this[p++] = (v ushr 8  and 0xffL).toByte()
+    this[p++] = (v         and 0xffL).toByte()
+  }
+
   companion object {
     /** The size of all segments in bytes.  */
     const val SIZE = 8192
@@ -205,15 +230,15 @@ abstract class Segment {
   }
 }
 
-internal inline fun Segment.forEach(from: Int = pos, to: Int = limit, lambda: (Byte) -> Unit) {
+inline fun Segment.forEach(from: Int = pos, to: Int = limit, lambda: (Byte) -> Unit) {
   for (idx in pos until limit) lambda(this[idx])
 }
 
-internal inline fun Segment.forEachSet(from: Int = pos, to: Int = limit, lambda: () -> Byte) {
+inline fun Segment.forEachSet(from: Int = pos, to: Int = limit, lambda: () -> Byte) {
   for (idx in pos until limit) this[idx] = lambda()
 }
 
-internal class ByteArraySegment : Segment {
+class ByteArraySegment : Segment {
   val data: ByteArray
 
   constructor(pool: SegmentPool) : super(pool) {
@@ -237,7 +262,34 @@ internal class ByteArraySegment : Segment {
   }
 
   override fun unsharedCopy(): Segment = ByteArraySegment(data.copyOf(), pos, limit, false, true, pool)
+
+  override fun readLong(): Long {
+    var p = pos
+    return (data[p++] and 0xffL shl 56).
+    or (data[p++] and 0xffL shl 48).
+    or (data[p++] and 0xffL shl 40).
+    or (data[p++] and 0xffL shl 32).
+    or (data[p++] and 0xffL shl 24).
+    or (data[p++] and 0xffL shl 16).
+    or (data[p++] and 0xffL shl 8).
+    or (data[p] and 0xffL)
+  }
+
+  override fun writeLong(v: Long) {
+    var p = limit
+    data[p++] = (v ushr 56 and 0xffL).toByte()
+    data[p++] = (v ushr 48 and 0xffL).toByte()
+    data[p++] = (v ushr 40 and 0xffL).toByte()
+    data[p++] = (v ushr 32 and 0xffL).toByte()
+    data[p++] = (v ushr 24 and 0xffL).toByte()
+    data[p++] = (v ushr 16 and 0xffL).toByte()
+    data[p++] = (v ushr 8 and 0xffL).toByte()
+    data[p] = (v and 0xffL).toByte()
+  }
 }
 
 internal expect fun Segment.copyInto(dst: Segment, dstOffset: Int, startIndex: Int, endIndex: Int)
 internal expect fun Segment.copyInto(dst: Segment, startIndex: Int, endIndex: Int)
+
+internal expect inline fun Segment.copyInto(dst: ByteArray, dstPos: Int, fromIndex: Int, toIndex: Int)
+internal expect inline fun ByteArray.copyInfo(dst: Segment, offset: Int, toCopy: Int)

@@ -10,9 +10,7 @@ import kotlinx.io.*
 import kotlinx.io.ByteString.Companion.encodeUtf8
 
 @State(Scope.Benchmark)
-open class SelectBenchmark {
-    private val buffer = Buffer()
-
+open class SelectBenchmark : BufferBenchmarkBase() {
     private val shortOptions = Options.of(
         " ".encodeUtf8(), ",".encodeUtf8(),
         ".".encodeUtf8(), ":".encodeUtf8(),

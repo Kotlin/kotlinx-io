@@ -35,6 +35,7 @@ internal val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
 /** Create SegmentedByteString when size is greater than this many bytes.  */
 internal const val SEGMENTING_THRESHOLD = 4096
 
+/*
 internal inline fun Segment.copyInto(dst: ByteArray, dstPos: Int, fromIndex: Int, toIndex: Int) {
   when (this) {
     is ByteArraySegment -> data.copyInto(dst, dstPos, fromIndex, toIndex)
@@ -44,6 +45,7 @@ internal inline fun Segment.copyInto(dst: ByteArray, dstPos: Int, fromIndex: Int
     }
   }
 }
+ */
 
 /**
  * Returns true if the range within this buffer starting at `segmentPos` in `segment` is equal to
@@ -383,7 +385,9 @@ internal inline fun Buffer.commonReadLong(): Long {
   }
 
   //val data = segment.data
-  val v = (
+  val v = segment.readLong()
+  pos += 8
+    /*(
     segment[pos++] and 0xffL shl 56
       or (segment[pos++] and 0xffL shl 48)
       or (segment[pos++] and 0xffL shl 40)
@@ -392,7 +396,7 @@ internal inline fun Buffer.commonReadLong(): Long {
       or (segment[pos++] and 0xffL shl 16)
       or (segment[pos++] and 0xffL shl 8) // ktlint-disable no-multi-spaces
       or (segment[pos++] and 0xffL)
-    )
+    )*/
   size -= 8L
 
   if (pos == limit) {
@@ -582,6 +586,8 @@ internal inline fun Buffer.commonWrite(
     val tail = writableSegment(1)
 
     val toCopy = minOf(limit - offset, Segment.SIZE - tail.limit)
+    source.copyInfo(tail, offset, toCopy)
+/*
     when (tail) {
       is ByteArraySegment -> source.copyInto(tail.data, tail.limit, offset, offset + toCopy)
       else -> {
@@ -589,6 +595,7 @@ internal inline fun Buffer.commonWrite(
         tail.forEachSet(tail.limit, tail.limit + toCopy) { source[idx++] }
       }
     }
+*/
 
     offset += toCopy
     tail.limit += toCopy
@@ -1137,6 +1144,7 @@ internal inline fun Buffer.commonWriteLong(v: Long): Buffer {
   val tail = writableSegment(8)
   //val data = tail.data
   var limit = tail.limit
+  /*
   tail[limit++] = (v ushr 56 and 0xffL).toByte()
   tail[limit++] = (v ushr 48 and 0xffL).toByte()
   tail[limit++] = (v ushr 40 and 0xffL).toByte()
@@ -1145,6 +1153,9 @@ internal inline fun Buffer.commonWriteLong(v: Long): Buffer {
   tail[limit++] = (v ushr 16 and 0xffL).toByte()
   tail[limit++] = (v ushr  8 and 0xffL).toByte() // ktlint-disable no-multi-spaces
   tail[limit++] = (v         and 0xffL).toByte() // ktlint-disable no-multi-spaces
+   */
+  tail.writeLong(v)
+  limit += 8
   tail.limit = limit
   size += 8L
   return this
