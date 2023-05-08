@@ -62,6 +62,7 @@ open class PrimitiveOps {
     @Benchmark
     fun writeLong() {
         buffer.writeLong(42)
+        buffer.clear()
     }
 
     @Benchmark
