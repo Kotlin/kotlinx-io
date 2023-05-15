@@ -63,4 +63,22 @@ open class OkioSelectBenchmark {
         }
         if (!buffer.exhausted()) throw AssertionError()
     }
+
+    @Benchmark
+    fun selectWithPeek(blackhole: Blackhole) {
+        buffer.write(sampleData)
+        for (i in 0 until selectCount) {
+            blackhole.consume(buffer.selectUsingPeekSource(options))
+        }
+        if (!buffer.exhausted()) throw AssertionError()
+    }
+
+    @Benchmark
+    fun selectWithBufferedPeek(blackhole: Blackhole) {
+        buffer.write(sampleData)
+        for (i in 0 until selectCount) {
+            blackhole.consume(buffer.selectUsingBufferedPeekSource(options))
+        }
+        if (!buffer.exhausted()) throw AssertionError()
+    }
 }

@@ -102,6 +102,8 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     }
   }
 
+  override fun peekBuffered(): Source = BufferedPeekSource(this)
+
   /** Copy `byteCount` bytes from this, starting at `offset`, to `out`. */
   @Throws(IOException::class)
   @JvmOverloads
@@ -248,6 +250,10 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 //  override fun readByteString(byteCount: Long) = commonReadByteString(byteCount)
 
   override fun select(options: Options): Int = commonSelect(options)
+  override fun selectUsingPeekSource(options: Options): Int = commonSelectUsingPeek(options, peek())
+
+  override fun selectUsingBufferedPeekSource(options: Options): Int = commonSelectUsingPeek(options, peekBuffered())
+
 
   @Throws(EOFException::class)
   override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)

@@ -8,6 +8,7 @@ package kotlinx.io.benchmark
 import kotlinx.benchmark.*
 import kotlinx.io.*
 import kotlinx.io.ByteString.Companion.encodeUtf8
+import org.openjdk.jmh.annotations.CompilerControl
 
 @State(Scope.Benchmark)
 open class SelectBenchmark {
@@ -56,8 +57,45 @@ open class SelectBenchmark {
     fun fastBailOut() = bufferForBailOutTest.select(notMatchingOptions)
 
     @Benchmark
+    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     fun longScan() = bufferForLongScanTest.select(longScanOptions)
 
     @Benchmark
+    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     fun wideSelect() = bufferForWideSelection.select(wideSelectOptions)
+
+    @Benchmark
+    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
+    fun selectWithShortOptionsWithPeek(blackhole: Blackhole) {
+        buffer.write(shortData)
+        while (!buffer.exhausted()) {
+            blackhole.consume(buffer.selectUsingPeekSource(shortOptions))
+        }
+    }
+
+    @Benchmark
+    fun fastBailOutWithPeek() = bufferForBailOutTest.selectUsingPeekSource(notMatchingOptions)
+
+    @Benchmark
+    fun longScanWithPeek() = bufferForLongScanTest.selectUsingPeekSource(longScanOptions)
+
+    @Benchmark
+    fun wideSelectWithPeek() = bufferForWideSelection.selectUsingPeekSource(wideSelectOptions)
+
+    @Benchmark
+    fun selectWithShortOptionsWithBufferedPeek(blackhole: Blackhole) {
+        buffer.write(shortData)
+        while (!buffer.exhausted()) {
+            blackhole.consume(buffer.selectUsingBufferedPeekSource(shortOptions))
+        }
+    }
+
+    @Benchmark
+    fun fastBailOutWithBufferedPeek() = bufferForBailOutTest.selectUsingBufferedPeekSource(notMatchingOptions)
+
+    @Benchmark
+    fun longScanWithBufferedPeek() = bufferForLongScanTest.selectUsingBufferedPeekSource(longScanOptions)
+
+    @Benchmark
+    fun wideSelectWithBufferedPeek() = bufferForWideSelection.selectUsingBufferedPeekSource(wideSelectOptions)
 }

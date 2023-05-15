@@ -20,7 +20,6 @@
  */
 package kotlinx.io
 
-import java.io.IOException
 import java.io.InputStream
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
@@ -83,6 +82,12 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
 //
   @Throws(IOException::class)
   actual fun select(options: Options): Int
+
+  @Throws(IOException::class)
+  fun selectUsingPeekSource(options: Options): Int
+
+  @Throws(IOException::class)
+  fun selectUsingBufferedPeekSource(options: Options): Int
 
   @Throws(IOException::class)
   actual fun readByteArray(): ByteArray
@@ -165,4 +170,5 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
 
   /** Returns an input stream that reads from this source. */
   fun inputStream(): InputStream
+  fun peekBuffered(): Source
 }
