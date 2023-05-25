@@ -1458,85 +1458,64 @@ internal inline fun Buffer.commonCopy(): Buffer {
   return result
 }
 
-///** Returns an immutable copy of this buffer as a byte string.  */
-//internal inline fun Buffer.commonSnapshot(): ByteString {
-//  check(size <= Int.MAX_VALUE) { "size > Int.MAX_VALUE: $size" }
-//  return snapshot(size.toInt())
-//}
-//
-///** Returns an immutable copy of the first `byteCount` bytes of this buffer as a byte string. */
-//internal inline fun Buffer.commonSnapshot(byteCount: Int): ByteString {
-//  if (byteCount == 0) return ByteString.EMPTY
-//  checkOffsetAndCount(size, 0, byteCount.toLong())
-//
-//  // Walk through the buffer to count how many segments we'll need.
-//  var offset = 0
-//  var segmentCount = 0
-//  var s = head
-//  while (offset < byteCount) {
-//    if (s!!.limit == s.pos) {
-//      throw AssertionError("s.limit == s.pos") // Empty segment. This should not happen!
-//    }
-//    offset += s.limit - s.pos
-//    segmentCount++
-//    s = s.next
-//  }
-//
-//  // Walk through the buffer again to assign segments and build the directory.
-//  val segments = arrayOfNulls<ByteArray?>(segmentCount)
-//  val directory = IntArray(segmentCount * 2)
-//  offset = 0
-//  segmentCount = 0
-//  s = head
-//  while (offset < byteCount) {
-//    segments[segmentCount] = s!!.data
-//    offset += s.limit - s.pos
-//    // Despite sharing more bytes, only report having up to byteCount.
-//    directory[segmentCount] = minOf(offset, byteCount)
-//    directory[segmentCount + segments.size] = s.pos
-//    s.shared = true
-//    segmentCount++
-//    s = s.next
-//  }
-//  @Suppress("UNCHECKED_CAST")
-//  return SegmentedByteString(segments as Array<ByteArray>, directory)
-//}
+// TODO: optimize implementation
+internal inline fun Buffer.commonString(): String {
+  if (size == 0L) return "[size=0]"
 
-internal inline fun Buffer.commonString(byteCount: Int): String {
-  if (byteCount == 0) return ""
-  checkOffsetAndCount(size, 0, byteCount.toLong())
-
-  // Walk through the buffer to count how many segments we'll need.
-  var offset = 0
-  var segmentCount = 0
-  var s = head
-  while (offset < byteCount) {
-    if (s!!.limit == s.pos) {
-      throw AssertionError("s.limit == s.pos") // Empty segment. This should not happen!
+  val peekSrc = peek()
+  val data = if (peekSrc.request(128)) {
+    peekSrc.readByteArray(128)
+  } else {
+    peekSrc.readByteArray()
+  }
+  val i = codePointIndexToCharIndex(data, 64)
+  if (i == -1) {
+    return if (data.size <= 64) {
+      "[hex=${data.hex()}]"
+    } else {
+      "[size=${size} hex=${data.hex(64)}…]"
     }
-    offset += s.limit - s.pos
-    segmentCount++
-    s = s.next
   }
 
-  // Walk through the buffer again to assign segments and build the directory.
-  val segments = arrayOfNulls<ByteArray?>(segmentCount)
-  val directory = IntArray(segmentCount * 2)
-  offset = 0
-  segmentCount = 0
-  s = head
-  while (offset < byteCount) {
-    segments[segmentCount] = s!!.data
-    offset += s.limit - s.pos
-    // Despite sharing more bytes, only report having up to byteCount.
-    directory[segmentCount] = minOf(offset, byteCount)
-    directory[segmentCount + segments.size] = s.pos
-    s.shared = true
-    segmentCount++
-    s = s.next
-  }
+  val text = data.decodeToString()
+    .substring(0, i)
+    .replace("\\", "\\\\")
+    .replace("\n", "\\n")
+    .replace("\r", "\\r")
 
-  return SegmentedByteString(segments as Array<ByteArray>, directory).toString()
+  return if (i < text.length) {
+    "[size=${data.size} text=$text…]"
+  } else {
+    "[text=$text]"
+  }
+}
+
+private fun ByteArray.hex(count: Int = this.size): String {
+  val builder = StringBuilder(count * 2)
+  forEach {
+    builder.append(HEX_DIGIT_CHARS[it.shr(4) and 0x0f])
+    builder.append(HEX_DIGIT_CHARS[it and 0x0f])
+  }
+  return builder.toString()
+}
+
+private fun codePointIndexToCharIndex(s: ByteArray, codePointCount: Int): Int {
+  var charCount = 0
+  var j = 0
+  s.processUtf8CodePoints(0, s.size) { c ->
+    if (j++ == codePointCount) {
+      return charCount
+    }
+
+    if ((c != '\n'.code && c != '\r'.code && isIsoControl(c)) ||
+      c == REPLACEMENT_CODE_POINT
+    ) {
+      return -1
+    }
+
+    charCount += if (c < 0x10000) 1 else 2
+  }
+  return charCount
 }
 
 internal inline fun forEachSegment(

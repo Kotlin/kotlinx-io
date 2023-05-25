@@ -36,12 +36,6 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
 
   actual val buffer: Buffer
 
-//  @Throws(IOException::class)
-//  actual fun write(byteString: ByteString): Sink
-//
-//  @Throws(IOException::class)
-//  actual fun write(byteString: ByteString, offset: Int, byteCount: Int): Sink
-
   @Throws(IOException::class)
   actual fun write(source: ByteArray): Sink
 

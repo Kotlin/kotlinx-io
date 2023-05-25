@@ -77,10 +77,6 @@ actual class Buffer : Source, Sink {
 
   override fun readHexadecimalUnsignedLong(): Long = commonReadHexadecimalUnsignedLong()
 
-//  override fun readByteString(): ByteString = commonReadByteString()
-//
-//  override fun readByteString(byteCount: Long): ByteString = commonReadByteString(byteCount)
-
   override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)
 
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
@@ -97,8 +93,6 @@ actual class Buffer : Source, Sink {
 
   override fun readUtf8CodePoint(): Int = commonReadUtf8CodePoint()
 
-//  override fun select(options: Options): Int = commonSelect(options)
-
   override fun readByteArray(): ByteArray = commonReadByteArray()
 
   override fun readByteArray(byteCount: Long): ByteArray = commonReadByteArray(byteCount)
@@ -113,11 +107,6 @@ actual class Buffer : Source, Sink {
   actual fun clear(): Unit = commonClear()
 
   actual override fun skip(byteCount: Long): Unit = commonSkip(byteCount)
-
-//  actual override fun write(byteString: ByteString): Buffer = commonWrite(byteString)
-//
-//  actual override fun write(byteString: ByteString, offset: Int, byteCount: Int) =
-//    commonWrite(byteString, offset, byteCount)
 
   internal actual fun writableSegment(minimumCapacity: Int): Segment =
     commonWritableSegment(minimumCapacity)
@@ -205,48 +194,9 @@ actual class Buffer : Source, Sink {
    * Returns a human-readable string that describes the contents of this buffer. Typically this
    * is a string like `[text=Hello]` or `[hex=0000ffff]`.
    */
-  override fun toString() = commonString(size.toInt())
+  override fun toString() = commonString()
 
   actual fun copy(): Buffer = commonCopy()
-
-//  actual fun snapshot(): ByteString = commonSnapshot()
-//
-//  actual fun snapshot(byteCount: Int): ByteString = commonSnapshot(byteCount)
-//
-//  actual fun md5() = digest(Md5())
-//
-//  actual fun sha1() = digest(Sha1())
-//
-//  actual fun sha256() = digest(Sha256())
-//
-//  actual fun sha512() = digest(Sha512())
-//
-//  /** Returns the 160-bit SHA-1 HMAC of this buffer.  */
-//  actual fun hmacSha1(key: ByteString) = digest(Hmac.sha1(key))
-//
-//  /** Returns the 256-bit SHA-256 HMAC of this buffer.  */
-//  actual fun hmacSha256(key: ByteString) = digest(Hmac.sha256(key))
-//
-//  /** Returns the 512-bit SHA-512 HMAC of this buffer.  */
-//  actual fun hmacSha512(key: ByteString) = digest(Hmac.sha512(key))
-//
-//  private fun digest(hash: HashFunction): ByteString {
-//    forEachSegment { segment ->
-//      hash.update(segment.data, segment.pos, segment.limit - segment.pos)
-//    }
-//
-//    return ByteString(hash.digest())
-//  }
-
-  private fun forEachSegment(action: (Segment) -> Unit) {
-    head?.let { head ->
-      var segment: Segment? = head
-      do {
-        segment?.let(action)
-        segment = segment?.next
-      } while (segment !== head)
-    }
-  }
 
 //  actual fun readUnsafe(unsafeCursor: UnsafeCursor): UnsafeCursor = commonReadUnsafe(unsafeCursor)
 //

@@ -81,10 +81,6 @@ expect class Buffer() : Source, Sink {
   /** Discards `byteCount` bytes from the head of this buffer.  */
   override fun skip(byteCount: Long)
 
-//  override fun write(byteString: ByteString): Buffer
-
-//  override fun write(byteString: ByteString, offset: Int, byteCount: Int): Buffer
-
   override fun writeUtf8(string: String): Buffer
 
   override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Buffer
@@ -98,23 +94,6 @@ expect class Buffer() : Source, Sink {
    * bytes to, creating it if necessary.
    */
   internal fun writableSegment(minimumCapacity: Int): Segment
-
-//  fun md5(): ByteString
-//
-//  fun sha1(): ByteString
-//
-//  fun sha256(): ByteString
-//
-//  fun sha512(): ByteString
-//
-//  /** Returns the 160-bit SHA-1 HMAC of this buffer.  */
-//  fun hmacSha1(key: ByteString): ByteString
-//
-//  /** Returns the 256-bit SHA-256 HMAC of this buffer.  */
-//  fun hmacSha256(key: ByteString): ByteString
-//
-//  /** Returns the 512-bit SHA-512 HMAC of this buffer.  */
-//  fun hmacSha512(key: ByteString): ByteString
 
   override fun write(source: ByteArray, offset: Int, byteCount: Int): Buffer
 
@@ -141,12 +120,6 @@ expect class Buffer() : Source, Sink {
   /** Returns a deep copy of this buffer.  */
   fun copy(): Buffer
 
-//  /** Returns an immutable copy of this buffer as a byte string.  */
-//  fun snapshot(): ByteString
-//
-//  /** Returns an immutable copy of the first `byteCount` bytes of this buffer as a byte string. */
-//  fun snapshot(byteCount: Int): ByteString
-//
 //  fun readUnsafe(unsafeCursor: UnsafeCursor = DEFAULT__new_UnsafeCursor): UnsafeCursor
 //
 //  fun readAndWriteUnsafe(unsafeCursor: UnsafeCursor = DEFAULT__new_UnsafeCursor): UnsafeCursor

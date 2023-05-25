@@ -32,22 +32,6 @@ internal inline fun RealSink.commonWrite(source: Buffer, byteCount: Long) {
   emitCompleteSegments()
 }
 
-//internal inline fun RealSink.commonWrite(byteString: ByteString): Sink {
-//  check(!closed) { "closed" }
-//  buffer.write(byteString)
-//  return emitCompleteSegments()
-//}
-
-//internal inline fun RealSink.commonWrite(
-//  byteString: ByteString,
-//  offset: Int,
-//  byteCount: Int
-//): Sink {
-//  check(!closed) { "closed" }
-//  buffer.write(byteString, offset, byteCount)
-//  return emitCompleteSegments()
-//}
-
 internal inline fun RealSink.commonWriteUtf8(string: String): Sink {
   check(!closed) { "closed" }
   buffer.writeUtf8(string)

@@ -75,15 +75,6 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
   @Throws(IOException::class)
   actual fun skip(byteCount: Long)
 
-//  @Throws(IOException::class)
-//  actual fun readByteString(): ByteString
-//
-//  @Throws(IOException::class)
-//  actual fun readByteString(byteCount: Long): ByteString
-//
-//  @Throws(IOException::class)
-//  actual fun select(options: Options): Int
-
   @Throws(IOException::class)
   actual fun readByteArray(): ByteArray
 
