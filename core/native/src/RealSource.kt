@@ -33,12 +33,8 @@ internal actual class RealSource actual constructor(
   override fun require(byteCount: Long): Unit = commonRequire(byteCount)
   override fun request(byteCount: Long): Boolean = commonRequest(byteCount)
   override fun readByte(): Byte = commonReadByte()
-//  override fun readByteString(): ByteString = commonReadByteString()
-//  override fun readByteString(byteCount: Long): ByteString = commonReadByteString(byteCount)
-//  override fun select(options: Options): Int = commonSelect(options)
   override fun readByteArray(): ByteArray = commonReadByteArray()
   override fun readByteArray(byteCount: Long): ByteArray = commonReadByteArray(byteCount)
-  override fun read(sink: ByteArray): Int = read(sink, 0, sink.size)
   override fun readFully(sink: ByteArray): Unit = commonReadFully(sink)
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
     commonRead(sink, offset, byteCount)
@@ -47,41 +43,11 @@ internal actual class RealSource actual constructor(
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
   override fun readUtf8(): String = commonReadUtf8()
   override fun readUtf8(byteCount: Long): String = commonReadUtf8(byteCount)
-  override fun readUtf8Line(): String? = commonReadUtf8Line()
-  override fun readUtf8LineStrict() = readUtf8LineStrict(Long.MAX_VALUE)
-  override fun readUtf8LineStrict(limit: Long): String = commonReadUtf8LineStrict(limit)
   override fun readUtf8CodePoint(): Int = commonReadUtf8CodePoint()
   override fun readShort(): Short = commonReadShort()
-  override fun readShortLe(): Short = commonReadShortLe()
   override fun readInt(): Int = commonReadInt()
-  override fun readIntLe(): Int = commonReadIntLe()
   override fun readLong(): Long = commonReadLong()
-  override fun readLongLe(): Long = commonReadLongLe()
-  override fun readDecimalLong(): Long = commonReadDecimalLong()
-  override fun readHexadecimalUnsignedLong(): Long = commonReadHexadecimalUnsignedLong()
   override fun skip(byteCount: Long): Unit = commonSkip(byteCount)
-  override fun indexOf(b: Byte): Long = indexOf(b, 0L, Long.MAX_VALUE)
-  override fun indexOf(b: Byte, fromIndex: Long): Long = indexOf(b, fromIndex, Long.MAX_VALUE)
-  override fun indexOf(b: Byte, fromIndex: Long, toIndex: Long): Long =
-    commonIndexOf(b, fromIndex, toIndex)
-
-//  override fun indexOf(bytes: ByteString): Long = indexOf(bytes, 0L)
-//  override fun indexOf(bytes: ByteString, fromIndex: Long): Long = commonIndexOf(bytes, fromIndex)
-//  override fun indexOfElement(targetBytes: ByteString): Long = indexOfElement(targetBytes, 0L)
-//  override fun indexOfElement(targetBytes: ByteString, fromIndex: Long): Long =
-//    commonIndexOfElement(targetBytes, fromIndex)
-//
-//  override fun rangeEquals(offset: Long, bytes: ByteString) = rangeEquals(
-//    offset, bytes, 0,
-//    bytes.size
-//  )
-//
-//  override fun rangeEquals(
-//    offset: Long,
-//    bytes: ByteString,
-//    bytesOffset: Int,
-//    byteCount: Int
-//  ): Boolean = commonRangeEquals(offset, bytes, bytesOffset, byteCount)
 
   override fun peek(): Source = commonPeek()
   override fun close(): Unit = commonClose()

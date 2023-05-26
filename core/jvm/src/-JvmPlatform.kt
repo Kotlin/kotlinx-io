@@ -28,25 +28,8 @@ internal actual fun String.asUtf8ToByteArray(): ByteArray = toByteArray(Charsets
 // TODO remove if https://youtrack.jetbrains.com/issue/KT-20641 provides a better solution
 actual typealias ArrayIndexOutOfBoundsException = java.lang.ArrayIndexOutOfBoundsException
 
-internal actual inline fun <R> synchronized(lock: Any, block: () -> R): R {
-  return kotlin.synchronized(lock, block)
-}
-
 actual typealias IOException = java.io.IOException
-
-actual typealias ProtocolException = java.net.ProtocolException
 
 actual typealias EOFException = java.io.EOFException
 
-actual typealias FileNotFoundException = java.io.FileNotFoundException
-
 actual typealias Closeable = java.io.Closeable
-
-@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "NOTHING_TO_INLINE")
-internal inline fun Any.wait() = (this as Object).wait()
-
-@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "NOTHING_TO_INLINE")
-internal inline fun Any.notify() = (this as Object).notify()
-
-@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "NOTHING_TO_INLINE")
-internal inline fun Any.notifyAll() = (this as Object).notifyAll()

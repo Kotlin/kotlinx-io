@@ -39,7 +39,6 @@ internal actual class RealSink actual constructor(
   override fun buffer() = bufferField
 
   override fun write(source: Buffer, byteCount: Long) = commonWrite(source, byteCount)
-  override fun writeUtf8(string: String) = commonWriteUtf8(string)
   override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int) =
     commonWriteUtf8(string, beginIndex, endIndex)
 
@@ -62,7 +61,6 @@ internal actual class RealSink actual constructor(
     return emitCompleteSegments()
   }
 
-  override fun write(source: ByteArray) = commonWrite(source)
   override fun write(source: ByteArray, offset: Int, byteCount: Int) =
     commonWrite(source, offset, byteCount)
 
@@ -77,13 +75,8 @@ internal actual class RealSink actual constructor(
   override fun write(source: RawSource, byteCount: Long): Sink = commonWrite(source, byteCount)
   override fun writeByte(b: Int) = commonWriteByte(b)
   override fun writeShort(s: Int) = commonWriteShort(s)
-  override fun writeShortLe(s: Int) = commonWriteShortLe(s)
   override fun writeInt(i: Int) = commonWriteInt(i)
-  override fun writeIntLe(i: Int) = commonWriteIntLe(i)
   override fun writeLong(v: Long) = commonWriteLong(v)
-  override fun writeLongLe(v: Long) = commonWriteLongLe(v)
-  override fun writeDecimalLong(v: Long) = commonWriteDecimalLong(v)
-  override fun writeHexadecimalUnsignedLong(v: Long) = commonWriteHexadecimalUnsignedLong(v)
   override fun emitCompleteSegments() = commonEmitCompleteSegments()
   override fun emit() = commonEmit()
 

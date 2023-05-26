@@ -173,13 +173,6 @@ internal fun Long.toHexString(): String {
 // for them in the receiving function, then swap in the true default value.
 // https://youtrack.jetbrains.com/issue/KT-45542
 
-@SharedImmutable
-internal val DEFAULT__new_UnsafeCursor = Buffer.UnsafeCursor()
-internal fun resolveDefaultParameter(unsafeCursor: Buffer.UnsafeCursor): Buffer.UnsafeCursor {
-  if (unsafeCursor === DEFAULT__new_UnsafeCursor) return Buffer.UnsafeCursor()
-  return unsafeCursor
-}
-
 internal val DEFAULT__ByteString_size = -1234567890
 
 internal fun ByteArray.resolveDefaultParameter(sizeParam: Int): Int {

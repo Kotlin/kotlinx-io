@@ -52,25 +52,10 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
   actual fun readShort(): Short
 
   @Throws(IOException::class)
-  actual fun readShortLe(): Short
-
-  @Throws(IOException::class)
   actual fun readInt(): Int
 
   @Throws(IOException::class)
-  actual fun readIntLe(): Int
-
-  @Throws(IOException::class)
   actual fun readLong(): Long
-
-  @Throws(IOException::class)
-  actual fun readLongLe(): Long
-
-  @Throws(IOException::class)
-  actual fun readDecimalLong(): Long
-
-  @Throws(IOException::class)
-  actual fun readHexadecimalUnsignedLong(): Long
 
   @Throws(IOException::class)
   actual fun skip(byteCount: Long)
@@ -80,9 +65,6 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
 
   @Throws(IOException::class)
   actual fun readByteArray(byteCount: Long): ByteArray
-
-  @Throws(IOException::class)
-  actual fun read(sink: ByteArray): Int
 
   @Throws(IOException::class)
   actual fun readFully(sink: ByteArray)
@@ -103,15 +85,6 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
   actual fun readUtf8(byteCount: Long): String
 
   @Throws(IOException::class)
-  actual fun readUtf8Line(): String?
-
-  @Throws(IOException::class)
-  actual fun readUtf8LineStrict(): String
-
-  @Throws(IOException::class)
-  actual fun readUtf8LineStrict(limit: Long): String
-
-  @Throws(IOException::class)
   actual fun readUtf8CodePoint(): Int
 
   /** Removes all bytes from this, decodes them as `charset`, and returns the string. */
@@ -124,33 +97,6 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
    */
   @Throws(IOException::class)
   fun readString(byteCount: Long, charset: Charset): String
-
-  @Throws(IOException::class)
-  actual fun indexOf(b: Byte): Long
-
-  @Throws(IOException::class)
-  actual fun indexOf(b: Byte, fromIndex: Long): Long
-
-  @Throws(IOException::class)
-  actual fun indexOf(b: Byte, fromIndex: Long, toIndex: Long): Long
-
-//  @Throws(IOException::class)
-//  actual fun indexOf(bytes: ByteString): Long
-
-//  @Throws(IOException::class)
-//  actual fun indexOf(bytes: ByteString, fromIndex: Long): Long
-//
-//  @Throws(IOException::class)
-//  actual fun indexOfElement(targetBytes: ByteString): Long
-//
-//  @Throws(IOException::class)
-//  actual fun indexOfElement(targetBytes: ByteString, fromIndex: Long): Long
-//
-//  @Throws(IOException::class)
-//  actual fun rangeEquals(offset: Long, bytes: ByteString): Boolean
-//
-//  @Throws(IOException::class)
-//  actual fun rangeEquals(offset: Long, bytes: ByteString, bytesOffset: Int, byteCount: Int): Boolean
 
   actual fun peek(): Source
 

@@ -27,15 +27,15 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class BufferSourceTest : AbstractBufferedSourceTest(BufferedSourceFactory.BUFFER)
-class RealBufferedSourceTest : AbstractBufferedSourceTest(BufferedSourceFactory.REAL_BUFFERED_SOURCE)
-class OneByteAtATimeBufferedSourceTest : AbstractBufferedSourceTest(BufferedSourceFactory.ONE_BYTE_AT_A_TIME_BUFFERED_SOURCE)
-class OneByteAtATimeBufferTest : AbstractBufferedSourceTest(BufferedSourceFactory.ONE_BYTE_AT_A_TIME_BUFFER)
-class PeekBufferTest : AbstractBufferedSourceTest(BufferedSourceFactory.PEEK_BUFFER)
-class PeekBufferedSourceTest : AbstractBufferedSourceTest(BufferedSourceFactory.PEEK_BUFFERED_SOURCE)
+class BufferSourceTest : AbstractBufferedSourceTest(SourceFactory.BUFFER)
+class RealBufferedSourceTest : AbstractBufferedSourceTest(SourceFactory.REAL_BUFFERED_SOURCE)
+class OneByteAtATimeBufferedSourceTest : AbstractBufferedSourceTest(SourceFactory.ONE_BYTE_AT_A_TIME_BUFFERED_SOURCE)
+class OneByteAtATimeBufferTest : AbstractBufferedSourceTest(SourceFactory.ONE_BYTE_AT_A_TIME_BUFFER)
+class PeekBufferTest : AbstractBufferedSourceTest(SourceFactory.PEEK_BUFFER)
+class PeekBufferedSourceTest : AbstractBufferedSourceTest(SourceFactory.PEEK_BUFFERED_SOURCE)
 
 abstract class AbstractBufferedSourceTest internal constructor(
-  private val factory: BufferedSourceFactory
+  private val factory: SourceFactory
 ) {
   private val sink: Sink
   private val source: Source
@@ -626,151 +626,6 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
-//  @Test fun indexOfByteString() {
-//    assertEquals(-1, source.indexOf("flop".encodeUtf8()))
-//
-//    sink.writeUtf8("flip flop")
-//    sink.emit()
-//    assertEquals(5, source.indexOf("flop".encodeUtf8()))
-//    source.readUtf8() // Clear stream.
-//
-//    // Make sure we backtrack and resume searching after partial match.
-//    sink.writeUtf8("hi hi hi hey")
-//    sink.emit()
-//    assertEquals(3, source.indexOf("hi hi hey".encodeUtf8()))
-//  }
-//
-//  @Test fun indexOfByteStringAtSegmentBoundary() {
-//    sink.writeUtf8("a".repeat(Segment.SIZE - 1))
-//    sink.writeUtf8("bcd")
-//    sink.emit()
-//    assertEquals(
-//      (Segment.SIZE - 3).toLong(),
-//      source.indexOf("aabc".encodeUtf8(), (Segment.SIZE - 4).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE - 3).toLong(),
-//      source.indexOf("aabc".encodeUtf8(), (Segment.SIZE - 3).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE - 2).toLong(),
-//      source.indexOf("abcd".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE - 2).toLong(),
-//      source.indexOf("abc".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE - 2).toLong(),
-//      source.indexOf("abc".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE - 2).toLong(),
-//      source.indexOf("ab".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE - 2).toLong(),
-//      source.indexOf("a".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE - 1).toLong(),
-//      source.indexOf("bc".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE - 1).toLong(),
-//      source.indexOf("b".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      Segment.SIZE.toLong(),
-//      source.indexOf("c".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      Segment.SIZE.toLong(),
-//      source.indexOf("c".encodeUtf8(), Segment.SIZE.toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE + 1).toLong(),
-//      source.indexOf("d".encodeUtf8(), (Segment.SIZE - 2).toLong())
-//    )
-//    assertEquals(
-//      (Segment.SIZE + 1).toLong(),
-//      source.indexOf("d".encodeUtf8(), (Segment.SIZE + 1).toLong())
-//    )
-//  }
-//
-//  @Test fun indexOfDoesNotWrapAround() {
-//    sink.writeUtf8("a".repeat(Segment.SIZE - 1))
-//    sink.writeUtf8("bcd")
-//    sink.emit()
-//    assertEquals(-1, source.indexOf("abcda".encodeUtf8(), (Segment.SIZE - 3).toLong()))
-//  }
-//
-//  @Test fun indexOfByteStringWithOffset() {
-//    assertEquals(-1, source.indexOf("flop".encodeUtf8(), 1))
-//
-//    sink.writeUtf8("flop flip flop")
-//    sink.emit()
-//    assertEquals(10, source.indexOf("flop".encodeUtf8(), 1))
-//    source.readUtf8() // Clear stream
-//
-//    // Make sure we backtrack and resume searching after partial match.
-//    sink.writeUtf8("hi hi hi hi hey")
-//    sink.emit()
-//    assertEquals(6, source.indexOf("hi hi hey".encodeUtf8(), 1))
-//  }
-//
-//  @Test fun indexOfByteStringInvalidArgumentsThrows() {
-//    var e = assertFailsWith<IllegalArgumentException> {
-//      source.indexOf(ByteString.of())
-//    }
-//    assertEquals("bytes is empty", e.message)
-//
-//    e = assertFailsWith<IllegalArgumentException> {
-//      source.indexOf("hi".encodeUtf8(), -1)
-//    }
-//    assertEquals("fromIndex < 0: -1", e.message)
-//  }
-//
-//  /**
-//   * With [BufferedSourceFactory.ONE_BYTE_AT_A_TIME_BUFFERED_SOURCE], this code was extremely slow.
-//   * https://github.com/square/kotlinx.io/issues/171
-//   */
-//  @Test fun indexOfByteStringAcrossSegmentBoundaries() {
-//    sink.writeUtf8("a".repeat(Segment.SIZE * 2 - 3))
-//    sink.writeUtf8("bcdefg")
-//    sink.emit()
-//    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("ab".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abc".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcd".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcde".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcdef".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcdefg".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 - 3).toLong(), source.indexOf("bcdefg".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 - 2).toLong(), source.indexOf("cdefg".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 - 1).toLong(), source.indexOf("defg".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2).toLong(), source.indexOf("efg".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 + 1).toLong(), source.indexOf("fg".encodeUtf8()))
-//    assertEquals((Segment.SIZE * 2 + 2).toLong(), source.indexOf("g".encodeUtf8()))
-//  }
-//
-//  @Test fun indexOfElement() {
-//    sink.writeUtf8("a").writeUtf8("b".repeat(Segment.SIZE)).writeUtf8("c")
-//    sink.emit()
-//    assertEquals(0, source.indexOfElement("DEFGaHIJK".encodeUtf8()))
-//    assertEquals(1, source.indexOfElement("DEFGHIJKb".encodeUtf8()))
-//    assertEquals((Segment.SIZE + 1).toLong(), source.indexOfElement("cDEFGHIJK".encodeUtf8()))
-//    assertEquals(1, source.indexOfElement("DEFbGHIc".encodeUtf8()))
-//    assertEquals(-1L, source.indexOfElement("DEFGHIJK".encodeUtf8()))
-//    assertEquals(-1L, source.indexOfElement("".encodeUtf8()))
-//  }
-//
-//  @Test fun indexOfElementWithOffset() {
-//    sink.writeUtf8("a").writeUtf8("b".repeat(Segment.SIZE)).writeUtf8("c")
-//    sink.emit()
-//    assertEquals(-1, source.indexOfElement("DEFGaHIJK".encodeUtf8(), 1))
-//    assertEquals(15, source.indexOfElement("DEFGHIJKb".encodeUtf8(), 15))
-//  }
-
   @Test fun indexOfByteWithFromIndex() {
     sink.writeUtf8("aaa")
     sink.emit()
@@ -779,24 +634,6 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertEquals(1, source.indexOf('a'.code.toByte(), 1))
     assertEquals(2, source.indexOf('a'.code.toByte(), 2))
   }
-
-//  @Test fun indexOfByteStringWithFromIndex() {
-//    sink.writeUtf8("aaa")
-//    sink.emit()
-//    assertEquals(0, source.indexOf("a".encodeUtf8()))
-//    assertEquals(0, source.indexOf("a".encodeUtf8(), 0))
-//    assertEquals(1, source.indexOf("a".encodeUtf8(), 1))
-//    assertEquals(2, source.indexOf("a".encodeUtf8(), 2))
-//  }
-//
-//  @Test fun indexOfElementWithFromIndex() {
-//    sink.writeUtf8("aaa")
-//    sink.emit()
-//    assertEquals(0, source.indexOfElement("a".encodeUtf8()))
-//    assertEquals(0, source.indexOfElement("a".encodeUtf8(), 0))
-//    assertEquals(1, source.indexOfElement("a".encodeUtf8(), 1))
-//    assertEquals(2, source.indexOfElement("a".encodeUtf8(), 2))
-//  }
 
   @Test fun request() {
     sink.writeUtf8("a").writeUtf8("b".repeat(Segment.SIZE)).writeUtf8("c")
@@ -968,23 +805,23 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
-//  @Test fun codePoints() {
-//    sink.write("7f".decodeHex())
-//    sink.emit()
-//    assertEquals(0x7f, source.readUtf8CodePoint().toLong())
-//
-//    sink.write("dfbf".decodeHex())
-//    sink.emit()
-//    assertEquals(0x07ff, source.readUtf8CodePoint().toLong())
-//
-//    sink.write("efbfbf".decodeHex())
-//    sink.emit()
-//    assertEquals(0xffff, source.readUtf8CodePoint().toLong())
-//
-//    sink.write("f48fbfbf".decodeHex())
-//    sink.emit()
-//    assertEquals(0x10ffff, source.readUtf8CodePoint().toLong())
-//  }
+  @Test fun codePoints() {
+    sink.writeByte(0x7f)
+    sink.emit()
+    assertEquals(0x7f, source.readUtf8CodePoint().toLong())
+
+    sink.writeByte(0xdf).writeByte(0xbf)
+    sink.emit()
+    assertEquals(0x07ff, source.readUtf8CodePoint().toLong())
+
+    sink.writeByte(0xef).writeByte(0xbf).writeByte(0xbf)
+    sink.emit()
+    assertEquals(0xffff, source.readUtf8CodePoint().toLong())
+
+    sink.writeByte(0xf4).writeByte(0x8f).writeByte(0xbf).writeByte(0xbf)
+    sink.emit()
+    assertEquals(0x10ffff, source.readUtf8CodePoint().toLong())
+  }
 
   @Test fun decimalStringWithManyLeadingZeros() {
     assertLongDecimalString("00000000000000001", 1)
@@ -992,109 +829,6 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertLongDecimalString("-00000000000000009223372036854775808", Long.MIN_VALUE)
     assertLongDecimalString("0".repeat(Segment.SIZE + 1) + "1", 1)
   }
-
-//  @Test fun select() {
-//    val options = Options.of(
-//      "ROCK".encodeUtf8(),
-//      "SCISSORS".encodeUtf8(),
-//      "PAPER".encodeUtf8()
-//    )
-//
-//    sink.writeUtf8("PAPER,SCISSORS,ROCK")
-//    sink.emit()
-//    assertEquals(2, source.select(options).toLong())
-//    assertEquals(','.code.toLong(), source.readByte().toLong())
-//    assertEquals(1, source.select(options).toLong())
-//    assertEquals(','.code.toLong(), source.readByte().toLong())
-//    assertEquals(0, source.select(options).toLong())
-//    assertTrue(source.exhausted())
-//  }
-//
-//  /** Note that this test crashes the VM on Android. */
-//  @Test fun selectSpanningMultipleSegments() {
-//    if (factory.isOneByteAtATime && isBrowser()) {
-//      return // This test times out on browsers.
-//    }
-//    val commonPrefix = randomBytes(Segment.SIZE + 10)
-//    val a = Buffer().write(commonPrefix).writeUtf8("a").readByteString()
-//    val bc = Buffer().write(commonPrefix).writeUtf8("bc").readByteString()
-//    val bd = Buffer().write(commonPrefix).writeUtf8("bd").readByteString()
-//    val options = Options.of(a, bc, bd)
-//
-//    sink.write(bd)
-//    sink.write(a)
-//    sink.write(bc)
-//    sink.emit()
-//
-//    assertEquals(2, source.select(options).toLong())
-//    assertEquals(0, source.select(options).toLong())
-//    assertEquals(1, source.select(options).toLong())
-//    assertTrue(source.exhausted())
-//  }
-//
-//  @Test fun selectNotFound() {
-//    val options = Options.of(
-//      "ROCK".encodeUtf8(),
-//      "SCISSORS".encodeUtf8(),
-//      "PAPER".encodeUtf8()
-//    )
-//
-//    sink.writeUtf8("SPOCK")
-//    sink.emit()
-//    assertEquals(-1, source.select(options).toLong())
-//    assertEquals("SPOCK", source.readUtf8())
-//  }
-//
-//  @Test fun selectValuesHaveCommonPrefix() {
-//    val options = Options.of(
-//      "abcd".encodeUtf8(),
-//      "abce".encodeUtf8(),
-//      "abcc".encodeUtf8()
-//    )
-//
-//    sink.writeUtf8("abcc").writeUtf8("abcd").writeUtf8("abce")
-//    sink.emit()
-//    assertEquals(2, source.select(options).toLong())
-//    assertEquals(0, source.select(options).toLong())
-//    assertEquals(1, source.select(options).toLong())
-//  }
-//
-//  @Test fun selectLongerThanSource() {
-//    val options = Options.of(
-//      "abcd".encodeUtf8(),
-//      "abce".encodeUtf8(),
-//      "abcc".encodeUtf8()
-//    )
-//    sink.writeUtf8("abc")
-//    sink.emit()
-//    assertEquals(-1, source.select(options).toLong())
-//    assertEquals("abc", source.readUtf8())
-//  }
-//
-//  @Test fun selectReturnsFirstByteStringThatMatches() {
-//    val options = Options.of(
-//      "abcd".encodeUtf8(),
-//      "abc".encodeUtf8(),
-//      "abcde".encodeUtf8()
-//    )
-//    sink.writeUtf8("abcdef")
-//    sink.emit()
-//    assertEquals(0, source.select(options).toLong())
-//    assertEquals("ef", source.readUtf8())
-//  }
-//
-//  @Test fun selectFromEmptySource() {
-//    val options = Options.of(
-//      "abc".encodeUtf8(),
-//      "def".encodeUtf8()
-//    )
-//    assertEquals(-1, source.select(options).toLong())
-//  }
-//
-//  @Test fun selectNoByteStringsFromEmptySource() {
-//    val options = Options.of()
-//    assertEquals(-1, source.select(options).toLong())
-//  }
 
   @Test fun peek() {
     sink.writeUtf8("abcdefghi")
@@ -1227,47 +961,6 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertEquals("ghi", peek.readUtf8(3L))
   }
 
-//  @Test fun rangeEquals() {
-//    sink.writeUtf8("A man, a plan, a canal. Panama.")
-//    sink.emit()
-//    assertTrue(source.rangeEquals(7, "a plan".encodeUtf8()))
-//    assertTrue(source.rangeEquals(0, "A man".encodeUtf8()))
-//    assertTrue(source.rangeEquals(24, "Panama".encodeUtf8()))
-//    assertFalse(source.rangeEquals(24, "Panama. Panama. Panama.".encodeUtf8()))
-//  }
-//
-//  @Test fun rangeEqualsWithOffsetAndCount() {
-//    sink.writeUtf8("A man, a plan, a canal. Panama.")
-//    sink.emit()
-//    assertTrue(source.rangeEquals(7, "aaa plannn".encodeUtf8(), 2, 6))
-//    assertTrue(source.rangeEquals(0, "AAA mannn".encodeUtf8(), 2, 5))
-//    assertTrue(source.rangeEquals(24, "PPPanamaaa".encodeUtf8(), 2, 6))
-//  }
-//
-//  @Test fun rangeEqualsOnlyReadsUntilMismatch() {
-//    if (factory !== BufferedSourceFactory.ONE_BYTE_AT_A_TIME_BUFFERED_SOURCE) return // Other sources read in chunks anyway.
-//
-//    sink.writeUtf8("A man, a plan, a canal. Panama.")
-//    sink.emit()
-//    assertFalse(source.rangeEquals(0, ("A man.").encodeUtf8()))
-//    assertEquals("A man,", source.buffer.readUtf8())
-//  }
-//
-//  @Test fun rangeEqualsArgumentValidation() {
-//    // Negative source offset.
-//    assertFalse(source.rangeEquals(-1, "A".encodeUtf8()))
-//    // Negative bytes offset.
-//    assertFalse(source.rangeEquals(0, "A".encodeUtf8(), -1, 1))
-//    // Bytes offset longer than bytes length.
-//    assertFalse(source.rangeEquals(0, "A".encodeUtf8(), 2, 1))
-//    // Negative byte count.
-//    assertFalse(source.rangeEquals(0, "A".encodeUtf8(), 0, -1))
-//    // Byte count longer than bytes length.
-//    assertFalse(source.rangeEquals(0, "A".encodeUtf8(), 0, 2))
-//    // Bytes offset plus byte count longer than bytes length.
-//    assertFalse(source.rangeEquals(0, "A".encodeUtf8(), 1, 1))
-//  }
-
   @Test fun factorySegmentSizes() {
     sink.writeUtf8("abc")
     sink.emit()
@@ -1277,5 +970,62 @@ abstract class AbstractBufferedSourceTest internal constructor(
     } else {
       assertEquals(listOf(3), segmentSizes(source.buffer))
     }
+  }
+
+  @Test fun readUtf8Line() {
+    val buf = Buffer().writeUtf8("first line\nsecond line\n")
+    assertEquals("first line", buf.readUtf8Line())
+    assertEquals("second line\n", buf.readUtf8())
+    assertEquals(null, buf.readUtf8Line())
+
+    buf.writeUtf8("\nnext line\n")
+    assertEquals("", buf.readUtf8Line())
+    assertEquals("next line", buf.readUtf8Line())
+
+    buf.writeUtf8("There is no newline!")
+    assertEquals("There is no newline!", buf.readUtf8Line())
+
+    buf.writeUtf8("Wot do u call it?\r\nWindows")
+    assertEquals("Wot do u call it?", buf.readUtf8Line())
+    buf.clear()
+
+    buf.writeUtf8("reo\rde\red\n")
+    assertEquals("reo\rde\red", buf.readUtf8Line())
+  }
+
+  @Test fun readUtf8LineStrict() {
+    val buf = Buffer().writeUtf8("first line\nsecond line\n")
+    assertEquals("first line", buf.readUtf8LineStrict())
+    assertEquals("second line\n", buf.readUtf8())
+    assertFailsWith<EOFException> { buf.readUtf8LineStrict() }
+
+    buf.writeUtf8("\nnext line\n")
+    assertEquals("", buf.readUtf8LineStrict())
+    assertEquals("next line", buf.readUtf8LineStrict())
+
+    buf.writeUtf8("There is no newline!")
+    assertFailsWith<EOFException> { buf.readUtf8LineStrict() }
+    assertEquals("There is no newline!", buf.readUtf8())
+
+    buf.writeUtf8("Wot do u call it?\r\nWindows")
+    assertEquals("Wot do u call it?", buf.readUtf8LineStrict())
+    buf.clear()
+
+    buf.writeUtf8("reo\rde\red\n")
+    assertEquals("reo\rde\red", buf.readUtf8LineStrict())
+
+    buf.writeUtf8("line\n")
+    assertFailsWith<EOFException> { buf.readUtf8LineStrict(3) }
+    assertEquals("line", buf.readUtf8LineStrict(4))
+    assertEquals(0, buf.size)
+
+    buf.writeUtf8("line\r\n")
+    assertFailsWith<EOFException> { buf.readUtf8LineStrict(3) }
+    assertEquals("line", buf.readUtf8LineStrict(4))
+    assertEquals(0, buf.size)
+
+    buf.writeUtf8("line\n")
+    assertEquals("line", buf.readUtf8LineStrict(5))
+    assertEquals(0, buf.size)
   }
 }

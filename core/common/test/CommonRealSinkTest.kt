@@ -30,7 +30,7 @@ import kotlin.test.fail
  * Tests solely for the behavior of RealBufferedSink's implementation. For generic
  * BufferedSink behavior use BufferedSinkTest.
  */
-class CommonRealBufferedSinkTest {
+class CommonRealSinkTest {
   @Test fun bufferedSinkEmitsTailWhenItIsComplete() {
     val sink = Buffer()
     val bufferedSink = (sink as RawSink).buffer()

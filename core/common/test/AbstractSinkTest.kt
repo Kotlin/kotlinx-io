@@ -25,11 +25,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class BufferSinkTest : AbstractBufferedSinkTest(BufferedSinkFactory.BUFFER)
-class RealBufferedSinkTest : AbstractBufferedSinkTest(BufferedSinkFactory.REAL_BUFFERED_SINK)
+class BufferSinkTest : AbstractSinkTest(SinkFactory.BUFFER)
+class RealSinkTest : AbstractSinkTest(SinkFactory.REAL_BUFFERED_SINK)
 
-abstract class AbstractBufferedSinkTest internal constructor(
-  factory: BufferedSinkFactory
+abstract class AbstractSinkTest internal constructor(
+  factory: SinkFactory
 ) {
   private val data: Buffer = Buffer()
   private val sink: Sink = factory.create(data)
@@ -118,42 +118,6 @@ abstract class AbstractBufferedSinkTest internal constructor(
     sink.flush()
     assertEquals("[hex=2143658701efcdab005cb1b0bebafeca]", data.toString())
   }
-
-//  @Test fun writeByteString() {
-//    sink.write("təˈranəˌsôr".encodeUtf8())
-//    sink.flush()
-//    assertEquals("74c999cb8872616ec999cb8c73c3b472".decodeHex(), data.readByteString())
-//  }
-//
-//  @Test fun writeByteStringOffset() {
-//    sink.write("təˈranəˌsôr".encodeUtf8(), 5, 5)
-//    sink.flush()
-//    assertEquals("72616ec999".decodeHex(), data.readByteString())
-//  }
-//
-//  @Test fun writeSegmentedByteString() {
-//    sink.write(Buffer().write("təˈranəˌsôr".encodeUtf8()).snapshot())
-//    sink.flush()
-//    assertEquals("74c999cb8872616ec999cb8c73c3b472".decodeHex(), data.readByteString())
-//  }
-//
-//  @Test fun writeSegmentedByteStringOffset() {
-//    sink.write(Buffer().write("təˈranəˌsôr".encodeUtf8()).snapshot(), 5, 5)
-//    sink.flush()
-//    assertEquals("72616ec999".decodeHex(), data.readByteString())
-//  }
-//
-//  @Test fun writeStringUtf8() {
-//    sink.writeUtf8("təˈranəˌsôr")
-//    sink.flush()
-//    assertEquals("74c999cb8872616ec999cb8c73c3b472".decodeHex(), data.readByteString())
-//  }
-//
-//  @Test fun writeSubstringUtf8() {
-//    sink.writeUtf8("təˈranəˌsôr", 3, 7)
-//    sink.flush()
-//    assertEquals("72616ec999".decodeHex(), data.readByteString())
-//  }
 
   @Test fun writeAll() {
     val source = Buffer().writeUtf8("abcdef")

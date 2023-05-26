@@ -67,16 +67,6 @@ actual class Buffer : Source, Sink {
 
   override fun readLong(): Long = commonReadLong()
 
-  override fun readShortLe(): Short = readShort().reverseBytes()
-
-  override fun readIntLe(): Int = readInt().reverseBytes()
-
-  override fun readLongLe(): Long = readLong().reverseBytes()
-
-  override fun readDecimalLong(): Long = commonReadDecimalLong()
-
-  override fun readHexadecimalUnsignedLong(): Long = commonReadHexadecimalUnsignedLong()
-
   override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)
 
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
@@ -85,19 +75,11 @@ actual class Buffer : Source, Sink {
 
   override fun readUtf8(byteCount: Long): String = commonReadUtf8(byteCount)
 
-  override fun readUtf8Line(): String? = commonReadUtf8Line()
-
-  override fun readUtf8LineStrict(): String = readUtf8LineStrict(Long.MAX_VALUE)
-
-  override fun readUtf8LineStrict(limit: Long): String = commonReadUtf8LineStrict(limit)
-
   override fun readUtf8CodePoint(): Int = commonReadUtf8CodePoint()
 
   override fun readByteArray(): ByteArray = commonReadByteArray()
 
   override fun readByteArray(byteCount: Long): ByteArray = commonReadByteArray(byteCount)
-
-  override fun read(sink: ByteArray): Int = commonRead(sink)
 
   override fun readFully(sink: ByteArray): Unit = commonReadFully(sink)
 
@@ -111,15 +93,11 @@ actual class Buffer : Source, Sink {
   internal actual fun writableSegment(minimumCapacity: Int): Segment =
     commonWritableSegment(minimumCapacity)
 
-  actual override fun writeUtf8(string: String): Buffer = writeUtf8(string, 0, string.length)
-
   actual override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Buffer =
     commonWriteUtf8(string, beginIndex, endIndex)
 
   actual override fun writeUtf8CodePoint(codePoint: Int): Buffer =
     commonWriteUtf8CodePoint(codePoint)
-
-  actual override fun write(source: ByteArray): Buffer = commonWrite(source)
 
   actual override fun write(source: ByteArray, offset: Int, byteCount: Int): Buffer =
     commonWrite(source, offset, byteCount)
@@ -133,50 +111,13 @@ actual class Buffer : Source, Sink {
 
   actual override fun writeShort(s: Int): Buffer = commonWriteShort(s)
 
-  actual override fun writeShortLe(s: Int): Buffer = writeShort(s.toShort().reverseBytes().toInt())
-
   actual override fun writeInt(i: Int): Buffer = commonWriteInt(i)
 
-  actual override fun writeIntLe(i: Int): Buffer = writeInt(i.reverseBytes())
-
   actual override fun writeLong(v: Long): Buffer = commonWriteLong(v)
-
-  actual override fun writeLongLe(v: Long): Buffer = writeLong(v.reverseBytes())
-
-  actual override fun writeDecimalLong(v: Long): Buffer = commonWriteDecimalLong(v)
-
-  actual override fun writeHexadecimalUnsignedLong(v: Long): Buffer =
-    commonWriteHexadecimalUnsignedLong(v)
 
   override fun write(source: Buffer, byteCount: Long): Unit = commonWrite(source, byteCount)
 
   override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
-
-  override fun indexOf(b: Byte): Long = indexOf(b, 0, Long.MAX_VALUE)
-
-  override fun indexOf(b: Byte, fromIndex: Long): Long = indexOf(b, fromIndex, Long.MAX_VALUE)
-
-  override fun indexOf(b: Byte, fromIndex: Long, toIndex: Long): Long =
-    commonIndexOf(b, fromIndex, toIndex)
-
-//  override fun indexOf(bytes: ByteString): Long = indexOf(bytes, 0)
-//
-//  override fun indexOf(bytes: ByteString, fromIndex: Long): Long = commonIndexOf(bytes, fromIndex)
-//
-//  override fun indexOfElement(targetBytes: ByteString): Long = indexOfElement(targetBytes, 0L)
-//
-//  override fun indexOfElement(targetBytes: ByteString, fromIndex: Long): Long =
-//    commonIndexOfElement(targetBytes, fromIndex)
-//
-//  override fun rangeEquals(offset: Long, bytes: ByteString): Boolean =
-//    rangeEquals(offset, bytes, 0, bytes.size)
-//
-//  override fun rangeEquals(
-//    offset: Long,
-//    bytes: ByteString,
-//    bytesOffset: Int,
-//    byteCount: Int
-//  ): Boolean = commonRangeEquals(offset, bytes, bytesOffset, byteCount)
 
   override fun flush() = Unit
 
@@ -197,32 +138,4 @@ actual class Buffer : Source, Sink {
   override fun toString() = commonString()
 
   actual fun copy(): Buffer = commonCopy()
-
-//  actual fun readUnsafe(unsafeCursor: UnsafeCursor): UnsafeCursor = commonReadUnsafe(unsafeCursor)
-//
-//  actual fun readAndWriteUnsafe(unsafeCursor: UnsafeCursor): UnsafeCursor =
-//    commonReadAndWriteUnsafe(unsafeCursor)
-
-  actual class UnsafeCursor {
-    actual var buffer: Buffer? = null
-    actual var readWrite: Boolean = false
-
-    internal actual var segment: Segment? = null
-    actual var offset = -1L
-    actual var data: ByteArray? = null
-    actual var start = -1
-    actual var end = -1
-
-    actual fun next(): Int = commonNext()
-
-    actual fun seek(offset: Long): Int = commonSeek(offset)
-
-    actual fun resizeBuffer(newSize: Long): Long = commonResizeBuffer(newSize)
-
-    actual fun expandBuffer(minByteCount: Int): Long = commonExpandBuffer(minByteCount)
-
-    actual fun close() {
-      commonClose()
-    }
-  }
 }

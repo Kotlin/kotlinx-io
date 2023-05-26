@@ -73,14 +73,14 @@ internal fun variantFread(
     target: CPointer<ByteVarOf<Byte>>,
     byteCount: UInt,
     file: CPointer<FILE>
-): UInt = fread(target, 1, byteCount.convert(), file).convert()
+): UInt = fread(target, 1u, byteCount.convert(), file).convert()
 
 @OptIn(UnsafeNumber::class)
 internal fun variantFwrite(
     source: CPointer<ByteVar>,
     byteCount: UInt,
     file: CPointer<FILE>
-): UInt = fwrite(source, 1, byteCount.convert(), file).convert()
+): UInt = fwrite(source, 1u, byteCount.convert(), file).convert()
 
 internal class FileSink(
     private val file: CPointer<FILE>

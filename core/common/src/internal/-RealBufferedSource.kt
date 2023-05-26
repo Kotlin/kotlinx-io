@@ -20,7 +20,6 @@
  */
 
 // TODO move to RealBufferedSource class: https://youtrack.jetbrains.com/issue/KT-20427
-@file:Suppress("NOTHING_TO_INLINE")
 
 package kotlinx.io.internal
 
@@ -293,61 +292,6 @@ internal inline fun RealSource.commonIndexOf(b: Byte, fromIndex: Long, toIndex: 
   }
   return -1L
 }
-
-//internal inline fun RealSource.commonIndexOf(bytes: ByteString, fromIndex: Long): Long {
-//  var fromIndex = fromIndex
-//  check(!closed) { "closed" }
-//
-//  while (true) {
-//    val result = buffer.indexOf(bytes, fromIndex)
-//    if (result != -1L) return result
-//
-//    val lastBufferSize = buffer.size
-//    if (source.read(buffer, Segment.SIZE.toLong()) == -1L) return -1L
-//
-//    // Keep searching, picking up from where we left off.
-//    fromIndex = maxOf(fromIndex, lastBufferSize - bytes.size + 1)
-//  }
-//}
-//
-//internal inline fun RealSource.commonIndexOfElement(targetBytes: ByteString, fromIndex: Long): Long {
-//  var fromIndex = fromIndex
-//  check(!closed) { "closed" }
-//
-//  while (true) {
-//    val result = buffer.indexOfElement(targetBytes, fromIndex)
-//    if (result != -1L) return result
-//
-//    val lastBufferSize = buffer.size
-//    if (source.read(buffer, Segment.SIZE.toLong()) == -1L) return -1L
-//
-//    // Keep searching, picking up from where we left off.
-//    fromIndex = maxOf(fromIndex, lastBufferSize)
-//  }
-//}
-
-//internal inline fun RealSource.commonRangeEquals(
-//  offset: Long,
-//  bytes: ByteString,
-//  bytesOffset: Int,
-//  byteCount: Int
-//): Boolean {
-//  check(!closed) { "closed" }
-//
-//  if (offset < 0L ||
-//    bytesOffset < 0 ||
-//    byteCount < 0 ||
-//    bytes.size - bytesOffset < byteCount
-//  ) {
-//    return false
-//  }
-//  for (i in 0 until byteCount) {
-//    val bufferOffset = offset + i
-//    if (!request(bufferOffset + 1)) return false
-//    if (buffer[bufferOffset] != bytes[bytesOffset + i]) return false
-//  }
-//  return true
-//}
 
 internal inline fun RealSource.commonPeek(): Source {
   return PeekSource(this).buffer()

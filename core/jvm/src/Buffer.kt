@@ -228,28 +228,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   override fun readLong(): Long = commonReadLong()
 
   @Throws(EOFException::class)
-  override fun readShortLe() = readShort().reverseBytes()
-
-  @Throws(EOFException::class)
-  override fun readIntLe() = readInt().reverseBytes()
-
-  @Throws(EOFException::class)
-  override fun readLongLe() = readLong().reverseBytes()
-
-  @Throws(EOFException::class)
-  override fun readDecimalLong(): Long = commonReadDecimalLong()
-
-  @Throws(EOFException::class)
-  override fun readHexadecimalUnsignedLong(): Long = commonReadHexadecimalUnsignedLong()
-
-//  override fun readByteString(): ByteString = commonReadByteString()
-//
-//  @Throws(EOFException::class)
-//  override fun readByteString(byteCount: Long) = commonReadByteString(byteCount)
-//
-//  override fun select(options: Options): Int = commonSelect(options)
-
-  @Throws(EOFException::class)
   override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)
 
   @Throws(IOException::class)
@@ -287,23 +265,12 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   }
 
   @Throws(EOFException::class)
-  override fun readUtf8Line(): String? = commonReadUtf8Line()
-
-  @Throws(EOFException::class)
-  override fun readUtf8LineStrict() = readUtf8LineStrict(Long.MAX_VALUE)
-
-  @Throws(EOFException::class)
-  override fun readUtf8LineStrict(limit: Long): String = commonReadUtf8LineStrict(limit)
-
-  @Throws(EOFException::class)
   override fun readUtf8CodePoint(): Int = commonReadUtf8CodePoint()
 
   override fun readByteArray() = commonReadByteArray()
 
   @Throws(EOFException::class)
   override fun readByteArray(byteCount: Long): ByteArray = commonReadByteArray(byteCount)
-
-  override fun read(sink: ByteArray) = commonRead(sink)
 
   @Throws(EOFException::class)
   override fun readFully(sink: ByteArray) = commonReadFully(sink)
@@ -334,13 +301,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   @Throws(EOFException::class)
   actual override fun skip(byteCount: Long) = commonSkip(byteCount)
 
-//  actual override fun write(byteString: ByteString): Buffer = commonWrite(byteString)
-//
-//  actual override fun write(byteString: ByteString, offset: Int, byteCount: Int) =
-//    commonWrite(byteString, offset, byteCount)
-
-  actual override fun writeUtf8(string: String): Buffer = writeUtf8(string, 0, string.length)
-
   actual override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Buffer =
     commonWriteUtf8(string, beginIndex, endIndex)
 
@@ -365,8 +325,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     val data = string.substring(beginIndex, endIndex).toByteArray(charset)
     return write(data, 0, data.size)
   }
-
-  actual override fun write(source: ByteArray): Buffer = commonWrite(source)
 
   actual override fun write(
     source: ByteArray,
@@ -403,20 +361,9 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   actual override fun writeShort(s: Int): Buffer = commonWriteShort(s)
 
-  actual override fun writeShortLe(s: Int) = writeShort(s.toShort().reverseBytes().toInt())
-
   actual override fun writeInt(i: Int): Buffer = commonWriteInt(i)
 
-  actual override fun writeIntLe(i: Int) = writeInt(i.reverseBytes())
-
   actual override fun writeLong(v: Long): Buffer = commonWriteLong(v)
-
-  actual override fun writeLongLe(v: Long) = writeLong(v.reverseBytes())
-
-  actual override fun writeDecimalLong(v: Long): Buffer = commonWriteDecimalLong(v)
-
-  actual override fun writeHexadecimalUnsignedLong(v: Long): Buffer =
-    commonWriteHexadecimalUnsignedLong(v)
 
   internal actual fun writableSegment(minimumCapacity: Int): Segment =
     commonWritableSegment(minimumCapacity)
@@ -424,37 +371,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   override fun write(source: Buffer, byteCount: Long): Unit = commonWrite(source, byteCount)
 
   override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
-
-  override fun indexOf(b: Byte) = indexOf(b, 0, Long.MAX_VALUE)
-
-  /**
-   * Returns the index of `b` in this at or beyond `fromIndex`, or -1 if this buffer does not
-   * contain `b` in that range.
-   */
-  override fun indexOf(b: Byte, fromIndex: Long) = indexOf(b, fromIndex, Long.MAX_VALUE)
-
-  override fun indexOf(b: Byte, fromIndex: Long, toIndex: Long): Long = commonIndexOf(b, fromIndex, toIndex)
-
-//  @Throws(IOException::class)
-//  override fun indexOf(bytes: ByteString): Long = indexOf(bytes, 0)
-//
-//  @Throws(IOException::class)
-//  override fun indexOf(bytes: ByteString, fromIndex: Long): Long = commonIndexOf(bytes, fromIndex)
-//
-//  override fun indexOfElement(targetBytes: ByteString) = indexOfElement(targetBytes, 0L)
-//
-//  override fun indexOfElement(targetBytes: ByteString, fromIndex: Long): Long =
-//    commonIndexOfElement(targetBytes, fromIndex)
-//
-//  override fun rangeEquals(offset: Long, bytes: ByteString) =
-//    rangeEquals(offset, bytes, 0, bytes.size)
-//
-//  override fun rangeEquals(
-//    offset: Long,
-//    bytes: ByteString,
-//    bytesOffset: Int,
-//    byteCount: Int
-//  ): Boolean = commonRangeEquals(offset, bytes, bytesOffset, byteCount)
 
   override fun flush() {}
 
@@ -465,66 +381,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   override fun cancel() {
     // Not cancelable.
   }
-
-//  /**
-//   * Returns the 128-bit MD5 hash of this buffer.
-//   *
-//   * MD5 has been vulnerable to collisions since 2004. It should not be used in new code.
-//   */
-//  actual fun md5() = digest("MD5")
-//
-//  /**
-//   * Returns the 160-bit SHA-1 hash of this buffer.
-//   *
-//   * SHA-1 has been vulnerable to collisions since 2017. It should not be used in new code.
-//   */
-//  actual fun sha1() = digest("SHA-1")
-//
-//  /** Returns the 256-bit SHA-256 hash of this buffer. */
-//  actual fun sha256() = digest("SHA-256")
-//
-//  /** Returns the 512-bit SHA-512 hash of this buffer. */
-//  actual fun sha512() = digest("SHA-512")
-//
-//  private fun digest(algorithm: String): ByteString {
-//    val messageDigest = MessageDigest.getInstance(algorithm)
-//    head?.let { head ->
-//      messageDigest.update(head.data, head.pos, head.limit - head.pos)
-//      var s = head.next!!
-//      while (s !== head) {
-//        messageDigest.update(s.data, s.pos, s.limit - s.pos)
-//        s = s.next!!
-//      }
-//    }
-//    return ByteString(messageDigest.digest())
-//  }
-//
-//  /** Returns the 160-bit SHA-1 HMAC of this buffer. */
-//  actual fun hmacSha1(key: ByteString) = hmac("HmacSHA1", key)
-//
-//  /** Returns the 256-bit SHA-256 HMAC of this buffer. */
-//  actual fun hmacSha256(key: ByteString) = hmac("HmacSHA256", key)
-//
-//  /** Returns the 512-bit SHA-512 HMAC of this buffer. */
-//  actual fun hmacSha512(key: ByteString) = hmac("HmacSHA512", key)
-//
-//  private fun hmac(algorithm: String, key: ByteString): ByteString {
-//    try {
-//      val mac = Mac.getInstance(algorithm)
-//      mac.init(SecretKeySpec(key.internalArray(), algorithm))
-//      head?.let { head ->
-//        mac.update(head.data, head.pos, head.limit - head.pos)
-//        var s = head.next!!
-//        while (s !== head) {
-//          mac.update(s.data, s.pos, s.limit - s.pos)
-//          s = s.next!!
-//        }
-//      }
-//      return ByteString(mac.doFinal())
-//    } catch (e: InvalidKeyException) {
-//      throw IllegalArgumentException(e)
-//    }
-//  }
 
   override fun equals(other: Any?): Boolean = commonEquals(other)
 
@@ -540,38 +396,4 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   /** Returns a deep copy of this buffer. */
   public override fun clone(): Buffer = copy()
-
-//  actual fun snapshot(): ByteString = commonSnapshot()
-//
-//  actual fun snapshot(byteCount: Int): ByteString = commonSnapshot(byteCount)
-//
-//  @JvmOverloads
-//  actual fun readUnsafe(unsafeCursor: UnsafeCursor): UnsafeCursor = commonReadUnsafe(unsafeCursor)
-//
-//  @JvmOverloads
-//  actual fun readAndWriteUnsafe(unsafeCursor: UnsafeCursor): UnsafeCursor =
-//    commonReadAndWriteUnsafe(unsafeCursor)
-
-  actual class UnsafeCursor : Closeable {
-    @JvmField actual var buffer: Buffer? = null
-    @JvmField actual var readWrite: Boolean = false
-
-    internal actual var segment: Segment? = null
-    @JvmField actual var offset = -1L
-    @JvmField actual var data: ByteArray? = null
-    @JvmField actual var start = -1
-    @JvmField actual var end = -1
-
-    actual fun next(): Int = commonNext()
-
-    actual fun seek(offset: Long): Int = commonSeek(offset)
-
-    actual fun resizeBuffer(newSize: Long): Long = commonResizeBuffer(newSize)
-
-    actual fun expandBuffer(minByteCount: Int): Long = commonExpandBuffer(minByteCount)
-
-    actual override fun close() {
-      commonClose()
-    }
-  }
 }

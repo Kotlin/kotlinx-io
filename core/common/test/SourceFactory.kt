@@ -21,7 +21,7 @@
 
 package kotlinx.io
 
-interface BufferedSourceFactory {
+interface SourceFactory {
   class Pipe(
     var sink: Sink,
     var source: Source
@@ -32,7 +32,7 @@ interface BufferedSourceFactory {
   fun pipe(): Pipe
 
   companion object {
-    val BUFFER: BufferedSourceFactory = object : BufferedSourceFactory {
+    val BUFFER: SourceFactory = object : SourceFactory {
 
       override val isOneByteAtATime: Boolean
         get() = false
@@ -46,8 +46,8 @@ interface BufferedSourceFactory {
       }
     }
 
-    val REAL_BUFFERED_SOURCE: BufferedSourceFactory = object :
-      BufferedSourceFactory {
+    val REAL_BUFFERED_SOURCE: SourceFactory = object :
+      SourceFactory {
 
       override val isOneByteAtATime: Boolean
         get() = false
@@ -65,8 +65,8 @@ interface BufferedSourceFactory {
      * A factory deliberately written to create buffers whose internal segments are always 1 byte
      * long. We like testing with these segments because are likely to trigger bugs!
      */
-    val ONE_BYTE_AT_A_TIME_BUFFERED_SOURCE: BufferedSourceFactory = object :
-      BufferedSourceFactory {
+    val ONE_BYTE_AT_A_TIME_BUFFERED_SOURCE: SourceFactory = object :
+      SourceFactory {
 
       override val isOneByteAtATime: Boolean
         get() = true
@@ -89,8 +89,8 @@ interface BufferedSourceFactory {
       }
     }
 
-    val ONE_BYTE_AT_A_TIME_BUFFER: BufferedSourceFactory = object :
-      BufferedSourceFactory {
+    val ONE_BYTE_AT_A_TIME_BUFFER: SourceFactory = object :
+      SourceFactory {
 
       override val isOneByteAtATime: Boolean
         get() = true
@@ -114,7 +114,7 @@ interface BufferedSourceFactory {
       }
     }
 
-    val PEEK_BUFFER: BufferedSourceFactory = object : BufferedSourceFactory {
+    val PEEK_BUFFER: SourceFactory = object : SourceFactory {
 
       override val isOneByteAtATime: Boolean
         get() = false
@@ -128,8 +128,8 @@ interface BufferedSourceFactory {
       }
     }
 
-    val PEEK_BUFFERED_SOURCE: BufferedSourceFactory = object :
-      BufferedSourceFactory {
+    val PEEK_BUFFERED_SOURCE: SourceFactory = object :
+      SourceFactory {
 
       override val isOneByteAtATime: Boolean
         get() = false

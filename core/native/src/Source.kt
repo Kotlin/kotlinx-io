@@ -33,33 +33,15 @@ actual sealed interface Source : RawSource {
 
   actual fun readShort(): Short
 
-  actual fun readShortLe(): Short
-
   actual fun readInt(): Int
-
-  actual fun readIntLe(): Int
 
   actual fun readLong(): Long
 
-  actual fun readLongLe(): Long
-
-  actual fun readDecimalLong(): Long
-
-  actual fun readHexadecimalUnsignedLong(): Long
-
   actual fun skip(byteCount: Long)
-
-//  actual fun readByteString(): ByteString
-//
-//  actual fun readByteString(byteCount: Long): ByteString
-//
-//  actual fun select(options: Options): Int
 
   actual fun readByteArray(): ByteArray
 
   actual fun readByteArray(byteCount: Long): ByteArray
-
-  actual fun read(sink: ByteArray): Int
 
   actual fun readFully(sink: ByteArray)
 
@@ -73,31 +55,7 @@ actual sealed interface Source : RawSource {
 
   actual fun readUtf8(byteCount: Long): String
 
-  actual fun readUtf8Line(): String?
-
-  actual fun readUtf8LineStrict(): String
-
-  actual fun readUtf8LineStrict(limit: Long): String
-
   actual fun readUtf8CodePoint(): Int
-
-  actual fun indexOf(b: Byte): Long
-
-  actual fun indexOf(b: Byte, fromIndex: Long): Long
-
-  actual fun indexOf(b: Byte, fromIndex: Long, toIndex: Long): Long
-
-//  actual fun indexOf(bytes: ByteString): Long
-//
-//  actual fun indexOf(bytes: ByteString, fromIndex: Long): Long
-//
-//  actual fun indexOfElement(targetBytes: ByteString): Long
-//
-//  actual fun indexOfElement(targetBytes: ByteString, fromIndex: Long): Long
-//
-//  actual fun rangeEquals(offset: Long, bytes: ByteString): Boolean
-//
-//  actual fun rangeEquals(offset: Long, bytes: ByteString, bytesOffset: Int, byteCount: Int): Boolean
 
   actual fun peek(): Source
 }

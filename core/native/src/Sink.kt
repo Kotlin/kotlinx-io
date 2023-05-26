@@ -23,19 +23,11 @@ package kotlinx.io
 actual sealed interface Sink : RawSink {
   actual val buffer: Buffer
 
-//  actual fun write(byteString: ByteString): Sink
-//
-//  actual fun write(byteString: ByteString, offset: Int, byteCount: Int): Sink
-
-  actual fun write(source: ByteArray): Sink
-
   actual fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
 
   actual fun writeAll(source: RawSource): Long
 
   actual fun write(source: RawSource, byteCount: Long): Sink
-
-  actual fun writeUtf8(string: String): Sink
 
   actual fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Sink
 
@@ -45,19 +37,9 @@ actual sealed interface Sink : RawSink {
 
   actual fun writeShort(s: Int): Sink
 
-  actual fun writeShortLe(s: Int): Sink
-
   actual fun writeInt(i: Int): Sink
 
-  actual fun writeIntLe(i: Int): Sink
-
   actual fun writeLong(v: Long): Sink
-
-  actual fun writeLongLe(v: Long): Sink
-
-  actual fun writeDecimalLong(v: Long): Sink
-
-  actual fun writeHexadecimalUnsignedLong(v: Long): Sink
 
   actual fun emit(): Sink
 

@@ -28,11 +28,10 @@ expect sealed interface Sink : RawSink {
   /** This sink's internal buffer. */
   val buffer: Buffer
 
+  // TODO(filipp): fix javadoc
   /** Like [OutputStream.write], this writes a complete byte array to this sink. */
-  fun write(source: ByteArray): Sink
-
   /** Like [OutputStream.write], this writes `byteCount` bytes of `source`, starting at `offset`. */
-  fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
+  fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size): Sink
 
   /**
    * Removes all bytes from `source` and appends them to this sink. Returns the number of bytes read
@@ -54,9 +53,8 @@ expect sealed interface Sink : RawSink {
    * assertEquals("Uh uh uh! You didn't say the magic word!", buffer.readUtf8());
    * ```
    */
-  fun writeUtf8(string: String): Sink
-
-  /**
+  //TODO(filipp): fix javadoc
+   /*
    * Encodes the characters at `beginIndex` up to `endIndex` from `string` in UTF-8 and writes it to
    * this sink.
    * ```
@@ -70,7 +68,7 @@ expect sealed interface Sink : RawSink {
    * assertEquals("hacker nerd hacker!", buffer.readUtf8());
    * ```
    */
-  fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Sink
+  fun writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): Sink
 
   /** Encodes `codePoint` in UTF-8 and writes it to this sink. */
   fun writeUtf8CodePoint(codePoint: Int): Sink
@@ -96,23 +94,6 @@ expect sealed interface Sink : RawSink {
   fun writeShort(s: Int): Sink
 
   /**
-   * Writes a little-endian short to this sink using two bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeShortLe(32767);
-   * buffer.writeShortLe(15);
-   *
-   * assertEquals(4, buffer.size());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
-   */
-  fun writeShortLe(s: Int): Sink
-
-  /**
    * Writes a big-endian int to this sink using four bytes.
    * ```
    * Buffer buffer = new Buffer();
@@ -132,27 +113,6 @@ expect sealed interface Sink : RawSink {
    * ```
    */
   fun writeInt(i: Int): Sink
-
-  /**
-   * Writes a little-endian int to this sink using four bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeIntLe(2147483647);
-   * buffer.writeIntLe(15);
-   *
-   * assertEquals(8, buffer.size());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
-   */
-  fun writeIntLe(i: Int): Sink
 
   /**
    * Writes a big-endian long to this sink using eight bytes.
@@ -182,65 +142,6 @@ expect sealed interface Sink : RawSink {
    * ```
    */
   fun writeLong(v: Long): Sink
-
-  /**
-   * Writes a little-endian long to this sink using eight bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeLongLe(9223372036854775807L);
-   * buffer.writeLongLe(15);
-   *
-   * assertEquals(16, buffer.size());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
-   */
-  fun writeLongLe(v: Long): Sink
-
-  /**
-   * Writes a long to this sink in signed decimal form (i.e., as a string in base 10).
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeDecimalLong(8675309L);
-   * buffer.writeByte(' ');
-   * buffer.writeDecimalLong(-123L);
-   * buffer.writeByte(' ');
-   * buffer.writeDecimalLong(1L);
-   *
-   * assertEquals("8675309 -123 1", buffer.readUtf8());
-   * ```
-   */
-  fun writeDecimalLong(v: Long): Sink
-
-  /**
-   * Writes a long to this sink in hexadecimal form (i.e., as a string in base 16).
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeHexadecimalUnsignedLong(65535L);
-   * buffer.writeByte(' ');
-   * buffer.writeHexadecimalUnsignedLong(0xcafebabeL);
-   * buffer.writeByte(' ');
-   * buffer.writeHexadecimalUnsignedLong(0x10L);
-   *
-   * assertEquals("ffff cafebabe 10", buffer.readUtf8());
-   * ```
-   */
-  fun writeHexadecimalUnsignedLong(v: Long): Sink
 
   /**
    * Writes all buffered data to the underlying sink, if one exists. Then that sink is recursively

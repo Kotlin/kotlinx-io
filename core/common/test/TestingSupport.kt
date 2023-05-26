@@ -29,13 +29,3 @@ fun Char.repeat(count: Int): String {
 fun assertArrayEquals(a: ByteArray, b: ByteArray) {
   assertEquals(a.contentToString(), b.contentToString())
 }
-//
-//fun randomBytes(length: Int): ByteString {
-//  val random = Random(0)
-//  val randomBytes = ByteArray(length)
-//  random.nextBytes(randomBytes)
-//  return ByteString.of(*randomBytes)
-//}
-//
-//fun randomToken(length: Int) = Random.nextBytes(length).toByteString(0, length).hex()
-

@@ -37,9 +37,6 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
   actual val buffer: Buffer
 
   @Throws(IOException::class)
-  actual fun write(source: ByteArray): Sink
-
-  @Throws(IOException::class)
   actual fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
 
   @Throws(IOException::class)
@@ -47,9 +44,6 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
 
   @Throws(IOException::class)
   actual fun write(source: RawSource, byteCount: Long): Sink
-
-  @Throws(IOException::class)
-  actual fun writeUtf8(string: String): Sink
 
   @Throws(IOException::class)
   actual fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Sink
@@ -70,25 +64,10 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
   actual fun writeShort(s: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeShortLe(s: Int): Sink
-
-  @Throws(IOException::class)
   actual fun writeInt(i: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeIntLe(i: Int): Sink
-
-  @Throws(IOException::class)
   actual fun writeLong(v: Long): Sink
-
-  @Throws(IOException::class)
-  actual fun writeLongLe(v: Long): Sink
-
-  @Throws(IOException::class)
-  actual fun writeDecimalLong(v: Long): Sink
-
-  @Throws(IOException::class)
-  actual fun writeHexadecimalUnsignedLong(v: Long): Sink
 
   @Throws(IOException::class)
   actual override fun flush()
