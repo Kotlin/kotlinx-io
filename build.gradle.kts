@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.*
 
 plugins {
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.11.1"
+    id("org.jetbrains.dokka") version "1.8.10"
     `maven-publish`
     signing
 }
@@ -33,12 +34,17 @@ apply(plugin = "maven-publish")
 apply(plugin = "signing")
 
 subprojects {
+    if (name.contains("benchmark")) {
+        return@subprojects
+    }
+
     repositories {
         mavenCentral()
     }
 
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
+    apply(plugin = "org.jetbrains.dokka")
 
     publishing {
         repositories {
