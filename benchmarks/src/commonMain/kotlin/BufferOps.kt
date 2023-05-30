@@ -290,14 +290,16 @@ open class Utf8StringBenchmark: BufferRWBenchmarkBase() {
 
     @Benchmark
     fun kio(): String {
+        val s = buffer.size
         buffer.writeUtf8(string)
-        return buffer.readUtf8(length.toLong())
+        return buffer.readUtf8(buffer.size - s)
     }
 
     @Benchmark
     fun okio(): String {
+        val s = okioBuffer.size
         okioBuffer.writeUtf8(string)
-        return okioBuffer.readUtf8(length.toLong())
+        return okioBuffer.readUtf8(okioBuffer.size - s)
     }
 }
 
