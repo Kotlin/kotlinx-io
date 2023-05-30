@@ -19,6 +19,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io
 
 import kotlin.native.concurrent.SharedImmutable
@@ -70,28 +72,28 @@ internal inline infix fun Long.rightRotate(bitCount: Int): Long {
   return (this ushr bitCount) or (this shl (64 - bitCount))
 }
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Byte.shr(other: Int): Int = toInt() shr other
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Byte.shl(other: Int): Int = toInt() shl other
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Byte.and(other: Int): Int = toInt() and other
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Byte.and(other: Long): Long = toLong() and other
 
-@Suppress("NOTHING_TO_INLINE") // Pending `kotlin.experimental.xor` becoming stable
+// Pending `kotlin.experimental.xor` becoming stable
 internal inline infix fun Byte.xor(other: Byte): Byte = (toInt() xor other.toInt()).toByte()
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Int.and(other: Long): Long = toLong() and other
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline fun minOf(a: Long, b: Int): Long = minOf(a, b.toLong())
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline fun minOf(a: Int, b: Long): Long = minOf(a.toLong(), b)
 
 internal fun arrayRangeEquals(

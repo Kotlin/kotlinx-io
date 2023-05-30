@@ -36,8 +36,6 @@ internal actual class RealSource actual constructor(
   override val buffer: Buffer
     inline get() = bufferField
 
-  override fun buffer() = bufferField
-
   override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
   override fun exhausted(): Boolean = commonExhausted()
   override fun require(byteCount: Long): Unit = commonRequire(byteCount)

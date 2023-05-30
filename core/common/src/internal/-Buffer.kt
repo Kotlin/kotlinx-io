@@ -21,6 +21,8 @@
 
 // TODO move to Buffer class: https://youtrack.jetbrains.com/issue/KT-20427
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io.internal
 
 import kotlinx.io.*
@@ -33,6 +35,8 @@ internal val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
  * Returns true if the range within this buffer starting at `segmentPos` in `segment` is equal to
  * `bytes[bytesOffset..bytesLimit)`.
  */
+// TODO: remove?
+/*
 internal fun rangeEquals(
   segment: Segment,
   segmentPos: Int,
@@ -64,6 +68,7 @@ internal fun rangeEquals(
 
   return true
 }
+*/
 
 internal fun Buffer.readUtf8Line(newline: Long): String {
   return when {
@@ -120,25 +125,26 @@ internal inline fun Buffer.commonCopyTo(
   offset: Long,
   byteCount: Long
 ): Buffer {
-  var offset = offset
-  var byteCount = byteCount
   checkOffsetAndCount(size, offset, byteCount)
   if (byteCount == 0L) return this
 
-  out.size += byteCount
+  var currentOffset = offset
+  var remainingByteCount = byteCount
+
+  out.size += remainingByteCount
 
   // Skip segments that we aren't copying from.
   var s = head
-  while (offset >= s!!.limit - s.pos) {
-    offset -= (s.limit - s.pos).toLong()
+  while (currentOffset >= s!!.limit - s.pos) {
+    currentOffset -= (s.limit - s.pos).toLong()
     s = s.next
   }
 
   // Copy one segment at a time.
-  while (byteCount > 0L) {
+  while (remainingByteCount > 0L) {
     val copy = s!!.sharedCopy()
-    copy.pos += offset.toInt()
-    copy.limit = minOf(copy.pos + byteCount.toInt(), copy.limit)
+    copy.pos += currentOffset.toInt()
+    copy.limit = minOf(copy.pos + remainingByteCount.toInt(), copy.limit)
     if (out.head == null) {
       copy.prev = copy
       copy.next = copy.prev
@@ -146,8 +152,8 @@ internal inline fun Buffer.commonCopyTo(
     } else {
       out.head!!.prev!!.push(copy)
     }
-    byteCount -= (copy.limit - copy.pos).toLong()
-    offset = 0L
+    remainingByteCount -= (copy.limit - copy.pos).toLong()
+    currentOffset = 0L
     s = s.next
   }
 
@@ -299,13 +305,13 @@ internal inline fun Buffer.commonGet(pos: Long): Byte {
 internal inline fun Buffer.commonClear() = skip(size)
 
 internal inline fun Buffer.commonSkip(byteCount: Long) {
-  var byteCount = byteCount
-  while (byteCount > 0) {
+  var remainingByteCount = byteCount
+  while (remainingByteCount > 0) {
     val head = this.head ?: throw EOFException()
 
-    val toSkip = minOf(byteCount, head.limit - head.pos).toInt()
+    val toSkip = minOf(remainingByteCount, head.limit - head.pos).toInt()
     size -= toSkip.toLong()
-    byteCount -= toSkip.toLong()
+    remainingByteCount -= toSkip.toLong()
     head.pos += toSkip
 
     if (head.pos == head.limit) {
@@ -324,6 +330,7 @@ internal inline fun Buffer.commonSkip(byteCount: Long) {
 //  return this
 //}
 
+/*
 internal inline fun Buffer.commonWriteDecimalLong(v: Long): Buffer {
   var v = v
   if (v == 0L) {
@@ -432,6 +439,7 @@ internal inline fun Buffer.commonWriteHexadecimalUnsignedLong(v: Long): Buffer {
   size += width.toLong()
   return this
 }
+ */
 
 internal inline fun Buffer.commonWritableSegment(minimumCapacity: Int): Segment {
   require(minimumCapacity >= 1 && minimumCapacity <= Segment.SIZE) { "unexpected capacity" }
@@ -458,22 +466,22 @@ internal inline fun Buffer.commonWrite(
   offset: Int,
   byteCount: Int
 ): Buffer {
-  var offset = offset
-  checkOffsetAndCount(source.size.toLong(), offset.toLong(), byteCount.toLong())
+  var currentOffset = offset
+  checkOffsetAndCount(source.size.toLong(), currentOffset.toLong(), byteCount.toLong())
 
-  val limit = offset + byteCount
-  while (offset < limit) {
+  val limit = currentOffset + byteCount
+  while (currentOffset < limit) {
     val tail = writableSegment(1)
 
-    val toCopy = minOf(limit - offset, Segment.SIZE - tail.limit)
+    val toCopy = minOf(limit - currentOffset, Segment.SIZE - tail.limit)
     source.copyInto(
       destination = tail.data,
       destinationOffset = tail.limit,
-      startIndex = offset,
-      endIndex = offset + toCopy
+      startIndex = currentOffset,
+      endIndex = currentOffset + toCopy
     )
 
-    offset += toCopy
+    currentOffset += toCopy
     tail.limit += toCopy
   }
 
@@ -971,11 +979,11 @@ internal inline fun Buffer.commonWriteAll(source: RawSource): Long {
 }
 
 internal inline fun Buffer.commonWrite(source: RawSource, byteCount: Long): Buffer {
-  var byteCount = byteCount
-  while (byteCount > 0L) {
-    val read = source.read(this, byteCount)
+  var remainingByteCount = byteCount
+  while (remainingByteCount > 0L) {
+    val read = source.read(this, remainingByteCount)
     if (read == -1L) throw EOFException()
-    byteCount -= read
+    remainingByteCount -= read
   }
   return this
 }
@@ -1029,7 +1037,6 @@ internal inline fun Buffer.commonWriteLong(v: Long): Buffer {
 }
 
 internal inline fun Buffer.commonWrite(source: Buffer, byteCount: Long) {
-  var byteCount = byteCount
   // Move bytes from the head of the source buffer to the tail of this buffer
   // while balancing two conflicting goals: don't waste CPU and don't waste
   // memory.
@@ -1083,22 +1090,24 @@ internal inline fun Buffer.commonWrite(source: Buffer, byteCount: Long) {
   require(source !== this) { "source == this" }
   checkOffsetAndCount(source.size, 0, byteCount)
 
-  while (byteCount > 0L) {
+  var remainingByteCount = byteCount
+
+  while (remainingByteCount > 0L) {
     // Is a prefix of the source's head segment all that we need to move?
-    if (byteCount < source.head!!.limit - source.head!!.pos) {
+    if (remainingByteCount < source.head!!.limit - source.head!!.pos) {
       val tail = if (head != null) head!!.prev else null
       if (tail != null && tail.owner &&
-        byteCount + tail.limit - (if (tail.shared) 0 else tail.pos) <= Segment.SIZE
+        remainingByteCount + tail.limit - (if (tail.shared) 0 else tail.pos) <= Segment.SIZE
       ) {
         // Our existing segments are sufficient. Move bytes from source's head to our tail.
-        source.head!!.writeTo(tail, byteCount.toInt())
-        source.size -= byteCount
-        size += byteCount
+        source.head!!.writeTo(tail, remainingByteCount.toInt())
+        source.size -= remainingByteCount
+        size += remainingByteCount
         return
       } else {
         // We're going to need another segment. Split the source's head
         // segment in two, then move the first of those two to this buffer.
-        source.head = source.head!!.split(byteCount.toInt())
+        source.head = source.head!!.split(remainingByteCount.toInt())
       }
     }
 
@@ -1117,19 +1126,19 @@ internal inline fun Buffer.commonWrite(source: Buffer, byteCount: Long) {
     }
     source.size -= movedByteCount
     size += movedByteCount
-    byteCount -= movedByteCount
+    remainingByteCount -= movedByteCount
   }
 }
 
 internal inline fun Buffer.commonRead(sink: Buffer, byteCount: Long): Long {
-  var byteCount = byteCount
   require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
   if (size == 0L) return -1L
-  if (byteCount > size) byteCount = size
-  sink.write(this, byteCount)
-  return byteCount
+  val bytesWritten = if (byteCount > size) size else byteCount
+  sink.write(this, bytesWritten)
+  return bytesWritten
 }
 
+/*
 internal inline fun Buffer.commonIndexOf(b: Byte, fromIndex: Long, toIndex: Long): Long {
   var fromIndex = fromIndex
   var toIndex = toIndex
@@ -1163,6 +1172,7 @@ internal inline fun Buffer.commonIndexOf(b: Byte, fromIndex: Long, toIndex: Long
     return -1L
   }
 }
+ */
 
 internal inline fun Buffer.commonEquals(other: Any?): Boolean {
   if (this === other) return true

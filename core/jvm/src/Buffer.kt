@@ -41,8 +41,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   actual var size: Long = 0L
     internal set
 
-  override fun buffer() = this
-
   actual override val buffer get() = this
 
   override fun outputStream(): OutputStream {
@@ -110,25 +108,26 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     offset: Long = 0L,
     byteCount: Long = size - offset
   ): Buffer {
-    var offset = offset
-    var byteCount = byteCount
     checkOffsetAndCount(size, offset, byteCount)
     if (byteCount == 0L) return this
 
+    var currentOffset = offset
+    var remainingByteCount = byteCount
+
     // Skip segments that we aren't copying from.
     var s = head
-    while (offset >= s!!.limit - s.pos) {
-      offset -= (s.limit - s.pos).toLong()
+    while (currentOffset >= s!!.limit - s.pos) {
+      currentOffset -= (s.limit - s.pos).toLong()
       s = s.next
     }
 
     // Copy from one segment at a time.
-    while (byteCount > 0L) {
-      val pos = (s!!.pos + offset).toInt()
-      val toCopy = minOf(s.limit - pos, byteCount).toInt()
+    while (remainingByteCount > 0L) {
+      val pos = (s!!.pos + currentOffset).toInt()
+      val toCopy = minOf(s.limit - pos, remainingByteCount).toInt()
       out.write(s.data, pos, toCopy)
-      byteCount -= toCopy.toLong()
-      offset = 0L
+      remainingByteCount -= toCopy.toLong()
+      currentOffset = 0L
       s = s.next
     }
 
@@ -150,17 +149,17 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   @Throws(IOException::class)
   @JvmOverloads
   fun writeTo(out: OutputStream, byteCount: Long = size): Buffer {
-    var byteCount = byteCount
     checkOffsetAndCount(size, 0, byteCount)
+    var remainingByteCount = byteCount
 
     var s = head
-    while (byteCount > 0L) {
-      val toCopy = minOf(byteCount, s!!.limit - s.pos).toInt()
+    while (remainingByteCount > 0L) {
+      val toCopy = minOf(remainingByteCount, s!!.limit - s.pos).toInt()
       out.write(s.data, s.pos, toCopy)
 
       s.pos += toCopy
       size -= toCopy.toLong()
-      byteCount -= toCopy.toLong()
+      remainingByteCount -= toCopy.toLong()
 
       if (s.pos == s.limit) {
         val toRecycle = s
@@ -190,10 +189,10 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   @Throws(IOException::class)
   private fun readFrom(input: InputStream, byteCount: Long, forever: Boolean) {
-    var byteCount = byteCount
-    while (byteCount > 0L || forever) {
+    var remainingByteCount = byteCount
+    while (remainingByteCount > 0L || forever) {
       val tail = writableSegment(1)
-      val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()
+      val maxToCopy = minOf(remainingByteCount, Segment.SIZE - tail.limit).toInt()
       val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
       if (bytesRead == -1) {
         if (tail.pos == tail.limit) {
@@ -206,7 +205,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
       }
       tail.limit += bytesRead
       size += bytesRead.toLong()
-      byteCount -= bytesRead.toLong()
+      remainingByteCount -= bytesRead.toLong()
     }
   }
 

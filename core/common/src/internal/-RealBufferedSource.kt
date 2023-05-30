@@ -21,6 +21,8 @@
 
 // TODO move to RealBufferedSource class: https://youtrack.jetbrains.com/issue/KT-20427
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io.internal
 
 import kotlinx.io.*
@@ -261,18 +263,19 @@ internal inline fun RealSource.commonReadHexadecimalUnsignedLong(): Long {
 }
 
 internal inline fun RealSource.commonSkip(byteCount: Long) {
-  var byteCount = byteCount
+  var remainingByteCount = byteCount
   check(!closed) { "closed" }
-  while (byteCount > 0) {
+  while (remainingByteCount > 0) {
     if (buffer.size == 0L && source.read(buffer, Segment.SIZE.toLong()) == -1L) {
       throw EOFException()
     }
-    val toSkip = minOf(byteCount, buffer.size)
+    val toSkip = minOf(remainingByteCount, buffer.size)
     buffer.skip(toSkip)
-    byteCount -= toSkip
+    remainingByteCount -= toSkip
   }
 }
 
+/*
 internal inline fun RealSource.commonIndexOf(b: Byte, fromIndex: Long, toIndex: Long): Long {
   var fromIndex = fromIndex
   check(!closed) { "closed" }
@@ -292,6 +295,7 @@ internal inline fun RealSource.commonIndexOf(b: Byte, fromIndex: Long, toIndex: 
   }
   return -1L
 }
+ */
 
 internal inline fun RealSource.commonPeek(): Source {
   return PeekSource(this).buffer()

@@ -21,7 +21,8 @@ package kotlinx.io
  * ```
  */
 fun <T: Sink> T.writeShortLe(s: Int): T {
-    return this.writeShort(s.toShort().reverseBytes().toInt()) as T
+    this.writeShort(s.toShort().reverseBytes().toInt())
+    return this
 }
 
 /**
@@ -44,7 +45,8 @@ fun <T: Sink> T.writeShortLe(s: Int): T {
  * ```
  */
 fun <T: Sink> T.writeIntLe(i: Int): T {
-    return this.writeInt(i.reverseBytes()) as T
+    this.writeInt(i.reverseBytes())
+    return this
 }
 
 /**
@@ -75,7 +77,8 @@ fun <T: Sink> T.writeIntLe(i: Int): T {
  * ```
  */
 fun <T: Sink> T.writeLongLe(v: Long): T {
-    return this.writeLong(v.reverseBytes()) as T
+    this.writeLong(v.reverseBytes())
+    return this
 }
 
 /**
@@ -93,7 +96,8 @@ fun <T: Sink> T.writeLongLe(v: Long): T {
  */
 fun <T: Sink> T.writeDecimalLong(v: Long): T {
     // TODO: optimize
-    return writeUtf8(v.toString()) as T
+    writeUtf8(v.toString())
+    return this
 }
 
 /**
@@ -111,8 +115,10 @@ fun <T: Sink> T.writeDecimalLong(v: Long): T {
  */
 fun <T: Sink> T.writeHexadecimalUnsignedLong(v: Long): T {
     if (v == 0L) {
-        return writeByte('0'.code) as T
+        writeByte('0'.code)
+    } else {
+        // TODO: optimize
+        writeUtf8(v.toHexString())
     }
-    // TODO: optimize
-    return writeUtf8(v.toHexString()) as T
+    return this
 }

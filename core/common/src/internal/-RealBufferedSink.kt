@@ -82,11 +82,11 @@ internal inline fun RealSink.commonWriteAll(source: RawSource): Long {
 }
 
 internal inline fun RealSink.commonWrite(source: RawSource, byteCount: Long): Sink {
-  var byteCount = byteCount
-  while (byteCount > 0L) {
-    val read = source.read(buffer, byteCount)
+  var remainingByteCount = byteCount
+  while (remainingByteCount > 0L) {
+    val read = source.read(buffer, remainingByteCount)
     if (read == -1L) throw EOFException()
-    byteCount -= read
+    remainingByteCount -= read
     emitCompleteSegments()
   }
   return this

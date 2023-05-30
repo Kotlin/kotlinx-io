@@ -17,7 +17,6 @@ fun KotlinMultiplatformExtension.configureNativePlatforms() {
     tvosSimulatorArm64()
     watchosArm32()
     watchosArm64()
-    watchosX86()
     watchosX64()
     watchosSimulatorArm64()
     // Required to generate tests tasks: https://youtrack.jetbrains.com/issue/KT-26547
@@ -38,7 +37,6 @@ private val appleTargets = listOf(
     "tvosSimulatorArm64",
     "watchosArm32",
     "watchosArm64",
-    "watchosX86",
     "watchosX64",
     "watchosSimulatorArm64"
 )

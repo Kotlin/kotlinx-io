@@ -36,8 +36,6 @@ internal actual class RealSink actual constructor(
   override val buffer: Buffer
     inline get() = bufferField
 
-  override fun buffer() = bufferField
-
   override fun write(source: Buffer, byteCount: Long) = commonWrite(source, byteCount)
   override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int) =
     commonWriteUtf8(string, beginIndex, endIndex)
