@@ -43,11 +43,6 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun readInt ()I
 	public fun readLong ()J
 	public fun readShort ()S
-	public fun readString (JLjava/nio/charset/Charset;)Ljava/lang/String;
-	public fun readString (Ljava/nio/charset/Charset;)Ljava/lang/String;
-	public fun readUtf8 ()Ljava/lang/String;
-	public fun readUtf8 (J)Ljava/lang/String;
-	public fun readUtf8CodePoint ()I
 	public fun request (J)Z
 	public fun require (J)V
 	public final fun size ()J
@@ -68,17 +63,9 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public synthetic fun writeLong (J)Lkotlinx/io/Sink;
 	public fun writeShort (I)Lkotlinx/io/Buffer;
 	public synthetic fun writeShort (I)Lkotlinx/io/Sink;
-	public fun writeString (Ljava/lang/String;IILjava/nio/charset/Charset;)Lkotlinx/io/Buffer;
-	public synthetic fun writeString (Ljava/lang/String;IILjava/nio/charset/Charset;)Lkotlinx/io/Sink;
-	public fun writeString (Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/Buffer;
-	public synthetic fun writeString (Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/Sink;
 	public final fun writeTo (Ljava/io/OutputStream;)Lkotlinx/io/Buffer;
 	public final fun writeTo (Ljava/io/OutputStream;J)Lkotlinx/io/Buffer;
 	public static synthetic fun writeTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JILjava/lang/Object;)Lkotlinx/io/Buffer;
-	public fun writeUtf8 (Ljava/lang/String;II)Lkotlinx/io/Buffer;
-	public synthetic fun writeUtf8 (Ljava/lang/String;II)Lkotlinx/io/Sink;
-	public fun writeUtf8CodePoint (I)Lkotlinx/io/Buffer;
-	public synthetic fun writeUtf8CodePoint (I)Lkotlinx/io/Sink;
 }
 
 public final class kotlinx/io/CoreKt {
@@ -127,15 +114,10 @@ public abstract interface class kotlinx/io/Sink : java/nio/channels/WritableByte
 	public abstract fun writeInt (I)Lkotlinx/io/Sink;
 	public abstract fun writeLong (J)Lkotlinx/io/Sink;
 	public abstract fun writeShort (I)Lkotlinx/io/Sink;
-	public abstract fun writeString (Ljava/lang/String;IILjava/nio/charset/Charset;)Lkotlinx/io/Sink;
-	public abstract fun writeString (Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/Sink;
-	public abstract fun writeUtf8 (Ljava/lang/String;II)Lkotlinx/io/Sink;
-	public abstract fun writeUtf8CodePoint (I)Lkotlinx/io/Sink;
 }
 
 public final class kotlinx/io/Sink$DefaultImpls {
 	public static synthetic fun write$default (Lkotlinx/io/Sink;[BIIILjava/lang/Object;)Lkotlinx/io/Sink;
-	public static synthetic fun writeUtf8$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)Lkotlinx/io/Sink;
 }
 
 public final class kotlinx/io/SinkExtKt {
@@ -144,6 +126,11 @@ public final class kotlinx/io/SinkExtKt {
 	public static final fun writeIntLe (Lkotlinx/io/Sink;I)Lkotlinx/io/Sink;
 	public static final fun writeLongLe (Lkotlinx/io/Sink;J)Lkotlinx/io/Sink;
 	public static final fun writeShortLe (Lkotlinx/io/Sink;I)Lkotlinx/io/Sink;
+}
+
+public final class kotlinx/io/SinkKt {
+	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;II)Lkotlinx/io/Sink;
+	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;IIILjava/lang/Object;)Lkotlinx/io/Sink;
 }
 
 public abstract interface class kotlinx/io/Source : java/nio/channels/ReadableByteChannel, kotlinx/io/RawSource {
@@ -161,11 +148,6 @@ public abstract interface class kotlinx/io/Source : java/nio/channels/ReadableBy
 	public abstract fun readInt ()I
 	public abstract fun readLong ()J
 	public abstract fun readShort ()S
-	public abstract fun readString (JLjava/nio/charset/Charset;)Ljava/lang/String;
-	public abstract fun readString (Ljava/nio/charset/Charset;)Ljava/lang/String;
-	public abstract fun readUtf8 ()Ljava/lang/String;
-	public abstract fun readUtf8 (J)Ljava/lang/String;
-	public abstract fun readUtf8CodePoint ()I
 	public abstract fun request (J)Z
 	public abstract fun require (J)V
 	public abstract fun skip (J)V
@@ -183,16 +165,29 @@ public final class kotlinx/io/SourceExtKt {
 	public static final fun readIntLe (Lkotlinx/io/Source;)I
 	public static final fun readLongLe (Lkotlinx/io/Source;)J
 	public static final fun readShortLe (Lkotlinx/io/Source;)S
-	public static final fun readUtf8Line (Lkotlinx/io/Source;)Ljava/lang/String;
-	public static final fun readUtf8LineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
-	public static synthetic fun readUtf8LineStrict$default (Lkotlinx/io/Source;JILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class kotlinx/io/SourceKt {
+	public static final fun readString (Lkotlinx/io/Source;JLjava/nio/charset/Charset;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Source;Ljava/nio/charset/Charset;)Ljava/lang/String;
 }
 
 public final class kotlinx/io/Utf8 {
+	public static final fun readUtf8 (Lkotlinx/io/Buffer;)Ljava/lang/String;
+	public static final fun readUtf8 (Lkotlinx/io/Source;)Ljava/lang/String;
+	public static final fun readUtf8 (Lkotlinx/io/Source;J)Ljava/lang/String;
+	public static final fun readUtf8CodePoint (Lkotlinx/io/Buffer;)I
+	public static final fun readUtf8CodePoint (Lkotlinx/io/Source;)I
+	public static final fun readUtf8Line (Lkotlinx/io/Source;)Ljava/lang/String;
+	public static final fun readUtf8LineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
+	public static synthetic fun readUtf8LineStrict$default (Lkotlinx/io/Source;JILjava/lang/Object;)Ljava/lang/String;
 	public static final fun size (Ljava/lang/String;)J
 	public static final fun size (Ljava/lang/String;I)J
 	public static final fun size (Ljava/lang/String;II)J
 	public static synthetic fun size$default (Ljava/lang/String;IIILjava/lang/Object;)J
+	public static final fun writeUtf8 (Lkotlinx/io/Sink;Ljava/lang/String;II)Lkotlinx/io/Sink;
+	public static synthetic fun writeUtf8$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)Lkotlinx/io/Sink;
+	public static final fun writeUtf8CodePoint (Lkotlinx/io/Sink;I)Lkotlinx/io/Sink;
 }
 
 public final class kotlinx/io/files/Path {

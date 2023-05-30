@@ -20,8 +20,6 @@
  */
 package kotlinx.io
 
-import kotlin.jvm.JvmField
-
 /**
  * A collection of bytes in memory.
  *
@@ -80,10 +78,6 @@ expect class Buffer() : Source, Sink {
 
   /** Discards `byteCount` bytes from the head of this buffer.  */
   override fun skip(byteCount: Long)
-
-  override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Buffer
-
-  override fun writeUtf8CodePoint(codePoint: Int): Buffer
 
   /**
    * Returns a tail segment that we can write at least `minimumCapacity`

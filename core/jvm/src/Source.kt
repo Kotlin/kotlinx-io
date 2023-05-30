@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.nio.channels.ReadableByteChannel
@@ -70,28 +71,46 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
   @Throws(IOException::class)
   actual fun readAll(sink: RawSink): Long
 
-  @Throws(IOException::class)
-  actual fun readUtf8(): String
-
-  @Throws(IOException::class)
-  actual fun readUtf8(byteCount: Long): String
-
-  @Throws(IOException::class)
-  actual fun readUtf8CodePoint(): Int
-
-  /** Removes all bytes from this, decodes them as `charset`, and returns the string. */
-  @Throws(IOException::class)
-  fun readString(charset: Charset): String
-
-  /**
-   * Removes `byteCount` bytes from this, decodes them as `charset`, and returns the
-   * string.
-   */
-  @Throws(IOException::class)
-  fun readString(byteCount: Long, charset: Charset): String
-
   actual fun peek(): Source
 
   /** Returns an input stream that reads from this source. */
   fun inputStream(): InputStream
+}
+
+private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
+  require(byteCount >= 0 && byteCount <= Integer.MAX_VALUE) { "byteCount: $byteCount" }
+  if (size < byteCount) throw EOFException()
+  if (byteCount == 0L) return ""
+
+  val s = head!!
+  if (s.pos + byteCount > s.limit) {
+    // If the string spans multiple segments, delegate to readBytes().
+    return String(readByteArray(byteCount), charset)
+  }
+
+  val result = String(s.data, s.pos, byteCount.toInt(), charset)
+  s.pos += byteCount.toInt()
+  size -= byteCount
+
+  if (s.pos == s.limit) {
+    head = s.pop()
+    SegmentPool.recycle(s)
+  }
+
+  return result
+}
+
+@Throws(IOException::class)
+fun Source.readString(charset: Charset): String {
+  var req = 1L
+  while (request(req)) {
+    req *= 2
+  }
+  return buffer.readStringImpl(buffer.size, charset)
+}
+
+@Throws(IOException::class)
+fun Source.readString(byteCount: Long, charset: Charset): String {
+  require(byteCount)
+  return buffer.readStringImpl(byteCount, charset)
 }

@@ -70,6 +70,10 @@
 
 package kotlinx.io
 
+import kotlinx.io.internal.commonReadUtf8
+import kotlinx.io.internal.commonReadUtf8CodePoint
+import kotlinx.io.internal.commonWriteUtf8
+import kotlinx.io.internal.commonWriteUtf8CodePoint
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
 
@@ -559,4 +563,157 @@ internal inline fun ByteArray.process4Utf8Bytes(
     }
   }
   return 4
+}
+
+fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
+  buffer.commonWriteUtf8CodePoint(codePoint)
+  emitCompleteSegments()
+  return this
+}
+
+fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): T {
+  buffer.commonWriteUtf8(string, beginIndex, endIndex)
+  emitCompleteSegments()
+  return this
+}
+
+fun Source.readUtf8(): String {
+  var req: Long = 1
+  while (request(req)) {
+    req *= 2
+  }
+  return buffer.commonReadUtf8(buffer.size)
+}
+
+fun Buffer.readUtf8(): String {
+  return commonReadUtf8(buffer.size)
+}
+
+fun Source.readUtf8(byteCount: Long): String {
+  require(byteCount)
+  return buffer.commonReadUtf8(byteCount)
+}
+
+fun Source.readUtf8CodePoint(): Int {
+  require(1)
+
+  val b0 = buffer[0].toInt()
+  when {
+    b0 and 0xe0 == 0xc0 -> require(2)
+    b0 and 0xf0 == 0xe0 -> require(3)
+    b0 and 0xf8 == 0xf0 -> require(4)
+  }
+
+  return buffer.commonReadUtf8CodePoint()
+}
+
+fun Buffer.readUtf8CodePoint(): Int {
+  return buffer.commonReadUtf8CodePoint()
+}
+
+/**
+ * Removes and returns characters up to but not including the next line break. A line break is
+ * either `"\n"` or `"\r\n"`; these characters are not included in the result.
+ * ```
+ * Buffer buffer = new Buffer()
+ *     .writeUtf8("I'm a hacker!\n")
+ *     .writeUtf8("That's what I said: you're a nerd.\n")
+ *     .writeUtf8("I prefer to be called a hacker!\n");
+ * assertEquals(81, buffer.size());
+ *
+ * assertEquals("I'm a hacker!", buffer.readUtf8Line());
+ * assertEquals(67, buffer.size());
+ *
+ * assertEquals("That's what I said: you're a nerd.", buffer.readUtf8Line());
+ * assertEquals(32, buffer.size());
+ *
+ * assertEquals("I prefer to be called a hacker!", buffer.readUtf8Line());
+ * assertEquals(0, buffer.size());
+ *
+ * assertEquals(null, buffer.readUtf8Line());
+ * assertEquals(0, buffer.size());
+ * ```
+ *
+ * **On the end of the stream this method returns null,** just like [java.io.BufferedReader]. If
+ * the source doesn't end with a line break then an implicit line break is assumed. Null is
+ * returned once the source is exhausted. Use this for human-generated data, where a trailing
+ * line break is optional.
+ */
+fun Source.readUtf8Line(): String? {
+  if (!request(1)) return null
+
+  val peekSource = peek()
+  var offset = 0L
+  var newlineSize = 0L
+  while (peekSource.request(1)) {
+    val b = peekSource.readByte().toInt()
+    if (b == '\n'.code) {
+      newlineSize = 1L
+      break
+    } else if (b == '\r'.code) {
+      if (peekSource.request(1) && peekSource.buffer[0].toInt() == '\n'.code) {
+        newlineSize = 2L
+        break
+      }
+    }
+    offset++
+  }
+  val line = readUtf8(offset)
+  skip(newlineSize)
+  return line
+}
+
+/**
+ * Like [readUtf8LineStrict], except this allows the caller to specify the longest allowed match.
+ * Use this to protect against streams that may not include `"\n"` or `"\r\n"`.
+ *
+ * The returned string will have at most `limit` UTF-8 bytes, and the maximum number of bytes
+ * scanned is `limit + 2`. If `limit == 0` this will always throw an `EOFException` because no
+ * bytes will be scanned.
+ *
+ * This method is safe. No bytes are discarded if the match fails, and the caller is free to try
+ * another match:
+ * ```
+ * Buffer buffer = new Buffer();
+ * buffer.writeUtf8("12345\r\n");
+ *
+ * // This will throw! There must be \r\n or \n at the limit or before it.
+ * buffer.readUtf8LineStrict(4);
+ *
+ * // No bytes have been consumed so the caller can retry.
+ * assertEquals("12345", buffer.readUtf8LineStrict(5));
+ * ```
+ */
+fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
+  if (!request(1)) throw EOFException()
+
+  val peekSource = peek()
+  var offset = 0L
+  var newlineSize = 0L
+  while (offset < limit && peekSource.request(1)) {
+    val b = peekSource.readByte().toInt()
+    if (b == '\n'.code) {
+      newlineSize = 1L
+      break
+    } else if (b == '\r'.code) {
+      if (peekSource.request(1) && peekSource.buffer[0].toInt() == '\n'.code) {
+        newlineSize = 2L
+        break
+      }
+    }
+    offset++
+  }
+  if (offset == limit) {
+    if (!peekSource.request(1)) throw EOFException()
+    val nlCandidate = peekSource.readByte().toInt()
+    if (nlCandidate == '\n'.code) {
+      newlineSize = 1
+    } else if (nlCandidate == '\r'.code && peekSource.request(1) && peekSource.readByte().toInt() == '\n'.code) {
+      newlineSize = 2
+    }
+  }
+  if (newlineSize == 0L) throw EOFException()
+  val line = readUtf8(offset)
+  skip(newlineSize)
+  return line
 }

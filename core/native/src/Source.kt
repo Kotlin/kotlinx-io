@@ -51,11 +51,5 @@ actual sealed interface Source : RawSource {
 
   actual fun readAll(sink: RawSink): Long
 
-  actual fun readUtf8(): String
-
-  actual fun readUtf8(byteCount: Long): String
-
-  actual fun readUtf8CodePoint(): Int
-
   actual fun peek(): Source
 }

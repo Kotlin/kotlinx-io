@@ -232,40 +232,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   @Throws(IOException::class)
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
 
-  override fun readUtf8() = readString(size, Charsets.UTF_8)
-
-  @Throws(EOFException::class)
-  override fun readUtf8(byteCount: Long) = readString(byteCount, Charsets.UTF_8)
-
-  override fun readString(charset: Charset) = readString(size, charset)
-
-  @Throws(EOFException::class)
-  override fun readString(byteCount: Long, charset: Charset): String {
-    require(byteCount >= 0 && byteCount <= Integer.MAX_VALUE) { "byteCount: $byteCount" }
-    if (size < byteCount) throw EOFException()
-    if (byteCount == 0L) return ""
-
-    val s = head!!
-    if (s.pos + byteCount > s.limit) {
-      // If the string spans multiple segments, delegate to readBytes().
-      return String(readByteArray(byteCount), charset)
-    }
-
-    val result = String(s.data, s.pos, byteCount.toInt(), charset)
-    s.pos += byteCount.toInt()
-    size -= byteCount
-
-    if (s.pos == s.limit) {
-      head = s.pop()
-      SegmentPool.recycle(s)
-    }
-
-    return result
-  }
-
-  @Throws(EOFException::class)
-  override fun readUtf8CodePoint(): Int = commonReadUtf8CodePoint()
-
   override fun readByteArray() = commonReadByteArray()
 
   @Throws(EOFException::class)
@@ -299,31 +265,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   @Throws(EOFException::class)
   actual override fun skip(byteCount: Long) = commonSkip(byteCount)
-
-  actual override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Buffer =
-    commonWriteUtf8(string, beginIndex, endIndex)
-
-  actual override fun writeUtf8CodePoint(codePoint: Int): Buffer =
-    commonWriteUtf8CodePoint(codePoint)
-
-  override fun writeString(string: String, charset: Charset) = writeString(
-    string, 0, string.length,
-    charset
-  )
-
-  override fun writeString(
-    string: String,
-    beginIndex: Int,
-    endIndex: Int,
-    charset: Charset
-  ): Buffer {
-    require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
-    require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
-    require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }
-    if (charset == Charsets.UTF_8) return writeUtf8(string, beginIndex, endIndex)
-    val data = string.substring(beginIndex, endIndex).toByteArray(charset)
-    return write(data, 0, data.size)
-  }
 
   actual override fun write(
     source: ByteArray,

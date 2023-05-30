@@ -71,12 +71,6 @@ actual class Buffer : Source, Sink {
 
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
 
-  override fun readUtf8(): String = readUtf8(size)
-
-  override fun readUtf8(byteCount: Long): String = commonReadUtf8(byteCount)
-
-  override fun readUtf8CodePoint(): Int = commonReadUtf8CodePoint()
-
   override fun readByteArray(): ByteArray = commonReadByteArray()
 
   override fun readByteArray(byteCount: Long): ByteArray = commonReadByteArray(byteCount)
@@ -92,12 +86,6 @@ actual class Buffer : Source, Sink {
 
   internal actual fun writableSegment(minimumCapacity: Int): Segment =
     commonWritableSegment(minimumCapacity)
-
-  actual override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Buffer =
-    commonWriteUtf8(string, beginIndex, endIndex)
-
-  actual override fun writeUtf8CodePoint(codePoint: Int): Buffer =
-    commonWriteUtf8CodePoint(codePoint)
 
   actual override fun write(source: ByteArray, offset: Int, byteCount: Int): Buffer =
     commonWrite(source, offset, byteCount)

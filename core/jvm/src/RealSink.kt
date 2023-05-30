@@ -37,27 +37,6 @@ internal actual class RealSink actual constructor(
     inline get() = bufferField
 
   override fun write(source: Buffer, byteCount: Long) = commonWrite(source, byteCount)
-  override fun writeUtf8(string: String, beginIndex: Int, endIndex: Int) =
-    commonWriteUtf8(string, beginIndex, endIndex)
-
-  override fun writeUtf8CodePoint(codePoint: Int) = commonWriteUtf8CodePoint(codePoint)
-
-  override fun writeString(string: String, charset: Charset): Sink {
-    check(!closed) { "closed" }
-    buffer.writeString(string, charset)
-    return emitCompleteSegments()
-  }
-
-  override fun writeString(
-    string: String,
-    beginIndex: Int,
-    endIndex: Int,
-    charset: Charset
-  ): Sink {
-    check(!closed) { "closed" }
-    buffer.writeString(string, beginIndex, endIndex, charset)
-    return emitCompleteSegments()
-  }
 
   override fun write(source: ByteArray, offset: Int, byteCount: Int) =
     commonWrite(source, offset, byteCount)

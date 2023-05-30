@@ -167,59 +167,6 @@ expect sealed interface Source : RawSource {
   fun readAll(sink: RawSink): Long
 
   /**
-   * Removes all bytes from this, decodes them as UTF-8, and returns the string. Returns the empty
-   * string if this source is empty.
-   * ```
-   * Buffer buffer = new Buffer()
-   *     .writeUtf8("Uh uh uh!")
-   *     .writeByte(' ')
-   *     .writeUtf8("You didn't say the magic word!");
-   *
-   * assertEquals("Uh uh uh! You didn't say the magic word!", buffer.readUtf8());
-   * assertEquals(0, buffer.size());
-   *
-   * assertEquals("", buffer.readUtf8());
-   * assertEquals(0, buffer.size());
-   * ```
-   */
-  fun readUtf8(): String
-
-  /**
-   * Removes `byteCount` bytes from this, decodes them as UTF-8, and returns the string.
-   * ```
-   * Buffer buffer = new Buffer()
-   *     .writeUtf8("Uh uh uh!")
-   *     .writeByte(' ')
-   *     .writeUtf8("You didn't say the magic word!");
-   * assertEquals(40, buffer.size());
-   *
-   * assertEquals("Uh uh uh! You ", buffer.readUtf8(14));
-   * assertEquals(26, buffer.size());
-   *
-   * assertEquals("didn't say the", buffer.readUtf8(14));
-   * assertEquals(12, buffer.size());
-   *
-   * assertEquals(" magic word!", buffer.readUtf8(12));
-   * assertEquals(0, buffer.size());
-   * ```
-   */
-  fun readUtf8(byteCount: Long): String
-
-  /**
-   * Removes and returns a single UTF-8 code point, reading between 1 and 4 bytes as necessary.
-   *
-   * If this source is exhausted before a complete code point can be read, this throws an
-   * [java.io.EOFException] and consumes no input.
-   *
-   * If this source doesn't start with a properly-encoded UTF-8 code point, this method will remove
-   * 1 or more non-UTF-8 bytes and return the replacement character (`U+FFFD`). This covers encoding
-   * problems (the input is not properly-encoded UTF-8), characters out of range (beyond the
-   * 0x10ffff limit of Unicode), code points for UTF-16 surrogates (U+d800..U+dfff) and overlong
-   * encodings (such as `0xc080` for the NUL character in modified UTF-8).
-   */
-  fun readUtf8CodePoint(): Int
-
-  /**
    * Returns a new `BufferedSource` that can read data from this `BufferedSource` without consuming
    * it. The returned source becomes invalid once this source is next read or closed.
    *

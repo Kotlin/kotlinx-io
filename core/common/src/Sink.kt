@@ -42,37 +42,6 @@ expect sealed interface Sink : RawSink {
   /** Removes `byteCount` bytes from `source` and appends them to this sink. */
   fun write(source: RawSource, byteCount: Long): Sink
 
-  /**
-   * Encodes `string` in UTF-8 and writes it to this sink.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeUtf8("Uh uh uh!");
-   * buffer.writeByte(' ');
-   * buffer.writeUtf8("You didn't say the magic word!");
-   *
-   * assertEquals("Uh uh uh! You didn't say the magic word!", buffer.readUtf8());
-   * ```
-   */
-  //TODO(filipp): fix javadoc
-   /*
-   * Encodes the characters at `beginIndex` up to `endIndex` from `string` in UTF-8 and writes it to
-   * this sink.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeUtf8("I'm a hacker!\n", 6, 12);
-   * buffer.writeByte(' ');
-   * buffer.writeUtf8("That's what I said: you're a nerd.\n", 29, 33);
-   * buffer.writeByte(' ');
-   * buffer.writeUtf8("I prefer to be called a hacker!\n", 24, 31);
-   *
-   * assertEquals("hacker nerd hacker!", buffer.readUtf8());
-   * ```
-   */
-  fun writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): Sink
-
-  /** Encodes `codePoint` in UTF-8 and writes it to this sink. */
-  fun writeUtf8CodePoint(codePoint: Int): Sink
-
   /** Writes a byte to this sink. */
   fun writeByte(b: Int): Sink
 

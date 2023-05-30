@@ -38,18 +38,6 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
   actual fun write(source: RawSource, byteCount: Long): Sink
 
   @Throws(IOException::class)
-  actual fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Sink
-
-  @Throws(IOException::class)
-  actual fun writeUtf8CodePoint(codePoint: Int): Sink
-
-  @Throws(IOException::class)
-  fun writeString(string: String, charset: Charset): Sink
-
-  @Throws(IOException::class)
-  fun writeString(string: String, beginIndex: Int, endIndex: Int, charset: Charset): Sink
-
-  @Throws(IOException::class)
   actual fun writeByte(b: Int): Sink
 
   @Throws(IOException::class)
@@ -72,4 +60,15 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
 
   /** Returns an output stream that writes to this sink. */
   fun outputStream(): OutputStream
+}
+
+
+fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length): T {
+  require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
+  require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
+  require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }
+  if (charset == Charsets.UTF_8) return writeUtf8(string, beginIndex, endIndex)
+  val data = string.substring(beginIndex, endIndex).toByteArray(charset)
+  write(data, 0, data.size)
+  return this
 }

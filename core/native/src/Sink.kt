@@ -29,10 +29,6 @@ actual sealed interface Sink : RawSink {
 
   actual fun write(source: RawSource, byteCount: Long): Sink
 
-  actual fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Sink
-
-  actual fun writeUtf8CodePoint(codePoint: Int): Sink
-
   actual fun writeByte(b: Int): Sink
 
   actual fun writeShort(s: Int): Sink
