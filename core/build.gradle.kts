@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.gradle.plugin.*
 
 plugins {
     kotlin("multiplatform")
+    id("org.jetbrains.kotlinx.kover") version "0.7.0"
 }
 
 kotlin {
