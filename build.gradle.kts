@@ -61,3 +61,7 @@ subprojects {
         }
     }
 }
+
+apiValidation {
+    ignoredProjects.add("kotlinx-io-benchmarks")
+}
