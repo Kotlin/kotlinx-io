@@ -12,7 +12,7 @@ import kotlinx.io.*
 abstract class BufferRWBenchmarkBase {
     // Buffers are implemented as list of segments, as soon as a segment is empty
     // it will be unlinked. By reading all previously written data, a segment will be
-    // cleared and recycled and the next time we will try to write data a new segment
+    // cleared and recycled, and the next time we will try to write data a new segment
     // will be requested from the pool. Thus, without having some data in-flight we will
     // benchmark not only read/write ops performance, but also segments allocation/reclamation.
     @Param("128")
@@ -28,7 +28,7 @@ abstract class BufferRWBenchmarkBase {
         buffer.write(padding)
     }
 
-    @TearDown()
+    @TearDown
     fun clearBuffers() {
         buffer.clear()
     }
@@ -136,7 +136,7 @@ open class Utf8CodePointBenchmark: BufferRWBenchmarkBase() {
     @Param("1", "2", "3")
     var bytes: Int = 0
 
-    var codePoint: Int = 0
+    private var codePoint: Int = 0
 
     @Setup
     fun setupCodePoints() {
@@ -155,7 +155,8 @@ open class Utf8CodePointBenchmark: BufferRWBenchmarkBase() {
     }
 }
 
-// This benchmark is based on https://raw.githubusercontent.com/square/okio/master/okio/jvm/jmh/src/jmh/java/com/squareup/okio/benchmarks/BufferUtf8Benchmark.java
+// This benchmark is based on Okio benchmark:
+// https://raw.githubusercontent.com/square/okio/master/okio/jvm/jmh/src/jmh/java/com/squareup/okio/benchmarks/BufferUtf8Benchmark.java
 open class Utf8StringBenchmark: BufferRWBenchmarkBase() {
     private val strings = mapOf(
         "ascii" to ("Um, I'll tell you the problem with the scientific power that you're using here, "
