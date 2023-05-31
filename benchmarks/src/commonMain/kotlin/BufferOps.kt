@@ -19,7 +19,6 @@ abstract class BufferRWBenchmarkBase {
     var minGap: Int = 0
 
     protected val buffer = Buffer()
-    protected val okioBuffer = okio.Buffer()
 
     protected open fun padding(): ByteArray = ByteArray(minGap)
 
@@ -27,111 +26,67 @@ abstract class BufferRWBenchmarkBase {
     fun setupBuffers() {
         val padding = padding()
         buffer.write(padding)
-        okioBuffer.write(padding)
     }
 
     @TearDown()
     fun clearBuffers() {
-        okioBuffer.clear()
         buffer.clear()
     }
 }
 
 open class ByteBenchmark: BufferRWBenchmarkBase() {
     @Benchmark
-    fun kio(): Byte {
+    fun benchmark(): Byte {
         buffer.writeByte(0x42)
         return buffer.readByte()
-    }
-
-    @Benchmark
-    fun okio(): Byte {
-        okioBuffer.writeByte(0x42)
-        return okioBuffer.readByte()
     }
 }
 
 open class ShortBenchmark: BufferRWBenchmarkBase() {
     @Benchmark
-    fun kio(): Short {
+    fun benchmark(): Short {
         buffer.writeShort(42)
         return buffer.readShort()
-    }
-
-    @Benchmark
-    fun okio(): Short {
-        okioBuffer.writeShort(42)
-        return okioBuffer.readShort()
     }
 }
 
 open class IntBenchmark: BufferRWBenchmarkBase() {
     @Benchmark
-    fun kio(): Int {
+    fun benchmark(): Int {
         buffer.writeInt(42)
         return buffer.readInt()
-    }
-
-    @Benchmark
-    fun okio(): Int {
-        okioBuffer.writeInt(42)
-        return okioBuffer.readInt()
     }
 }
 
 open class LongBenchmark: BufferRWBenchmarkBase() {
     @Benchmark
-    fun kio(): Long {
+    fun benchmark(): Long {
         buffer.writeLong(42)
         return buffer.readLong()
-    }
-
-    @Benchmark
-    fun okio(): Long {
-        okioBuffer.writeLong(42)
-        return okioBuffer.readLong()
     }
 }
 
 open class ShortLeBenchmark: BufferRWBenchmarkBase() {
     @Benchmark
-    fun kio(): Short {
+    fun benchmark(): Short {
         buffer.writeShortLe(42)
         return buffer.readShortLe()
-    }
-
-    @Benchmark
-    fun okio(): Short {
-        okioBuffer.writeShortLe(42)
-        return okioBuffer.readShortLe()
     }
 }
 
 open class IntLeBenchmark: BufferRWBenchmarkBase() {
     @Benchmark
-    fun kio(): Int {
+    fun benchmark(): Int {
         buffer.writeIntLe(42)
         return buffer.readIntLe()
-    }
-
-    @Benchmark
-    fun okio(): Int {
-        okioBuffer.writeIntLe(42)
-        return okioBuffer.readIntLe()
     }
 }
 
 open class LongLeBenchmark: BufferRWBenchmarkBase() {
     @Benchmark
-    fun kio(): Long {
+    fun benchmark(): Long {
         buffer.writeLongLe(42)
         return buffer.readLongLe()
-    }
-
-    @Benchmark
-    fun okio(): Long {
-        okioBuffer.writeLongLe(42)
-        return okioBuffer.readLongLe()
     }
 }
 
@@ -148,18 +103,10 @@ open class DecimalLongBenchmark: BufferRWBenchmarkBase() {
     }
 
     @Benchmark
-    fun kio(): Long {
+    fun benchmark(): Long {
         buffer.writeDecimalLong(value).writeByte(' '.code)
         val l = buffer.readDecimalLong()
         buffer.readByte()
-        return l
-    }
-
-    @Benchmark
-    fun okio(): Long {
-        okioBuffer.writeDecimalLong(value).writeByte(' '.code)
-        val l = okioBuffer.readDecimalLong()
-        okioBuffer.readByte()
         return l
     }
 }
@@ -177,18 +124,10 @@ open class HexadecimalLongBenchmark: BufferRWBenchmarkBase() {
     }
 
     @Benchmark
-    fun kio(): Long {
+    fun benchmark(): Long {
         buffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code)
         val l = buffer.readHexadecimalUnsignedLong()
         buffer.readByte()
-        return l
-    }
-
-    @Benchmark
-    fun okio(): Long {
-        okioBuffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code)
-        val l = okioBuffer.readHexadecimalUnsignedLong()
-        okioBuffer.readByte()
         return l
     }
 }
@@ -210,15 +149,9 @@ open class Utf8CodePointBenchmark: BufferRWBenchmarkBase() {
     }
 
     @Benchmark
-    fun kio(): Int {
+    fun benchmark(): Int {
         buffer.writeUtf8CodePoint(codePoint)
         return buffer.readUtf8CodePoint()
-    }
-
-    @Benchmark
-    fun okio(): Int {
-        okioBuffer.writeUtf8CodePoint(codePoint)
-        return okioBuffer.readUtf8CodePoint()
     }
 }
 
@@ -289,17 +222,10 @@ open class Utf8StringBenchmark: BufferRWBenchmarkBase() {
     }
 
     @Benchmark
-    fun kio(): String {
+    fun benchmark(): String {
         val s = buffer.size
         buffer.writeUtf8(string)
         return buffer.readUtf8(buffer.size - s)
-    }
-
-    @Benchmark
-    fun okio(): String {
-        val s = okioBuffer.size
-        okioBuffer.writeUtf8(string)
-        return okioBuffer.readUtf8(okioBuffer.size - s)
     }
 }
 
@@ -340,34 +266,25 @@ open class Utf8LineBenchmarkBase: BufferRWBenchmarkBase() {
 
 open class Utf8LineBenchmark: Utf8LineBenchmarkBase() {
     @Benchmark
-    fun kio(): String? {
+    fun benchmark(): String? {
         buffer.writeUtf8(string)
         return buffer.readUtf8Line()
-    }
-
-    @Benchmark
-    fun okio(): String? {
-        okioBuffer.writeUtf8(string)
-        return okioBuffer.readUtf8Line()
     }
 }
 
 open class Utf8LineStrictBenchmark: Utf8LineBenchmarkBase() {
     @Benchmark
-    fun kio(): String {
+    fun benchmark(): String {
         buffer.writeUtf8(string)
         return buffer.readUtf8LineStrict()
     }
-
-    @Benchmark
-    fun okio(): String {
-        okioBuffer.writeUtf8(string)
-        return okioBuffer.readUtf8LineStrict()
-    }
 }
+
+private const val INDEX_OF_TARGET_VAL: Byte = 1
 
 @State(Scope.Benchmark)
 open class IndexOfBenchmark {
+
     @Param("128")
     var dataSize: Int = 0
 
@@ -378,12 +295,11 @@ open class IndexOfBenchmark {
     var spanOverMultipleSegment: Boolean = false
 
     private val buffer = Buffer()
-    private val okioBuffer = okio.Buffer()
 
     @Setup
     fun setupBuffers() {
         val array = ByteArray(dataSize)
-        if (valueOffset >= 0) array[valueOffset] = 1
+        if (valueOffset >= 0) array[valueOffset] = INDEX_OF_TARGET_VAL
 
         var paddingSize = 0L
         if (spanOverMultipleSegment) {
@@ -391,12 +307,24 @@ open class IndexOfBenchmark {
         }
         val padding = ByteArray(paddingSize.toInt())
         buffer.write(padding).write(array).skip(paddingSize)
-        okioBuffer.write(padding).write(array).skip(paddingSize)
     }
 
     @Benchmark
-    fun kio(): Long = buffer.indexOf(1)
+    fun benchmark(): Long = buffer.indexOf(INDEX_OF_TARGET_VAL)
+}
+
+@State(Scope.Benchmark)
+open class BufferGetBenchmark {
+    private val buffer = Buffer()
+
+    @Param("0", "8193")
+    var offset: Long = 0
+
+    @Setup
+    fun fillBuffer() {
+        buffer.write(ByteArray(offset.toInt() + 1))
+    }
 
     @Benchmark
-    fun okio(): Long = okioBuffer.indexOf(1)
+    fun get() = buffer[offset]
 }

@@ -26,7 +26,6 @@ kotlin {
             dependencies {
                 implementation(project(":kotlinx-io-core"))
                 implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.8")
-                implementation("com.squareup.okio:okio:3.3.0")
             }
         }
 
