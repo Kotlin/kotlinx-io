@@ -297,13 +297,13 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   actual override fun write(source: RawSource, byteCount: Long): Buffer =
     commonWrite(source, byteCount)
 
-  actual override fun writeByte(b: Int): Buffer = commonWriteByte(b)
+  actual override fun writeByte(byte: Int): Buffer = commonWriteByte(byte)
 
-  actual override fun writeShort(s: Int): Buffer = commonWriteShort(s)
+  actual override fun writeShort(short: Int): Buffer = commonWriteShort(short)
 
-  actual override fun writeInt(i: Int): Buffer = commonWriteInt(i)
+  actual override fun writeInt(int: Int): Buffer = commonWriteInt(int)
 
-  actual override fun writeLong(v: Long): Buffer = commonWriteLong(v)
+  actual override fun writeLong(long: Long): Buffer = commonWriteLong(long)
 
   internal actual fun writableSegment(minimumCapacity: Int): Segment =
     commonWritableSegment(minimumCapacity)

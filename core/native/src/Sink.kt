@@ -29,13 +29,13 @@ actual sealed interface Sink : RawSink {
 
   actual fun write(source: RawSource, byteCount: Long): Sink
 
-  actual fun writeByte(b: Int): Sink
+  actual fun writeByte(byte: Int): Sink
 
-  actual fun writeShort(s: Int): Sink
+  actual fun writeShort(short: Int): Sink
 
-  actual fun writeInt(i: Int): Sink
+  actual fun writeInt(int: Int): Sink
 
-  actual fun writeLong(v: Long): Sink
+  actual fun writeLong(long: Long): Sink
 
   actual fun emit(): Sink
 

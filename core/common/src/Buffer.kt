@@ -89,13 +89,13 @@ expect class Buffer() : Source, Sink {
 
   override fun write(source: RawSource, byteCount: Long): Buffer
 
-  override fun writeByte(b: Int): Buffer
+  override fun writeByte(byte: Int): Buffer
 
-  override fun writeShort(s: Int): Buffer
+  override fun writeShort(short: Int): Buffer
 
-  override fun writeInt(i: Int): Buffer
+  override fun writeInt(int: Int): Buffer
 
-  override fun writeLong(v: Long): Buffer
+  override fun writeLong(long: Long): Buffer
 
   /** Returns a deep copy of this buffer.  */
   fun copy(): Buffer

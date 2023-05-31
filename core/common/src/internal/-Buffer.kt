@@ -827,9 +827,10 @@ internal inline fun Buffer.commonReadUtf8CodePoint(): Int {
 }
 
 internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int): Buffer {
-  require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
-  require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
-  require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }
+  checkOffsetAndCount(string.length.toLong(), beginIndex.toLong(), (endIndex - beginIndex).toLong())
+  //require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
+  //require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
+  //require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }
 
   // Transcode a UTF-16 Java String to UTF-8 bytes.
   var i = beginIndex
@@ -1088,6 +1089,7 @@ internal inline fun Buffer.commonWrite(source: Buffer, byteCount: Long) {
   // yielding sink [51%, 91%, 30%] and source [62%, 82%].
 
   require(source !== this) { "source == this" }
+  require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
   checkOffsetAndCount(source.size, 0, byteCount)
 
   var remainingByteCount = byteCount

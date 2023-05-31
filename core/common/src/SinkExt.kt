@@ -6,119 +6,62 @@
 package kotlinx.io
 
 /**
- * Writes a little-endian short to this sink using two bytes.
- * ```
- * Buffer buffer = new Buffer();
- * buffer.writeShortLe(32767);
- * buffer.writeShortLe(15);
+ * Writes two bytes containing [short], in the little-endian order, to this sink.
  *
- * assertEquals(4, buffer.size());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0x7f, buffer.readByte());
- * assertEquals((byte) 0x0f, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals(0, buffer.size());
- * ```
+ * @param short the short integer to be written.
  */
-fun <T: Sink> T.writeShortLe(s: Int): T {
-    this.writeShort(s.toShort().reverseBytes().toInt())
+fun <T: Sink> T.writeShortLe(short: Int): T {
+    this.writeShort(short.toShort().reverseBytes().toInt())
     return this
 }
 
 /**
- * Writes a little-endian int to this sink using four bytes.
- * ```
- * Buffer buffer = new Buffer();
- * buffer.writeIntLe(2147483647);
- * buffer.writeIntLe(15);
+ * Writes four bytes containing [int], in the little-endian order, to this sink.
  *
- * assertEquals(8, buffer.size());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0x7f, buffer.readByte());
- * assertEquals((byte) 0x0f, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals(0, buffer.size());
- * ```
+ * @param int the integer to be written.
+ *
  */
-fun <T: Sink> T.writeIntLe(i: Int): T {
-    this.writeInt(i.reverseBytes())
+fun <T: Sink> T.writeIntLe(int: Int): T {
+    this.writeInt(int.reverseBytes())
     return this
 }
 
 /**
- * Writes a little-endian long to this sink using eight bytes.
- * ```
- * Buffer buffer = new Buffer();
- * buffer.writeLongLe(9223372036854775807L);
- * buffer.writeLongLe(15);
+ * Writes eight bytes containing [long], in the little-endian order, to this sink.
  *
- * assertEquals(16, buffer.size());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0xff, buffer.readByte());
- * assertEquals((byte) 0x7f, buffer.readByte());
- * assertEquals((byte) 0x0f, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals((byte) 0x00, buffer.readByte());
- * assertEquals(0, buffer.size());
- * ```
+ * @param long the long integer to be written.
  */
-fun <T: Sink> T.writeLongLe(v: Long): T {
-    this.writeLong(v.reverseBytes())
+fun <T: Sink> T.writeLongLe(long: Long): T {
+    this.writeLong(long.reverseBytes())
     return this
 }
 
 /**
- * Writes a long to this sink in signed decimal form (i.e., as a string in base 10).
- * ```
- * Buffer buffer = new Buffer();
- * buffer.writeDecimalLong(8675309L);
- * buffer.writeByte(' ');
- * buffer.writeDecimalLong(-123L);
- * buffer.writeByte(' ');
- * buffer.writeDecimalLong(1L);
+ * Writes [long] to this sink in signed decimal form (i.e., as a string in base 10).
  *
- * assertEquals("8675309 -123 1", buffer.readUtf8());
- * ```
+ * Resulting string will not contain leading zeros, except the `0` value itself.
+ *
+ * @param long the long to be written.
  */
-fun <T: Sink> T.writeDecimalLong(v: Long): T {
+fun <T: Sink> T.writeDecimalLong(long: Long): T {
     // TODO: optimize
-    writeUtf8(v.toString())
+    writeUtf8(long.toString())
     return this
 }
 
 /**
- * Writes a long to this sink in hexadecimal form (i.e., as a string in base 16).
- * ```
- * Buffer buffer = new Buffer();
- * buffer.writeHexadecimalUnsignedLong(65535L);
- * buffer.writeByte(' ');
- * buffer.writeHexadecimalUnsignedLong(0xcafebabeL);
- * buffer.writeByte(' ');
- * buffer.writeHexadecimalUnsignedLong(0x10L);
+ * Writes [long] to this sink in hexadecimal form (i.e., as a string in base 16).
  *
- * assertEquals("ffff cafebabe 10", buffer.readUtf8());
- * ```
+ * Resulting string will not contain leading zeros, except the `0` value itself.
+ *
+ * @param long the long to be written.
  */
-fun <T: Sink> T.writeHexadecimalUnsignedLong(v: Long): T {
-    if (v == 0L) {
+fun <T: Sink> T.writeHexadecimalUnsignedLong(long: Long): T {
+    if (long == 0L) {
         writeByte('0'.code)
     } else {
         // TODO: optimize
-        writeUtf8(v.toHexString())
+        writeUtf8(long.toHexString())
     }
     return this
 }

@@ -20,7 +20,7 @@
  */
 
 /**
- * Okio assumes most applications use UTF-8 exclusively, and offers optimized implementations of
+ * kotlinx-io assumes most applications use UTF-8 exclusively, and offers optimized implementations of
  * common operations on UTF-8 strings.
  *
  * <table border="1" cellspacing="0" cellpadding="3" summary="">
@@ -78,8 +78,13 @@ import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
 
 /**
- * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using
- * [Sink.writeUtf8].
+ * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeUtf8].
+ *
+ * @param beginIndex the index of the first character to encode.
+ * @param endIndex the index of the character past the last character to encode.
+ *
+ * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range
+ * out of the current string bounds.
  */
 @JvmOverloads
 @JvmName("size")
@@ -565,18 +570,38 @@ internal inline fun ByteArray.process4Utf8Bytes(
   return 4
 }
 
+/**
+ * Encodes [codePoint] in UTF-8 and writes it to this sink.
+ *
+ * @param codePoint the codePoint to be written.
+ */
 fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
   buffer.commonWriteUtf8CodePoint(codePoint)
   emitCompleteSegments()
   return this
 }
 
+/**
+ * Encodes the characters at [beginIndex] up to [endIndex] from [string] in UTF-8 and writes it to this sink.
+ *
+ * @param string the string to be encoded.
+ * @param beginIndex the index of a first character to encode, 0 by default.
+ * @param endIndex the index of a character past to a last character to encode, `string.length` by default.
+ *
+ * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range
+ * out of the current string bounds.
+ */
 fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): T {
   buffer.commonWriteUtf8(string, beginIndex, endIndex)
   emitCompleteSegments()
   return this
 }
 
+/**
+ * Removes all bytes from this source, decodes them as UTF-8, and returns the string.
+ *
+ * Returns the empty string if this source is empty.
+ */
 fun Source.readUtf8(): String {
   var req: Long = 1
   while (request(req)) {
@@ -585,15 +610,39 @@ fun Source.readUtf8(): String {
   return buffer.commonReadUtf8(buffer.size)
 }
 
+/**
+ * Removes all bytes from this buffer, decodes them as UTF-8, and returns the string.
+ *
+ * Returns the empty string if this buffer is empty.
+ */
 fun Buffer.readUtf8(): String {
   return commonReadUtf8(buffer.size)
 }
 
+/**
+ * Removes [byteCount] bytes from this source, decodes them as UTF-8, and returns the string.
+ *
+ * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
+ */
 fun Source.readUtf8(byteCount: Long): String {
   require(byteCount)
   return buffer.commonReadUtf8(byteCount)
 }
 
+/**
+ * Removes and returns a single UTF-8 code point, reading between 1 and 4 bytes as necessary.
+ *
+ * If this source is exhausted before a complete code point can be read, this throws an
+ * [EOFException] and consumes no input.
+ *
+ * If this source doesn't start with a properly-encoded UTF-8 code point, this method will remove
+ * 1 or more non-UTF-8 bytes and return the replacement character (`U+FFFD`). This covers encoding
+ * problems (the input is not properly-encoded UTF-8), characters out of range (beyond the
+ * 0x10ffff limit of Unicode), code points for UTF-16 surrogates (U+d800..U+dfff) and overlong
+ * encodings (such as `0xc080` for the NUL character in modified UTF-8).
+ *
+ * @throws EOFException when the source is exhausted before a complete code point can be read.
+ */
 fun Source.readUtf8CodePoint(): Int {
   require(1)
 
@@ -607,6 +656,9 @@ fun Source.readUtf8CodePoint(): Int {
   return buffer.commonReadUtf8CodePoint()
 }
 
+/**
+ * @see Source.readUtf8CodePoint
+ */
 fun Buffer.readUtf8CodePoint(): Int {
   return buffer.commonReadUtf8CodePoint()
 }
@@ -614,30 +666,9 @@ fun Buffer.readUtf8CodePoint(): Int {
 /**
  * Removes and returns characters up to but not including the next line break. A line break is
  * either `"\n"` or `"\r\n"`; these characters are not included in the result.
- * ```
- * Buffer buffer = new Buffer()
- *     .writeUtf8("I'm a hacker!\n")
- *     .writeUtf8("That's what I said: you're a nerd.\n")
- *     .writeUtf8("I prefer to be called a hacker!\n");
- * assertEquals(81, buffer.size());
  *
- * assertEquals("I'm a hacker!", buffer.readUtf8Line());
- * assertEquals(67, buffer.size());
- *
- * assertEquals("That's what I said: you're a nerd.", buffer.readUtf8Line());
- * assertEquals(32, buffer.size());
- *
- * assertEquals("I prefer to be called a hacker!", buffer.readUtf8Line());
- * assertEquals(0, buffer.size());
- *
- * assertEquals(null, buffer.readUtf8Line());
- * assertEquals(0, buffer.size());
- * ```
- *
- * **On the end of the stream this method returns null,** just like [java.io.BufferedReader]. If
- * the source doesn't end with a line break then an implicit line break is assumed. Null is
- * returned once the source is exhausted. Use this for human-generated data, where a trailing
- * line break is optional.
+ * On the end of the stream this method returns null. If the source doesn't end with a line break then
+ * an implicit line break is assumed. Null is returned once the source is exhausted.
  */
 fun Source.readUtf8Line(): String? {
   if (!request(1)) return null
@@ -664,25 +695,20 @@ fun Source.readUtf8Line(): String? {
 }
 
 /**
- * Like [readUtf8LineStrict], except this allows the caller to specify the longest allowed match.
- * Use this to protect against streams that may not include `"\n"` or `"\r\n"`.
+ * Removes and returns characters up to but not including the next line break, throwing
+ * [EOFException] if a line break was not encountered. A line break is either `"\n"` or `"\r\n"`;
+ * these characters are not included in the result.
  *
- * The returned string will have at most `limit` UTF-8 bytes, and the maximum number of bytes
- * scanned is `limit + 2`. If `limit == 0` this will always throw an `EOFException` because no
+ * The returned string will have at most [limit] UTF-8 bytes, and the maximum number of bytes
+ * scanned is `limit + 2`. If `limit == 0` this will always throw an [EOFException] because no
  * bytes will be scanned.
  *
- * This method is safe. No bytes are discarded if the match fails, and the caller is free to try
- * another match:
- * ```
- * Buffer buffer = new Buffer();
- * buffer.writeUtf8("12345\r\n");
+ * No bytes are discarded if the match fails.
  *
- * // This will throw! There must be \r\n or \n at the limit or before it.
- * buffer.readUtf8LineStrict(4);
+ * @param limit the maximum UTF-8 bytes constituting a returned string.
  *
- * // No bytes have been consumed so the caller can retry.
- * assertEquals("12345", buffer.readUtf8LineStrict(5));
- * ```
+ * @throws EOFException when the source does not contain a string consisting with at most [limit] bytes followed by
+ * line break characters.
  */
 fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
   if (!request(1)) throw EOFException()

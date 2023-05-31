@@ -25,39 +25,33 @@ package kotlinx.io
  * network, storage, or a buffer in memory. Sinks may be layered to transform received data, such as
  * to compress, encrypt, throttle, or add protocol framing.
  *
- * Most application code shouldn't operate on a sink directly, but rather on a [Sink] which
- * is both more efficient and more convenient. Use [buffer] to wrap any sink with a buffer.
+ * Most application code shouldn't operate on a raw sink directly, but rather on a [Sink] which
+ * is both more efficient and more convenient. Use [buffer] to wrap any raw sink with a buffer.
  *
  * Sinks are easy to test: just use a [Buffer] in your tests, and read from it to confirm it
  * received the data that was expected.
- *
- * ### Comparison with OutputStream
- *
- * This interface is functionally equivalent to [java.io.OutputStream].
- *
- * `OutputStream` requires multiple layers when emitted data is heterogeneous: a `DataOutputStream`
- * for primitive values, a `BufferedOutputStream` for buffering, and `OutputStreamWriter` for
- * charset encoding. This library uses `BufferedSink` for all of the above.
- *
- * RawSink is also easier to layer: there is no [write()][java.io.OutputStream.write] method that is
- * awkward to implement efficiently.
- *
- * ### Interop with OutputStream
- *
- * Use [sink] to adapt an `OutputStream` to a sink. Use [outputStream()][Sink.outputStream]
- * to adapt a sink to an `OutputStream`.
  */
 expect interface RawSink : Closeable {
-  /** Removes `byteCount` bytes from `source` and appends them to this.  */
+  // TODO: should it throw EOFException instead?
+  /**
+   * Removes [byteCount] bytes from [source] and appends them to this.
+   *
+   * @param source the source to read data from.
+   * @param byteCount amount of bytes to write.
+   *
+   * @throws IndexOutOfBoundsException when the [source]'s size is below [byteCount].
+   */
   @Throws(IOException::class)
   fun write(source: Buffer, byteCount: Long)
 
-  /** Pushes all buffered bytes to their final destination.  */
+  /**
+   * Pushes all buffered bytes to their final destination.
+   */
   @Throws(IOException::class)
   fun flush()
 
   /**
-   * Asynchronously cancel this source. Any [write] or [flush] in flight should immediately fail
+   * Asynchronously cancel this sink. Any [write] or [flush] in flight should immediately fail
    * with an [IOException], and any future writes and flushes should also immediately fail with an
    * [IOException].
    *

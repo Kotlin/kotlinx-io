@@ -6,79 +6,27 @@
 package kotlinx.io
 
 /**
- * Removes two bytes from this source and returns a little-endian short.
- * ```
- * Buffer buffer = new Buffer()
- *     .writeByte(0xff)
- *     .writeByte(0x7f)
- *     .writeByte(0x0f)
- *     .writeByte(0x00);
- * assertEquals(4, buffer.size());
+ * Removes two bytes from this source and returns a short integer composed of it according to the little-endian order.
  *
- * assertEquals(32767, buffer.readShortLe());
- * assertEquals(2, buffer.size());
- *
- * assertEquals(15, buffer.readShortLe());
- * assertEquals(0, buffer.size());
- * ```
+ * @throws EOFException when there are not enough data to read a short value.
  */
 fun Source.readShortLe(): Short {
     return readShort().reverseBytes()
 }
 
 /**
- * Removes four bytes from this source and returns a little-endian int.
- * ```
- * Buffer buffer = new Buffer()
- *     .writeByte(0xff)
- *     .writeByte(0xff)
- *     .writeByte(0xff)
- *     .writeByte(0x7f)
- *     .writeByte(0x0f)
- *     .writeByte(0x00)
- *     .writeByte(0x00)
- *     .writeByte(0x00);
- * assertEquals(8, buffer.size());
+ * Removes four bytes from this source and returns an integer composed of it according to the little-endian order.
  *
- * assertEquals(2147483647, buffer.readIntLe());
- * assertEquals(4, buffer.size());
- *
- * assertEquals(15, buffer.readIntLe());
- * assertEquals(0, buffer.size());
- * ```
+ * @throws EOFException when there are not enough data to read an int value.
  */
 fun Source.readIntLe(): Int {
     return readInt().reverseBytes()
 }
 
 /**
- * Removes eight bytes from this source and returns a little-endian long.
- * ```
- * Buffer buffer = new Buffer()
- *     .writeByte(0xff)
- *     .writeByte(0xff)
- *     .writeByte(0xff)
- *     .writeByte(0xff)
- *     .writeByte(0xff)
- *     .writeByte(0xff)
- *     .writeByte(0xff)
- *     .writeByte(0x7f)
- *     .writeByte(0x0f)
- *     .writeByte(0x00)
- *     .writeByte(0x00)
- *     .writeByte(0x00)
- *     .writeByte(0x00)
- *     .writeByte(0x00)
- *     .writeByte(0x00)
- *     .writeByte(0x00);
- * assertEquals(16, buffer.size());
+ * Removes eight bytes from this source and returns a long integer composed of it according to the little-endian order.
  *
- * assertEquals(9223372036854775807L, buffer.readLongLe());
- * assertEquals(8, buffer.size());
- *
- * assertEquals(15, buffer.readLongLe());
- * assertEquals(0, buffer.size());
- * ```
+ * @throws EOFException when there are not enough data to read a long value.
  */
 fun Source.readLongLe(): Long {
     return readLong().reverseBytes()
@@ -89,23 +37,15 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
 
 /**
  * Reads a long from this source in signed decimal form (i.e., as a string in base 10 with
- * optional leading '-'). This will iterate until a non-digit character is found.
- * ```
- * Buffer buffer = new Buffer()
- *     .writeUtf8("8675309 -123 00001");
+ * optional leading `-`).
  *
- * assertEquals(8675309L, buffer.readDecimalLong());
- * assertEquals(' ', buffer.readByte());
- * assertEquals(-123L, buffer.readDecimalLong());
- * assertEquals(' ', buffer.readByte());
- * assertEquals(1L, buffer.readDecimalLong());
- * ```
+ * Source data will be consumed until the source is exhausted, the first occurrence of non-digit byte,
+ * or overflow happened during resulting value construction.
  *
  * @throws NumberFormatException if the found digits do not fit into a `long` or a decimal
  * number was not present.
+ * @throws EOFException if the source is exhausted before a call of this method.
  */
-// TODO: add tests, seems like it may throw exceptions with incorrect messages
-// TODO: test overflow detection
 fun Source.readDecimalLong(): Long {
     require(1)
     var b = readByte()
@@ -156,21 +96,14 @@ fun Source.readDecimalLong(): Long {
 }
 
 /**
- * Reads a long form this source in hexadecimal form (i.e., as a string in base 16). This will
- * iterate until a non-hexadecimal character is found.
- * ```
- * Buffer buffer = new Buffer()
- *     .writeUtf8("ffff CAFEBABE 10");
+ * Reads a long form this source in hexadecimal form (i.e., as a string in base 16).
  *
- * assertEquals(65535L, buffer.readHexadecimalUnsignedLong());
- * assertEquals(' ', buffer.readByte());
- * assertEquals(0xcafebabeL, buffer.readHexadecimalUnsignedLong());
- * assertEquals(' ', buffer.readByte());
- * assertEquals(0x10L, buffer.readHexadecimalUnsignedLong());
- * ```
+ * Source data will be consumed until the source is exhausted, the first occurrence of non-digit byte,
+ * or overflow happened during resulting value construction.
  *
  * @throws NumberFormatException if the found hexadecimal does not fit into a `long` or
  * hexadecimal was not found.
+ * @throws EOFException if the source is exhausted before a call of this method.
  */
 fun Source.readHexadecimalUnsignedLong(): Long {
     require(1)
@@ -201,35 +134,20 @@ fun Source.readHexadecimalUnsignedLong(): Long {
 }
 
 /**
- * Returns the index of the first `b` in the buffer at or after `fromIndex`. This expands the
- * buffer as necessary until `b` is found. This reads an unbounded number of bytes into the
- * buffer. Returns -1 if the stream is exhausted before the requested byte is found.
- * ```
- * Buffer buffer = new Buffer();
- * buffer.writeUtf8("Don't move! He can't see us if we don't move.");
+ * Returns an index of [b] first occurrence in the range of [fromIndex] inclusive to [toIndex]
+ * exclusive, or `-1` if [b].
  *
- * byte m = 'm';
- * assertEquals(6,  buffer.indexOf(m));
- * assertEquals(40, buffer.indexOf(m, 12));
- * ```
- */
-// fun Source.indexOf(b: Byte, fromIndex: Long = 0): Long {
-//    return 0
-//}
-
-/**
- * Returns the index of `b` if it is found in the range of `fromIndex` inclusive to `toIndex`
- * exclusive. If `b` isn't found, or if `fromIndex == toIndex`, then -1 is returned.
- *
- * The scan terminates at either `toIndex` or the end of the buffer, whichever comes first. The
+ * The scan terminates at either [toIndex] or source's exhaustion, whichever comes first. The
  * maximum number of bytes scanned is `toIndex-fromIndex`.
+ * If [b] not found in buffered data, [toIndex] is yet to be reached and the underlying source is not yet exhausted
+ * then new data will be read from the underlying source into the buffer.
  */
 fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MAX_VALUE): Long {
     require(fromIndex in 0..toIndex)
     if (fromIndex == toIndex) return -1L
 
     var offset = fromIndex
-    var peekSource = peek()
+    val peekSource = peek()
 
     if (!peekSource.request(offset)) {
         return -1L
@@ -241,66 +159,3 @@ fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MAX_VALUE
     }
     return -1L
 }
-
-//  /** Equivalent to [indexOf(bytes, 0)][indexOf]. */
-//  fun indexOf(bytes: ByteString): Long
-
-/**
- * Returns the index of the first match for `bytes` in the buffer at or after `fromIndex`. This
- * expands the buffer as necessary until `bytes` is found. This reads an unbounded number of
- * bytes into the buffer. Returns -1 if the stream is exhausted before the requested bytes are
- * found.
- * ```
- * ByteString MOVE = ByteString.encodeUtf8("move");
- *
- * Buffer buffer = new Buffer();
- * buffer.writeUtf8("Don't move! He can't see us if we don't move.");
- *
- * assertEquals(6,  buffer.indexOf(MOVE));
- * assertEquals(40, buffer.indexOf(MOVE, 12));
- * ```
- */
-//  fun indexOf(bytes: ByteString, fromIndex: Long): Long
-
-/** Equivalent to [indexOfElement(targetBytes, 0)][indexOfElement]. */
-//  fun indexOfElement(targetBytes: ByteString): Long
-
-/**
- * Returns the first index in this buffer that is at or after `fromIndex` and that contains any of
- * the bytes in `targetBytes`. This expands the buffer as necessary until a target byte is found.
- * This reads an unbounded number of bytes into the buffer. Returns -1 if the stream is exhausted
- * before the requested byte is found.
- * ```
- * ByteString ANY_VOWEL = ByteString.encodeUtf8("AEOIUaeoiu");
- *
- * Buffer buffer = new Buffer();
- * buffer.writeUtf8("Dr. Alan Grant");
- *
- * assertEquals(4,  buffer.indexOfElement(ANY_VOWEL));    // 'A' in 'Alan'.
- * assertEquals(11, buffer.indexOfElement(ANY_VOWEL, 9)); // 'a' in 'Grant'.
- * ```
- */
-//  fun indexOfElement(targetBytes: ByteString, fromIndex: Long): Long
-
-/**
- * Returns true if the bytes at `offset` in this source equal `bytes`. This expands the buffer as
- * necessary until a byte does not match, all bytes are matched, or if the stream is exhausted
- * before enough bytes could determine a match.
- * ```
- * ByteString simonSays = ByteString.encodeUtf8("Simon says:");
- *
- * Buffer standOnOneLeg = new Buffer().writeUtf8("Simon says: Stand on one leg.");
- * assertTrue(standOnOneLeg.rangeEquals(0, simonSays));
- *
- * Buffer payMeMoney = new Buffer().writeUtf8("Pay me $1,000,000.");
- * assertFalse(payMeMoney.rangeEquals(0, simonSays));
- * ```
- */
-//  fun rangeEquals(offset: Long, bytes: ByteString): Boolean
-
-/**
- * Returns true if `byteCount` bytes at `offset` in this source equal `bytes` at `bytesOffset`.
- * This expands the buffer as necessary until a byte does not match, all bytes are matched, or if
- * the stream is exhausted before enough bytes could determine a match.
- */
-//  fun rangeEquals(offset: Long, bytes: ByteString, bytesOffset: Int, byteCount: Int): Boolean

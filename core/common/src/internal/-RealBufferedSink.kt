@@ -27,6 +27,7 @@ package kotlinx.io.internal
 import kotlinx.io.*
 
 internal inline fun RealSink.commonWrite(source: Buffer, byteCount: Long) {
+  require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
   check(!closed) { "closed" }
   buffer.write(source, byteCount)
   emitCompleteSegments()
@@ -65,6 +66,7 @@ internal inline fun RealSink.commonWrite(
   offset: Int,
   byteCount: Int
 ): Sink {
+  checkOffsetAndCount(source.size.toLong(), offset.toLong(), byteCount.toLong())
   check(!closed) { "closed" }
   buffer.write(source, offset, byteCount)
   return emitCompleteSegments()
@@ -82,6 +84,7 @@ internal inline fun RealSink.commonWriteAll(source: RawSource): Long {
 }
 
 internal inline fun RealSink.commonWrite(source: RawSource, byteCount: Long): Sink {
+  require(byteCount >= 0) { "byteCount ($byteCount) should not be negative."}
   var remainingByteCount = byteCount
   while (remainingByteCount > 0L) {
     val read = source.read(buffer, remainingByteCount)

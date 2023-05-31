@@ -38,16 +38,16 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
   actual fun write(source: RawSource, byteCount: Long): Sink
 
   @Throws(IOException::class)
-  actual fun writeByte(b: Int): Sink
+  actual fun writeByte(byte: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeShort(s: Int): Sink
+  actual fun writeShort(short: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeInt(i: Int): Sink
+  actual fun writeInt(int: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeLong(v: Long): Sink
+  actual fun writeLong(long: Long): Sink
 
   @Throws(IOException::class)
   actual override fun flush()

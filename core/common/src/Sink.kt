@@ -25,161 +25,109 @@ package kotlinx.io
  * penalty.
  */
 expect sealed interface Sink : RawSink {
-  /** This sink's internal buffer. */
+  /**
+   * This sink's internal buffer.
+   */
   val buffer: Buffer
 
-  // TODO(filipp): fix javadoc
-  /** Like [OutputStream.write], this writes a complete byte array to this sink. */
-  /** Like [OutputStream.write], this writes `byteCount` bytes of `source`, starting at `offset`. */
-  fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size): Sink
+  /**
+   * Writes bytes from [source] array or its subrange to this sink.
+   *
+   * @param source the array from which bytes will be written into this sink.
+   * @param offset the beginning of data within the [source], 0 by default.
+   * @param byteCount amount of bytes to write, size of the [source] subarray starting at [offset] by default.
+   *
+   * @throws IndexOutOfBoundsException when a range specified by [offset] and [byteCount]
+   * is out of range of [source] array indices.
+   *
+   * @sample kotlinx.io.AbstractSinkTest.writeByteArray
+   */
+  fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size - offset): Sink
 
   /**
-   * Removes all bytes from `source` and appends them to this sink. Returns the number of bytes read
-   * which will be 0 if `source` is exhausted.
+   * Removes all bytes from [source] and write them to this sink.
+   * Returns the number of bytes read which will be 0 if [source] is exhausted.
+   *
+   * @param source the source to consume data from.
+   *
+   * @sample kotlinx.io.AbstractSinkTest.writeAll
+   * @sample kotlinx.io.AbstractSinkTest.writeAllExhausted
    */
   fun writeAll(source: RawSource): Long
 
-  /** Removes `byteCount` bytes from `source` and appends them to this sink. */
+  /**
+   * Removes [byteCount] bytes from [source] and write them to this sink.
+   *
+   * If [source] will be exhausted before reading [byteCount] from it then an exception throws on
+   * attempt to read remaining bytes will be propagated to a caller of this method.
+   *
+   * @param source the source to consume data from.
+   * @param byteCount amount of bytes to read from [source] and to write into this sink.
+   *
+   * @throws IllegalArgumentException when [byteCount] is negative.
+   *
+   * @sample kotlinx.io.AbstractSinkTest.writeSource
+   */
   fun write(source: RawSource, byteCount: Long): Sink
 
-  /** Writes a byte to this sink. */
-  fun writeByte(b: Int): Sink
-
   /**
-   * Writes a big-endian short to this sink using two bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeShort(32767);
-   * buffer.writeShort(15);
+   * Writes a byte to this sink.
    *
-   * assertEquals(4, buffer.size());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
+   * @param byte the byte to be written.
+   *
+   * @sample kotlinx.io.AbstractSinkTest.writeByte
    */
-  fun writeShort(s: Int): Sink
+  fun writeByte(byte: Int): Sink
 
   /**
-   * Writes a big-endian int to this sink using four bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeInt(2147483647);
-   * buffer.writeInt(15);
+   * Writes two bytes containing [short], in the big-endian order, to this sink.
    *
-   * assertEquals(8, buffer.size());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
+   * @param short the short integer to be written.
+   *
+   * @sample kotlinx.io.AbstractSinkTest.writeShort
    */
-  fun writeInt(i: Int): Sink
+  fun writeShort(short: Int): Sink
 
   /**
-   * Writes a big-endian long to this sink using eight bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeLong(9223372036854775807L);
-   * buffer.writeLong(15);
+   * Writes four bytes containing [int], in the big-endian order, to this sink.
    *
-   * assertEquals(16, buffer.size());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
+   * @param int the integer to be written.
+   *
+   * @sample kotlinx.io.AbstractSinkTest.writeInt
    */
-  fun writeLong(v: Long): Sink
+  fun writeInt(int: Int): Sink
 
   /**
-   * Writes all buffered data to the underlying sink, if one exists. Then that sink is recursively
-   * flushed which pushes data as far as possible towards its ultimate destination. Typically that
-   * destination is a network socket or file.
-   * ```
-   * BufferedSink b0 = new Buffer();
-   * BufferedSink b1 = Okio.buffer(b0);
-   * BufferedSink b2 = Okio.buffer(b1);
+   * Writes eight bytes containing [long], in the big-endian order, to this sink.
    *
-   * b2.writeUtf8("hello");
-   * assertEquals(5, b2.buffer().size());
-   * assertEquals(0, b1.buffer().size());
-   * assertEquals(0, b0.buffer().size());
+   * @param long the long integer to be written.
    *
-   * b2.flush();
-   * assertEquals(0, b2.buffer().size());
-   * assertEquals(0, b1.buffer().size());
-   * assertEquals(5, b0.buffer().size());
-   * ```
+   * @sample kotlinx.io.AbstractSinkTest.writeLong
+   */
+  fun writeLong(long: Long): Sink
+
+  /**
+   * Writes all buffered data to the underlying sink, if one exists.
+   * Then the underlying sink is explicitly flushed.
    */
   override fun flush()
 
   /**
-   * Writes all buffered data to the underlying sink, if one exists. Like [flush], but weaker. Call
-   * this before this buffered sink goes out of scope so that its data can reach its destination.
-   * ```
-   * BufferedSink b0 = new Buffer();
-   * BufferedSink b1 = Okio.buffer(b0);
-   * BufferedSink b2 = Okio.buffer(b1);
+   * Writes all buffered data to the underlying sink, if one exists.
+   * The underlying sink will not be explicitly flushed.
    *
-   * b2.writeUtf8("hello");
-   * assertEquals(5, b2.buffer().size());
-   * assertEquals(0, b1.buffer().size());
-   * assertEquals(0, b0.buffer().size());
-   *
-   * b2.emit();
-   * assertEquals(0, b2.buffer().size());
-   * assertEquals(5, b1.buffer().size());
-   * assertEquals(0, b0.buffer().size());
-   *
-   * b1.emit();
-   * assertEquals(0, b2.buffer().size());
-   * assertEquals(0, b1.buffer().size());
-   * assertEquals(5, b0.buffer().size());
-   * ```
+   * This method behaves like [flush], but has weaker guarantees.
+   * Call this method before a buffered sink goes out of scope so that its data can reach its destination.
    */
   fun emit(): Sink
 
   /**
-   * Writes complete segments to the underlying sink, if one exists. Like [flush], but weaker. Use
-   * this to limit the memory held in the buffer to a single segment. Typically application code
-   * will not need to call this: it is only necessary when application code writes directly to this
-   * [sink's buffer][buffer].
-   * ```
-   * BufferedSink b0 = new Buffer();
-   * BufferedSink b1 = Okio.buffer(b0);
-   * BufferedSink b2 = Okio.buffer(b1);
+   * Writes complete segments to the underlying sink, if one exists.
+   * The underlying sink will not be explicitly flushed.
    *
-   * b2.buffer().write(new byte[20_000]);
-   * assertEquals(20_000, b2.buffer().size());
-   * assertEquals(     0, b1.buffer().size());
-   * assertEquals(     0, b0.buffer().size());
-   *
-   * b2.emitCompleteSegments();
-   * assertEquals( 3_616, b2.buffer().size());
-   * assertEquals(     0, b1.buffer().size());
-   * assertEquals(16_384, b0.buffer().size()); // This example assumes 8192 byte segments.
-   * ```
+   * Use this to limit the memory held in the buffer to a single segment.
+   * Typically, application code will not need to call this: it is only necessary when
+   * application code writes directly to this [buffer].
    */
   fun emitCompleteSegments(): Sink
 }

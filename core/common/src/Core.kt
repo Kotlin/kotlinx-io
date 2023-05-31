@@ -20,23 +20,22 @@
  */
 package kotlinx.io
 
-import kotlin.jvm.JvmName
-
 /**
- * Returns a new source that buffers reads from `source`. The returned source will perform bulk
+ * Returns a new source that buffers reads from the source. The returned source will perform bulk
  * reads into its in-memory buffer. Use this wherever you read a source to get an ergonomic and
  * efficient access to data.
  */
 fun RawSource.buffer(): Source = RealSource(this)
 
 /**
- * Returns a new sink that buffers writes to `sink`. The returned sink will batch writes to `sink`.
+ * Returns a new sink that buffers writes to the sink. The returned sink will batch writes to the sink.
  * Use this wherever you write to a sink to get an ergonomic and efficient access to data.
  */
 fun RawSink.buffer(): Sink = RealSink(this)
 
-/** Returns a sink that writes nowhere. */
-@JvmName("blackhole")
+/**
+ * Returns a sink that writes nowhere.
+ */
 fun blackholeSink(): RawSink = BlackholeSink()
 
 private class BlackholeSink : RawSink {
@@ -46,7 +45,9 @@ private class BlackholeSink : RawSink {
   override fun close() {}
 }
 
-/** Execute [block] then close this. This will be closed even if [block] throws. */
+/**
+ * Execute [block] then close this. This will be closed even if [block] throws.
+ */
 inline fun <T : Closeable?, R> T.use(block: (T) -> R): R {
   var result: R? = null
   var thrown: Throwable? = null
