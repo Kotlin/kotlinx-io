@@ -130,75 +130,9 @@ internal inline fun RealSource.commonReadAll(sink: RawSink): Long {
   return totalBytesWritten
 }
 
-internal inline fun RealSource.commonReadUtf8(): String {
-  buffer.writeAll(source)
-  return buffer.readUtf8()
-}
-
-internal inline fun RealSource.commonReadUtf8(byteCount: Long): String {
-  require(byteCount)
-  return buffer.readUtf8(byteCount)
-}
-
-internal inline fun RealSource.commonReadUtf8Line(): String? {
-  val newline = indexOf('\n'.code.toByte())
-
-  return if (newline == -1L) {
-    if (buffer.size != 0L) {
-      readUtf8(buffer.size)
-    } else {
-      null
-    }
-  } else {
-    buffer.readUtf8Line(newline)
-  }
-}
-
-internal inline fun RealSource.commonReadUtf8LineStrict(limit: Long): String {
-  require(limit >= 0) { "limit < 0: $limit" }
-  val scanLength = if (limit == Long.MAX_VALUE) Long.MAX_VALUE else limit + 1
-  val newline = indexOf('\n'.code.toByte(), 0, scanLength)
-  if (newline != -1L) return buffer.readUtf8Line(newline)
-  if (scanLength < Long.MAX_VALUE &&
-    request(scanLength) && buffer[scanLength - 1] == '\r'.code.toByte() &&
-    request(scanLength + 1) && buffer[scanLength] == '\n'.code.toByte()
-  ) {
-    return buffer.readUtf8Line(scanLength) // The line was 'limit' UTF-8 bytes followed by \r\n.
-  }
-  val data = Buffer()
-  buffer.copyTo(data, 0, minOf(32, buffer.size))
-  throw EOFException(
-    "\\n not found: limit=" + minOf(buffer.size, limit) +
-      " content=" + data + '…'.toString()
-  )
-
-//  throw EOFException(
-//    "\\n not found: limit=" + minOf(buffer.size, limit) +
-//            " content=" + data.readByteString().hex() + '…'.toString()
-//  )
-}
-
-internal inline fun RealSource.commonReadUtf8CodePoint(): Int {
-  require(1)
-
-  val b0 = buffer[0].toInt()
-  when {
-    b0 and 0xe0 == 0xc0 -> require(2)
-    b0 and 0xf0 == 0xe0 -> require(3)
-    b0 and 0xf8 == 0xf0 -> require(4)
-  }
-
-  return buffer.readUtf8CodePoint()
-}
-
 internal inline fun RealSource.commonReadShort(): Short {
   require(2)
   return buffer.readShort()
-}
-
-internal inline fun RealSource.commonReadShortLe(): Short {
-  require(2)
-  return buffer.readShortLe()
 }
 
 internal inline fun RealSource.commonReadInt(): Int {
@@ -206,60 +140,9 @@ internal inline fun RealSource.commonReadInt(): Int {
   return buffer.readInt()
 }
 
-internal inline fun RealSource.commonReadIntLe(): Int {
-  require(4)
-  return buffer.readIntLe()
-}
-
 internal inline fun RealSource.commonReadLong(): Long {
   require(8)
   return buffer.readLong()
-}
-
-internal inline fun RealSource.commonReadLongLe(): Long {
-  require(8)
-  return buffer.readLongLe()
-}
-
-internal inline fun RealSource.commonReadDecimalLong(): Long {
-  require(1)
-
-  var pos = 0L
-  while (request(pos + 1)) {
-    val b = buffer[pos]
-    if ((b < '0'.code.toByte() || b > '9'.code.toByte()) && (pos != 0L || b != '-'.code.toByte())) {
-      // Non-digit, or non-leading negative sign.
-      if (pos == 0L) {
-        throw NumberFormatException("Expected a digit or '-' but was 0x${b.toString(16)}")
-      }
-      break
-    }
-    pos++
-  }
-
-  return buffer.readDecimalLong()
-}
-
-internal inline fun RealSource.commonReadHexadecimalUnsignedLong(): Long {
-  require(1)
-
-  var pos = 0
-  while (request((pos + 1).toLong())) {
-    val b = buffer[pos.toLong()]
-    if ((b < '0'.code.toByte() || b > '9'.code.toByte()) &&
-      (b < 'a'.code.toByte() || b > 'f'.code.toByte()) &&
-      (b < 'A'.code.toByte() || b > 'F'.code.toByte())
-    ) {
-      // Non-digit, or non-leading negative sign.
-      if (pos == 0) {
-        throw NumberFormatException("Expected leading [0-9a-fA-F] character but was 0x${b.toString(16)}")
-      }
-      break
-    }
-    pos++
-  }
-
-  return buffer.readHexadecimalUnsignedLong()
 }
 
 internal inline fun RealSource.commonSkip(byteCount: Long) {
@@ -274,28 +157,6 @@ internal inline fun RealSource.commonSkip(byteCount: Long) {
     remainingByteCount -= toSkip
   }
 }
-
-/*
-internal inline fun RealSource.commonIndexOf(b: Byte, fromIndex: Long, toIndex: Long): Long {
-  var fromIndex = fromIndex
-  check(!closed) { "closed" }
-  require(fromIndex in 0L..toIndex) { "fromIndex=$fromIndex toIndex=$toIndex" }
-
-  while (fromIndex < toIndex) {
-    val result = buffer.indexOf(b, fromIndex, toIndex)
-    if (result != -1L) return result
-
-    // The byte wasn't in the buffer. Give up if we've already reached our target size or if the
-    // underlying stream is exhausted.
-    val lastBufferSize = buffer.size
-    if (lastBufferSize >= toIndex || source.read(buffer, Segment.SIZE.toLong()) == -1L) return -1L
-
-    // Continue the search from where we left off.
-    fromIndex = maxOf(fromIndex, lastBufferSize)
-  }
-  return -1L
-}
- */
 
 internal inline fun RealSource.commonPeek(): Source {
   return PeekSource(this).buffer()

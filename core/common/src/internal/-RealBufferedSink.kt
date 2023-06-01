@@ -33,34 +33,6 @@ internal inline fun RealSink.commonWrite(source: Buffer, byteCount: Long) {
   emitCompleteSegments()
 }
 
-internal inline fun RealSink.commonWriteUtf8(string: String): Sink {
-  check(!closed) { "closed" }
-  buffer.writeUtf8(string)
-  return emitCompleteSegments()
-}
-
-internal inline fun RealSink.commonWriteUtf8(
-  string: String,
-  beginIndex: Int,
-  endIndex: Int
-): Sink {
-  check(!closed) { "closed" }
-  buffer.writeUtf8(string, beginIndex, endIndex)
-  return emitCompleteSegments()
-}
-
-internal inline fun RealSink.commonWriteUtf8CodePoint(codePoint: Int): Sink {
-  check(!closed) { "closed" }
-  buffer.writeUtf8CodePoint(codePoint)
-  return emitCompleteSegments()
-}
-
-internal inline fun RealSink.commonWrite(source: ByteArray): Sink {
-  check(!closed) { "closed" }
-  buffer.write(source)
-  return emitCompleteSegments()
-}
-
 internal inline fun RealSink.commonWrite(
   source: ByteArray,
   offset: Int,
@@ -107,45 +79,15 @@ internal inline fun RealSink.commonWriteShort(s: Int): Sink {
   return emitCompleteSegments()
 }
 
-internal inline fun RealSink.commonWriteShortLe(s: Int): Sink {
-  check(!closed) { "closed" }
-  buffer.writeShortLe(s)
-  return emitCompleteSegments()
-}
-
 internal inline fun RealSink.commonWriteInt(i: Int): Sink {
   check(!closed) { "closed" }
   buffer.writeInt(i)
   return emitCompleteSegments()
 }
 
-internal inline fun RealSink.commonWriteIntLe(i: Int): Sink {
-  check(!closed) { "closed" }
-  buffer.writeIntLe(i)
-  return emitCompleteSegments()
-}
-
 internal inline fun RealSink.commonWriteLong(v: Long): Sink {
   check(!closed) { "closed" }
   buffer.writeLong(v)
-  return emitCompleteSegments()
-}
-
-internal inline fun RealSink.commonWriteLongLe(v: Long): Sink {
-  check(!closed) { "closed" }
-  buffer.writeLongLe(v)
-  return emitCompleteSegments()
-}
-
-internal inline fun RealSink.commonWriteDecimalLong(v: Long): Sink {
-  check(!closed) { "closed" }
-  buffer.writeDecimalLong(v)
-  return emitCompleteSegments()
-}
-
-internal inline fun RealSink.commonWriteHexadecimalUnsignedLong(v: Long): Sink {
-  check(!closed) { "closed" }
-  buffer.writeHexadecimalUnsignedLong(v)
   return emitCompleteSegments()
 }
 

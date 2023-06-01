@@ -28,48 +28,6 @@ package kotlinx.io.internal
 import kotlinx.io.*
 import kotlin.native.concurrent.SharedImmutable
 
-@SharedImmutable
-internal val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
-
-/**
- * Returns true if the range within this buffer starting at `segmentPos` in `segment` is equal to
- * `bytes[bytesOffset..bytesLimit)`.
- */
-// TODO: remove?
-/*
-internal fun rangeEquals(
-  segment: Segment,
-  segmentPos: Int,
-  bytes: ByteArray,
-  bytesOffset: Int,
-  bytesLimit: Int
-): Boolean {
-  var segment = segment
-  var segmentPos = segmentPos
-  var segmentLimit = segment.limit
-  var data = segment.data
-
-  var i = bytesOffset
-  while (i < bytesLimit) {
-    if (segmentPos == segmentLimit) {
-      segment = segment.next!!
-      data = segment.data
-      segmentPos = segment.pos
-      segmentLimit = segment.limit
-    }
-
-    if (data[segmentPos] != bytes[i]) {
-      return false
-    }
-
-    segmentPos++
-    i++
-  }
-
-  return true
-}
-*/
-
 internal fun Buffer.readUtf8Line(newline: Long): String {
   return when {
     newline > 0 && this[newline - 1] == '\r'.code.toByte() -> {
@@ -321,126 +279,6 @@ internal inline fun Buffer.commonSkip(byteCount: Long) {
   }
 }
 
-//internal inline fun Buffer.commonWrite(
-//  byteString: ByteString,
-//  offset: Int = 0,
-//  byteCount: Int = byteString.size
-//): Buffer {
-//  byteString.write(this, offset, byteCount)
-//  return this
-//}
-
-/*
-internal inline fun Buffer.commonWriteDecimalLong(v: Long): Buffer {
-  var v = v
-  if (v == 0L) {
-    // Both a shortcut and required since the following code can't handle zero.
-    return writeByte('0'.code)
-  }
-
-  var negative = false
-  if (v < 0L) {
-    v = -v
-    if (v < 0L) { // Only true for Long.MIN_VALUE.
-      return writeUtf8("-9223372036854775808")
-    }
-    negative = true
-  }
-
-  // Binary search for character width which favors matching lower numbers.
-  var width =
-    if (v < 100000000L)
-      if (v < 10000L)
-        if (v < 100L)
-          if (v < 10L) 1
-          else 2
-        else if (v < 1000L) 3
-        else 4
-      else if (v < 1000000L)
-        if (v < 100000L) 5
-        else 6
-      else if (v < 10000000L) 7
-      else 8
-    else if (v < 1000000000000L)
-      if (v < 10000000000L)
-        if (v < 1000000000L) 9
-        else 10
-      else if (v < 100000000000L) 11
-      else 12
-    else if (v < 1000000000000000L)
-      if (v < 10000000000000L) 13
-      else if (v < 100000000000000L) 14
-      else 15
-    else if (v < 100000000000000000L)
-      if (v < 10000000000000000L) 16
-      else 17
-    else if (v < 1000000000000000000L) 18
-    else 19
-  if (negative) {
-    ++width
-  }
-
-  val tail = writableSegment(width)
-  val data = tail.data
-  var pos = tail.limit + width // We write backwards from right to left.
-  while (v != 0L) {
-    val digit = (v % 10).toInt()
-    data[--pos] = HEX_DIGIT_BYTES[digit]
-    v /= 10
-  }
-  if (negative) {
-    data[--pos] = '-'.code.toByte()
-  }
-
-  tail.limit += width
-  this.size += width.toLong()
-  return this
-}
-
-internal inline fun Buffer.commonWriteHexadecimalUnsignedLong(v: Long): Buffer {
-  var v = v
-  if (v == 0L) {
-    // Both a shortcut and required since the following code can't handle zero.
-    return writeByte('0'.code)
-  }
-
-  // Mask every bit below the most significant bit to a 1
-  // http://aggregate.org/MAGIC/#Most%20Significant%201%20Bit
-  var x = v
-  x = x or (x ushr 1)
-  x = x or (x ushr 2)
-  x = x or (x ushr 4)
-  x = x or (x ushr 8)
-  x = x or (x ushr 16)
-  x = x or (x ushr 32)
-
-  // Count the number of 1s
-  // http://aggregate.org/MAGIC/#Population%20Count%20(Ones%20Count)
-  x -= x ushr 1 and 0x5555555555555555
-  x = (x ushr 2 and 0x3333333333333333) + (x and 0x3333333333333333)
-  x = (x ushr 4) + x and 0x0f0f0f0f0f0f0f0f
-  x += x ushr 8
-  x += x ushr 16
-  x = (x and 0x3f) + ((x ushr 32) and 0x3f)
-
-  // Round up to the nearest full byte
-  val width = ((x + 3) / 4).toInt()
-
-  val tail = writableSegment(width)
-  val data = tail.data
-  var pos = tail.limit + width - 1
-  val start = tail.limit
-  while (pos >= start) {
-    data[pos] = HEX_DIGIT_BYTES[(v and 0xF).toInt()]
-    v = v ushr 4
-    pos--
-  }
-  tail.limit += width
-  size += width.toLong()
-  return this
-}
- */
-
 internal inline fun Buffer.commonWritableSegment(minimumCapacity: Int): Segment {
   require(minimumCapacity >= 1 && minimumCapacity <= Segment.SIZE) { "unexpected capacity" }
 
@@ -458,8 +296,6 @@ internal inline fun Buffer.commonWritableSegment(minimumCapacity: Int): Segment 
   }
   return tail
 }
-
-internal inline fun Buffer.commonWrite(source: ByteArray) = write(source, 0, source.size)
 
 internal inline fun Buffer.commonWrite(
   source: ByteArray,
@@ -500,8 +336,6 @@ internal inline fun Buffer.commonReadByteArray(byteCount: Long): ByteArray {
   return result
 }
 
-internal inline fun Buffer.commonRead(sink: ByteArray) = read(sink, 0, sink.size)
-
 internal inline fun Buffer.commonReadFully(sink: ByteArray) {
   var offset = 0
   while (offset < sink.size) {
@@ -533,151 +367,6 @@ internal inline fun Buffer.commonRead(sink: ByteArray, offset: Int, byteCount: I
 
 internal const val OVERFLOW_ZONE = Long.MIN_VALUE / 10L
 internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
-
-internal inline fun Buffer.commonReadDecimalLong(): Long {
-  if (size == 0L) throw EOFException()
-
-  // This value is always built negatively in order to accommodate Long.MIN_VALUE.
-  var value = 0L
-  var seen = 0
-  var negative = false
-  var done = false
-
-  var overflowDigit = OVERFLOW_DIGIT_START
-
-  do {
-    val segment = head!!
-
-    val data = segment.data
-    var pos = segment.pos
-    val limit = segment.limit
-
-    while (pos < limit) {
-      val b = data[pos]
-      if (b >= '0'.code.toByte() && b <= '9'.code.toByte()) {
-        val digit = '0'.code.toByte() - b
-
-        // Detect when the digit would cause an overflow.
-        if (value < OVERFLOW_ZONE || value == OVERFLOW_ZONE && digit < overflowDigit) {
-          val buffer = Buffer().writeDecimalLong(value).writeByte(b.toInt())
-          if (!negative) buffer.readByte() // Skip negative sign.
-          throw NumberFormatException("Number too large: ${buffer.readUtf8()}")
-        }
-        value *= 10L
-        value += digit.toLong()
-      } else if (b == '-'.code.toByte() && seen == 0) {
-        negative = true
-        overflowDigit -= 1
-      } else {
-        // Set a flag to stop iteration. We still need to run through segment updating below.
-        done = true
-        break
-      }
-      pos++
-      seen++
-    }
-
-    if (pos == limit) {
-      head = segment.pop()
-      SegmentPool.recycle(segment)
-    } else {
-      segment.pos = pos
-    }
-  } while (!done && head != null)
-
-  size -= seen.toLong()
-
-  val minimumSeen = if (negative) 2 else 1
-  if (seen < minimumSeen) {
-    if (size == 0L) throw EOFException()
-    val expected = if (negative) "Expected a digit" else "Expected a digit or '-'"
-    throw NumberFormatException("$expected but was 0x${get(0).toHexString()}")
-  }
-
-  return if (negative) value else -value
-}
-
-internal inline fun Buffer.commonReadHexadecimalUnsignedLong(): Long {
-  if (size == 0L) throw EOFException()
-
-  var value = 0L
-  var seen = 0
-  var done = false
-
-  do {
-    val segment = head!!
-
-    val data = segment.data
-    var pos = segment.pos
-    val limit = segment.limit
-
-    while (pos < limit) {
-      val digit: Int
-
-      val b = data[pos]
-      if (b >= '0'.code.toByte() && b <= '9'.code.toByte()) {
-        digit = b - '0'.code.toByte()
-      } else if (b >= 'a'.code.toByte() && b <= 'f'.code.toByte()) {
-        digit = b - 'a'.code.toByte() + 10
-      } else if (b >= 'A'.code.toByte() && b <= 'F'.code.toByte()) {
-        digit = b - 'A'.code.toByte() + 10 // We never write uppercase, but we support reading it.
-      } else {
-        if (seen == 0) {
-          throw NumberFormatException(
-            "Expected leading [0-9a-fA-F] character but was 0x${b.toHexString()}"
-          )
-        }
-        // Set a flag to stop iteration. We still need to run through segment updating below.
-        done = true
-        break
-      }
-
-      // Detect when the shift will overflow.
-      if (value and -0x1000000000000000L != 0L) {
-        val buffer = Buffer().writeHexadecimalUnsignedLong(value).writeByte(b.toInt())
-        throw NumberFormatException("Number too large: " + buffer.readUtf8())
-      }
-
-      value = value shl 4
-      value = value or digit.toLong()
-      pos++
-      seen++
-    }
-
-    if (pos == limit) {
-      head = segment.pop()
-      SegmentPool.recycle(segment)
-    } else {
-      segment.pos = pos
-    }
-  } while (!done && head != null)
-
-  size -= seen.toLong()
-  return value
-}
-
-//internal inline fun Buffer.commonReadByteString(): ByteString = readByteString(size)
-//
-//internal inline fun Buffer.commonReadByteString(byteCount: Long): ByteString {
-//  require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) { "byteCount: $byteCount" }
-//  if (size < byteCount) throw EOFException()
-//
-//  if (byteCount >= SEGMENTING_THRESHOLD) {
-//    return snapshot(byteCount.toInt()).also { skip(byteCount) }
-//  } else {
-//    return ByteString(readByteArray(byteCount))
-//  }
-//}
-
-//internal inline fun Buffer.commonSelect(options: Options): Int {
-//  val index = selectPrefix(options)
-//  if (index == -1) return -1
-//
-//  // If the prefix match actually matched a full byte string, consume it and return it.
-//  val selectedSize = options.byteStrings[index].size
-//  skip(selectedSize.toLong())
-//  return index
-//}
 
 internal inline fun Buffer.commonReadFully(sink: Buffer, byteCount: Long) {
   if (size < byteCount) {
@@ -717,38 +406,6 @@ internal inline fun Buffer.commonReadUtf8(byteCount: Long): String {
   }
 
   return result
-}
-
-internal inline fun Buffer.commonReadUtf8Line(): String? {
-  val newline = indexOf('\n'.code.toByte())
-
-  return when {
-    newline != -1L -> readUtf8Line(newline)
-    size != 0L -> readUtf8(size)
-    else -> null
-  }
-}
-
-internal inline fun Buffer.commonReadUtf8LineStrict(limit: Long): String {
-  require(limit >= 0L) { "limit < 0: $limit" }
-  val scanLength = if (limit == Long.MAX_VALUE) Long.MAX_VALUE else limit + 1L
-  val newline = indexOf('\n'.code.toByte(), 0L, scanLength)
-  if (newline != -1L) return readUtf8Line(newline)
-  if (scanLength < size &&
-    this[scanLength - 1] == '\r'.code.toByte() &&
-    this[scanLength] == '\n'.code.toByte()
-  ) {
-    return readUtf8Line(scanLength) // The line was 'limit' UTF-8 bytes followed by \r\n.
-  }
-  val data = Buffer()
-  copyTo(data, 0, minOf(32, size))
-  // TODO fzhinkin
-  throw EOFException(
-    "\\n not found: limit=${minOf(
-      size,
-      limit
-    )} content=#{NOT IMPLEMENTED}${'…'}"
-  )
 }
 
 internal inline fun Buffer.commonReadUtf8CodePoint(): Int {
@@ -1140,42 +797,6 @@ internal inline fun Buffer.commonRead(sink: Buffer, byteCount: Long): Long {
   return bytesWritten
 }
 
-/*
-internal inline fun Buffer.commonIndexOf(b: Byte, fromIndex: Long, toIndex: Long): Long {
-  var fromIndex = fromIndex
-  var toIndex = toIndex
-  require(fromIndex in 0..toIndex) { "size=$size fromIndex=$fromIndex toIndex=$toIndex" }
-
-  if (toIndex > size) toIndex = size
-  if (fromIndex == toIndex) return -1L
-
-  seek(fromIndex) { s, offset ->
-    var s = s ?: return -1L
-    var offset = offset
-
-    // Scan through the segments, searching for b.
-    while (offset < toIndex) {
-      val data = s.data
-      val limit = minOf(s.limit.toLong(), s.pos + toIndex - offset).toInt()
-      var pos = (s.pos + fromIndex - offset).toInt()
-      while (pos < limit) {
-        if (data[pos] == b) {
-          return pos - s.pos + offset
-        }
-        pos++
-      }
-
-      // Not in this segment. Try the next one.
-      offset += (s.limit - s.pos).toLong()
-      fromIndex = offset
-      s = s.next!!
-    }
-
-    return -1L
-  }
-}
- */
-
 internal inline fun Buffer.commonEquals(other: Any?): Boolean {
   if (this === other) return true
   if (other !is Buffer) return false
@@ -1305,22 +926,4 @@ private fun codePointIndexToCharIndex(s: ByteArray, codePointCount: Int): Int {
     charCount += if (c < 0x10000) 1 else 2
   }
   return charCount
-}
-
-internal inline fun forEachSegment(
-  segments: Array<ByteArray>,
-  directory: IntArray,
-  action: (data: ByteArray, offset: Int, byteCount: Int) -> Unit
-) {
-  val segmentCount = segments.size
-  var s = 0
-  var pos = 0
-  while (s < segmentCount) {
-    val segmentPos = directory[segmentCount + s]
-    val nextSegmentOffset = directory[s]
-
-    action(segments[s], segmentPos, nextSegmentOffset - pos)
-    pos = nextSegmentOffset
-    s++
-  }
 }
