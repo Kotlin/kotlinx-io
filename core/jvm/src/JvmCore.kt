@@ -145,9 +145,6 @@ fun Socket.source(): RawSource {
 /** Returns a sink that writes to `file`. */
 fun File.sink(append: Boolean = false): RawSink = FileOutputStream(this, append).sink()
 
-/** Returns a sink that writes to `file`. */
-fun File.appendingSink(): RawSink = FileOutputStream(this, true).sink()
-
 /** Returns a source that reads from `file`. */
 fun File.source(): RawSource = InputStreamSource(inputStream())
 

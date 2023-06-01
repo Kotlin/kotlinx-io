@@ -140,11 +140,6 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     byteCount: Long
   ): Buffer = commonCopyTo(out, offset, byteCount)
 
-  actual fun copyTo(
-    out: Buffer,
-    offset: Long
-  ): Buffer = copyTo(out, offset, size - offset)
-
   /** Write `byteCount` bytes from this to `out`. */
   @Throws(IOException::class)
   @JvmOverloads

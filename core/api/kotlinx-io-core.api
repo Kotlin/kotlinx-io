@@ -10,10 +10,8 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public final fun copyTo (Ljava/io/OutputStream;)Lkotlinx/io/Buffer;
 	public final fun copyTo (Ljava/io/OutputStream;J)Lkotlinx/io/Buffer;
 	public final fun copyTo (Ljava/io/OutputStream;JJ)Lkotlinx/io/Buffer;
-	public final fun copyTo (Lkotlinx/io/Buffer;J)Lkotlinx/io/Buffer;
 	public final fun copyTo (Lkotlinx/io/Buffer;JJ)Lkotlinx/io/Buffer;
 	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJILjava/lang/Object;)Lkotlinx/io/Buffer;
-	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Lkotlinx/io/Buffer;JILjava/lang/Object;)Lkotlinx/io/Buffer;
 	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Lkotlinx/io/Buffer;JJILjava/lang/Object;)Lkotlinx/io/Buffer;
 	public fun emit ()Lkotlinx/io/Buffer;
 	public synthetic fun emit ()Lkotlinx/io/Sink;
@@ -76,7 +74,6 @@ public final class kotlinx/io/CoreKt {
 }
 
 public final class kotlinx/io/JvmCoreKt {
-	public static final fun appendingSink (Ljava/io/File;)Lkotlinx/io/RawSink;
 	public static final fun sink (Ljava/io/File;Z)Lkotlinx/io/RawSink;
 	public static final fun sink (Ljava/io/OutputStream;)Lkotlinx/io/RawSink;
 	public static final fun sink (Ljava/net/Socket;)Lkotlinx/io/RawSink;

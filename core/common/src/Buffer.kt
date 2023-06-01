@@ -23,19 +23,21 @@ package kotlinx.io
 /**
  * A collection of bytes in memory.
  *
- * **Moving data from one buffer to another is fast.** Instead of copying bytes from one place in
- * memory to another, this class just changes ownership of the underlying byte arrays.
+ * The buffer can be viewed as an unbound queue whose size grows with the data being written
+ * and shrinks with data being consumed. Internally, the buffer consists of data segments and buffer's capacity
+ * grows and shrinks in units of data segments instead of individual bytes.
  *
- * **This buffer grows with your data.** Just like ArrayList, each buffer starts small. It consumes
- * only the memory it needs to.
+ * The buffer was designed to reduce memory allocations when possible. Instead of copying bytes
+ * from one place in memory to another, this class just changes ownership of the underlying data segments.
  *
- * **This buffer pools its byte arrays.** When you allocate a byte array in Java, the runtime must
- * zero-fill the requested array before returning it to you. Even if you're going to write over that
- * space anyway. This class avoids zero-fill and GC churn by pooling byte arrays.
+ * To reduce allocations and speed up buffer's extension, it may use data segments pooling.
  */
 expect class Buffer() : Source, Sink {
   internal var head: Segment?
 
+  /**
+   * Amount of bytes accessible for read from this buffer.
+   */
   var size: Long
     internal set
 
@@ -45,20 +47,19 @@ expect class Buffer() : Source, Sink {
 
   override fun emit(): Buffer
 
-  /** Copy `byteCount` bytes from this, starting at `offset`, to `out`.  */
-  fun copyTo(
-    out: Buffer,
-    offset: Long = 0L,
-    byteCount: Long
-  ): Buffer
-
   /**
-   * Overload of [copyTo] with byteCount = size - offset, work around for
-   *  https://youtrack.jetbrains.com/issue/KT-30847
+   * Copy [byteCount] bytes from this buffer, starting at [offset], to [out] buffer.
+   *
+   * @param out the destination buffer to copy data into.
+   * @param offset the offset to the first byte of data in this buffer to start copying from.
+   * @param byteCount amount of bytes to copy.
+   *
+   * @throws IndexOutOfBoundsException when [offset] and [byteCount] correspond to a range out of this buffer bounds.
    */
   fun copyTo(
     out: Buffer,
-    offset: Long = 0L
+    offset: Long = 0L,
+    byteCount: Long = size - offset
   ): Buffer
 
   /**
@@ -67,16 +68,30 @@ expect class Buffer() : Source, Sink {
    */
   fun completeSegmentByteCount(): Long
 
-  /** Returns the byte at `pos`. */
+  /**
+   * Returns the byte at [pos].
+   *
+   * Use of this method may expose significant performance penalties and it's not recommended to use it
+   * for sequential access to a range of bytes within the buffer.
+   *
+   * @throws IndexOutOfBoundsException when [pos] is out of this buffer's bounds.
+   */
   operator fun get(pos: Long): Byte
 
   /**
-   * Discards all bytes in this buffer. Calling this method when you're done with a buffer will
-   * return its segments to the pool.
+   * Discards all bytes in this buffer.
+   *
+   * Call to this method is equivalent to [skip] with `byteCount = size`.
    */
   fun clear()
 
-  /** Discards `byteCount` bytes from the head of this buffer.  */
+  // TODO: figure out what this method may actually throw
+  /**
+   * Discards [byteCount]` bytes from the head of this buffer.
+   *
+   * @throws IllegalArgumentException when [byteCount] is negative.
+   * @throws ??? when [byteCount] exceeds buffer's [size].
+   */
   override fun skip(byteCount: Long)
 
   /**
@@ -97,6 +112,8 @@ expect class Buffer() : Source, Sink {
 
   override fun writeLong(long: Long): Buffer
 
-  /** Returns a deep copy of this buffer.  */
+  /**
+   * Returns a deep copy of this buffer.
+   */
   fun copy(): Buffer
 }

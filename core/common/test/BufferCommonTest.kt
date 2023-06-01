@@ -23,6 +23,8 @@ package kotlinx.io
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+private const val SEGMENT_SIZE = Segment.SIZE
+
 class BufferCommonTest {
   @Test fun completeSegmentByteCountOnEmptyBuffer() {
     val buffer = Buffer()
@@ -39,5 +41,55 @@ class BufferCommonTest {
     val buffer = Buffer()
     buffer.writeUtf8("a".repeat(Segment.SIZE * 4 - 10))
     assertEquals((Segment.SIZE * 3).toLong(), buffer.completeSegmentByteCount())
+  }
+
+  @Test
+  fun cloneDoesNotObserveWritesToOriginal() {
+    val original = Buffer()
+    val clone: Buffer = original.copy()
+    original.writeUtf8("abc")
+    assertEquals(0, clone.size)
+  }
+
+  @Test
+  fun cloneDoesNotObserveReadsFromOriginal() {
+    val original = Buffer()
+    original.writeUtf8("abc")
+    val clone: Buffer = original.copy()
+    assertEquals("abc", original.readUtf8(3))
+    assertEquals(3, clone.size)
+    assertEquals("ab", clone.readUtf8(2))
+  }
+
+  @Test
+  fun originalDoesNotObserveWritesToClone() {
+    val original = Buffer()
+    val clone: Buffer = original.copy()
+    clone.writeUtf8("abc")
+    assertEquals(0, original.size)
+  }
+
+  @Test
+  fun originalDoesNotObserveReadsFromClone() {
+    val original = Buffer()
+    original.writeUtf8("abc")
+    val clone: Buffer = original.copy()
+    assertEquals("abc", clone.readUtf8(3))
+    assertEquals(3, original.size)
+    assertEquals("ab", original.readUtf8(2))
+  }
+
+  @Test
+  fun cloneMultipleSegments() {
+    val original = Buffer()
+    original.writeUtf8("a".repeat(SEGMENT_SIZE * 3))
+    val clone: Buffer = original.copy()
+    original.writeUtf8("b".repeat(SEGMENT_SIZE * 3))
+    clone.writeUtf8("c".repeat(SEGMENT_SIZE * 3))
+
+    assertEquals("a".repeat(SEGMENT_SIZE * 3) + "b".repeat(SEGMENT_SIZE * 3),
+      original.readUtf8((SEGMENT_SIZE * 6).toLong()))
+    assertEquals("a".repeat( SEGMENT_SIZE * 3) + "c".repeat(SEGMENT_SIZE * 3),
+      clone.readUtf8((SEGMENT_SIZE * 6).toLong()))
   }
 }

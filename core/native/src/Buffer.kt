@@ -50,10 +50,10 @@ actual class Buffer : Source, Sink {
     byteCount: Long
   ): Buffer = commonCopyTo(out, offset, byteCount)
 
-  actual fun copyTo(
-    out: Buffer,
-    offset: Long
-  ): Buffer = copyTo(out, offset, size - offset)
+  //actual fun copyTo(
+  //  out: Buffer,
+  //  offset: Long
+  //): Buffer = copyTo(out, offset, size - offset)
 
   actual operator fun get(pos: Long): Byte = commonGet(pos)
 
