@@ -21,18 +21,12 @@
 package kotlinx.io
 
 import kotlinx.io.internal.*
-import java.io.Closeable
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
-import java.nio.charset.Charset
-import java.security.InvalidKeyException
-import java.security.MessageDigest
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 
 actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   @JvmField internal actual var head: Segment? = null
@@ -307,15 +301,13 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
 
-  override fun flush() {}
+  actual override fun flush() = Unit
 
   override fun isOpen() = true
 
-  override fun close() {}
+  actual  override fun close() = Unit
 
-  override fun cancel() {
-    // Not cancelable.
-  }
+  actual override fun cancel() = Unit
 
   override fun equals(other: Any?): Boolean = commonEquals(other)
 
@@ -329,6 +321,10 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   actual fun copy(): Buffer = commonCopy()
 
-  /** Returns a deep copy of this buffer. */
+  /**
+   * Returns a deep copy of this buffer.
+   *
+   * This method is equivalent to [copy].
+   */
   public override fun clone(): Buffer = copy()
 }

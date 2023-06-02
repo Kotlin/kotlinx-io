@@ -31,28 +31,46 @@ package kotlinx.io
  * from one place in memory to another, this class just changes ownership of the underlying data segments.
  *
  * To reduce allocations and speed up buffer's extension, it may use data segments pooling.
+ *
+ * [Buffer] implements both [Source] and [Sink] and could be used as a source or a sink,
+ * but unlike regular sinks and sources its [close], [cancel], [flush], [emit], [emitCompleteSegments]
+ * does not affect buffer's state and [exhausted] only indicates that a buffer is empty.
  */
 expect class Buffer() : Source, Sink {
   internal var head: Segment?
 
   /**
-   * Amount of bytes accessible for read from this buffer.
+   * The number of bytes accessible for read from this buffer.
    */
   var size: Long
     internal set
 
+  /**
+   * Returns the buffer itself.
+   */
   override val buffer: Buffer
 
+  /**
+   * This method does not affect the buffer's content as there is no upstream to write data to.
+   */
   override fun emitCompleteSegments(): Buffer
 
+  /**
+   * This method does not affect the buffer's content as there is no upstream to write data to.
+   */
   override fun emit(): Buffer
+
+  /**
+   * This method does not affect the buffer's content as there is no upstream to write data to.
+   */
+  override fun flush()
 
   /**
    * Copy [byteCount] bytes from this buffer, starting at [offset], to [out] buffer.
    *
    * @param out the destination buffer to copy data into.
    * @param offset the offset to the first byte of data in this buffer to start copying from.
-   * @param byteCount amount of bytes to copy.
+   * @param byteCount the number of bytes to copy.
    *
    * @throws IndexOutOfBoundsException when [offset] and [byteCount] correspond to a range out of this buffer bounds.
    */
@@ -63,8 +81,10 @@ expect class Buffer() : Source, Sink {
   ): Buffer
 
   /**
-   * Returns the number of bytes in segments that are not writable. This is the number of bytes that
-   * can be flushed immediately to an underlying sink without harming throughput.
+   * Returns the number of bytes in segments that are fully filled and are no longer writable.
+   *
+   * TODO: is it?
+   * This is the number of bytes that can be flushed immediately to an underlying sink without harming throughput.
    */
   fun completeSegmentByteCount(): Long
 
@@ -116,4 +136,14 @@ expect class Buffer() : Source, Sink {
    * Returns a deep copy of this buffer.
    */
   fun copy(): Buffer
+
+  /**
+   * This method does not affect the buffer.
+   */
+  override fun close()
+
+  /**
+   * This method does not affect the buffer.
+   */
+  override fun cancel()
 }

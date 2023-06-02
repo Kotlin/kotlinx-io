@@ -21,9 +21,19 @@
 package kotlinx.io
 
 /**
- * A source that keeps a buffer internally so that callers can do small reads without a performance
- * penalty. It also allows clients to read ahead, buffering as much as necessary before consuming
- * input.
+ * A source that facilitates typed data reads and keeps a buffer internally so that callers can read chunks of data
+ * without requesting it from a downstream on every call.
+ *
+ * [Source] is the main `kotlinx-io` interface to read data in client's code,
+ * any [RawSource] could be converted into [Source] using [RawSource.buffer].
+ *
+ * Depending on a kind of downstream and the number of bytes read, buffering may improve the performance by hiding
+ * the latency of small reads.
+ *
+ * The buffer is refilled on reads as necessary, but it is also possible to ensure it contains enough data
+ * using [require] or [request].
+ * [Sink] also allows to skip unneeded prefix of data using [skip] and
+ * provides look ahead into incoming data, buffering as much as necessary, using [peek].
  */
 expect sealed interface Source : RawSource {
   /**
@@ -42,10 +52,10 @@ expect sealed interface Source : RawSource {
    * Attempts to fill the buffer with at least [byteCount] bytes of data from the underlying source
    * and throw [EOFException] when the source is exhausted before fulfilling the requirement.
    *
-   * If the buffer already contains required amount of bytes then there will be no requests to
+   * If the buffer already contains required number of bytes then there will be no requests to
    * the underlying source.
    *
-   * @param byteCount amount of bytes that the buffer should contain.
+   * @param byteCount the number of bytes that the buffer should contain.
    *
    * @throws EOFException when the source is exhausted before the required bytes count could be read.
    */
@@ -58,7 +68,7 @@ expect sealed interface Source : RawSource {
    * `false` value returned by this method indicates that the underlying source was exhausted before
    * filling the buffer with [byteCount] bytes of data.
    *
-   * @param byteCount amount of bytes that the buffer should contain.
+   * @param byteCount the number of bytes that the buffer should contain.
    */
   fun request(byteCount: Long): Boolean
 
@@ -93,9 +103,9 @@ expect sealed interface Source : RawSource {
   /**
    * Reads and discards [byteCount] bytes from this source.
    *
-   * @param byteCount amount of bytes to be skipped.
+   * @param byteCount the number of bytes to be skipped.
    *
-   * @throws EOFException when the source is exhausted before the requested amount of bytes can be skipped.
+   * @throws EOFException when the source is exhausted before the requested number of bytes can be skipped.
    */
   fun skip(byteCount: Long)
 
@@ -107,7 +117,7 @@ expect sealed interface Source : RawSource {
   /**
    * Removes [byteCount] bytes from this source and returns them as a byte array.
    *
-   * @param byteCount amount of bytes that should be read from the source.
+   * @param byteCount the number of bytes that should be read from the source.
    *
    * @throws IllegalArgumentException when byteCount is negative.
    * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
@@ -127,7 +137,7 @@ expect sealed interface Source : RawSource {
    *
    * @param sink the array to which data will be written from this source.
    * @param offset the offset to start writing data into [sink] at, 0 by default.
-   * @param byteCount amount of bytes that should be written into [sink],
+   * @param byteCount the number of bytes that should be written into [sink],
    * size of the [sink] subarray starting at [offset] by default.
    *
    * @throws IndexOutOfBoundsException when a range specified by [offset] and [byteCount]
@@ -139,7 +149,7 @@ expect sealed interface Source : RawSource {
    * Removes exactly [byteCount] bytes from this source and writes them to [sink].
    *
    * @param sink the sink to which data will be written from this source.
-   * @param byteCount amount of bytes that should be written into [sink]
+   * @param byteCount the number of bytes that should be written into [sink]
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws EOFException when the requested number of bytes cannot be read.

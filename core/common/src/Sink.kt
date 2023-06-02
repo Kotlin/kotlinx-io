@@ -21,8 +21,21 @@
 package kotlinx.io
 
 /**
- * A sink that keeps a buffer internally so that callers can do small writes without a performance
- * penalty.
+ * A sink that facilitates typed data writes and keeps a buffer internally so that caller can write some data without
+ * sending it directly to an upstream.
+ *
+ * [Sink] is the main `kotlinx-io` interface to write data in client's code,
+ * any [RawSink] could be turned into [Sink] using [RawSink.buffer].
+ *
+ * Depending on a kind of upstream and the number of bytes written, buffering may improve the performance
+ * by hiding the latency of small writes.
+ *
+ * Data stored inside the internal buffer could be sent to an upstream using [flush], [emit], or [emitCompleteSegments]:
+ * - [flush] writes the whole buffer to an upstream and then flushes the upstream.
+ * - [emit] writes all data from the buffer into the upstream without flushing it.
+ * - [emitCompleteSegments] writes only a part of data from the buffer.
+ * The latter is aimed to reduce memory footprint by keeping the buffer as small as possible without excessive writes
+ * to the upstream.
  */
 expect sealed interface Sink : RawSink {
   /**
@@ -35,7 +48,7 @@ expect sealed interface Sink : RawSink {
    *
    * @param source the array from which bytes will be written into this sink.
    * @param offset the beginning of data within the [source], 0 by default.
-   * @param byteCount amount of bytes to write, size of the [source] subarray starting at [offset] by default.
+   * @param byteCount the number of bytes to write, size of the [source] subarray starting at [offset] by default.
    *
    * @throws IndexOutOfBoundsException when a range specified by [offset] and [byteCount]
    * is out of range of [source] array indices.
@@ -49,9 +62,6 @@ expect sealed interface Sink : RawSink {
    * Returns the number of bytes read which will be 0 if [source] is exhausted.
    *
    * @param source the source to consume data from.
-   *
-   * @sample kotlinx.io.AbstractSinkTest.writeAll
-   * @sample kotlinx.io.AbstractSinkTest.writeAllExhausted
    */
   fun writeAll(source: RawSource): Long
 
@@ -62,11 +72,9 @@ expect sealed interface Sink : RawSink {
    * attempt to read remaining bytes will be propagated to a caller of this method.
    *
    * @param source the source to consume data from.
-   * @param byteCount amount of bytes to read from [source] and to write into this sink.
+   * @param byteCount the number of bytes to read from [source] and to write into this sink.
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
-   *
-   * @sample kotlinx.io.AbstractSinkTest.writeSource
    */
   fun write(source: RawSource, byteCount: Long): Sink
 
@@ -74,8 +82,6 @@ expect sealed interface Sink : RawSink {
    * Writes a byte to this sink.
    *
    * @param byte the byte to be written.
-   *
-   * @sample kotlinx.io.AbstractSinkTest.writeByte
    */
   fun writeByte(byte: Int): Sink
 
@@ -83,8 +89,6 @@ expect sealed interface Sink : RawSink {
    * Writes two bytes containing [short], in the big-endian order, to this sink.
    *
    * @param short the short integer to be written.
-   *
-   * @sample kotlinx.io.AbstractSinkTest.writeShort
    */
   fun writeShort(short: Int): Sink
 
@@ -92,8 +96,6 @@ expect sealed interface Sink : RawSink {
    * Writes four bytes containing [int], in the big-endian order, to this sink.
    *
    * @param int the integer to be written.
-   *
-   * @sample kotlinx.io.AbstractSinkTest.writeInt
    */
   fun writeInt(int: Int): Sink
 
@@ -101,8 +103,6 @@ expect sealed interface Sink : RawSink {
    * Writes eight bytes containing [long], in the big-endian order, to this sink.
    *
    * @param long the long integer to be written.
-   *
-   * @sample kotlinx.io.AbstractSinkTest.writeLong
    */
   fun writeLong(long: Long): Sink
 

@@ -20,7 +20,7 @@
  */
 
 /**
- * kotlinx-io assumes most applications use UTF-8 exclusively, and offers optimized implementations of
+ * `kotlinx-io` assumes most applications use UTF-8 exclusively, and offers optimized implementations of
  * common operations on UTF-8 strings.
  *
  * <table border="1" cellspacing="0" cellpadding="3" summary="">

@@ -21,15 +21,15 @@
 package kotlinx.io
 
 /**
- * Receives a stream of bytes. Use this interface to write data wherever it's needed: to the
- * network, storage, or a buffer in memory. Sinks may be layered to transform received data, such as
- * to compress, encrypt, throttle, or add protocol framing.
+ * Receives a stream of bytes. RawSink is a base interface all other `kotlinx-io` data receivers are built upon it.
+ *
+ * This interface should be implemented to write data wherever it's needed: to the network, storage,
+ * or a buffer in memory. Sinks may be layered to transform received data, such as to compress, encrypt, throttle,
+ * or add protocol framing.
  *
  * Most application code shouldn't operate on a raw sink directly, but rather on a [Sink] which
  * is both more efficient and more convenient. Use [buffer] to wrap any raw sink with a buffer.
  *
- * Sinks are easy to test: just use a [Buffer] in your tests, and read from it to confirm it
- * received the data that was expected.
  */
 expect interface RawSink : Closeable {
   // TODO: should it throw EOFException instead?
@@ -37,7 +37,7 @@ expect interface RawSink : Closeable {
    * Removes [byteCount] bytes from [source] and appends them to this.
    *
    * @param source the source to read data from.
-   * @param byteCount amount of bytes to write.
+   * @param byteCount the number of bytes to write.
    *
    * @throws IndexOutOfBoundsException when the [source]'s size is below [byteCount].
    */

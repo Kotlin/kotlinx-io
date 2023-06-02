@@ -107,13 +107,11 @@ actual class Buffer : Source, Sink {
 
   override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
 
-  override fun flush() = Unit
+  actual override fun flush() = Unit
 
-  override fun close() = Unit
+  actual override fun close() = Unit
 
-  override fun cancel() {
-    // Not cancelable.
-  }
+  actual override fun cancel() = Unit
 
   override fun equals(other: Any?): Boolean = commonEquals(other)
 
