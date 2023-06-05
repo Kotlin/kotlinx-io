@@ -21,6 +21,7 @@
 package kotlinx.io
 
 import kotlin.random.Random
+import kotlin.test.assertEquals
 
 fun segmentSizes(buffer: Buffer): List<Int> {
   var segment = buffer.head ?: return emptyList()
@@ -71,38 +72,6 @@ fun bufferWithSegments(vararg segments: String): Buffer {
   return result
 }
 
-//fun makeSegments(source: ByteString): ByteString {
-//  val buffer = Buffer()
-//  for (i in 0 until source.size) {
-//    val segment = buffer.writableSegment(Segment.SIZE)
-//    segment.data[segment.pos] = source[i]
-//    segment.limit++
-//    buffer.size++
-//  }
-//  return buffer.snapshot()
-//}
-//
-///**
-// * Returns a string with all '\' slashes replaced with '/' slashes. This is useful for test
-// * assertions that intend to ignore slashes.
-// */
-//fun Path.withUnixSlashes(): String {
-//  return toString().replace('\\', '/')
-//}
-//
-//expect fun assertRelativeTo(
-//  a: Path,
-//  b: Path,
-//  bRelativeToA: Path,
-//  sameAsNio: Boolean = true,
-//)
-//
-//expect fun assertRelativeToFails(
-//  a: Path,
-//  b: Path,
-//  sameAsNio: Boolean = true,
-//): IllegalArgumentException
-
 expect fun createTempFile(): String
 expect fun deleteFile(path: String)
 
@@ -127,4 +96,12 @@ fun String.decodeHex(): ByteArray {
   }
 
   return result
+}
+
+fun Char.repeat(count: Int): String {
+  return toString().repeat(count)
+}
+
+fun assertArrayEquals(a: ByteArray, b: ByteArray) {
+  assertEquals(a.contentToString(), b.contentToString())
 }

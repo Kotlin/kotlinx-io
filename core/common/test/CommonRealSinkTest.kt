@@ -126,11 +126,8 @@ class CommonRealSinkTest {
     mockSink.scheduleThrow(1, IOException("second"))
     val bufferedSink = mockSink.buffer()
     bufferedSink.writeByte('a'.code)
-    try {
+    assertFailsWith<IOException>("first.*") {
       bufferedSink.close()
-      fail()
-    } catch (expected: IOException) {
-      assertEquals("first", expected.message)
     }
 
     mockSink.assertLog("write([text=a], 1)", "close()")

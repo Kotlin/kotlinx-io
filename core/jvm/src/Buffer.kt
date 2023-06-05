@@ -314,7 +314,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   override fun hashCode(): Int = commonHashCode()
 
   /**
-   * Returns a human-readable string that describes the contents of this buffer. Typically this
+   * Returns a human-readable string that describes the contents of this buffer. Typically, this
    * is a string like `[text=Hello]` or `[hex=0000ffff]`.
    */
   override fun toString() = commonString()
