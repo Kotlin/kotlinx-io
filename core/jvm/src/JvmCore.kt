@@ -36,6 +36,7 @@ import java.util.logging.Logger
 import javax.crypto.Cipher
 import javax.crypto.Mac
 
+// TODO: improve test coverage
 /** Returns a sink that writes to `out`. */
 fun OutputStream.sink(): RawSink = OutputStreamSink(this)
 
@@ -74,6 +75,7 @@ private open class OutputStreamSink(
   override fun toString() = "sink($out)"
 }
 
+// TODO: improve test coverage
 /** Returns a source that reads from `in`. */
 fun InputStream.source(): RawSource = InputStreamSource(this)
 

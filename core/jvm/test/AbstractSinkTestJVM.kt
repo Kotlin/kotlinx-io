@@ -21,7 +21,6 @@
 
 package kotlinx.io
 
-import org.junit.jupiter.api.Test
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
@@ -58,6 +57,29 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     }
 
     @Test
+    fun writeToClosedOutputStream() {
+        if (sink is Buffer) {
+            return
+        }
+        val out = sink.outputStream()
+        sink.close()
+        assertFailsWith<IOException> { out.write(0) }
+        assertFailsWith<IOException> { out.write(ByteArray(1)) }
+        assertFailsWith<IOException> { out.write(ByteArray(42), 0, 1) }
+    }
+
+    @Test
+    fun outputStreamClosesSink() {
+        if (sink is Buffer) {
+            return
+        }
+
+        val out = sink.outputStream()
+        out.close()
+        assertFailsWith<IllegalStateException> { sink.writeByte(0) }
+    }
+
+    @Test
     @Throws(java.lang.Exception::class)
     fun writeNioBuffer() {
         val expected = "abcdefg"
@@ -85,6 +107,17 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
         assertEquals(expected.length, nioByteBuffer.limit())
         sink.flush()
         assertEquals(expected, data.readUtf8())
+    }
+
+    @Test
+    fun writeNioBufferToClosedSink() {
+        if (sink is Buffer) {
+            return
+        }
+        sink.close()
+        assertFailsWith<IllegalStateException> {
+            sink.write(ByteBuffer.allocate(10))
+        }
     }
 
     @Test

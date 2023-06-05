@@ -21,11 +21,7 @@
 
 package kotlinx.io
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class BufferSourceTest : AbstractBufferedSourceTest(SourceFactory.BUFFER)
 class RealBufferedSourceTest : AbstractBufferedSourceTest(SourceFactory.REAL_BUFFERED_SOURCE)
@@ -299,6 +295,23 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertEquals(-1, source.read(sink, 0))
     assertEquals(10, sink.size)
     assertTrue(source.exhausted())
+  }
+
+  @Test fun readNegativeBytesFromSource() {
+    assertFailsWith<IllegalArgumentException> {
+      source.read(Buffer().writeByte(0), -1L)
+    }
+  }
+
+  @Test fun readFromClosedSource() {
+    if (source is Buffer) {
+      return
+    }
+
+    source.close()
+    assertFailsWith<IllegalStateException> {
+      source.read(Buffer().writeByte(0), 1L)
+    }
   }
 
   @Test fun readFully() {
@@ -715,6 +728,18 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
     source.skip((Segment.SIZE - 8).toLong())
     assertEquals(-1, source.readHexadecimalUnsignedLong())
+  }
+
+  @Test fun longHexTerminatedByNonDigit() {
+    sink.writeUtf8("abcd,").emit()
+    assertEquals(0xabcdL, source.readHexadecimalUnsignedLong())
+  }
+
+  @Test fun longHexAlphabet() {
+    sink.writeUtf8("7896543210abcdef").emit()
+    assertEquals(0x7896543210abcdefL, source.readHexadecimalUnsignedLong())
+    sink.writeUtf8("ABCDEF").emit()
+    assertEquals(0xabcdefL, source.readHexadecimalUnsignedLong())
   }
 
   @Test fun longHexStringTooLongThrows() {

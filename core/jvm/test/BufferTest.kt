@@ -45,6 +45,18 @@ class BufferTest {
     }
 
     @Test
+    fun copyToSkippingSegments() {
+        val source = Buffer()
+        source.writeUtf8("a".repeat(SEGMENT_SIZE * 2))
+        source.writeUtf8("b".repeat( SEGMENT_SIZE * 2))
+        val out = ByteArrayOutputStream()
+        source.copyTo(out, SEGMENT_SIZE * 2 + 1L, 3L)
+        assertEquals("bbb", out.toString())
+        assertEquals("a".repeat(SEGMENT_SIZE * 2) + "b".repeat( SEGMENT_SIZE * 2),
+            source.readUtf8(SEGMENT_SIZE * 4L))
+    }
+
+    @Test
     @Throws(Exception::class)
     fun copyToStream() {
         val buffer = Buffer().writeUtf8("hello, world!")
@@ -82,9 +94,9 @@ class BufferTest {
     @Test
     @Throws(java.lang.Exception::class)
     fun readFromStream() {
-        val `in`: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
+        val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
-        buffer.readFrom(`in`)
+        buffer.readFrom(input)
         val out = buffer.readUtf8()
         assertEquals("hello, world!", out)
     }
@@ -92,9 +104,9 @@ class BufferTest {
     @Test
     @Throws(java.lang.Exception::class)
     fun readFromSpanningSegments() {
-        val `in`: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
+        val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer().writeUtf8("a".repeat(SEGMENT_SIZE - 10))
-        buffer.readFrom(`in`)
+        buffer.readFrom(input)
         val out = buffer.readUtf8()
         assertEquals("a".repeat(SEGMENT_SIZE - 10) + "hello, world!", out)
     }
@@ -102,11 +114,27 @@ class BufferTest {
     @Test
     @Throws(java.lang.Exception::class)
     fun readFromStreamWithCount() {
-        val `in`: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
+        val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
-        buffer.readFrom(`in`, 10)
+        buffer.readFrom(input, 10)
         val out = buffer.readUtf8()
         assertEquals("hello, wor", out)
+    }
+
+    @Test
+    fun readFromStreamThrowsEOFOnExhaustion() {
+        val input = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
+        val buffer = Buffer()
+        assertFailsWith<EOFException> {
+            buffer.readFrom(input, input.available() + 1L)
+        }
+    }
+
+    @Test
+    fun readFromStreamWithNegativeBytesCount() {
+        assertFailsWith<IllegalArgumentException> {
+            Buffer().readFrom(ByteArrayInputStream(ByteArray(1)), -1)
+        }
     }
 
     @Test
@@ -122,13 +150,13 @@ class BufferTest {
     fun bufferInputStreamByteByByte() {
         val source = Buffer()
         source.writeUtf8("abc")
-        val `in`: InputStream = source.inputStream()
-        assertEquals(3, `in`.available())
-        assertEquals('a'.code, `in`.read())
-        assertEquals('b'.code, `in`.read())
-        assertEquals('c'.code, `in`.read())
-        assertEquals(-1, `in`.read())
-        assertEquals(0, `in`.available())
+        val input: InputStream = source.inputStream()
+        assertEquals(3, input.available())
+        assertEquals('a'.code, input.read())
+        assertEquals('b'.code, input.read())
+        assertEquals('c'.code, input.read())
+        assertEquals(-1, input.read())
+        assertEquals(0, input.available())
     }
 
     @Test
@@ -138,11 +166,11 @@ class BufferTest {
         source.writeUtf8("abc")
         val byteArray = ByteArray(4)
         Arrays.fill(byteArray, (-5).toByte())
-        val `in`: InputStream = source.inputStream()
-        assertEquals(3, `in`.read(byteArray))
+        val input: InputStream = source.inputStream()
+        assertEquals(3, input.read(byteArray))
         assertEquals("[97, 98, 99, -5]", byteArray.contentToString())
         Arrays.fill(byteArray, (-7).toByte())
-        assertEquals(-1, `in`.read(byteArray))
+        assertEquals(-1, input.read(byteArray))
         assertEquals("[-7, -7, -7, -7]", byteArray.contentToString())
     }
 

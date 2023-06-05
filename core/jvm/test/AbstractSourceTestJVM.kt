@@ -21,7 +21,6 @@
 
 package kotlinx.io
 
-import org.junit.jupiter.api.Test
 import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -125,6 +124,73 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
+    fun inputStreamForClosedSource() {
+        if (source is kotlinx.io.Buffer) {
+            return
+        }
+
+        sink.writeByte(0)
+        sink.emit()
+
+        val input = source.inputStream()
+        source.close()
+        assertFailsWith<IOException> { input.read() }
+        assertFailsWith<IOException> { input.read(ByteArray(1)) }
+        assertFailsWith<IOException> { input.read(ByteArray(10), 0, 1) }
+    }
+
+    @Test
+    fun inputStreamClosesSource() {
+        if (source is kotlinx.io.Buffer) {
+            return
+        }
+
+        sink.writeByte(0)
+        sink.emit()
+
+        val input = source.inputStream()
+        input.close()
+
+        assertFailsWith<IllegalStateException> { source.readByte() }
+    }
+
+    @Test
+    fun inputStreamAvailable() {
+        val input = source.inputStream()
+        assertEquals(0, input.available())
+
+        sink.writeInt(42)
+        sink.emit()
+        assertTrue(source.request(4)) // fill the buffer
+
+        assertEquals(4, input.available())
+
+        input.read()
+        assertEquals(3, input.available())
+
+        source.readByte()
+        assertEquals(2, input.available())
+
+        sink.writeByte(0)
+        sink.emit()
+
+        val expectedBytes = if (source is kotlinx.io.Buffer) { 3 } else { 2 }
+        assertEquals(expectedBytes, input.available())
+    }
+
+    @Test
+    fun inputStreamAvailableForClosedSource() {
+        if (source is kotlinx.io.Buffer) {
+            return
+        }
+
+        val input = source.inputStream()
+        source.close()
+
+        assertFailsWith<IOException> { input.available() }
+    }
+
+    @Test
     @Throws(java.lang.Exception::class)
     fun readNioBuffer() {
         val expected = if (factory.isOneByteAtATime) "a" else "abcdefg"
@@ -157,6 +223,11 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         val data = ByteArray(expected.length)
         nioByteBuffer.get(data)
         assertEquals(expected, String(data))
+    }
+
+    @Test
+    fun readNioBufferFromEmptySource() {
+        assertEquals(-1, source.read(ByteBuffer.allocate(10)))
     }
 
     @Test
