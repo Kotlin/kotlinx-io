@@ -10,11 +10,13 @@ import kotlinx.io.*
 
 @State(Scope.Benchmark)
 abstract class BufferRWBenchmarkBase {
-    // Buffers are implemented as list of segments, as soon as a segment is empty
+    // Buffers are implemented as a list of segments, as soon as a segment is empty
     // it will be unlinked. By reading all previously written data, a segment will be
-    // cleared and recycled, and the next time we will try to write data a new segment
-    // will be requested from the pool. Thus, without having some data in-flight we will
+    // cleared and recycled, and the next time we will try to write data, a new segment
+    // will be requested from the pool. Thus, without having any data in-flight, we will
     // benchmark not only read/write ops performance, but also segments allocation/reclamation.
+    // Specific non-zero minGap's values don't significantly affect overall results, but it is
+    // left as the parameter to allow fine-tuning in the future.
     @Param("128")
     var minGap: Int = 0
 
@@ -97,6 +99,7 @@ open class DecimalLongBenchmark: BufferRWBenchmarkBase() {
     override fun padding(): ByteArray {
         val tmpBuffer = Buffer()
         while (tmpBuffer.size < minGap) {
+            // use space as a delimiter between consecutive decimal values
             tmpBuffer.writeDecimalLong(value).writeByte(' '.code)
         }
         return tmpBuffer.readByteArray()
@@ -104,9 +107,10 @@ open class DecimalLongBenchmark: BufferRWBenchmarkBase() {
 
     @Benchmark
     fun benchmark(): Long {
+        // use space as a delimiter between consecutive decimal values
         buffer.writeDecimalLong(value).writeByte(' '.code)
         val l = buffer.readDecimalLong()
-        buffer.readByte()
+        buffer.readByte() // consume the delimiter
         return l
     }
 }
@@ -281,44 +285,52 @@ open class Utf8LineStrictBenchmark: Utf8LineBenchmarkBase() {
     }
 }
 
-private const val INDEX_OF_TARGET_VAL: Byte = 1
+private const val VALUE_TO_FIND: Byte = 1
 
 @State(Scope.Benchmark)
 open class IndexOfBenchmark {
-
-    @Param("128")
-    var dataSize: Int = 0
-
-    @Param("-1", "7", "100")
-    var valueOffset: Int = 0
-
-    @Param("true", "false")
-    var spanOverMultipleSegment: Boolean = false
+    @Param(
+        "128:0:-1", // scan a short sequence at the beginning of a segment, target value is not there
+        "128:0:7", // scan a short sequence at the beginning of a segment, target value in the beginning
+        "128:0:100", // scan a short sequence at the beginning of a segment, target value at the end
+        "128:" + (SEGMENT_SIZE_IN_BYTES-64).toString() + ":100", // scan two consecutive segments
+        (SEGMENT_SIZE_IN_BYTES * 3).toString() + ":0:-1" // scan multiple segments
+    )
+    var params: String = "0:0:-1";
 
     private val buffer = Buffer()
 
     @Setup
     fun setupBuffers() {
-        val array = ByteArray(dataSize)
-        if (valueOffset >= 0) array[valueOffset] = INDEX_OF_TARGET_VAL
-
-        var paddingSize = 0L
-        if (spanOverMultipleSegment) {
-            paddingSize = 8192L - dataSize / 2L
+        val paramsParsed = params.split(':').map { it.toInt() }.toIntArray()
+        check(paramsParsed.size == 3) {
+            "Parameters format is: \"dataSize:paddingSize:valueIndex\", " +
+                    "where valueIndex could be -1 if there should be no target value."
         }
-        val padding = ByteArray(paddingSize.toInt())
-        buffer.write(padding).write(array).skip(paddingSize)
+        val dataSize = paramsParsed[0]
+        val paddingSize = paramsParsed[1]
+        val valueOffset = paramsParsed[2]
+        check(paddingSize >= 0 && dataSize >= 0)
+        check(valueOffset == -1 || valueOffset < dataSize)
+
+        val array = ByteArray(dataSize)
+        if (valueOffset >= 0) array[valueOffset] = VALUE_TO_FIND
+
+        val padding = ByteArray(paddingSize)
+        buffer.write(padding).write(array).skip(paddingSize.toLong())
     }
 
     @Benchmark
-    fun benchmark(): Long = buffer.indexOf(INDEX_OF_TARGET_VAL)
+    fun benchmark(): Long = buffer.indexOf(VALUE_TO_FIND)
 }
+
+const val OFFSET_TO_2ND_BYTE_IN_2ND_SEGMENT = (SEGMENT_SIZE_IN_BYTES + 1).toString()
 
 @State(Scope.Benchmark)
 open class BufferGetBenchmark {
     private val buffer = Buffer()
 
-    @Param("0", "8193")
+    @Param("0", OFFSET_TO_2ND_BYTE_IN_2ND_SEGMENT)
     var offset: Long = 0
 
     @Setup

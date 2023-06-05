@@ -8,11 +8,15 @@ package kotlinx.io.benchmarks
 import kotlinx.io.*
 import kotlinx.benchmark.*
 
+const val OFFSET_TO_LAST_BYTE_IN_SEGMENT = (SEGMENT_SIZE_IN_BYTES - 1).toString()
+
 @State(Scope.Benchmark)
 abstract class PeekBenchmark {
     protected val buffer = Buffer()
 
-    @Param("0", "8191")
+    // Use OFFSET_TO_LAST_BYTE_IN_SEGMENT to hit a border between
+    // consecutive segments in benchmarks accessing multibyte values.
+    @Param("0", OFFSET_TO_LAST_BYTE_IN_SEGMENT)
     var offset: Int = 0
 
     @Setup
