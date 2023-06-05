@@ -21,7 +21,9 @@
 
 package kotlinx.io
 
+import kotlinx.io.internal.REPLACEMENT_CODE_POINT
 import kotlinx.io.internal.commonAsUtf8ToByteArray
+import kotlinx.io.internal.processUtf8CodePoints
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

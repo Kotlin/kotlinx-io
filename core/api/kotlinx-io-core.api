@@ -196,9 +196,3 @@ public final class kotlinx/io/files/PathsKt {
 	public static final fun source (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 }
 
-public final class kotlinx/io/internal/_Utf8Kt {
-	public static final fun commonAsUtf8ToByteArray (Ljava/lang/String;)[B
-	public static final fun commonToUtf8String ([BII)Ljava/lang/String;
-	public static synthetic fun commonToUtf8String$default ([BIIILjava/lang/Object;)Ljava/lang/String;
-}
-
