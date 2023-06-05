@@ -50,11 +50,6 @@ actual class Buffer : Source, Sink {
     byteCount: Long
   ): Buffer = commonCopyTo(out, offset, byteCount)
 
-  //actual fun copyTo(
-  //  out: Buffer,
-  //  offset: Long
-  //): Buffer = copyTo(out, offset, size - offset)
-
   actual operator fun get(pos: Long): Byte = commonGet(pos)
 
   actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
@@ -117,10 +112,6 @@ actual class Buffer : Source, Sink {
 
   override fun hashCode(): Int = commonHashCode()
 
-  /**
-   * Returns a human-readable string that describes the contents of this buffer. Typically this
-   * is a string like `[text=Hello]` or `[hex=0000ffff]`.
-   */
   override fun toString() = commonString()
 
   actual fun copy(): Buffer = commonCopy()

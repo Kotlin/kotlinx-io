@@ -135,12 +135,16 @@ fun Source.readHexadecimalUnsignedLong(): Long {
 
 /**
  * Returns an index of [b] first occurrence in the range of [fromIndex] inclusive to [toIndex]
- * exclusive, or `-1` if [b].
+ * exclusive, or `-1` when the range doesn't contain [b].
  *
  * The scan terminates at either [toIndex] or source's exhaustion, whichever comes first. The
  * maximum number of bytes scanned is `toIndex-fromIndex`.
  * If [b] not found in buffered data, [toIndex] is yet to be reached and the underlying source is not yet exhausted
  * then new data will be read from the underlying source into the buffer.
+ *
+ * @param b the value to find.
+ * @param fromIndex the start of the range to find [b], inclusive.
+ * @param toIndex the end of the range to find [b], exclusive.
  */
 fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MAX_VALUE): Long {
     require(fromIndex in 0..toIndex)

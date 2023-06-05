@@ -21,12 +21,10 @@
 
 package kotlinx.io
 
-internal expect fun ByteArray.toUtf8String(): String
-
 internal expect fun String.asUtf8ToByteArray(): ByteArray
 
 // TODO make internal https://youtrack.jetbrains.com/issue/KT-37316
-expect class ArrayIndexOutOfBoundsException(message: String?) : IndexOutOfBoundsException
+// expect class ArrayIndexOutOfBoundsException(message: String?) : IndexOutOfBoundsException
 
 expect open class IOException(message: String?, cause: Throwable?) : Exception {
   constructor(message: String? = null)

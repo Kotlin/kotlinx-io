@@ -1,6 +1,7 @@
 # Module kotlinx-io-core
 
 The module provides core multiplatform IO primitives and integrates it with platform-specific APIs.
+
 `kotlinx-io` aims to provide a concise but powerful API along with efficient implementation.
 
 The main interfaces for the IO interaction are [kotlinx.io.Source] and [kotlinx.io.Sink] providing buffered read and 

@@ -25,7 +25,7 @@ import kotlinx.io.*
 
 internal fun ByteArray.commonToUtf8String(beginIndex: Int = 0, endIndex: Int = size): String {
   if (beginIndex < 0 || endIndex > size || beginIndex > endIndex) {
-    throw ArrayIndexOutOfBoundsException("size=$size beginIndex=$beginIndex endIndex=$endIndex")
+    throw IndexOutOfBoundsException("size=$size beginIndex=$beginIndex endIndex=$endIndex")
   }
   val chars = CharArray(endIndex - beginIndex)
 

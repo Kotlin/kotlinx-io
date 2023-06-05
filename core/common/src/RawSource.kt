@@ -21,20 +21,23 @@
 package kotlinx.io
 
 /**
- * Supplies a stream of bytes. RawSource is a base interface all other `kotlinx-io` data suppliers are built upon it.
+ * Supplies a stream of bytes. RawSource is a base interface for `kotlinx-io` data suppliers.
  *
  * The interface should be implemented to read data from wherever it's located: from the network, storage,
  * or a buffer in memory. Sources may be layered to transform supplied data, such as to decompress, decrypt,
  * or remove protocol framing.
  *
- * Most applications shouldn't operate on a raw source directly, but rather on a [Source] which
+ * Most applications shouldn't operate on a raw source directly, but rather on a buffered [Source] which
  * is both more efficient and more convenient. Use [buffer] to wrap any raw source with a buffer.
  */
 interface RawSource : Closeable {
   // TODO: should be throw something if byteCount = 0?
   /**
-   * Removes at least 1, and up to [byteCount] bytes from this and appends them to [sink]. Returns
-   * the number of bytes read, or -1 if this source is exhausted.
+   * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
+   * Returns the number of bytes read, or -1 if this source is exhausted.
+   *
+   * @param sink the destination to write the data from this source.
+   * @param byteCount the number of bytes to read.
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
    */

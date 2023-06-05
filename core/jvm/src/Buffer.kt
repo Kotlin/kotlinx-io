@@ -37,6 +37,11 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   actual override val buffer get() = this
 
+  /**
+   * Returns a new [OutputStream] to write data into this buffer.
+   *
+   * Closing the stream won't have any effect as buffers don't support closing.
+   */
   override fun outputStream(): OutputStream {
     return object : OutputStream() {
       override fun write(b: Int) {
@@ -72,6 +77,11 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     return PeekSource(this).buffer()
   }
 
+  /**
+   * Returns a new [InputStream] to read data from this buffer.
+   *
+   * Closing the stream won't have any effect as buffers don't support closing.
+   */
   override fun inputStream(): InputStream {
     return object : InputStream() {
       override fun read(): Int {
@@ -94,7 +104,15 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     }
   }
 
-  /** Copy `byteCount` bytes from this, starting at `offset`, to `out`. */
+  /**
+   * Copy [byteCount] bytes from this buffer, starting at [offset], to [out].
+   *
+   * @param out the destination to copy data into.
+   * @param offset the offset to start copying data from, `0` by default.
+   * @param byteCount the number of bytes to copy, all data starting from the [offset] by default.
+   *
+   * @throws IndexOutOfBoundsException when [byteCount] and [offset] represents a range out of the buffer bounds.
+   */
   @Throws(IOException::class)
   @JvmOverloads
   fun copyTo(
@@ -161,14 +179,27 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     return this
   }
 
-  /** Read and exhaust bytes from `input` into this. */
+  /**
+   * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
+   *
+   * @param input the stream to read data from.
+   */
   @Throws(IOException::class)
   fun readFrom(input: InputStream): Buffer {
     readFrom(input, Long.MAX_VALUE, true)
     return this
   }
 
-  /** Read `byteCount` bytes from `input` into this. */
+  /**
+   * Read [byteCount] bytes from [input] into this buffer. Throws an exception when [input] is
+   * exhausted before reading [byteCount] bytes.
+   *
+   * @param input the stream to read data from.
+   * @param byteCount the number of bytes read from [input].
+   *
+   * @throws IOException when [input] exhausted before reading [byteCount] bytes from it.
+   *
+   */
   @Throws(IOException::class)
   fun readFrom(input: InputStream, byteCount: Long): Buffer {
     require(byteCount >= 0L) { "byteCount < 0: $byteCount" }

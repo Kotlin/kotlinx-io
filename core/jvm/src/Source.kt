@@ -73,7 +73,9 @@ actual sealed interface Source : RawSource, ReadableByteChannel {
 
   actual fun peek(): Source
 
-  /** Returns an input stream that reads from this source. */
+  /**
+   * Returns an input stream that reads from this source. Closing the stream will also close this source.
+   */
   fun inputStream(): InputStream
 }
 
@@ -100,6 +102,11 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
   return result
 }
 
+/**
+ * Decodes whole content of this stream into a string using [charset]. Returns empty string if the source is exhausted.
+ *
+ * @param charset the [Charset] to use for string decoding.
+ */
 @Throws(IOException::class)
 fun Source.readString(charset: Charset): String {
   var req = 1L
@@ -109,6 +116,14 @@ fun Source.readString(charset: Charset): String {
   return buffer.readStringImpl(buffer.size, charset)
 }
 
+/**
+ * Decodes [byteCount] bytes of this stream into a string using [charset].
+ *
+ * @param byteCount the number of bytes to read from the source for decoding.
+ * @param charset the [Charset] to use for string decoding.
+ *
+ * @throws EOFException when the source exhausted before [byteCount] bytes could be read from it.
+ */
 @Throws(IOException::class)
 fun Source.readString(byteCount: Long, charset: Charset): String {
   require(byteCount)

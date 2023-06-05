@@ -80,8 +80,8 @@ import kotlin.jvm.JvmOverloads
 /**
  * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeUtf8].
  *
- * @param beginIndex the index of the first character to encode.
- * @param endIndex the index of the character past the last character to encode.
+ * @param beginIndex the index of the first character to encode, inclusive.
+ * @param endIndex the index of the character past the last character to encode, exclusive.
  *
  * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range
  * out of the current string bounds.
@@ -179,6 +179,9 @@ fun Buffer.readUtf8(): String {
 /**
  * Removes [byteCount] bytes from this source, decodes them as UTF-8, and returns the string.
  *
+ * @param byteCount the number of bytes to read from the source for string decoding.
+ *
+ * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
  */
 fun Source.readUtf8(byteCount: Long): String {
@@ -193,9 +196,9 @@ fun Source.readUtf8(byteCount: Long): String {
  * [EOFException] and consumes no input.
  *
  * If this source doesn't start with a properly-encoded UTF-8 code point, this method will remove
- * 1 or more non-UTF-8 bytes and return the replacement character (`U+FFFD`). This covers encoding
+ * 1 or more non-UTF-8 bytes and return the replacement character (`U+fffd`). This covers encoding
  * problems (the input is not properly-encoded UTF-8), characters out of range (beyond the
- * 0x10ffff limit of Unicode), code points for UTF-16 surrogates (U+d800..U+dfff) and overlong
+ * `0x10ffff` limit of Unicode), code points for UTF-16 surrogates (`U+d800`..`U+dfff`) and overlong
  * encodings (such as `0xc080` for the NUL character in modified UTF-8).
  *
  * @throws EOFException when the source is exhausted before a complete code point can be read.
@@ -224,7 +227,7 @@ fun Buffer.readUtf8CodePoint(): Int {
  * Removes and returns characters up to but not including the next line break. A line break is
  * either `"\n"` or `"\r\n"`; these characters are not included in the result.
  *
- * On the end of the stream this method returns null. If the source doesn't end with a line break then
+ * On the end of the stream this method returns null. If the source doesn't end with a line break, then
  * an implicit line break is assumed. Null is returned once the source is exhausted.
  */
 fun Source.readUtf8Line(): String? {

@@ -22,14 +22,14 @@ package kotlinx.io
 
 /**
  * Returns a new source that buffers reads from the source. The returned source will perform bulk
- * reads into its in-memory buffer. Use this wherever you read a source to get an ergonomic and
+ * reads into its in-memory buffer. Use this wherever you read a source to get ergonomic and
  * efficient access to data.
  */
 fun RawSource.buffer(): Source = RealSource(this)
 
 /**
  * Returns a new sink that buffers writes to the sink. The returned sink will batch writes to the sink.
- * Use this wherever you write to a sink to get an ergonomic and efficient access to data.
+ * Use this wherever you write to a sink to get ergonomic and efficient access to data.
  */
 fun RawSink.buffer(): Sink = RealSink(this)
 

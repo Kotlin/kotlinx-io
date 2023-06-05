@@ -24,13 +24,13 @@ package kotlinx.io
  * A collection of bytes in memory.
  *
  * The buffer can be viewed as an unbound queue whose size grows with the data being written
- * and shrinks with data being consumed. Internally, the buffer consists of data segments and buffer's capacity
- * grows and shrinks in units of data segments instead of individual bytes.
+ * and shrinks with data being consumed. Internally, the buffer consists of data segments,
+ * and the buffer's capacity grows and shrinks in units of data segments instead of individual bytes.
  *
  * The buffer was designed to reduce memory allocations when possible. Instead of copying bytes
  * from one place in memory to another, this class just changes ownership of the underlying data segments.
  *
- * To reduce allocations and speed up buffer's extension, it may use data segments pooling.
+ * To reduce allocations and speed up the buffer's extension, it may use data segments pooling.
  *
  * [Buffer] implements both [Source] and [Sink] and could be used as a source or a sink,
  * but unlike regular sinks and sources its [close], [cancel], [flush], [emit], [emitCompleteSegments]
@@ -83,7 +83,6 @@ expect class Buffer() : Source, Sink {
   /**
    * Returns the number of bytes in segments that are fully filled and are no longer writable.
    *
-   * TODO: is it?
    * This is the number of bytes that can be flushed immediately to an underlying sink without harming throughput.
    */
   fun completeSegmentByteCount(): Long

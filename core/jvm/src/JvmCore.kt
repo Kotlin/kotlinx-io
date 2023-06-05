@@ -37,7 +37,11 @@ import javax.crypto.Cipher
 import javax.crypto.Mac
 
 // TODO: improve test coverage
-/** Returns a sink that writes to `out`. */
+/**
+ * Returns [RawSink] that writes to an output stream.
+ *
+ * Use [RawSink.buffer] to create a buffered sink from it.
+ */
 fun OutputStream.sink(): RawSink = OutputStreamSink(this)
 
 private open class OutputStreamSink(
@@ -76,7 +80,11 @@ private open class OutputStreamSink(
 }
 
 // TODO: improve test coverage
-/** Returns a source that reads from `in`. */
+/**
+ * Returns [RawSource] that reads from an input stream.
+ *
+ * Use [RawSource.buffer] to create a buffered source from it.
+ */
 fun InputStream.source(): RawSource = InputStreamSource(this)
 
 private open class InputStreamSource(
@@ -117,9 +125,11 @@ private open class InputStreamSource(
 }
 
 /**
- * Returns a sink that writes to `socket`. Prefer this over [sink]
+ * Returns [RawSink] that writes to a socket. Prefer this over [sink]
  * because this method honors timeouts. When the socket
  * write times out, the socket is asynchronously closed by a watchdog thread.
+ *
+ * Use [RawSink.buffer] to create a buffered sink from it.
  */
 @Throws(IOException::class)
 fun Socket.sink(): RawSink {
@@ -131,9 +141,11 @@ fun Socket.sink(): RawSink {
 }
 
 /**
- * Returns a source that reads from `socket`. Prefer this over [source]
+ * Returns [RawSource] that reads from a socket. Prefer this over [source]
  * because this method honors timeouts. When the socket
  * read times out, the socket is asynchronously closed by a watchdog thread.
+ *
+ * Use [RawSource.buffer] to create a buffered source from it.
  */
 @Throws(IOException::class)
 fun Socket.source(): RawSource {
@@ -144,17 +156,40 @@ fun Socket.source(): RawSource {
   }
 }
 
-/** Returns a sink that writes to `file`. */
+/**
+ * Returns [RawSink] that writes to a file.
+ *
+ * Use [RawSink.buffer] to create a buffered sink from it.
+ *
+ * @param append the flag indicating whether the file should be overwritten or appended, `false` by default,
+ * meaning the file will be overwritten.
+ */
 fun File.sink(append: Boolean = false): RawSink = FileOutputStream(this, append).sink()
 
-/** Returns a source that reads from `file`. */
+/**
+ * Returns [RawSource] that reads from a file.
+ *
+ * Use [RawSource.buffer] to create a buffered source from it.
+ */
 fun File.source(): RawSource = InputStreamSource(inputStream())
 
-/** Returns a source that reads from `path`. */
+/**
+ * Returns [RawSink] that reads from a path.
+ *
+ * Use [RawSink.buffer] to create a buffered sink from it.
+ *
+ * @param options set of [OpenOption] for opening a file.
+ */
 fun NioPath.sink(vararg options: OpenOption): RawSink =
   Files.newOutputStream(this, *options).sink()
 
-/** Returns a sink that writes to `path`. */
+/**
+ * Returns [RawSource] that writes to a path.
+ *
+ * Use [RawSource.buffer] to create a buffered source from it.
+ *
+ * @param options set of [OpenOption] for opening a file.
+ */
 fun NioPath.source(vararg options: OpenOption): RawSource =
   Files.newInputStream(this, *options).source()
 

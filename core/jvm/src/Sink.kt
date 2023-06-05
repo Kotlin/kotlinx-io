@@ -58,11 +58,23 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
   @Throws(IOException::class)
   actual fun emitCompleteSegments(): Sink
 
-  /** Returns an output stream that writes to this sink. */
+  /**
+   * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
+   */
   fun outputStream(): OutputStream
 }
 
-
+/**
+ * Encodes substring of [string] starting at [beginIndex] and ending at [endIndex] using [charset]
+ * and writes into this sink.
+ *
+ * @param string the string to encode into this sink.
+ * @param charset the [Charset] to use for encoding.
+ * @param beginIndex the index of the first character to encode, inclusive, 0 by default.
+ * @param endIndex the index of the last character to encode, exclusive, `string.size` by default.
+ *
+ * @throws IndexOutOfBoundsException when [beginIndex] and [endIndex] correspond to a range out of [string] bounds.
+ */
 fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length): T {
   require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
   require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
