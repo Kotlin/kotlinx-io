@@ -29,7 +29,7 @@ import kotlin.test.assertTrue
 
 /**
  * Tests solely for the behavior of Buffer's implementation. For generic BufferedSink or
- * BufferedSource behavior use BufferedSinkTest or BufferedSourceTest, respectively.
+ * BufferedSource behavior, use BufferedSinkTest or BufferedSourceTest, respectively.
  */
 class CommonBufferTest {
   @Test fun readAndWriteUtf8() {
@@ -47,29 +47,22 @@ class CommonBufferTest {
     }
   }
 
-  /** Buffer's toString is the same as ByteString's.  */
-//  @Test fun bufferToString() {
-//    assertEquals("[size=0]", Buffer().toString())
-//    assertEquals(
-//      "[text=a\\r\\nb\\nc\\rd\\\\e]",
-//      Buffer().writeUtf8("a\r\nb\nc\rd\\e").toString()
-//    )
-//    assertEquals(
-//      "[text=Tyrannosaur]",
-//      Buffer().writeUtf8("Tyrannosaur").toString()
-//    )
-//    assertEquals(
-//      "[text=təˈranəˌsôr]",
-//      Buffer()
-//        .write("74c999cb8872616ec999cb8c73c3b472".decodeHex())
-//        .toString()
-//    )
-//    assertEquals(
-//      "[hex=0000000000000000000000000000000000000000000000000000000000000000000000000000" +
-//        "0000000000000000000000000000000000000000000000000000]",
-//      Buffer().write(ByteArray(64)).toString()
-//    )
-//  }
+  @Test fun bufferToString() {
+    assertEquals("[size=0]", Buffer().toString())
+
+    assertEquals("[text=a\\r\\nb\\nc\\rd\\\\e]",
+      Buffer().writeUtf8("a\r\nb\nc\rd\\e").toString())
+
+    assertEquals("[text=Tyrannosaur]",
+      Buffer().writeUtf8("Tyrannosaur").toString())
+
+    assertEquals("[text=təˈranəˌsôr]",
+      Buffer().write("74c999cb8872616ec999cb8c73c3b472".decodeHex()).toString())
+
+    assertEquals("[hex=0000000000000000000000000000000000000000000000000000000000000000000000000000" +
+        "0000000000000000000000000000000000000000000000000000]",
+      Buffer().write(ByteArray(64)).toString())
+  }
 
   @Test fun multipleSegmentBuffers() {
     val buffer = Buffer()
@@ -426,9 +419,4 @@ class CommonBufferTest {
     assertEquals("aaa", source.readUtf8())
     assertEquals("aaa", target.readUtf8())
   }
-
-//  @Test fun snapshotReportsAccurateSize() {
-//    val buf = Buffer().write(byteArrayOf(0, 1, 2, 3))
-//    assertEquals(1, buf.snapshot(1).size)
-//  }
 }

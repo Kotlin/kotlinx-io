@@ -887,16 +887,17 @@ internal inline fun Buffer.commonString(): String {
     }
   }
 
-  val text = data.decodeToString()
+  val text = peek().readUtf8()
+  val escapedText = data.decodeToString()
     .substring(0, i)
     .replace("\\", "\\\\")
     .replace("\n", "\\n")
     .replace("\r", "\\r")
 
   return if (i < text.length) {
-    "[size=${data.size} text=$text…]"
+    "[size=${data.size} text=$escapedText…]"
   } else {
-    "[text=$text]"
+    "[text=$escapedText]"
   }
 }
 
