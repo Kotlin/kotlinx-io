@@ -50,50 +50,55 @@ class JvmPlatformTest {
 
     @Test fun fileSink() {
         val file = File(tempDir, "test")
-        val sink = file.sink()
-        sink.write(Buffer().writeUtf8("a"), 1L)
+        file.sink().use { sink ->
+            sink.write(Buffer().writeUtf8("a"), 1L)
+        }
         assertEquals(file.readText(), "a")
     }
 
     @Test fun fileAppendingSink() {
         val file = File(tempDir, "test")
         file.writeText("a")
-        val sink = file.sink(append = true)
-        sink.write(Buffer().writeUtf8("b"), 1L)
-        sink.close()
+        file.sink(append = true).use { sink ->
+            sink.write(Buffer().writeUtf8("b"), 1L)
+        }
         assertEquals(file.readText(), "ab")
     }
 
     @Test fun fileSource() {
         val file = File(tempDir, "test")
         file.writeText("a")
-        val source = file.source()
         val buffer = Buffer()
-        source.read(buffer, 1L)
+        file.source().use { source ->
+            source.read(buffer, 1L)
+        }
         assertEquals(buffer.readUtf8(), "a")
     }
 
     @Test fun pathSink() {
         val file = File(tempDir, "test")
-        val sink = file.toPath().sink()
-        sink.write(Buffer().writeUtf8("a"), 1L)
+        file.toPath().sink().use { sink ->
+            sink.write(Buffer().writeUtf8("a"), 1L)
+        }
         assertEquals(file.readText(), "a")
     }
 
     @Test fun pathSinkWithOptions() {
         val file = File(tempDir, "test")
         file.writeText("a")
-        val sink = file.toPath().sink(StandardOpenOption.APPEND)
-        sink.write(Buffer().writeUtf8("b"), 1L)
+        file.toPath().sink(StandardOpenOption.APPEND).use { sink ->
+            sink.write(Buffer().writeUtf8("b"), 1L)
+        }
         assertEquals(file.readText(), "ab")
     }
 
     @Test fun pathSource() {
         val file = File(tempDir, "test")
         file.writeText("a")
-        val source = file.toPath().source()
         val buffer = Buffer()
-        source.read(buffer, 1L)
+        file.toPath().source().use { source ->
+            source.read(buffer, 1L)
+        }
         assertEquals(buffer.readUtf8(), "a")
     }
 
