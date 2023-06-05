@@ -26,24 +26,6 @@
 package kotlinx.io.internal
 
 import kotlinx.io.*
-import kotlin.native.concurrent.SharedImmutable
-
-internal fun Buffer.readUtf8Line(newline: Long): String {
-  return when {
-    newline > 0 && this[newline - 1] == '\r'.code.toByte() -> {
-      // Read everything until '\r\n', then skip the '\r\n'.
-      val result = readUtf8(newline - 1L)
-      skip(2L)
-      result
-    }
-    else -> {
-      // Read everything until '\n', then skip the '\n'.
-      val result = readUtf8(newline)
-      skip(1L)
-      result
-    }
-  }
-}
 
 /**
  * Invoke `lambda` with the segment and offset at `fromIndex`. Searches from the front or the back

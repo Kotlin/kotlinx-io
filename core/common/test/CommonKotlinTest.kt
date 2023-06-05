@@ -24,7 +24,7 @@ package kotlinx.io
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class CommonOkioKotlinTest {
+class CommonKotlinTest {
   @Test fun sourceBuffer() {
     val source = Buffer().writeUtf8("a")
     val buffered = (source as RawSource).buffer()

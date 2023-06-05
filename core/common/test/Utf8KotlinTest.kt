@@ -24,9 +24,7 @@ package kotlinx.io
 import kotlinx.io.internal.REPLACEMENT_CODE_POINT
 import kotlinx.io.internal.commonAsUtf8ToByteArray
 import kotlinx.io.internal.processUtf8CodePoints
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.*
 
 class Utf8KotlinTest {
   @Test fun oneByteCharacters() {
@@ -131,6 +129,49 @@ class Utf8KotlinTest {
     assertCodePointDecoded("ee8080", '\ue000'.code)
   }
 
+  @Test fun bufferWriteCodePoints() {
+    val buffer = Buffer()
+    buffer.assertCodePointEncoded("40", '@'.code)
+    buffer.assertCodePointEncoded("7f", '\u007f'.code)
+    buffer.assertCodePointEncoded("c280", '\u0080'.code)
+    buffer.assertCodePointEncoded("c2a9", '\u00a9'.code)
+    buffer.assertCodePointEncoded("c3bf", '\u00ff'.code)
+    buffer.assertCodePointEncoded("dfbf", '\u07ff'.code)
+    buffer.assertCodePointEncoded("e0a080", '\u0800'.code)
+    buffer.assertCodePointEncoded("e1839a", '\u10da'.code)
+    buffer.assertCodePointEncoded("efbfbf", '\uffff'.code)
+    buffer.assertCodePointEncoded("f0908080", 0x10000)
+    buffer.assertCodePointEncoded("f48087bf", 0x1001FF)
+  }
+
+  @Test fun bufferReadCodePoints() {
+    val buffer = Buffer()
+    buffer.assertCodePointDecoded('@'.code, "40")
+    buffer.assertCodePointDecoded('\u007f'.code, "7f", )
+    buffer.assertCodePointDecoded('\u0080'.code, "c280")
+    buffer.assertCodePointDecoded('\u00a9'.code, "c2a9")
+    buffer.assertCodePointDecoded('\u00ff'.code, "c3bf")
+    buffer.assertCodePointDecoded('\u07ff'.code, "dfbf")
+    buffer.assertCodePointDecoded('\u0800'.code, "e0a080")
+    buffer.assertCodePointDecoded('\u10da'.code, "e1839a")
+    buffer.assertCodePointDecoded('\uffff'.code, "efbfbf", )
+    buffer.assertCodePointDecoded(0x10000, "f0908080")
+    buffer.assertCodePointDecoded(0x1001FF, "f48087bf")
+  }
+
+  @Test fun bufferWriteUtf8String() {
+    val buffer = Buffer()
+    buffer.assertUtf8StringEncoded("68656c6c6f", "hello")
+    buffer.assertUtf8StringEncoded("cf87ceb5cf81ceb5cf84ceb9cf83cebccf8ccf82", "χερετισμός")
+    buffer.assertUtf8StringEncoded("e18392e18390e1839be18390e183a0e183afe1839de18391e18390",
+      "გამარჯობა")
+    buffer.assertUtf8StringEncoded("f093878bf0938bb4f09380a5",
+      "\uD80C\uDDCB\uD80C\uDEF4\uD80C\uDC25" /* 𓇋𓋴𓀥, to hail, AN EGYPTIAN HIEROGLYPHIC DICTIONARY, p. 79b */)
+
+    // two consecutive high surrogates, replace with '?'
+    buffer.assertUtf8StringEncoded("3f3f", "\ud801\uD801")
+  }
+
   @Test fun size() {
     assertEquals(0, "".utf8Size())
     assertEquals(3, "abc".utf8Size())
@@ -161,6 +202,88 @@ class Utf8KotlinTest {
     }
   }
 
+  @Test
+  fun readCodePointFromEmptyBufferThrowsEofException() {
+    val buffer = Buffer()
+    assertFailsWith<EOFException> { buffer.readUtf8CodePoint() }
+  }
+
+  @Test
+  fun readLeadingContinuationByteReturnsReplacementCharacter() {
+    val buffer = Buffer()
+    buffer.writeByte(0xbf)
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertTrue(buffer.exhausted())
+  }
+
+  @Test
+  fun readMissingContinuationBytesThrowsEofException() {
+    val buffer = Buffer()
+    buffer.writeByte(0xdf)
+    assertFailsWith<EOFException> { buffer.readUtf8CodePoint() }
+    assertFalse(buffer.exhausted()) // Prefix byte wasn't consumed.
+  }
+
+  @Test
+  fun readTooLargeCodepointReturnsReplacementCharacter() {
+    // 5-byte and 6-byte code points are not supported.
+    val buffer = Buffer()
+    buffer.write("f888808080".decodeHex())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertTrue(buffer.exhausted())
+  }
+
+  @Test
+  fun readNonContinuationBytesReturnsReplacementCharacter() {
+    // Use a non-continuation byte where a continuation byte is expected.
+    val buffer = Buffer()
+    buffer.write("df20".decodeHex())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertEquals(0x20, buffer.readUtf8CodePoint()) // Non-continuation character not consumed.
+    assertTrue(buffer.exhausted())
+  }
+
+  @Test
+  fun readCodePointBeyondUnicodeMaximum() {
+    // A 4-byte encoding with data above the U+10ffff Unicode maximum.
+    val buffer = Buffer()
+    buffer.write("f4908080".decodeHex())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertTrue(buffer.exhausted())
+  }
+
+  @Test
+  fun readSurrogateCodePoint() {
+    val buffer = Buffer()
+    buffer.write("eda080".decodeHex())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertTrue(buffer.exhausted())
+    buffer.write("edbfbf".decodeHex())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertTrue(buffer.exhausted())
+  }
+
+  @Test
+  fun readOverlongCodePoint() {
+    // Use 2 bytes to encode data that only needs 1 byte.
+    val buffer = Buffer()
+    buffer.write("c080".decodeHex())
+    assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+    assertTrue(buffer.exhausted())
+  }
+
+  @Test
+  fun writeCodePointBeyondUnicodeMaximum() {
+    val buffer = Buffer()
+    assertFailsWith<IllegalArgumentException>("Unexpected code point: 0x110000") {
+      buffer.writeUtf8CodePoint(0x110000)
+    }
+  }
+
   private fun assertEncoded(hex: String, vararg codePoints: Int) {
     assertCodePointDecoded(hex, *codePoints)
   }
@@ -175,8 +298,23 @@ class Utf8KotlinTest {
     assertEquals(i, codePoints.size) // Checked them all
   }
 
+  private fun Buffer.assertCodePointEncoded(expectedHex: String, codePoint: Int) {
+    buffer.writeUtf8CodePoint(codePoint)
+    assertArrayEquals(expectedHex.decodeHex(), buffer.readByteArray())
+  }
+
+  private fun Buffer.assertCodePointDecoded(expectedCodePoint: Int, hex: String) {
+    buffer.write(hex.decodeHex())
+    assertEquals(expectedCodePoint, buffer.readUtf8CodePoint())
+  }
+
+  private fun Buffer.assertUtf8StringEncoded(expectedHex: String, string: String) {
+    buffer.writeUtf8(string)
+    assertArrayEquals(expectedHex.decodeHex(), buffer.readByteArray())
+  }
+
   private fun assertStringEncoded(hex: String, string: String) {
-      val expectedUtf8 = hex.decodeHex()
+    val expectedUtf8 = hex.decodeHex()
 
     // Confirm our expectations are consistent with the platform.
     val platformUtf8 = string.asUtf8ToByteArray()
@@ -186,7 +324,13 @@ class Utf8KotlinTest {
     val actualUtf8 = string.commonAsUtf8ToByteArray()
     assertArrayEquals(expectedUtf8, actualUtf8)
 
-    // TODO Confirm we are consistent when writing one code point at a time.
+    // Confirm we are consistent when writing one code point at a time.
+    val bufferUtf8 = Buffer()
+    for (charIdx in string.indices) {
+      val c = string[charIdx]
+      bufferUtf8.writeUtf8CodePoint(c.code)
+    }
+    assertArrayEquals(expectedUtf8, bufferUtf8.readByteArray())
 
     // Confirm we are consistent when measuring lengths.
     assertEquals(expectedUtf8.size.toLong(), string.utf8Size())
