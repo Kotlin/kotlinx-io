@@ -18,11 +18,56 @@ or receive data: network interfaces, files, etc. The module provides integration
 but if something not yet supported by the library needs to be integrated, then these interfaces are exactly what should 
 be implemented for that.
 
-Here is an example showing how to manually create BSON  `kotlinx.io`
+Example below shows how to manually serialize an object to [BSON](https://bsonspec.org/spec.html) 
+and then back to an object using `kotlinx.io`. Please note that the example aimed to show `kotlinx-io` API in action,
+rather than to provide a robust BSON-serialization.
 ```kotlin
+data class Message(val timestamp: Long, val text: String) {
+    companion object
+}
 
-// TODO: can't find out concise and simple exa,ple that will use multiple features of the library.
+fun Message.toBson(sink: Sink) {
+    val buffer = Buffer()
+    buffer.writeByte(0x9)                        // UTC-timestamp field
+        .writeUtf8("timestamp").writeByte(0)     // field name
+        .writeLongLe(timestamp)                  // field value
+        .writeByte(0x2)                          // string field
+        .writeUtf8("text").writeByte(0)          // field name
+        .writeIntLe(text.utf8Size().toInt() + 1) // field value: length followed by the string
+        .writeUtf8(text).writeByte(0)
+        .writeByte(0)                            // end of BSON document
 
+    // Write document length and then its body
+    sink.writeIntLe(buffer.size.toInt() + 4)
+        .writeAll(buffer)
+    sink.flush()
+}
+
+fun Message.Companion.fromBson(source: Source): Message {
+    source.require(4)                                    // check if the source contains length
+    val length = source.readIntLe() - 4L
+    source.require(length)                               // check if the source contains the whole message
+
+    fun readFieldName(source: Source): String {
+        val delimiterOffset = source.indexOf(0)          // find offset of the 0-byte terminating the name
+        check(delimiterOffset >= 0)                      // indexOf return -1 if value not found
+        val fieldName = source.readUtf8(delimiterOffset) // read the string until terminator
+        source.skip(1)                                   // skip the terminator
+        return fieldName
+    }
+    
+    // for simplicity, let's assume that the order of fields matches serialization order
+    var tag = source.readByte().toInt()                // read the field type
+    check(tag == 0x9 && readFieldName(source) == "timestamp")
+    val timestamp = source.readLongLe()                // read long value
+    tag = source.readByte().toInt()
+    check(tag == 0x2 && readFieldName(source) == "text")
+    val textLen = source.readIntLe() - 1L              // read string length (it includes the terminator)
+    val text = source.readUtf8(textLen)                // read value
+    source.skip(1)                                     // skip terminator
+    source.skip(1)                                     // skip end of the document
+    return Message(timestamp, text)
+}
 ```
 
 # Package kotlinx.io
