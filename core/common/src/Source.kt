@@ -35,18 +35,18 @@ package kotlinx.io
  * [Sink] also allows to skip unneeded prefix of data using [skip] and
  * provides look ahead into incoming data, buffering as much as necessary, using [peek].
  */
-expect sealed interface Source : RawSource {
+public expect sealed interface Source : RawSource {
   /**
    * This source's internal buffer.
    */
-  val buffer: Buffer
+  public val buffer: Buffer
 
   /**
    * Returns true if there are no more bytes in this source.
    *
    * The call of this method will block until there are bytes to read or the source is definitely exhausted.
    */
-  fun exhausted(): Boolean
+  public fun exhausted(): Boolean
 
   /**
    * Attempts to fill the buffer with at least [byteCount] bytes of data from the underlying source
@@ -59,7 +59,7 @@ expect sealed interface Source : RawSource {
    *
    * @throws EOFException when the source is exhausted before the required bytes count could be read.
    */
-  fun require(byteCount: Long)
+  public fun require(byteCount: Long)
 
   /**
    * Attempts to fill the buffer with at least [byteCount] bytes of data from the underlying source
@@ -70,35 +70,35 @@ expect sealed interface Source : RawSource {
    *
    * @param byteCount the number of bytes that the buffer should contain.
    */
-  fun request(byteCount: Long): Boolean
+  public fun request(byteCount: Long): Boolean
 
   /**
    * Removes a byte from this source and returns it.
    *
    * @throws EOFException when there are no more bytes to read.
    */
-  fun readByte(): Byte
+  public fun readByte(): Byte
 
   /**
    * Removes two bytes from this source and returns a short integer composed of it according to the big-endian order.
    *
    * @throws EOFException when there are not enough data to read a short value.
    */
-  fun readShort(): Short
+  public fun readShort(): Short
 
   /**
    * Removes four bytes from this source and returns an integer composed of it according to the big-endian order.
    *
    * @throws EOFException when there are not enough data to read an int value.
    */
-  fun readInt(): Int
+  public fun readInt(): Int
 
   /**
    * Removes eight bytes from this source and returns a long integer composed of it according to the big-endian order.
    *
    * @throws EOFException when there are not enough data to read a long value.
    */
-  fun readLong(): Long
+  public fun readLong(): Long
 
   /**
    * Reads and discards [byteCount] bytes from this source.
@@ -107,12 +107,12 @@ expect sealed interface Source : RawSource {
    *
    * @throws EOFException when the source is exhausted before the requested number of bytes can be skipped.
    */
-  fun skip(byteCount: Long)
+  public fun skip(byteCount: Long)
 
   /**
    * Removes all bytes from this source and returns them as a byte array.
    */
-  fun readByteArray(): ByteArray
+  public fun readByteArray(): ByteArray
 
   /**
    * Removes [byteCount] bytes from this source and returns them as a byte array.
@@ -122,14 +122,14 @@ expect sealed interface Source : RawSource {
    * @throws IllegalArgumentException when byteCount is negative.
    * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
    */
-  fun readByteArray(byteCount: Long): ByteArray
+  public fun readByteArray(byteCount: Long): ByteArray
 
   /**
    * Removes exactly `sink.length` bytes from this source and copies them into [sink].
    *
    * @throws EOFException when the requested number of bytes cannot be read.
    */
-  fun readFully(sink: ByteArray)
+  public fun readFully(sink: ByteArray)
 
   /**
    * Removes up to [byteCount] bytes from this source, copies them into [sink] starting at [offset] and returns the
@@ -143,7 +143,7 @@ expect sealed interface Source : RawSource {
    * @throws IndexOutOfBoundsException when a range specified by [offset] and [byteCount]
    * is out of range of [sink] array indices.
    */
-  fun read(sink: ByteArray, offset: Int = 0, byteCount: Int = sink.size - offset): Int
+  public fun read(sink: ByteArray, offset: Int = 0, byteCount: Int = sink.size - offset): Int
 
   /**
    * Removes exactly [byteCount] bytes from this source and writes them to [sink].
@@ -154,7 +154,7 @@ expect sealed interface Source : RawSource {
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws EOFException when the requested number of bytes cannot be read.
    */
-  fun readFully(sink: Buffer, byteCount: Long)
+  public fun readFully(sink: Buffer, byteCount: Long)
 
   /**
    * Removes all bytes from this source, writes them to [sink], and returns the total number of bytes
@@ -164,7 +164,7 @@ expect sealed interface Source : RawSource {
    *
    * @param sink the sink to which data will be written from this source.
    */
-  fun readAll(sink: RawSink): Long
+  public fun readAll(sink: RawSink): Long
 
   /**
    * Returns a new [Source] that can read data from this source without consuming it.
@@ -172,5 +172,5 @@ expect sealed interface Source : RawSource {
    *
    * Peek could be used to lookahead and read the same data multiple times.
    */
-  fun peek(): Source
+  public fun peek(): Source
 }

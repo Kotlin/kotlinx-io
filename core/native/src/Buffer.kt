@@ -22,10 +22,10 @@ package kotlinx.io
 
 import kotlinx.io.internal.*
 
-actual class Buffer : Source, Sink {
+public actual class Buffer : Source, Sink {
   internal actual var head: Segment? = null
 
-  actual var size: Long = 0L
+  public actual var size: Long = 0L
     internal set
 
   actual override val buffer: Buffer get() = this
@@ -44,15 +44,15 @@ actual class Buffer : Source, Sink {
 
   override fun peek(): Source = PeekSource(this).buffer()
 
-  actual fun copyTo(
+  public actual fun copyTo(
     out: Buffer,
     offset: Long,
     byteCount: Long
   ): Buffer = commonCopyTo(out, offset, byteCount)
 
-  actual operator fun get(pos: Long): Byte = commonGet(pos)
+  public actual operator fun get(pos: Long): Byte = commonGet(pos)
 
-  actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
+  public actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
 
   override fun readByte(): Byte = commonReadByte()
 
@@ -75,7 +75,7 @@ actual class Buffer : Source, Sink {
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
     commonRead(sink, offset, byteCount)
 
-  actual fun clear(): Unit = commonClear()
+  public actual fun clear(): Unit = commonClear()
 
   actual override fun skip(byteCount: Long): Unit = commonSkip(byteCount)
 
@@ -102,17 +102,17 @@ actual class Buffer : Source, Sink {
 
   override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
 
-  actual override fun flush() = Unit
+  actual override fun flush(): Unit = Unit
 
-  actual override fun close() = Unit
+  actual override fun close(): Unit = Unit
 
-  actual override fun cancel() = Unit
+  actual override fun cancel(): Unit = Unit
 
   override fun equals(other: Any?): Boolean = commonEquals(other)
 
   override fun hashCode(): Int = commonHashCode()
 
-  override fun toString() = commonString()
+  override fun toString(): String = commonString()
 
-  actual fun copy(): Buffer = commonCopy()
+  public actual fun copy(): Buffer = commonCopy()
 }

@@ -42,7 +42,7 @@ import javax.crypto.Mac
  *
  * Use [RawSink.buffer] to create a buffered sink from it.
  */
-fun OutputStream.sink(): RawSink = OutputStreamSink(this)
+public fun OutputStream.sink(): RawSink = OutputStreamSink(this)
 
 private open class OutputStreamSink(
   private val out: OutputStream,
@@ -85,7 +85,7 @@ private open class OutputStreamSink(
  *
  * Use [RawSource.buffer] to create a buffered source from it.
  */
-fun InputStream.source(): RawSource = InputStreamSource(this)
+public fun InputStream.source(): RawSource = InputStreamSource(this)
 
 private open class InputStreamSource(
   private val input: InputStream,
@@ -132,7 +132,7 @@ private open class InputStreamSource(
  * Use [RawSink.buffer] to create a buffered sink from it.
  */
 @Throws(IOException::class)
-fun Socket.sink(): RawSink {
+public fun Socket.sink(): RawSink {
   return object : OutputStreamSink(getOutputStream()) {
     override fun cancel() {
       this@sink.close()
@@ -148,7 +148,7 @@ fun Socket.sink(): RawSink {
  * Use [RawSource.buffer] to create a buffered source from it.
  */
 @Throws(IOException::class)
-fun Socket.source(): RawSource {
+public fun Socket.source(): RawSource {
   return object : InputStreamSource(getInputStream()) {
     override fun cancel() {
       this@source.close()
@@ -164,14 +164,14 @@ fun Socket.source(): RawSource {
  * @param append the flag indicating whether the file should be overwritten or appended, `false` by default,
  * meaning the file will be overwritten.
  */
-fun File.sink(append: Boolean = false): RawSink = FileOutputStream(this, append).sink()
+public fun File.sink(append: Boolean = false): RawSink = FileOutputStream(this, append).sink()
 
 /**
  * Returns [RawSource] that reads from a file.
  *
  * Use [RawSource.buffer] to create a buffered source from it.
  */
-fun File.source(): RawSource = InputStreamSource(inputStream())
+public fun File.source(): RawSource = InputStreamSource(inputStream())
 
 /**
  * Returns [RawSink] that reads from a path.
@@ -180,7 +180,7 @@ fun File.source(): RawSource = InputStreamSource(inputStream())
  *
  * @param options set of [OpenOption] for opening a file.
  */
-fun NioPath.sink(vararg options: OpenOption): RawSink =
+public fun NioPath.sink(vararg options: OpenOption): RawSink =
   Files.newOutputStream(this, *options).sink()
 
 /**
@@ -190,7 +190,7 @@ fun NioPath.sink(vararg options: OpenOption): RawSink =
  *
  * @param options set of [OpenOption] for opening a file.
  */
-fun NioPath.source(vararg options: OpenOption): RawSource =
+public fun NioPath.source(vararg options: OpenOption): RawSource =
   Files.newInputStream(this, *options).source()
 
 /**

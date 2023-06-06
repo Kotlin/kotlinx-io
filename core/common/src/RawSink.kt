@@ -31,7 +31,7 @@ package kotlinx.io
  * is both more efficient and more convenient. Use [buffer] to wrap any raw sink with a buffer.
  *
  */
-expect interface RawSink : Closeable {
+public expect interface RawSink : Closeable {
   // TODO: should it throw EOFException instead?
   /**
    * Removes [byteCount] bytes from [source] and appends them to this sink.
@@ -42,13 +42,13 @@ expect interface RawSink : Closeable {
    * @throws IndexOutOfBoundsException when the [source]'s size is below [byteCount].
    */
   @Throws(IOException::class)
-  fun write(source: Buffer, byteCount: Long)
+  public fun write(source: Buffer, byteCount: Long)
 
   /**
    * Pushes all buffered bytes to their final destination.
    */
   @Throws(IOException::class)
-  fun flush()
+  public fun flush()
 
   /**
    * Asynchronously cancel this sink. Any [write] or [flush] in flight should immediately fail
@@ -57,7 +57,7 @@ expect interface RawSink : Closeable {
    *
    * Note that it is always necessary to call [close] on a sink, even if it has been canceled.
    */
-  fun cancel()
+  public fun cancel()
 
   /**
    * Pushes all buffered bytes to their final destination and releases the resources held by this

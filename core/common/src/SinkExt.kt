@@ -10,7 +10,7 @@ package kotlinx.io
  *
  * @param short the short integer to be written.
  */
-fun <T: Sink> T.writeShortLe(short: Int): T {
+public fun <T: Sink> T.writeShortLe(short: Int): T {
     this.writeShort(short.toShort().reverseBytes().toInt())
     return this
 }
@@ -21,7 +21,7 @@ fun <T: Sink> T.writeShortLe(short: Int): T {
  * @param int the integer to be written.
  *
  */
-fun <T: Sink> T.writeIntLe(int: Int): T {
+public fun <T: Sink> T.writeIntLe(int: Int): T {
     this.writeInt(int.reverseBytes())
     return this
 }
@@ -31,7 +31,7 @@ fun <T: Sink> T.writeIntLe(int: Int): T {
  *
  * @param long the long integer to be written.
  */
-fun <T: Sink> T.writeLongLe(long: Long): T {
+public fun <T: Sink> T.writeLongLe(long: Long): T {
     this.writeLong(long.reverseBytes())
     return this
 }
@@ -43,7 +43,7 @@ fun <T: Sink> T.writeLongLe(long: Long): T {
  *
  * @param long the long to be written.
  */
-fun <T: Sink> T.writeDecimalLong(long: Long): T {
+public fun <T: Sink> T.writeDecimalLong(long: Long): T {
     // TODO: optimize
     writeUtf8(long.toString())
     return this
@@ -56,7 +56,7 @@ fun <T: Sink> T.writeDecimalLong(long: Long): T {
  *
  * @param long the long to be written.
  */
-fun <T: Sink> T.writeHexadecimalUnsignedLong(long: Long): T {
+public fun <T: Sink> T.writeHexadecimalUnsignedLong(long: Long): T {
     if (long == 0L) {
         writeByte('0'.code)
     } else {

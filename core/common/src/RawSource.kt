@@ -30,7 +30,7 @@ package kotlinx.io
  * Most applications shouldn't operate on a raw source directly, but rather on a buffered [Source] which
  * is both more efficient and more convenient. Use [buffer] to wrap any raw source with a buffer.
  */
-interface RawSource : Closeable {
+public interface RawSource : Closeable {
   // TODO: should be throw something if byteCount = 0?
   /**
    * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
@@ -42,7 +42,7 @@ interface RawSource : Closeable {
    * @throws IllegalArgumentException when [byteCount] is negative.
    */
   @Throws(IOException::class)
-  fun read(sink: Buffer, byteCount: Long): Long
+  public fun read(sink: Buffer, byteCount: Long): Long
 
   /**
    * Asynchronously cancel this source. Any [read] in flight should immediately fail with an
@@ -50,7 +50,7 @@ interface RawSource : Closeable {
    *
    * Note that it is always necessary to call [close] on a source, even if it has been canceled.
    */
-  fun cancel()
+  public fun cancel()
 
   /**
    * Closes this source and releases the resources held by this source. It is an error to read a

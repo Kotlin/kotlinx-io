@@ -28,16 +28,16 @@ internal actual fun String.asUtf8ToByteArray(): ByteArray = commonAsUtf8ToByteAr
 //  message: String?
 //) : IndexOutOfBoundsException(message)
 
-actual open class IOException actual constructor(
+public actual open class IOException actual constructor(
   message: String?,
   cause: Throwable?
 ) : Exception(message, cause) {
-  actual constructor(message: String?) : this(message, null)
+  public actual constructor(message: String?) : this(message, null)
 }
 
-actual open class EOFException actual constructor(message: String?) : IOException(message)
+public actual open class EOFException actual constructor(message: String?) : IOException(message)
 
-actual interface Closeable {
+public actual interface Closeable {
   @Throws(IOException::class)
-  actual fun close()
+  public actual fun close()
 }

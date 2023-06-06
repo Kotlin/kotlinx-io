@@ -88,7 +88,7 @@ import kotlin.jvm.JvmOverloads
  */
 @JvmOverloads
 @JvmName("size")
-fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
+public fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
   require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
   require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
   require(endIndex <= length) { "endIndex > string.length: $endIndex > $length" }
@@ -132,7 +132,7 @@ fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
  *
  * @param codePoint the codePoint to be written.
  */
-fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
+public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
   buffer.commonWriteUtf8CodePoint(codePoint)
   emitCompleteSegments()
   return this
@@ -148,7 +148,7 @@ fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
  * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range
  * out of the current string bounds.
  */
-fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): T {
+public fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): T {
   buffer.commonWriteUtf8(string, beginIndex, endIndex)
   emitCompleteSegments()
   return this
@@ -159,7 +159,7 @@ fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = s
  *
  * Returns the empty string if this source is empty.
  */
-fun Source.readUtf8(): String {
+public fun Source.readUtf8(): String {
   var req: Long = 1
   while (request(req)) {
     req *= 2
@@ -172,7 +172,7 @@ fun Source.readUtf8(): String {
  *
  * Returns the empty string if this buffer is empty.
  */
-fun Buffer.readUtf8(): String {
+public fun Buffer.readUtf8(): String {
   return commonReadUtf8(buffer.size)
 }
 
@@ -184,7 +184,7 @@ fun Buffer.readUtf8(): String {
  * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
  */
-fun Source.readUtf8(byteCount: Long): String {
+public fun Source.readUtf8(byteCount: Long): String {
   require(byteCount)
   return buffer.commonReadUtf8(byteCount)
 }
@@ -203,7 +203,7 @@ fun Source.readUtf8(byteCount: Long): String {
  *
  * @throws EOFException when the source is exhausted before a complete code point can be read.
  */
-fun Source.readUtf8CodePoint(): Int {
+public fun Source.readUtf8CodePoint(): Int {
   require(1)
 
   val b0 = buffer[0].toInt()
@@ -219,7 +219,7 @@ fun Source.readUtf8CodePoint(): Int {
 /**
  * @see Source.readUtf8CodePoint
  */
-fun Buffer.readUtf8CodePoint(): Int {
+public fun Buffer.readUtf8CodePoint(): Int {
   return buffer.commonReadUtf8CodePoint()
 }
 
@@ -230,7 +230,7 @@ fun Buffer.readUtf8CodePoint(): Int {
  * On the end of the stream this method returns null. If the source doesn't end with a line break, then
  * an implicit line break is assumed. Null is returned once the source is exhausted.
  */
-fun Source.readUtf8Line(): String? {
+public fun Source.readUtf8Line(): String? {
   if (!request(1)) return null
 
   val peekSource = peek()
@@ -270,7 +270,7 @@ fun Source.readUtf8Line(): String? {
  * @throws EOFException when the source does not contain a string consisting with at most [limit] bytes followed by
  * line break characters.
  */
-fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
+public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
   if (!request(1)) throw EOFException()
 
   val peekSource = peek()

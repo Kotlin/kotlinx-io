@@ -24,14 +24,14 @@ import java.io.Closeable
 import java.io.Flushable
 import java.io.IOException
 
-actual interface RawSink : Closeable, Flushable {
+public actual interface RawSink : Closeable, Flushable {
   @Throws(IOException::class)
-  actual fun write(source: Buffer, byteCount: Long)
+  public actual fun write(source: Buffer, byteCount: Long)
 
   @Throws(IOException::class)
   actual override fun flush()
 
-  actual fun cancel()
+  public actual fun cancel()
 
   @Throws(IOException::class)
   actual override fun close()

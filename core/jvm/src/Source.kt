@@ -26,57 +26,57 @@ import java.io.InputStream
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
 
-actual sealed interface Source : RawSource, ReadableByteChannel {
-  actual val buffer: Buffer
+public actual sealed interface Source : RawSource, ReadableByteChannel {
+  public actual val buffer: Buffer
 
   @Throws(IOException::class)
-  actual fun exhausted(): Boolean
+  public actual fun exhausted(): Boolean
 
   @Throws(IOException::class)
-  actual fun require(byteCount: Long)
+  public actual fun require(byteCount: Long)
 
   @Throws(IOException::class)
-  actual fun request(byteCount: Long): Boolean
+  public actual fun request(byteCount: Long): Boolean
 
   @Throws(IOException::class)
-  actual fun readByte(): Byte
+  public actual fun readByte(): Byte
 
   @Throws(IOException::class)
-  actual fun readShort(): Short
+  public actual fun readShort(): Short
 
   @Throws(IOException::class)
-  actual fun readInt(): Int
+  public actual fun readInt(): Int
 
   @Throws(IOException::class)
-  actual fun readLong(): Long
+  public actual fun readLong(): Long
 
   @Throws(IOException::class)
-  actual fun skip(byteCount: Long)
+  public actual fun skip(byteCount: Long)
 
   @Throws(IOException::class)
-  actual fun readByteArray(): ByteArray
+  public actual fun readByteArray(): ByteArray
 
   @Throws(IOException::class)
-  actual fun readByteArray(byteCount: Long): ByteArray
+  public actual fun readByteArray(byteCount: Long): ByteArray
 
   @Throws(IOException::class)
-  actual fun readFully(sink: ByteArray)
+  public actual fun readFully(sink: ByteArray)
 
   @Throws(IOException::class)
-  actual fun read(sink: ByteArray, offset: Int, byteCount: Int): Int
+  public actual fun read(sink: ByteArray, offset: Int, byteCount: Int): Int
 
   @Throws(IOException::class)
-  actual fun readFully(sink: Buffer, byteCount: Long)
+  public actual fun readFully(sink: Buffer, byteCount: Long)
 
   @Throws(IOException::class)
-  actual fun readAll(sink: RawSink): Long
+  public actual fun readAll(sink: RawSink): Long
 
-  actual fun peek(): Source
+  public actual fun peek(): Source
 
   /**
    * Returns an input stream that reads from this source. Closing the stream will also close this source.
    */
-  fun inputStream(): InputStream
+  public fun inputStream(): InputStream
 }
 
 private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
@@ -108,7 +108,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
  * @param charset the [Charset] to use for string decoding.
  */
 @Throws(IOException::class)
-fun Source.readString(charset: Charset): String {
+public fun Source.readString(charset: Charset): String {
   var req = 1L
   while (request(req)) {
     req *= 2
@@ -125,7 +125,7 @@ fun Source.readString(charset: Charset): String {
  * @throws EOFException when the source exhausted before [byteCount] bytes could be read from it.
  */
 @Throws(IOException::class)
-fun Source.readString(byteCount: Long, charset: Charset): String {
+public fun Source.readString(byteCount: Long, charset: Charset): String {
   require(byteCount)
   return buffer.readStringImpl(byteCount, charset)
 }

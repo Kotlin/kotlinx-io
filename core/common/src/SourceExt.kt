@@ -10,7 +10,7 @@ package kotlinx.io
  *
  * @throws EOFException when there are not enough data to read a short value.
  */
-fun Source.readShortLe(): Short {
+public fun Source.readShortLe(): Short {
     return readShort().reverseBytes()
 }
 
@@ -19,7 +19,7 @@ fun Source.readShortLe(): Short {
  *
  * @throws EOFException when there are not enough data to read an int value.
  */
-fun Source.readIntLe(): Int {
+public fun Source.readIntLe(): Int {
     return readInt().reverseBytes()
 }
 
@@ -28,7 +28,7 @@ fun Source.readIntLe(): Int {
  *
  * @throws EOFException when there are not enough data to read a long value.
  */
-fun Source.readLongLe(): Long {
+public fun Source.readLongLe(): Long {
     return readLong().reverseBytes()
 }
 
@@ -46,7 +46,7 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  * number was not present.
  * @throws EOFException if the source is exhausted before a call of this method.
  */
-fun Source.readDecimalLong(): Long {
+public fun Source.readDecimalLong(): Long {
     require(1)
     var b = readByte()
     var negative = false
@@ -105,7 +105,7 @@ fun Source.readDecimalLong(): Long {
  * hexadecimal was not found.
  * @throws EOFException if the source is exhausted before a call of this method.
  */
-fun Source.readHexadecimalUnsignedLong(): Long {
+public fun Source.readHexadecimalUnsignedLong(): Long {
     require(1)
     var b = readByte()
     var result = when (b) {
@@ -146,7 +146,7 @@ fun Source.readHexadecimalUnsignedLong(): Long {
  * @param fromIndex the start of the range to find [b], inclusive.
  * @param toIndex the end of the range to find [b], exclusive.
  */
-fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MAX_VALUE): Long {
+public fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MAX_VALUE): Long {
     require(fromIndex in 0..toIndex)
     if (fromIndex == toIndex) return -1L
 

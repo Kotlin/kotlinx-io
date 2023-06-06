@@ -25,18 +25,18 @@ package kotlinx.io
  * reads into its in-memory buffer. Use this wherever you read a source to get ergonomic and
  * efficient access to data.
  */
-fun RawSource.buffer(): Source = RealSource(this)
+public fun RawSource.buffer(): Source = RealSource(this)
 
 /**
  * Returns a new sink that buffers writes to the sink. The returned sink will batch writes to the sink.
  * Use this wherever you write to a sink to get ergonomic and efficient access to data.
  */
-fun RawSink.buffer(): Sink = RealSink(this)
+public fun RawSink.buffer(): Sink = RealSink(this)
 
 /**
  * Returns a sink that writes nowhere.
  */
-fun blackholeSink(): RawSink = BlackholeSink()
+public fun blackholeSink(): RawSink = BlackholeSink()
 
 private class BlackholeSink : RawSink {
   override fun write(source: Buffer, byteCount: Long) = source.skip(byteCount)
@@ -48,7 +48,7 @@ private class BlackholeSink : RawSink {
 /**
  * Execute [block] then close this. This will be closed even if [block] throws.
  */
-inline fun <T : Closeable?, R> T.use(block: (T) -> R): R {
+public inline fun <T : Closeable?, R> T.use(block: (T) -> R): R {
   var result: R? = null
   var thrown: Throwable? = null
 

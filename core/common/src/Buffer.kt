@@ -36,13 +36,13 @@ package kotlinx.io
  * but unlike regular sinks and sources its [close], [cancel], [flush], [emit], [emitCompleteSegments]
  * does not affect buffer's state and [exhausted] only indicates that a buffer is empty.
  */
-expect class Buffer() : Source, Sink {
+public expect class Buffer() : Source, Sink {
   internal var head: Segment?
 
   /**
    * The number of bytes accessible for read from this buffer.
    */
-  var size: Long
+  public var size: Long
     internal set
 
   /**
@@ -74,7 +74,7 @@ expect class Buffer() : Source, Sink {
    *
    * @throws IndexOutOfBoundsException when [offset] and [byteCount] correspond to a range out of this buffer bounds.
    */
-  fun copyTo(
+  public fun copyTo(
     out: Buffer,
     offset: Long = 0L,
     byteCount: Long = size - offset
@@ -85,7 +85,7 @@ expect class Buffer() : Source, Sink {
    *
    * This is the number of bytes that can be flushed immediately to an underlying sink without harming throughput.
    */
-  fun completeSegmentByteCount(): Long
+  public fun completeSegmentByteCount(): Long
 
   /**
    * Returns the byte at [pos].
@@ -95,14 +95,14 @@ expect class Buffer() : Source, Sink {
    *
    * @throws IndexOutOfBoundsException when [pos] is out of this buffer's bounds.
    */
-  operator fun get(pos: Long): Byte
+  public operator fun get(pos: Long): Byte
 
   /**
    * Discards all bytes in this buffer.
    *
    * Call to this method is equivalent to [skip] with `byteCount = size`.
    */
-  fun clear()
+  public fun clear()
 
   // TODO: figure out what this method may actually throw
   /**
@@ -134,7 +134,7 @@ expect class Buffer() : Source, Sink {
   /**
    * Returns a deep copy of this buffer.
    */
-  fun copy(): Buffer
+  public fun copy(): Buffer
 
   /**
    * This method does not affect the buffer.

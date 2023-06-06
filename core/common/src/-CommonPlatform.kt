@@ -26,17 +26,17 @@ internal expect fun String.asUtf8ToByteArray(): ByteArray
 // TODO make internal https://youtrack.jetbrains.com/issue/KT-37316
 // expect class ArrayIndexOutOfBoundsException(message: String?) : IndexOutOfBoundsException
 
-expect open class IOException(message: String?, cause: Throwable?) : Exception {
-  constructor(message: String? = null)
+public expect open class IOException(message: String?, cause: Throwable?) : Exception {
+  public constructor(message: String? = null)
 }
 
-expect open class EOFException(message: String? = null) : IOException
+public expect open class EOFException(message: String? = null) : IOException
 
-expect interface Closeable {
+public expect interface Closeable {
   /**
    * Closes this object and releases the resources it holds. It is an error to use an object after
    * it has been closed. It is safe to close an object more than once.
    */
   @Throws(IOException::class)
-  fun close()
+  public fun close()
 }

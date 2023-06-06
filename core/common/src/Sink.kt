@@ -37,11 +37,11 @@ package kotlinx.io
  * The latter is aimed to reduce memory footprint by keeping the buffer as small as possible without excessive writes
  * to the upstream.
  */
-expect sealed interface Sink : RawSink {
+public expect sealed interface Sink : RawSink {
   /**
    * This sink's internal buffer.
    */
-  val buffer: Buffer
+  public val buffer: Buffer
 
   /**
    * Writes bytes from [source] array or its subrange to this sink.
@@ -55,7 +55,7 @@ expect sealed interface Sink : RawSink {
    *
    * @sample kotlinx.io.AbstractSinkTest.writeByteArray
    */
-  fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size - offset): Sink
+  public fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size - offset): Sink
 
   /**
    * Removes all bytes from [source] and write them to this sink.
@@ -63,7 +63,7 @@ expect sealed interface Sink : RawSink {
    *
    * @param source the source to consume data from.
    */
-  fun writeAll(source: RawSource): Long
+  public fun writeAll(source: RawSource): Long
 
   /**
    * Removes [byteCount] bytes from [source] and write them to this sink.
@@ -76,35 +76,35 @@ expect sealed interface Sink : RawSink {
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
    */
-  fun write(source: RawSource, byteCount: Long): Sink
+  public fun write(source: RawSource, byteCount: Long): Sink
 
   /**
    * Writes a byte to this sink.
    *
    * @param byte the byte to be written.
    */
-  fun writeByte(byte: Int): Sink
+  public fun writeByte(byte: Int): Sink
 
   /**
    * Writes two bytes containing [short], in the big-endian order, to this sink.
    *
    * @param short the short integer to be written.
    */
-  fun writeShort(short: Int): Sink
+  public fun writeShort(short: Int): Sink
 
   /**
    * Writes four bytes containing [int], in the big-endian order, to this sink.
    *
    * @param int the integer to be written.
    */
-  fun writeInt(int: Int): Sink
+  public fun writeInt(int: Int): Sink
 
   /**
    * Writes eight bytes containing [long], in the big-endian order, to this sink.
    *
    * @param long the long integer to be written.
    */
-  fun writeLong(long: Long): Sink
+  public fun writeLong(long: Long): Sink
 
   /**
    * Writes all buffered data to the underlying sink, if one exists.
@@ -119,7 +119,7 @@ expect sealed interface Sink : RawSink {
    * This method behaves like [flush], but has weaker guarantees.
    * Call this method before a buffered sink goes out of scope so that its data can reach its destination.
    */
-  fun emit(): Sink
+  public fun emit(): Sink
 
   /**
    * Writes complete segments to the underlying sink, if one exists.
@@ -129,5 +129,5 @@ expect sealed interface Sink : RawSink {
    * Typically, application code will not need to call this: it is only necessary when
    * application code writes directly to this [buffer].
    */
-  fun emitCompleteSegments(): Sink
+  public fun emitCompleteSegments(): Sink
 }

@@ -26,8 +26,8 @@ internal actual fun String.asUtf8ToByteArray(): ByteArray = toByteArray(Charsets
 // TODO remove if https://youtrack.jetbrains.com/issue/KT-20641 provides a better solution
 // actual typealias ArrayIndexOutOfBoundsException = java.lang.ArrayIndexOutOfBoundsException
 
-actual typealias IOException = java.io.IOException
+public actual typealias IOException = java.io.IOException
 
-actual typealias EOFException = java.io.EOFException
+public actual typealias EOFException = java.io.EOFException
 
-actual typealias Closeable = java.io.Closeable
+public actual typealias Closeable = java.io.Closeable

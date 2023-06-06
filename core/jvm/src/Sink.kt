@@ -25,43 +25,43 @@ import java.io.OutputStream
 import java.nio.channels.WritableByteChannel
 import java.nio.charset.Charset
 
-actual sealed interface Sink : RawSink, WritableByteChannel {
-  actual val buffer: Buffer
+public actual sealed interface Sink : RawSink, WritableByteChannel {
+  public actual val buffer: Buffer
 
   @Throws(IOException::class)
-  actual fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
+  public actual fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeAll(source: RawSource): Long
+  public actual fun writeAll(source: RawSource): Long
 
   @Throws(IOException::class)
-  actual fun write(source: RawSource, byteCount: Long): Sink
+  public actual fun write(source: RawSource, byteCount: Long): Sink
 
   @Throws(IOException::class)
-  actual fun writeByte(byte: Int): Sink
+  public actual fun writeByte(byte: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeShort(short: Int): Sink
+  public actual fun writeShort(short: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeInt(int: Int): Sink
+  public actual fun writeInt(int: Int): Sink
 
   @Throws(IOException::class)
-  actual fun writeLong(long: Long): Sink
+  public actual fun writeLong(long: Long): Sink
 
   @Throws(IOException::class)
   actual override fun flush()
 
   @Throws(IOException::class)
-  actual fun emit(): Sink
+  public actual fun emit(): Sink
 
   @Throws(IOException::class)
-  actual fun emitCompleteSegments(): Sink
+  public actual fun emitCompleteSegments(): Sink
 
   /**
    * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
    */
-  fun outputStream(): OutputStream
+  public fun outputStream(): OutputStream
 }
 
 /**
@@ -75,7 +75,7 @@ actual sealed interface Sink : RawSink, WritableByteChannel {
  *
  * @throws IndexOutOfBoundsException when [beginIndex] and [endIndex] correspond to a range out of [string] bounds.
  */
-fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length): T {
+public fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length): T {
   require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
   require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
   require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }

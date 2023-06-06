@@ -28,14 +28,14 @@ import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
 
-actual class Buffer : Source, Sink, Cloneable, ByteChannel {
+public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   @JvmField internal actual var head: Segment? = null
 
   @get:JvmName("size")
-  actual var size: Long = 0L
+  public actual var size: Long = 0L
     internal set
 
-  actual override val buffer get() = this
+  actual override val buffer: Buffer get() = this
 
   /**
    * Returns a new [OutputStream] to write data into this buffer.
@@ -60,18 +60,18 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     }
   }
 
-  actual override fun emitCompleteSegments() = this // Nowhere to emit to!
+  actual override fun emitCompleteSegments(): Buffer = this // Nowhere to emit to!
 
-  actual override fun emit() = this // Nowhere to emit to!
+  actual override fun emit(): Buffer = this // Nowhere to emit to!
 
-  override fun exhausted() = size == 0L
+  override fun exhausted(): Boolean = size == 0L
 
   @Throws(EOFException::class)
   override fun require(byteCount: Long) {
     if (size < byteCount) throw EOFException()
   }
 
-  override fun request(byteCount: Long) = size >= byteCount
+  override fun request(byteCount: Long): Boolean = size >= byteCount
 
   override fun peek(): Source {
     return PeekSource(this).buffer()
@@ -115,7 +115,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    */
   @Throws(IOException::class)
   @JvmOverloads
-  fun copyTo(
+  public fun copyTo(
     out: OutputStream,
     offset: Long = 0L,
     byteCount: Long = size - offset
@@ -146,7 +146,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     return this
   }
 
-  actual fun copyTo(
+  public actual fun copyTo(
     out: Buffer,
     offset: Long,
     byteCount: Long
@@ -155,7 +155,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   /** Write `byteCount` bytes from this to `out`. */
   @Throws(IOException::class)
   @JvmOverloads
-  fun writeTo(out: OutputStream, byteCount: Long = size): Buffer {
+  public fun writeTo(out: OutputStream, byteCount: Long = size): Buffer {
     checkOffsetAndCount(size, 0, byteCount)
     var remainingByteCount = byteCount
 
@@ -185,7 +185,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    * @param input the stream to read data from.
    */
   @Throws(IOException::class)
-  fun readFrom(input: InputStream): Buffer {
+  public fun readFrom(input: InputStream): Buffer {
     readFrom(input, Long.MAX_VALUE, true)
     return this
   }
@@ -201,7 +201,7 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    *
    */
   @Throws(IOException::class)
-  fun readFrom(input: InputStream, byteCount: Long): Buffer {
+  public fun readFrom(input: InputStream, byteCount: Long): Buffer {
     require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
     readFrom(input, byteCount, false)
     return this
@@ -229,13 +229,13 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     }
   }
 
-  actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
+  public actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
 
   @Throws(EOFException::class)
   override fun readByte(): Byte = commonReadByte()
 
   @JvmName("getByte")
-  actual operator fun get(pos: Long): Byte = commonGet(pos)
+  public actual operator fun get(pos: Long): Byte = commonGet(pos)
 
   @Throws(EOFException::class)
   override fun readShort(): Short = commonReadShort()
@@ -252,13 +252,13 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   @Throws(IOException::class)
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
 
-  override fun readByteArray() = commonReadByteArray()
+  override fun readByteArray(): ByteArray = commonReadByteArray()
 
   @Throws(EOFException::class)
   override fun readByteArray(byteCount: Long): ByteArray = commonReadByteArray(byteCount)
 
   @Throws(EOFException::class)
-  override fun readFully(sink: ByteArray) = commonReadFully(sink)
+  override fun readFully(sink: ByteArray): Unit = commonReadFully(sink)
 
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
     commonRead(sink, offset, byteCount)
@@ -281,10 +281,10 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     return toCopy
   }
 
-  actual fun clear() = commonClear()
+  public actual fun clear(): Unit = commonClear()
 
   @Throws(EOFException::class)
-  actual override fun skip(byteCount: Long) = commonSkip(byteCount)
+  public actual override fun skip(byteCount: Long): Unit = commonSkip(byteCount)
 
   actual override fun write(
     source: ByteArray,
@@ -332,13 +332,13 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
 
-  actual override fun flush() = Unit
+  public actual override fun flush(): Unit = Unit
 
-  override fun isOpen() = true
+  override fun isOpen(): Boolean = true
 
-  actual  override fun close() = Unit
+  actual override fun close(): Unit = Unit
 
-  actual override fun cancel() = Unit
+  actual override fun cancel(): Unit = Unit
 
   override fun equals(other: Any?): Boolean = commonEquals(other)
 
@@ -348,9 +348,9 @@ actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    * Returns a human-readable string that describes the contents of this buffer. Typically, this
    * is a string like `[text=Hello]` or `[hex=0000ffff]`.
    */
-  override fun toString() = commonString()
+  override fun toString(): String = commonString()
 
-  actual fun copy(): Buffer = commonCopy()
+  public actual fun copy(): Buffer = commonCopy()
 
   /**
    * Returns a deep copy of this buffer.

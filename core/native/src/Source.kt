@@ -20,36 +20,36 @@
  */
 package kotlinx.io
 
-actual sealed interface Source : RawSource {
-  actual val buffer: Buffer
+public actual sealed interface Source : RawSource {
+  public actual val buffer: Buffer
 
-  actual fun exhausted(): Boolean
+  public actual fun exhausted(): Boolean
 
-  actual fun require(byteCount: Long)
+  public actual fun require(byteCount: Long)
 
-  actual fun request(byteCount: Long): Boolean
+  public actual fun request(byteCount: Long): Boolean
 
-  actual fun readByte(): Byte
+  public actual fun readByte(): Byte
 
-  actual fun readShort(): Short
+  public actual fun readShort(): Short
 
-  actual fun readInt(): Int
+  public actual fun readInt(): Int
 
-  actual fun readLong(): Long
+  public actual fun readLong(): Long
 
-  actual fun skip(byteCount: Long)
+  public actual fun skip(byteCount: Long)
 
-  actual fun readByteArray(): ByteArray
+  public actual fun readByteArray(): ByteArray
 
-  actual fun readByteArray(byteCount: Long): ByteArray
+  public actual fun readByteArray(byteCount: Long): ByteArray
 
-  actual fun readFully(sink: ByteArray)
+  public actual fun readFully(sink: ByteArray)
 
-  actual fun read(sink: ByteArray, offset: Int, byteCount: Int): Int
+  public actual fun read(sink: ByteArray, offset: Int, byteCount: Int): Int
 
-  actual fun readFully(sink: Buffer, byteCount: Long)
+  public actual fun readFully(sink: Buffer, byteCount: Long)
 
-  actual fun readAll(sink: RawSink): Long
+  public actual fun readAll(sink: RawSink): Long
 
-  actual fun peek(): Source
+  public actual fun peek(): Source
 }
