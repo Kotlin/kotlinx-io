@@ -20,8 +20,9 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun equals (Ljava/lang/Object;)Z
 	public fun exhausted ()Z
 	public fun flush ()V
+	public final fun get (J)B
 	public fun getBuffer ()Lkotlinx/io/Buffer;
-	public final fun getByte (J)B
+	public final fun getSize ()J
 	public fun hashCode ()I
 	public fun inputStream ()Ljava/io/InputStream;
 	public fun isOpen ()Z
@@ -43,7 +44,6 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun readShort ()S
 	public fun request (J)Z
 	public fun require (J)V
-	public final fun size ()J
 	public fun skip (J)V
 	public fun toString ()Ljava/lang/String;
 	public fun write (Ljava/nio/ByteBuffer;)I
@@ -169,7 +169,7 @@ public final class kotlinx/io/SourceKt {
 	public static final fun readString (Lkotlinx/io/Source;Ljava/nio/charset/Charset;)Ljava/lang/String;
 }
 
-public final class kotlinx/io/Utf8 {
+public final class kotlinx/io/Utf8Kt {
 	public static final fun readUtf8 (Lkotlinx/io/Buffer;)Ljava/lang/String;
 	public static final fun readUtf8 (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun readUtf8 (Lkotlinx/io/Source;J)Ljava/lang/String;
@@ -178,10 +178,8 @@ public final class kotlinx/io/Utf8 {
 	public static final fun readUtf8Line (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun readUtf8LineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
 	public static synthetic fun readUtf8LineStrict$default (Lkotlinx/io/Source;JILjava/lang/Object;)Ljava/lang/String;
-	public static final fun size (Ljava/lang/String;)J
-	public static final fun size (Ljava/lang/String;I)J
-	public static final fun size (Ljava/lang/String;II)J
-	public static synthetic fun size$default (Ljava/lang/String;IIILjava/lang/Object;)J
+	public static final fun utf8Size (Ljava/lang/String;II)J
+	public static synthetic fun utf8Size$default (Ljava/lang/String;IIILjava/lang/Object;)J
 	public static final fun writeUtf8 (Lkotlinx/io/Sink;Ljava/lang/String;II)Lkotlinx/io/Sink;
 	public static synthetic fun writeUtf8$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)Lkotlinx/io/Sink;
 	public static final fun writeUtf8CodePoint (Lkotlinx/io/Sink;I)Lkotlinx/io/Sink;

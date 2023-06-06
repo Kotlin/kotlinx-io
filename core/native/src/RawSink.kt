@@ -21,14 +21,11 @@
 package kotlinx.io
 
 public actual interface RawSink : Closeable {
-  @Throws(IOException::class)
   public actual fun write(source: Buffer, byteCount: Long)
 
-  @Throws(IOException::class)
   public actual fun flush()
 
   public actual fun cancel()
 
-  @Throws(IOException::class)
   actual override fun close()
 }

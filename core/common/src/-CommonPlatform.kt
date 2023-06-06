@@ -37,6 +37,5 @@ public expect interface Closeable {
    * Closes this object and releases the resources it holds. It is an error to use an object after
    * it has been closed. It is safe to close an object more than once.
    */
-  @Throws(IOException::class)
   public fun close()
 }

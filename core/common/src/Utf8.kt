@@ -66,7 +66,6 @@
  * </tr>
  * </table>
  */
-@file:JvmName("Utf8")
 
 package kotlinx.io
 
@@ -74,8 +73,6 @@ import kotlinx.io.internal.commonReadUtf8
 import kotlinx.io.internal.commonReadUtf8CodePoint
 import kotlinx.io.internal.commonWriteUtf8
 import kotlinx.io.internal.commonWriteUtf8CodePoint
-import kotlin.jvm.JvmName
-import kotlin.jvm.JvmOverloads
 
 /**
  * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeUtf8].
@@ -86,8 +83,6 @@ import kotlin.jvm.JvmOverloads
  * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range
  * out of the current string bounds.
  */
-@JvmOverloads
-@JvmName("size")
 public fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
   require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
   require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }

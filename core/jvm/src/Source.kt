@@ -29,46 +29,32 @@ import java.nio.charset.Charset
 public actual sealed interface Source : RawSource, ReadableByteChannel {
   public actual val buffer: Buffer
 
-  @Throws(IOException::class)
   public actual fun exhausted(): Boolean
 
-  @Throws(IOException::class)
   public actual fun require(byteCount: Long)
 
-  @Throws(IOException::class)
   public actual fun request(byteCount: Long): Boolean
 
-  @Throws(IOException::class)
   public actual fun readByte(): Byte
 
-  @Throws(IOException::class)
   public actual fun readShort(): Short
 
-  @Throws(IOException::class)
   public actual fun readInt(): Int
 
-  @Throws(IOException::class)
   public actual fun readLong(): Long
 
-  @Throws(IOException::class)
   public actual fun skip(byteCount: Long)
 
-  @Throws(IOException::class)
   public actual fun readByteArray(): ByteArray
 
-  @Throws(IOException::class)
   public actual fun readByteArray(byteCount: Long): ByteArray
 
-  @Throws(IOException::class)
   public actual fun readFully(sink: ByteArray)
 
-  @Throws(IOException::class)
   public actual fun read(sink: ByteArray, offset: Int, byteCount: Int): Int
 
-  @Throws(IOException::class)
   public actual fun readFully(sink: Buffer, byteCount: Long)
 
-  @Throws(IOException::class)
   public actual fun readAll(sink: RawSink): Long
 
   public actual fun peek(): Source
@@ -107,7 +93,6 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
  *
  * @param charset the [Charset] to use for string decoding.
  */
-@Throws(IOException::class)
 public fun Source.readString(charset: Charset): String {
   var req = 1L
   while (request(req)) {
@@ -124,7 +109,6 @@ public fun Source.readString(charset: Charset): String {
  *
  * @throws EOFException when the source exhausted before [byteCount] bytes could be read from it.
  */
-@Throws(IOException::class)
 public fun Source.readString(byteCount: Long, charset: Charset): String {
   require(byteCount)
   return buffer.readStringImpl(byteCount, charset)

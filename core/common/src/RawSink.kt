@@ -41,13 +41,11 @@ public expect interface RawSink : Closeable {
    *
    * @throws IndexOutOfBoundsException when the [source]'s size is below [byteCount].
    */
-  @Throws(IOException::class)
   public fun write(source: Buffer, byteCount: Long)
 
   /**
    * Pushes all buffered bytes to their final destination.
    */
-  @Throws(IOException::class)
   public fun flush()
 
   /**
@@ -63,6 +61,5 @@ public expect interface RawSink : Closeable {
    * Pushes all buffered bytes to their final destination and releases the resources held by this
    * sink. It is an error to write a closed sink. It is safe to close a sink more than once.
    */
-  @Throws(IOException::class)
   override fun close()
 }

@@ -28,34 +28,24 @@ import java.nio.charset.Charset
 public actual sealed interface Sink : RawSink, WritableByteChannel {
   public actual val buffer: Buffer
 
-  @Throws(IOException::class)
   public actual fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
 
-  @Throws(IOException::class)
   public actual fun writeAll(source: RawSource): Long
 
-  @Throws(IOException::class)
   public actual fun write(source: RawSource, byteCount: Long): Sink
 
-  @Throws(IOException::class)
   public actual fun writeByte(byte: Int): Sink
 
-  @Throws(IOException::class)
   public actual fun writeShort(short: Int): Sink
 
-  @Throws(IOException::class)
   public actual fun writeInt(int: Int): Sink
 
-  @Throws(IOException::class)
   public actual fun writeLong(long: Long): Sink
 
-  @Throws(IOException::class)
   actual override fun flush()
 
-  @Throws(IOException::class)
   public actual fun emit(): Sink
 
-  @Throws(IOException::class)
   public actual fun emitCompleteSegments(): Sink
 
   /**

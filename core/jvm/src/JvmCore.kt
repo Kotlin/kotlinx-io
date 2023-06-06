@@ -131,7 +131,6 @@ private open class InputStreamSource(
  *
  * Use [RawSink.buffer] to create a buffered sink from it.
  */
-@Throws(IOException::class)
 public fun Socket.sink(): RawSink {
   return object : OutputStreamSink(getOutputStream()) {
     override fun cancel() {
@@ -147,7 +146,6 @@ public fun Socket.sink(): RawSink {
  *
  * Use [RawSource.buffer] to create a buffered source from it.
  */
-@Throws(IOException::class)
 public fun Socket.source(): RawSource {
   return object : InputStreamSource(getInputStream()) {
     override fun cancel() {

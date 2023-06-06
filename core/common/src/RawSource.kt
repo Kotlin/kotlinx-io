@@ -41,7 +41,6 @@ public interface RawSource : Closeable {
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
    */
-  @Throws(IOException::class)
   public fun read(sink: Buffer, byteCount: Long): Long
 
   /**
@@ -56,6 +55,5 @@ public interface RawSource : Closeable {
    * Closes this source and releases the resources held by this source. It is an error to read a
    * closed source. It is safe to close a source more than once.
    */
-  @Throws(IOException::class)
   override fun close()
 }

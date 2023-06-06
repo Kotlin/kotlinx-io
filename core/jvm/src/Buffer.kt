@@ -31,7 +31,6 @@ import java.nio.channels.ByteChannel
 public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   @JvmField internal actual var head: Segment? = null
 
-  @get:JvmName("size")
   public actual var size: Long = 0L
     internal set
 
@@ -184,7 +183,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    *
    * @param input the stream to read data from.
    */
-  @Throws(IOException::class)
   public fun readFrom(input: InputStream): Buffer {
     readFrom(input, Long.MAX_VALUE, true)
     return this
@@ -200,14 +198,12 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    * @throws IOException when [input] exhausted before reading [byteCount] bytes from it.
    *
    */
-  @Throws(IOException::class)
   public fun readFrom(input: InputStream, byteCount: Long): Buffer {
     require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
     readFrom(input, byteCount, false)
     return this
   }
 
-  @Throws(IOException::class)
   private fun readFrom(input: InputStream, byteCount: Long, forever: Boolean) {
     var remainingByteCount = byteCount
     while (remainingByteCount > 0L || forever) {
@@ -231,39 +227,29 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   public actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
 
-  @Throws(EOFException::class)
   override fun readByte(): Byte = commonReadByte()
 
-  @JvmName("getByte")
   public actual operator fun get(pos: Long): Byte = commonGet(pos)
 
-  @Throws(EOFException::class)
   override fun readShort(): Short = commonReadShort()
 
-  @Throws(EOFException::class)
   override fun readInt(): Int = commonReadInt()
 
-  @Throws(EOFException::class)
   override fun readLong(): Long = commonReadLong()
 
-  @Throws(EOFException::class)
   override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)
 
-  @Throws(IOException::class)
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
 
   override fun readByteArray(): ByteArray = commonReadByteArray()
 
-  @Throws(EOFException::class)
   override fun readByteArray(byteCount: Long): ByteArray = commonReadByteArray(byteCount)
 
-  @Throws(EOFException::class)
   override fun readFully(sink: ByteArray): Unit = commonReadFully(sink)
 
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
     commonRead(sink, offset, byteCount)
 
-  @Throws(IOException::class)
   override fun read(sink: ByteBuffer): Int {
     val s = head ?: return -1
 
@@ -283,7 +269,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   public actual fun clear(): Unit = commonClear()
 
-  @Throws(EOFException::class)
   public actual override fun skip(byteCount: Long): Unit = commonSkip(byteCount)
 
   actual override fun write(
@@ -292,7 +277,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     byteCount: Int
   ): Buffer = commonWrite(source, offset, byteCount)
 
-  @Throws(IOException::class)
   override fun write(source: ByteBuffer): Int {
     val byteCount = source.remaining()
     var remaining = byteCount
@@ -310,10 +294,8 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     return byteCount
   }
 
-  @Throws(IOException::class)
   override fun writeAll(source: RawSource): Long = commonWriteAll(source)
 
-  @Throws(IOException::class)
   actual override fun write(source: RawSource, byteCount: Long): Buffer =
     commonWrite(source, byteCount)
 
