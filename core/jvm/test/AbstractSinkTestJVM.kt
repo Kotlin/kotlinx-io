@@ -37,7 +37,6 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     private val sink: Sink = factory.create(data)
 
     @Test
-    @Throws(Exception::class)
     fun outputStream() {
         val out: OutputStream = sink.outputStream()
         out.write('a'.code)
@@ -48,7 +47,6 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     }
 
     @Test
-    @Throws(Exception::class)
     fun outputStreamBounds() {
         val out: OutputStream = sink.outputStream()
         assertFailsWith<IndexOutOfBoundsException> {
@@ -80,7 +78,6 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun writeNioBuffer() {
         val expected = "abcdefg"
         val nioByteBuffer: ByteBuffer = ByteBuffer.allocate(1024)
@@ -95,7 +92,6 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun writeLargeNioBufferWritesAllData() {
         val expected: String = "a".repeat(SEGMENT_SIZE * 3)
         val nioByteBuffer: ByteBuffer = ByteBuffer.allocate(SEGMENT_SIZE * 4)
@@ -121,7 +117,6 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     }
 
     @Test
-    @Throws(IOException::class)
     fun writeStringWithCharset() {
         sink.writeString("təˈranəˌsôr", Charset.forName("utf-32be"))
         sink.flush()
@@ -130,7 +125,6 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     }
 
     @Test
-    @Throws(IOException::class)
     fun writeSubstringWithCharset() {
         sink.writeString("təˈranəˌsôr", Charset.forName("utf-32be"), 3, 7)
         sink.flush()
@@ -138,7 +132,6 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     }
 
     @Test
-    @Throws(IOException::class)
     fun writeUtf8SubstringWithCharset() {
         sink.writeString("təˈranəˌsôr", Charset.forName("utf-8"), 3, 7)
         sink.flush()

@@ -31,7 +31,6 @@ private const val SEGMENT_SIZE = Segment.SIZE
 
 class BufferTest {
     @Test
-    @Throws(Exception::class)
     fun copyToSpanningSegments() {
         val source = Buffer()
         source.writeUtf8("a".repeat(SEGMENT_SIZE * 2))
@@ -57,7 +56,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun copyToStream() {
         val buffer = Buffer().writeUtf8("hello, world!")
         val out = ByteArrayOutputStream()
@@ -68,7 +66,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun writeToSpanningSegments() {
         val buffer = Buffer()
         buffer.writeUtf8("a".repeat(SEGMENT_SIZE * 2))
@@ -81,7 +78,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun writeToStream() {
         val buffer = Buffer().writeUtf8("hello, world!")
         val out = ByteArrayOutputStream()
@@ -92,7 +88,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun readFromStream() {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
@@ -102,7 +97,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun readFromSpanningSegments() {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer().writeUtf8("a".repeat(SEGMENT_SIZE - 10))
@@ -112,7 +106,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun readFromStreamWithCount() {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
@@ -138,7 +131,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(IOException::class)
     fun readFromDoesNotLeaveEmptyTailSegment() {
         val buffer = Buffer()
         buffer.readFrom(ByteArrayInputStream(ByteArray(SEGMENT_SIZE)))
@@ -146,7 +138,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun bufferInputStreamByteByByte() {
         val source = Buffer()
         source.writeUtf8("abc")
@@ -160,7 +151,6 @@ class BufferTest {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun bufferInputStreamBulkReads() {
         val source = Buffer()
         source.writeUtf8("abc")

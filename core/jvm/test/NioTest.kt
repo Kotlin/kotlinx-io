@@ -39,7 +39,6 @@ class NioTest {
     @TempDir
     lateinit var temporaryFolder: Path
     @Test
-    @Throws(Exception::class)
     fun sourceIsOpen() {
         val source: Source = RealSource(Buffer())
         assertTrue(source.isOpen())
@@ -48,7 +47,6 @@ class NioTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun sinkIsOpen() {
         val sink: Sink = RealSink(Buffer())
         assertTrue(sink.isOpen())
@@ -57,7 +55,6 @@ class NioTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun writableChannelNioFile() {
         val file = Paths.get(temporaryFolder.toString(), "test").createFile()
         val fileChannel: FileChannel = FileChannel.open(file, StandardOpenOption.WRITE)
@@ -68,7 +65,6 @@ class NioTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun writableChannelBuffer() {
         val buffer = Buffer()
         testWritableByteChannel(buffer)
@@ -76,7 +72,6 @@ class NioTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun writableChannelBufferedSink() {
         val buffer = Buffer()
         val bufferedSink: Sink = buffer
@@ -85,7 +80,6 @@ class NioTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun readableChannelNioFile() {
         val file: File = Paths.get(temporaryFolder.toString(), "test").toFile()
         val initialData: Sink = file.sink().buffer()
@@ -96,7 +90,6 @@ class NioTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun readableChannelBuffer() {
         val buffer = Buffer()
         buffer.writeUtf8("abcdefghijklmnopqrstuvwxyz")
@@ -104,7 +97,6 @@ class NioTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun readableChannelBufferedSource() {
         val buffer = Buffer()
         val bufferedSource: Source = buffer
@@ -116,7 +108,6 @@ class NioTest {
      * Does some basic writes to `channel`. We execute this against both Okio's channels and
      * also a standard implementation from the JDK to confirm that their behavior is consistent.
      */
-    @Throws(Exception::class)
     private fun testWritableByteChannel(channel: WritableByteChannel) {
         assertTrue(channel.isOpen())
         val byteBuffer = ByteBuffer.allocate(1024)
@@ -136,7 +127,6 @@ class NioTest {
      * Does some basic reads from `channel`. We execute this against both Okio's channels and
      * also a standard implementation from the JDK to confirm that their behavior is consistent.
      */
-    @Throws(Exception::class)
     private fun testReadableByteChannel(channel: ReadableByteChannel) {
         assertTrue(channel.isOpen)
         val byteBuffer = ByteBuffer.allocate(1024)

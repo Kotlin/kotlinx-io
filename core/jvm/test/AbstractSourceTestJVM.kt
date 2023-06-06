@@ -45,7 +45,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         source = pipe.source
     }
     @Test
-    @Throws(Exception::class)
     fun inputStream() {
         sink.writeUtf8("abc")
         sink.emit()
@@ -69,7 +68,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
-    @Throws(Exception::class)
     fun inputStreamOffsetCount() {
         sink.writeUtf8("abcde")
         sink.emit()
@@ -87,7 +85,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
-    @Throws(Exception::class)
     fun inputStreamSkip() {
         sink.writeUtf8("abcde")
         sink.emit()
@@ -101,7 +98,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
-    @Throws(Exception::class)
     fun inputStreamCharByChar() {
         sink.writeUtf8("abc")
         sink.emit()
@@ -113,7 +109,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
-    @Throws(IOException::class)
     fun inputStreamBounds() {
         sink.writeUtf8("a".repeat(100))
         sink.emit()
@@ -191,7 +186,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun readNioBuffer() {
         val expected = if (factory.isOneByteAtATime) "a" else "abcdefg"
         sink.writeUtf8("abcdefg")
@@ -209,7 +203,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     /** Note that this test crashes the VM on Android.  */
     @Test
-    @Throws(java.lang.Exception::class)
     fun readLargeNioBufferOnlyReadsOneSegment() {
         val expected: String = if (factory.isOneByteAtATime) "a" else "a".repeat(SEGMENT_SIZE)
         sink.writeUtf8("a".repeat(SEGMENT_SIZE * 4))
@@ -231,7 +224,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun readSpecificCharsetPartial() {
         sink.write(("0000007600000259000002c80000006c000000e40000007300000259000002" +
                 "cc000000720000006100000070000000740000025900000072").decodeHex())
@@ -240,7 +232,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
     fun readSpecificCharset() {
         sink.write(("0000007600000259000002c80000006c000000e40000007300000259000002" +
                 "cc000000720000006100000070000000740000025900000072").decodeHex())
@@ -250,7 +241,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     }
 
     @Test
-    @Throws(IOException::class)
     fun readStringTooShortThrows() {
         sink.writeString("abc", Charsets.US_ASCII)
         sink.emit()

@@ -40,6 +40,7 @@ public expect interface RawSink : Closeable {
    * @param byteCount the number of bytes to write.
    *
    * @throws IndexOutOfBoundsException when the [source]'s size is below [byteCount].
+   * @throws IOException if the sink was canceled.
    */
   public fun write(source: Buffer, byteCount: Long)
 
@@ -57,6 +58,7 @@ public expect interface RawSink : Closeable {
    */
   public fun cancel()
 
+  // TODO: what kind of error it is to write into a closed sink?
   /**
    * Pushes all buffered bytes to their final destination and releases the resources held by this
    * sink. It is an error to write a closed sink. It is safe to close a sink more than once.

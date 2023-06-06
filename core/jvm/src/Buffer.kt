@@ -65,7 +65,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   override fun exhausted(): Boolean = size == 0L
 
-  @Throws(EOFException::class)
   override fun require(byteCount: Long) {
     if (size < byteCount) throw EOFException()
   }
@@ -112,7 +111,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    *
    * @throws IndexOutOfBoundsException when [byteCount] and [offset] represents a range out of the buffer bounds.
    */
-  @Throws(IOException::class)
   @JvmOverloads
   public fun copyTo(
     out: OutputStream,
@@ -152,7 +150,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   ): Buffer = commonCopyTo(out, offset, byteCount)
 
   /** Write `byteCount` bytes from this to `out`. */
-  @Throws(IOException::class)
   @JvmOverloads
   public fun writeTo(out: OutputStream, byteCount: Long = size): Buffer {
     checkOffsetAndCount(size, 0, byteCount)
