@@ -22,7 +22,6 @@
 package kotlinx.io
 
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -31,10 +30,6 @@ import java.net.Socket
 import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.Path as NioPath
-import java.security.MessageDigest
-import java.util.logging.Logger
-import javax.crypto.Cipher
-import javax.crypto.Mac
 
 // TODO: improve test coverage
 /**

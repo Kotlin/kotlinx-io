@@ -21,7 +21,6 @@
 package kotlinx.io
 
 import java.io.EOFException
-import java.io.IOException
 import java.io.InputStream
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset

@@ -20,7 +20,6 @@
  */
 package kotlinx.io
 
-import java.io.IOException
 import java.io.OutputStream
 import java.nio.channels.WritableByteChannel
 import java.nio.charset.Charset

@@ -23,7 +23,6 @@ package kotlinx.io
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
-import java.nio.charset.Charset
 import kotlinx.io.internal.*
 
 internal actual class RealSource actual constructor(
