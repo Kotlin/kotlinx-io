@@ -66,6 +66,11 @@ subprojects {
             allWarningsAsErrors = true
         }
     }
+    tasks.withType<KotlinNativeCompile>().configureEach {
+        kotlinOptions {
+            allWarningsAsErrors = true
+        }
+    }
 }
 
 apiValidation {
