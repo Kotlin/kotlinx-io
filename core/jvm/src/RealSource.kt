@@ -65,40 +65,6 @@ internal actual class RealSource actual constructor(
 
   override fun peek(): Source = commonPeek()
 
-  override fun inputStream(): InputStream {
-    return object : InputStream() {
-      override fun read(): Int {
-        if (closed) throw IOException("closed")
-        if (buffer.size == 0L) {
-          val count = source.read(buffer, Segment.SIZE.toLong())
-          if (count == -1L) return -1
-        }
-        return buffer.readByte() and 0xff
-      }
-
-      override fun read(data: ByteArray, offset: Int, byteCount: Int): Int {
-        if (closed) throw IOException("closed")
-        checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
-
-        if (buffer.size == 0L) {
-          val count = source.read(buffer, Segment.SIZE.toLong())
-          if (count == -1L) return -1
-        }
-
-        return buffer.read(data, offset, byteCount)
-      }
-
-      override fun available(): Int {
-        if (closed) throw IOException("closed")
-        return minOf(buffer.size, Integer.MAX_VALUE).toInt()
-      }
-
-      override fun close() = this@RealSource.close()
-
-      override fun toString() = "${this@RealSource}.inputStream()"
-    }
-  }
-
   override fun isOpen() = !closed
 
   override fun close(): Unit = commonClose()

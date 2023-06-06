@@ -21,6 +21,7 @@
 package kotlinx.io
 
 import java.io.EOFException
+import java.io.IOException
 import java.io.InputStream
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
@@ -57,11 +58,6 @@ public actual sealed interface Source : RawSource, ReadableByteChannel {
   public actual fun readAll(sink: RawSink): Long
 
   public actual fun peek(): Source
-
-  /**
-   * Returns an input stream that reads from this source. Closing the stream will also close this source.
-   */
-  public fun inputStream(): InputStream
 }
 
 private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
@@ -111,4 +107,35 @@ public fun Source.readString(charset: Charset): String {
 public fun Source.readString(byteCount: Long, charset: Charset): String {
   require(byteCount)
   return buffer.readStringImpl(byteCount, charset)
+}
+
+/**
+ * Returns an input stream that reads from this source. Closing the stream will also close this source.
+ */
+public fun Source.inputStream(): InputStream {
+  return object : InputStream() {
+    override fun read(): Int {
+      if (!isOpen) throw IOException("closed")
+      if (exhausted()) {
+        return -1
+      }
+      return readByte() and 0xff
+    }
+
+    override fun read(data: ByteArray, offset: Int, byteCount: Int): Int {
+      if (!isOpen) throw IOException("closed")
+      checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
+
+      return this@inputStream.read(data, offset, byteCount)
+    }
+
+    override fun available(): Int {
+      if (!isOpen) throw IOException("closed")
+      return minOf(buffer.size, Integer.MAX_VALUE).toInt()
+    }
+
+    override fun close() = this@inputStream.close()
+
+    override fun toString() = "${this@inputStream}.inputStream()"
+  }
 }

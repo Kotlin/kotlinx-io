@@ -36,29 +36,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   actual override val buffer: Buffer get() = this
 
-  /**
-   * Returns a new [OutputStream] to write data into this buffer.
-   *
-   * Closing the stream won't have any effect as buffers don't support closing.
-   */
-  override fun outputStream(): OutputStream {
-    return object : OutputStream() {
-      override fun write(b: Int) {
-        writeByte(b)
-      }
-
-      override fun write(data: ByteArray, offset: Int, byteCount: Int) {
-        this@Buffer.write(data, offset, byteCount)
-      }
-
-      override fun flush() {}
-
-      override fun close() {}
-
-      override fun toString(): String = "${this@Buffer}.outputStream()"
-    }
-  }
-
   actual override fun emitCompleteSegments(): Buffer = this // Nowhere to emit to!
 
   actual override fun emit(): Buffer = this // Nowhere to emit to!
@@ -75,152 +52,11 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     return PeekSource(this).buffer()
   }
 
-  /**
-   * Returns a new [InputStream] to read data from this buffer.
-   *
-   * Closing the stream won't have any effect as buffers don't support closing.
-   */
-  override fun inputStream(): InputStream {
-    return object : InputStream() {
-      override fun read(): Int {
-        return if (size > 0L) {
-          readByte() and 0xff
-        } else {
-          -1
-        }
-      }
-
-      override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
-        return this@Buffer.read(sink, offset, byteCount)
-      }
-
-      override fun available() = minOf(size, Integer.MAX_VALUE).toInt()
-
-      override fun close() {}
-
-      override fun toString() = "${this@Buffer}.inputStream()"
-    }
-  }
-
-  /**
-   * Copy [byteCount] bytes from this buffer, starting at [offset], to [out].
-   *
-   * @param out the destination to copy data into.
-   * @param offset the offset to start copying data from, `0` by default.
-   * @param byteCount the number of bytes to copy, all data starting from the [offset] by default.
-   *
-   * @throws IndexOutOfBoundsException when [byteCount] and [offset] represents a range out of the buffer bounds.
-   */
-  @JvmOverloads
-  public fun copyTo(
-    out: OutputStream,
-    offset: Long = 0L,
-    byteCount: Long = size - offset
-  ): Buffer {
-    checkOffsetAndCount(size, offset, byteCount)
-    if (byteCount == 0L) return this
-
-    var currentOffset = offset
-    var remainingByteCount = byteCount
-
-    // Skip segments that we aren't copying from.
-    var s = head
-    while (currentOffset >= s!!.limit - s.pos) {
-      currentOffset -= (s.limit - s.pos).toLong()
-      s = s.next
-    }
-
-    // Copy from one segment at a time.
-    while (remainingByteCount > 0L) {
-      val pos = (s!!.pos + currentOffset).toInt()
-      val toCopy = minOf(s.limit - pos, remainingByteCount).toInt()
-      out.write(s.data, pos, toCopy)
-      remainingByteCount -= toCopy.toLong()
-      currentOffset = 0L
-      s = s.next
-    }
-
-    return this
-  }
-
   public actual fun copyTo(
     out: Buffer,
     offset: Long,
     byteCount: Long
   ): Buffer = commonCopyTo(out, offset, byteCount)
-
-  /** Write `byteCount` bytes from this to `out`. */
-  @JvmOverloads
-  public fun writeTo(out: OutputStream, byteCount: Long = size): Buffer {
-    checkOffsetAndCount(size, 0, byteCount)
-    var remainingByteCount = byteCount
-
-    var s = head
-    while (remainingByteCount > 0L) {
-      val toCopy = minOf(remainingByteCount, s!!.limit - s.pos).toInt()
-      out.write(s.data, s.pos, toCopy)
-
-      s.pos += toCopy
-      size -= toCopy.toLong()
-      remainingByteCount -= toCopy.toLong()
-
-      if (s.pos == s.limit) {
-        val toRecycle = s
-        s = toRecycle.pop()
-        head = s
-        SegmentPool.recycle(toRecycle)
-      }
-    }
-
-    return this
-  }
-
-  /**
-   * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
-   *
-   * @param input the stream to read data from.
-   */
-  public fun readFrom(input: InputStream): Buffer {
-    readFrom(input, Long.MAX_VALUE, true)
-    return this
-  }
-
-  /**
-   * Read [byteCount] bytes from [input] into this buffer. Throws an exception when [input] is
-   * exhausted before reading [byteCount] bytes.
-   *
-   * @param input the stream to read data from.
-   * @param byteCount the number of bytes read from [input].
-   *
-   * @throws IOException when [input] exhausted before reading [byteCount] bytes from it.
-   *
-   */
-  public fun readFrom(input: InputStream, byteCount: Long): Buffer {
-    require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
-    readFrom(input, byteCount, false)
-    return this
-  }
-
-  private fun readFrom(input: InputStream, byteCount: Long, forever: Boolean) {
-    var remainingByteCount = byteCount
-    while (remainingByteCount > 0L || forever) {
-      val tail = writableSegment(1)
-      val maxToCopy = minOf(remainingByteCount, Segment.SIZE - tail.limit).toInt()
-      val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
-      if (bytesRead == -1) {
-        if (tail.pos == tail.limit) {
-          // We allocated a tail segment, but didn't end up needing it. Recycle!
-          head = tail.pop()
-          SegmentPool.recycle(tail)
-        }
-        if (forever) return
-        throw EOFException()
-      }
-      tail.limit += bytesRead
-      size += bytesRead.toLong()
-      remainingByteCount -= bytesRead.toLong()
-    }
-  }
 
   public actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
 
@@ -337,4 +173,124 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
    * This method is equivalent to [copy].
    */
   public override fun clone(): Buffer = copy()
+}
+
+/**
+ * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
+ *
+ * @param input the stream to read data from.
+ *
+ * @throws ???
+ */
+public fun Buffer.readFrom(input: InputStream): Buffer {
+  readFrom(input, Long.MAX_VALUE, true)
+  return this
+}
+
+/**
+ * Read [byteCount] bytes from [input] into this buffer. Throws an exception when [input] is
+ * exhausted before reading [byteCount] bytes.
+ *
+ * @param input the stream to read data from.
+ * @param byteCount the number of bytes read from [input].
+ *
+ * @throws IOException when [input] exhausted before reading [byteCount] bytes from it.
+ */
+public fun Buffer.readFrom(input: InputStream, byteCount: Long): Buffer {
+  require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
+  readFrom(input, byteCount, false)
+  return this
+}
+
+private fun Buffer.readFrom(input: InputStream, byteCount: Long, forever: Boolean) {
+  var remainingByteCount = byteCount
+  while (remainingByteCount > 0L || forever) {
+    val tail = writableSegment(1)
+    val maxToCopy = minOf(remainingByteCount, Segment.SIZE - tail.limit).toInt()
+    val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
+    if (bytesRead == -1) {
+      if (tail.pos == tail.limit) {
+        // We allocated a tail segment, but didn't end up needing it. Recycle!
+        head = tail.pop()
+        SegmentPool.recycle(tail)
+      }
+      if (forever) return
+      throw EOFException()
+    }
+    tail.limit += bytesRead
+    size += bytesRead.toLong()
+    remainingByteCount -= bytesRead.toLong()
+  }
+}
+
+/**
+ * Writes [byteCount] bytes from this buffer to [out].
+ *
+ * @param out the [OutputStream] to write to.
+ * @param byteCount the number of bytes to be written, [Buffer.size] by default.
+ *
+ * @throws ???
+ */
+public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size): Buffer {
+  checkOffsetAndCount(size, 0, byteCount)
+  var remainingByteCount = byteCount
+
+  var s = head
+  while (remainingByteCount > 0L) {
+    val toCopy = minOf(remainingByteCount, s!!.limit - s.pos).toInt()
+    out.write(s.data, s.pos, toCopy)
+
+    s.pos += toCopy
+    size -= toCopy.toLong()
+    remainingByteCount -= toCopy.toLong()
+
+    if (s.pos == s.limit) {
+      val toRecycle = s
+      s = toRecycle.pop()
+      head = s
+      SegmentPool.recycle(toRecycle)
+    }
+  }
+
+  return this
+}
+
+/**
+ * Copy [byteCount] bytes from this buffer, starting at [offset], to [out].
+ *
+ * @param out the destination to copy data into.
+ * @param offset the offset to start copying data from, `0` by default.
+ * @param byteCount the number of bytes to copy, all data starting from the [offset] by default.
+ *
+ * @throws IndexOutOfBoundsException when [byteCount] and [offset] represents a range out of the buffer bounds.
+ */
+public fun Buffer.copyTo(
+  out: OutputStream,
+  offset: Long = 0L,
+  byteCount: Long = size - offset
+): Buffer {
+  checkOffsetAndCount(size, offset, byteCount)
+  if (byteCount == 0L) return this
+
+  var currentOffset = offset
+  var remainingByteCount = byteCount
+
+  // Skip segments that we aren't copying from.
+  var s = head
+  while (currentOffset >= s!!.limit - s.pos) {
+    currentOffset -= (s.limit - s.pos).toLong()
+    s = s.next
+  }
+
+  // Copy from one segment at a time.
+  while (remainingByteCount > 0L) {
+    val pos = (s!!.pos + currentOffset).toInt()
+    val toCopy = minOf(s.limit - pos, remainingByteCount).toInt()
+    out.write(s.data, pos, toCopy)
+    remainingByteCount -= toCopy.toLong()
+    currentOffset = 0L
+    s = s.next
+  }
+
+  return this
 }

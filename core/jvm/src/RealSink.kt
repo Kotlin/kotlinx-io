@@ -56,33 +56,6 @@ internal actual class RealSink actual constructor(
   override fun emitCompleteSegments() = commonEmitCompleteSegments()
   override fun emit() = commonEmit()
 
-  override fun outputStream(): OutputStream {
-    return object : OutputStream() {
-      override fun write(b: Int) {
-        if (closed) throw IOException("closed")
-        buffer.writeByte(b.toByte().toInt())
-        emitCompleteSegments()
-      }
-
-      override fun write(data: ByteArray, offset: Int, byteCount: Int) {
-        if (closed) throw IOException("closed")
-        buffer.write(data, offset, byteCount)
-        emitCompleteSegments()
-      }
-
-      override fun flush() {
-        // For backwards compatibility, a flush() on a closed stream is a no-op.
-        if (!closed) {
-          this@RealSink.flush()
-        }
-      }
-
-      override fun close() = this@RealSink.close()
-
-      override fun toString() = "${this@RealSink}.outputStream()"
-    }
-  }
-
   override fun flush() = commonFlush()
 
   override fun isOpen() = !closed

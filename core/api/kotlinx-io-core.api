@@ -7,11 +7,7 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun close ()V
 	public final fun completeSegmentByteCount ()J
 	public final fun copy ()Lkotlinx/io/Buffer;
-	public final fun copyTo (Ljava/io/OutputStream;)Lkotlinx/io/Buffer;
-	public final fun copyTo (Ljava/io/OutputStream;J)Lkotlinx/io/Buffer;
-	public final fun copyTo (Ljava/io/OutputStream;JJ)Lkotlinx/io/Buffer;
 	public final fun copyTo (Lkotlinx/io/Buffer;JJ)Lkotlinx/io/Buffer;
-	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJILjava/lang/Object;)Lkotlinx/io/Buffer;
 	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Lkotlinx/io/Buffer;JJILjava/lang/Object;)Lkotlinx/io/Buffer;
 	public fun emit ()Lkotlinx/io/Buffer;
 	public synthetic fun emit ()Lkotlinx/io/Sink;
@@ -24,9 +20,7 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun getBuffer ()Lkotlinx/io/Buffer;
 	public final fun getSize ()J
 	public fun hashCode ()I
-	public fun inputStream ()Ljava/io/InputStream;
 	public fun isOpen ()Z
-	public fun outputStream ()Ljava/io/OutputStream;
 	public fun peek ()Lkotlinx/io/Source;
 	public fun read (Ljava/nio/ByteBuffer;)I
 	public fun read (Lkotlinx/io/Buffer;J)J
@@ -35,8 +29,6 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun readByte ()B
 	public fun readByteArray ()[B
 	public fun readByteArray (J)[B
-	public final fun readFrom (Ljava/io/InputStream;)Lkotlinx/io/Buffer;
-	public final fun readFrom (Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
 	public fun readFully (Lkotlinx/io/Buffer;J)V
 	public fun readFully ([B)V
 	public fun readInt ()I
@@ -61,8 +53,14 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public synthetic fun writeLong (J)Lkotlinx/io/Sink;
 	public fun writeShort (I)Lkotlinx/io/Buffer;
 	public synthetic fun writeShort (I)Lkotlinx/io/Sink;
-	public final fun writeTo (Ljava/io/OutputStream;)Lkotlinx/io/Buffer;
-	public final fun writeTo (Ljava/io/OutputStream;J)Lkotlinx/io/Buffer;
+}
+
+public final class kotlinx/io/BufferKt {
+	public static final fun copyTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJ)Lkotlinx/io/Buffer;
+	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJILjava/lang/Object;)Lkotlinx/io/Buffer;
+	public static final fun readFrom (Lkotlinx/io/Buffer;Ljava/io/InputStream;)Lkotlinx/io/Buffer;
+	public static final fun readFrom (Lkotlinx/io/Buffer;Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
+	public static final fun writeTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;J)Lkotlinx/io/Buffer;
 	public static synthetic fun writeTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JILjava/lang/Object;)Lkotlinx/io/Buffer;
 }
 
@@ -103,7 +101,6 @@ public abstract interface class kotlinx/io/Sink : java/nio/channels/WritableByte
 	public abstract fun emitCompleteSegments ()Lkotlinx/io/Sink;
 	public abstract fun flush ()V
 	public abstract fun getBuffer ()Lkotlinx/io/Buffer;
-	public abstract fun outputStream ()Ljava/io/OutputStream;
 	public abstract fun write (Lkotlinx/io/RawSource;J)Lkotlinx/io/Sink;
 	public abstract fun write ([BII)Lkotlinx/io/Sink;
 	public abstract fun writeAll (Lkotlinx/io/RawSource;)J
@@ -126,6 +123,7 @@ public final class kotlinx/io/SinkExtKt {
 }
 
 public final class kotlinx/io/SinkKt {
+	public static final fun outputStream (Lkotlinx/io/Sink;)Ljava/io/OutputStream;
 	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;II)Lkotlinx/io/Sink;
 	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;IIILjava/lang/Object;)Lkotlinx/io/Sink;
 }
@@ -133,7 +131,6 @@ public final class kotlinx/io/SinkKt {
 public abstract interface class kotlinx/io/Source : java/nio/channels/ReadableByteChannel, kotlinx/io/RawSource {
 	public abstract fun exhausted ()Z
 	public abstract fun getBuffer ()Lkotlinx/io/Buffer;
-	public abstract fun inputStream ()Ljava/io/InputStream;
 	public abstract fun peek ()Lkotlinx/io/Source;
 	public abstract fun read ([BII)I
 	public abstract fun readAll (Lkotlinx/io/RawSink;)J
@@ -165,6 +162,7 @@ public final class kotlinx/io/SourceExtKt {
 }
 
 public final class kotlinx/io/SourceKt {
+	public static final fun inputStream (Lkotlinx/io/Source;)Ljava/io/InputStream;
 	public static final fun readString (Lkotlinx/io/Source;JLjava/nio/charset/Charset;)Ljava/lang/String;
 	public static final fun readString (Lkotlinx/io/Source;Ljava/nio/charset/Charset;)Ljava/lang/String;
 }

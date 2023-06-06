@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import java.io.IOException
 import java.io.OutputStream
 import java.nio.channels.WritableByteChannel
 import java.nio.charset.Charset
@@ -46,11 +47,6 @@ public actual sealed interface Sink : RawSink, WritableByteChannel {
   public actual fun emit(): Sink
 
   public actual fun emitCompleteSegments(): Sink
-
-  /**
-   * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
-   */
-  public fun outputStream(): OutputStream
 }
 
 /**
@@ -72,4 +68,34 @@ public fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex:
   val data = string.substring(beginIndex, endIndex).toByteArray(charset)
   write(data, 0, data.size)
   return this
+}
+
+/**
+ * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
+ */
+public fun Sink.outputStream(): OutputStream {
+  return object : OutputStream() {
+    override fun write(b: Int) {
+      if (!isOpen) throw IOException("closed")
+      buffer.writeByte(b.toByte().toInt())
+      emitCompleteSegments()
+    }
+
+    override fun write(data: ByteArray, offset: Int, byteCount: Int) {
+      if (!isOpen) throw IOException("closed")
+      buffer.write(data, offset, byteCount)
+      emitCompleteSegments()
+    }
+
+    override fun flush() {
+      // For backwards compatibility, a flush() on a closed stream is a no-op.
+      if (isOpen) {
+        this@outputStream.flush()
+      }
+    }
+
+    override fun close() = this@outputStream.close()
+
+    override fun toString() = "${this@outputStream}.outputStream()"
+  }
 }
