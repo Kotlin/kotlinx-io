@@ -110,13 +110,6 @@ public expect sealed interface Source : RawSource {
   public fun skip(byteCount: Long)
 
   /**
-   * Removes exactly `sink.length` bytes from this source and copies them into [sink].
-   *
-   * @throws EOFException when the requested number of bytes cannot be read.
-   */
-  public fun readFully(sink: ByteArray)
-
-  /**
    * Removes up to [byteCount] bytes from this source, copies them into [sink] starting at [offset] and returns the
    * number of bytes read, or -1 if this source is exhausted.
    *

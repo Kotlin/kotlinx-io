@@ -307,15 +307,6 @@ internal inline fun Buffer.commonWrite(
   return this
 }
 
-internal inline fun Buffer.commonReadFully(sink: ByteArray) {
-  var offset = 0
-  while (offset < sink.size) {
-    val read = read(sink, offset, sink.size - offset)
-    if (read == -1) throw EOFException()
-    offset += read
-  }
-}
-
 internal inline fun Buffer.commonRead(sink: ByteArray, offset: Int, byteCount: Int): Int {
   checkOffsetAndCount(sink.size.toLong(), offset.toLong(), byteCount.toLong())
 

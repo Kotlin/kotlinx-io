@@ -40,7 +40,6 @@ internal actual class RealSource actual constructor(
   override fun require(byteCount: Long): Unit = commonRequire(byteCount)
   override fun request(byteCount: Long): Boolean = commonRequest(byteCount)
   override fun readByte(): Byte = commonReadByte()
-  override fun readFully(sink: ByteArray): Unit = commonReadFully(sink)
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
     commonRead(sink, offset, byteCount)
 

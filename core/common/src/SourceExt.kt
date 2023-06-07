@@ -203,3 +203,21 @@ private inline fun Source.readByteArrayImpl(size: Long): ByteArray {
     buffer.readFully(array)
     return array
 }
+
+
+/**
+ * Removes exactly `sink.length` bytes from this source and copies them into [sink].
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ */
+public fun Source.readFully(sink: ByteArray) {
+    var offset = 0
+    while (offset < sink.size) {
+        val bytesRead = read(sink, offset)
+        // TODO: can we read 0 bytes indefinitely?
+        if (bytesRead == -1) {
+            throw EOFException()
+        }
+        offset += bytesRead
+    }
+}
