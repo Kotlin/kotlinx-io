@@ -63,16 +63,6 @@ internal inline fun RealSource.commonReadByte(): Byte {
   return buffer.readByte()
 }
 
-internal inline fun RealSource.commonReadByteArray(): ByteArray {
-  buffer.writeAll(source)
-  return buffer.readByteArray()
-}
-
-internal inline fun RealSource.commonReadByteArray(byteCount: Long): ByteArray {
-  require(byteCount)
-  return buffer.readByteArray(byteCount)
-}
-
 internal inline fun RealSource.commonReadFully(sink: ByteArray) {
   try {
     require(sink.size.toLong())

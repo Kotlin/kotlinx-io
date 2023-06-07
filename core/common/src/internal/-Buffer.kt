@@ -307,17 +307,6 @@ internal inline fun Buffer.commonWrite(
   return this
 }
 
-internal inline fun Buffer.commonReadByteArray() = readByteArray(size)
-
-internal inline fun Buffer.commonReadByteArray(byteCount: Long): ByteArray {
-  require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) { "byteCount: $byteCount" }
-  if (size < byteCount) throw EOFException()
-
-  val result = ByteArray(byteCount.toInt())
-  readFully(result)
-  return result
-}
-
 internal inline fun Buffer.commonReadFully(sink: ByteArray) {
   var offset = 0
   while (offset < sink.size) {

@@ -110,21 +110,6 @@ public expect sealed interface Source : RawSource {
   public fun skip(byteCount: Long)
 
   /**
-   * Removes all bytes from this source and returns them as a byte array.
-   */
-  public fun readByteArray(): ByteArray
-
-  /**
-   * Removes [byteCount] bytes from this source and returns them as a byte array.
-   *
-   * @param byteCount the number of bytes that should be read from the source.
-   *
-   * @throws IllegalArgumentException when byteCount is negative.
-   * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
-   */
-  public fun readByteArray(byteCount: Long): ByteArray
-
-  /**
    * Removes exactly `sink.length` bytes from this source and copies them into [sink].
    *
    * @throws EOFException when the requested number of bytes cannot be read.

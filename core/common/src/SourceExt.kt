@@ -163,3 +163,43 @@ public fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MA
     }
     return -1L
 }
+
+/**
+ * Removes all bytes from this source and returns them as a byte array.
+ */
+public fun Source.readByteArray(): ByteArray {
+    return readByteArrayImpl( -1L)
+}
+
+/**
+ * Removes [byteCount] bytes from this source and returns them as a byte array.
+ *
+ * @param byteCount the number of bytes that should be read from the source.
+ *
+ * @throws IllegalArgumentException when byteCount is negative.
+ * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
+ */
+public fun Source.readByteArray(byteCount: Long): ByteArray {
+    check(byteCount >= 0)
+    return readByteArrayImpl(byteCount)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun Source.readByteArrayImpl(size: Long): ByteArray {
+    var arraySize = size
+    if (size == -1L) {
+        var fetchSize = Int.MAX_VALUE.toLong()
+        while (buffer.size < Int.MAX_VALUE && request(fetchSize)) {
+            fetchSize *= 2
+        }
+        if (buffer.size >= Int.MAX_VALUE) {
+            throw IllegalStateException()
+        }
+        arraySize = buffer.size
+    } else {
+        require(size)
+    }
+    val array = ByteArray(arraySize.toInt())
+    buffer.readFully(array)
+    return array
+}

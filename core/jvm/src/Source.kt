@@ -45,10 +45,6 @@ public actual sealed interface Source : RawSource, ReadableByteChannel {
 
   public actual fun skip(byteCount: Long)
 
-  public actual fun readByteArray(): ByteArray
-
-  public actual fun readByteArray(byteCount: Long): ByteArray
-
   public actual fun readFully(sink: ByteArray)
 
   public actual fun read(sink: ByteArray, offset: Int, byteCount: Int): Int

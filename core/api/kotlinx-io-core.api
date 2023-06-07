@@ -27,8 +27,6 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun read ([BII)I
 	public fun readAll (Lkotlinx/io/RawSink;)J
 	public fun readByte ()B
-	public fun readByteArray ()[B
-	public fun readByteArray (J)[B
 	public fun readFully (Lkotlinx/io/Buffer;J)V
 	public fun readFully ([B)V
 	public fun readInt ()I
@@ -135,8 +133,6 @@ public abstract interface class kotlinx/io/Source : java/nio/channels/ReadableBy
 	public abstract fun read ([BII)I
 	public abstract fun readAll (Lkotlinx/io/RawSink;)J
 	public abstract fun readByte ()B
-	public abstract fun readByteArray ()[B
-	public abstract fun readByteArray (J)[B
 	public abstract fun readFully (Lkotlinx/io/Buffer;J)V
 	public abstract fun readFully ([B)V
 	public abstract fun readInt ()I
@@ -154,6 +150,8 @@ public final class kotlinx/io/Source$DefaultImpls {
 public final class kotlinx/io/SourceExtKt {
 	public static final fun indexOf (Lkotlinx/io/Source;BJJ)J
 	public static synthetic fun indexOf$default (Lkotlinx/io/Source;BJJILjava/lang/Object;)J
+	public static final fun readByteArray (Lkotlinx/io/Source;)[B
+	public static final fun readByteArray (Lkotlinx/io/Source;J)[B
 	public static final fun readDecimalLong (Lkotlinx/io/Source;)J
 	public static final fun readHexadecimalUnsignedLong (Lkotlinx/io/Source;)J
 	public static final fun readIntLe (Lkotlinx/io/Source;)I

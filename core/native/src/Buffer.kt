@@ -66,10 +66,6 @@ public actual class Buffer : Source, Sink {
 
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
 
-  override fun readByteArray(): ByteArray = commonReadByteArray()
-
-  override fun readByteArray(byteCount: Long): ByteArray = commonReadByteArray(byteCount)
-
   override fun readFully(sink: ByteArray): Unit = commonReadFully(sink)
 
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
