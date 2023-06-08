@@ -67,10 +67,6 @@ private open class OutputStreamSink(
 
   override fun close() = out.close()
 
-  override fun cancel() {
-    // Not cancelable.
-  }
-
   override fun toString() = "sink($out)"
 }
 
@@ -112,10 +108,6 @@ private open class InputStreamSource(
 
   override fun close() = input.close()
 
-  override fun cancel() {
-    // Not cancelable.
-  }
-
   override fun toString() = "source($input)"
 }
 
@@ -126,13 +118,7 @@ private open class InputStreamSource(
  *
  * Use [RawSink.buffer] to create a buffered sink from it.
  */
-public fun Socket.sink(): RawSink {
-  return object : OutputStreamSink(getOutputStream()) {
-    override fun cancel() {
-      this@sink.close()
-    }
-  }
-}
+public fun Socket.sink(): RawSink = OutputStreamSink(getOutputStream())
 
 /**
  * Returns [RawSource] that reads from a socket. Prefer this over [source]
@@ -141,13 +127,7 @@ public fun Socket.sink(): RawSink {
  *
  * Use [RawSource.buffer] to create a buffered source from it.
  */
-public fun Socket.source(): RawSource {
-  return object : InputStreamSource(getInputStream()) {
-    override fun cancel() {
-      this@source.close()
-    }
-  }
-}
+public fun Socket.source(): RawSource = InputStreamSource(getInputStream())
 
 /**
  * Returns [RawSink] that writes to a file.

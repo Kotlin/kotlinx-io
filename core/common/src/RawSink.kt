@@ -49,15 +49,6 @@ public expect interface RawSink : Closeable {
    */
   public fun flush()
 
-  /**
-   * Asynchronously cancel this sink. Any [write] or [flush] in flight should immediately fail
-   * with an [IOException], and any future writes and flushes should also immediately fail with an
-   * [IOException].
-   *
-   * Note that it is always necessary to call [close] on a sink, even if it has been canceled.
-   */
-  public fun cancel()
-
   // TODO: what kind of error it is to write into a closed sink?
   /**
    * Pushes all buffered bytes to their final destination and releases the resources held by this

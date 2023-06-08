@@ -138,6 +138,4 @@ internal inline fun RealSink.commonClose() {
   if (thrown != null) throw thrown
 }
 
-internal inline fun RealSink.commonCancel() = sink.cancel()
-
 internal inline fun RealSink.commonToString() = "buffer($sink)"

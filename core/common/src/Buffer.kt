@@ -140,9 +140,4 @@ public expect class Buffer() : Source, Sink {
    * This method does not affect the buffer.
    */
   override fun close()
-
-  /**
-   * This method does not affect the buffer.
-   */
-  override fun cancel()
 }

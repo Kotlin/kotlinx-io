@@ -159,6 +159,4 @@ internal inline fun RealSource.commonClose() {
   buffer.clear()
 }
 
-internal inline fun RealSource.commonCancel() = source.cancel()
-
 internal inline fun RealSource.commonToString() = "buffer($source)"

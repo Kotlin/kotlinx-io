@@ -45,14 +45,6 @@ public interface RawSource : Closeable {
   public fun read(sink: Buffer, byteCount: Long): Long
 
   /**
-   * Asynchronously cancel this source. Any [read] in flight should immediately fail with an
-   * [IOException], and any future read should also immediately fail with an [IOException].
-   *
-   * Note that it is always necessary to call [close] on a source, even if it has been canceled.
-   */
-  public fun cancel()
-
-  /**
    * Closes this source and releases the resources held by this source. It is an error to read a
    * closed source. It is safe to close a source more than once.
    */

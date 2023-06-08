@@ -60,12 +60,7 @@ internal actual class RealSink actual constructor(
 
   override fun isOpen() = !closed
 
-
   override fun close() = commonClose()
-
-  override fun cancel() {
-    commonCancel()
-  }
 
   override fun toString() = commonToString()
 }

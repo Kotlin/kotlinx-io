@@ -45,10 +45,5 @@ internal actual class RealSource actual constructor(
 
   override fun peek(): Source = commonPeek()
   override fun close(): Unit = commonClose()
-
-  override fun cancel() {
-    commonCancel()
-  }
-
   override fun toString(): String = commonToString()
 }

@@ -44,10 +44,5 @@ internal actual class RealSink actual constructor(
   override fun emit() = commonEmit()
   override fun flush() = commonFlush()
   override fun close() = commonClose()
-
-  override fun cancel() {
-    commonCancel()
-  }
-
   override fun toString() = commonToString()
 }

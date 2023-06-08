@@ -1,6 +1,5 @@
 public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/ByteChannel, kotlinx/io/Sink, kotlinx/io/Source {
 	public fun <init> ()V
-	public fun cancel ()V
 	public final fun clear ()V
 	public synthetic fun clone ()Ljava/lang/Object;
 	public fun clone ()Lkotlinx/io/Buffer;
@@ -81,14 +80,12 @@ public final class kotlinx/io/JvmCoreKt {
 }
 
 public abstract interface class kotlinx/io/RawSink : java/io/Closeable, java/io/Flushable {
-	public abstract fun cancel ()V
 	public abstract fun close ()V
 	public abstract fun flush ()V
 	public abstract fun write (Lkotlinx/io/Buffer;J)V
 }
 
 public abstract interface class kotlinx/io/RawSource : java/io/Closeable {
-	public abstract fun cancel ()V
 	public abstract fun close ()V
 	public abstract fun read (Lkotlinx/io/Buffer;J)J
 }

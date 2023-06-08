@@ -68,10 +68,6 @@ internal class PeekSource(
     return toCopy
   }
 
-  override fun cancel() {
-    return upstream.cancel()
-  }
-
   override fun close() {
     closed = true
   }

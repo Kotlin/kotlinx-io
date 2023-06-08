@@ -41,7 +41,6 @@ public fun blackholeSink(): RawSink = BlackholeSink()
 private class BlackholeSink : RawSink {
   override fun write(source: Buffer, byteCount: Long) = source.skip(byteCount)
   override fun flush() {}
-  override fun cancel() {}
   override fun close() {}
 }
 

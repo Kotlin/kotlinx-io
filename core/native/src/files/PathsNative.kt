@@ -56,10 +56,6 @@ internal class FileSource(
         }
     }
 
-    override fun cancel() {
-        // Not cancelable.
-    }
-
     override fun close() {
         if (closed) return
         closed = true
@@ -108,10 +104,6 @@ internal class FileSink(
         if (fflush(file) != 0) {
             throw IOException(errno.toString())
         }
-    }
-
-    override fun cancel() {
-        // Not cancelable.
     }
 
     override fun close() {

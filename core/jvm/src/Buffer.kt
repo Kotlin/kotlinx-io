@@ -147,8 +147,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
 
   actual override fun close(): Unit = Unit
 
-  actual override fun cancel(): Unit = Unit
-
   override fun equals(other: Any?): Boolean = commonEquals(other)
 
   override fun hashCode(): Int = commonHashCode()

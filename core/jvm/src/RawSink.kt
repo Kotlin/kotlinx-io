@@ -29,7 +29,5 @@ public actual interface RawSink : Closeable, Flushable {
 
   actual override fun flush()
 
-  public actual fun cancel()
-
   actual override fun close()
 }
