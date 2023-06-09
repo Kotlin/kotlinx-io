@@ -92,12 +92,14 @@ internal inline fun RealSource.commonRead(sink: ByteArray, offset: Int, byteCoun
   return buffer.read(sink, offset, toRead)
 }
 
-internal inline fun RealSource.commonReadFully(sink: Buffer, byteCount: Long) {
+internal inline fun RealSource.commonReadFully(sink: RawSink, byteCount: Long) {
   try {
     require(byteCount)
   } catch (e: EOFException) {
     // The underlying source is exhausted. Copy the bytes we got before rethrowing.
-    sink.writeAll(buffer)
+    //sink.writeAll(buffer)
+    // TODO: it seems to be incorrect.
+    sink.write(buffer, buffer.size)
     throw e
   }
 

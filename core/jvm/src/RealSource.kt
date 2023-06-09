@@ -43,7 +43,7 @@ internal actual class RealSource actual constructor(
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
     commonRead(sink, offset, byteCount)
 
-  override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)
+  override fun readFully(sink: RawSink, byteCount: Long): Unit = commonReadFully(sink, byteCount)
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
 
   override fun readShort(): Short = commonReadShort()

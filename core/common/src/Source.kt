@@ -51,6 +51,8 @@ public expect sealed interface Source : RawSource {
    * Returns true if there are no more bytes in this source.
    *
    * The call of this method will block until there are bytes to read or the source is definitely exhausted.
+   *
+   * @throws ??? when the source is closed.
    */
   public fun exhausted(): Boolean
 
@@ -138,7 +140,7 @@ public expect sealed interface Source : RawSource {
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws EOFException when the requested number of bytes cannot be read.
    */
-  public fun readFully(sink: Buffer, byteCount: Long)
+  public fun readFully(sink: RawSink, byteCount: Long)
 
   /**
    * Removes all bytes from this source, writes them to [sink], and returns the total number of bytes

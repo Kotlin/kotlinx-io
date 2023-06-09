@@ -70,7 +70,7 @@ public actual class Buffer : Source, Sink, Cloneable {
 
   override fun readLong(): Long = commonReadLong()
 
-  override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)
+  override fun readFully(sink: RawSink, byteCount: Long): Unit = commonReadFully(sink, byteCount)
 
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
 

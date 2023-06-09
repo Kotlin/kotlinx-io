@@ -24,7 +24,7 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, kotlinx/io/Sink, kot
 	public fun read ([BII)I
 	public fun readAll (Lkotlinx/io/RawSink;)J
 	public fun readByte ()B
-	public fun readFully (Lkotlinx/io/Buffer;J)V
+	public fun readFully (Lkotlinx/io/RawSink;J)V
 	public fun readInt ()I
 	public fun readLong ()J
 	public fun readShort ()S
@@ -141,7 +141,7 @@ public abstract interface class kotlinx/io/Source : kotlinx/io/RawSource {
 	public abstract fun read ([BII)I
 	public abstract fun readAll (Lkotlinx/io/RawSink;)J
 	public abstract fun readByte ()B
-	public abstract fun readFully (Lkotlinx/io/Buffer;J)V
+	public abstract fun readFully (Lkotlinx/io/RawSink;J)V
 	public abstract fun readInt ()I
 	public abstract fun readLong ()J
 	public abstract fun readShort ()S

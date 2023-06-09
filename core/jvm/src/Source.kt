@@ -47,7 +47,7 @@ public actual sealed interface Source : RawSource {
 
   public actual fun read(sink: ByteArray, offset: Int, byteCount: Int): Int
 
-  public actual fun readFully(sink: Buffer, byteCount: Long)
+  public actual fun readFully(sink: RawSink, byteCount: Long)
 
   public actual fun readAll(sink: RawSink): Long
 

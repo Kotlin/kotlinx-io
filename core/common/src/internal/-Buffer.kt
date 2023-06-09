@@ -330,7 +330,7 @@ internal inline fun Buffer.commonRead(sink: ByteArray, offset: Int, byteCount: I
 internal const val OVERFLOW_ZONE = Long.MIN_VALUE / 10L
 internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
 
-internal inline fun Buffer.commonReadFully(sink: Buffer, byteCount: Long) {
+internal inline fun Buffer.commonReadFully(sink: RawSink, byteCount: Long) {
   if (size < byteCount) {
     sink.write(this, size) // Exhaust ourselves.
     throw EOFException()
