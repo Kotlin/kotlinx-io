@@ -36,11 +36,19 @@ package kotlinx.io
  * - [emitCompleteSegments] writes only a part of data from the buffer.
  * The latter is aimed to reduce memory footprint by keeping the buffer as small as possible without excessive writes
  * to the upstream.
+ * All write operations implicitly calls [emitCompleteSegments].
  */
 public expect sealed interface Sink : RawSink {
   /**
-   * This sink's internal buffer.
+   * This sink's internal buffer. It contains data written to the sink, but not yet flushed to the upstream.
+   *
+   * Incorrect use of the buffer may cause data loss or unexpected data being sent to the upstream.
+   * Consider using alternative APIs to write data into the sink, if possible:
+   * - write data into separate [Buffer] instance and write that buffer into the sink and then flush the sink to
+   *   ensure that the upstream will receive complete data;
+   * - implement [RawSink] and wrap an upstream sink into it to intercept data being written.
    */
+  @DelicateIoApi
   public val buffer: Buffer
 
   /**
@@ -129,5 +137,6 @@ public expect sealed interface Sink : RawSink {
    * Typically, application code will not need to call this: it is only necessary when
    * application code writes directly to this [buffer].
    */
+  @DelicateIoApi
   public fun emitCompleteSegments(): Sink
 }

@@ -48,11 +48,13 @@ public expect class Buffer() : Source, Sink {
   /**
    * Returns the buffer itself.
    */
+  @DelicateIoApi
   override val buffer: Buffer
 
   /**
    * This method does not affect the buffer's content as there is no upstream to write data to.
    */
+  @DelicateIoApi
   override fun emitCompleteSegments(): Buffer
 
   /**

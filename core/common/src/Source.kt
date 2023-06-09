@@ -27,18 +27,24 @@ package kotlinx.io
  * [Source] is the main `kotlinx-io` interface to read data in client's code,
  * any [RawSource] could be converted into [Source] using [RawSource.buffer].
  *
- * Depending on a kind of downstream and the number of bytes read, buffering may improve the performance by hiding
+ * Depending on the kind of downstream and the number of bytes read, buffering may improve the performance by hiding
  * the latency of small reads.
  *
  * The buffer is refilled on reads as necessary, but it is also possible to ensure it contains enough data
  * using [require] or [request].
- * [Sink] also allows to skip unneeded prefix of data using [skip] and
+ * [Sink] also allows skipping unneeded prefix of data using [skip] and
  * provides look ahead into incoming data, buffering as much as necessary, using [peek].
  */
 public expect sealed interface Source : RawSource {
   /**
-   * This source's internal buffer.
+   * This source's internal buffer. It contains data fetched from the downstream, but not yet consumed by the upstream.
+   *
+   * Incorrect use of the buffer may cause data loss or unexpected data being read by the upstream.
+   * Consider using alternative APIs to read data from the source, if possible:
+   * - use [peek] for lookahead into a source;
+   * - implement [RawSource] and wrap a downstream source into it to intercept data being read.
    */
+  @DelicateIoApi
   public val buffer: Buffer
 
   /**
