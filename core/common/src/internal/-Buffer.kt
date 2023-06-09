@@ -610,7 +610,7 @@ internal inline fun Buffer.commonWrite(source: RawSource, byteCount: Long): Buff
 
 internal inline fun Buffer.commonWriteByte(b: Byte): Buffer {
   val tail = writableSegment(1)
-  tail.data[tail.limit++] = b.toByte()
+  tail.data[tail.limit++] = b
   size += 1L
   return this
 }

@@ -33,7 +33,7 @@ package kotlinx.io
  * To reduce allocations and speed up the buffer's extension, it may use data segments pooling.
  *
  * [Buffer] implements both [Source] and [Sink] and could be used as a source or a sink,
- * but unlike regular sinks and sources its [close], [cancel], [flush], [emit], [emitCompleteSegments]
+ * but unlike regular sinks and sources its [close], [flush], [emit], [emitCompleteSegments]
  * does not affect buffer's state and [exhausted] only indicates that a buffer is empty.
  */
 public expect class Buffer() : Source, Sink {

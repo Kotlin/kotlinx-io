@@ -22,7 +22,6 @@ package kotlinx.io
 
 import java.io.Closeable
 import java.io.Flushable
-import java.io.IOException
 
 public actual interface RawSink : Closeable, Flushable {
   public actual fun write(source: Buffer, byteCount: Long)

@@ -24,7 +24,6 @@ package kotlinx.io
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.fail
 
 /**
  * Tests solely for the behavior of RealBufferedSink's implementation. For generic
