@@ -1046,62 +1046,61 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
-  // TODO: fix tests
   @Test fun readUtf8Line() {
-    val buf = Buffer().writeUtf8("first line\nsecond line\n")
-    assertEquals("first line", buf.readUtf8Line())
-    assertEquals("second line\n", buf.readUtf8())
-    assertEquals(null, buf.readUtf8Line())
+    sink.writeUtf8("first line\nsecond line\n").flush()
+    assertEquals("first line", source.readUtf8Line())
+    assertEquals("second line\n", source.readUtf8())
+    assertEquals(null, source.readUtf8Line())
 
-    buf.writeUtf8("\nnext line\n")
-    assertEquals("", buf.readUtf8Line())
-    assertEquals("next line", buf.readUtf8Line())
+    sink.writeUtf8("\nnext line\n").flush()
+    assertEquals("", source.readUtf8Line())
+    assertEquals("next line", source.readUtf8Line())
 
-    buf.writeUtf8("There is no newline!")
-    assertEquals("There is no newline!", buf.readUtf8Line())
+    sink.writeUtf8("There is no newline!").flush()
+    assertEquals("There is no newline!", source.readUtf8Line())
 
-    buf.writeUtf8("Wot do u call it?\r\nWindows")
-    assertEquals("Wot do u call it?", buf.readUtf8Line())
-    buf.clear()
+    sink.writeUtf8("Wot do u call it?\r\nWindows").flush()
+    assertEquals("Wot do u call it?", source.readUtf8Line())
+    source.readAll(blackholeSink())
 
-    buf.writeUtf8("reo\rde\red\n")
-    assertEquals("reo\rde\red", buf.readUtf8Line())
+    sink.writeUtf8("reo\rde\red\n").flush()
+    assertEquals("reo\rde\red", source.readUtf8Line())
   }
 
   @Test fun readUtf8LineStrict() {
-    val buf = Buffer().writeUtf8("first line\nsecond line\n")
-    assertEquals("first line", buf.readUtf8LineStrict())
-    assertEquals("second line\n", buf.readUtf8())
-    assertFailsWith<EOFException> { buf.readUtf8LineStrict() }
+    sink.writeUtf8("first line\nsecond line\n").flush()
+    assertEquals("first line", source.readUtf8LineStrict())
+    assertEquals("second line\n", source.readUtf8())
+    assertFailsWith<EOFException> { source.readUtf8LineStrict() }
 
-    buf.writeUtf8("\nnext line\n")
-    assertEquals("", buf.readUtf8LineStrict())
-    assertEquals("next line", buf.readUtf8LineStrict())
+    sink.writeUtf8("\nnext line\n").flush()
+    assertEquals("", source.readUtf8LineStrict())
+    assertEquals("next line", source.readUtf8LineStrict())
 
-    buf.writeUtf8("There is no newline!")
-    assertFailsWith<EOFException> { buf.readUtf8LineStrict() }
-    assertEquals("There is no newline!", buf.readUtf8())
+    sink.writeUtf8("There is no newline!").flush()
+    assertFailsWith<EOFException> { source.readUtf8LineStrict() }
+    assertEquals("There is no newline!", source.readUtf8())
 
-    buf.writeUtf8("Wot do u call it?\r\nWindows")
-    assertEquals("Wot do u call it?", buf.readUtf8LineStrict())
-    buf.clear()
+    sink.writeUtf8("Wot do u call it?\r\nWindows").flush()
+    assertEquals("Wot do u call it?", source.readUtf8LineStrict())
+    source.readAll(blackholeSink())
 
-    buf.writeUtf8("reo\rde\red\n")
-    assertEquals("reo\rde\red", buf.readUtf8LineStrict())
+    sink.writeUtf8("reo\rde\red\n").flush()
+    assertEquals("reo\rde\red", source.readUtf8LineStrict())
 
-    buf.writeUtf8("line\n")
-    assertFailsWith<EOFException> { buf.readUtf8LineStrict(3) }
-    assertEquals("line", buf.readUtf8LineStrict(4))
-    assertEquals(0, buf.size)
+    sink.writeUtf8("line\n").flush()
+    assertFailsWith<EOFException> { source.readUtf8LineStrict(3) }
+    assertEquals("line", source.readUtf8LineStrict(4))
+    assertTrue(source.exhausted())
 
-    buf.writeUtf8("line\r\n")
-    assertFailsWith<EOFException> { buf.readUtf8LineStrict(3) }
-    assertEquals("line", buf.readUtf8LineStrict(4))
-    assertEquals(0, buf.size)
+    sink.writeUtf8("line\r\n").flush()
+    assertFailsWith<EOFException> { source.readUtf8LineStrict(3) }
+    assertEquals("line", source.readUtf8LineStrict(4))
+    assertTrue(source.exhausted())
 
-    buf.writeUtf8("line\n")
-    assertEquals("line", buf.readUtf8LineStrict(5))
-    assertEquals(0, buf.size)
+    sink.writeUtf8("line\n").flush()
+    assertEquals("line", source.readUtf8LineStrict(5))
+    assertTrue(source.exhausted())
   }
 
   @Test fun readUnsignedByte() {
