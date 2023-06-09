@@ -52,7 +52,7 @@ class CommonRealSinkTest {
   @Test fun bufferedSinkFlush() {
     val sink = Buffer()
     val bufferedSink = (sink as RawSink).buffer()
-    bufferedSink.writeByte('a'.code)
+    bufferedSink.writeByte('a'.code.toByte())
     assertEquals(0, sink.size)
     bufferedSink.flush()
     assertEquals(0, bufferedSink.buffer.size)
@@ -100,7 +100,7 @@ class CommonRealSinkTest {
     val mockSink = MockSink()
     mockSink.scheduleThrow(0, IOException())
     val bufferedSink = mockSink.buffer()
-    bufferedSink.writeByte('a'.code)
+    bufferedSink.writeByte('a'.code.toByte())
     assertFailsWith<IOException> {
       bufferedSink.close()
     }
@@ -112,7 +112,7 @@ class CommonRealSinkTest {
     val mockSink = MockSink()
     mockSink.scheduleThrow(1, IOException())
     val bufferedSink = mockSink.buffer()
-    bufferedSink.writeByte('a'.code)
+    bufferedSink.writeByte('a'.code.toByte())
     assertFailsWith<IOException> {
       bufferedSink.close()
     }
@@ -125,7 +125,7 @@ class CommonRealSinkTest {
     mockSink.scheduleThrow(0, IOException("first"))
     mockSink.scheduleThrow(1, IOException("second"))
     val bufferedSink = mockSink.buffer()
-    bufferedSink.writeByte('a'.code)
+    bufferedSink.writeByte('a'.code.toByte())
     assertFailsWith<IOException>("first.*") {
       bufferedSink.close()
     }
@@ -136,12 +136,12 @@ class CommonRealSinkTest {
   @Test fun operationsAfterClose() {
     val mockSink = MockSink()
     val bufferedSink = mockSink.buffer()
-    bufferedSink.writeByte('a'.code)
+    bufferedSink.writeByte('a'.code.toByte())
     bufferedSink.close()
 
     // Test a sample set of methods.
     assertFailsWith<IllegalStateException> {
-      bufferedSink.writeByte('a'.code)
+      bufferedSink.writeByte('a'.code.toByte())
     }
 
     assertFailsWith<IllegalStateException> {

@@ -67,14 +67,14 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeByte() {
-    sink.writeByte(0xba)
+    sink.writeByte(0xba.toByte())
     sink.flush()
     assertEquals("[hex=ba]", data.toString())
   }
 
   @Test fun writeBytes() {
-    sink.writeByte(0xab)
-    sink.writeByte(0xcd)
+    sink.writeByte(0xab.toByte())
+    sink.writeByte(0xcd.toByte())
     sink.flush()
     assertEquals("[hex=abcd]", data.toString())
   }
@@ -90,20 +90,20 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeShort() {
-    sink.writeShort(0xab01)
+    sink.writeShort(0xab01.toShort())
     sink.flush()
     assertEquals("[hex=ab01]", data.toString())
   }
 
   @Test fun writeShorts() {
-    sink.writeShort(0xabcd)
+    sink.writeShort(0xabcd.toShort())
     sink.writeShort(0x4321)
     sink.flush()
     assertEquals("[hex=abcd4321]", data.toString())
   }
 
   @Test fun writeShortLe() {
-    sink.writeShortLe(0xcdab)
+    sink.writeShortLe(0xcdab.toShort())
     sink.writeShortLe(0x2143)
     sink.flush()
     assertEquals("[hex=abcd4321]", data.toString())
@@ -254,7 +254,7 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun closeEmitsBufferedBytes() {
-    sink.writeByte('a'.code)
+    sink.writeByte('a'.code.toByte())
     sink.close()
     assertEquals('a', data.readByte().toInt().toChar())
   }
@@ -346,5 +346,40 @@ abstract class AbstractSinkTest internal constructor(
     assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", -1) }
     assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", 0, 6) }
     assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", 6) }
+  }
+
+  @Test fun writeUByte() {
+    sink.writeByte(0xffu).flush()
+    assertEquals(-1, data.readByte())
+  }
+
+  @Test fun writeUShort() {
+    sink.writeShort(0xffffu).flush()
+    assertEquals(-1, data.readShort())
+  }
+
+  @Test fun writeUShortLe() {
+    sink.writeShortLe(0x1234u).flush()
+    assertEquals("[hex=3412]", data.toString())
+  }
+
+  @Test fun writeUInt() {
+    sink.writeInt(0xffffffffu).flush()
+    assertEquals(-1, data.readInt())
+  }
+
+  @Test fun writeUIntLe() {
+    sink.writeIntLe(0x12345678u).flush()
+    assertEquals("[hex=78563412]", data.toString())
+  }
+
+  @Test fun writeULong() {
+    sink.writeLong(0xffffffffffffffffu).flush()
+    assertEquals(-1, data.readLong())
+  }
+
+  @Test fun writeULongLe() {
+    sink.writeLongLe(0x1234567890abcdefu).flush()
+    assertEquals("[hex=efcdab9078563412]", data.toString())
   }
 }

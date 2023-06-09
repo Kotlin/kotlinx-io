@@ -29,9 +29,9 @@ public actual sealed interface Sink : RawSink {
 
   public actual fun write(source: RawSource, byteCount: Long): Sink
 
-  public actual fun writeByte(byte: Int): Sink
+  public actual fun writeByte(byte: Byte): Sink
 
-  public actual fun writeShort(short: Int): Sink
+  public actual fun writeShort(short: Short): Sink
 
   public actual fun writeInt(int: Int): Sink
 

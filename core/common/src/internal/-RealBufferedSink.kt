@@ -67,13 +67,13 @@ internal inline fun RealSink.commonWrite(source: RawSource, byteCount: Long): Si
   return this
 }
 
-internal inline fun RealSink.commonWriteByte(b: Int): Sink {
+internal inline fun RealSink.commonWriteByte(b: Byte): Sink {
   check(!closed) { "closed" }
   buffer.writeByte(b)
   return emitCompleteSegments()
 }
 
-internal inline fun RealSink.commonWriteShort(s: Int): Sink {
+internal inline fun RealSink.commonWriteShort(s: Short): Sink {
   check(!closed) { "closed" }
   buffer.writeShort(s)
   return emitCompleteSegments()

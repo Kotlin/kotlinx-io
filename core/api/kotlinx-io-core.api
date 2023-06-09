@@ -41,14 +41,14 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, java/nio/channels/By
 	public fun write ([BII)Lkotlinx/io/Buffer;
 	public synthetic fun write ([BII)Lkotlinx/io/Sink;
 	public fun writeAll (Lkotlinx/io/RawSource;)J
-	public fun writeByte (I)Lkotlinx/io/Buffer;
-	public synthetic fun writeByte (I)Lkotlinx/io/Sink;
+	public fun writeByte (B)Lkotlinx/io/Buffer;
+	public synthetic fun writeByte (B)Lkotlinx/io/Sink;
 	public fun writeInt (I)Lkotlinx/io/Buffer;
 	public synthetic fun writeInt (I)Lkotlinx/io/Sink;
 	public fun writeLong (J)Lkotlinx/io/Buffer;
 	public synthetic fun writeLong (J)Lkotlinx/io/Sink;
-	public fun writeShort (I)Lkotlinx/io/Buffer;
-	public synthetic fun writeShort (I)Lkotlinx/io/Sink;
+	public fun writeShort (S)Lkotlinx/io/Buffer;
+	public synthetic fun writeShort (S)Lkotlinx/io/Sink;
 }
 
 public final class kotlinx/io/BufferKt {
@@ -98,10 +98,10 @@ public abstract interface class kotlinx/io/Sink : java/nio/channels/WritableByte
 	public abstract fun write (Lkotlinx/io/RawSource;J)Lkotlinx/io/Sink;
 	public abstract fun write ([BII)Lkotlinx/io/Sink;
 	public abstract fun writeAll (Lkotlinx/io/RawSource;)J
-	public abstract fun writeByte (I)Lkotlinx/io/Sink;
+	public abstract fun writeByte (B)Lkotlinx/io/Sink;
 	public abstract fun writeInt (I)Lkotlinx/io/Sink;
 	public abstract fun writeLong (J)Lkotlinx/io/Sink;
-	public abstract fun writeShort (I)Lkotlinx/io/Sink;
+	public abstract fun writeShort (S)Lkotlinx/io/Sink;
 }
 
 public final class kotlinx/io/Sink$DefaultImpls {
@@ -109,11 +109,18 @@ public final class kotlinx/io/Sink$DefaultImpls {
 }
 
 public final class kotlinx/io/SinkExtKt {
+	public static final fun writeByte-EK-6454 (Lkotlinx/io/Sink;B)Lkotlinx/io/Sink;
 	public static final fun writeDecimalLong (Lkotlinx/io/Sink;J)Lkotlinx/io/Sink;
 	public static final fun writeHexadecimalUnsignedLong (Lkotlinx/io/Sink;J)Lkotlinx/io/Sink;
+	public static final fun writeInt-Qn1smSk (Lkotlinx/io/Sink;I)Lkotlinx/io/Sink;
 	public static final fun writeIntLe (Lkotlinx/io/Sink;I)Lkotlinx/io/Sink;
+	public static final fun writeIntLe-Qn1smSk (Lkotlinx/io/Sink;I)Lkotlinx/io/Sink;
+	public static final fun writeLong-2TYgG_w (Lkotlinx/io/Sink;J)Lkotlinx/io/Sink;
 	public static final fun writeLongLe (Lkotlinx/io/Sink;J)Lkotlinx/io/Sink;
-	public static final fun writeShortLe (Lkotlinx/io/Sink;I)Lkotlinx/io/Sink;
+	public static final fun writeLongLe-2TYgG_w (Lkotlinx/io/Sink;J)Lkotlinx/io/Sink;
+	public static final fun writeShort-i8woANY (Lkotlinx/io/Sink;S)Lkotlinx/io/Sink;
+	public static final fun writeShortLe (Lkotlinx/io/Sink;S)Lkotlinx/io/Sink;
+	public static final fun writeShortLe-i8woANY (Lkotlinx/io/Sink;S)Lkotlinx/io/Sink;
 }
 
 public final class kotlinx/io/SinkKt {
@@ -153,6 +160,13 @@ public final class kotlinx/io/SourceExtKt {
 	public static final fun readIntLe (Lkotlinx/io/Source;)I
 	public static final fun readLongLe (Lkotlinx/io/Source;)J
 	public static final fun readShortLe (Lkotlinx/io/Source;)S
+	public static final fun readUByte (Lkotlinx/io/Source;)B
+	public static final fun readUInt (Lkotlinx/io/Source;)I
+	public static final fun readUIntLe (Lkotlinx/io/Source;)I
+	public static final fun readULong (Lkotlinx/io/Source;)J
+	public static final fun readULongLe (Lkotlinx/io/Source;)J
+	public static final fun readUShort (Lkotlinx/io/Source;)S
+	public static final fun readUShortLe (Lkotlinx/io/Source;)S
 }
 
 public final class kotlinx/io/SourceKt {

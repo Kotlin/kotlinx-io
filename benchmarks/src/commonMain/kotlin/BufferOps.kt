@@ -100,7 +100,7 @@ open class DecimalLongBenchmark: BufferRWBenchmarkBase() {
         val tmpBuffer = Buffer()
         while (tmpBuffer.size < minGap) {
             // use space as a delimiter between consecutive decimal values
-            tmpBuffer.writeDecimalLong(value).writeByte(' '.code)
+            tmpBuffer.writeDecimalLong(value).writeByte(' '.code.toByte())
         }
         return tmpBuffer.readByteArray()
     }
@@ -108,7 +108,7 @@ open class DecimalLongBenchmark: BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): Long {
         // use space as a delimiter between consecutive decimal values
-        buffer.writeDecimalLong(value).writeByte(' '.code)
+        buffer.writeDecimalLong(value).writeByte(' '.code.toByte())
         val l = buffer.readDecimalLong()
         buffer.readByte() // consume the delimiter
         return l
@@ -122,14 +122,14 @@ open class HexadecimalLongBenchmark: BufferRWBenchmarkBase() {
     override fun padding(): ByteArray {
         val tmpBuffer = Buffer()
         while (tmpBuffer.size < minGap) {
-            tmpBuffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code)
+            tmpBuffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code.toByte())
         }
         return tmpBuffer.readByteArray()
     }
 
     @Benchmark
     fun benchmark(): Long {
-        buffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code)
+        buffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code.toByte())
         val l = buffer.readHexadecimalUnsignedLong()
         buffer.readByte()
         return l

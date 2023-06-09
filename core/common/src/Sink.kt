@@ -83,14 +83,14 @@ public expect sealed interface Sink : RawSink {
    *
    * @param byte the byte to be written.
    */
-  public fun writeByte(byte: Int): Sink
+  public fun writeByte(byte: Byte): Sink
 
   /**
    * Writes two bytes containing [short], in the big-endian order, to this sink.
    *
    * @param short the short integer to be written.
    */
-  public fun writeShort(short: Int): Sink
+  public fun writeShort(short: Short): Sink
 
   /**
    * Writes four bytes containing [int], in the big-endian order, to this sink.

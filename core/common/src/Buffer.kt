@@ -123,9 +123,9 @@ public expect class Buffer() : Source, Sink {
 
   override fun write(source: RawSource, byteCount: Long): Buffer
 
-  override fun writeByte(byte: Int): Buffer
+  override fun writeByte(byte: Byte): Buffer
 
-  override fun writeShort(short: Int): Buffer
+  override fun writeShort(short: Short): Buffer
 
   override fun writeInt(int: Int): Buffer
 

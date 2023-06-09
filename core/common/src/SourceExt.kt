@@ -75,7 +75,7 @@ public fun Source.readDecimalLong(): Long {
 
             // Detect when the digit would cause an overflow.
             if (value < OVERFLOW_ZONE || value == OVERFLOW_ZONE && digit < overflowDigit) {
-                val buffer = Buffer().writeDecimalLong(value).writeByte(b.toInt())
+                val buffer = Buffer().writeDecimalLong(value).writeByte(b)
                 if (!negative) buffer.readByte() // Skip negative sign.
                 throw NumberFormatException("Number too large: ${buffer.readUtf8()}")
             }
@@ -124,7 +124,7 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
             else -> break
         }
         if (result and -0x1000000000000000L != 0L) {
-            val buffer = Buffer().writeHexadecimalUnsignedLong(result).writeByte(b.toInt())
+            val buffer = Buffer().writeHexadecimalUnsignedLong(result).writeByte(b)
             throw NumberFormatException("Number too large: " + buffer.readUtf8())
         }
         readByte() // consume byte
@@ -221,3 +221,58 @@ public fun Source.readFully(sink: ByteArray) {
         offset += bytesRead
     }
 }
+
+/**
+ * Removes an unsigned byte from this source and returns it.
+ *
+ * @throws EOFException when there are no more bytes to read.
+ */
+public fun Source.readUByte(): UByte = readByte().toUByte()
+
+/**
+ * Removes two bytes from this source and returns an unsigned short integer composed of it
+ * according to the big-endian order.
+ *
+ * @throws EOFException when there are not enough data to read an unsigned short value.
+ */
+public fun Source.readUShort(): UShort = readShort().toUShort()
+
+/**
+ * Removes four bytes from this source and returns an unsigned integer composed of it
+ * according to the big-endian order.
+ *
+ * @throws EOFException when there are not enough data to read an unsigned int value.
+ */
+public fun Source.readUInt(): UInt = readInt().toUInt()
+
+/**
+ * Removes eight bytes from this source and returns an unsigned long integer composed of it
+ * according to the big-endian order.
+ *
+ * @throws EOFException when there are not enough data to read an unsigned long value.
+ */
+public fun Source.readULong(): ULong = readLong().toULong()
+
+/**
+ * Removes two bytes from this source and returns an unsigned short integer composed of it
+ * according to the little-endian order.
+ *
+ * @throws EOFException when there are not enough data to read an unsigned short value.
+ */
+public fun Source.readUShortLe(): UShort = readShortLe().toUShort()
+
+/**
+ * Removes four bytes from this source and returns an unsigned integer composed of it
+ * according to the little-endian order.
+ *
+ * @throws EOFException when there are not enough data to read an unsigned int value.
+ */
+public fun Source.readUIntLe(): UInt = readIntLe().toUInt()
+
+/**
+ * Removes eight bytes from this source and returns an unsigned long integer composed of it
+ * according to the little-endian order.
+ *
+ * @throws EOFException when there are not enough data to read an unsigned long value.
+ */
+public fun Source.readULongLe(): ULong = readLongLe().toULong()

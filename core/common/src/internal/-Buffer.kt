@@ -510,7 +510,7 @@ internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endI
         // character.
         val low = (if (i + 1 < endIndex) string[i + 1].code else 0)
         if (c > 0xdbff || low !in 0xdc00..0xdfff) {
-          writeByte('?'.code)
+          writeByte('?'.code.toByte())
           i++
         } else {
           // UTF-16 high surrogate: 110110xxxxxxxxxx (10 bits)
@@ -541,7 +541,7 @@ internal inline fun Buffer.commonWriteUtf8CodePoint(codePoint: Int): Buffer {
   when {
     codePoint < 0x80 -> {
       // Emit a 7-bit code point with 1 byte.
-      writeByte(codePoint)
+      writeByte(codePoint.toByte())
     }
     codePoint < 0x800 -> {
       // Emit a 11-bit code point with 2 bytes.
@@ -555,7 +555,7 @@ internal inline fun Buffer.commonWriteUtf8CodePoint(codePoint: Int): Buffer {
     }
     codePoint in 0xd800..0xdfff -> {
       // Emit a replacement character for a partial surrogate.
-      writeByte('?'.code)
+      writeByte('?'.code.toByte())
     }
     codePoint < 0x10000 -> {
       // Emit a 16-bit code point with 3 bytes.
@@ -608,19 +608,19 @@ internal inline fun Buffer.commonWrite(source: RawSource, byteCount: Long): Buff
   return this
 }
 
-internal inline fun Buffer.commonWriteByte(b: Int): Buffer {
+internal inline fun Buffer.commonWriteByte(b: Byte): Buffer {
   val tail = writableSegment(1)
   tail.data[tail.limit++] = b.toByte()
   size += 1L
   return this
 }
 
-internal inline fun Buffer.commonWriteShort(s: Int): Buffer {
+internal inline fun Buffer.commonWriteShort(s: Short): Buffer {
   val tail = writableSegment(2)
   val data = tail.data
   var limit = tail.limit
-  data[limit++] = (s ushr 8 and 0xff).toByte()
-  data[limit++] = (s        and 0xff).toByte() // ktlint-disable no-multi-spaces
+  data[limit++] = (s.toInt() ushr 8 and 0xff).toByte()
+  data[limit++] = (s.toInt()        and 0xff).toByte() // ktlint-disable no-multi-spaces
   tail.limit = limit
   size += 2L
   return this

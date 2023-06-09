@@ -211,7 +211,7 @@ class Utf8KotlinTest {
   @Test
   fun readLeadingContinuationByteReturnsReplacementCharacter() {
     val buffer = Buffer()
-    buffer.writeByte(0xbf)
+    buffer.writeByte(0xbf.toByte())
     assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
     assertTrue(buffer.exhausted())
   }
@@ -219,7 +219,7 @@ class Utf8KotlinTest {
   @Test
   fun readMissingContinuationBytesThrowsEofException() {
     val buffer = Buffer()
-    buffer.writeByte(0xdf)
+    buffer.writeByte(0xdf.toByte())
     assertFailsWith<EOFException> { buffer.readUtf8CodePoint() }
     assertFalse(buffer.exhausted()) // Prefix byte wasn't consumed.
   }

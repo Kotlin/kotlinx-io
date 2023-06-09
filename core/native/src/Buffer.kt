@@ -84,9 +84,9 @@ public actual class Buffer : Source, Sink {
   actual override fun write(source: RawSource, byteCount: Long): Buffer =
     commonWrite(source, byteCount)
 
-  actual override fun writeByte(byte: Int): Buffer = commonWriteByte(byte)
+  actual override fun writeByte(byte: Byte): Buffer = commonWriteByte(byte)
 
-  actual override fun writeShort(short: Int): Buffer = commonWriteShort(short)
+  actual override fun writeShort(short: Short): Buffer = commonWriteShort(short)
 
   actual override fun writeInt(int: Int): Buffer = commonWriteInt(int)
 

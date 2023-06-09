@@ -86,7 +86,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
   }
 
   @Test fun readShortTooShortThrows() {
-    sink.writeShort(Short.MAX_VALUE.toInt())
+    sink.writeShort(Short.MAX_VALUE)
     sink.emit()
     source.readByte()
     assertFailsWith<EOFException> {
@@ -95,7 +95,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
   }
 
   @Test fun readShortLeTooShortThrows() {
-    sink.writeShortLe(Short.MAX_VALUE.toInt())
+    sink.writeShortLe(Short.MAX_VALUE)
     sink.emit()
     source.readByte()
     assertFailsWith<EOFException> {
@@ -866,31 +866,32 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
     assertEquals(0x7f, source.readUtf8CodePoint().toLong())
 
-    sink.writeByte(0xdf).writeByte(0xbf)
+    sink.writeByte(0xdf.toByte()).writeByte(0xbf.toByte())
     sink.emit()
     assertEquals(0x07ff, source.readUtf8CodePoint().toLong())
 
-    sink.writeByte(0xef).writeByte(0xbf).writeByte(0xbf)
+    sink.writeByte(0xef.toByte()).writeByte(0xbf.toByte()).writeByte(0xbf.toByte())
     sink.emit()
     assertEquals(0xffff, source.readUtf8CodePoint().toLong())
 
-    sink.writeByte(0xf4).writeByte(0x8f).writeByte(0xbf).writeByte(0xbf)
+    sink.writeByte(0xf4.toByte()).writeByte(0x8f.toByte())
+      .writeByte(0xbf.toByte()).writeByte(0xbf.toByte())
     sink.emit()
     assertEquals(0x10ffff, source.readUtf8CodePoint().toLong())
   }
 
   @Test fun codePointsFromExhaustedSource() {
-    sink.writeByte(0xdf) // a second byte is missing
+    sink.writeByte(0xdf.toByte()) // a second byte is missing
     sink.emit()
     assertFailsWith<EOFException> { source.readUtf8CodePoint() }
     assertEquals(1, source.readByteArray().size)
 
-    sink.writeByte(0xe2).writeByte(0x98) // a third byte is missing
+    sink.writeByte(0xe2.toByte()).writeByte(0x98.toByte()) // a third byte is missing
     sink.emit()
     assertFailsWith<EOFException> { source.readUtf8CodePoint() }
     assertEquals(2, source.readByteArray().size)
 
-    sink.writeByte(0xf0).writeByte(0x9f).writeByte(0x92) // a forth byte is missing
+    sink.writeByte(0xf0.toByte()).writeByte(0x9f.toByte()).writeByte(0x92.toByte()) // a forth byte is missing
     sink.emit()
     assertFailsWith<EOFException> { source.readUtf8CodePoint() }
     assertEquals(3, source.readByteArray().size)
@@ -1100,5 +1101,134 @@ abstract class AbstractBufferedSourceTest internal constructor(
     buf.writeUtf8("line\n")
     assertEquals("line", buf.readUtf8LineStrict(5))
     assertEquals(0, buf.size)
+  }
+
+  @Test fun readUnsignedByte() {
+    sink.writeByte(0)
+      .writeByte(-1)
+      .writeByte(-128)
+      .writeByte(127)
+      .flush()
+
+    assertEquals(0u, source.readUByte())
+    assertEquals(255u, source.readUByte())
+    assertEquals(128u, source.readUByte())
+    assertEquals(127u, source.readUByte())
+    assertTrue(source.exhausted())
+  }
+
+  @Test fun readTooShortUnsignedByteThrows() {
+    assertFailsWith<EOFException> { source.readUByte() }
+  }
+
+  @Test fun readUnsignedShort() {
+    sink.writeShort(0)
+      .writeShort(-1)
+      .writeShort(-32768)
+      .writeShort(32767)
+      .flush()
+
+    assertEquals(0u, source.readUShort())
+    assertEquals(65535u, source.readUShort())
+    assertEquals(32768u, source.readUShort())
+    assertEquals(32767u, source.readUShort())
+    assertTrue(source.exhausted())
+  }
+
+  @Test fun readUnsignedShortLe() {
+    sink.write(byteArrayOf(0x12, 0x34)).flush()
+    assertEquals(0x3412u, source.readUShortLe())
+  }
+
+  @Test fun readTooShortUnsignedShortThrows() {
+    assertFailsWith<EOFException> { source.readUShort() }
+    sink.writeByte(0).flush()
+    assertFailsWith<EOFException> { source.readUShort() }
+    assertTrue(source.request(1))
+  }
+
+  @Test fun readTooShortUnsignedShortLeThrows() {
+    assertFailsWith<EOFException> { source.readUShortLe() }
+    sink.writeByte(0).flush()
+    assertFailsWith<EOFException> { source.readUShortLe() }
+    assertTrue(source.request(1))
+  }
+
+  @Test fun readUnsignedInt() {
+    sink.writeInt(0)
+      .writeInt(-1)
+      .writeInt(Int.MIN_VALUE)
+      .writeInt(Int.MAX_VALUE)
+      .flush()
+
+    assertEquals(0u, source.readUInt())
+    assertEquals(UInt.MAX_VALUE, source.readUInt())
+    assertEquals(2147483648u, source.readUInt())
+    assertEquals(Int.MAX_VALUE.toUInt(), source.readUInt())
+    assertTrue(source.exhausted())
+  }
+
+  @Test fun readUnsignedIntLe() {
+    sink.write(byteArrayOf(0x12, 0x34, 0x56, 0x78)).flush()
+    assertEquals(0x78563412u, source.readUIntLe())
+  }
+
+  @Test fun readTooShortUnsignedIntThrows() {
+    assertFailsWith<EOFException> { source.readUInt() }
+    sink.writeByte(0).flush()
+    assertFailsWith<EOFException> { source.readUInt() }
+    sink.writeByte(0).flush()
+    assertFailsWith<EOFException> { source.readUInt() }
+    sink.writeByte(0).flush()
+    assertFailsWith<EOFException> { source.readUInt() }
+    assertTrue(source.request(3))
+  }
+
+  @Test fun readTooShortUnsignedIntLeThrows() {
+    assertFailsWith<EOFException> { source.readUIntLe() }
+    sink.writeByte(0).flush()
+    assertFailsWith<EOFException> { source.readUIntLe() }
+    sink.writeByte(0).flush()
+    assertFailsWith<EOFException> { source.readUIntLe() }
+    sink.writeByte(0).flush()
+    assertFailsWith<EOFException> { source.readUIntLe() }
+    assertTrue(source.request(3))
+  }
+
+  @Test fun readUnsignedLong() {
+    sink.writeLong(0)
+      .writeLong(-1)
+      .writeLong(Long.MIN_VALUE)
+      .writeLong(Long.MAX_VALUE)
+      .flush()
+
+    assertEquals(0u, source.readULong())
+    assertEquals(ULong.MAX_VALUE, source.readULong())
+    assertEquals(9223372036854775808u, source.readULong())
+    assertEquals(Long.MAX_VALUE.toULong(), source.readULong())
+    assertTrue(source.exhausted())
+  }
+
+  @Test fun readUnsignedLongLe() {
+    sink.write(byteArrayOf(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xff.toByte())).flush()
+    assertEquals(0xff07060504030201u, source.readULongLe())
+  }
+
+  @Test fun readTooShortUnsignedLongThrows() {
+    assertFailsWith<EOFException> { source.readULong() }
+    for (i in 0 until 7) {
+      sink.writeByte(0).flush()
+      assertFailsWith<EOFException> { source.readULong() }
+    }
+    assertTrue(source.request(7))
+  }
+
+  @Test fun readTooShortUnsignedLongLeThrows() {
+    assertFailsWith<EOFException> { source.readULongLe() }
+    for (i in 0 until 7) {
+      sink.writeByte(0).flush()
+      assertFailsWith<EOFException> { source.readULongLe() }
+    }
+    assertTrue(source.request(7))
   }
 }
