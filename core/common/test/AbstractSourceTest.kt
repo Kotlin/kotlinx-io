@@ -1046,6 +1046,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
+  // TODO: fix tests
   @Test fun readUtf8Line() {
     val buf = Buffer().writeUtf8("first line\nsecond line\n")
     assertEquals("first line", buf.readUtf8Line())

@@ -21,12 +21,12 @@
 package kotlinx.io
 
 import java.io.EOFException
-import java.io.IOException
 import java.io.InputStream
+import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
 
-public actual sealed interface Source : RawSource, ReadableByteChannel {
+public actual sealed interface Source : RawSource {
   public actual val buffer: Buffer
 
   public actual fun exhausted(): Boolean
@@ -107,9 +107,14 @@ public fun Source.readString(byteCount: Long, charset: Charset): String {
  * Returns an input stream that reads from this source. Closing the stream will also close this source.
  */
 public fun Source.inputStream(): InputStream {
+  val isClosed: () -> Boolean = when (this) {
+    is RealSource -> this::closed
+    is Buffer -> { { false } }
+  }
+
   return object : InputStream() {
     override fun read(): Int {
-      if (!isOpen) throw IOException("closed")
+      if (isClosed()) throw IOException("closed")
       if (exhausted()) {
         return -1
       }
@@ -117,19 +122,53 @@ public fun Source.inputStream(): InputStream {
     }
 
     override fun read(data: ByteArray, offset: Int, byteCount: Int): Int {
-      if (!isOpen) throw IOException("closed")
+      if (isClosed()) throw IOException("closed")
       checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
 
       return this@inputStream.read(data, offset, byteCount)
     }
 
     override fun available(): Int {
-      if (!isOpen) throw IOException("closed")
+      if (isClosed()) throw IOException("closed")
       return minOf(buffer.size, Integer.MAX_VALUE).toInt()
     }
 
     override fun close() = this@inputStream.close()
 
     override fun toString() = "${this@inputStream}.inputStream()"
+  }
+}
+
+/**
+ * Reads data from this source into [sink].
+ *
+ * @param sink the sink to write the data to.
+ */
+public fun Source.read(sink: ByteBuffer): Int {
+  if (buffer.size == 0L) {
+    request(Segment.SIZE.toLong())
+    if (buffer.size == 0L) return -1
+  }
+
+  return buffer.writeTo(sink)
+}
+
+/**
+ * Returns [ReadableByteChannel] backed by this source. Closing the source will close the source.
+ */
+public fun Source.channel(): ReadableByteChannel {
+  val isClosed: () -> Boolean = when (this) {
+    is RealSource -> this::closed
+    is Buffer -> { { false } }
+  }
+
+  return object : ReadableByteChannel {
+    override fun close() {
+      this@channel.close()
+    }
+
+    override fun isOpen(): Boolean = !isClosed()
+
+    override fun read(sink: ByteBuffer): Int = this@channel.read(sink)
   }
 }

@@ -28,7 +28,7 @@ import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
 
-public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
+public actual class Buffer : Source, Sink, Cloneable {
   @JvmField internal actual var head: Segment? = null
 
   public actual var size: Long = 0L
@@ -77,23 +77,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
     commonRead(sink, offset, byteCount)
 
-  override fun read(sink: ByteBuffer): Int {
-    val s = head ?: return -1
-
-    val toCopy = minOf(sink.remaining(), s.limit - s.pos)
-    sink.put(s.data, s.pos, toCopy)
-
-    s.pos += toCopy
-    size -= toCopy.toLong()
-
-    if (s.pos == s.limit) {
-      head = s.pop()
-      SegmentPool.recycle(s)
-    }
-
-    return toCopy
-  }
-
   public actual fun clear(): Unit = commonClear()
 
   public actual override fun skip(byteCount: Long): Unit = commonSkip(byteCount)
@@ -103,23 +86,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
     offset: Int,
     byteCount: Int
   ): Buffer = commonWrite(source, offset, byteCount)
-
-  override fun write(source: ByteBuffer): Int {
-    val byteCount = source.remaining()
-    var remaining = byteCount
-    while (remaining > 0) {
-      val tail = writableSegment(1)
-
-      val toCopy = minOf(remaining, Segment.SIZE - tail.limit)
-      source.get(tail.data, tail.limit, toCopy)
-
-      remaining -= toCopy
-      tail.limit += toCopy
-    }
-
-    size += byteCount.toLong()
-    return byteCount
-  }
 
   override fun writeAll(source: RawSource): Long = commonWriteAll(source)
 
@@ -142,8 +108,6 @@ public actual class Buffer : Source, Sink, Cloneable, ByteChannel {
   override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
 
   public actual override fun flush(): Unit = Unit
-
-  override fun isOpen(): Boolean = true
 
   actual override fun close(): Unit = Unit
 
@@ -285,4 +249,61 @@ public fun Buffer.copyTo(
   }
 
   return this
+}
+
+/**
+ * Writes up to [ByteBuffer.remaining] bytes from this buffer to the sink.
+ * Return the number of bytes written.
+ *
+ * @param sink the sink to write data to.
+ */
+public fun Buffer.writeTo(sink: ByteBuffer): Int {
+  val s = head ?: return -1
+
+  val toCopy = minOf(sink.remaining(), s.limit - s.pos)
+  sink.put(s.data, s.pos, toCopy)
+
+  s.pos += toCopy
+  size -= toCopy.toLong()
+
+  if (s.pos == s.limit) {
+    head = s.pop()
+    SegmentPool.recycle(s)
+  }
+
+  return toCopy
+}
+
+/**
+ * Reads all data from [source] into this buffer.
+ */
+public fun Buffer.readFrom(source: ByteBuffer): Buffer {
+  val byteCount = source.remaining()
+  var remaining = byteCount
+  while (remaining > 0) {
+    val tail = writableSegment(1)
+
+    val toCopy = minOf(remaining, Segment.SIZE - tail.limit)
+    source.get(tail.data, tail.limit, toCopy)
+
+    remaining -= toCopy
+    tail.limit += toCopy
+  }
+
+  size += byteCount.toLong()
+  return this
+}
+
+public fun Buffer.channel(): ByteChannel = object : ByteChannel {
+  override fun read(sink: ByteBuffer): Int = writeTo(sink)
+
+  override fun write(source: ByteBuffer): Int {
+    val sizeBefore = size
+    readFrom(source)
+    return (size - sizeBefore).toInt()
+  }
+
+  override fun close() {}
+
+  override fun isOpen(): Boolean = true
 }

@@ -43,15 +43,6 @@ internal actual class RealSource actual constructor(
   override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
     commonRead(sink, offset, byteCount)
 
-  override fun read(sink: ByteBuffer): Int {
-    if (buffer.size == 0L) {
-      val read = source.read(buffer, Segment.SIZE.toLong())
-      if (read == -1L) return -1
-    }
-
-    return buffer.read(sink)
-  }
-
   override fun readFully(sink: Buffer, byteCount: Long): Unit = commonReadFully(sink, byteCount)
   override fun readAll(sink: RawSink): Long = commonReadAll(sink)
 
@@ -61,8 +52,6 @@ internal actual class RealSource actual constructor(
   override fun skip(byteCount: Long): Unit = commonSkip(byteCount)
 
   override fun peek(): Source = commonPeek()
-
-  override fun isOpen() = !closed
 
   override fun close(): Unit = commonClose()
 

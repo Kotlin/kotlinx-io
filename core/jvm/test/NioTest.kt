@@ -40,7 +40,7 @@ class NioTest {
     lateinit var temporaryFolder: Path
     @Test
     fun sourceIsOpen() {
-        val source: Source = RealSource(Buffer())
+        val source = RealSource(Buffer()).channel()
         assertTrue(source.isOpen())
         source.close()
         assertFalse(source.isOpen())
@@ -48,7 +48,7 @@ class NioTest {
 
     @Test
     fun sinkIsOpen() {
-        val sink: Sink = RealSink(Buffer())
+        val sink = RealSink(Buffer()).channel()
         assertTrue(sink.isOpen())
         sink.close()
         assertFalse(sink.isOpen())
@@ -58,7 +58,7 @@ class NioTest {
     fun writableChannelNioFile() {
         val file = Paths.get(temporaryFolder.toString(), "test").createFile()
         val fileChannel: FileChannel = FileChannel.open(file, StandardOpenOption.WRITE)
-        testWritableByteChannel(fileChannel)
+        testWritableByteChannel(false, fileChannel)
         val emitted: Source = file.source().buffer()
         assertEquals("defghijklmnopqrstuvw", emitted.readUtf8())
         emitted.close()
@@ -67,7 +67,7 @@ class NioTest {
     @Test
     fun writableChannelBuffer() {
         val buffer = Buffer()
-        testWritableByteChannel(buffer)
+        testWritableByteChannel(true, buffer.channel())
         assertEquals("defghijklmnopqrstuvw", buffer.readUtf8())
     }
 
@@ -75,7 +75,7 @@ class NioTest {
     fun writableChannelBufferedSink() {
         val buffer = Buffer()
         val bufferedSink: Sink = buffer
-        testWritableByteChannel(bufferedSink)
+        testWritableByteChannel(true, bufferedSink.channel())
         assertEquals("defghijklmnopqrstuvw", buffer.readUtf8())
     }
 
@@ -86,14 +86,14 @@ class NioTest {
         initialData.writeUtf8("abcdefghijklmnopqrstuvwxyz")
         initialData.close()
         val fileChannel: FileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)
-        testReadableByteChannel(fileChannel)
+        testReadableByteChannel(false, fileChannel)
     }
 
     @Test
     fun readableChannelBuffer() {
         val buffer = Buffer()
         buffer.writeUtf8("abcdefghijklmnopqrstuvwxyz")
-        testReadableByteChannel(buffer)
+        testReadableByteChannel(true, buffer.channel())
     }
 
     @Test
@@ -101,14 +101,14 @@ class NioTest {
         val buffer = Buffer()
         val bufferedSource: Source = buffer
         buffer.writeUtf8("abcdefghijklmnopqrstuvwxyz")
-        testReadableByteChannel(bufferedSource)
+        testReadableByteChannel(true, bufferedSource.channel())
     }
 
     /**
      * Does some basic writes to `channel`. We execute this against both Okio's channels and
      * also a standard implementation from the JDK to confirm that their behavior is consistent.
      */
-    private fun testWritableByteChannel(channel: WritableByteChannel) {
+    private fun testWritableByteChannel(isBuffer: Boolean, channel: WritableByteChannel) {
         assertTrue(channel.isOpen())
         val byteBuffer = ByteBuffer.allocate(1024)
         byteBuffer.put("abcdefghijklmnopqrstuvwxyz".toByteArray(UTF_8))
@@ -120,14 +120,14 @@ class NioTest {
         assertEquals(23, byteBuffer.position())
         assertEquals(23, byteBuffer.limit())
         channel.close()
-        assertEquals(channel is Buffer, channel.isOpen) // Buffer.close() does nothing.
+        assertEquals(isBuffer, channel.isOpen) // Buffer.close() does nothing.
     }
 
     /**
      * Does some basic reads from `channel`. We execute this against both Okio's channels and
      * also a standard implementation from the JDK to confirm that their behavior is consistent.
      */
-    private fun testReadableByteChannel(channel: ReadableByteChannel) {
+    private fun testReadableByteChannel(isBuffer: Boolean, channel: ReadableByteChannel) {
         assertTrue(channel.isOpen)
         val byteBuffer = ByteBuffer.allocate(1024)
         byteBuffer.position(3) // Cast necessary for Java 8.
@@ -137,7 +137,7 @@ class NioTest {
         assertEquals(23, byteBuffer.position())
         assertEquals(23, byteBuffer.limit())
         channel.close()
-        assertEquals(channel is Buffer, channel.isOpen()) // Buffer.close() does nothing.
+        assertEquals(isBuffer, channel.isOpen()) // Buffer.close() does nothing.
         byteBuffer.flip() // Cast necessary for Java 8.
         byteBuffer.position(3) // Cast necessary for Java 8.
         val data = ByteArray(byteBuffer.remaining())

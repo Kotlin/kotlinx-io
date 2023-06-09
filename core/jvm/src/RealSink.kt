@@ -40,13 +40,6 @@ internal actual class RealSink actual constructor(
   override fun write(source: ByteArray, offset: Int, byteCount: Int) =
     commonWrite(source, offset, byteCount)
 
-  override fun write(source: ByteBuffer): Int {
-    check(!closed) { "closed" }
-    val result = buffer.write(source)
-    emitCompleteSegments()
-    return result
-  }
-
   override fun writeAll(source: RawSource) = commonWriteAll(source)
   override fun write(source: RawSource, byteCount: Long): Sink = commonWrite(source, byteCount)
   override fun writeByte(byte: Byte) = commonWriteByte(byte)
@@ -57,8 +50,6 @@ internal actual class RealSink actual constructor(
   override fun emit() = commonEmit()
 
   override fun flush() = commonFlush()
-
-  override fun isOpen() = !closed
 
   override fun close() = commonClose()
 

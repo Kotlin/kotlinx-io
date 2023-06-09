@@ -22,10 +22,11 @@ package kotlinx.io
 
 import java.io.IOException
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import java.nio.channels.WritableByteChannel
 import java.nio.charset.Charset
 
-public actual sealed interface Sink : RawSink, WritableByteChannel {
+public actual sealed interface Sink : RawSink {
   public actual val buffer: Buffer
 
   public actual fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
@@ -74,22 +75,27 @@ public fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex:
  * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
  */
 public fun Sink.outputStream(): OutputStream {
+  val isClosed: () -> Boolean = when (this) {
+    is RealSink -> this::closed
+    is Buffer -> { { false } }
+  }
+
   return object : OutputStream() {
     override fun write(b: Int) {
-      if (!isOpen) throw IOException("closed")
+      if (isClosed()) throw IOException("closed")
       buffer.writeByte(b.toByte())
       emitCompleteSegments()
     }
 
     override fun write(data: ByteArray, offset: Int, byteCount: Int) {
-      if (!isOpen) throw IOException("closed")
+      if (isClosed()) throw IOException("closed")
       buffer.write(data, offset, byteCount)
       emitCompleteSegments()
     }
 
     override fun flush() {
       // For backwards compatibility, a flush() on a closed stream is a no-op.
-      if (isOpen) {
+      if (!isClosed()) {
         this@outputStream.flush()
       }
     }
@@ -97,5 +103,41 @@ public fun Sink.outputStream(): OutputStream {
     override fun close() = this@outputStream.close()
 
     override fun toString() = "${this@outputStream}.outputStream()"
+  }
+}
+
+/**
+ * Writes data from the [source] into this sink and returns the number of bytes written.
+ *
+ * @param source the source to read from.
+ */
+public fun Sink.write(source: ByteBuffer): Int {
+  val sizeBefore = buffer.size
+  buffer.readFrom(source)
+  val bytesRead = buffer.size - sizeBefore
+  emitCompleteSegments()
+  return bytesRead.toInt()
+}
+
+/**
+ * Returns [WritableByteChannel] backed by this sink. Closing the channel will also close the sink.
+ */
+public fun Sink.channel(): WritableByteChannel {
+  val isClosed: () -> Boolean = when (this) {
+    is RealSink -> this::closed
+    is Buffer -> { { false } }
+  }
+
+  return object : WritableByteChannel {
+    override fun close() {
+      this@channel.close()
+    }
+
+    override fun isOpen(): Boolean = !isClosed()
+
+    override fun write(source: ByteBuffer): Int {
+      check(!isClosed()) { "closed" }
+      return this@channel.write(source)
+    }
   }
 }
