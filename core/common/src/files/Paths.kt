@@ -5,7 +5,8 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.*
+import kotlinx.io.Sink
+import kotlinx.io.Source
 
 /**
  * A wrapper around a string representing a file path allowing to read from and write to a

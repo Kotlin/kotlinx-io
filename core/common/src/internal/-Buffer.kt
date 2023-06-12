@@ -849,8 +849,8 @@ internal inline fun Buffer.commonString(): String {
     }
   }
 
-  val text = peek().readUtf8()
-  val escapedText = data.decodeToString()
+  val text = data.decodeToString()
+  val escapedText = text
     .substring(0, i)
     .replace("\\", "\\\\")
     .replace("\n", "\\n")

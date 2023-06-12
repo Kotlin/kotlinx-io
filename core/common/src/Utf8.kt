@@ -158,7 +158,7 @@ public fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: 
  */
 @OptIn(DelicateIoApi::class)
 public fun Source.readUtf8(): String {
-  var req: Long = 1
+  var req: Long = Segment.SIZE.toLong()
   while (request(req)) {
     req *= 2
   }

@@ -5,6 +5,11 @@
 
 package kotlinx.io
 
+import kotlin.native.concurrent.SharedImmutable
+
+@SharedImmutable
+internal val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
+
 /**
  * Writes two bytes containing [short], in the little-endian order, to this sink.
  *
@@ -42,9 +47,72 @@ public fun <T: Sink> T.writeLongLe(long: Long): T {
  *
  * @param long the long to be written.
  */
+@OptIn(DelicateIoApi::class)
 public fun <T: Sink> T.writeDecimalLong(long: Long): T {
-    // TODO: optimize
-    writeUtf8(long.toString())
+    var v = long
+    if (v == 0L) {
+        // Both a shortcut and required since the following code can't handle zero.
+        writeByte('0'.code.toByte())
+        return this
+    }
+
+    var negative = false
+    if (v < 0L) {
+        v = -v
+        if (v < 0L) { // Only true for Long.MIN_VALUE.
+            return writeUtf8("-9223372036854775808")
+        }
+        negative = true
+    }
+
+    // Binary search for character width which favors matching lower numbers.
+    var width =
+        if (v < 100000000L)
+            if (v < 10000L)
+                if (v < 100L)
+                    if (v < 10L) 1
+                    else 2
+                else if (v < 1000L) 3
+                else 4
+            else if (v < 1000000L)
+                if (v < 100000L) 5
+                else 6
+            else if (v < 10000000L) 7
+            else 8
+        else if (v < 1000000000000L)
+            if (v < 10000000000L)
+                if (v < 1000000000L) 9
+                else 10
+            else if (v < 100000000000L) 11
+            else 12
+        else if (v < 1000000000000000L)
+            if (v < 10000000000000L) 13
+            else if (v < 100000000000000L) 14
+            else 15
+        else if (v < 100000000000000000L)
+            if (v < 10000000000000000L) 16
+            else 17
+        else if (v < 1000000000000000000L) 18
+        else 19
+    if (negative) {
+        ++width
+    }
+
+    val tail = buffer.writableSegment(width)
+    val data = tail.data
+    var pos = tail.limit + width // We write backwards from right to left.
+    while (v != 0L) {
+        val digit = (v % 10).toInt()
+        data[--pos] = HEX_DIGIT_BYTES[digit]
+        v /= 10
+    }
+    if (negative) {
+        data[--pos] = '-'.code.toByte()
+    }
+
+    tail.limit += width
+    buffer.size += width.toLong()
+    emitCompleteSegments()
     return this
 }
 
@@ -55,13 +123,49 @@ public fun <T: Sink> T.writeDecimalLong(long: Long): T {
  *
  * @param long the long to be written.
  */
+@OptIn(DelicateIoApi::class)
 public fun <T: Sink> T.writeHexadecimalUnsignedLong(long: Long): T {
-    if (long == 0L) {
+    var v = long
+    if (v == 0L) {
+        // Both a shortcut and required since the following code can't handle zero.
         writeByte('0'.code.toByte())
-    } else {
-        // TODO: optimize
-        writeUtf8(long.toHexString())
+        return this
     }
+
+    // Mask every bit below the most significant bit to a 1
+    // http://aggregate.org/MAGIC/#Most%20Significant%201%20Bit
+    var x = v
+    x = x or (x ushr 1)
+    x = x or (x ushr 2)
+    x = x or (x ushr 4)
+    x = x or (x ushr 8)
+    x = x or (x ushr 16)
+    x = x or (x ushr 32)
+
+    // Count the number of 1s
+    // http://aggregate.org/MAGIC/#Population%20Count%20(Ones%20Count)
+    x -= x ushr 1 and 0x5555555555555555
+    x = (x ushr 2 and 0x3333333333333333) + (x and 0x3333333333333333)
+    x = (x ushr 4) + x and 0x0f0f0f0f0f0f0f0f
+    x += x ushr 8
+    x += x ushr 16
+    x = (x and 0x3f) + ((x ushr 32) and 0x3f)
+
+    // Round up to the nearest full byte
+    val width = ((x + 3) / 4).toInt()
+
+    val tail = buffer.writableSegment(width)
+    val data = tail.data
+    var pos = tail.limit + width - 1
+    val start = tail.limit
+    while (pos >= start) {
+        data[pos] = HEX_DIGIT_BYTES[(v and 0xF).toInt()]
+        v = v ushr 4
+        pos--
+    }
+    tail.limit += width
+    buffer.size += width.toLong()
+    emitCompleteSegments()
     return this
 }
 
