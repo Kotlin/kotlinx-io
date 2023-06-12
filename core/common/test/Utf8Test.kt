@@ -26,7 +26,7 @@ import kotlinx.io.internal.commonAsUtf8ToByteArray
 import kotlinx.io.internal.processUtf8CodePoints
 import kotlin.test.*
 
-class Utf8KotlinTest {
+class Utf8Test {
   @Test fun oneByteCharacters() {
     assertEncoded("00", 0x00) // Smallest 1-byte character.
     assertEncoded("20", ' '.code)

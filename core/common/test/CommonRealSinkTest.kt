@@ -29,6 +29,7 @@ import kotlin.test.assertFailsWith
  * Tests solely for the behavior of RealBufferedSink's implementation. For generic
  * BufferedSink behavior use BufferedSinkTest.
  */
+@OptIn(DelicateIoApi::class)
 class CommonRealSinkTest {
   @Test fun bufferedSinkEmitsTailWhenItIsComplete() {
     val sink = Buffer()

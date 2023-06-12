@@ -27,8 +27,9 @@ import kotlin.test.assertFailsWith
 
 /**
  * Tests solely for the behavior of RealBufferedSource's implementation. For generic
- * BufferedSource behavior use BufferedSourceTest.
+ * BufferedSource behavior, use BufferedSourceTest.
  */
+@OptIn(DelicateIoApi::class)
 class CommonRealSourceTest {
   @Test fun indexOfStopsReadingAtLimit() {
     val buffer = Buffer().writeUtf8("abcdef")
@@ -130,10 +131,6 @@ class CommonRealSourceTest {
     assertFailsWith<IllegalStateException> {
       bufferedSource.readByte()
     }
-
-//    assertFailsWith<IllegalStateException> {
-//      bufferedSource.readByteString(10)
-//    }
   }
 
   /**
