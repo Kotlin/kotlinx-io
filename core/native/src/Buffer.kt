@@ -100,10 +100,6 @@ public actual class Buffer : Source, Sink {
 
   actual override fun close(): Unit = Unit
 
-  override fun equals(other: Any?): Boolean = commonEquals(other)
-
-  override fun hashCode(): Int = commonHashCode()
-
   override fun toString(): String = commonString()
 
   public actual fun copy(): Buffer = commonCopy()

@@ -111,10 +111,6 @@ public actual class Buffer : Source, Sink, Cloneable {
 
   actual override fun close(): Unit = Unit
 
-  override fun equals(other: Any?): Boolean = commonEquals(other)
-
-  override fun hashCode(): Int = commonHashCode()
-
   /**
    * Returns a human-readable string that describes the contents of this buffer. Typically, this
    * is a string like `[text=Hello]` or `[hex=0000ffff]`.

@@ -20,8 +20,10 @@
  */
 package kotlinx.io
 
-import kotlin.random.Random
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 private const val SEGMENT_SIZE = Segment.SIZE
 
@@ -273,41 +275,16 @@ class CommonBufferTest {
     assertEquals("ab", sink.readUtf8(2))
   }
 
-  @Suppress("ReplaceAssertBooleanWithAssertEquality")
-  @Test fun equalsAndHashCodeEmpty() {
-    val a = Buffer()
-    val b = Buffer()
-    assertTrue(a == b)
-    assertTrue(a.hashCode() == b.hashCode())
-  }
-
-  @Suppress("ReplaceAssertBooleanWithAssertEquality")
+  // Buffer don't override equals and hashCode
   @Test fun equalsAndHashCode() {
     val a = Buffer().writeUtf8("dog")
+    assertEquals(a, a)
+
     val b = Buffer().writeUtf8("hotdog")
-    assertFalse(a == b)
-    assertFalse(a.hashCode() == b.hashCode())
+    assertTrue(a != b)
 
     b.readUtf8(3) // Leaves b containing 'dog'.
-    assertTrue(a == b)
-    assertTrue(a.hashCode() == b.hashCode())
-  }
-
-  @Suppress("ReplaceAssertBooleanWithAssertEquality")
-  @Test fun equalsAndHashCodeSpanningSegments() {
-    val data = ByteArray(1024 * 1024)
-    val dice = Random(0)
-    dice.nextBytes(data)
-
-    val a = bufferWithRandomSegmentLayout(dice, data)
-    val b = bufferWithRandomSegmentLayout(dice, data)
-    assertTrue(a == b)
-    assertTrue(a.hashCode() == b.hashCode())
-
-    data[data.size / 2]++ // Change a single byte.
-    val c = bufferWithRandomSegmentLayout(dice, data)
-    assertFalse(a == c)
-    assertFalse(a.hashCode() == c.hashCode())
+    assertTrue(a != b)
   }
 
   /**

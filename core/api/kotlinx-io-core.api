@@ -12,13 +12,11 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, kotlinx/io/Sink, kot
 	public synthetic fun emit ()Lkotlinx/io/Sink;
 	public fun emitCompleteSegments ()Lkotlinx/io/Buffer;
 	public synthetic fun emitCompleteSegments ()Lkotlinx/io/Sink;
-	public fun equals (Ljava/lang/Object;)Z
 	public fun exhausted ()Z
 	public fun flush ()V
 	public final fun get (J)B
 	public fun getBuffer ()Lkotlinx/io/Buffer;
 	public final fun getSize ()J
-	public fun hashCode ()I
 	public fun peek ()Lkotlinx/io/Source;
 	public fun read (Lkotlinx/io/Buffer;J)J
 	public fun read ([BII)I
