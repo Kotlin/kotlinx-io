@@ -127,6 +127,7 @@ public fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
  *
  * @param codePoint the codePoint to be written.
  */
+@OptIn(DelicateIoApi::class)
 public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
   buffer.commonWriteUtf8CodePoint(codePoint)
   emitCompleteSegments()
@@ -143,6 +144,7 @@ public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
  * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range
  * out of the current string bounds.
  */
+@OptIn(DelicateIoApi::class)
 public fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): T {
   buffer.commonWriteUtf8(string, beginIndex, endIndex)
   emitCompleteSegments()
@@ -154,6 +156,7 @@ public fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: 
  *
  * Returns the empty string if this source is empty.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.readUtf8(): String {
   var req: Long = 1
   while (request(req)) {
@@ -168,7 +171,7 @@ public fun Source.readUtf8(): String {
  * Returns the empty string if this buffer is empty.
  */
 public fun Buffer.readUtf8(): String {
-  return commonReadUtf8(buffer.size)
+  return commonReadUtf8(size)
 }
 
 /**
@@ -179,6 +182,7 @@ public fun Buffer.readUtf8(): String {
  * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.readUtf8(byteCount: Long): String {
   require(byteCount)
   return buffer.commonReadUtf8(byteCount)
@@ -198,6 +202,7 @@ public fun Source.readUtf8(byteCount: Long): String {
  *
  * @throws EOFException when the source is exhausted before a complete code point can be read.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.readUtf8CodePoint(): Int {
   require(1)
 
@@ -215,7 +220,7 @@ public fun Source.readUtf8CodePoint(): Int {
  * @see Source.readUtf8CodePoint
  */
 public fun Buffer.readUtf8CodePoint(): Int {
-  return buffer.commonReadUtf8CodePoint()
+  return this.commonReadUtf8CodePoint()
 }
 
 /**
@@ -237,7 +242,7 @@ public fun Source.readUtf8Line(): String? {
       newlineSize = 1L
       break
     } else if (b == '\r'.code) {
-      if (peekSource.request(1) && peekSource.buffer[0].toInt() == '\n'.code) {
+      if (peekSource.startsWith('\n'.code.toByte())) {
         newlineSize = 2L
         break
       }
@@ -277,7 +282,7 @@ public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
       newlineSize = 1L
       break
     } else if (b == '\r'.code) {
-      if (peekSource.request(1) && peekSource.buffer[0].toInt() == '\n'.code) {
+      if (peekSource.startsWith('\n'.code.toByte())) {
         newlineSize = 2L
         break
       }
@@ -289,7 +294,7 @@ public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
     val nlCandidate = peekSource.readByte().toInt()
     if (nlCandidate == '\n'.code) {
       newlineSize = 1
-    } else if (nlCandidate == '\r'.code && peekSource.request(1) && peekSource.readByte().toInt() == '\n'.code) {
+    } else if (nlCandidate == '\r'.code && peekSource.startsWith('\n'.code.toByte())) {
       newlineSize = 2
     }
   }

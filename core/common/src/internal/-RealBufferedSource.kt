@@ -27,6 +27,7 @@ package kotlinx.io.internal
 
 import kotlinx.io.*
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonRead(sink: Buffer, byteCount: Long): Long {
   require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
   check(!closed) { "closed" }
@@ -40,6 +41,7 @@ internal inline fun RealSource.commonRead(sink: Buffer, byteCount: Long): Long {
   return buffer.read(sink, toRead)
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonExhausted(): Boolean {
   check(!closed) { "closed" }
   return buffer.exhausted() && source.read(buffer, Segment.SIZE.toLong()) == -1L
@@ -49,6 +51,7 @@ internal inline fun RealSource.commonRequire(byteCount: Long) {
   if (!request(byteCount)) throw EOFException()
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonRequest(byteCount: Long): Boolean {
   require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
   check(!closed) { "closed" }
@@ -58,28 +61,13 @@ internal inline fun RealSource.commonRequest(byteCount: Long): Boolean {
   return true
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonReadByte(): Byte {
   require(1)
   return buffer.readByte()
 }
 
-internal inline fun RealSource.commonReadFully(sink: ByteArray) {
-  try {
-    require(sink.size.toLong())
-  } catch (e: EOFException) {
-    // The underlying source is exhausted. Copy the bytes we got before rethrowing.
-    var offset = 0
-    while (buffer.size > 0L) {
-      val read = buffer.read(sink, offset, buffer.size.toInt())
-      if (read == -1) throw AssertionError()
-      offset += read
-    }
-    throw e
-  }
-
-  buffer.readFully(sink)
-}
-
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonRead(sink: ByteArray, offset: Int, byteCount: Int): Int {
   checkOffsetAndCount(sink.size.toLong(), offset.toLong(), byteCount.toLong())
 
@@ -92,6 +80,7 @@ internal inline fun RealSource.commonRead(sink: ByteArray, offset: Int, byteCoun
   return buffer.read(sink, offset, toRead)
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonReadFully(sink: RawSink, byteCount: Long) {
   try {
     require(byteCount)
@@ -106,6 +95,7 @@ internal inline fun RealSource.commonReadFully(sink: RawSink, byteCount: Long) {
   buffer.readFully(sink, byteCount)
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonReadAll(sink: RawSink): Long {
   var totalBytesWritten: Long = 0
   while (source.read(buffer, Segment.SIZE.toLong()) != -1L) {
@@ -122,21 +112,25 @@ internal inline fun RealSource.commonReadAll(sink: RawSink): Long {
   return totalBytesWritten
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonReadShort(): Short {
   require(2)
   return buffer.readShort()
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonReadInt(): Int {
   require(4)
   return buffer.readInt()
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonReadLong(): Long {
   require(8)
   return buffer.readLong()
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonSkip(byteCount: Long) {
   var remainingByteCount = byteCount
   check(!closed) { "closed" }
@@ -154,6 +148,7 @@ internal inline fun RealSource.commonPeek(): Source {
   return PeekSource(this).buffer()
 }
 
+@OptIn(DelicateIoApi::class)
 internal inline fun RealSource.commonClose() {
   if (closed) return
   closed = true

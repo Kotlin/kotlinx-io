@@ -46,6 +46,7 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  * number was not present.
  * @throws EOFException if the source is exhausted before a call of this method.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.readDecimalLong(): Long {
     require(1)
     var b = readByte()
@@ -105,6 +106,7 @@ public fun Source.readDecimalLong(): Long {
  * hexadecimal was not found.
  * @throws EOFException if the source is exhausted before a call of this method.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.readHexadecimalUnsignedLong(): Long {
     require(1)
     var b = readByte()
@@ -184,6 +186,7 @@ public fun Source.readByteArray(byteCount: Long): ByteArray {
     return readByteArrayImpl(byteCount)
 }
 
+@OptIn(DelicateIoApi::class)
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Source.readByteArrayImpl(size: Long): ByteArray {
     var arraySize = size
@@ -276,3 +279,6 @@ public fun Source.readUIntLe(): UInt = readIntLe().toUInt()
  * @throws EOFException when there are not enough data to read an unsigned long value.
  */
 public fun Source.readULongLe(): ULong = readLongLe().toULong()
+
+@OptIn(DelicateIoApi::class)
+public fun Source.startsWith(byte: Byte): Boolean = request(1) && buffer[0] == byte

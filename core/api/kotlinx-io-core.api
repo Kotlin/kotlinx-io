@@ -172,6 +172,7 @@ public final class kotlinx/io/SourceExtKt {
 	public static final fun readULongLe (Lkotlinx/io/Source;)J
 	public static final fun readUShort (Lkotlinx/io/Source;)S
 	public static final fun readUShortLe (Lkotlinx/io/Source;)S
+	public static final fun startsWith (Lkotlinx/io/Source;B)Z
 }
 
 public final class kotlinx/io/SourceKt {
