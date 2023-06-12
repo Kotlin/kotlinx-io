@@ -217,7 +217,6 @@ public fun Source.readFully(sink: ByteArray) {
     var offset = 0
     while (offset < sink.size) {
         val bytesRead = read(sink, offset)
-        // TODO: can we read 0 bytes indefinitely?
         if (bytesRead == -1) {
             throw EOFException()
         }

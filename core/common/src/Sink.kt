@@ -60,8 +60,6 @@ public expect sealed interface Sink : RawSink {
    *
    * @throws IndexOutOfBoundsException when a range specified by [offset] and [byteCount]
    * is out of range of [source] array indices.
-   *
-   * @sample kotlinx.io.AbstractSinkTest.writeByteArray
    */
   public fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size - offset): Sink
 
@@ -77,7 +75,7 @@ public expect sealed interface Sink : RawSink {
    * Removes [byteCount] bytes from [source] and write them to this sink.
    *
    * If [source] will be exhausted before reading [byteCount] from it then an exception throws on
-   * attempt to read remaining bytes will be propagated to a caller of this method.
+   * an attempt to read remaining bytes will be propagated to a caller of this method.
    *
    * @param source the source to consume data from.
    * @param byteCount the number of bytes to read from [source] and to write into this sink.

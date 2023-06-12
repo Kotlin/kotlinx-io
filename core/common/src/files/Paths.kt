@@ -7,18 +7,24 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 
-/*
- * The very base skeleton just to play around
+/**
+ * A wrapper around a string representing a file path allowing to read from and write to a
+ * corresponding file using [Sink] and [Source].
  */
-
 public expect class Path
 
-// Returns Path for the given string without much of a validation
+/**
+ * Returns Path for the given string without much of a validation.
+ */
 public expect fun Path(path: String): Path
 
-// Returns source for the given file or throws if path is not a file or does not exist
+/**
+ * Returns [Source] for the given file or throws if path is not a file or does not exist
+ */
 public expect fun Path.source(): Source
 
-// Returns sink for the given path, creates file if it doesn't exist, throws if it's directory,
-// overwrites contents
+/**
+ * Returns [Sink] for the given path, creates file if it doesn't exist, throws if it's a directory,
+ * overwrites contents.
+ */
 public expect fun Path.sink(): Sink

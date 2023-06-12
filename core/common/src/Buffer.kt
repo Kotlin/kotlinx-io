@@ -106,12 +106,10 @@ public expect class Buffer() : Source, Sink {
    */
   public fun clear()
 
-  // TODO: figure out what this method may actually throw
   /**
    * Discards [byteCount]` bytes from the head of this buffer.
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
-   * @throws ??? when [byteCount] exceeds buffer's [size].
    */
   override fun skip(byteCount: Long)
 

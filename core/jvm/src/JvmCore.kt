@@ -31,7 +31,6 @@ import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.Path as NioPath
 
-// TODO: improve test coverage
 /**
  * Returns [RawSink] that writes to an output stream.
  *
@@ -70,7 +69,6 @@ private open class OutputStreamSink(
   override fun toString() = "sink($out)"
 }
 
-// TODO: improve test coverage
 /**
  * Returns [RawSource] that reads from an input stream.
  *

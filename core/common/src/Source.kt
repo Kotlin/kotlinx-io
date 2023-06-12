@@ -51,8 +51,6 @@ public expect sealed interface Source : RawSource {
    * Returns true if there are no more bytes in this source.
    *
    * The call of this method will block until there are bytes to read or the source is definitely exhausted.
-   *
-   * @throws ??? when the source is closed.
    */
   public fun exhausted(): Boolean
 

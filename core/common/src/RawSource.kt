@@ -31,7 +31,6 @@ package kotlinx.io
  * is both more efficient and more convenient. Use [buffer] to wrap any raw source with a buffer.
  */
 public interface RawSource : Closeable {
-  // TODO: should be throw something if byteCount = 0?
   /**
    * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
    * Returns the number of bytes read, or -1 if this source is exhausted.
@@ -40,7 +39,6 @@ public interface RawSource : Closeable {
    * @param byteCount the number of bytes to read.
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
-   * @throws IOException if the source was canceled.
    */
   public fun read(sink: Buffer, byteCount: Long): Long
 

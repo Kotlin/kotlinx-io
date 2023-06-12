@@ -138,7 +138,7 @@ public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
  * Encodes the characters at [beginIndex] up to [endIndex] from [string] in UTF-8 and writes it to this sink.
  *
  * @param string the string to be encoded.
- * @param beginIndex the index of a first character to encode, 0 by default.
+ * @param beginIndex the index of the first character to encode, 0 by default.
  * @param endIndex the index of a character past to a last character to encode, `string.length` by default.
  *
  * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range

@@ -135,8 +135,6 @@ public actual class Buffer : Source, Sink, Cloneable {
  * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
  *
  * @param input the stream to read data from.
- *
- * @throws ???
  */
 public fun Buffer.readFrom(input: InputStream): Buffer {
   readFrom(input, Long.MAX_VALUE, true)
@@ -184,8 +182,6 @@ private fun Buffer.readFrom(input: InputStream, byteCount: Long, forever: Boolea
  *
  * @param out the [OutputStream] to write to.
  * @param byteCount the number of bytes to be written, [Buffer.size] by default.
- *
- * @throws ???
  */
 public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size): Buffer {
   checkOffsetAndCount(size, 0, byteCount)

@@ -86,8 +86,6 @@ internal inline fun RealSource.commonReadFully(sink: RawSink, byteCount: Long) {
     require(byteCount)
   } catch (e: EOFException) {
     // The underlying source is exhausted. Copy the bytes we got before rethrowing.
-    //sink.writeAll(buffer)
-    // TODO: it seems to be incorrect.
     sink.write(buffer, buffer.size)
     throw e
   }
