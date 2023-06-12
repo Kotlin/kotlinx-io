@@ -5,9 +5,12 @@
 
 package kotlinx.io.benchmarks
 
+import kotlinx.benchmark.Benchmark
+import kotlinx.benchmark.Param
+import kotlinx.benchmark.Setup
+import kotlinx.io.read
+import kotlinx.io.write
 import java.nio.ByteBuffer
-
-import kotlinx.benchmark.*
 
 open class ByteBufferReadWrite: BufferRWBenchmarkBase() {
     private var inputBuffer = ByteBuffer.allocate(0)

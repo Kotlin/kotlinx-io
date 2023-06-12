@@ -5,7 +5,13 @@
 
 package kotlinx.io.benchmarks
 
-import kotlinx.benchmark.*
+import kotlinx.benchmark.Benchmark
+import kotlinx.benchmark.Blackhole
+import kotlinx.benchmark.Param
+import kotlinx.benchmark.Setup
+import kotlinx.io.inputStream
+import kotlinx.io.outputStream
+import kotlinx.io.readFully
 
 open class InputStreamByteRead: BufferRWBenchmarkBase() {
    private val stream = buffer.inputStream()
