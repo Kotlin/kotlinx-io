@@ -4,7 +4,8 @@
  */
 package kotlinx.io
 
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

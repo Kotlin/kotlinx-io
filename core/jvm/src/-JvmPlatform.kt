@@ -23,9 +23,6 @@ package kotlinx.io
 
 internal actual fun String.asUtf8ToByteArray(): ByteArray = toByteArray(Charsets.UTF_8)
 
-// TODO remove if https://youtrack.jetbrains.com/issue/KT-20641 provides a better solution
-// actual typealias ArrayIndexOutOfBoundsException = java.lang.ArrayIndexOutOfBoundsException
-
 public actual typealias IOException = java.io.IOException
 
 public actual typealias EOFException = java.io.EOFException

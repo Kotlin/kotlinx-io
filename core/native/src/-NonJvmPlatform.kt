@@ -20,13 +20,9 @@
  */
 package kotlinx.io
 
-import kotlinx.io.internal.*
+import kotlinx.io.internal.commonAsUtf8ToByteArray
 
 internal actual fun String.asUtf8ToByteArray(): ByteArray = commonAsUtf8ToByteArray()
-
-//actual open class ArrayIndexOutOfBoundsException actual constructor(
-//  message: String?
-//) : IndexOutOfBoundsException(message)
 
 public actual open class IOException actual constructor(
   message: String?,

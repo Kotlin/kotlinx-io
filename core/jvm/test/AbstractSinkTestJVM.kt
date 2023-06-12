@@ -24,7 +24,9 @@ package kotlinx.io
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.text.Charsets.UTF_8
 
 private const val SEGMENT_SIZE = Segment.SIZE

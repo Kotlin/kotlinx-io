@@ -25,7 +25,10 @@ import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 private const val SEGMENT_SIZE = Segment.SIZE
 

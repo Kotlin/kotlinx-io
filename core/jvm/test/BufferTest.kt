@@ -20,11 +20,13 @@
  */
 package kotlinx.io
 
-import kotlin.test.*
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.text.Charsets.UTF_8
 
 private const val SEGMENT_SIZE = Segment.SIZE
