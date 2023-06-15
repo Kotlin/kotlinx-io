@@ -51,7 +51,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     @Test
     fun outputStreamBounds() {
         val out: OutputStream = sink.outputStream()
-        assertFailsWith<IndexOutOfBoundsException> {
+        assertFailsWith<IllegalArgumentException> {
             out.write(ByteArray(100), 50, 51)
         }
     }

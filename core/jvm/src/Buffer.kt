@@ -145,6 +145,7 @@ public fun Buffer.readFrom(input: InputStream): Buffer {
  * @param byteCount the number of bytes read from [input].
  *
  * @throws IOException when [input] exhausted before reading [byteCount] bytes from it.
+ * @throws IllegalArgumentException when [byteCount] is negative.
  */
 public fun Buffer.readFrom(input: InputStream, byteCount: Long): Buffer {
   require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
@@ -178,6 +179,8 @@ private fun Buffer.readFrom(input: InputStream, byteCount: Long, forever: Boolea
  *
  * @param out the [OutputStream] to write to.
  * @param byteCount the number of bytes to be written, [Buffer.size] by default.
+ *
+ * @throws IllegalArgumentException when [byteCount] is negative or exceeds the buffer size.
  */
 public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size): Buffer {
   checkOffsetAndCount(size, 0, byteCount)
@@ -210,7 +213,7 @@ public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size): Buffer {
  * @param offset the offset to start copying data from, `0` by default.
  * @param byteCount the number of bytes to copy, all data starting from the [offset] by default.
  *
- * @throws IndexOutOfBoundsException when [byteCount] and [offset] represents a range out of the buffer bounds.
+ * @throws IllegalArgumentException when [byteCount] and [offset] represents a range out of the buffer bounds.
  */
 public fun Buffer.copyTo(
   out: OutputStream,
@@ -286,6 +289,9 @@ public fun Buffer.readFrom(source: ByteBuffer): Buffer {
   return this
 }
 
+/**
+ * Returns a new [ByteChannel] instance representing this buffer.
+ */
 public fun Buffer.channel(): ByteChannel = object : ByteChannel {
   override fun read(sink: ByteBuffer): Int = writeTo(sink)
 

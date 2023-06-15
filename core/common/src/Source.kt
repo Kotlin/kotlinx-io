@@ -51,6 +51,8 @@ public expect sealed interface Source : RawSource {
    * Returns true if there are no more bytes in this source.
    *
    * The call of this method will block until there are bytes to read or the source is definitely exhausted.
+   *
+   * @throws IllegalStateException when the source is closed.
    */
   public fun exhausted(): Boolean
 
@@ -64,6 +66,7 @@ public expect sealed interface Source : RawSource {
    * @param byteCount the number of bytes that the buffer should contain.
    *
    * @throws EOFException when the source is exhausted before the required bytes count could be read.
+   * @throws IllegalStateException when the source is closed.
    */
   public fun require(byteCount: Long)
 
@@ -75,6 +78,8 @@ public expect sealed interface Source : RawSource {
    * filling the buffer with [byteCount] bytes of data.
    *
    * @param byteCount the number of bytes that the buffer should contain.
+   *
+   * @throws IllegalStateException when the source is closed.
    */
   public fun request(byteCount: Long): Boolean
 
@@ -82,6 +87,7 @@ public expect sealed interface Source : RawSource {
    * Removes a byte from this source and returns it.
    *
    * @throws EOFException when there are no more bytes to read.
+   * @throws IllegalStateException when the source is closed.
    */
   public fun readByte(): Byte
 
@@ -89,6 +95,7 @@ public expect sealed interface Source : RawSource {
    * Removes two bytes from this source and returns a short integer composed of it according to the big-endian order.
    *
    * @throws EOFException when there are not enough data to read a short value.
+   * @throws IllegalStateException when the source is closed.
    */
   public fun readShort(): Short
 
@@ -96,6 +103,7 @@ public expect sealed interface Source : RawSource {
    * Removes four bytes from this source and returns an integer composed of it according to the big-endian order.
    *
    * @throws EOFException when there are not enough data to read an int value.
+   * @throws IllegalStateException when the source is closed.
    */
   public fun readInt(): Int
 
@@ -103,6 +111,7 @@ public expect sealed interface Source : RawSource {
    * Removes eight bytes from this source and returns a long integer composed of it according to the big-endian order.
    *
    * @throws EOFException when there are not enough data to read a long value.
+   * @throws IllegalStateException when the source is closed.
    */
   public fun readLong(): Long
 
@@ -112,6 +121,7 @@ public expect sealed interface Source : RawSource {
    * @param byteCount the number of bytes to be skipped.
    *
    * @throws EOFException when the source is exhausted before the requested number of bytes can be skipped.
+   * @throws IllegalStateException when the source is closed.
    */
   public fun skip(byteCount: Long)
 
@@ -124,8 +134,9 @@ public expect sealed interface Source : RawSource {
    * @param byteCount the number of bytes that should be written into [sink],
    * size of the [sink] subarray starting at [offset] by default.
    *
-   * @throws IndexOutOfBoundsException when a range specified by [offset] and [byteCount]
+   * @throws IllegalArgumentException when a range specified by [offset] and [byteCount]
    * is out of range of [sink] array indices.
+   * @throws IllegalStateException when the source is closed.
    */
   public fun read(sink: ByteArray, offset: Int = 0, byteCount: Int = sink.size - offset): Int
 
@@ -137,6 +148,7 @@ public expect sealed interface Source : RawSource {
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws EOFException when the requested number of bytes cannot be read.
+   * @throws IllegalStateException when the source or [sink] is closed.
    */
   public fun readFully(sink: RawSink, byteCount: Long)
 
@@ -147,6 +159,8 @@ public expect sealed interface Source : RawSource {
    * Return 0 if this source is exhausted.
    *
    * @param sink the sink to which data will be written from this source.
+   *
+   * @throws IllegalStateException when the source or [sink] is closed.
    */
   public fun readAll(sink: RawSink): Long
 
@@ -155,6 +169,8 @@ public expect sealed interface Source : RawSource {
    * The returned source becomes invalid once this source is next read or closed.
    *
    * Peek could be used to lookahead and read the same data multiple times.
+   *
+   * @throws IllegalStateException when the source is closed.
    */
   public fun peek(): Source
 }

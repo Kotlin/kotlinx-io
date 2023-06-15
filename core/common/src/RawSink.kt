@@ -38,12 +38,15 @@ public expect interface RawSink : Closeable {
    * @param source the source to read data from.
    * @param byteCount the number of bytes to write.
    *
-   * @throws IndexOutOfBoundsException when the [source]'s size is below [byteCount].
+   * @throws IllegalArgumentException when the [source]'s size is below [byteCount] or [byteCount] is negative.
+   * @throws IllegalStateException when the sink is closed.
    */
   public fun write(source: Buffer, byteCount: Long)
 
   /**
    * Pushes all buffered bytes to their final destination.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
   public fun flush()
 

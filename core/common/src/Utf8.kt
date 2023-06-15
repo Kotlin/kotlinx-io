@@ -80,7 +80,7 @@ import kotlinx.io.internal.commonWriteUtf8CodePoint
  * @param beginIndex the index of the first character to encode, inclusive.
  * @param endIndex the index of the character past the last character to encode, exclusive.
  *
- * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range
+ * @throws IllegalArgumentException when [beginIndex] or [endIndex] correspond to a range
  * out of the current string bounds.
  */
 public fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
@@ -126,6 +126,8 @@ public fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
  * Encodes [codePoint] in UTF-8 and writes it to this sink.
  *
  * @param codePoint the codePoint to be written.
+ *
+ * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
 public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
@@ -141,8 +143,9 @@ public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
  * @param beginIndex the index of the first character to encode, 0 by default.
  * @param endIndex the index of a character past to a last character to encode, `string.length` by default.
  *
- * @throws IndexOutOfBoundsException when [beginIndex] or [endIndex] correspond to a range
+ * @throws IllegalArgumentException when [beginIndex] or [endIndex] correspond to a range
  * out of the current string bounds.
+ * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
 public fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): T {
@@ -155,6 +158,8 @@ public fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: 
  * Removes all bytes from this source, decodes them as UTF-8, and returns the string.
  *
  * Returns the empty string if this source is empty.
+ *
+ * @throws IllegalStateException when the source is closed.
  */
 @OptIn(DelicateIoApi::class)
 public fun Source.readUtf8(): String {
@@ -181,6 +186,7 @@ public fun Buffer.readUtf8(): String {
  *
  * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
+ * @throws IllegalStateException when the source is closed.
  */
 @OptIn(DelicateIoApi::class)
 public fun Source.readUtf8(byteCount: Long): String {
@@ -201,6 +207,7 @@ public fun Source.readUtf8(byteCount: Long): String {
  * encodings (such as `0xc080` for the NUL character in modified UTF-8).
  *
  * @throws EOFException when the source is exhausted before a complete code point can be read.
+ * @throws IllegalStateException when the source is closed.
  */
 @OptIn(DelicateIoApi::class)
 public fun Source.readUtf8CodePoint(): Int {
@@ -229,6 +236,8 @@ public fun Buffer.readUtf8CodePoint(): Int {
  *
  * On the end of the stream this method returns null. If the source doesn't end with a line break, then
  * an implicit line break is assumed. Null is returned once the source is exhausted.
+ *
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readUtf8Line(): String? {
   if (!request(1)) return null
@@ -269,8 +278,11 @@ public fun Source.readUtf8Line(): String? {
  *
  * @throws EOFException when the source does not contain a string consisting with at most [limit] bytes followed by
  * line break characters.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalArgumentException when [limit] is negative.
  */
 public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
+  require(limit >= 0) { "limit is negative: $limit" }
   if (!request(1)) throw EOFException()
 
   val peekSource = peek()

@@ -31,7 +31,7 @@ internal val HEX_DIGIT_CHARS =
 
 internal fun checkOffsetAndCount(size: Long, offset: Long, byteCount: Long) {
   if (offset or byteCount < 0 || offset > size || size - offset < byteCount) {
-    throw IndexOutOfBoundsException("size=$size offset=$offset byteCount=$byteCount")
+    throw IllegalArgumentException("size=$size offset=$offset byteCount=$byteCount")
   }
 }
 

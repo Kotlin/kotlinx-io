@@ -81,6 +81,8 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
  * Decodes whole content of this stream into a string using [charset]. Returns empty string if the source is exhausted.
  *
  * @param charset the [Charset] to use for string decoding.
+ *
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readString(charset: Charset): String {
   var req = 1L
@@ -97,6 +99,8 @@ public fun Source.readString(charset: Charset): String {
  * @param charset the [Charset] to use for string decoding.
  *
  * @throws EOFException when the source exhausted before [byteCount] bytes could be read from it.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalArgumentException if [byteCount] is negative.
  */
 public fun Source.readString(byteCount: Long, charset: Charset): String {
   require(byteCount)
@@ -143,6 +147,8 @@ public fun Source.inputStream(): InputStream {
  * Reads data from this source into [sink].
  *
  * @param sink the sink to write the data to.
+ *
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.read(sink: ByteBuffer): Int {
   if (buffer.size == 0L) {

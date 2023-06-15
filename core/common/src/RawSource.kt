@@ -39,6 +39,7 @@ public interface RawSource : Closeable {
    * @param byteCount the number of bytes to read.
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
+   * @throws IllegalStateException when the source is closed.
    */
   public fun read(sink: Buffer, byteCount: Long): Long
 

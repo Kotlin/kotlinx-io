@@ -461,15 +461,15 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     val sink = ByteArray(4)
 
-    assertFailsWith<IndexOutOfBoundsException> {
+    assertFailsWith<IllegalArgumentException> {
       source.read(sink, 4, 1)
     }
 
-    assertFailsWith<IndexOutOfBoundsException> {
+    assertFailsWith<IllegalArgumentException> {
       source.read(sink, 1, 4)
     }
 
-    assertFailsWith<IndexOutOfBoundsException> {
+    assertFailsWith<IllegalArgumentException> {
       source.read(sink, -1, 2)
     }
   }

@@ -261,7 +261,7 @@ class CommonBufferTest {
 
   @Test fun getByteOfEmptyBuffer() {
     val buffer = Buffer()
-    assertFailsWith<IndexOutOfBoundsException> {
+    assertFailsWith<IllegalArgumentException> {
       buffer[0]
     }
   }

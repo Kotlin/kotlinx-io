@@ -59,7 +59,8 @@ public actual sealed interface Sink : RawSink {
  * @param beginIndex the index of the first character to encode, inclusive, 0 by default.
  * @param endIndex the index of the last character to encode, exclusive, `string.size` by default.
  *
- * @throws IndexOutOfBoundsException when [beginIndex] and [endIndex] correspond to a range out of [string] bounds.
+ * @throws IllegalArgumentException when [beginIndex] and [endIndex] correspond to a range out of [string] bounds.
+ * @throws IllegalStateException when the sink is closed.
  */
 public fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length): T {
   require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
@@ -110,6 +111,8 @@ public fun Sink.outputStream(): OutputStream {
  * Writes data from the [source] into this sink and returns the number of bytes written.
  *
  * @param source the source to read from.
+ *
+ * @throws IllegalStateException when the sink is closed.
  */
 public fun Sink.write(source: ByteBuffer): Int {
   val sizeBefore = buffer.size

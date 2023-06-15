@@ -74,7 +74,7 @@ public expect class Buffer() : Source, Sink {
    * @param offset the offset to the first byte of data in this buffer to start copying from.
    * @param byteCount the number of bytes to copy.
    *
-   * @throws IndexOutOfBoundsException when [offset] and [byteCount] correspond to a range out of this buffer bounds.
+   * @throws IllegalArgumentException when [offset] and [byteCount] correspond to a range out of this buffer bounds.
    */
   public fun copyTo(
     out: Buffer,
@@ -95,7 +95,7 @@ public expect class Buffer() : Source, Sink {
    * Use of this method may expose significant performance penalties and it's not recommended to use it
    * for sequential access to a range of bytes within the buffer.
    *
-   * @throws IndexOutOfBoundsException when [pos] is out of this buffer's bounds.
+   * @throws IllegalArgumentException when [pos] is out of this buffer's bounds.
    */
   public operator fun get(pos: Long): Byte
 

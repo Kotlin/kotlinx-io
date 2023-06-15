@@ -58,8 +58,9 @@ public expect sealed interface Sink : RawSink {
    * @param offset the beginning of data within the [source], 0 by default.
    * @param byteCount the number of bytes to write, size of the [source] subarray starting at [offset] by default.
    *
-   * @throws IndexOutOfBoundsException when a range specified by [offset] and [byteCount]
+   * @throws IllegalArgumentException when a range specified by [offset] and [byteCount]
    * is out of range of [source] array indices.
+   * @throws IllegalStateException when the sink is closed.
    */
   public fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size - offset): Sink
 
@@ -68,6 +69,9 @@ public expect sealed interface Sink : RawSink {
    * Returns the number of bytes read which will be 0 if [source] is exhausted.
    *
    * @param source the source to consume data from.
+   *
+   * @throws IllegalStateException when the sink or [source] is closed.
+   *
    */
   public fun writeAll(source: RawSource): Long
 
@@ -81,6 +85,7 @@ public expect sealed interface Sink : RawSink {
    * @param byteCount the number of bytes to read from [source] and to write into this sink.
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
+   * @throws IllegalStateException when the sink or [source] is closed.
    */
   public fun write(source: RawSource, byteCount: Long): Sink
 
@@ -88,6 +93,8 @@ public expect sealed interface Sink : RawSink {
    * Writes a byte to this sink.
    *
    * @param byte the byte to be written.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
   public fun writeByte(byte: Byte): Sink
 
@@ -95,6 +102,8 @@ public expect sealed interface Sink : RawSink {
    * Writes two bytes containing [short], in the big-endian order, to this sink.
    *
    * @param short the short integer to be written.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
   public fun writeShort(short: Short): Sink
 
@@ -102,6 +111,8 @@ public expect sealed interface Sink : RawSink {
    * Writes four bytes containing [int], in the big-endian order, to this sink.
    *
    * @param int the integer to be written.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
   public fun writeInt(int: Int): Sink
 
@@ -109,12 +120,16 @@ public expect sealed interface Sink : RawSink {
    * Writes eight bytes containing [long], in the big-endian order, to this sink.
    *
    * @param long the long integer to be written.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
   public fun writeLong(long: Long): Sink
 
   /**
    * Writes all buffered data to the underlying sink, if one exists.
    * Then the underlying sink is explicitly flushed.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
   override fun flush()
 
@@ -124,6 +139,8 @@ public expect sealed interface Sink : RawSink {
    *
    * This method behaves like [flush], but has weaker guarantees.
    * Call this method before a buffered sink goes out of scope so that its data can reach its destination.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
   public fun emit(): Sink
 
@@ -134,6 +151,8 @@ public expect sealed interface Sink : RawSink {
    * Use this to limit the memory held in the buffer to a single segment.
    * Typically, application code will not need to call this: it is only necessary when
    * application code writes directly to this [buffer].
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
   @DelicateIoApi
   public fun emitCompleteSegments(): Sink

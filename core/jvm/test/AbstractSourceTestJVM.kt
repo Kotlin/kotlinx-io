@@ -116,7 +116,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         sink.writeUtf8("a".repeat(100))
         sink.emit()
         val input: InputStream = source.inputStream()
-        assertFailsWith<IndexOutOfBoundsException> {
+        assertFailsWith<IllegalArgumentException> {
             input.read(ByteArray(100), 50, 51)
         }
     }

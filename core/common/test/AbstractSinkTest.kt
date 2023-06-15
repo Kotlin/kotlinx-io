@@ -21,7 +21,9 @@
 
 package kotlinx.io
 
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class BufferSinkTest : AbstractSinkTest(SinkFactory.BUFFER)
 class RealSinkTest : AbstractSinkTest(SinkFactory.REAL_BUFFERED_SINK)
@@ -49,12 +51,12 @@ abstract class AbstractSinkTest internal constructor(
     assertEquals("[hex=000102]", data.toString())
     data.clear()
 
-    assertFailsWith<IndexOutOfBoundsException> {
+    assertFailsWith<IllegalArgumentException> {
       sink.write(source, -1, 1)
     }
     assertEquals(0, data.size)
 
-    assertFailsWith<IndexOutOfBoundsException> {
+    assertFailsWith<IllegalArgumentException> {
       sink.write(source, 1, source.size)
     }
     assertEquals(0, data.size)
@@ -219,17 +221,15 @@ abstract class AbstractSinkTest internal constructor(
     assertEquals("abcd", data.readUtf8())
   }
 
-  @Ignore // TODO: its unclear how write should behave
-  @Test fun writeBufferThrowsIOOBE() {
+  @Test fun writeBufferThrowsIEA() {
     val source: Buffer = Buffer().writeUtf8("abcd")
 
-    assertFailsWith<IndexOutOfBoundsException> {
+    assertFailsWith<IllegalArgumentException> {
       sink.write(source, 8)
     }
 
-    // Ensure that whatever was available was correctly written.
     sink.flush()
-    assertEquals("abcd", data.readUtf8())
+    assertEquals("", data.readUtf8())
   }
 
   @Test fun writeSourceWithNegativeBytesCount() {
@@ -343,9 +343,9 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeUtf8WithInvalidIndexes() {
-    assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", -1) }
-    assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", 0, 6) }
-    assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", 6) }
+    assertFailsWith<IllegalArgumentException> { sink.writeUtf8("hello", -1) }
+    assertFailsWith<IllegalArgumentException> { sink.writeUtf8("hello", 0, 6) }
+    assertFailsWith<IllegalArgumentException> { sink.writeUtf8("hello", 6) }
   }
 
   @Test fun writeUByte() {

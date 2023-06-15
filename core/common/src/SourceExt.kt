@@ -9,6 +9,7 @@ package kotlinx.io
  * Removes two bytes from this source and returns a short integer composed of it according to the little-endian order.
  *
  * @throws EOFException when there are not enough data to read a short value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readShortLe(): Short {
     return readShort().reverseBytes()
@@ -18,6 +19,7 @@ public fun Source.readShortLe(): Short {
  * Removes four bytes from this source and returns an integer composed of it according to the little-endian order.
  *
  * @throws EOFException when there are not enough data to read an int value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readIntLe(): Int {
     return readInt().reverseBytes()
@@ -27,6 +29,7 @@ public fun Source.readIntLe(): Int {
  * Removes eight bytes from this source and returns a long integer composed of it according to the little-endian order.
  *
  * @throws EOFException when there are not enough data to read a long value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readLongLe(): Long {
     return readLong().reverseBytes()
@@ -45,6 +48,7 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  * @throws NumberFormatException if the found digits do not fit into a `long` or a decimal
  * number was not present.
  * @throws EOFException if the source is exhausted before a call of this method.
+ * @throws IllegalStateException when the source is closed.
  */
 @OptIn(DelicateIoApi::class)
 public fun Source.readDecimalLong(): Long {
@@ -105,6 +109,7 @@ public fun Source.readDecimalLong(): Long {
  * @throws NumberFormatException if the found hexadecimal does not fit into a `long` or
  * hexadecimal was not found.
  * @throws EOFException if the source is exhausted before a call of this method.
+ * @throws IllegalStateException when the source is closed.
  */
 @OptIn(DelicateIoApi::class)
 public fun Source.readHexadecimalUnsignedLong(): Long {
@@ -147,6 +152,8 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
  * @param b the value to find.
  * @param fromIndex the start of the range to find [b], inclusive.
  * @param toIndex the end of the range to find [b], exclusive.
+ *
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MAX_VALUE): Long {
     require(fromIndex in 0..toIndex)
@@ -168,6 +175,8 @@ public fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MA
 
 /**
  * Removes all bytes from this source and returns them as a byte array.
+ *
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readByteArray(): ByteArray {
     return readByteArrayImpl( -1L)
@@ -180,6 +189,7 @@ public fun Source.readByteArray(): ByteArray {
  *
  * @throws IllegalArgumentException when byteCount is negative.
  * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readByteArray(byteCount: Long): ByteArray {
     check(byteCount >= 0)
@@ -212,6 +222,7 @@ private inline fun Source.readByteArrayImpl(size: Long): ByteArray {
  * Removes exactly `sink.length` bytes from this source and copies them into [sink].
  *
  * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readFully(sink: ByteArray) {
     var offset = 0
@@ -228,6 +239,7 @@ public fun Source.readFully(sink: ByteArray) {
  * Removes an unsigned byte from this source and returns it.
  *
  * @throws EOFException when there are no more bytes to read.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readUByte(): UByte = readByte().toUByte()
 
@@ -236,6 +248,7 @@ public fun Source.readUByte(): UByte = readByte().toUByte()
  * according to the big-endian order.
  *
  * @throws EOFException when there are not enough data to read an unsigned short value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readUShort(): UShort = readShort().toUShort()
 
@@ -244,6 +257,7 @@ public fun Source.readUShort(): UShort = readShort().toUShort()
  * according to the big-endian order.
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readUInt(): UInt = readInt().toUInt()
 
@@ -252,6 +266,7 @@ public fun Source.readUInt(): UInt = readInt().toUInt()
  * according to the big-endian order.
  *
  * @throws EOFException when there are not enough data to read an unsigned long value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readULong(): ULong = readLong().toULong()
 
@@ -260,6 +275,7 @@ public fun Source.readULong(): ULong = readLong().toULong()
  * according to the little-endian order.
  *
  * @throws EOFException when there are not enough data to read an unsigned short value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readUShortLe(): UShort = readShortLe().toUShort()
 
@@ -268,6 +284,7 @@ public fun Source.readUShortLe(): UShort = readShortLe().toUShort()
  * according to the little-endian order.
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readUIntLe(): UInt = readIntLe().toUInt()
 
@@ -276,8 +293,10 @@ public fun Source.readUIntLe(): UInt = readIntLe().toUInt()
  * according to the little-endian order.
  *
  * @throws EOFException when there are not enough data to read an unsigned long value.
+ * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readULongLe(): ULong = readLongLe().toULong()
 
+// TODO: add doc
 @OptIn(DelicateIoApi::class)
 public fun Source.startsWith(byte: Byte): Boolean = request(1) && buffer[0] == byte
