@@ -25,7 +25,10 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import java.net.Socket
+import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.StandardOpenOption
 import kotlin.test.*
 
@@ -102,14 +105,25 @@ class JvmPlatformTest {
         assertEquals(buffer.readUtf8(), "a")
     }
 
-    @Ignore("Not sure how to test this")
     @Test
     fun pathSourceWithOptions() {
         val folder = File(tempDir, "folder")
         folder.mkdir()
+
         val file = File(folder, "new.txt")
-        file.toPath().source(StandardOpenOption.CREATE_NEW)
-        // This still throws NoSuchFileException...
+        assertTrue(file.createNewFile())
+        val link = File(folder, "link.txt")
+        try {
+            Files.createSymbolicLink(link.toPath(), file.toPath())
+        } catch (e: UnsupportedOperationException) {
+            // the FS does not support symlinks
+            return
+        }
+
+        assertFailsWith<IOException> {
+            link.toPath().source(LinkOption.NOFOLLOW_LINKS).buffer().readUtf8Line()
+        }
+        assertNull(link.toPath().source().buffer().readUtf8Line())
     }
 
     @Test fun socketSink() {
