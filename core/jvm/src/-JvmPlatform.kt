@@ -26,5 +26,3 @@ internal actual fun String.asUtf8ToByteArray(): ByteArray = toByteArray(Charsets
 public actual typealias IOException = java.io.IOException
 
 public actual typealias EOFException = java.io.EOFException
-
-public actual typealias Closeable = java.io.Closeable

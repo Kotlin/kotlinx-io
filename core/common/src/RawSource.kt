@@ -30,7 +30,8 @@ package kotlinx.io
  * Most applications shouldn't operate on a raw source directly, but rather on a buffered [Source] which
  * is both more efficient and more convenient. Use [buffer] to wrap any raw source with a buffer.
  */
-public interface RawSource : Closeable {
+@OptIn(ExperimentalStdlibApi::class)
+public interface RawSource : AutoCloseableAlias {
   /**
    * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
    * Returns the number of bytes read, or -1 if this source is exhausted.

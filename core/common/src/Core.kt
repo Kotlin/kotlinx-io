@@ -43,27 +43,3 @@ private class BlackholeSink : RawSink {
   override fun flush() {}
   override fun close() {}
 }
-
-/**
- * Execute [block] then close this. This will be closed even if [block] throws.
- */
-public inline fun <T : Closeable?, R> T.use(block: (T) -> R): R {
-  var result: R? = null
-  var thrown: Throwable? = null
-
-  try {
-    result = block(this)
-  } catch (t: Throwable) {
-    thrown = t
-  }
-
-  try {
-    this?.close()
-  } catch (t: Throwable) {
-    if (thrown == null) thrown = t
-    else thrown.addSuppressed(t)
-  }
-
-  if (thrown != null) throw thrown
-  return result!!
-}

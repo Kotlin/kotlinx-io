@@ -32,7 +32,3 @@ public actual open class IOException actual constructor(
 }
 
 public actual open class EOFException actual constructor(message: String?) : IOException(message)
-
-public actual interface Closeable {
-  public actual fun close()
-}

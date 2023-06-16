@@ -51,7 +51,6 @@ public final class kotlinx/io/CoreKt {
 	public static final fun blackholeSink ()Lkotlinx/io/RawSink;
 	public static final fun buffer (Lkotlinx/io/RawSink;)Lkotlinx/io/Sink;
 	public static final fun buffer (Lkotlinx/io/RawSource;)Lkotlinx/io/Source;
-	public static final fun use (Ljava/io/Closeable;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public abstract interface annotation class kotlinx/io/DelicateIoApi : java/lang/annotation/Annotation {
@@ -69,13 +68,13 @@ public final class kotlinx/io/JvmCoreKt {
 	public static final fun source (Ljava/nio/file/Path;[Ljava/nio/file/OpenOption;)Lkotlinx/io/RawSource;
 }
 
-public abstract interface class kotlinx/io/RawSink : java/io/Closeable, java/io/Flushable {
+public abstract interface class kotlinx/io/RawSink : java/io/Flushable, java/lang/AutoCloseable {
 	public abstract fun close ()V
 	public abstract fun flush ()V
 	public abstract fun write (Lkotlinx/io/Buffer;J)V
 }
 
-public abstract interface class kotlinx/io/RawSource : java/io/Closeable {
+public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 	public abstract fun close ()V
 	public abstract fun read (Lkotlinx/io/Buffer;J)J
 }

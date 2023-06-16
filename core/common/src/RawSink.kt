@@ -31,7 +31,8 @@ package kotlinx.io
  * is both more efficient and more convenient. Use [buffer] to wrap any raw sink with a buffer.
  *
  */
-public expect interface RawSink : Closeable {
+@OptIn(ExperimentalStdlibApi::class)
+public expect interface RawSink : AutoCloseableAlias {
   /**
    * Removes [byteCount] bytes from [source] and appends them to this sink.
    *

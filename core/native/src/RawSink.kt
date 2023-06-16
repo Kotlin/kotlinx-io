@@ -20,7 +20,8 @@
  */
 package kotlinx.io
 
-public actual interface RawSink : Closeable {
+@OptIn(ExperimentalStdlibApi::class)
+public actual interface RawSink : AutoCloseableAlias {
   public actual fun write(source: Buffer, byteCount: Long)
 
   public actual fun flush()

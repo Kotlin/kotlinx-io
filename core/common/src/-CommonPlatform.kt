@@ -29,10 +29,10 @@ public expect open class IOException(message: String?, cause: Throwable?) : Exce
 
 public expect open class EOFException(message: String? = null) : IOException
 
-public expect interface Closeable {
-  /**
-   * Closes this object and releases the resources it holds. It is an error to use an object after
-   * it has been closed. It is safe to close an object more than once.
-   */
-  public fun close()
-}
+
+// There is no actual AutoCloseable on JVM (https://youtrack.jetbrains.com/issue/KT-55777),
+// but on JVM we have to explicitly implement by RawSink and the compiler does not allow that.
+// This is a workaround that should be removed as soon as stdlib will support AutoCloseable
+// actual typealias on JVM.
+@OptIn(ExperimentalStdlibApi::class)
+internal typealias AutoCloseableAlias = AutoCloseable

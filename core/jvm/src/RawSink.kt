@@ -20,10 +20,10 @@
  */
 package kotlinx.io
 
-import java.io.Closeable
 import java.io.Flushable
 
-public actual interface RawSink : Closeable, Flushable {
+@OptIn(ExperimentalStdlibApi::class)
+public actual interface RawSink : AutoCloseableAlias, Flushable {
   public actual fun write(source: Buffer, byteCount: Long)
 
   actual override fun flush()
