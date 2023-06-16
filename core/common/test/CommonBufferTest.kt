@@ -51,17 +51,17 @@ class CommonBufferTest {
     assertEquals("[size=0]", Buffer().toString())
 
     assertEquals("[text=a\\r\\nb\\nc\\rd\\\\e]",
-      Buffer().writeUtf8("a\r\nb\nc\rd\\e").toString())
+      Buffer().also { it.writeUtf8("a\r\nb\nc\rd\\e") }.toString())
 
     assertEquals("[text=Tyrannosaur]",
-      Buffer().writeUtf8("Tyrannosaur").toString())
+      Buffer().also { it.writeUtf8("Tyrannosaur") }.toString())
 
     assertEquals("[text=təˈranəˌsôr]",
-      Buffer().write("74c999cb8872616ec999cb8c73c3b472".decodeHex()).toString())
+      Buffer().also { it.write("74c999cb8872616ec999cb8c73c3b472".decodeHex()) }.toString())
 
     assertEquals("[hex=0000000000000000000000000000000000000000000000000000000000000000000000000000" +
         "0000000000000000000000000000000000000000000000000000]",
-      Buffer().write(ByteArray(64)).toString())
+      Buffer().also { it.write(ByteArray(64)) }.toString())
   }
 
   @Test fun multipleSegmentBuffers() {
@@ -277,10 +277,10 @@ class CommonBufferTest {
 
   // Buffer don't override equals and hashCode
   @Test fun equalsAndHashCode() {
-    val a = Buffer().writeUtf8("dog")
+    val a = Buffer().also { it.writeUtf8("dog") }
     assertEquals(a, a)
 
-    val b = Buffer().writeUtf8("hotdog")
+    val b = Buffer().also { it.writeUtf8("hotdog") }
     assertTrue(a != b)
 
     b.readUtf8(3) // Leaves b containing 'dog'.
@@ -292,17 +292,17 @@ class CommonBufferTest {
    * data by segment.
    */
   @Test fun readAllWritesAllSegmentsAtOnce() {
-    val write1 = Buffer().writeUtf8(
+    val write1 = Buffer()
+    write1.writeUtf8(
       'a'.repeat(Segment.SIZE) +
-        'b'.repeat(Segment.SIZE) +
-        'c'.repeat(Segment.SIZE)
-    )
+              'b'.repeat(Segment.SIZE) +
+              'c'.repeat(Segment.SIZE))
 
-    val source = Buffer().writeUtf8(
+    val source = Buffer()
+    source.writeUtf8(
       'a'.repeat(Segment.SIZE) +
-        'b'.repeat(Segment.SIZE) +
-        'c'.repeat(Segment.SIZE)
-    )
+              'b'.repeat(Segment.SIZE) +
+              'c'.repeat(Segment.SIZE))
 
     val mockSink = MockSink()
 
@@ -312,7 +312,7 @@ class CommonBufferTest {
   }
 
   @Test fun writeAllMultipleSegments() {
-    val source = Buffer().writeUtf8('a'.repeat(Segment.SIZE * 3))
+    val source = Buffer().also { it.writeUtf8('a'.repeat(Segment.SIZE * 3)) }
     val sink = Buffer()
 
     assertEquals((Segment.SIZE * 3).toLong(), sink.writeAll(source))
@@ -381,14 +381,14 @@ class CommonBufferTest {
 
   @Test fun copyToEmptySource() {
     val source = Buffer()
-    val target = Buffer().writeUtf8("aaa")
+    val target = Buffer().also { it.writeUtf8("aaa") }
     source.copyTo(target, 0L, 0L)
     assertEquals("", source.readUtf8())
     assertEquals("aaa", target.readUtf8())
   }
 
   @Test fun copyToEmptyTarget() {
-    val source = Buffer().writeUtf8("aaa")
+    val source = Buffer().also { it.writeUtf8("aaa") }
     val target = Buffer()
     source.copyTo(target, 0L, 3L)
     assertEquals("aaa", source.readUtf8())

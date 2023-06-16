@@ -36,9 +36,9 @@ public actual class Buffer : Source, Sink, Cloneable {
 
   actual override val buffer: Buffer get() = this
 
-  actual override fun emitCompleteSegments(): Buffer = this // Nowhere to emit to!
+  actual override fun emitCompleteSegments(): Unit = Unit // Nowhere to emit to!
 
-  actual override fun emit(): Buffer = this // Nowhere to emit to!
+  actual override fun emit(): Unit = Unit // Nowhere to emit to!
 
   override fun exhausted(): Boolean = size == 0L
 
@@ -56,7 +56,7 @@ public actual class Buffer : Source, Sink, Cloneable {
     out: Buffer,
     offset: Long,
     byteCount: Long
-  ): Buffer = commonCopyTo(out, offset, byteCount)
+  ): Unit = commonCopyTo(out, offset, byteCount)
 
   public actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
 
@@ -85,20 +85,20 @@ public actual class Buffer : Source, Sink, Cloneable {
     source: ByteArray,
     offset: Int,
     byteCount: Int
-  ): Buffer = commonWrite(source, offset, byteCount)
+  ): Unit = commonWrite(source, offset, byteCount)
 
   override fun writeAll(source: RawSource): Long = commonWriteAll(source)
 
-  actual override fun write(source: RawSource, byteCount: Long): Buffer =
+  actual override fun write(source: RawSource, byteCount: Long): Unit =
     commonWrite(source, byteCount)
 
-  actual override fun writeByte(byte: Byte): Buffer = commonWriteByte(byte)
+  actual override fun writeByte(byte: Byte): Unit = commonWriteByte(byte)
 
-  actual override fun writeShort(short: Short): Buffer = commonWriteShort(short)
+  actual override fun writeShort(short: Short): Unit = commonWriteShort(short)
 
-  actual override fun writeInt(int: Int): Buffer = commonWriteInt(int)
+  actual override fun writeInt(int: Int): Unit = commonWriteInt(int)
 
-  actual override fun writeLong(long: Long): Buffer = commonWriteLong(long)
+  actual override fun writeLong(long: Long): Unit = commonWriteLong(long)
 
   internal actual fun writableSegment(minimumCapacity: Int): Segment =
     commonWritableSegment(minimumCapacity)
@@ -182,7 +182,7 @@ private fun Buffer.readFrom(input: InputStream, byteCount: Long, forever: Boolea
  *
  * @throws IllegalArgumentException when [byteCount] is negative or exceeds the buffer size.
  */
-public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size): Buffer {
+public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size) {
   checkOffsetAndCount(size, 0, byteCount)
   var remainingByteCount = byteCount
 
@@ -202,8 +202,6 @@ public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size): Buffer {
       SegmentPool.recycle(toRecycle)
     }
   }
-
-  return this
 }
 
 /**
@@ -219,9 +217,9 @@ public fun Buffer.copyTo(
   out: OutputStream,
   offset: Long = 0L,
   byteCount: Long = size - offset
-): Buffer {
+) {
   checkOffsetAndCount(size, offset, byteCount)
-  if (byteCount == 0L) return this
+  if (byteCount == 0L) return
 
   var currentOffset = offset
   var remainingByteCount = byteCount
@@ -242,8 +240,6 @@ public fun Buffer.copyTo(
     currentOffset = 0L
     s = s.next
   }
-
-  return this
 }
 
 /**

@@ -55,12 +55,12 @@ public expect class Buffer() : Source, Sink {
    * This method does not affect the buffer's content as there is no upstream to write data to.
    */
   @DelicateIoApi
-  override fun emitCompleteSegments(): Buffer
+  override fun emitCompleteSegments()
 
   /**
    * This method does not affect the buffer's content as there is no upstream to write data to.
    */
-  override fun emit(): Buffer
+  override fun emit()
 
   /**
    * This method does not affect the buffer's content as there is no upstream to write data to.
@@ -80,7 +80,7 @@ public expect class Buffer() : Source, Sink {
     out: Buffer,
     offset: Long = 0L,
     byteCount: Long = size - offset
-  ): Buffer
+  )
 
   /**
    * Returns the number of bytes in segments that are fully filled and are no longer writable.
@@ -119,17 +119,17 @@ public expect class Buffer() : Source, Sink {
    */
   internal fun writableSegment(minimumCapacity: Int): Segment
 
-  override fun write(source: ByteArray, offset: Int, byteCount: Int): Buffer
+  override fun write(source: ByteArray, offset: Int, byteCount: Int)
 
-  override fun write(source: RawSource, byteCount: Long): Buffer
+  override fun write(source: RawSource, byteCount: Long)
 
-  override fun writeByte(byte: Byte): Buffer
+  override fun writeByte(byte: Byte)
 
-  override fun writeShort(short: Short): Buffer
+  override fun writeShort(short: Short)
 
-  override fun writeInt(int: Int): Buffer
+  override fun writeInt(int: Int)
 
-  override fun writeLong(long: Long): Buffer
+  override fun writeLong(long: Long)
 
   /**
    * Returns a deep copy of this buffer.

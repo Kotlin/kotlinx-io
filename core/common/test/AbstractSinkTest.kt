@@ -172,7 +172,8 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeAll() {
-    val source = Buffer().writeUtf8("abcdef")
+    val source = Buffer()
+    source.writeUtf8("abcdef")
 
     assertEquals(6, sink.writeAll(source))
     assertEquals(0, source.size)
@@ -187,7 +188,8 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeSource() {
-    val source = Buffer().writeUtf8("abcdef")
+    val source = Buffer()
+    source.writeUtf8("abcdef")
 
     // Force resolution of the Source method overload.
     sink.write(source as RawSource, 4)
@@ -210,7 +212,7 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeSourcePropagatesEof() {
-    val source: RawSource = Buffer().writeUtf8("abcd")
+    val source: RawSource = Buffer().also { it.writeUtf8("abcd") }
 
     assertFailsWith<EOFException> {
       sink.write(source, 8)
@@ -222,7 +224,8 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeBufferThrowsIEA() {
-    val source: Buffer = Buffer().writeUtf8("abcd")
+    val source: Buffer = Buffer()
+    source.writeUtf8("abcd")
 
     assertFailsWith<IllegalArgumentException> {
       sink.write(source, 8)
@@ -233,7 +236,8 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeSourceWithNegativeBytesCount() {
-    val source = Buffer().writeByte(0)
+    val source = Buffer()
+    source.writeByte(0)
 
     assertFailsWith<IllegalArgumentException> {
       sink.write(source, -1L)
@@ -306,7 +310,11 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   private fun assertLongDecimalString(string: String, value: Long) {
-    sink.writeDecimalLong(value).writeUtf8("zzz").flush()
+    with (sink) {
+      writeDecimalLong(value)
+      writeUtf8("zzz")
+      flush()
+    }
     val expected = "${string}zzz"
     val actual = data.readUtf8()
     assertEquals(expected, actual, "$value expected $expected but was $actual")
@@ -324,7 +332,11 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   private fun assertLongHexString(value: Long) {
-    sink.writeHexadecimalUnsignedLong(value).writeUtf8("zzz").flush()
+    with (sink) {
+      writeHexadecimalUnsignedLong(value)
+      writeUtf8("zzz")
+      flush()
+    }
     val expected = "${value.toHexString()}zzz"
     val actual = data.readUtf8()
     assertEquals(expected, actual, "$value expected $expected but was $actual")
@@ -349,37 +361,44 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeUByte() {
-    sink.writeByte(0xffu).flush()
+    sink.writeByte(0xffu)
+    sink.flush()
     assertEquals(-1, data.readByte())
   }
 
   @Test fun writeUShort() {
-    sink.writeShort(0xffffu).flush()
+    sink.writeShort(0xffffu)
+    sink.flush()
     assertEquals(-1, data.readShort())
   }
 
   @Test fun writeUShortLe() {
-    sink.writeShortLe(0x1234u).flush()
+    sink.writeShortLe(0x1234u)
+    sink.flush()
     assertEquals("[hex=3412]", data.toString())
   }
 
   @Test fun writeUInt() {
-    sink.writeInt(0xffffffffu).flush()
+    sink.writeInt(0xffffffffu)
+    sink.flush()
     assertEquals(-1, data.readInt())
   }
 
   @Test fun writeUIntLe() {
-    sink.writeIntLe(0x12345678u).flush()
+    sink.writeIntLe(0x12345678u)
+    sink.flush()
     assertEquals("[hex=78563412]", data.toString())
   }
 
   @Test fun writeULong() {
-    sink.writeLong(0xffffffffffffffffu).flush()
+    sink.writeLong(0xffffffffffffffffu)
+    sink.flush()
     assertEquals(-1, data.readLong())
   }
 
   @Test fun writeULongLe() {
-    sink.writeLongLe(0x1234567890abcdefu).flush()
+    sink.writeLongLe(0x1234567890abcdefu)
+    sink.flush()
     assertEquals("[hex=efcdab9078563412]", data.toString())
   }
 }

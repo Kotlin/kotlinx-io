@@ -30,9 +30,9 @@ public actual class Buffer : Source, Sink {
 
   actual override val buffer: Buffer get() = this
 
-  actual override fun emitCompleteSegments(): Buffer = this // Nowhere to emit to!
+  actual override fun emitCompleteSegments(): Unit = Unit // Nowhere to emit to!
 
-  actual override fun emit(): Buffer = this // Nowhere to emit to!
+  actual override fun emit(): Unit = Unit // Nowhere to emit to!
 
   override fun exhausted(): Boolean = size == 0L
 
@@ -48,7 +48,7 @@ public actual class Buffer : Source, Sink {
     out: Buffer,
     offset: Long,
     byteCount: Long
-  ): Buffer = commonCopyTo(out, offset, byteCount)
+  ): Unit = commonCopyTo(out, offset, byteCount)
 
   public actual operator fun get(pos: Long): Byte = commonGet(pos)
 
@@ -76,21 +76,21 @@ public actual class Buffer : Source, Sink {
   internal actual fun writableSegment(minimumCapacity: Int): Segment =
     commonWritableSegment(minimumCapacity)
 
-  actual override fun write(source: ByteArray, offset: Int, byteCount: Int): Buffer =
+  actual override fun write(source: ByteArray, offset: Int, byteCount: Int): Unit =
     commonWrite(source, offset, byteCount)
 
   override fun writeAll(source: RawSource): Long = commonWriteAll(source)
 
-  actual override fun write(source: RawSource, byteCount: Long): Buffer =
+  actual override fun write(source: RawSource, byteCount: Long): Unit =
     commonWrite(source, byteCount)
 
-  actual override fun writeByte(byte: Byte): Buffer = commonWriteByte(byte)
+  actual override fun writeByte(byte: Byte): Unit = commonWriteByte(byte)
 
-  actual override fun writeShort(short: Short): Buffer = commonWriteShort(short)
+  actual override fun writeShort(short: Short): Unit = commonWriteShort(short)
 
-  actual override fun writeInt(int: Int): Buffer = commonWriteInt(int)
+  actual override fun writeInt(int: Int): Unit = commonWriteInt(int)
 
-  actual override fun writeLong(long: Long): Buffer = commonWriteLong(long)
+  actual override fun writeLong(long: Long): Unit = commonWriteLong(long)
 
   override fun write(source: Buffer, byteCount: Long): Unit = commonWrite(source, byteCount)
 

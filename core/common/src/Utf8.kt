@@ -130,10 +130,9 @@ public fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
+public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int) {
   buffer.commonWriteUtf8CodePoint(codePoint)
   emitCompleteSegments()
-  return this
 }
 
 /**
@@ -148,10 +147,9 @@ public fun <T: Sink> T.writeUtf8CodePoint(codePoint: Int): T {
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): T {
+public fun <T: Sink> T.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length) {
   buffer.commonWriteUtf8(string, beginIndex, endIndex)
   emitCompleteSegments()
-  return this
 }
 
 /**

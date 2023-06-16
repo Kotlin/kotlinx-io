@@ -166,7 +166,7 @@ class CommonRealSinkTest {
     val bufferedSink = mockSink.buffer()
 
     bufferedSink.buffer.writeUtf8("abc")
-    assertEquals(3, bufferedSink.writeAll(Buffer().writeUtf8("def")))
+    assertEquals(3, bufferedSink.writeAll(Buffer().also { it.writeUtf8("def") }))
 
     assertEquals(6, bufferedSink.buffer.size)
     assertEquals("abcdef", bufferedSink.buffer.readUtf8(6))
@@ -183,13 +183,13 @@ class CommonRealSinkTest {
   }
 
   @Test fun writeAllWritesOneSegmentAtATime() {
-    val write1 = Buffer().writeUtf8("a".repeat(Segment.SIZE))
-    val write2 = Buffer().writeUtf8("b".repeat(Segment.SIZE))
-    val write3 = Buffer().writeUtf8("c".repeat(Segment.SIZE))
+    val write1 = Buffer().also { it.writeUtf8("a".repeat(Segment.SIZE)) }
+    val write2 = Buffer().also { it.writeUtf8("b".repeat(Segment.SIZE)) }
+    val write3 = Buffer().also { it.writeUtf8("c".repeat(Segment.SIZE)) }
 
-    val source = Buffer().writeUtf8(
-      "${"a".repeat(Segment.SIZE)}${"b".repeat(Segment.SIZE)}${"c".repeat(Segment.SIZE)}"
-    )
+    val source = Buffer()
+    source.writeUtf8(
+      "${"a".repeat(Segment.SIZE)}${"b".repeat(Segment.SIZE)}${"c".repeat(Segment.SIZE)}")
 
     val mockSink = MockSink()
     val bufferedSink = mockSink.buffer()

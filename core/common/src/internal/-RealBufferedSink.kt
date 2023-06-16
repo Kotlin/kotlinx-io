@@ -39,11 +39,11 @@ internal inline fun RealSink.commonWrite(
   source: ByteArray,
   offset: Int,
   byteCount: Int
-): Sink {
+) {
   checkOffsetAndCount(source.size.toLong(), offset.toLong(), byteCount.toLong())
   check(!closed) { "closed" }
   buffer.write(source, offset, byteCount)
-  return emitCompleteSegments()
+  emitCompleteSegments()
 }
 
 @OptIn(DelicateIoApi::class)
@@ -59,7 +59,7 @@ internal inline fun RealSink.commonWriteAll(source: RawSource): Long {
 }
 
 @OptIn(DelicateIoApi::class)
-internal inline fun RealSink.commonWrite(source: RawSource, byteCount: Long): Sink {
+internal inline fun RealSink.commonWrite(source: RawSource, byteCount: Long) {
   require(byteCount >= 0) { "byteCount ($byteCount) should not be negative."}
   var remainingByteCount = byteCount
   while (remainingByteCount > 0L) {
@@ -68,51 +68,48 @@ internal inline fun RealSink.commonWrite(source: RawSource, byteCount: Long): Si
     remainingByteCount -= read
     emitCompleteSegments()
   }
-  return this
 }
 
 @OptIn(DelicateIoApi::class)
-internal inline fun RealSink.commonWriteByte(b: Byte): Sink {
+internal inline fun RealSink.commonWriteByte(b: Byte) {
   check(!closed) { "closed" }
   buffer.writeByte(b)
-  return emitCompleteSegments()
+  emitCompleteSegments()
 }
 
 @OptIn(DelicateIoApi::class)
-internal inline fun RealSink.commonWriteShort(s: Short): Sink {
+internal inline fun RealSink.commonWriteShort(s: Short) {
   check(!closed) { "closed" }
   buffer.writeShort(s)
-  return emitCompleteSegments()
+  emitCompleteSegments()
 }
 
 @OptIn(DelicateIoApi::class)
-internal inline fun RealSink.commonWriteInt(i: Int): Sink {
+internal inline fun RealSink.commonWriteInt(i: Int) {
   check(!closed) { "closed" }
   buffer.writeInt(i)
-  return emitCompleteSegments()
+  emitCompleteSegments()
 }
 
 @OptIn(DelicateIoApi::class)
-internal inline fun RealSink.commonWriteLong(v: Long): Sink {
+internal inline fun RealSink.commonWriteLong(v: Long) {
   check(!closed) { "closed" }
   buffer.writeLong(v)
-  return emitCompleteSegments()
+  emitCompleteSegments()
 }
 
 @OptIn(DelicateIoApi::class)
-internal inline fun RealSink.commonEmitCompleteSegments(): Sink {
+internal inline fun RealSink.commonEmitCompleteSegments() {
   check(!closed) { "closed" }
   val byteCount = buffer.completeSegmentByteCount()
   if (byteCount > 0L) sink.write(buffer, byteCount)
-  return this
 }
 
 @OptIn(DelicateIoApi::class)
-internal inline fun RealSink.commonEmit(): Sink {
+internal inline fun RealSink.commonEmit() {
   check(!closed) { "closed" }
   val byteCount = buffer.size
   if (byteCount > 0L) sink.write(buffer, byteCount)
-  return this
 }
 
 @OptIn(DelicateIoApi::class)

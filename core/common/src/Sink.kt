@@ -62,7 +62,7 @@ public expect sealed interface Sink : RawSink {
    * is out of range of [source] array indices.
    * @throws IllegalStateException when the sink is closed.
    */
-  public fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size - offset): Sink
+  public fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size - offset)
 
   /**
    * Removes all bytes from [source] and write them to this sink.
@@ -87,7 +87,7 @@ public expect sealed interface Sink : RawSink {
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws IllegalStateException when the sink or [source] is closed.
    */
-  public fun write(source: RawSource, byteCount: Long): Sink
+  public fun write(source: RawSource, byteCount: Long)
 
   /**
    * Writes a byte to this sink.
@@ -96,7 +96,7 @@ public expect sealed interface Sink : RawSink {
    *
    * @throws IllegalStateException when the sink is closed.
    */
-  public fun writeByte(byte: Byte): Sink
+  public fun writeByte(byte: Byte)
 
   /**
    * Writes two bytes containing [short], in the big-endian order, to this sink.
@@ -105,7 +105,7 @@ public expect sealed interface Sink : RawSink {
    *
    * @throws IllegalStateException when the sink is closed.
    */
-  public fun writeShort(short: Short): Sink
+  public fun writeShort(short: Short)
 
   /**
    * Writes four bytes containing [int], in the big-endian order, to this sink.
@@ -114,7 +114,7 @@ public expect sealed interface Sink : RawSink {
    *
    * @throws IllegalStateException when the sink is closed.
    */
-  public fun writeInt(int: Int): Sink
+  public fun writeInt(int: Int)
 
   /**
    * Writes eight bytes containing [long], in the big-endian order, to this sink.
@@ -123,7 +123,7 @@ public expect sealed interface Sink : RawSink {
    *
    * @throws IllegalStateException when the sink is closed.
    */
-  public fun writeLong(long: Long): Sink
+  public fun writeLong(long: Long)
 
   /**
    * Writes all buffered data to the underlying sink, if one exists.
@@ -142,7 +142,7 @@ public expect sealed interface Sink : RawSink {
    *
    * @throws IllegalStateException when the sink is closed.
    */
-  public fun emit(): Sink
+  public fun emit()
 
   /**
    * Writes complete segments to the underlying sink, if one exists.
@@ -155,5 +155,5 @@ public expect sealed interface Sink : RawSink {
    * @throws IllegalStateException when the sink is closed.
    */
   @DelicateIoApi
-  public fun emitCompleteSegments(): Sink
+  public fun emitCompleteSegments()
 }

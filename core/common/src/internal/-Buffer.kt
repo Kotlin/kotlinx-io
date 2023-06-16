@@ -64,9 +64,9 @@ internal inline fun Buffer.commonCopyTo(
   out: Buffer,
   offset: Long,
   byteCount: Long
-): Buffer {
+) {
   checkOffsetAndCount(size, offset, byteCount)
-  if (byteCount == 0L) return this
+  if (byteCount == 0L) return
 
   var currentOffset = offset
   var remainingByteCount = byteCount
@@ -96,8 +96,6 @@ internal inline fun Buffer.commonCopyTo(
     currentOffset = 0L
     s = s.next
   }
-
-  return this
 }
 
 internal inline fun Buffer.commonCompleteSegmentByteCount(): Long {
@@ -283,7 +281,7 @@ internal inline fun Buffer.commonWrite(
   source: ByteArray,
   offset: Int,
   byteCount: Int
-): Buffer {
+) {
   var currentOffset = offset
   checkOffsetAndCount(source.size.toLong(), currentOffset.toLong(), byteCount.toLong())
 
@@ -304,7 +302,6 @@ internal inline fun Buffer.commonWrite(
   }
 
   size += byteCount.toLong()
-  return this
 }
 
 internal inline fun Buffer.commonRead(sink: ByteArray, offset: Int, byteCount: Int): Int {
@@ -326,9 +323,6 @@ internal inline fun Buffer.commonRead(sink: ByteArray, offset: Int, byteCount: I
 
   return toCopy
 }
-
-internal const val OVERFLOW_ZONE = Long.MIN_VALUE / 10L
-internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
 
 internal inline fun Buffer.commonReadFully(sink: RawSink, byteCount: Long) {
   if (size < byteCount) {
@@ -445,7 +439,7 @@ internal inline fun Buffer.commonReadUtf8CodePoint(): Int {
   }
 }
 
-internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int): Buffer {
+internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int) {
   checkOffsetAndCount(string.length.toLong(), beginIndex.toLong(), (endIndex - beginIndex).toLong())
   //require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
   //require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
@@ -533,11 +527,9 @@ internal inline fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endI
       }
     }
   }
-
-  return this
 }
 
-internal inline fun Buffer.commonWriteUtf8CodePoint(codePoint: Int): Buffer {
+internal inline fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
   when {
     codePoint < 0x80 -> {
       // Emit a 7-bit code point with 1 byte.
@@ -584,8 +576,6 @@ internal inline fun Buffer.commonWriteUtf8CodePoint(codePoint: Int): Buffer {
       throw IllegalArgumentException("Unexpected code point: 0x${codePoint.toHexString()}")
     }
   }
-
-  return this
 }
 
 internal inline fun Buffer.commonWriteAll(source: RawSource): Long {
@@ -598,24 +588,22 @@ internal inline fun Buffer.commonWriteAll(source: RawSource): Long {
   return totalBytesRead
 }
 
-internal inline fun Buffer.commonWrite(source: RawSource, byteCount: Long): Buffer {
+internal inline fun Buffer.commonWrite(source: RawSource, byteCount: Long) {
   var remainingByteCount = byteCount
   while (remainingByteCount > 0L) {
     val read = source.read(this, remainingByteCount)
     if (read == -1L) throw EOFException()
     remainingByteCount -= read
   }
-  return this
 }
 
-internal inline fun Buffer.commonWriteByte(b: Byte): Buffer {
+internal inline fun Buffer.commonWriteByte(b: Byte) {
   val tail = writableSegment(1)
   tail.data[tail.limit++] = b
   size += 1L
-  return this
 }
 
-internal inline fun Buffer.commonWriteShort(s: Short): Buffer {
+internal inline fun Buffer.commonWriteShort(s: Short) {
   val tail = writableSegment(2)
   val data = tail.data
   var limit = tail.limit
@@ -623,10 +611,9 @@ internal inline fun Buffer.commonWriteShort(s: Short): Buffer {
   data[limit++] = (s.toInt()        and 0xff).toByte() // ktlint-disable no-multi-spaces
   tail.limit = limit
   size += 2L
-  return this
 }
 
-internal inline fun Buffer.commonWriteInt(i: Int): Buffer {
+internal inline fun Buffer.commonWriteInt(i: Int) {
   val tail = writableSegment(4)
   val data = tail.data
   var limit = tail.limit
@@ -636,10 +623,9 @@ internal inline fun Buffer.commonWriteInt(i: Int): Buffer {
   data[limit++] = (i         and 0xff).toByte() // ktlint-disable no-multi-spaces
   tail.limit = limit
   size += 4L
-  return this
 }
 
-internal inline fun Buffer.commonWriteLong(v: Long): Buffer {
+internal inline fun Buffer.commonWriteLong(v: Long) {
   val tail = writableSegment(8)
   val data = tail.data
   var limit = tail.limit
@@ -653,7 +639,6 @@ internal inline fun Buffer.commonWriteLong(v: Long): Buffer {
   data[limit++] = (v         and 0xffL).toByte() // ktlint-disable no-multi-spaces
   tail.limit = limit
   size += 8L
-  return this
 }
 
 internal inline fun Buffer.commonWrite(source: Buffer, byteCount: Long) {

@@ -39,7 +39,7 @@ class JvmPlatformTest {
     @Test fun outputStreamSink() {
         val baos = ByteArrayOutputStream()
         val sink = baos.sink()
-        sink.write(Buffer().writeUtf8("a"), 1L)
+        sink.write(Buffer().also { it.writeUtf8("a") }, 1L)
         assertArrayEquals(baos.toByteArray(), byteArrayOf(0x61))
     }
 
@@ -54,7 +54,7 @@ class JvmPlatformTest {
     @Test fun fileSink() {
         val file = File(tempDir, "test")
         file.sink().use { sink ->
-            sink.write(Buffer().writeUtf8("a"), 1L)
+            sink.write(Buffer().also { it.writeUtf8("a") }, 1L)
         }
         assertEquals(file.readText(), "a")
     }
@@ -63,7 +63,7 @@ class JvmPlatformTest {
         val file = File(tempDir, "test")
         file.writeText("a")
         file.sink(append = true).use { sink ->
-            sink.write(Buffer().writeUtf8("b"), 1L)
+            sink.write(Buffer().also { it.writeUtf8("b") }, 1L)
         }
         assertEquals(file.readText(), "ab")
     }
@@ -81,7 +81,7 @@ class JvmPlatformTest {
     @Test fun pathSink() {
         val file = File(tempDir, "test")
         file.toPath().sink().use { sink ->
-            sink.write(Buffer().writeUtf8("a"), 1L)
+            sink.write(Buffer().also { it.writeUtf8("a") }, 1L)
         }
         assertEquals(file.readText(), "a")
     }
@@ -90,7 +90,7 @@ class JvmPlatformTest {
         val file = File(tempDir, "test")
         file.writeText("a")
         file.toPath().sink(StandardOpenOption.APPEND).use { sink ->
-            sink.write(Buffer().writeUtf8("b"), 1L)
+            sink.write(Buffer().also { it.writeUtf8("b") }, 1L)
         }
         assertEquals(file.readText(), "ab")
     }
@@ -132,7 +132,7 @@ class JvmPlatformTest {
             override fun getOutputStream() = baos
         }
         val sink = socket.sink()
-        sink.write(Buffer().writeUtf8("a"), 1L)
+        sink.write(Buffer().also { it.writeUtf8("a") }, 1L)
         assertArrayEquals(baos.toByteArray(), byteArrayOf(0x61))
     }
 

@@ -59,7 +59,7 @@ class BufferTest {
 
     @Test
     fun copyToStream() {
-        val buffer = Buffer().writeUtf8("hello, world!")
+        val buffer = Buffer().also { it.writeUtf8("hello, world!") }
         val out = ByteArrayOutputStream()
         buffer.copyTo(out)
         val outString = String(out.toByteArray(), UTF_8)
@@ -81,7 +81,7 @@ class BufferTest {
 
     @Test
     fun writeToStream() {
-        val buffer = Buffer().writeUtf8("hello, world!")
+        val buffer = Buffer().also { it.writeUtf8("hello, world!") }
         val out = ByteArrayOutputStream()
         buffer.writeTo(out)
         val outString = String(out.toByteArray(), UTF_8)
@@ -101,7 +101,7 @@ class BufferTest {
     @Test
     fun readFromSpanningSegments() {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
-        val buffer = Buffer().writeUtf8("a".repeat(SEGMENT_SIZE - 10))
+        val buffer = Buffer().also { it.writeUtf8("a".repeat(SEGMENT_SIZE - 10)) }
         buffer.readFrom(input)
         val out = buffer.readUtf8()
         assertEquals("a".repeat(SEGMENT_SIZE - 10) + "hello, world!", out)

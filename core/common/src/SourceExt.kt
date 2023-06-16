@@ -80,9 +80,13 @@ public fun Source.readDecimalLong(): Long {
 
             // Detect when the digit would cause an overflow.
             if (value < OVERFLOW_ZONE || value == OVERFLOW_ZONE && digit < overflowDigit) {
-                val buffer = Buffer().writeDecimalLong(value).writeByte(b)
-                if (!negative) buffer.readByte() // Skip negative sign.
-                throw NumberFormatException("Number too large: ${buffer.readUtf8()}")
+                with(Buffer()) {
+                    writeDecimalLong(value)
+                    writeByte(b)
+
+                    if (!negative) readByte() // Skip negative sign.
+                    throw NumberFormatException("Number too large: ${readUtf8()}")
+                }
             }
             value = value * 10L + digit
             seen++
@@ -131,8 +135,11 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
             else -> break
         }
         if (result and -0x1000000000000000L != 0L) {
-            val buffer = Buffer().writeHexadecimalUnsignedLong(result).writeByte(b)
-            throw NumberFormatException("Number too large: " + buffer.readUtf8())
+            with(Buffer()){
+                writeHexadecimalUnsignedLong(result)
+                writeByte(b)
+                throw NumberFormatException("Number too large: " + readUtf8())
+            }
         }
         readByte() // consume byte
         result = result.shl(4) + bDigit

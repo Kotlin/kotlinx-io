@@ -97,18 +97,21 @@ open class DecimalLongBenchmark: BufferRWBenchmarkBase() {
     var value = 0L
 
     override fun padding(): ByteArray {
-        val tmpBuffer = Buffer()
-        while (tmpBuffer.size < minGap) {
-            // use space as a delimiter between consecutive decimal values
-            tmpBuffer.writeDecimalLong(value).writeByte(' '.code.toByte())
+        return with (Buffer()) {
+            while (size < minGap) {
+                writeDecimalLong(value)
+                // use space as a delimiter between consecutive decimal values
+                writeByte(' '.code.toByte())
+            }
+            readByteArray()
         }
-        return tmpBuffer.readByteArray()
     }
 
     @Benchmark
     fun benchmark(): Long {
         // use space as a delimiter between consecutive decimal values
-        buffer.writeDecimalLong(value).writeByte(' '.code.toByte())
+        buffer.writeDecimalLong(value)
+        buffer.writeByte(' '.code.toByte())
         val l = buffer.readDecimalLong()
         buffer.readByte() // consume the delimiter
         return l
@@ -120,16 +123,19 @@ open class HexadecimalLongBenchmark: BufferRWBenchmarkBase() {
     var value = 0L
 
     override fun padding(): ByteArray {
-        val tmpBuffer = Buffer()
-        while (tmpBuffer.size < minGap) {
-            tmpBuffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code.toByte())
+        return with(Buffer()) {
+            while (size < minGap) {
+                writeHexadecimalUnsignedLong(value)
+                writeByte(' '.code.toByte())
+            }
+            readByteArray()
         }
-        return tmpBuffer.readByteArray()
     }
 
     @Benchmark
     fun benchmark(): Long {
-        buffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code.toByte())
+        buffer.writeHexadecimalUnsignedLong(value)
+        buffer.writeByte(' '.code.toByte())
         val l = buffer.readHexadecimalUnsignedLong()
         buffer.readByte()
         return l
@@ -317,7 +323,11 @@ open class IndexOfBenchmark {
         if (valueOffset >= 0) array[valueOffset] = VALUE_TO_FIND
 
         val padding = ByteArray(paddingSize)
-        buffer.write(padding).write(array).skip(paddingSize.toLong())
+        with(buffer) {
+            write(padding)
+            write(array)
+            skip(paddingSize.toLong())
+        }
     }
 
     @Benchmark

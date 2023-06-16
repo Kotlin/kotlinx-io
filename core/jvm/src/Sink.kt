@@ -29,25 +29,25 @@ import java.nio.charset.Charset
 public actual sealed interface Sink : RawSink {
   public actual val buffer: Buffer
 
-  public actual fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
+  public actual fun write(source: ByteArray, offset: Int, byteCount: Int)
 
   public actual fun writeAll(source: RawSource): Long
 
-  public actual fun write(source: RawSource, byteCount: Long): Sink
+  public actual fun write(source: RawSource, byteCount: Long)
 
-  public actual fun writeByte(byte: Byte): Sink
+  public actual fun writeByte(byte: Byte)
 
-  public actual fun writeShort(short: Short): Sink
+  public actual fun writeShort(short: Short)
 
-  public actual fun writeInt(int: Int): Sink
+  public actual fun writeInt(int: Int)
 
-  public actual fun writeLong(long: Long): Sink
+  public actual fun writeLong(long: Long)
 
   actual override fun flush()
 
-  public actual fun emit(): Sink
+  public actual fun emit()
 
-  public actual fun emitCompleteSegments(): Sink
+  public actual fun emitCompleteSegments()
 }
 
 /**
@@ -62,14 +62,13 @@ public actual sealed interface Sink : RawSink {
  * @throws IllegalArgumentException when [beginIndex] and [endIndex] correspond to a range out of [string] bounds.
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length): T {
+public fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length) {
   require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
   require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
   require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }
   if (charset == Charsets.UTF_8) return writeUtf8(string, beginIndex, endIndex)
   val data = string.substring(beginIndex, endIndex).toByteArray(charset)
   write(data, 0, data.size)
-  return this
 }
 
 /**

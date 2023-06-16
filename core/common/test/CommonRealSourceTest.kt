@@ -32,7 +32,7 @@ import kotlin.test.assertFailsWith
 @OptIn(DelicateIoApi::class)
 class CommonRealSourceTest {
   @Test fun indexOfStopsReadingAtLimit() {
-    val buffer = Buffer().writeUtf8("abcdef")
+    val buffer = Buffer().also { it.writeUtf8("abcdef") }
     val bufferedSource = (
       object : RawSource by buffer {
         override fun read(sink: Buffer, byteCount: Long): Long {
@@ -138,13 +138,13 @@ class CommonRealSourceTest {
    * should buffer a segment, write it, and repeat.
    */
   @Test fun readAllReadsOneSegmentAtATime() {
-    val write1 = Buffer().writeUtf8("a".repeat(Segment.SIZE))
-    val write2 = Buffer().writeUtf8("b".repeat(Segment.SIZE))
-    val write3 = Buffer().writeUtf8("c".repeat(Segment.SIZE))
+    val write1 = Buffer().also { it.writeUtf8("a".repeat(Segment.SIZE)) }
+    val write2 = Buffer().also { it.writeUtf8("b".repeat(Segment.SIZE)) }
+    val write3 = Buffer().also { it.writeUtf8("c".repeat(Segment.SIZE)) }
 
-    val source = Buffer().writeUtf8(
-      "${"a".repeat(Segment.SIZE)}${"b".repeat(Segment.SIZE)}${"c".repeat(Segment.SIZE)}"
-    )
+    val source = Buffer()
+    source.writeUtf8(
+      "${"a".repeat(Segment.SIZE)}${"b".repeat(Segment.SIZE)}${"c".repeat(Segment.SIZE)}")
 
     val mockSink = MockSink()
     val bufferedSource = (source as RawSource).buffer()

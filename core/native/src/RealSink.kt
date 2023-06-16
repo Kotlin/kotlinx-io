@@ -35,7 +35,7 @@ internal actual class RealSink actual constructor(
     commonWrite(source, offset, byteCount)
 
   override fun writeAll(source: RawSource) = commonWriteAll(source)
-  override fun write(source: RawSource, byteCount: Long): Sink = commonWrite(source, byteCount)
+  override fun write(source: RawSource, byteCount: Long) = commonWrite(source, byteCount)
   override fun writeByte(byte: Byte) = commonWriteByte(byte)
   override fun writeShort(short: Short) = commonWriteShort(short)
   override fun writeInt(int: Int) = commonWriteInt(int)
