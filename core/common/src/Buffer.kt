@@ -583,10 +583,10 @@ public class Buffer : Source, Sink {
   override fun close(): Unit = Unit
 
   /**
-   * Returns a human-readable string that describes the contents of this buffer. Typically, this
-   * is a string like `[text=Hello]` or `[hex=0000ffff]`.
-   *
-   * TODO: update
+   * Returns a human-readable string that describes the contents of this buffer. For buffers containing
+   * few bytes, this is a string like `[text=Hello]` or `[hex=0000ffff]`. However, if the buffer is too large,
+   * a string will contain its size and only a prefix of data, like `[size=1024 hex=01234…]`. Thus, the string could not
+   * be used to compare buffers or verify buffer's content.
    */
   override fun toString(): String {
     // TODO: optimize implementation
