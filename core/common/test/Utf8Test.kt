@@ -299,18 +299,18 @@ class Utf8Test {
   }
 
   private fun Buffer.assertCodePointEncoded(expectedHex: String, codePoint: Int) {
-    buffer.writeUtf8CodePoint(codePoint)
-    assertArrayEquals(expectedHex.decodeHex(), buffer.readByteArray())
+    writeUtf8CodePoint(codePoint)
+    assertArrayEquals(expectedHex.decodeHex(), readByteArray())
   }
 
   private fun Buffer.assertCodePointDecoded(expectedCodePoint: Int, hex: String) {
-    buffer.write(hex.decodeHex())
-    assertEquals(expectedCodePoint, buffer.readUtf8CodePoint())
+    write(hex.decodeHex())
+    assertEquals(expectedCodePoint, readUtf8CodePoint())
   }
 
   private fun Buffer.assertUtf8StringEncoded(expectedHex: String, string: String) {
-    buffer.writeUtf8(string)
-    assertArrayEquals(expectedHex.decodeHex(), buffer.readByteArray())
+    writeUtf8(string)
+    assertArrayEquals(expectedHex.decodeHex(), readByteArray())
   }
 
   private fun assertStringEncoded(hex: String, string: String) {

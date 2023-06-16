@@ -21,9 +21,132 @@
 
 package kotlinx.io
 
-internal expect class RealSink(
-  sink: RawSink
-) : Sink {
+import kotlin.jvm.JvmField
+
+internal class RealSink(
   val sink: RawSink
-  var closed: Boolean
+) : Sink {
+  @JvmField
+  var closed: Boolean = false
+  private val bufferField = Buffer()
+
+  @DelicateIoApi
+  override val buffer: Buffer
+    get() = bufferField
+
+  @OptIn(DelicateIoApi::class)
+  override fun write(source: Buffer, byteCount: Long) {
+    require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
+    check(!closed) { "closed" }
+    bufferField.write(source, byteCount)
+    emitCompleteSegments()
+  }
+
+  @OptIn(DelicateIoApi::class)
+  override fun write(source: ByteArray, offset: Int, byteCount: Int) {
+    checkOffsetAndCount(source.size.toLong(), offset.toLong(), byteCount.toLong())
+    check(!closed) { "closed" }
+    bufferField.write(source, offset, byteCount)
+    emitCompleteSegments()
+  }
+
+  @OptIn(DelicateIoApi::class)
+  override fun writeAll(source: RawSource): Long {
+    var totalBytesRead = 0L
+    while (true) {
+      val readCount: Long = source.read(bufferField, Segment.SIZE.toLong())
+      if (readCount == -1L) break
+      totalBytesRead += readCount
+      emitCompleteSegments()
+    }
+    return totalBytesRead
+  }
+
+  @OptIn(DelicateIoApi::class)
+  override fun write(source: RawSource, byteCount: Long) {
+    require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
+    var remainingByteCount = byteCount
+    while (remainingByteCount > 0L) {
+      val read = source.read(bufferField, remainingByteCount)
+      if (read == -1L) throw EOFException()
+      remainingByteCount -= read
+      emitCompleteSegments()
+    }
+  }
+
+  @OptIn(DelicateIoApi::class)
+  override fun writeByte(byte: Byte) {
+    check(!closed) { "closed" }
+    bufferField.writeByte(byte)
+    emitCompleteSegments()
+  }
+
+  @OptIn(DelicateIoApi::class)
+  override fun writeShort(short: Short) {
+    check(!closed) { "closed" }
+    bufferField.writeShort(short)
+    emitCompleteSegments()
+  }
+
+  @OptIn(DelicateIoApi::class)
+  override fun writeInt(int: Int) {
+    check(!closed) { "closed" }
+    bufferField.writeInt(int)
+    emitCompleteSegments()
+  }
+
+  @OptIn(DelicateIoApi::class)
+  override fun writeLong(long: Long) {
+    check(!closed) { "closed" }
+    bufferField.writeLong(long)
+    emitCompleteSegments()
+  }
+
+  @DelicateIoApi
+  override fun emitCompleteSegments() {
+    check(!closed) { "closed" }
+    val byteCount = bufferField.completeSegmentByteCount()
+    if (byteCount > 0L) sink.write(bufferField, byteCount)
+  }
+
+  override fun emit() {
+    check(!closed) { "closed" }
+    val byteCount = bufferField.size
+    if (byteCount > 0L) sink.write(bufferField, byteCount)
+  }
+
+  override fun flush() {
+    check(!closed) { "closed" }
+    if (bufferField.size > 0L) {
+      sink.write(bufferField, bufferField.size)
+    }
+    sink.flush()
+  }
+
+  override fun close() {
+    if (closed) return
+
+    // Emit buffered data to the underlying sink. If this fails, we still need
+    // to close the sink; otherwise we risk leaking resources.
+    var thrown: Throwable? = null
+    try {
+      if (bufferField.size > 0) {
+        sink.write(bufferField, bufferField.size)
+      }
+    } catch (e: Throwable) {
+      thrown = e
+    }
+
+    try {
+      sink.close()
+    } catch (e: Throwable) {
+      if (thrown == null) thrown = e
+    }
+
+    closed = true
+
+    if (thrown != null) throw thrown
+  }
+
+  override fun toString() = "buffer($sink)"
 }

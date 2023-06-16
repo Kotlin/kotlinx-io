@@ -1,10 +1,7 @@
-public final class kotlinx/io/Buffer : java/lang/Cloneable, kotlinx/io/Sink, kotlinx/io/Source {
+public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun <init> ()V
 	public final fun clear ()V
-	public synthetic fun clone ()Ljava/lang/Object;
-	public fun clone ()Lkotlinx/io/Buffer;
 	public fun close ()V
-	public final fun completeSegmentByteCount ()J
 	public final fun copy ()Lkotlinx/io/Buffer;
 	public final fun copyTo (Lkotlinx/io/Buffer;JJ)V
 	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Lkotlinx/io/Buffer;JJILjava/lang/Object;)V
@@ -38,7 +35,7 @@ public final class kotlinx/io/Buffer : java/lang/Cloneable, kotlinx/io/Sink, kot
 	public fun writeShort (S)V
 }
 
-public final class kotlinx/io/BufferKt {
+public final class kotlinx/io/BufferExtJvmKt {
 	public static final fun channel (Lkotlinx/io/Buffer;)Ljava/nio/channels/ByteChannel;
 	public static final fun copyTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJ)V
 	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJILjava/lang/Object;)V

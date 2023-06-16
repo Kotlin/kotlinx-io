@@ -20,112 +20,12 @@
  */
 package kotlinx.io
 
-import kotlinx.io.internal.*
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
-
-public actual class Buffer : Source, Sink, Cloneable {
-  @JvmField internal actual var head: Segment? = null
-
-  public actual var size: Long = 0L
-    internal set
-
-  actual override val buffer: Buffer get() = this
-
-  actual override fun emitCompleteSegments(): Unit = Unit // Nowhere to emit to!
-
-  actual override fun emit(): Unit = Unit // Nowhere to emit to!
-
-  override fun exhausted(): Boolean = size == 0L
-
-  override fun require(byteCount: Long) {
-    if (size < byteCount) throw EOFException()
-  }
-
-  override fun request(byteCount: Long): Boolean = size >= byteCount
-
-  override fun peek(): Source {
-    return PeekSource(this).buffer()
-  }
-
-  public actual fun copyTo(
-    out: Buffer,
-    offset: Long,
-    byteCount: Long
-  ): Unit = commonCopyTo(out, offset, byteCount)
-
-  public actual fun completeSegmentByteCount(): Long = commonCompleteSegmentByteCount()
-
-  override fun readByte(): Byte = commonReadByte()
-
-  public actual operator fun get(pos: Long): Byte = commonGet(pos)
-
-  override fun readShort(): Short = commonReadShort()
-
-  override fun readInt(): Int = commonReadInt()
-
-  override fun readLong(): Long = commonReadLong()
-
-  override fun readFully(sink: RawSink, byteCount: Long): Unit = commonReadFully(sink, byteCount)
-
-  override fun readAll(sink: RawSink): Long = commonReadAll(sink)
-
-  override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int =
-    commonRead(sink, offset, byteCount)
-
-  public actual fun clear(): Unit = commonClear()
-
-  public actual override fun skip(byteCount: Long): Unit = commonSkip(byteCount)
-
-  actual override fun write(
-    source: ByteArray,
-    offset: Int,
-    byteCount: Int
-  ): Unit = commonWrite(source, offset, byteCount)
-
-  override fun writeAll(source: RawSource): Long = commonWriteAll(source)
-
-  actual override fun write(source: RawSource, byteCount: Long): Unit =
-    commonWrite(source, byteCount)
-
-  actual override fun writeByte(byte: Byte): Unit = commonWriteByte(byte)
-
-  actual override fun writeShort(short: Short): Unit = commonWriteShort(short)
-
-  actual override fun writeInt(int: Int): Unit = commonWriteInt(int)
-
-  actual override fun writeLong(long: Long): Unit = commonWriteLong(long)
-
-  internal actual fun writableSegment(minimumCapacity: Int): Segment =
-    commonWritableSegment(minimumCapacity)
-
-  override fun write(source: Buffer, byteCount: Long): Unit = commonWrite(source, byteCount)
-
-  override fun read(sink: Buffer, byteCount: Long): Long = commonRead(sink, byteCount)
-
-  public actual override fun flush(): Unit = Unit
-
-  actual override fun close(): Unit = Unit
-
-  /**
-   * Returns a human-readable string that describes the contents of this buffer. Typically, this
-   * is a string like `[text=Hello]` or `[hex=0000ffff]`.
-   */
-  override fun toString(): String = commonString()
-
-  public actual fun copy(): Buffer = commonCopy()
-
-  /**
-   * Returns a deep copy of this buffer.
-   *
-   * This method is equivalent to [copy].
-   */
-  public override fun clone(): Buffer = copy()
-}
 
 /**
  * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.

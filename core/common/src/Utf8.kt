@@ -69,10 +69,7 @@
 
 package kotlinx.io
 
-import kotlinx.io.internal.commonReadUtf8
-import kotlinx.io.internal.commonReadUtf8CodePoint
-import kotlinx.io.internal.commonWriteUtf8
-import kotlinx.io.internal.commonWriteUtf8CodePoint
+import kotlinx.io.internal.*
 
 /**
  * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeUtf8].
@@ -312,4 +309,242 @@ public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
   val line = readUtf8(offset)
   skip(newlineSize)
   return line
+}
+
+private fun Buffer.commonReadUtf8CodePoint(): Int {
+  if (size == 0L) throw EOFException()
+
+  val b0 = this[0]
+  var codePoint: Int
+  val byteCount: Int
+  val min: Int
+
+  when {
+    b0 and 0x80 == 0 -> {
+      // 0xxxxxxx.
+      codePoint = b0 and 0x7f
+      byteCount = 1 // 7 bits (ASCII).
+      min = 0x0
+    }
+    b0 and 0xe0 == 0xc0 -> {
+      // 0x110xxxxx
+      codePoint = b0 and 0x1f
+      byteCount = 2 // 11 bits (5 + 6).
+      min = 0x80
+    }
+    b0 and 0xf0 == 0xe0 -> {
+      // 0x1110xxxx
+      codePoint = b0 and 0x0f
+      byteCount = 3 // 16 bits (4 + 6 + 6).
+      min = 0x800
+    }
+    b0 and 0xf8 == 0xf0 -> {
+      // 0x11110xxx
+      codePoint = b0 and 0x07
+      byteCount = 4 // 21 bits (3 + 6 + 6 + 6).
+      min = 0x10000
+    }
+    else -> {
+      // We expected the first byte of a code point but got something else.
+      skip(1)
+      return REPLACEMENT_CODE_POINT
+    }
+  }
+
+  if (size < byteCount) {
+    throw EOFException("size < $byteCount: $size (to read code point prefixed 0x${b0.toHexString()})")
+  }
+
+  // Read the continuation bytes. If we encounter a non-continuation byte, the sequence consumed
+  // thus far is truncated and is decoded as the replacement character. That non-continuation byte
+  // is left in the stream for processing by the next call to readUtf8CodePoint().
+  for (i in 1 until byteCount) {
+    val b = this[i.toLong()]
+    if (b and 0xc0 == 0x80) {
+      // 0x10xxxxxx
+      codePoint = codePoint shl 6
+      codePoint = codePoint or (b and 0x3f)
+    } else {
+      skip(i.toLong())
+      return REPLACEMENT_CODE_POINT
+    }
+  }
+
+  skip(byteCount.toLong())
+
+  return when {
+    codePoint > 0x10ffff -> {
+      REPLACEMENT_CODE_POINT // Reject code points larger than the Unicode maximum.
+    }
+    codePoint in 0xd800..0xdfff -> {
+      REPLACEMENT_CODE_POINT // Reject partial surrogates.
+    }
+    codePoint < min -> {
+      REPLACEMENT_CODE_POINT // Reject overlong code points.
+    }
+    else -> codePoint
+  }
+}
+
+private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int) {
+  checkOffsetAndCount(string.length.toLong(), beginIndex.toLong(), (endIndex - beginIndex).toLong())
+  //require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
+  //require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
+  //require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }
+
+  // Transcode a UTF-16 Java String to UTF-8 bytes.
+  var i = beginIndex
+  while (i < endIndex) {
+    var c = string[i].code
+
+    when {
+      c < 0x80 -> {
+        val tail = writableSegment(1)
+        val data = tail.data
+        val segmentOffset = tail.limit - i
+        val runLimit = minOf(endIndex, Segment.SIZE - segmentOffset)
+
+        // Emit a 7-bit character with 1 byte.
+        data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+
+        // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
+        // improvement over independent calls to writeByte().
+        while (i < runLimit) {
+          c = string[i].code
+          if (c >= 0x80) break
+          data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+        }
+
+        val runSize = i + segmentOffset - tail.limit // Equivalent to i - (previous i).
+        tail.limit += runSize
+        size += runSize.toLong()
+      }
+
+      c < 0x800 -> {
+        // Emit a 11-bit character with 2 bytes.
+        val tail = writableSegment(2)
+        /* ktlint-disable no-multi-spaces */
+        tail.data[tail.limit    ] = (c shr 6          or 0xc0).toByte() // 110xxxxx
+        tail.data[tail.limit + 1] = (c       and 0x3f or 0x80).toByte() // 10xxxxxx
+        /* ktlint-enable no-multi-spaces */
+        tail.limit += 2
+        size += 2L
+        i++
+      }
+
+      c < 0xd800 || c > 0xdfff -> {
+        // Emit a 16-bit character with 3 bytes.
+        val tail = writableSegment(3)
+        /* ktlint-disable no-multi-spaces */
+        tail.data[tail.limit    ] = (c shr 12          or 0xe0).toByte() // 1110xxxx
+        tail.data[tail.limit + 1] = (c shr  6 and 0x3f or 0x80).toByte() // 10xxxxxx
+        tail.data[tail.limit + 2] = (c        and 0x3f or 0x80).toByte() // 10xxxxxx
+        /* ktlint-enable no-multi-spaces */
+        tail.limit += 3
+        size += 3L
+        i++
+      }
+
+      else -> {
+        // c is a surrogate. Make sure it is a high surrogate & that its successor is a low
+        // surrogate. If not, the UTF-16 is invalid, in which case we emit a replacement
+        // character.
+        val low = (if (i + 1 < endIndex) string[i + 1].code else 0)
+        if (c > 0xdbff || low !in 0xdc00..0xdfff) {
+          writeByte('?'.code.toByte())
+          i++
+        } else {
+          // UTF-16 high surrogate: 110110xxxxxxxxxx (10 bits)
+          // UTF-16 low surrogate:  110111yyyyyyyyyy (10 bits)
+          // Unicode code point:    00010000000000000000 + xxxxxxxxxxyyyyyyyyyy (21 bits)
+          val codePoint = 0x010000 + (c and 0x03ff shl 10 or (low and 0x03ff))
+
+          // Emit a 21-bit character with 4 bytes.
+          val tail = writableSegment(4)
+          /* ktlint-disable no-multi-spaces */
+          tail.data[tail.limit    ] = (codePoint shr 18          or 0xf0).toByte() // 11110xxx
+          tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
+          tail.data[tail.limit + 2] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxyyyy
+          tail.data[tail.limit + 3] = (codePoint        and 0x3f or 0x80).toByte() // 10yyyyyy
+          /* ktlint-enable no-multi-spaces */
+          tail.limit += 4
+          size += 4L
+          i += 2
+        }
+      }
+    }
+  }
+}
+
+private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
+  when {
+    codePoint < 0x80 -> {
+      // Emit a 7-bit code point with 1 byte.
+      writeByte(codePoint.toByte())
+    }
+    codePoint < 0x800 -> {
+      // Emit a 11-bit code point with 2 bytes.
+      val tail = writableSegment(2)
+      /* ktlint-disable no-multi-spaces */
+      tail.data[tail.limit    ] = (codePoint shr 6          or 0xc0).toByte() // 110xxxxx
+      tail.data[tail.limit + 1] = (codePoint       and 0x3f or 0x80).toByte() // 10xxxxxx
+      /* ktlint-enable no-multi-spaces */
+      tail.limit += 2
+      size += 2L
+    }
+    codePoint in 0xd800..0xdfff -> {
+      // Emit a replacement character for a partial surrogate.
+      writeByte('?'.code.toByte())
+    }
+    codePoint < 0x10000 -> {
+      // Emit a 16-bit code point with 3 bytes.
+      val tail = writableSegment(3)
+      /* ktlint-disable no-multi-spaces */
+      tail.data[tail.limit    ] = (codePoint shr 12          or 0xe0).toByte() // 1110xxxx
+      tail.data[tail.limit + 1] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxxxxx
+      tail.data[tail.limit + 2] = (codePoint        and 0x3f or 0x80).toByte() // 10xxxxxx
+      /* ktlint-enable no-multi-spaces */
+      tail.limit += 3
+      size += 3L
+    }
+    codePoint <= 0x10ffff -> {
+      // Emit a 21-bit code point with 4 bytes.
+      val tail = writableSegment(4)
+      /* ktlint-disable no-multi-spaces */
+      tail.data[tail.limit    ] = (codePoint shr 18          or 0xf0).toByte() // 11110xxx
+      tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
+      tail.data[tail.limit + 2] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxyyyy
+      tail.data[tail.limit + 3] = (codePoint        and 0x3f or 0x80).toByte() // 10yyyyyy
+      /* ktlint-enable no-multi-spaces */
+      tail.limit += 4
+      size += 4L
+    }
+    else -> {
+      throw IllegalArgumentException("Unexpected code point: 0x${codePoint.toHexString()}")
+    }
+  }
+}
+
+private fun Buffer.commonReadUtf8(byteCount: Long): String {
+  require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) { "byteCount: $byteCount" }
+  if (size < byteCount) throw EOFException()
+  if (byteCount == 0L) return ""
+
+  val s = head!!
+  if (s.pos + byteCount > s.limit) {
+    // If the string spans multiple segments, delegate to readBytes().
+
+    return readByteArray(byteCount).commonToUtf8String()
+  }
+
+  val result = s.data.commonToUtf8String(s.pos, s.pos + byteCount.toInt())
+  s.pos += byteCount.toInt()
+  size -= byteCount
+
+  if (s.pos == s.limit) {
+    head = s.pop()
+    SegmentPool.recycle(s)
+  }
+
+  return result
 }
