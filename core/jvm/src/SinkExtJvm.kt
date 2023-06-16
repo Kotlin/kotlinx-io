@@ -26,30 +26,6 @@ import java.nio.ByteBuffer
 import java.nio.channels.WritableByteChannel
 import java.nio.charset.Charset
 
-public actual sealed interface Sink : RawSink {
-  public actual val buffer: Buffer
-
-  public actual fun write(source: ByteArray, offset: Int, byteCount: Int)
-
-  public actual fun writeAll(source: RawSource): Long
-
-  public actual fun write(source: RawSource, byteCount: Long)
-
-  public actual fun writeByte(byte: Byte)
-
-  public actual fun writeShort(short: Short)
-
-  public actual fun writeInt(int: Int)
-
-  public actual fun writeLong(long: Long)
-
-  actual override fun flush()
-
-  public actual fun emit()
-
-  public actual fun emitCompleteSegments()
-}
-
 /**
  * Encodes substring of [string] starting at [beginIndex] and ending at [endIndex] using [charset]
  * and writes into this sink.
@@ -74,6 +50,7 @@ public fun Sink.writeString(string: String, charset: Charset, beginIndex: Int = 
 /**
  * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
  */
+@OptIn(DelicateIoApi::class)
 public fun Sink.outputStream(): OutputStream {
   val isClosed: () -> Boolean = when (this) {
     is RealSink -> this::closed
@@ -113,6 +90,7 @@ public fun Sink.outputStream(): OutputStream {
  *
  * @throws IllegalStateException when the sink is closed.
  */
+@OptIn(DelicateIoApi::class)
 public fun Sink.write(source: ByteBuffer): Int {
   val sizeBefore = buffer.size
   buffer.readFrom(source)

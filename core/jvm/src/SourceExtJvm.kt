@@ -26,34 +26,6 @@ import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
 
-public actual sealed interface Source : RawSource {
-  public actual val buffer: Buffer
-
-  public actual fun exhausted(): Boolean
-
-  public actual fun require(byteCount: Long)
-
-  public actual fun request(byteCount: Long): Boolean
-
-  public actual fun readByte(): Byte
-
-  public actual fun readShort(): Short
-
-  public actual fun readInt(): Int
-
-  public actual fun readLong(): Long
-
-  public actual fun skip(byteCount: Long)
-
-  public actual fun read(sink: ByteArray, offset: Int, byteCount: Int): Int
-
-  public actual fun readFully(sink: RawSink, byteCount: Long)
-
-  public actual fun readAll(sink: RawSink): Long
-
-  public actual fun peek(): Source
-}
-
 private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
   require(byteCount >= 0 && byteCount <= Integer.MAX_VALUE) { "byteCount: $byteCount" }
   if (size < byteCount) throw EOFException()
@@ -84,6 +56,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
  *
  * @throws IllegalStateException when the source is closed.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.readString(charset: Charset): String {
   var req = 1L
   while (request(req)) {
@@ -102,6 +75,7 @@ public fun Source.readString(charset: Charset): String {
  * @throws IllegalStateException when the source is closed.
  * @throws IllegalArgumentException if [byteCount] is negative.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.readString(byteCount: Long, charset: Charset): String {
   require(byteCount)
   return buffer.readStringImpl(byteCount, charset)
@@ -110,6 +84,7 @@ public fun Source.readString(byteCount: Long, charset: Charset): String {
 /**
  * Returns an input stream that reads from this source. Closing the stream will also close this source.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.inputStream(): InputStream {
   val isClosed: () -> Boolean = when (this) {
     is RealSource -> this::closed
@@ -150,6 +125,7 @@ public fun Source.inputStream(): InputStream {
  *
  * @throws IllegalStateException when the source is closed.
  */
+@OptIn(DelicateIoApi::class)
 public fun Source.read(sink: ByteBuffer): Int {
   if (buffer.size == 0L) {
     request(Segment.SIZE.toLong())

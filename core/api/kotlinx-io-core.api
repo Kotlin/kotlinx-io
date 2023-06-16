@@ -97,6 +97,14 @@ public final class kotlinx/io/Sink$DefaultImpls {
 	public static synthetic fun write$default (Lkotlinx/io/Sink;[BIIILjava/lang/Object;)V
 }
 
+public final class kotlinx/io/SinkExtJvmKt {
+	public static final fun channel (Lkotlinx/io/Sink;)Ljava/nio/channels/WritableByteChannel;
+	public static final fun outputStream (Lkotlinx/io/Sink;)Ljava/io/OutputStream;
+	public static final fun write (Lkotlinx/io/Sink;Ljava/nio/ByteBuffer;)I
+	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;II)V
+	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;IIILjava/lang/Object;)V
+}
+
 public final class kotlinx/io/SinkExtKt {
 	public static final fun writeByte-EK-6454 (Lkotlinx/io/Sink;B)V
 	public static final fun writeDecimalLong (Lkotlinx/io/Sink;J)V
@@ -110,14 +118,6 @@ public final class kotlinx/io/SinkExtKt {
 	public static final fun writeShort-i8woANY (Lkotlinx/io/Sink;S)V
 	public static final fun writeShortLe (Lkotlinx/io/Sink;S)V
 	public static final fun writeShortLe-i8woANY (Lkotlinx/io/Sink;S)V
-}
-
-public final class kotlinx/io/SinkKt {
-	public static final fun channel (Lkotlinx/io/Sink;)Ljava/nio/channels/WritableByteChannel;
-	public static final fun outputStream (Lkotlinx/io/Sink;)Ljava/io/OutputStream;
-	public static final fun write (Lkotlinx/io/Sink;Ljava/nio/ByteBuffer;)I
-	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;II)V
-	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;IIILjava/lang/Object;)V
 }
 
 public abstract interface class kotlinx/io/Source : kotlinx/io/RawSource {
@@ -140,6 +140,14 @@ public final class kotlinx/io/Source$DefaultImpls {
 	public static synthetic fun read$default (Lkotlinx/io/Source;[BIIILjava/lang/Object;)I
 }
 
+public final class kotlinx/io/SourceExtJvmKt {
+	public static final fun channel (Lkotlinx/io/Source;)Ljava/nio/channels/ReadableByteChannel;
+	public static final fun inputStream (Lkotlinx/io/Source;)Ljava/io/InputStream;
+	public static final fun read (Lkotlinx/io/Source;Ljava/nio/ByteBuffer;)I
+	public static final fun readString (Lkotlinx/io/Source;JLjava/nio/charset/Charset;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Source;Ljava/nio/charset/Charset;)Ljava/lang/String;
+}
+
 public final class kotlinx/io/SourceExtKt {
 	public static final fun indexOf (Lkotlinx/io/Source;BJJ)J
 	public static synthetic fun indexOf$default (Lkotlinx/io/Source;BJJILjava/lang/Object;)J
@@ -159,14 +167,6 @@ public final class kotlinx/io/SourceExtKt {
 	public static final fun readUShort (Lkotlinx/io/Source;)S
 	public static final fun readUShortLe (Lkotlinx/io/Source;)S
 	public static final fun startsWith (Lkotlinx/io/Source;B)Z
-}
-
-public final class kotlinx/io/SourceKt {
-	public static final fun channel (Lkotlinx/io/Source;)Ljava/nio/channels/ReadableByteChannel;
-	public static final fun inputStream (Lkotlinx/io/Source;)Ljava/io/InputStream;
-	public static final fun read (Lkotlinx/io/Source;Ljava/nio/ByteBuffer;)I
-	public static final fun readString (Lkotlinx/io/Source;JLjava/nio/charset/Charset;)Ljava/lang/String;
-	public static final fun readString (Lkotlinx/io/Source;Ljava/nio/charset/Charset;)Ljava/lang/String;
 }
 
 public final class kotlinx/io/Utf8Kt {

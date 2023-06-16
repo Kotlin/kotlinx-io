@@ -38,7 +38,7 @@ package kotlinx.io
  * to the upstream.
  * All write operations implicitly calls [emitCompleteSegments].
  */
-public expect sealed interface Sink : RawSink {
+public sealed interface Sink : RawSink {
   /**
    * This sink's internal buffer. It contains data written to the sink, but not yet flushed to the upstream.
    *

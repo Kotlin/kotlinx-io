@@ -35,7 +35,7 @@ package kotlinx.io
  * [Sink] also allows skipping unneeded prefix of data using [skip] and
  * provides look ahead into incoming data, buffering as much as necessary, using [peek].
  */
-public expect sealed interface Source : RawSource {
+public sealed interface Source : RawSource {
   /**
    * This source's internal buffer. It contains data fetched from the downstream, but not yet consumed by the upstream.
    *

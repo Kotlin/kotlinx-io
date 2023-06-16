@@ -260,6 +260,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
+  @OptIn(DelicateIoApi::class)
   @Test fun readAll() {
     source.buffer.writeUtf8("abc")
     sink.writeUtf8("def")
@@ -1015,6 +1016,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertEquals("Peek source is invalid because upstream source was used", e.message)
   }
 
+  @OptIn(DelicateIoApi::class)
   @Test fun peekSegmentThenInvalid() {
     sink.writeUtf8("abc")
     sink.writeUtf8("d".repeat(2 * Segment.SIZE))
@@ -1036,6 +1038,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertEquals("Peek source is invalid because upstream source was used", e.message)
   }
 
+  @OptIn(DelicateIoApi::class)
   @Test fun peekDoesntReadTooMuch() {
     // 6 bytes in source's buffer plus 3 bytes upstream.
     sink.writeUtf8("abcdef")
@@ -1069,6 +1072,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertEquals("ghi", peek.readUtf8(3L))
   }
 
+  @OptIn(DelicateIoApi::class)
   @Test fun factorySegmentSizes() {
     sink.writeUtf8("abc")
     sink.emit()
