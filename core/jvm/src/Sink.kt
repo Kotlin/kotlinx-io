@@ -62,7 +62,7 @@ public actual sealed interface Sink : RawSink {
  * @throws IllegalArgumentException when [beginIndex] and [endIndex] correspond to a range out of [string] bounds.
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length) {
+public fun Sink.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length) {
   require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
   require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
   require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }

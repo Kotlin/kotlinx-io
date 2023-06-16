@@ -14,7 +14,7 @@ internal val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeShortLe(short: Short) {
+public fun Sink.writeShortLe(short: Short) {
     this.writeShort(short.reverseBytes())
 }
 
@@ -25,7 +25,7 @@ public fun <T: Sink> T.writeShortLe(short: Short) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeIntLe(int: Int) {
+public fun Sink.writeIntLe(int: Int) {
     this.writeInt(int.reverseBytes())
 }
 
@@ -36,7 +36,7 @@ public fun <T: Sink> T.writeIntLe(int: Int) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeLongLe(long: Long) {
+public fun Sink.writeLongLe(long: Long) {
     this.writeLong(long.reverseBytes())
 }
 
@@ -50,7 +50,7 @@ public fun <T: Sink> T.writeLongLe(long: Long) {
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun <T: Sink> T.writeDecimalLong(long: Long) {
+public fun Sink.writeDecimalLong(long: Long) {
     var v = long
     if (v == 0L) {
         // Both a shortcut and required since the following code can't handle zero.
@@ -128,7 +128,7 @@ public fun <T: Sink> T.writeDecimalLong(long: Long) {
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun <T: Sink> T.writeHexadecimalUnsignedLong(long: Long) {
+public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
     var v = long
     if (v == 0L) {
         // Both a shortcut and required since the following code can't handle zero.
@@ -179,7 +179,7 @@ public fun <T: Sink> T.writeHexadecimalUnsignedLong(long: Long) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeByte(byte: UByte) {
+public fun Sink.writeByte(byte: UByte) {
     writeByte(byte.toByte())
 }
 
@@ -190,7 +190,7 @@ public fun <T: Sink> T.writeByte(byte: UByte) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeShort(short: UShort) {
+public fun Sink.writeShort(short: UShort) {
     writeShort(short.toShort())
 }
 
@@ -201,7 +201,7 @@ public fun <T: Sink> T.writeShort(short: UShort) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeInt(int: UInt) {
+public fun Sink.writeInt(int: UInt) {
     writeInt(int.toInt())
 }
 
@@ -212,7 +212,7 @@ public fun <T: Sink> T.writeInt(int: UInt) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeLong(long: ULong) {
+public fun Sink.writeLong(long: ULong) {
     writeLong(long.toLong())
 }
 
@@ -223,7 +223,7 @@ public fun <T: Sink> T.writeLong(long: ULong) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeShortLe(short: UShort) {
+public fun Sink.writeShortLe(short: UShort) {
     writeShortLe(short.toShort())
 }
 
@@ -234,7 +234,7 @@ public fun <T: Sink> T.writeShortLe(short: UShort) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeIntLe(int: UInt) {
+public fun Sink.writeIntLe(int: UInt) {
     writeIntLe(int.toInt())
 }
 
@@ -245,6 +245,6 @@ public fun <T: Sink> T.writeIntLe(int: UInt) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun <T: Sink> T.writeLongLe(long: ULong) {
+public fun Sink.writeLongLe(long: ULong) {
     writeLongLe(long.toLong())
 }
