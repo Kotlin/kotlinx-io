@@ -19,6 +19,12 @@ fun KotlinMultiplatformExtension.configureNativePlatforms() {
     watchosArm64()
     watchosX64()
     watchosSimulatorArm64()
+    watchosDeviceArm64()
+    linuxArm64()
+    androidNativeArm32()
+    androidNativeArm64()
+        androidNativeX64()
+    androidNativeX86()
     // Required to generate tests tasks: https://youtrack.jetbrains.com/issue/KT-26547
     linuxX64()
     macosX64()
@@ -38,7 +44,8 @@ private val appleTargets = listOf(
     "watchosArm32",
     "watchosArm64",
     "watchosX64",
-    "watchosSimulatorArm64"
+    "watchosSimulatorArm64",
+    "watchosDeviceArm64"
 )
 
 private val mingwTargets = listOf(
@@ -46,10 +53,18 @@ private val mingwTargets = listOf(
 )
 
 private val linuxTargets = listOf(
-    "linuxX64"
+    "linuxX64",
+    "linuxArm64"
 )
 
-val nativeTargets = appleTargets + linuxTargets + mingwTargets
+private val androidTargets = listOf(
+    "androidNativeArm32",
+    "androidNativeArm64",
+    "androidNativeX64",
+    "androidNativeX86"
+)
+
+val nativeTargets = appleTargets + linuxTargets + mingwTargets + androidTargets
 
 /**
  * Creates a source set for a directory that isn't already a built-in platform. Use this to create
