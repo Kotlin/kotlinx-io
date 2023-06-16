@@ -107,12 +107,9 @@ class JvmPlatformTest {
 
     @Test
     fun pathSourceWithOptions() {
-        val folder = File(tempDir, "folder")
-        folder.mkdir()
-
-        val file = File(folder, "new.txt")
+        val file = File(tempDir, "new.txt")
         assertTrue(file.createNewFile())
-        val link = File(folder, "link.txt")
+        val link = File(tempDir, "link.txt")
         try {
             Files.createSymbolicLink(link.toPath(), file.toPath())
         } catch (e: UnsupportedOperationException) {
@@ -121,9 +118,9 @@ class JvmPlatformTest {
         }
 
         assertFailsWith<IOException> {
-            link.toPath().source(LinkOption.NOFOLLOW_LINKS).buffer().readUtf8Line()
+            link.toPath().source(LinkOption.NOFOLLOW_LINKS).use { it.buffer().readUtf8Line() }
         }
-        assertNull(link.toPath().source().buffer().readUtf8Line())
+        assertNull(link.toPath().source().use { it.buffer().readUtf8Line() })
     }
 
     @Test fun socketSink() {
