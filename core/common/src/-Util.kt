@@ -23,9 +23,6 @@
 
 package kotlinx.io
 
-import kotlin.native.concurrent.SharedImmutable
-
-@SharedImmutable
 internal val HEX_DIGIT_CHARS =
   charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 
