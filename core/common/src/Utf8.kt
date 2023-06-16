@@ -127,10 +127,8 @@ public fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun Sink.writeUtf8CodePoint(codePoint: Int) {
-  buffer.commonWriteUtf8CodePoint(codePoint)
-  emitCompleteSegments()
-}
+public fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
+  writeToInternalBuffer { it.commonWriteUtf8CodePoint(codePoint) }
 
 /**
  * Encodes the characters at [beginIndex] up to [endIndex] from [string] in UTF-8 and writes it to this sink.
@@ -144,10 +142,8 @@ public fun Sink.writeUtf8CodePoint(codePoint: Int) {
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun Sink.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length) {
-  buffer.commonWriteUtf8(string, beginIndex, endIndex)
-  emitCompleteSegments()
-}
+public fun Sink.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): Unit =
+  writeToInternalBuffer { it.commonWriteUtf8(string, beginIndex, endIndex) }
 
 /**
  * Removes all bytes from this source, decodes them as UTF-8, and returns the string.
@@ -156,7 +152,7 @@ public fun Sink.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = s
  *
  * @throws IllegalStateException when the source is closed.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readUtf8(): String {
   var req: Long = Segment.SIZE.toLong()
   while (request(req)) {
@@ -183,7 +179,7 @@ public fun Buffer.readUtf8(): String {
  * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
  * @throws IllegalStateException when the source is closed.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readUtf8(byteCount: Long): String {
   require(byteCount)
   return buffer.commonReadUtf8(byteCount)
@@ -204,7 +200,7 @@ public fun Source.readUtf8(byteCount: Long): String {
  * @throws EOFException when the source is exhausted before a complete code point can be read.
  * @throws IllegalStateException when the source is closed.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readUtf8CodePoint(): Int {
   require(1)
 
@@ -423,10 +419,8 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
       c < 0x800 -> {
         // Emit a 11-bit character with 2 bytes.
         val tail = writableSegment(2)
-        /* ktlint-disable no-multi-spaces */
         tail.data[tail.limit    ] = (c shr 6          or 0xc0).toByte() // 110xxxxx
         tail.data[tail.limit + 1] = (c       and 0x3f or 0x80).toByte() // 10xxxxxx
-        /* ktlint-enable no-multi-spaces */
         tail.limit += 2
         size += 2L
         i++
@@ -435,11 +429,9 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
       c < 0xd800 || c > 0xdfff -> {
         // Emit a 16-bit character with 3 bytes.
         val tail = writableSegment(3)
-        /* ktlint-disable no-multi-spaces */
         tail.data[tail.limit    ] = (c shr 12          or 0xe0).toByte() // 1110xxxx
         tail.data[tail.limit + 1] = (c shr  6 and 0x3f or 0x80).toByte() // 10xxxxxx
         tail.data[tail.limit + 2] = (c        and 0x3f or 0x80).toByte() // 10xxxxxx
-        /* ktlint-enable no-multi-spaces */
         tail.limit += 3
         size += 3L
         i++
@@ -461,12 +453,10 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
 
           // Emit a 21-bit character with 4 bytes.
           val tail = writableSegment(4)
-          /* ktlint-disable no-multi-spaces */
           tail.data[tail.limit    ] = (codePoint shr 18          or 0xf0).toByte() // 11110xxx
           tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
           tail.data[tail.limit + 2] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxyyyy
           tail.data[tail.limit + 3] = (codePoint        and 0x3f or 0x80).toByte() // 10yyyyyy
-          /* ktlint-enable no-multi-spaces */
           tail.limit += 4
           size += 4L
           i += 2
@@ -485,10 +475,8 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
     codePoint < 0x800 -> {
       // Emit a 11-bit code point with 2 bytes.
       val tail = writableSegment(2)
-      /* ktlint-disable no-multi-spaces */
       tail.data[tail.limit    ] = (codePoint shr 6          or 0xc0).toByte() // 110xxxxx
       tail.data[tail.limit + 1] = (codePoint       and 0x3f or 0x80).toByte() // 10xxxxxx
-      /* ktlint-enable no-multi-spaces */
       tail.limit += 2
       size += 2L
     }
@@ -499,23 +487,19 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
     codePoint < 0x10000 -> {
       // Emit a 16-bit code point with 3 bytes.
       val tail = writableSegment(3)
-      /* ktlint-disable no-multi-spaces */
       tail.data[tail.limit    ] = (codePoint shr 12          or 0xe0).toByte() // 1110xxxx
       tail.data[tail.limit + 1] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxxxxx
       tail.data[tail.limit + 2] = (codePoint        and 0x3f or 0x80).toByte() // 10xxxxxx
-      /* ktlint-enable no-multi-spaces */
       tail.limit += 3
       size += 3L
     }
     codePoint <= 0x10ffff -> {
       // Emit a 21-bit code point with 4 bytes.
       val tail = writableSegment(4)
-      /* ktlint-disable no-multi-spaces */
       tail.data[tail.limit    ] = (codePoint shr 18          or 0xf0).toByte() // 11110xxx
       tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
       tail.data[tail.limit + 2] = (codePoint shr  6 and 0x3f or 0x80).toByte() // 10xxyyyy
       tail.data[tail.limit + 3] = (codePoint        and 0x3f or 0x80).toByte() // 10yyyyyy
-      /* ktlint-enable no-multi-spaces */
       tail.limit += 4
       size += 4L
     }

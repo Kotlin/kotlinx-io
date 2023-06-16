@@ -44,7 +44,7 @@ public sealed interface Source : RawSource {
    * - use [peek] for lookahead into a source;
    * - implement [RawSource] and wrap a downstream source into it to intercept data being read.
    */
-  @DelicateIoApi
+  @InternalIoApi
   public val buffer: Buffer
 
   /**

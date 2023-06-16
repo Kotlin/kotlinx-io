@@ -38,7 +38,7 @@ import kotlin.jvm.JvmField
  * To reduce allocations and speed up the buffer's extension, it may use data segments pooling.
  *
  * [Buffer] implements both [Source] and [Sink] and could be used as a source or a sink,
- * but unlike regular sinks and sources its [close], [flush], [emit], [emitCompleteSegments]
+ * but unlike regular sinks and sources its [close], [flush], [emit], [hintEmit]
  * does not affect buffer's state and [exhausted] only indicates that a buffer is empty.
  */
 public class Buffer : Source, Sink {
@@ -53,7 +53,7 @@ public class Buffer : Source, Sink {
   /**
    * Returns the buffer itself.
    */
-  @DelicateIoApi
+  @InternalIoApi
   override val buffer: Buffer = this
   override fun exhausted(): Boolean = size == 0L
 
@@ -184,8 +184,8 @@ public class Buffer : Source, Sink {
   /**
    * This method does not affect the buffer's content as there is no upstream to write data to.
    */
-  @DelicateIoApi
-  override fun emitCompleteSegments(): Unit = Unit
+  @InternalIoApi
+  override fun hintEmit(): Unit = Unit
 
   /**
    * This method does not affect the buffer's content as there is no upstream to write data to.

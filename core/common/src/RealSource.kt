@@ -30,7 +30,7 @@ internal class RealSource(
   var closed: Boolean = false
   private val bufferField = Buffer()
 
-  @DelicateIoApi
+  @InternalIoApi
   override val buffer: Buffer
     get() = bufferField
 

@@ -27,16 +27,17 @@ package kotlinx.io
  * [Sink] is the main `kotlinx-io` interface to write data in client's code,
  * any [RawSink] could be turned into [Sink] using [RawSink.buffer].
  *
- * Depending on a kind of upstream and the number of bytes written, buffering may improve the performance
+ * Depending on the kind of upstream and the number of bytes written, buffering may improve the performance
  * by hiding the latency of small writes.
  *
- * Data stored inside the internal buffer could be sent to an upstream using [flush], [emit], or [emitCompleteSegments]:
+ * Data stored inside the internal buffer could be sent to an upstream using [flush], [emit], or [hintEmit]:
  * - [flush] writes the whole buffer to an upstream and then flushes the upstream.
  * - [emit] writes all data from the buffer into the upstream without flushing it.
- * - [emitCompleteSegments] writes only a part of data from the buffer.
+ * - [hintEmit] hints the source that current write operation is now finished and a part of data from the buffer
+ * may be partially emitted into the upstream.
  * The latter is aimed to reduce memory footprint by keeping the buffer as small as possible without excessive writes
  * to the upstream.
- * All write operations implicitly calls [emitCompleteSegments].
+ * All write operations implicitly calls [hintEmit].
  */
 public sealed interface Sink : RawSink {
   /**
@@ -47,8 +48,10 @@ public sealed interface Sink : RawSink {
    * - write data into separate [Buffer] instance and write that buffer into the sink and then flush the sink to
    *   ensure that the upstream will receive complete data;
    * - implement [RawSink] and wrap an upstream sink into it to intercept data being written.
+   *
+   * If there is an actual need to write data directly into the buffer, consider using [Sink.writeToInternalBuffer] instead.
    */
-  @DelicateIoApi
+  @InternalIoApi
   public val buffer: Buffer
 
   /**
@@ -134,7 +137,7 @@ public sealed interface Sink : RawSink {
   override fun flush()
 
   /**
-   * Writes all buffered data to the underlying sink, if one exists.
+   * Writes all buffered data to the underlying sink if one exists.
    * The underlying sink will not be explicitly flushed.
    *
    * This method behaves like [flush], but has weaker guarantees.
@@ -145,15 +148,19 @@ public sealed interface Sink : RawSink {
   public fun emit()
 
   /**
-   * Writes complete segments to the underlying sink, if one exists.
+   * Hints that the buffer may be *partially* emitted (see [emit]) to the underlying sink.
    * The underlying sink will not be explicitly flushed.
+   * There are no guarantees that this call will cause emit of buffered data as well as
+   * there are no guarantees how many bytes will be emitted.
    *
-   * Use this to limit the memory held in the buffer to a single segment.
    * Typically, application code will not need to call this: it is only necessary when
    * application code writes directly to this [buffer].
+   * Use this to limit the memory held in the buffer.
+   *
+   * Consider using [Sink.writeToInternalBuffer] for writes into [buffer] followed by [hintEmit] call.
    *
    * @throws IllegalStateException when the sink is closed.
    */
-  @DelicateIoApi
-  public fun emitCompleteSegments()
+  @InternalIoApi
+  public fun hintEmit()
 }

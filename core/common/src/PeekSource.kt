@@ -33,7 +33,7 @@ package kotlinx.io
 internal class PeekSource(
   private val upstream: Source
 ) : RawSource {
-  @OptIn(DelicateIoApi::class)
+  @OptIn(InternalIoApi::class)
   private val buffer = upstream.buffer
   private var expectedSegment = buffer.head
   private var expectedPos = buffer.head?.pos ?: -1

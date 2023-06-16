@@ -50,7 +50,7 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  * @throws EOFException if the source is exhausted before a call of this method.
  * @throws IllegalStateException when the source is closed.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readDecimalLong(): Long {
     require(1)
     var b = readByte()
@@ -115,7 +115,7 @@ public fun Source.readDecimalLong(): Long {
  * @throws EOFException if the source is exhausted before a call of this method.
  * @throws IllegalStateException when the source is closed.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readHexadecimalUnsignedLong(): Long {
     require(1)
     var b = readByte()
@@ -203,9 +203,8 @@ public fun Source.readByteArray(byteCount: Long): ByteArray {
     return readByteArrayImpl(byteCount)
 }
 
-@OptIn(DelicateIoApi::class)
-@Suppress("NOTHING_TO_INLINE")
-private inline fun Source.readByteArrayImpl(size: Long): ByteArray {
+@OptIn(InternalIoApi::class)
+private fun Source.readByteArrayImpl(size: Long): ByteArray {
     var arraySize = size
     if (size == -1L) {
         var fetchSize = Int.MAX_VALUE.toLong()
@@ -304,6 +303,13 @@ public fun Source.readUIntLe(): UInt = readIntLe().toUInt()
  */
 public fun Source.readULongLe(): ULong = readLongLe().toULong()
 
-// TODO: add doc
-@OptIn(DelicateIoApi::class)
+/**
+ * Return `true` if the next byte to be consumed from this source is equal to [byte].
+ * Otherwise, return `false` as well as when the source is exhausted.
+ *
+ * If there are no buffered data, this call will result in a fetch from the underlying source.
+ *
+ * @throws IllegalStateException when the source is closed.
+ */
+@OptIn(InternalIoApi::class)
 public fun Source.startsWith(byte: Byte): Boolean = request(1) && buffer[0] == byte

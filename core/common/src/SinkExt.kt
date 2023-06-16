@@ -101,21 +101,22 @@ public fun Sink.writeDecimalLong(long: Long) {
         ++width
     }
 
-    val tail = buffer.writableSegment(width)
-    val data = tail.data
-    var pos = tail.limit + width // We write backwards from right to left.
-    while (v != 0L) {
-        val digit = (v % 10).toInt()
-        data[--pos] = HEX_DIGIT_BYTES[digit]
-        v /= 10
-    }
-    if (negative) {
-        data[--pos] = '-'.code.toByte()
-    }
+    writeToInternalBuffer { buffer ->
+        val tail = buffer.writableSegment(width)
+        val data = tail.data
+        var pos = tail.limit + width // We write backwards from right to left.
+        while (v != 0L) {
+            val digit = (v % 10).toInt()
+            data[--pos] = HEX_DIGIT_BYTES[digit]
+            v /= 10
+        }
+        if (negative) {
+            data[--pos] = '-'.code.toByte()
+        }
 
-    tail.limit += width
-    buffer.size += width.toLong()
-    emitCompleteSegments()
+        tail.limit += width
+        buffer.size += width.toLong()
+    }
 }
 
 /**
@@ -158,18 +159,19 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
     // Round up to the nearest full byte
     val width = ((x + 3) / 4).toInt()
 
-    val tail = buffer.writableSegment(width)
-    val data = tail.data
-    var pos = tail.limit + width - 1
-    val start = tail.limit
-    while (pos >= start) {
-        data[pos] = HEX_DIGIT_BYTES[(v and 0xF).toInt()]
-        v = v ushr 4
-        pos--
+    writeToInternalBuffer { buffer ->
+        val tail = buffer.writableSegment(width)
+        val data = tail.data
+        var pos = tail.limit + width - 1
+        val start = tail.limit
+        while (pos >= start) {
+            data[pos] = HEX_DIGIT_BYTES[(v and 0xF).toInt()]
+            v = v ushr 4
+            pos--
+        }
+        tail.limit += width
+        buffer.size += width.toLong()
     }
-    tail.limit += width
-    buffer.size += width.toLong()
-    emitCompleteSegments()
 }
 
 /**
@@ -247,4 +249,24 @@ public fun Sink.writeIntLe(int: UInt) {
  */
 public fun Sink.writeLongLe(long: ULong) {
     writeLongLe(long.toLong())
+}
+
+/**
+ * Provides direct access to the sink's internal buffer and hints its emit before exit.
+ *
+ * The internal buffer is passed into [lambda],
+ * and it may be partially emitted to the underlying sink before returning from this method.
+ *
+ * Use this method with care as the data within the buffer is not yet emitted to the underlying sink
+ * and consumption of data from the buffer will cause its loss.
+ *
+ * @param lambda the callback accessing internal buffer.
+ *
+ * @throws IllegalStateException when the sink is closed.
+ */
+@DelicateIoApi
+@OptIn(InternalIoApi::class)
+public inline fun Sink.writeToInternalBuffer(lambda: (Buffer) -> Unit) {
+    lambda(this.buffer)
+    this.hintEmit()
 }

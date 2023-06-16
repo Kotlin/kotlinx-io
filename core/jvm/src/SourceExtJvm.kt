@@ -56,7 +56,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
  *
  * @throws IllegalStateException when the source is closed.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readString(charset: Charset): String {
   var req = 1L
   while (request(req)) {
@@ -75,7 +75,7 @@ public fun Source.readString(charset: Charset): String {
  * @throws IllegalStateException when the source is closed.
  * @throws IllegalArgumentException if [byteCount] is negative.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readString(byteCount: Long, charset: Charset): String {
   require(byteCount)
   return buffer.readStringImpl(byteCount, charset)
@@ -84,7 +84,7 @@ public fun Source.readString(byteCount: Long, charset: Charset): String {
 /**
  * Returns an input stream that reads from this source. Closing the stream will also close this source.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.inputStream(): InputStream {
   val isClosed: () -> Boolean = when (this) {
     is RealSource -> this::closed
@@ -125,7 +125,7 @@ public fun Source.inputStream(): InputStream {
  *
  * @throws IllegalStateException when the source is closed.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.read(sink: ByteBuffer): Int {
   if (buffer.size == 0L) {
     request(Segment.SIZE.toLong())

@@ -6,12 +6,12 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public final fun copyTo (Lkotlinx/io/Buffer;JJ)V
 	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Lkotlinx/io/Buffer;JJILjava/lang/Object;)V
 	public fun emit ()V
-	public fun emitCompleteSegments ()V
 	public fun exhausted ()Z
 	public fun flush ()V
 	public final fun get (J)B
 	public fun getBuffer ()Lkotlinx/io/Buffer;
 	public final fun getSize ()J
+	public fun hintEmit ()V
 	public fun peek ()Lkotlinx/io/Source;
 	public fun read (Lkotlinx/io/Buffer;J)J
 	public fun read ([BII)I
@@ -56,6 +56,9 @@ public final class kotlinx/io/CoreKt {
 public abstract interface annotation class kotlinx/io/DelicateIoApi : java/lang/annotation/Annotation {
 }
 
+public abstract interface annotation class kotlinx/io/InternalIoApi : java/lang/annotation/Annotation {
+}
+
 public final class kotlinx/io/JvmCoreKt {
 	public static final fun sink (Ljava/io/File;Z)Lkotlinx/io/RawSink;
 	public static final fun sink (Ljava/io/OutputStream;)Lkotlinx/io/RawSink;
@@ -81,9 +84,9 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 
 public abstract interface class kotlinx/io/Sink : kotlinx/io/RawSink {
 	public abstract fun emit ()V
-	public abstract fun emitCompleteSegments ()V
 	public abstract fun flush ()V
 	public abstract fun getBuffer ()Lkotlinx/io/Buffer;
+	public abstract fun hintEmit ()V
 	public abstract fun write (Lkotlinx/io/RawSource;J)V
 	public abstract fun write ([BII)V
 	public abstract fun writeAll (Lkotlinx/io/RawSource;)J
@@ -118,6 +121,7 @@ public final class kotlinx/io/SinkExtKt {
 	public static final fun writeShort-i8woANY (Lkotlinx/io/Sink;S)V
 	public static final fun writeShortLe (Lkotlinx/io/Sink;S)V
 	public static final fun writeShortLe-i8woANY (Lkotlinx/io/Sink;S)V
+	public static final fun writeToInternalBuffer (Lkotlinx/io/Sink;Lkotlin/jvm/functions/Function1;)V
 }
 
 public abstract interface class kotlinx/io/Source : kotlinx/io/RawSource {

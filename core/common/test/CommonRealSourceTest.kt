@@ -29,7 +29,7 @@ import kotlin.test.assertFailsWith
  * Tests solely for the behavior of RealBufferedSource's implementation. For generic
  * BufferedSource behavior, use BufferedSourceTest.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 class CommonRealSourceTest {
   @Test fun indexOfStopsReadingAtLimit() {
     val buffer = Buffer().also { it.writeUtf8("abcdef") }

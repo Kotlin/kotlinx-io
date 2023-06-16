@@ -29,7 +29,7 @@ import kotlin.test.assertFailsWith
  * Tests solely for the behavior of RealBufferedSink's implementation. For generic
  * BufferedSink behavior use BufferedSinkTest.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 class CommonRealSinkTest {
   @Test fun bufferedSinkEmitsTailWhenItIsComplete() {
     val sink = Buffer()
@@ -149,7 +149,7 @@ class CommonRealSinkTest {
     }
 
     assertFailsWith<IllegalStateException> {
-      bufferedSink.emitCompleteSegments()
+      bufferedSink.hintEmit()
     }
 
     assertFailsWith<IllegalStateException> {

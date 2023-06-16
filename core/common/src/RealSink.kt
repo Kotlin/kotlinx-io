@@ -23,6 +23,7 @@ package kotlinx.io
 
 import kotlin.jvm.JvmField
 
+@OptIn(InternalIoApi::class)
 internal class RealSink(
   val sink: RawSink
 ) : Sink {
@@ -34,35 +35,31 @@ internal class RealSink(
   override val buffer: Buffer
     get() = bufferField
 
-  @OptIn(DelicateIoApi::class)
   override fun write(source: Buffer, byteCount: Long) {
     require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
     check(!closed) { "closed" }
     bufferField.write(source, byteCount)
-    emitCompleteSegments()
+    hintEmit()
   }
 
-  @OptIn(DelicateIoApi::class)
   override fun write(source: ByteArray, offset: Int, byteCount: Int) {
     checkOffsetAndCount(source.size.toLong(), offset.toLong(), byteCount.toLong())
     check(!closed) { "closed" }
     bufferField.write(source, offset, byteCount)
-    emitCompleteSegments()
+    hintEmit()
   }
 
-  @OptIn(DelicateIoApi::class)
   override fun writeAll(source: RawSource): Long {
     var totalBytesRead = 0L
     while (true) {
       val readCount: Long = source.read(bufferField, Segment.SIZE.toLong())
       if (readCount == -1L) break
       totalBytesRead += readCount
-      emitCompleteSegments()
+      hintEmit()
     }
     return totalBytesRead
   }
 
-  @OptIn(DelicateIoApi::class)
   override fun write(source: RawSource, byteCount: Long) {
     require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
     var remainingByteCount = byteCount
@@ -70,40 +67,36 @@ internal class RealSink(
       val read = source.read(bufferField, remainingByteCount)
       if (read == -1L) throw EOFException()
       remainingByteCount -= read
-      emitCompleteSegments()
+      hintEmit()
     }
   }
 
-  @OptIn(DelicateIoApi::class)
   override fun writeByte(byte: Byte) {
     check(!closed) { "closed" }
     bufferField.writeByte(byte)
-    emitCompleteSegments()
+    hintEmit()
   }
 
-  @OptIn(DelicateIoApi::class)
   override fun writeShort(short: Short) {
     check(!closed) { "closed" }
     bufferField.writeShort(short)
-    emitCompleteSegments()
+    hintEmit()
   }
 
-  @OptIn(DelicateIoApi::class)
   override fun writeInt(int: Int) {
     check(!closed) { "closed" }
     bufferField.writeInt(int)
-    emitCompleteSegments()
+    hintEmit()
   }
 
-  @OptIn(DelicateIoApi::class)
   override fun writeLong(long: Long) {
     check(!closed) { "closed" }
     bufferField.writeLong(long)
-    emitCompleteSegments()
+    hintEmit()
   }
 
-  @DelicateIoApi
-  override fun emitCompleteSegments() {
+  @InternalIoApi
+  override fun hintEmit() {
     check(!closed) { "closed" }
     val byteCount = bufferField.completeSegmentByteCount()
     if (byteCount > 0L) sink.write(bufferField, byteCount)

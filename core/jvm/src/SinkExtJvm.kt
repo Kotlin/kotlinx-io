@@ -60,14 +60,12 @@ public fun Sink.outputStream(): OutputStream {
   return object : OutputStream() {
     override fun write(b: Int) {
       if (isClosed()) throw IOException("closed")
-      buffer.writeByte(b.toByte())
-      emitCompleteSegments()
+      writeToInternalBuffer { it.writeByte(b.toByte()) }
     }
 
     override fun write(data: ByteArray, offset: Int, byteCount: Int) {
       if (isClosed()) throw IOException("closed")
-      buffer.write(data, offset, byteCount)
-      emitCompleteSegments()
+      writeToInternalBuffer { it.write(data, offset, byteCount) }
     }
 
     override fun flush() {
@@ -90,12 +88,12 @@ public fun Sink.outputStream(): OutputStream {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Sink.write(source: ByteBuffer): Int {
   val sizeBefore = buffer.size
   buffer.readFrom(source)
   val bytesRead = buffer.size - sizeBefore
-  emitCompleteSegments()
+  hintEmit()
   return bytesRead.toInt()
 }
 
