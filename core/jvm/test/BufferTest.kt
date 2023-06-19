@@ -38,7 +38,7 @@ class BufferTest {
         source.writeUtf8("a".repeat(SEGMENT_SIZE * 2))
         source.writeUtf8("b".repeat( SEGMENT_SIZE * 2))
         val out = ByteArrayOutputStream()
-        source.copyTo(out, 10L, SEGMENT_SIZE * 3L)
+        source.copyTo(out, startIndex = 10L, endIndex = 10L + SEGMENT_SIZE * 3L)
         assertEquals("a".repeat( SEGMENT_SIZE * 2 - 10) + "b".repeat( SEGMENT_SIZE + 10),
             out.toString())
         assertEquals("a".repeat(SEGMENT_SIZE * 2) + "b".repeat( SEGMENT_SIZE * 2),
@@ -51,7 +51,7 @@ class BufferTest {
         source.writeUtf8("a".repeat(SEGMENT_SIZE * 2))
         source.writeUtf8("b".repeat( SEGMENT_SIZE * 2))
         val out = ByteArrayOutputStream()
-        source.copyTo(out, SEGMENT_SIZE * 2 + 1L, 3L)
+        source.copyTo(out, startIndex = SEGMENT_SIZE * 2 + 1L, endIndex = SEGMENT_SIZE * 2 + 4L)
         assertEquals("bbb", out.toString())
         assertEquals("a".repeat(SEGMENT_SIZE * 2) + "b".repeat( SEGMENT_SIZE * 2),
             source.readUtf8(SEGMENT_SIZE * 4L))
@@ -176,32 +176,32 @@ class BufferTest {
         assertEquals("party", source.readUtf8())
     }
 
-    @Test fun copyToOutputStreamWithOffset() {
+    @Test fun copyToOutputStreamWithStartIndex() {
         val source = Buffer()
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.copyTo(target.outputStream(), offset = 2)
+        source.copyTo(target.outputStream(), startIndex = 2)
         assertEquals("rty", target.readUtf8())
         assertEquals("party", source.readUtf8())
     }
 
-    @Test fun copyToOutputStreamWithByteCount() {
+    @Test fun copyToOutputStreamWithEndIndex() {
         val source = Buffer()
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.copyTo(target.outputStream(), byteCount = 3)
+        source.copyTo(target.outputStream(), endIndex = 3)
         assertEquals("par", target.readUtf8())
         assertEquals("party", source.readUtf8())
     }
 
-    @Test fun copyToOutputStreamWithOffsetAndByteCount() {
+    @Test fun copyToOutputStreamWithIndices() {
         val source = Buffer()
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.copyTo(target.outputStream(), offset = 1, byteCount = 3)
+        source.copyTo(target.outputStream(), startIndex = 1, endIndex = 4)
         assertEquals("art", target.readUtf8())
         assertEquals("party", source.readUtf8())
     }

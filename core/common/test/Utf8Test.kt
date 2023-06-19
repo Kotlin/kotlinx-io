@@ -189,7 +189,7 @@ class Utf8Test {
   }
 
   @Test fun sizeBoundsCheck() {
-    assertFailsWith<IllegalArgumentException> {
+    assertFailsWith<IndexOutOfBoundsException> {
       "abc".utf8Size(-1, 2)
     }
 
@@ -197,7 +197,7 @@ class Utf8Test {
       "abc".utf8Size(2, 1)
     }
 
-    assertFailsWith<IllegalArgumentException> {
+    assertFailsWith<IndexOutOfBoundsException> {
       "abc".utf8Size(1, 4)
     }
   }

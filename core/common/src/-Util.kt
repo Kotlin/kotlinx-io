@@ -27,8 +27,20 @@ internal val HEX_DIGIT_CHARS =
   charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 
 internal fun checkOffsetAndCount(size: Long, offset: Long, byteCount: Long) {
-  if (offset or byteCount < 0 || offset > size || size - offset < byteCount) {
-    throw IllegalArgumentException("size=$size offset=$offset byteCount=$byteCount")
+  if (offset < 0 || offset > size || size - offset < byteCount || byteCount < 0) {
+    throw IllegalArgumentException("offset: $offset, byteCount: $byteCount, size: $size")
+  }
+}
+
+internal inline fun checkBounds(size: Int, startIndex: Int, endIndex: Int) =
+  checkBounds(size.toLong(), startIndex.toLong(), endIndex.toLong())
+
+internal fun checkBounds(size: Long, startIndex: Long, endIndex: Long) {
+  if (startIndex < 0 || endIndex > size) {
+    throw IndexOutOfBoundsException("startIndex: $startIndex, endIndex: $endIndex, size: $size")
+  }
+  if (startIndex > endIndex) {
+    throw IllegalArgumentException("startIndex: $startIndex > endIndex: $endIndex")
   }
 }
 

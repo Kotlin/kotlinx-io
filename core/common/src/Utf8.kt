@@ -74,19 +74,17 @@ import kotlinx.io.internal.*
 /**
  * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeUtf8].
  *
- * @param beginIndex the index of the first character to encode, inclusive.
- * @param endIndex the index of the character past the last character to encode, exclusive.
+ * @param startIndex the index (inclusive) of the first character to encode, `0` by default.
+ * @param endIndex the index (exclusive) of the character past the last character to encode, `string.length` by default.
  *
- * @throws IllegalArgumentException when [beginIndex] or [endIndex] correspond to a range
- * out of the current string bounds.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of string indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
  */
-public fun String.utf8Size(beginIndex: Int = 0, endIndex: Int = length): Long {
-  require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
-  require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
-  require(endIndex <= length) { "endIndex > string.length: $endIndex > $length" }
+public fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long {
+  checkBounds(length, startIndex, endIndex)
 
   var result = 0L
-  var i = beginIndex
+  var i = startIndex
   while (i < endIndex) {
     val c = this[i].code
 
@@ -131,19 +129,19 @@ public fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
   writeToInternalBuffer { it.commonWriteUtf8CodePoint(codePoint) }
 
 /**
- * Encodes the characters at [beginIndex] up to [endIndex] from [string] in UTF-8 and writes it to this sink.
+ * Encodes the characters at [startIndex] up to [endIndex] from [string] in UTF-8 and writes it to this sink.
  *
  * @param string the string to be encoded.
- * @param beginIndex the index of the first character to encode, 0 by default.
- * @param endIndex the index of a character past to a last character to encode, `string.length` by default.
+ * @param startIndex the index (inclusive) of the first character to encode, 0 by default.
+ * @param endIndex the index (exclusive) of a character past to a last character to encode, `string.length` by default.
  *
- * @throws IllegalArgumentException when [beginIndex] or [endIndex] correspond to a range
- * out of the current string bounds.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [string] indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun Sink.writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): Unit =
-  writeToInternalBuffer { it.commonWriteUtf8(string, beginIndex, endIndex) }
+public fun Sink.writeUtf8(string: String, startIndex: Int = 0, endIndex: Int = string.length): Unit =
+  writeToInternalBuffer { it.commonWriteUtf8(string, startIndex, endIndex) }
 
 /**
  * Removes all bytes from this source, decodes them as UTF-8, and returns the string.
@@ -273,7 +271,7 @@ public fun Source.readUtf8Line(): String? {
  * @throws IllegalArgumentException when [limit] is negative.
  */
 public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
-  require(limit >= 0) { "limit is negative: $limit" }
+  require(limit >= 0) { "limit: $limit" }
   if (!request(1)) throw EOFException()
 
   val peekSource = peek()
@@ -383,10 +381,7 @@ private fun Buffer.commonReadUtf8CodePoint(): Int {
 }
 
 private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int) {
-  checkOffsetAndCount(string.length.toLong(), beginIndex.toLong(), (endIndex - beginIndex).toLong())
-  //require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
-  //require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
-  //require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }
+  checkBounds(string.length, beginIndex, endIndex)
 
   // Transcode a UTF-16 Java String to UTF-8 bytes.
   var i = beginIndex

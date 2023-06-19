@@ -73,7 +73,7 @@ public fun Source.readString(charset: Charset): String {
  *
  * @throws EOFException when the source exhausted before [byteCount] bytes could be read from it.
  * @throws IllegalStateException when the source is closed.
- * @throws IllegalArgumentException if [byteCount] is negative.
+ * @throws IllegalArgumentException if [byteCount] is negative or its value is greater than [Int.MAX_VALUE].
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readString(byteCount: Long, charset: Charset): String {
@@ -104,7 +104,7 @@ public fun Source.inputStream(): InputStream {
       if (isClosed()) throw IOException("closed")
       checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
 
-      return this@inputStream.readAtMostTo(data, offset, byteCount)
+      return this@inputStream.readAtMostTo(data, offset, offset + byteCount)
     }
 
     override fun available(): Int {

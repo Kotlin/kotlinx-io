@@ -57,7 +57,7 @@ internal class RealSource(
   }
 
   override fun request(byteCount: Long): Boolean {
-    require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
+    require(byteCount >= 0L) { "byteCount: $byteCount" }
     check(!closed) { "closed" }
     while (bufferField.size < byteCount) {
       if (source.readAtMostTo(bufferField, Segment.SIZE.toLong()) == -1L) return false
@@ -70,17 +70,15 @@ internal class RealSource(
     return bufferField.readByte()
   }
 
-  override fun readAtMostTo(sink: ByteArray, offset: Int, byteCount: Int): Int {
-    checkOffsetAndCount(sink.size.toLong(), offset.toLong(), byteCount.toLong())
+  override fun readAtMostTo(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
+    checkBounds(sink.size, startIndex, endIndex)
 
     if (bufferField.size == 0L) {
       val read = source.readAtMostTo(bufferField, Segment.SIZE.toLong())
       if (read == -1L) return -1
     }
     val toRead = minOf(endIndex - startIndex, bufferField.size).toInt()
-    //return bufferField.readAtMostTo(sink, startIndex, startIndex + toRead)
-    val toRead = minOf(byteCount, bufferField.size).toInt()
-    return bufferField.readAtMostTo(sink, offset, toRead)
+    return bufferField.readAtMostTo(sink, startIndex, startIndex + toRead)
   }
 
   override fun readTo(sink: RawSink, byteCount: Long) {
@@ -126,6 +124,7 @@ internal class RealSource(
   }
 
   override fun skip(byteCount: Long) {
+    require(byteCount >= 0) { "byteCount: $byteCount" }
     var remainingByteCount = byteCount
     check(!closed) { "closed" }
     while (remainingByteCount > 0) {

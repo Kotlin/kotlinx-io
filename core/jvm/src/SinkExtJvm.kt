@@ -27,23 +27,22 @@ import java.nio.channels.WritableByteChannel
 import java.nio.charset.Charset
 
 /**
- * Encodes substring of [string] starting at [beginIndex] and ending at [endIndex] using [charset]
+ * Encodes substring of [string] starting at [startIndex] and ending at [endIndex] using [charset]
  * and writes into this sink.
  *
  * @param string the string to encode into this sink.
  * @param charset the [Charset] to use for encoding.
- * @param beginIndex the index of the first character to encode, inclusive, 0 by default.
- * @param endIndex the index of the last character to encode, exclusive, `string.size` by default.
+ * @param startIndex the index of the first character to encode, inclusive, 0 by default.
+ * @param endIndex the index of the last character to encode, exclusive, `string.length` by default.
  *
- * @throws IllegalArgumentException when [beginIndex] and [endIndex] correspond to a range out of [string] bounds.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [string] indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalStateException when the sink is closed.
  */
-public fun Sink.writeString(string: String, charset: Charset, beginIndex: Int = 0, endIndex: Int = string.length) {
-  require(beginIndex >= 0) { "beginIndex < 0: $beginIndex" }
-  require(endIndex >= beginIndex) { "endIndex < beginIndex: $endIndex < $beginIndex" }
-  require(endIndex <= string.length) { "endIndex > string.length: $endIndex > ${string.length}" }
-  if (charset == Charsets.UTF_8) return writeUtf8(string, beginIndex, endIndex)
-  val data = string.substring(beginIndex, endIndex).toByteArray(charset)
+public fun Sink.writeString(string: String, charset: Charset, startIndex: Int = 0, endIndex: Int = string.length) {
+  checkBounds(string.length, startIndex, endIndex)
+  if (charset == Charsets.UTF_8) return writeUtf8(string, startIndex, endIndex)
+  val data = string.substring(startIndex, endIndex).toByteArray(charset)
   write(data, 0, data.size)
 }
 
@@ -65,7 +64,7 @@ public fun Sink.outputStream(): OutputStream {
 
     override fun write(data: ByteArray, offset: Int, byteCount: Int) {
       if (isClosed()) throw IOException("closed")
-      writeToInternalBuffer { it.write(data, offset, byteCount) }
+      writeToInternalBuffer { it.write(data, offset, offset + byteCount) }
     }
 
     override fun flush() {

@@ -293,14 +293,14 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     // Either 0 or -1 is reasonable here. For consistency with Android's
     // ByteArrayInputStream we return 0.
-    assertEquals(-1, source.read(sink, 0))
+    assertEquals(-1, source.readAtMostTo(sink, 0))
     assertEquals(10, sink.size)
     assertTrue(source.exhausted())
   }
 
   @Test fun readNegativeBytesFromSource() {
     assertFailsWith<IllegalArgumentException> {
-      source.read(Buffer().also { it.writeByte(0) }, -1L)
+      source.readAtMostTo(Buffer().also { it.writeByte(0) }, -1L)
     }
   }
 
@@ -426,7 +426,8 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
 
     val sink = ByteArray(7)
-    val read = source.readAtMostTo(sink, 2, 3)
+    val bytesToRead = 3
+    val read = source.readAtMostTo(sink, startIndex = 2, endIndex = 2 + bytesToRead)
     if (factory.isOneByteAtATime) {
       assertEquals(1, read.toLong())
       val expected = byteArrayOf(0, 0, 'a'.code.toByte(), 0, 0, 0, 0)
@@ -467,11 +468,11 @@ abstract class AbstractBufferedSourceTest internal constructor(
       source.readAtMostTo(sink, 4, 1)
     }
 
-    assertFailsWith<IllegalArgumentException> {
-      source.readAtMostTo(sink, 1, 4)
+    assertFailsWith<IndexOutOfBoundsException> {
+      source.readAtMostTo(sink, 1, 5)
     }
 
-    assertFailsWith<IllegalArgumentException> {
+    assertFailsWith<IndexOutOfBoundsException> {
       source.readAtMostTo(sink, -1, 2)
     }
   }
@@ -498,6 +499,11 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
 
     assertEquals("abc", source.readUtf8()) // The read shouldn't consume any data.
+  }
+
+  @Test
+  fun readByteArrayWithNegativeSizeThrows() {
+    assertFailsWith<IllegalArgumentException> { source.readByteArray(-20L) }
   }
 
   @Test fun readUtf8SpansSegments() {

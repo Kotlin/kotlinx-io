@@ -42,10 +42,10 @@ internal class RealSink(
     hintEmit()
   }
 
-  override fun write(source: ByteArray, offset: Int, byteCount: Int) {
-    checkOffsetAndCount(source.size.toLong(), offset.toLong(), byteCount.toLong())
+  override fun write(source: ByteArray, startIndex: Int, endIndex: Int) {
+    checkBounds(source.size, startIndex, endIndex)
     check(!closed) { "closed" }
-    bufferField.write(source, offset, byteCount)
+    bufferField.write(source, startIndex, endIndex)
     hintEmit()
   }
 
@@ -61,7 +61,7 @@ internal class RealSink(
   }
 
   override fun write(source: RawSource, byteCount: Long) {
-    require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
+    require(byteCount >= 0) { "byteCount: $byteCount" }
     var remainingByteCount = byteCount
     while (remainingByteCount > 0L) {
       val read = source.readAtMostTo(bufferField, remainingByteCount)

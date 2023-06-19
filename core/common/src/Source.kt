@@ -67,6 +67,7 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when the source is exhausted before the required bytes count could be read.
    * @throws IllegalStateException when the source is closed.
+   * @throws IllegalArgumentException when [byteCount] is negative.
    */
   public fun require(byteCount: Long)
 
@@ -79,6 +80,7 @@ public sealed interface Source : RawSource {
    *
    * @param byteCount the number of bytes that the buffer should contain.
    *
+   * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws IllegalStateException when the source is closed.
    */
   public fun request(byteCount: Long): Boolean
@@ -121,24 +123,24 @@ public sealed interface Source : RawSource {
    * @param byteCount the number of bytes to be skipped.
    *
    * @throws EOFException when the source is exhausted before the requested number of bytes can be skipped.
+   * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws IllegalStateException when the source is closed.
    */
   public fun skip(byteCount: Long)
 
   /**
-   * Removes up to [byteCount] bytes from this source, copies them into [sink] starting at [offset] and returns the
-   * number of bytes read, or -1 if this source is exhausted.
+   * Removes up to `endIndex - startIndex` bytes from this source, copies them into [sink] subrange starting at
+   * [startIndex] and ending at [endIndex], and returns the number of bytes read, or -1 if this source is exhausted.
    *
    * @param sink the array to which data will be written from this source.
-   * @param offset the offset to start writing data into [sink] at, 0 by default.
-   * @param byteCount the number of bytes that should be written into [sink],
-   * size of the [sink] subarray starting at [offset] by default.
+   * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+   * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
    *
-   * @throws IllegalArgumentException when a range specified by [offset] and [byteCount]
-   * is out of range of [sink] array indices.
+   * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+   * @throws IllegalArgumentException when `startIndex > endIndex`.
    * @throws IllegalStateException when the source is closed.
    */
-  public fun readAtMostTo(sink: ByteArray, offset: Int = 0, byteCount: Int = sink.size - offset): Int
+  public fun readAtMostTo(sink: ByteArray, startIndex: Int = 0, endIndex: Int = sink.size): Int
 
   /**
    * Removes exactly [byteCount] bytes from this source and writes them to [sink].

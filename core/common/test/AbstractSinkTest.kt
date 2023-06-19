@@ -51,13 +51,13 @@ abstract class AbstractSinkTest internal constructor(
     assertEquals("[hex=000102]", data.toString())
     data.clear()
 
-    assertFailsWith<IllegalArgumentException> {
-      sink.write(source, -1, 1)
+    assertFailsWith<IndexOutOfBoundsException> {
+      sink.write(source, startIndex = -1, endIndex = 1)
     }
     assertEquals(0, data.size)
 
-    assertFailsWith<IllegalArgumentException> {
-      sink.write(source, 1, source.size)
+    assertFailsWith<IndexOutOfBoundsException> {
+      sink.write(source, startIndex = 1, endIndex = source.size + 1)
     }
     assertEquals(0, data.size)
   }
@@ -355,9 +355,9 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeUtf8WithInvalidIndexes() {
-    assertFailsWith<IllegalArgumentException> { sink.writeUtf8("hello", -1) }
-    assertFailsWith<IllegalArgumentException> { sink.writeUtf8("hello", 0, 6) }
-    assertFailsWith<IllegalArgumentException> { sink.writeUtf8("hello", 6) }
+    assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", startIndex = -1) }
+    assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", startIndex = 0, endIndex = 6) }
+    assertFailsWith<IllegalArgumentException> { sink.writeUtf8("hello", startIndex = 6) }
   }
 
   @Test fun writeUByte() {

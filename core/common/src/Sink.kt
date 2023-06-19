@@ -58,14 +58,14 @@ public sealed interface Sink : RawSink {
    * Writes bytes from [source] array or its subrange to this sink.
    *
    * @param source the array from which bytes will be written into this sink.
-   * @param offset the beginning of data within the [source], 0 by default.
-   * @param byteCount the number of bytes to write, size of the [source] subarray starting at [offset] by default.
+   * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+   * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
    *
-   * @throws IllegalArgumentException when a range specified by [offset] and [byteCount]
-   * is out of range of [source] array indices.
+   * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+   * @throws IllegalArgumentException when `startIndex > endIndex`.
    * @throws IllegalStateException when the sink is closed.
    */
-  public fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size - offset)
+  public fun write(source: ByteArray, startIndex: Int = 0, endIndex: Int = source.size)
 
   /**
    * Removes all bytes from [source] and write them to this sink.

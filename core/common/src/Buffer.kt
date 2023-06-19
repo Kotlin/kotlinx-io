@@ -198,24 +198,26 @@ public class Buffer : Source, Sink {
   override fun flush(): Unit = Unit
 
   /**
-   * Copy [byteCount] bytes from this buffer, starting at [offset], to [out] buffer.
+   * Copy bytes from this buffer's subrange starting at [startIndex] and ending at [endIndex], to [out] buffer.
    *
    * @param out the destination buffer to copy data into.
-   * @param offset the offset to the first byte of data in this buffer to start copying from.
-   * @param byteCount the number of bytes to copy.
+   * @param startIndex the index (inclusive) of the first byte of data in this buffer to copy,
+   * 0 by default.
+   * @param endIndex the index (exclusive) of the last byte of data in this buffer to copy, `buffer.size` by default.
    *
-   * @throws IllegalArgumentException when [offset] and [byteCount] correspond to a range out of this buffer bounds.
+   * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of buffer indices.
+   * @throws IllegalArgumentException when `startIndex > endIndex`.
    */
   public fun copyTo(
     out: Buffer,
-    offset: Long = 0L,
-    byteCount: Long = size - offset
+    startIndex: Long = 0L,
+    endIndex: Long = size
   ) {
-    checkOffsetAndCount(size, offset, byteCount)
-    if (byteCount == 0L) return
+    checkBounds(size, startIndex, endIndex)
+    if (startIndex == endIndex) return
 
-    var currentOffset = offset
-    var remainingByteCount = byteCount
+    var currentOffset = startIndex
+    var remainingByteCount = endIndex - startIndex
 
     out.size += remainingByteCount
 
@@ -268,10 +270,12 @@ public class Buffer : Source, Sink {
    * Use of this method may expose significant performance penalties and it's not recommended to use it
    * for sequential access to a range of bytes within the buffer.
    *
-   * @throws IllegalArgumentException when [position] is out of this buffer's bounds.
+   * @throws IndexOutOfBoundsException when [position] is out of this buffer's bounds.
    */
   public operator fun get(position: Long): Byte {
-    checkOffsetAndCount(size, position, 1L)
+    if (position < 0 || position >= size) {
+      throw IndexOutOfBoundsException("position: $position, size: $size")
+    }
     seek(position) { s, offset ->
       return s!!.data[(s.pos + position - offset).toInt()]
     }
@@ -285,7 +289,7 @@ public class Buffer : Source, Sink {
   public fun clear(): Unit = skip(size)
 
   /**
-   * Discards [byteCount]` bytes from the head of this buffer.
+   * Discards [byteCount] bytes from the head of this buffer.
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
    */
@@ -306,13 +310,13 @@ public class Buffer : Source, Sink {
     }
   }
 
-  override fun readAtMostTo(sink: ByteArray, offset: Int, byteCount: Int): Int {
-    checkOffsetAndCount(sink.size.toLong(), offset.toLong(), byteCount.toLong())
+  override fun readAtMostTo(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
+    checkBounds(sink.size, startIndex, endIndex)
 
     val s = head ?: return -1
-    val toCopy = minOf(byteCount, s.limit - s.pos)
+    val toCopy = minOf(endIndex - startIndex, s.limit - s.pos)
     s.data.copyInto(
-      destination = sink, destinationOffset = offset, startIndex = s.pos, endIndex = s.pos + toCopy
+      destination = sink, destinationOffset = startIndex, startIndex = s.pos, endIndex = s.pos + toCopy
     )
 
     s.pos += toCopy
@@ -375,14 +379,13 @@ public class Buffer : Source, Sink {
     return tail
   }
 
-  override fun write(source: ByteArray, offset: Int, byteCount: Int): Unit {
-    var currentOffset = offset
-    checkOffsetAndCount(source.size.toLong(), currentOffset.toLong(), byteCount.toLong())
-    val limit = currentOffset + byteCount
-    while (currentOffset < limit) {
+  override fun write(source: ByteArray, startIndex: Int, endIndex: Int) {
+    checkBounds(source.size, startIndex, endIndex)
+    var currentOffset = startIndex
+    while (currentOffset < endIndex) {
       val tail = writableSegment(1)
 
-      val toCopy = minOf(limit - currentOffset, Segment.SIZE - tail.limit)
+      val toCopy = minOf(endIndex - currentOffset, Segment.SIZE - tail.limit)
       source.copyInto(
         destination = tail.data,
         destinationOffset = tail.limit,
@@ -393,7 +396,7 @@ public class Buffer : Source, Sink {
       currentOffset += toCopy
       tail.limit += toCopy
     }
-    size += byteCount.toLong()
+    size += endIndex - startIndex
   }
 
   override fun write(source: RawSource, byteCount: Long) {
@@ -458,7 +461,6 @@ public class Buffer : Source, Sink {
     // yielding sink [51%, 91%, 30%] and source [62%, 82%].
 
     require(source !== this) { "source == this" }
-    require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
     checkOffsetAndCount(source.size, 0, byteCount)
 
     var remainingByteCount = byteCount
@@ -625,6 +627,7 @@ public class Buffer : Source, Sink {
 }
 
 private fun ByteArray.hex(count: Int = this.size): String {
+  require(count >= 0) { "count: $count" }
   val builder = StringBuilder(count * 2)
   forEach {
     builder.append(HEX_DIGIT_CHARS[it.shr(4) and 0x0f])

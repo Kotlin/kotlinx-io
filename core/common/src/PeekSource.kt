@@ -64,7 +64,7 @@ internal class PeekSource(
     }
 
     val toCopy = minOf(byteCount, buffer.size - pos)
-    buffer.copyTo(sink, pos, toCopy)
+    buffer.copyTo(sink, pos, pos + toCopy)
     pos += toCopy
     return toCopy
   }

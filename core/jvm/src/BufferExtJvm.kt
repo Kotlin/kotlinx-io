@@ -105,24 +105,25 @@ public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size) {
 }
 
 /**
- * Copy [byteCount] bytes from this buffer, starting at [offset], to [out].
+ * Copy bytes from this buffer's subrange, starting at [startIndex] and ending at [endIndex], to [out].
  *
  * @param out the destination to copy data into.
- * @param offset the offset to start copying data from, `0` by default.
- * @param byteCount the number of bytes to copy, all data starting from the [offset] by default.
+ * @param startIndex the index (inclusive) of the first byte to copy, `0` by default.
+ * @param endIndex the index (exclusive) of the last byte to copy, `buffer.size` by default.
  *
- * @throws IllegalArgumentException when [byteCount] and [offset] represents a range out of the buffer bounds.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of buffer indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
  */
 public fun Buffer.copyTo(
   out: OutputStream,
-  offset: Long = 0L,
-  byteCount: Long = size - offset
+  startIndex: Long = 0L,
+  endIndex: Long = size
 ) {
-  checkOffsetAndCount(size, offset, byteCount)
-  if (byteCount == 0L) return
+  checkBounds(size, startIndex, endIndex)
+  if (startIndex == endIndex) return
 
-  var currentOffset = offset
-  var remainingByteCount = byteCount
+  var currentOffset = startIndex
+  var remainingByteCount = endIndex - startIndex
 
   // Skip segments that we aren't copying from.
   var s = head

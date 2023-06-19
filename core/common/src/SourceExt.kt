@@ -148,32 +148,33 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
 }
 
 /**
- * Returns an index of [b] first occurrence in the range of [fromIndex] inclusive to [toIndex]
- * exclusive, or `-1` when the range doesn't contain [b].
+ * Returns an index of [b] first occurrence in the range of [startIndex] to [endIndex],
+ * or `-1` when the range doesn't contain [b].
  *
- * The scan terminates at either [toIndex] or source's exhaustion, whichever comes first. The
+ * The scan terminates at either [endIndex] or source's exhaustion, whichever comes first. The
  * maximum number of bytes scanned is `toIndex-fromIndex`.
- * If [b] not found in buffered data, [toIndex] is yet to be reached and the underlying source is not yet exhausted
+ * If [b] not found in buffered data, [endIndex] is yet to be reached and the underlying source is not yet exhausted
  * then new data will be read from the underlying source into the buffer.
  *
  * @param b the value to find.
- * @param fromIndex the start of the range to find [b], inclusive.
- * @param toIndex the end of the range to find [b], exclusive.
+ * @param startIndex the start of the range (inclusive) to find [b], `0` by default.
+ * @param endIndex the end of the range (exclusive) to find [b], [Long.MAX_VALUE] by default.
  *
  * @throws IllegalStateException when the source is closed.
+ * @throws IllegalArgumentException when `startIndex > endIndex` or either of indices is negative.
  */
-public fun Source.indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MAX_VALUE): Long {
-    require(fromIndex in 0..toIndex)
-    if (fromIndex == toIndex) return -1L
+public fun Source.indexOf(b: Byte, startIndex: Long = 0L, endIndex: Long = Long.MAX_VALUE): Long {
+    require(startIndex in 0..endIndex) { "startIndex: $startIndex, endIndex: $endIndex" }
+    if (startIndex == endIndex) return -1L
 
-    var offset = fromIndex
+    var offset = startIndex
     val peekSource = peek()
 
     if (!peekSource.request(offset)) {
         return -1L
     }
     peekSource.skip(offset)
-    while (offset < toIndex && peekSource.request(1)) {
+    while (offset < endIndex && peekSource.request(1)) {
         if (peekSource.readByte() == b) return offset
         offset++
     }
@@ -194,12 +195,12 @@ public fun Source.readByteArray(): ByteArray {
  *
  * @param byteCount the number of bytes that should be read from the source.
  *
- * @throws IllegalArgumentException when byteCount is negative.
+ * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
  * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readByteArray(byteCount: Long): ByteArray {
-    check(byteCount >= 0)
+    require(byteCount >= 0) { "byteCount: $byteCount" }
     return readByteArrayImpl(byteCount)
 }
 
@@ -307,7 +308,7 @@ public fun Source.readULongLe(): ULong = readLongLe().toULong()
  * Return `true` if the next byte to be consumed from this source is equal to [byte].
  * Otherwise, return `false` as well as when the source is exhausted.
  *
- * If there are no buffered data, this call will result in a fetch from the underlying source.
+ * If there is no buffered data, this call will result in a fetch from the underlying source.
  *
  * @throws IllegalStateException when the source is closed.
  */
