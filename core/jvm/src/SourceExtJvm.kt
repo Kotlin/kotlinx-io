@@ -34,7 +34,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
   val s = head!!
   if (s.pos + byteCount > s.limit) {
     // If the string spans multiple segments, delegate to readBytes().
-    return String(readByteArray(byteCount), charset)
+    return String(readByteArray(byteCount.toInt()), charset)
   }
 
   val result = String(s.data, s.pos, byteCount.toInt(), charset)

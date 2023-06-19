@@ -503,7 +503,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
   @Test
   fun readByteArrayWithNegativeSizeThrows() {
-    assertFailsWith<IllegalArgumentException> { source.readByteArray(-20L) }
+    assertFailsWith<IllegalArgumentException> { source.readByteArray(-20) }
   }
 
   @Test fun readUtf8SpansSegments() {

@@ -187,7 +187,7 @@ public fun Source.indexOf(b: Byte, startIndex: Long = 0L, endIndex: Long = Long.
  * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readByteArray(): ByteArray {
-    return readByteArrayImpl( -1L)
+    return readByteArrayImpl( -1)
 }
 
 /**
@@ -199,27 +199,27 @@ public fun Source.readByteArray(): ByteArray {
  * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
  * @throws IllegalStateException when the source is closed.
  */
-public fun Source.readByteArray(byteCount: Long): ByteArray {
+public fun Source.readByteArray(byteCount: Int): ByteArray {
     require(byteCount >= 0) { "byteCount: $byteCount" }
     return readByteArrayImpl(byteCount)
 }
 
 @OptIn(InternalIoApi::class)
-private fun Source.readByteArrayImpl(size: Long): ByteArray {
+private fun Source.readByteArrayImpl(size: Int): ByteArray {
     var arraySize = size
-    if (size == -1L) {
+    if (size == -1) {
         var fetchSize = Int.MAX_VALUE.toLong()
         while (buffer.size < Int.MAX_VALUE && request(fetchSize)) {
             fetchSize *= 2
         }
         if (buffer.size >= Int.MAX_VALUE) {
-            throw IllegalStateException()
+            throw IllegalStateException("Can't create an array of size ${buffer.size}")
         }
-        arraySize = buffer.size
+        arraySize = buffer.size.toInt()
     } else {
-        require(size)
+        require(size.toLong())
     }
-    val array = ByteArray(arraySize.toInt())
+    val array = ByteArray(arraySize)
     buffer.readTo(array)
     return array
 }

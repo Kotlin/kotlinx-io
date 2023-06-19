@@ -387,6 +387,6 @@ open class BufferReadNewByteArray: BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): ByteArray {
         buffer.write(inputArray)
-        return buffer.readByteArray(size.toLong())
+        return buffer.readByteArray(size)
     }
 }

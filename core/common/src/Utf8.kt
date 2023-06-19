@@ -513,7 +513,7 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
   if (s.pos + byteCount > s.limit) {
     // If the string spans multiple segments, delegate to readBytes().
 
-    return readByteArray(byteCount).commonToUtf8String()
+    return readByteArray(byteCount.toInt()).commonToUtf8String()
   }
 
   val result = s.data.commonToUtf8String(s.pos, s.pos + byteCount.toInt())

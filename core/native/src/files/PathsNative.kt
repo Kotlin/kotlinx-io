@@ -5,8 +5,8 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.*
 import kotlinx.cinterop.*
+import kotlinx.io.*
 import platform.posix.*
 
 /*
@@ -86,11 +86,11 @@ internal class FileSink(
         source: Buffer,
         byteCount: Long
     ) {
-        require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
+        require(byteCount >= 0L) { "byteCount: $byteCount" }
         require(source.size >= byteCount) { "source.size=${source.size} < byteCount=$byteCount" }
         check(!closed) { "closed" }
 
-        val allContent = source.readByteArray(byteCount)
+        val allContent = source.readByteArray(byteCount.toInt())
         // Copy bytes from that segment into the file.
         val bytesWritten = allContent.usePinned { pinned ->
             variantFwrite(pinned.addressOf(0), byteCount.toUInt(), file).toLong()
