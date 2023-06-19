@@ -219,9 +219,7 @@ private fun Source.readByteArrayImpl(size: Int): ByteArray {
         while (buffer.size < Int.MAX_VALUE && request(fetchSize)) {
             fetchSize *= 2
         }
-        if (buffer.size >= Int.MAX_VALUE) {
-            throw IllegalStateException("Can't create an array of size ${buffer.size}")
-        }
+        check (buffer.size >= Int.MAX_VALUE) { "Can't create an array of size ${buffer.size}" }
         arraySize = buffer.size.toInt()
     } else {
         require(size.toLong())

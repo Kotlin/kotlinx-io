@@ -299,7 +299,7 @@ public class Buffer : Source, Sink {
     require(byteCount >= 0) { "byteCount: $byteCount" }
     var remainingByteCount = byteCount
     while (remainingByteCount > 0) {
-      val head = head ?: throw EOFException("Buffer exhausted before skipping $byteCount btyes.")
+      val head = head ?: throw EOFException("Buffer exhausted before skipping $byteCount bytes.")
 
       val toSkip = minOf(remainingByteCount, head.limit - head.pos).toInt()
       size -= toSkip.toLong()
