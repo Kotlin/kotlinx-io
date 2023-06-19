@@ -639,9 +639,9 @@ public class Buffer : Source, Sink {
 private fun ByteArray.hex(count: Int = this.size): String {
   require(count >= 0) { "count: $count" }
   val builder = StringBuilder(count * 2)
-  forEach {
-    builder.append(HEX_DIGIT_CHARS[it.shr(4) and 0x0f])
-    builder.append(HEX_DIGIT_CHARS[it and 0x0f])
+  for (i in 0 until count) {
+    builder.append(HEX_DIGIT_CHARS[get(i).shr(4) and 0x0f])
+    builder.append(HEX_DIGIT_CHARS[get(i) and 0x0f])
   }
   return builder.toString()
 }
