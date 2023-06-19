@@ -35,8 +35,8 @@ class CommonRealSourceTest {
     val buffer = Buffer().also { it.writeUtf8("abcdef") }
     val bufferedSource = (
       object : RawSource by buffer {
-        override fun read(sink: Buffer, byteCount: Long): Long {
-          return buffer.read(sink, minOf(1, byteCount))
+        override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+          return buffer.readAtMostTo(sink, minOf(1, byteCount))
         }
       }
       ).buffer()
@@ -148,7 +148,7 @@ class CommonRealSourceTest {
 
     val mockSink = MockSink()
     val bufferedSource = (source as RawSource).buffer()
-    assertEquals(Segment.SIZE.toLong() * 3L, bufferedSource.readAll(mockSink))
+    assertEquals(Segment.SIZE.toLong() * 3L, bufferedSource.transferTo(mockSink))
     mockSink.assertLog(
       "write($write1, ${write1.size})",
       "write($write2, ${write2.size})",

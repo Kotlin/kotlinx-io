@@ -11,7 +11,7 @@ import kotlinx.benchmark.Param
 import kotlinx.benchmark.Setup
 import kotlinx.io.inputStream
 import kotlinx.io.outputStream
-import kotlinx.io.readFully
+import kotlinx.io.readTo
 
 open class InputStreamByteRead: BufferRWBenchmarkBase() {
    private val stream = buffer.inputStream()
@@ -67,7 +67,7 @@ open class OutputStreamByteArrayWrite: StreamByteArrayBenchmarkBase() {
     @Benchmark
     fun benchmark(blackhole: Blackhole) {
         stream.write(outputArray)
-        buffer.readFully(inputArray)
+        buffer.readTo(inputArray)
         blackhole.consume(inputArray)
     }
 }

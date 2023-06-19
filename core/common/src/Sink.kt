@@ -76,7 +76,7 @@ public sealed interface Sink : RawSink {
    * @throws IllegalStateException when the sink or [source] is closed.
    *
    */
-  public fun writeAll(source: RawSource): Long
+  public fun transferFrom(source: RawSource): Long
 
   /**
    * Removes [byteCount] bytes from [source] and write them to this sink.

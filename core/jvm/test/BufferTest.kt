@@ -93,7 +93,7 @@ class BufferTest {
     fun readFromStream() {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
-        buffer.readFrom(input)
+        buffer.transferFrom(input)
         val out = buffer.readUtf8()
         assertEquals("hello, world!", out)
     }
@@ -102,7 +102,7 @@ class BufferTest {
     fun readFromSpanningSegments() {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer().also { it.writeUtf8("a".repeat(SEGMENT_SIZE - 10)) }
-        buffer.readFrom(input)
+        buffer.transferFrom(input)
         val out = buffer.readUtf8()
         assertEquals("a".repeat(SEGMENT_SIZE - 10) + "hello, world!", out)
     }
@@ -111,7 +111,7 @@ class BufferTest {
     fun readFromStreamWithCount() {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
-        buffer.readFrom(input, 10)
+        buffer.write(input, 10)
         val out = buffer.readUtf8()
         assertEquals("hello, wor", out)
     }
@@ -121,21 +121,21 @@ class BufferTest {
         val input = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
         assertFailsWith<EOFException> {
-            buffer.readFrom(input, input.available() + 1L)
+            buffer.write(input, input.available() + 1L)
         }
     }
 
     @Test
     fun readFromStreamWithNegativeBytesCount() {
         assertFailsWith<IllegalArgumentException> {
-            Buffer().readFrom(ByteArrayInputStream(ByteArray(1)), -1)
+            Buffer().write(ByteArrayInputStream(ByteArray(1)), -1)
         }
     }
 
     @Test
     fun readFromDoesNotLeaveEmptyTailSegment() {
         val buffer = Buffer()
-        buffer.readFrom(ByteArrayInputStream(ByteArray(SEGMENT_SIZE)))
+        buffer.transferFrom(ByteArrayInputStream(ByteArray(SEGMENT_SIZE)))
         assertNoEmptySegments(buffer)
     }
 

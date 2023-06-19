@@ -47,7 +47,7 @@ class JvmPlatformTest {
         val bais = ByteArrayInputStream(byteArrayOf(0x61))
         val source = bais.source()
         val buffer = Buffer()
-        source.read(buffer, 1)
+        source.readAtMostTo(buffer, 1)
         assertEquals(buffer.readUtf8(), "a")
     }
 
@@ -73,7 +73,7 @@ class JvmPlatformTest {
         file.writeText("a")
         val buffer = Buffer()
         file.source().use { source ->
-            source.read(buffer, 1L)
+            source.readAtMostTo(buffer, 1L)
         }
         assertEquals(buffer.readUtf8(), "a")
     }
@@ -100,7 +100,7 @@ class JvmPlatformTest {
         file.writeText("a")
         val buffer = Buffer()
         file.toPath().source().use { source ->
-            source.read(buffer, 1L)
+            source.readAtMostTo(buffer, 1L)
         }
         assertEquals(buffer.readUtf8(), "a")
     }
@@ -140,7 +140,7 @@ class JvmPlatformTest {
         }
         val source = socket.source()
         val buffer = Buffer()
-        source.read(buffer, 1L)
+        source.readAtMostTo(buffer, 1L)
         assertEquals(buffer.readUtf8(), "a")
     }
 }

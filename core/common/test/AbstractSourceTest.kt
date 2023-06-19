@@ -267,14 +267,14 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
 
     val sink = Buffer()
-    assertEquals(6, source.readAll(sink))
+    assertEquals(6, source.transferTo(sink))
     assertEquals("abcdef", sink.readUtf8())
     assertTrue(source.exhausted())
   }
 
   @Test fun readAllExhausted() {
     val mockSink = MockSink()
-    assertEquals(0, source.readAll(mockSink))
+    assertEquals(0, source.transferTo(mockSink))
     assertTrue(source.exhausted())
     mockSink.assertLog()
   }
@@ -282,7 +282,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
   @Test fun readExhaustedSource() {
     val sink = Buffer()
     sink.writeUtf8("a".repeat(10))
-    assertEquals(-1, source.read(sink, 10))
+    assertEquals(-1, source.readAtMostTo(sink, 10))
     assertEquals(10, sink.size)
     assertTrue(source.exhausted())
   }
@@ -311,7 +311,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     source.close()
     assertFailsWith<IllegalStateException> {
-      source.read(Buffer().also { it.writeByte(0) }, 1L)
+      source.readAtMostTo(Buffer().also { it.writeByte(0) }, 1L)
     }
   }
 
@@ -319,7 +319,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.writeUtf8("a".repeat(10000))
     sink.emit()
     val sink = Buffer()
-    source.readFully(sink, 9999)
+    source.readTo(sink, 9999)
     assertEquals("a".repeat(9999), sink.readUtf8())
     assertEquals("a", source.readUtf8())
   }
@@ -329,7 +329,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
     val sink = Buffer()
     assertFailsWith<EOFException> {
-      source.readFully(sink, 5)
+      source.readTo(sink, 5)
     }
 
     // Verify we read all that we could from the source.
@@ -339,13 +339,13 @@ abstract class AbstractBufferedSourceTest internal constructor(
   @Test fun readFullyWithNegativeByteCount() {
     val sink = Buffer()
     assertFailsWith<IllegalArgumentException> {
-      source.readFully(sink, -1)
+      source.readTo(sink, -1)
     }
   }
 
   @Test fun readFullyZeroBytes() {
     val sink = Buffer()
-    source.readFully(sink, 0)
+    source.readTo(sink, 0)
     assertEquals(0, sink.size)
   }
 
@@ -359,7 +359,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
 
     val sink = ByteArray(Segment.SIZE + 5)
-    source.readFully(sink)
+    source.readTo(sink)
     assertArrayEquals(expected, sink)
   }
 
@@ -369,7 +369,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     val array = ByteArray(6)
     assertFailsWith<EOFException> {
-      source.readFully(array)
+      source.readTo(array)
     }
 
     // Verify we read all that we could from the source.
@@ -391,7 +391,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
 
     val sink = ByteArray(3)
-    val read = source.read(sink)
+    val read = source.readAtMostTo(sink)
     if (factory.isOneByteAtATime) {
       assertEquals(1, read.toLong())
       val expected = byteArrayOf('a'.code.toByte(), 0, 0)
@@ -408,7 +408,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
 
     val sink = ByteArray(5)
-    val read = source.read(sink)
+    val read = source.readAtMostTo(sink)
     if (factory.isOneByteAtATime) {
       assertEquals(1, read.toLong())
       val expected = byteArrayOf('a'.code.toByte(), 0, 0, 0, 0)
@@ -426,7 +426,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
 
     val sink = ByteArray(7)
-    val read = source.read(sink, 2, 3)
+    val read = source.readAtMostTo(sink, 2, 3)
     if (factory.isOneByteAtATime) {
       assertEquals(1, read.toLong())
       val expected = byteArrayOf(0, 0, 'a'.code.toByte(), 0, 0, 0, 0)
@@ -444,7 +444,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.emit()
 
     val sink = ByteArray(7)
-    val read = source.read(sink, 4)
+    val read = source.readAtMostTo(sink, 4)
     if (factory.isOneByteAtATime) {
       assertEquals(1, read.toLong())
       val expected = byteArrayOf(0, 0, 0, 0, 'a'.code.toByte(), 0, 0)
@@ -464,15 +464,15 @@ abstract class AbstractBufferedSourceTest internal constructor(
     val sink = ByteArray(4)
 
     assertFailsWith<IllegalArgumentException> {
-      source.read(sink, 4, 1)
+      source.readAtMostTo(sink, 4, 1)
     }
 
     assertFailsWith<IllegalArgumentException> {
-      source.read(sink, 1, 4)
+      source.readAtMostTo(sink, 1, 4)
     }
 
     assertFailsWith<IllegalArgumentException> {
-      source.read(sink, -1, 2)
+      source.readAtMostTo(sink, -1, 2)
     }
   }
 
@@ -1027,7 +1027,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     // Peek a little data and skip the rest of the upstream source
     val peek = source.peek()
     assertEquals("ddd", peek.readUtf8(3))
-    source.readAll(blackholeSink())
+    source.transferTo(blackholeSink())
 
     // Skip the rest of the buffered data
     peek.skip(peek.buffer.size)
@@ -1103,7 +1103,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.writeUtf8("Wot do u call it?\r\nWindows")
     sink.flush()
     assertEquals("Wot do u call it?", source.readUtf8Line())
-    source.readAll(blackholeSink())
+    source.transferTo(blackholeSink())
 
     sink.writeUtf8("reo\rde\red\n")
     sink.flush()
@@ -1130,7 +1130,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.writeUtf8("Wot do u call it?\r\nWindows")
     sink.flush()
     assertEquals("Wot do u call it?", source.readUtf8LineStrict())
-    source.readAll(blackholeSink())
+    source.transferTo(blackholeSink())
 
     sink.writeUtf8("reo\rde\red\n")
     sink.flush()

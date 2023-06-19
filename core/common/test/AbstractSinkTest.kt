@@ -175,7 +175,7 @@ abstract class AbstractSinkTest internal constructor(
     val source = Buffer()
     source.writeUtf8("abcdef")
 
-    assertEquals(6, sink.writeAll(source))
+    assertEquals(6, sink.transferFrom(source))
     assertEquals(0, source.size)
     sink.flush()
     assertEquals("abcdef", data.readUtf8())
@@ -183,7 +183,7 @@ abstract class AbstractSinkTest internal constructor(
 
   @Test fun writeAllExhausted() {
     val source = Buffer()
-    assertEquals(0, sink.writeAll(source))
+    assertEquals(0, sink.transferFrom(source))
     assertEquals(0, source.size)
   }
 
@@ -200,7 +200,7 @@ abstract class AbstractSinkTest internal constructor(
 
   @Test fun writeSourceReadsFully() {
     val source = object : RawSource by Buffer() {
-      override fun read(sink: Buffer, byteCount: Long): Long {
+      override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         sink.writeUtf8("abcd")
         return 4
       }
@@ -249,7 +249,7 @@ abstract class AbstractSinkTest internal constructor(
     // tied to something like a socket which will potentially block trying to read a segment when
     // ultimately we don't want any data.
     val source = object : RawSource by Buffer() {
-      override fun read(sink: Buffer, byteCount: Long): Long {
+      override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         throw AssertionError()
       }
     }

@@ -91,7 +91,7 @@ public fun Sink.outputStream(): OutputStream {
 @OptIn(InternalIoApi::class)
 public fun Sink.write(source: ByteBuffer): Int {
   val sizeBefore = buffer.size
-  buffer.readFrom(source)
+  buffer.transferFrom(source)
   val bytesRead = buffer.size - sizeBefore
   hintEmit()
   return bytesRead.toInt()

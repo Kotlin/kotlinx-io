@@ -166,7 +166,7 @@ class CommonRealSinkTest {
     val bufferedSink = mockSink.buffer()
 
     bufferedSink.buffer.writeUtf8("abc")
-    assertEquals(3, bufferedSink.writeAll(Buffer().also { it.writeUtf8("def") }))
+    assertEquals(3, bufferedSink.transferFrom(Buffer().also { it.writeUtf8("def") }))
 
     assertEquals(6, bufferedSink.buffer.size)
     assertEquals("abcdef", bufferedSink.buffer.readUtf8(6))
@@ -177,7 +177,7 @@ class CommonRealSinkTest {
     val mockSink = MockSink()
     val bufferedSink = mockSink.buffer()
 
-    assertEquals(0, bufferedSink.writeAll(Buffer()))
+    assertEquals(0, bufferedSink.transferFrom(Buffer()))
     assertEquals(0, bufferedSink.buffer.size)
     mockSink.assertLog() // No writes.
   }
@@ -193,7 +193,7 @@ class CommonRealSinkTest {
 
     val mockSink = MockSink()
     val bufferedSink = mockSink.buffer()
-    assertEquals(Segment.SIZE.toLong() * 3L, bufferedSink.writeAll(source))
+    assertEquals(Segment.SIZE.toLong() * 3L, bufferedSink.transferFrom(source))
 
     mockSink.assertLog(
       "write($write1, ${write1.size})",

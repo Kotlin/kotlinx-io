@@ -42,7 +42,7 @@ public interface RawSource : AutoCloseableAlias {
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws IllegalStateException when the source is closed.
    */
-  public fun read(sink: Buffer, byteCount: Long): Long
+  public fun readAtMostTo(sink: Buffer, byteCount: Long): Long
 
   /**
    * Closes this source and releases the resources held by this source. It is an error to read a

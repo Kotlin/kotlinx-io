@@ -104,7 +104,7 @@ public fun Source.inputStream(): InputStream {
       if (isClosed()) throw IOException("closed")
       checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
 
-      return this@inputStream.read(data, offset, byteCount)
+      return this@inputStream.readAtMostTo(data, offset, byteCount)
     }
 
     override fun available(): Int {
@@ -119,20 +119,20 @@ public fun Source.inputStream(): InputStream {
 }
 
 /**
- * Reads data from this source into [sink].
+ * Reads at most [ByteBuffer.remaining] bytes from this source into [sink] and returns the number of bytes read.
  *
  * @param sink the sink to write the data to.
  *
  * @throws IllegalStateException when the source is closed.
  */
 @OptIn(InternalIoApi::class)
-public fun Source.read(sink: ByteBuffer): Int {
+public fun Source.readAtMostTo(sink: ByteBuffer): Int {
   if (buffer.size == 0L) {
     request(Segment.SIZE.toLong())
     if (buffer.size == 0L) return -1
   }
 
-  return buffer.writeTo(sink)
+  return buffer.readAtMostTo(sink)
 }
 
 /**
@@ -151,6 +151,6 @@ public fun Source.channel(): ReadableByteChannel {
 
     override fun isOpen(): Boolean = !isClosed()
 
-    override fun read(sink: ByteBuffer): Int = this@channel.read(sink)
+    override fun read(sink: ByteBuffer): Int = this@channel.readAtMostTo(sink)
   }
 }

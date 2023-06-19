@@ -34,22 +34,22 @@ internal class RealSource(
   override val buffer: Buffer
     get() = bufferField
 
-  override fun read(sink: Buffer, byteCount: Long): Long {
+  override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
     require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
     check(!closed) { "closed" }
 
     if (bufferField.size == 0L) {
-      val read = source.read(bufferField, Segment.SIZE.toLong())
+      val read = source.readAtMostTo(bufferField, Segment.SIZE.toLong())
       if (read == -1L) return -1L
     }
 
     val toRead = minOf(byteCount, bufferField.size)
-    return bufferField.read(sink, toRead)
+    return bufferField.readAtMostTo(sink, toRead)
   }
 
   override fun exhausted(): Boolean {
     check(!closed) { "closed" }
-    return bufferField.exhausted() && source.read(bufferField, Segment.SIZE.toLong()) == -1L
+    return bufferField.exhausted() && source.readAtMostTo(bufferField, Segment.SIZE.toLong()) == -1L
   }
 
   override fun require(byteCount: Long) {
@@ -60,7 +60,7 @@ internal class RealSource(
     require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
     check(!closed) { "closed" }
     while (bufferField.size < byteCount) {
-      if (source.read(bufferField, Segment.SIZE.toLong()) == -1L) return false
+      if (source.readAtMostTo(bufferField, Segment.SIZE.toLong()) == -1L) return false
     }
     return true
   }
@@ -70,19 +70,20 @@ internal class RealSource(
     return bufferField.readByte()
   }
 
-  override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
+  override fun readAtMostTo(sink: ByteArray, offset: Int, byteCount: Int): Int {
     checkOffsetAndCount(sink.size.toLong(), offset.toLong(), byteCount.toLong())
 
     if (bufferField.size == 0L) {
-      val read = source.read(bufferField, Segment.SIZE.toLong())
+      val read = source.readAtMostTo(bufferField, Segment.SIZE.toLong())
       if (read == -1L) return -1
     }
-
+    val toRead = minOf(endIndex - startIndex, bufferField.size).toInt()
+    //return bufferField.readAtMostTo(sink, startIndex, startIndex + toRead)
     val toRead = minOf(byteCount, bufferField.size).toInt()
-    return bufferField.read(sink, offset, toRead)
+    return bufferField.readAtMostTo(sink, offset, toRead)
   }
 
-  override fun readFully(sink: RawSink, byteCount: Long): Unit {
+  override fun readTo(sink: RawSink, byteCount: Long) {
     try {
       require(byteCount)
     } catch (e: EOFException) {
@@ -90,12 +91,12 @@ internal class RealSource(
       sink.write(bufferField, bufferField.size)
       throw e
     }
-    bufferField.readFully(sink, byteCount)
+    bufferField.readTo(sink, byteCount)
   }
 
-  override fun readAll(sink: RawSink): Long {
+  override fun transferTo(sink: RawSink): Long {
     var totalBytesWritten: Long = 0
-    while (source.read(bufferField, Segment.SIZE.toLong()) != -1L) {
+    while (source.readAtMostTo(bufferField, Segment.SIZE.toLong()) != -1L) {
       val emitByteCount = bufferField.completeSegmentByteCount()
       if (emitByteCount > 0L) {
         totalBytesWritten += emitByteCount
@@ -128,7 +129,7 @@ internal class RealSource(
     var remainingByteCount = byteCount
     check(!closed) { "closed" }
     while (remainingByteCount > 0) {
-      if (bufferField.size == 0L && source.read(bufferField, Segment.SIZE.toLong()) == -1L) {
+      if (bufferField.size == 0L && source.readAtMostTo(bufferField, Segment.SIZE.toLong()) == -1L) {
         throw EOFException()
       }
       val toSkip = minOf(remainingByteCount, bufferField.size)

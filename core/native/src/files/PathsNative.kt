@@ -35,7 +35,7 @@ internal class FileSource(
 ) : RawSource {
     private var closed = false
 
-    override fun read(
+    override fun readAtMostTo(
         sink: Buffer,
         byteCount: Long
     ): Long {

@@ -76,11 +76,11 @@ interface SourceFactory {
         return Pipe(
           buffer,
           object : RawSource by buffer {
-            override fun read(sink: Buffer, byteCount: Long): Long {
+            override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
               // Read one byte into a new buffer, then clone it so that the segment is shared.
               // Shared segments cannot be compacted so we'll get a long chain of short segments.
               val box = Buffer()
-              val result = buffer.read(box, minOf(byteCount, 1L))
+              val result = buffer.readAtMostTo(box, minOf(byteCount, 1L))
               if (result > 0L) sink.write(box.copy(), result)
               return result
             }

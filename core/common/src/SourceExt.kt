@@ -219,7 +219,7 @@ private fun Source.readByteArrayImpl(size: Long): ByteArray {
         require(size)
     }
     val array = ByteArray(arraySize.toInt())
-    buffer.readFully(array)
+    buffer.readTo(array)
     return array
 }
 
@@ -230,10 +230,10 @@ private fun Source.readByteArrayImpl(size: Long): ByteArray {
  * @throws EOFException when the requested number of bytes cannot be read.
  * @throws IllegalStateException when the source is closed.
  */
-public fun Source.readFully(sink: ByteArray) {
+public fun Source.readTo(sink: ByteArray) {
     var offset = 0
     while (offset < sink.size) {
-        val bytesRead = read(sink, offset)
+        val bytesRead = readAtMostTo(sink, offset)
         if (bytesRead == -1) {
             throw EOFException()
         }

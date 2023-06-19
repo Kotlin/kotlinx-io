@@ -368,7 +368,7 @@ open class BufferReadWriteByteArray: BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(blackhole: Blackhole) {
         buffer.write(inputArray)
-        buffer.readFully(outputArray)
+        buffer.readTo(outputArray)
         blackhole.consume(outputArray)
     }
 }

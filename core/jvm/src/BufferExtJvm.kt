@@ -32,7 +32,7 @@ import java.nio.channels.ByteChannel
  *
  * @param input the stream to read data from.
  */
-public fun Buffer.readFrom(input: InputStream): Buffer {
+public fun Buffer.transferFrom(input: InputStream): Buffer {
   readFrom(input, Long.MAX_VALUE, true)
   return this
 }
@@ -47,8 +47,8 @@ public fun Buffer.readFrom(input: InputStream): Buffer {
  * @throws IOException when [input] exhausted before reading [byteCount] bytes from it.
  * @throws IllegalArgumentException when [byteCount] is negative.
  */
-public fun Buffer.readFrom(input: InputStream, byteCount: Long): Buffer {
-  require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
+public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
+  require(byteCount >= 0L) { "byteCount: $byteCount" }
   readFrom(input, byteCount, false)
   return this
 }
@@ -148,7 +148,7 @@ public fun Buffer.copyTo(
  *
  * @param sink the sink to write data to.
  */
-public fun Buffer.writeTo(sink: ByteBuffer): Int {
+public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
   val s = head ?: return -1
 
   val toCopy = minOf(sink.remaining(), s.limit - s.pos)
@@ -168,7 +168,7 @@ public fun Buffer.writeTo(sink: ByteBuffer): Int {
 /**
  * Reads all data from [source] into this buffer.
  */
-public fun Buffer.readFrom(source: ByteBuffer): Buffer {
+public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
   val byteCount = source.remaining()
   var remaining = byteCount
   while (remaining > 0) {
@@ -189,11 +189,11 @@ public fun Buffer.readFrom(source: ByteBuffer): Buffer {
  * Returns a new [ByteChannel] instance representing this buffer.
  */
 public fun Buffer.channel(): ByteChannel = object : ByteChannel {
-  override fun read(sink: ByteBuffer): Int = writeTo(sink)
+  override fun read(sink: ByteBuffer): Int = readAtMostTo(sink)
 
   override fun write(source: ByteBuffer): Int {
     val sizeBefore = size
-    readFrom(source)
+    transferFrom(source)
     return (size - sizeBefore).toInt()
   }
 

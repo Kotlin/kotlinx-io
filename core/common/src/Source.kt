@@ -138,7 +138,7 @@ public sealed interface Source : RawSource {
    * is out of range of [sink] array indices.
    * @throws IllegalStateException when the source is closed.
    */
-  public fun read(sink: ByteArray, offset: Int = 0, byteCount: Int = sink.size - offset): Int
+  public fun readAtMostTo(sink: ByteArray, offset: Int = 0, byteCount: Int = sink.size - offset): Int
 
   /**
    * Removes exactly [byteCount] bytes from this source and writes them to [sink].
@@ -150,7 +150,7 @@ public sealed interface Source : RawSource {
    * @throws EOFException when the requested number of bytes cannot be read.
    * @throws IllegalStateException when the source or [sink] is closed.
    */
-  public fun readFully(sink: RawSink, byteCount: Long)
+  public fun readTo(sink: RawSink, byteCount: Long)
 
   /**
    * Removes all bytes from this source, writes them to [sink], and returns the total number of bytes
@@ -162,7 +162,7 @@ public sealed interface Source : RawSource {
    *
    * @throws IllegalStateException when the source or [sink] is closed.
    */
-  public fun readAll(sink: RawSink): Long
+  public fun transferTo(sink: RawSink): Long
 
   /**
    * Returns a new [Source] that can read data from this source without consuming it.

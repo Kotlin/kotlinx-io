@@ -194,7 +194,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         sink.writeUtf8("abcdefg")
         sink.emit()
         val nioByteBuffer: ByteBuffer = ByteBuffer.allocate(1024)
-        val byteCount: Int = source.read(nioByteBuffer)
+        val byteCount: Int = source.readAtMostTo(nioByteBuffer)
         assertEquals(expected.length, byteCount)
         assertEquals(expected.length, nioByteBuffer.position())
         assertEquals(nioByteBuffer.capacity(), nioByteBuffer.limit())
@@ -211,7 +211,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         sink.writeUtf8("a".repeat(SEGMENT_SIZE * 4))
         sink.emit()
         val nioByteBuffer: ByteBuffer = ByteBuffer.allocate(SEGMENT_SIZE * 3)
-        val byteCount: Int = source.read(nioByteBuffer)
+        val byteCount: Int = source.readAtMostTo(nioByteBuffer)
         assertEquals(expected.length, byteCount)
         assertEquals(expected.length, nioByteBuffer.position())
         assertEquals(nioByteBuffer.capacity(), nioByteBuffer.limit())
@@ -223,7 +223,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     @Test
     fun readNioBufferFromEmptySource() {
-        assertEquals(-1, source.read(ByteBuffer.allocate(10)))
+        assertEquals(-1, source.readAtMostTo(ByteBuffer.allocate(10)))
     }
 
     @Test

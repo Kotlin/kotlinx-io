@@ -306,7 +306,7 @@ public class Buffer : Source, Sink {
     }
   }
 
-  override fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
+  override fun readAtMostTo(sink: ByteArray, offset: Int, byteCount: Int): Int {
     checkOffsetAndCount(sink.size.toLong(), offset.toLong(), byteCount.toLong())
 
     val s = head ?: return -1
@@ -326,15 +326,16 @@ public class Buffer : Source, Sink {
     return toCopy
   }
 
-  override fun read(sink: Buffer, byteCount: Long): Long {
-    require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
+  override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+    require(byteCount >= 0L) { "byteCount: $byteCount" }
     if (size == 0L) return -1L
     val bytesWritten = if (byteCount > size) size else byteCount
     sink.write(this, bytesWritten)
     return bytesWritten
   }
 
-  override fun readFully(sink: RawSink, byteCount: Long) {
+  override fun readTo(sink: RawSink, byteCount: Long) {
+    require(byteCount >= 0) { "byteCount: $byteCount" }
     if (size < byteCount) {
       sink.write(this, size) // Exhaust ourselves.
       throw EOFException()
@@ -342,7 +343,7 @@ public class Buffer : Source, Sink {
     sink.write(this, byteCount)
   }
 
-  override fun readAll(sink: RawSink): Long {
+  override fun transferTo(sink: RawSink): Long {
     val byteCount = size
     if (byteCount > 0L) {
       sink.write(this, byteCount)
@@ -396,9 +397,10 @@ public class Buffer : Source, Sink {
   }
 
   override fun write(source: RawSource, byteCount: Long) {
+    require(byteCount >= 0) { "byteCount: $byteCount" }
     var remainingByteCount = byteCount
     while (remainingByteCount > 0L) {
-      val read = source.read(this, remainingByteCount)
+      val read = source.readAtMostTo(this, remainingByteCount)
       if (read == -1L) throw EOFException()
       remainingByteCount -= read
     }
@@ -499,10 +501,10 @@ public class Buffer : Source, Sink {
     }
   }
 
-  override fun writeAll(source: RawSource): Long {
+  override fun transferFrom(source: RawSource): Long {
     var totalBytesRead = 0L
     while (true) {
-      val readCount = source.read(this, Segment.SIZE.toLong())
+      val readCount = source.readAtMostTo(this, Segment.SIZE.toLong())
       if (readCount == -1L) break
       totalBytesRead += readCount
     }

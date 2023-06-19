@@ -49,10 +49,10 @@ internal class RealSink(
     hintEmit()
   }
 
-  override fun writeAll(source: RawSource): Long {
+  override fun transferFrom(source: RawSource): Long {
     var totalBytesRead = 0L
     while (true) {
-      val readCount: Long = source.read(bufferField, Segment.SIZE.toLong())
+      val readCount: Long = source.readAtMostTo(bufferField, Segment.SIZE.toLong())
       if (readCount == -1L) break
       totalBytesRead += readCount
       hintEmit()
@@ -64,7 +64,7 @@ internal class RealSink(
     require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
     var remainingByteCount = byteCount
     while (remainingByteCount > 0L) {
-      val read = source.read(bufferField, remainingByteCount)
+      val read = source.readAtMostTo(bufferField, remainingByteCount)
       if (read == -1L) throw EOFException()
       remainingByteCount -= read
       hintEmit()

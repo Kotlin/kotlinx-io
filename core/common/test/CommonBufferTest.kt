@@ -137,7 +137,7 @@ class CommonBufferTest {
     for (s in contents) {
       val source = Buffer()
       source.writeUtf8(s)
-      buffer.writeAll(source)
+      buffer.transferFrom(source)
       expected.append(s)
     }
     val segmentSizes = segmentSizes(buffer)
@@ -211,7 +211,7 @@ class CommonBufferTest {
     val source = Buffer()
     source.writeUtf8('b'.repeat(15))
 
-    assertEquals(10, source.read(sink, 10))
+    assertEquals(10, source.readAtMostTo(sink, 10))
     assertEquals(20, sink.size)
     assertEquals(5, source.size)
     assertEquals('a'.repeat(10) + 'b'.repeat(10), sink.readUtf8(20))
@@ -224,7 +224,7 @@ class CommonBufferTest {
     val source = Buffer()
     source.writeUtf8('b'.repeat(20))
 
-    assertEquals(20, source.read(sink, 25))
+    assertEquals(20, source.readAtMostTo(sink, 25))
     assertEquals(30, sink.size)
     assertEquals(0, source.size)
     assertEquals('a'.repeat(10) + 'b'.repeat(20), sink.readUtf8(30))
@@ -306,7 +306,7 @@ class CommonBufferTest {
 
     val mockSink = MockSink()
 
-    assertEquals((Segment.SIZE * 3).toLong(), source.readAll(mockSink))
+    assertEquals((Segment.SIZE * 3).toLong(), source.transferTo(mockSink))
     assertEquals(0, source.size)
     mockSink.assertLog("write($write1, ${write1.size})")
   }
@@ -315,7 +315,7 @@ class CommonBufferTest {
     val source = Buffer().also { it.writeUtf8('a'.repeat(Segment.SIZE * 3)) }
     val sink = Buffer()
 
-    assertEquals((Segment.SIZE * 3).toLong(), sink.writeAll(source))
+    assertEquals((Segment.SIZE * 3).toLong(), sink.transferFrom(source))
     assertEquals(0, source.size)
     assertEquals('a'.repeat(Segment.SIZE * 3), sink.readUtf8())
   }
