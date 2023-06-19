@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.lang.IllegalArgumentException
 import java.net.Socket
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -43,12 +44,50 @@ class JvmPlatformTest {
         assertArrayEquals(baos.toByteArray(), byteArrayOf(0x61))
     }
 
+    @Test fun outputStreamSinkWriteZeroBytes() {
+        val baos = ByteArrayOutputStream()
+        val sink = baos.sink()
+        sink.write(Buffer().also { it.writeUtf8("a") }, 0L)
+        assertEquals(0, baos.size())
+    }
+
+    @Test fun outputStreamSinkWriteNegativeNumberOfBytes() {
+        val baos = ByteArrayOutputStream()
+        val sink = baos.sink()
+        assertFailsWith<IllegalArgumentException> {
+            sink.write(Buffer().also { it.writeUtf8("a") }, -1)
+        }
+    }
+
+    @Test fun outputStreamSinkWritePartOfTheBuffer() {
+        val baos = ByteArrayOutputStream()
+        val sink = baos.sink()
+        val buffer = Buffer().also { it.writeUtf8("hello") }
+        sink.write(buffer, 2)
+        assertArrayEquals(baos.toByteArray(), byteArrayOf('h'.code.toByte(), 'e'.code.toByte()))
+        assertEquals("llo", buffer.readUtf8())
+    }
+
     @Test fun inputStreamSource() {
         val bais = ByteArrayInputStream(byteArrayOf(0x61))
         val source = bais.source()
         val buffer = Buffer()
         source.readAtMostTo(buffer, 1)
         assertEquals(buffer.readUtf8(), "a")
+    }
+
+    @Test fun inputStreamSourceReadZeroBytes() {
+        val bais = ByteArrayInputStream(ByteArray(128))
+        val source = bais.source()
+        val buffer = Buffer()
+        source.readAtMostTo(buffer, 0)
+        assertEquals(0, buffer.size)
+    }
+
+    @Test fun inputStreamSourceReadNegativeNumberOfBytes() {
+        val bais = ByteArrayInputStream(ByteArray(128))
+        val source = bais.source()
+        assertFailsWith<IllegalArgumentException> { source.readAtMostTo(Buffer(), -1) }
     }
 
     @Test fun fileSink() {

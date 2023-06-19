@@ -187,4 +187,19 @@ class CommonRealSinkTest {
       "write($write3, ${write3.size})"
     )
   }
+
+  @Test fun closeMultipleTimes() {
+    var closeCalls = 0
+    val rawSink: RawSink = object : RawSink {
+      override fun write(source: Buffer, byteCount: Long) = Unit
+      override fun flush() = Unit
+      override fun close() { closeCalls++ }
+    }
+    val sink = rawSink.buffer()
+
+    sink.close()
+    assertFailsWith<IllegalStateException> { sink.writeByte(0) }
+    sink.close() // should do nothing
+    assertEquals(1, closeCalls)
+  }
 }

@@ -224,7 +224,7 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeBufferThrowsIAE() {
-    val source: Buffer = Buffer()
+    val source = Buffer()
     source.writeUtf8("abcd")
 
     assertFailsWith<IllegalArgumentException> {
@@ -236,8 +236,15 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeSourceWithNegativeBytesCount() {
-    val source = Buffer()
-    source.writeByte(0)
+    val source: RawSource = Buffer().also { it.writeByte(0) }
+
+    assertFailsWith<IllegalArgumentException> {
+      sink.write(source, -1L)
+    }
+  }
+
+  @Test fun writeBufferWithNegativeBytesCount() {
+    val source = Buffer().also { it.writeByte(0) }
 
     assertFailsWith<IllegalArgumentException> {
       sink.write(source, -1L)

@@ -62,6 +62,10 @@ class CommonBufferTest {
     assertEquals("[hex=0000000000000000000000000000000000000000000000000000000000000000000000000000" +
         "0000000000000000000000000000000000000000000000000000]",
       Buffer().also { it.write(ByteArray(64)) }.toString())
+
+    assertEquals("[size=66 hex=000000000000000000000000000000000000000000000000000000000000" +
+            "00000000000000000000000000000000000000000000000000000000000000000000…]",
+      Buffer().also { it.write(ByteArray(66)) }.toString())
   }
 
   @Test fun multipleSegmentBuffers() {
@@ -204,6 +208,13 @@ class CommonBufferTest {
     assertEquals((Segment.SIZE * 2 - 20).toLong(), source.size)
   }
 
+  @Test fun writeSourceWithNegativeNumberOfBytes() {
+    val sink = Buffer()
+    val source: Source = Buffer()
+
+    assertFailsWith<IllegalArgumentException> { sink.write(source, -1L) }
+  }
+
   @Test fun moveAllRequestedBytesWithRead() {
     val sink = Buffer()
     sink.writeUtf8('a'.repeat(10))
@@ -339,6 +350,39 @@ class CommonBufferTest {
     assertEquals("party", source.readUtf8())
   }
 
+  @Test fun copyToAll() {
+    val source = Buffer()
+    source.writeUtf8("hello")
+
+    val target = Buffer()
+    source.copyTo(target)
+
+    assertEquals("hello", source.readUtf8())
+    assertEquals("hello", target.readUtf8())
+  }
+
+  @Test fun copyToWithOnlyStartIndex() {
+    val source = Buffer()
+    source.writeUtf8("hello")
+
+    val target = Buffer()
+    source.copyTo(target, startIndex = 1)
+
+    assertEquals("hello", source.readUtf8())
+    assertEquals("ello", target.readUtf8())
+  }
+
+  @Test fun copyToWithOnlyEndIndex() {
+    val source = Buffer()
+    source.writeUtf8("hello")
+
+    val target = Buffer()
+    source.copyTo(target, endIndex = 1)
+
+    assertEquals("hello", source.readUtf8())
+    assertEquals("h", target.readUtf8())
+  }
+
   @Test fun copyToOnSegmentBoundary() {
     val aStr = 'a'.repeat(Segment.SIZE)
     val bs = 'b'.repeat(Segment.SIZE)
@@ -470,5 +514,27 @@ class CommonBufferTest {
       original.readUtf8((SEGMENT_SIZE * 6).toLong()))
     assertEquals("a".repeat( SEGMENT_SIZE * 3) + "c".repeat(SEGMENT_SIZE * 3),
       clone.readUtf8((SEGMENT_SIZE * 6).toLong()))
+  }
+
+  @Test
+  fun readAndWriteToSelf() {
+    val buffer = Buffer().also { it.writeByte(1) }
+    val src: Source = buffer
+    val dst: Sink = buffer
+
+    assertFailsWith<IllegalArgumentException> { src.transferTo(dst) }
+    assertFailsWith<IllegalArgumentException> { dst.transferFrom(src) }
+    assertFailsWith<IllegalArgumentException> { src.readAtMostTo(buffer, 1) }
+    assertFailsWith<IllegalArgumentException> { src.readTo(dst, 1) }
+    assertFailsWith<IllegalArgumentException> { dst.write(buffer, 1) }
+    assertFailsWith<IllegalArgumentException> { dst.write(src, 1) }
+  }
+
+  @Test
+  fun transferCopy() {
+    val buffer = Buffer().also { it.writeByte(42) }
+    val copy = buffer.copy()
+    copy.transferTo(buffer)
+    assertArrayEquals(byteArrayOf(42, 42), buffer.readByteArray())
   }
 }

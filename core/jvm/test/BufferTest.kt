@@ -23,6 +23,7 @@ package kotlinx.io
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.nio.ByteBuffer
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -206,6 +207,16 @@ class BufferTest {
         assertEquals("party", source.readUtf8())
     }
 
+    @Test fun copyToOutputStreamWithEmptyRange() {
+        val source = Buffer()
+        source.writeUtf8("hello")
+
+        val target = Buffer()
+        source.copyTo(target.outputStream(), startIndex = 1, endIndex = 1)
+        assertEquals("hello", source.readUtf8())
+        assertEquals("", target.readUtf8())
+    }
+
     @Test fun writeToOutputStream() {
         val source = Buffer()
         source.writeUtf8("party")
@@ -224,5 +235,12 @@ class BufferTest {
         source.writeTo(target.outputStream(), byteCount = 3)
         assertEquals("par", target.readUtf8())
         assertEquals("ty", source.readUtf8())
+    }
+
+    @Test fun readEmptyBufferToByteBuffer() {
+        val bb = ByteBuffer.allocate(128)
+        val buffer = Buffer()
+
+        assertEquals(-1, buffer.readAtMostTo(bb))
     }
 }

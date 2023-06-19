@@ -151,4 +151,45 @@ class CommonRealSourceTest {
       "write($write3, ${write3.size})"
     )
   }
+
+  @Test fun closeMultipleTimes() {
+    var closeCalls = 0
+    val rawSource: RawSource = object : RawSource {
+      override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = -1
+      override fun close() { closeCalls++ }
+    }
+    val source = rawSource.buffer()
+
+    source.close()
+    assertFailsWith<IllegalStateException> { source.readByte() }
+    source.close() // should do nothing
+    assertEquals(1, closeCalls)
+  }
+
+  @Test fun readAtMostFromEmptySource() {
+    val rawSource = object : RawSource {
+      override fun readAtMostTo(sink: Buffer, byteCount: Long): Long { return -1 }
+      override fun close() {}
+    }
+
+    assertEquals(-1, rawSource.buffer().readAtMostTo(Buffer(), 1024))
+  }
+
+  @Test fun readAtMostFromFinite() {
+    val rawSource = object : RawSource {
+      var remainingBytes: Long = 10
+      override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        if (remainingBytes == 0L) return -1
+        val toWrite = minOf(remainingBytes, byteCount)
+        remainingBytes -= toWrite
+        sink.write(ByteArray(toWrite.toInt()))
+        return toWrite
+      }
+      override fun close() {}
+    }
+
+    val source = rawSource.buffer()
+    assertEquals(10, source.readAtMostTo(Buffer(), 1024))
+    assertEquals(-1, source.readAtMostTo(Buffer(), 1024))
+  }
 }

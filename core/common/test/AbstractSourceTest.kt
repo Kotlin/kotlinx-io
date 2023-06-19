@@ -23,6 +23,8 @@ package kotlinx.io
 
 import kotlin.test.*
 
+private const val SEGMENT_SIZE = Segment.SIZE
+
 class BufferSourceTest : AbstractBufferedSourceTest(SourceFactory.BUFFER)
 class RealBufferedSourceTest : AbstractBufferedSourceTest(SourceFactory.REAL_BUFFERED_SOURCE)
 class OneByteAtATimeBufferedSourceTest : AbstractBufferedSourceTest(SourceFactory.ONE_BYTE_AT_A_TIME_BUFFERED_SOURCE)
@@ -319,6 +321,45 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<IllegalStateException> {
       source.readAtMostTo(Buffer(), 1L)
     }
+  }
+
+  @Test fun readAtMostToBufferFromSourceWithFilledBuffer() {
+    sink.writeByte(42)
+    sink.flush()
+
+    source.request(1)
+    assertEquals(1, source.readAtMostTo(Buffer(), 128))
+  }
+
+  @Test fun readAtMostToNonEmptyBufferFromSourceWithFilledBuffer() {
+    if (factory.isOneByteAtATime) {
+      return
+    }
+
+    val expectedReadSize = 123
+
+    sink.write(ByteArray(expectedReadSize))
+    sink.flush()
+
+    source.request(1)
+    val buffer = Buffer().also { it.write(ByteArray(SEGMENT_SIZE - expectedReadSize)) }
+    assertEquals(expectedReadSize.toLong(), source.readAtMostTo(buffer, SEGMENT_SIZE.toLong()))
+
+    assertTrue(source.exhausted())
+    sink.write(ByteArray(expectedReadSize))
+    sink.flush()
+
+    source.request(1)
+    buffer.clear()
+    assertEquals(42L, source.readAtMostTo(buffer, 42L))
+  }
+
+  @Test fun readAtMostToByteArrayFromSourceWithFilledBuffer() {
+    sink.writeByte(42)
+    sink.flush()
+
+    source.request(1)
+    assertEquals(1, source.readAtMostTo(ByteArray(128)))
   }
 
   @Test fun readToSink() {
