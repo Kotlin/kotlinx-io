@@ -96,7 +96,7 @@ public fun Source.readDecimalLong(): Long {
     }
 
     if (seen < 1) {
-        if (!request(1)) throw EOFException()
+        require(1)
         val expected = if (negative) "Expected a digit" else "Expected a digit or '-'"
         throw NumberFormatException("$expected but was 0x${buffer[0].toHexString()}")
     }
@@ -236,7 +236,7 @@ public fun Source.readTo(sink: ByteArray) {
     while (offset < sink.size) {
         val bytesRead = readAtMostTo(sink, offset)
         if (bytesRead == -1) {
-            throw EOFException()
+            throw EOFException("Source exhausted before reading ${sink.size} bytes. Only $bytesRead bytes were read.")
         }
         offset += bytesRead
     }

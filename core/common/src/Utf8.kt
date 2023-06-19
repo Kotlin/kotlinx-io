@@ -272,7 +272,7 @@ public fun Source.readUtf8Line(): String? {
  */
 public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
   require(limit >= 0) { "limit: $limit" }
-  if (!request(1)) throw EOFException()
+  require(1)
 
   val peekSource = peek()
   var offset = 0L
@@ -306,7 +306,7 @@ public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
 }
 
 private fun Buffer.commonReadUtf8CodePoint(): Int {
-  if (size == 0L) throw EOFException()
+  require(1)
 
   val b0 = this[0]
   var codePoint: Int
@@ -506,7 +506,7 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 
 private fun Buffer.commonReadUtf8(byteCount: Long): String {
   require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) { "byteCount: $byteCount" }
-  if (size < byteCount) throw EOFException()
+  require(byteCount)
   if (byteCount == 0L) return ""
 
   val s = head!!

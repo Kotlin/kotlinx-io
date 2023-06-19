@@ -36,20 +36,21 @@ internal class RealSink(
     get() = bufferField
 
   override fun write(source: Buffer, byteCount: Long) {
-    require(byteCount >= 0) { "byteCount ($byteCount) should not be negative." }
-    check(!closed) { "closed" }
+    checkNotClosed()
+    require(byteCount >= 0) { "byteCount: $byteCount" }
     bufferField.write(source, byteCount)
     hintEmit()
   }
 
   override fun write(source: ByteArray, startIndex: Int, endIndex: Int) {
+    checkNotClosed()
     checkBounds(source.size, startIndex, endIndex)
-    check(!closed) { "closed" }
     bufferField.write(source, startIndex, endIndex)
     hintEmit()
   }
 
   override fun transferFrom(source: RawSource): Long {
+    checkNotClosed()
     var totalBytesRead = 0L
     while (true) {
       val readCount: Long = source.readAtMostTo(bufferField, Segment.SIZE.toLong())
@@ -61,55 +62,60 @@ internal class RealSink(
   }
 
   override fun write(source: RawSource, byteCount: Long) {
+    checkNotClosed()
     require(byteCount >= 0) { "byteCount: $byteCount" }
     var remainingByteCount = byteCount
     while (remainingByteCount > 0L) {
       val read = source.readAtMostTo(bufferField, remainingByteCount)
-      if (read == -1L) throw EOFException()
+      if (read == -1L) {
+        val bytesRead = byteCount - remainingByteCount
+        throw EOFException(
+          "Source exhausted before reading $byteCount bytes from it (number of bytes read: $bytesRead).")
+      }
       remainingByteCount -= read
       hintEmit()
     }
   }
 
   override fun writeByte(byte: Byte) {
-    check(!closed) { "closed" }
+    checkNotClosed()
     bufferField.writeByte(byte)
     hintEmit()
   }
 
   override fun writeShort(short: Short) {
-    check(!closed) { "closed" }
+    checkNotClosed()
     bufferField.writeShort(short)
     hintEmit()
   }
 
   override fun writeInt(int: Int) {
-    check(!closed) { "closed" }
+    checkNotClosed()
     bufferField.writeInt(int)
     hintEmit()
   }
 
   override fun writeLong(long: Long) {
-    check(!closed) { "closed" }
+    checkNotClosed()
     bufferField.writeLong(long)
     hintEmit()
   }
 
   @InternalIoApi
   override fun hintEmit() {
-    check(!closed) { "closed" }
+    checkNotClosed()
     val byteCount = bufferField.completeSegmentByteCount()
     if (byteCount > 0L) sink.write(bufferField, byteCount)
   }
 
   override fun emit() {
-    check(!closed) { "closed" }
+    checkNotClosed()
     val byteCount = bufferField.size
     if (byteCount > 0L) sink.write(bufferField, byteCount)
   }
 
   override fun flush() {
-    check(!closed) { "closed" }
+    checkNotClosed()
     if (bufferField.size > 0L) {
       sink.write(bufferField, bufferField.size)
     }
@@ -142,4 +148,9 @@ internal class RealSink(
   }
 
   override fun toString() = "buffer($sink)"
+
+  @Suppress("NOTHING_TO_INLINE")
+  private inline fun checkNotClosed() {
+    check(!closed) { "Sink is closed." }
+  }
 }

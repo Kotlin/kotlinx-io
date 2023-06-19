@@ -28,7 +28,9 @@ import java.nio.charset.Charset
 
 private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
   require(byteCount >= 0 && byteCount <= Integer.MAX_VALUE) { "byteCount: $byteCount" }
-  if (size < byteCount) throw EOFException()
+  if (size < byteCount) {
+    throw EOFException("Buffer contains less bytes then required (byteCount: $byteCount, size: $size)")
+  }
   if (byteCount == 0L) return ""
 
   val s = head!!
@@ -93,7 +95,7 @@ public fun Source.inputStream(): InputStream {
 
   return object : InputStream() {
     override fun read(): Int {
-      if (isClosed()) throw IOException("closed")
+      if (isClosed()) throw IOException("Underlying source is closed.")
       if (exhausted()) {
         return -1
       }
@@ -101,14 +103,14 @@ public fun Source.inputStream(): InputStream {
     }
 
     override fun read(data: ByteArray, offset: Int, byteCount: Int): Int {
-      if (isClosed()) throw IOException("closed")
+      if (isClosed()) throw IOException("Underlying source is closed.")
       checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
 
       return this@inputStream.readAtMostTo(data, offset, offset + byteCount)
     }
 
     override fun available(): Int {
-      if (isClosed()) throw IOException("closed")
+      if (isClosed()) throw IOException("Underlying source is closed.")
       return minOf(buffer.size, Integer.MAX_VALUE).toInt()
     }
 

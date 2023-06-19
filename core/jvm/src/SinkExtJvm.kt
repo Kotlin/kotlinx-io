@@ -58,12 +58,12 @@ public fun Sink.outputStream(): OutputStream {
 
   return object : OutputStream() {
     override fun write(b: Int) {
-      if (isClosed()) throw IOException("closed")
+      if (isClosed()) throw IOException("Underlying sink is closed")
       writeToInternalBuffer { it.writeByte(b.toByte()) }
     }
 
     override fun write(data: ByteArray, offset: Int, byteCount: Int) {
-      if (isClosed()) throw IOException("closed")
+      if (isClosed()) throw IOException("Underlying sink is closed")
       writeToInternalBuffer { it.write(data, offset, offset + byteCount) }
     }
 
@@ -113,7 +113,7 @@ public fun Sink.channel(): WritableByteChannel {
     override fun isOpen(): Boolean = !isClosed()
 
     override fun write(source: ByteBuffer): Int {
-      check(!isClosed()) { "closed" }
+      check(!isClosed()) { "Underlying sink is closed." }
       return this@channel.write(source)
     }
   }

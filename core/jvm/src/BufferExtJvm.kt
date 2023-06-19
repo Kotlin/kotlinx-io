@@ -66,7 +66,7 @@ private fun Buffer.readFrom(input: InputStream, byteCount: Long, forever: Boolea
         SegmentPool.recycle(tail)
       }
       if (forever) return
-      throw EOFException()
+      throw EOFException("Stream exhausted before $byteCount bytes were read.")
     }
     tail.limit += bytesRead
     size += bytesRead.toLong()

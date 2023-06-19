@@ -58,13 +58,15 @@ public class Buffer : Source, Sink {
   override fun exhausted(): Boolean = size == 0L
 
   override fun require(byteCount: Long) {
-    if (size < byteCount) throw EOFException()
+    if (size < byteCount) {
+      throw EOFException("Buffer doesn't contain required number of bytes (size: $size, required: $byteCount)")
+    }
   }
 
   override fun request(byteCount: Long): Boolean = size >= byteCount
 
   override fun readByte(): Byte {
-    if (size == 0L) throw EOFException()
+    require(1)
     val segment = head!!
     var pos = segment.pos
     val limit = segment.limit
@@ -81,7 +83,7 @@ public class Buffer : Source, Sink {
   }
 
   override fun readShort(): Short {
-    if (size < 2L) throw EOFException()
+    require(2)
 
     val segment = head!!
     var pos = segment.pos
@@ -108,7 +110,7 @@ public class Buffer : Source, Sink {
   }
 
   override fun readInt(): Int {
-    if (size < 4L) throw EOFException()
+    require(4)
 
     val segment = head!!
     var pos = segment.pos
@@ -144,7 +146,7 @@ public class Buffer : Source, Sink {
   }
 
   override fun readLong(): Long {
-    if (size < 8L) throw EOFException()
+    require(8)
 
     val segment = head!!
     var pos = segment.pos
@@ -270,7 +272,7 @@ public class Buffer : Source, Sink {
    * Use of this method may expose significant performance penalties and it's not recommended to use it
    * for sequential access to a range of bytes within the buffer.
    *
-   * @throws IndexOutOfBoundsException when [position] is out of this buffer's bounds.
+   * @throws IndexOutOfBoundsException when [position] is negative or greater or equal to [Buffer.size].
    */
   public operator fun get(position: Long): Byte {
     if (position < 0 || position >= size) {
@@ -294,9 +296,10 @@ public class Buffer : Source, Sink {
    * @throws IllegalArgumentException when [byteCount] is negative.
    */
   override fun skip(byteCount: Long) {
+    require(byteCount >= 0) { "byteCount: $byteCount" }
     var remainingByteCount = byteCount
     while (remainingByteCount > 0) {
-      val head = head ?: throw EOFException()
+      val head = head ?: throw EOFException("Buffer exhausted before skipping $byteCount btyes.")
 
       val toSkip = minOf(remainingByteCount, head.limit - head.pos).toInt()
       size -= toSkip.toLong()
@@ -342,7 +345,7 @@ public class Buffer : Source, Sink {
     require(byteCount >= 0) { "byteCount: $byteCount" }
     if (size < byteCount) {
       sink.write(this, size) // Exhaust ourselves.
-      throw EOFException()
+      throw EOFException("Buffer exhausted before writing $byteCount bytes. Only $size bytes were written.")
     }
     sink.write(this, byteCount)
   }
@@ -404,7 +407,10 @@ public class Buffer : Source, Sink {
     var remainingByteCount = byteCount
     while (remainingByteCount > 0L) {
       val read = source.readAtMostTo(this, remainingByteCount)
-      if (read == -1L) throw EOFException()
+      if (read == -1L) {
+        throw EOFException("Source exhausted before reading $byteCount bytes. " +
+                "Only ${byteCount - remainingByteCount} were read.")
+      }
       remainingByteCount -= read
     }
   }

@@ -35,8 +35,8 @@ internal class RealSource(
     get() = bufferField
 
   override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-    require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
-    check(!closed) { "closed" }
+    checkNotClosed()
+    require(byteCount >= 0L) { "byteCount: $byteCount" }
 
     if (bufferField.size == 0L) {
       val read = source.readAtMostTo(bufferField, Segment.SIZE.toLong())
@@ -48,17 +48,17 @@ internal class RealSource(
   }
 
   override fun exhausted(): Boolean {
-    check(!closed) { "closed" }
+    checkNotClosed()
     return bufferField.exhausted() && source.readAtMostTo(bufferField, Segment.SIZE.toLong()) == -1L
   }
 
   override fun require(byteCount: Long) {
-    if (!request(byteCount)) throw EOFException()
+    if (!request(byteCount)) throw EOFException("Source doesn't contain required number of bytes ($byteCount).")
   }
 
   override fun request(byteCount: Long): Boolean {
+    checkNotClosed()
     require(byteCount >= 0L) { "byteCount: $byteCount" }
-    check(!closed) { "closed" }
     while (bufferField.size < byteCount) {
       if (source.readAtMostTo(bufferField, Segment.SIZE.toLong()) == -1L) return false
     }
@@ -124,12 +124,13 @@ internal class RealSource(
   }
 
   override fun skip(byteCount: Long) {
+    checkNotClosed()
     require(byteCount >= 0) { "byteCount: $byteCount" }
     var remainingByteCount = byteCount
-    check(!closed) { "closed" }
     while (remainingByteCount > 0) {
       if (bufferField.size == 0L && source.readAtMostTo(bufferField, Segment.SIZE.toLong()) == -1L) {
-        throw EOFException()
+        throw EOFException("Source exhausted before skipping $byteCount bytes " +
+                "(only ${remainingByteCount - byteCount} bytes were skipped).")
       }
       val toSkip = minOf(remainingByteCount, bufferField.size)
       bufferField.skip(toSkip)
@@ -147,4 +148,9 @@ internal class RealSource(
   }
 
   override fun toString(): String = "buffer($source)"
+
+  @Suppress("NOTHING_TO_INLINE")
+  private inline fun checkNotClosed() {
+    check(!closed) { "Source is closed." }
+  }
 }

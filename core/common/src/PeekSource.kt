@@ -42,8 +42,8 @@ internal class PeekSource(
   private var pos = 0L
 
   override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+    check(!closed) { "Source is closed." }
     require(byteCount >= 0L) { "byteCount: $byteCount" }
-    check(!closed) { "closed" }
     // Source becomes invalid if there is an expected Segment and it and the expected position
     // do not match the current head and head position of the upstream buffer
     check(
