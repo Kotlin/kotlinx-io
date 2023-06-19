@@ -52,12 +52,14 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readDecimalLong(): Long {
-    require(1)
+    require(1L)
+
+    var currIdx = 0L
     var negative = false
     var value = 0L
     var seen = 0
     var overflowDigit = OVERFLOW_DIGIT_START
-    when (val b = buffer[0]) {
+    when (val b = buffer[currIdx++]) {
         '-'.code.toByte() -> {
             negative = true
             overflowDigit--
@@ -71,11 +73,8 @@ public fun Source.readDecimalLong(): Long {
         }
     }
 
-    val peekSource = peek()
-    peekSource.skip(1)
-
-    while (request(1)) {
-        val b = peekSource.readByte()
+    while (request(currIdx + 1L)) {
+        val b = buffer[currIdx++]
         if (b in '0'.code..'9'.code) {
             val digit = '0'.code - b
 
@@ -97,12 +96,12 @@ public fun Source.readDecimalLong(): Long {
     }
 
     if (seen < 1) {
-        require(1)
+        require(2)
         val expected = if (negative) "Expected a digit" else "Expected a digit or '-'"
-        throw NumberFormatException("$expected but was 0x${buffer[0].toHexString()}")
+        throw NumberFormatException("$expected but was 0x${buffer[1].toHexString()}")
     }
 
-    skip(seen.toLong() + if (negative) 1 else 0)
+    skip(currIdx.toLong() - 1)
 
     return if (negative) value else -value
 }
@@ -128,12 +127,10 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
         else -> throw NumberFormatException("Expected leading [0-9a-fA-F] character but was 0x${b.toHexString()}")
     }.toLong()
 
-    val peekSource = peek()
-    peekSource.skip(1)
-    var bytesRead = 1
+    var bytesRead = 1L
 
-    while (peekSource.request(1)) {
-        val b = peekSource.readByte()
+    while (request(bytesRead + 1L)) {
+        val b = buffer[bytesRead]
         val bDigit = when (b) {
             in '0'.code..'9'.code -> b - '0'.code
             in 'a'.code..'f'.code -> b - 'a'.code + 10
