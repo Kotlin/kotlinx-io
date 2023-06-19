@@ -769,13 +769,15 @@ abstract class AbstractBufferedSourceTest internal constructor(
   }
 
   @Test fun longHexStringTooLongThrows() {
-    sink.writeUtf8("fffffffffffffffff")
+    val value = "fffffffffffffffff"
+    sink.writeUtf8(value)
     sink.emit()
 
     val e = assertFailsWith<NumberFormatException> {
       source.readHexadecimalUnsignedLong()
     }
     assertEquals("Number too large: fffffffffffffffff", e.message)
+    assertEquals(value, source.readUtf8())
   }
 
   @Test fun longHexStringTooShortThrows() {
@@ -786,6 +788,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
       source.readHexadecimalUnsignedLong()
     }
     assertEquals("Expected leading [0-9a-fA-F] character but was 0x20", e.message)
+    assertEquals(" ", source.readUtf8())
   }
 
   @Test fun longHexEmptySourceThrows() {
@@ -827,33 +830,39 @@ abstract class AbstractBufferedSourceTest internal constructor(
   }
 
   @Test fun longDecimalStringTooLongThrows() {
-    sink.writeUtf8("12345678901234567890") // Too many digits.
+    val value = "12345678901234567890"
+    sink.writeUtf8(value) // Too many digits.
     sink.emit()
 
     val e = assertFailsWith<NumberFormatException> {
       source.readDecimalLong()
     }
     assertEquals("Number too large: 12345678901234567890", e.message)
+    assertEquals(value, source.readUtf8())
   }
 
   @Test fun longDecimalStringTooHighThrows() {
-    sink.writeUtf8("9223372036854775808") // Right size but cannot fit.
+    val value = "9223372036854775808"
+    sink.writeUtf8(value) // Right size but cannot fit.
     sink.emit()
 
     val e = assertFailsWith<NumberFormatException> {
       source.readDecimalLong()
     }
     assertEquals("Number too large: 9223372036854775808", e.message)
+    assertEquals(value, source.readUtf8())
   }
 
   @Test fun longDecimalStringTooLowThrows() {
-    sink.writeUtf8("-9223372036854775809") // Right size but cannot fit.
+    val value = "-9223372036854775809"
+    sink.writeUtf8(value) // Right size but cannot fit.
     sink.emit()
 
     val e = assertFailsWith<NumberFormatException> {
       source.readDecimalLong()
     }
     assertEquals("Number too large: -9223372036854775809", e.message)
+    assertEquals(value, source.readUtf8())
   }
 
   @Test fun longDecimalStringTooShortThrows() {
@@ -864,6 +873,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
       source.readDecimalLong()
     }
     assertEquals("Expected a digit or '-' but was 0x20", e.message)
+    assertEquals(" ", source.readUtf8())
   }
 
   @Test fun longDecimalEmptyThrows() {
@@ -880,6 +890,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<EOFException> {
       source.readDecimalLong()
     }
+    assertEquals("-", source.readUtf8())
   }
 
   @Test fun longDecimalDashFollowedByNonDigitThrows() {
@@ -888,6 +899,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<NumberFormatException> {
       source.readDecimalLong()
     }
+    assertEquals("- ", source.readUtf8())
   }
 
   @Test fun codePoints() {

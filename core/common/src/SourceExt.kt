@@ -53,12 +53,11 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
 @OptIn(InternalIoApi::class)
 public fun Source.readDecimalLong(): Long {
     require(1)
-    var b = readByte()
     var negative = false
     var value = 0L
     var seen = 0
     var overflowDigit = OVERFLOW_DIGIT_START
-    when (b) {
+    when (val b = buffer[0]) {
         '-'.code.toByte() -> {
             negative = true
             overflowDigit--
@@ -72,11 +71,13 @@ public fun Source.readDecimalLong(): Long {
         }
     }
 
+    val peekSource = peek()
+    peekSource.skip(1)
+
     while (request(1)) {
-        b = buffer[0]
+        val b = peekSource.readByte()
         if (b in '0'.code..'9'.code) {
             val digit = '0'.code - b
-            readByte() // consume byte
 
             // Detect when the digit would cause an overflow.
             if (value < OVERFLOW_ZONE || value == OVERFLOW_ZONE && digit < overflowDigit) {
@@ -101,6 +102,8 @@ public fun Source.readDecimalLong(): Long {
         throw NumberFormatException("$expected but was 0x${buffer[0].toHexString()}")
     }
 
+    skip(seen.toLong() + if (negative) 1 else 0)
+
     return if (negative) value else -value
 }
 
@@ -118,16 +121,19 @@ public fun Source.readDecimalLong(): Long {
 @OptIn(InternalIoApi::class)
 public fun Source.readHexadecimalUnsignedLong(): Long {
     require(1)
-    var b = readByte()
-    var result = when (b) {
+    var result = when (val b = buffer[0]) {
         in '0'.code..'9'.code -> b - '0'.code
         in 'a'.code..'f'.code -> b - 'a'.code + 10
         in 'A'.code..'F'.code -> b - 'A'.code + 10
         else -> throw NumberFormatException("Expected leading [0-9a-fA-F] character but was 0x${b.toHexString()}")
     }.toLong()
 
-    while (request(1)) {
-        b = buffer[0]
+    val peekSource = peek()
+    peekSource.skip(1)
+    var bytesRead = 1
+
+    while (peekSource.request(1)) {
+        val b = peekSource.readByte()
         val bDigit = when (b) {
             in '0'.code..'9'.code -> b - '0'.code
             in 'a'.code..'f'.code -> b - 'a'.code + 10
@@ -135,15 +141,16 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
             else -> break
         }
         if (result and -0x1000000000000000L != 0L) {
-            with(Buffer()){
+            with(Buffer()) {
                 writeHexadecimalUnsignedLong(result)
                 writeByte(b)
                 throw NumberFormatException("Number too large: " + readUtf8())
             }
         }
-        readByte() // consume byte
         result = result.shl(4) + bDigit
+        bytesRead++
     }
+    skip(bytesRead.toLong())
     return result
 }
 
