@@ -38,6 +38,18 @@ package kotlinx.io
  * The latter is aimed to reduce memory footprint by keeping the buffer as small as possible without excessive writes
  * to the upstream.
  * All write operations implicitly calls [hintEmit].
+ *
+ * ### Write methods' behavior and naming conventions
+ *
+ * Methods writing a value of some type are usually name `write<Type>`, like [writeByte] or [writeInt], except methods
+ * writing data from a some collection of bytes, like `write(ByteArray, Int, Int)` or
+ * `write(source: RawSource, byteCount: Long)`.
+ * In the latter case, if a collection is consumable (i.e., once data was read from it will no longer be available for
+ * reading again), write method will consume as many bytes as it was requested to write.
+ *
+ * Methods fully consuming its argument are named `transferFrom`, like [transferFrom].
+ *
+ * It is recommended to follow the same naming convention for Sink extensions.
  */
 public sealed interface Sink : RawSink {
   /**

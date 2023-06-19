@@ -34,6 +34,30 @@ package kotlinx.io
  * using [require] or [request].
  * [Sink] also allows skipping unneeded prefix of data using [skip] and
  * provides look ahead into incoming data, buffering as much as necessary, using [peek].
+ *
+ * Source's read* methods have different guarantees of how much data will be consumed from the source
+ * and what to expect in case of error.
+ *
+ * ### Read methods' behavior and naming conventions
+ *
+ * Unless stated otherwise, all read methods consume the exact number of bytes
+ * requested (or the number of bytes required to represent a value of a requested type).
+ * If a source contains fewer bytes than requested, these methods will throw an exception.
+ *
+ * Methods reading up to requested number of bytes are named as `readAtMost`
+ * in contrast to methods reading exact number of bytes, which don't have `AtMost` suffix in their names.
+ * If a source contains fewer bytes than requested, these methods will not treat it as en error and will return
+ * gracefully.
+ *
+ * Methods returning a value as a result are named `read<Type>`, like [readInt] or [readByte].
+ * These methods don't consume source's content in case of an error.
+ *
+ * Methods reading data into a consumer supplied as one of its arguments are named `read*To`,
+ * like [readTo] or [readAtMostTo]. These methods consume a source even when an error occurs.
+ *
+ * Methods moving all data from a source to some other sink are named `transferTo`, like [transferTo].
+ *
+ * It is recommended to follow the same naming convention for Source extensions.
  */
 public sealed interface Source : RawSource {
   /**
