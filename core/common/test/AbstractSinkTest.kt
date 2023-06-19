@@ -223,7 +223,7 @@ abstract class AbstractSinkTest internal constructor(
     assertEquals("abcd", data.readUtf8())
   }
 
-  @Test fun writeBufferThrowsIEA() {
+  @Test fun writeBufferThrowsIAE() {
     val source: Buffer = Buffer()
     source.writeUtf8("abcd")
 

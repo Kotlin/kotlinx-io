@@ -92,6 +92,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<EOFException> {
       source.readShort()
     }
+    assertEquals(1, source.readByteArray().size)
   }
 
   @Test fun readShortLeTooShortThrows() {
@@ -101,6 +102,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<EOFException> {
       source.readShortLe()
     }
+    assertEquals(1, source.readByteArray().size)
   }
 
   @Test fun readInt() {
@@ -157,6 +159,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<EOFException> {
       source.readInt()
     }
+    assertEquals(3, source.readByteArray().size)
   }
 
   @Test fun readIntLeTooShortThrows() {
@@ -166,6 +169,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<EOFException> {
       source.readIntLe()
     }
+    assertEquals(3, source.readByteArray().size)
   }
 
   @Test fun readLong() {
@@ -249,6 +253,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<EOFException> {
       source.readLong()
     }
+    assertEquals(7, source.readByteArray().size)
   }
 
   @Test fun readLongLeTooShortThrows() {
@@ -258,10 +263,11 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<EOFException> {
       source.readLongLe()
     }
+    assertEquals(7, source.readByteArray().size)
   }
 
   @OptIn(InternalIoApi::class)
-  @Test fun readAll() {
+  @Test fun transferTo() {
     source.buffer.writeUtf8("abc")
     sink.writeUtf8("def")
     sink.emit()
@@ -272,7 +278,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertTrue(source.exhausted())
   }
 
-  @Test fun readAllExhausted() {
+  @Test fun transferToExhausted() {
     val mockSink = MockSink()
     assertEquals(0, source.transferTo(mockSink))
     assertTrue(source.exhausted())
@@ -300,7 +306,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
   @Test fun readNegativeBytesFromSource() {
     assertFailsWith<IllegalArgumentException> {
-      source.readAtMostTo(Buffer().also { it.writeByte(0) }, -1L)
+      source.readAtMostTo(Buffer(), -1L)
     }
   }
 
@@ -311,11 +317,11 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     source.close()
     assertFailsWith<IllegalStateException> {
-      source.readAtMostTo(Buffer().also { it.writeByte(0) }, 1L)
+      source.readAtMostTo(Buffer(), 1L)
     }
   }
 
-  @Test fun readFully() {
+  @Test fun readToSink() {
     sink.writeUtf8("a".repeat(10000))
     sink.emit()
     val sink = Buffer()
@@ -324,7 +330,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertEquals("a", source.readUtf8())
   }
 
-  @Test fun readFullyTooShortThrows() {
+  @Test fun readToSinkTooShortThrows() {
     sink.writeUtf8("Hi")
     sink.emit()
     val sink = Buffer()
@@ -334,22 +340,26 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     // Verify we read all that we could from the source.
     assertEquals("Hi", sink.readUtf8())
+    assertTrue(source.exhausted())
   }
 
-  @Test fun readFullyWithNegativeByteCount() {
+  @Test fun readToSinkWithNegativeByteCount() {
     val sink = Buffer()
     assertFailsWith<IllegalArgumentException> {
       source.readTo(sink, -1)
     }
   }
 
-  @Test fun readFullyZeroBytes() {
+  @Test fun readToSinkZeroBytes() {
+    sink.writeUtf8("test")
+    sink.flush()
     val sink = Buffer()
     source.readTo(sink, 0)
     assertEquals(0, sink.size)
+    assertEquals("test", source.readUtf8())
   }
 
-  @Test fun readFullyByteArray() {
+  @Test fun readToByteArray() {
     val data = Buffer()
     data.writeUtf8("Hello")
     data.writeUtf8("e".repeat(Segment.SIZE))
@@ -363,7 +373,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertArrayEquals(expected, sink)
   }
 
-  @Test fun readFullyByteArrayTooShortThrows() {
+  @Test fun readToByteArrayTooShortThrows() {
     sink.writeUtf8("Hello")
     sink.emit()
 
@@ -386,7 +396,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     )
   }
 
-  @Test fun readIntoByteArray() {
+  @Test fun readAtMostToByteArray() {
     sink.writeUtf8("abcd")
     sink.emit()
 
@@ -403,7 +413,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
-  @Test fun readIntoByteArrayNotEnough() {
+  @Test fun readAtMostToByteArrayNotEnough() {
     sink.writeUtf8("abcd")
     sink.emit()
 
@@ -421,7 +431,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
-  @Test fun readIntoByteArrayOffsetAndCount() {
+  @Test fun readAtMostToByteArrayOffsetAndCount() {
     sink.writeUtf8("abcd")
     sink.emit()
 
@@ -440,7 +450,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
-  @Test fun readIntoByteArrayOffset() {
+  @Test fun readAtMostToByteArrayFromOffset() {
     sink.writeUtf8("abcd")
     sink.emit()
 
@@ -458,7 +468,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
-  @Test fun readIntoByteArrayWithInvalidArguments() {
+  @Test fun readAtMostToByteArrayWithInvalidArguments() {
     sink.write(ByteArray(10))
     sink.emit()
 
@@ -562,6 +572,10 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
   }
 
+  @Test fun skipNegativeNumberOfBytes() {
+    assertFailsWith<IllegalArgumentException> { source.skip(-1) }
+  }
+
   @Test fun indexOf() {
     // The segment is empty.
     assertEquals(-1, source.indexOf('a'.code.toByte()))
@@ -616,7 +630,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertEquals(15, source.indexOf('b'.code.toByte(), 15))
   }
 
-  @Test fun indexOfByteWithBothOffsets() {
+  @Test fun indexOfByteWithIndices() {
     if (factory.isOneByteAtATime) {
       // When run on CI this causes out-of-memory errors.
       return
@@ -702,6 +716,14 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFalse(source.request((Segment.SIZE + 3).toLong()))
   }
 
+  @Test fun requestZeroBytes() {
+    assertTrue(source.request(0))
+  }
+
+  @Test fun requestNegativeNumberOfBytes() {
+    assertFailsWith<IllegalArgumentException> { source.request(-1) }
+  }
+
   @Test fun require() {
     with (sink) {
       writeUtf8("a")
@@ -713,6 +735,14 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertFailsWith<EOFException> {
       source.require((Segment.SIZE + 3).toLong())
     }
+  }
+
+  @Test fun requireZeroBytes() {
+    source.require(0L) // should not throw
+  }
+
+  @Test fun requireNegativeNumberOfBytes() {
+    assertFailsWith<IllegalArgumentException> { source.require(-1) }
   }
 
   @Test fun longHexString() {

@@ -138,7 +138,10 @@ internal class RealSource(
     }
   }
 
-  override fun peek(): Source = PeekSource(this).buffer()
+  override fun peek(): Source {
+    checkNotClosed()
+    return PeekSource(this).buffer()
+  }
 
   override fun close() {
     if (closed) return

@@ -58,12 +58,16 @@ public class Buffer : Source, Sink {
   override fun exhausted(): Boolean = size == 0L
 
   override fun require(byteCount: Long) {
+    require(byteCount >= 0) { "byteCount: $byteCount" }
     if (size < byteCount) {
       throw EOFException("Buffer doesn't contain required number of bytes (size: $size, required: $byteCount)")
     }
   }
 
-  override fun request(byteCount: Long): Boolean = size >= byteCount
+  override fun request(byteCount: Long): Boolean {
+    require(byteCount >= 0) { "byteCount: $byteCount" }
+    return size >= byteCount
+  }
 
   override fun readByte(): Byte {
     require(1)

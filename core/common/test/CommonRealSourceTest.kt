@@ -120,24 +120,20 @@ class CommonRealSourceTest {
     bufferedSource.close()
 
     // Test a sample set of methods.
-    assertFailsWith<IllegalStateException> {
-      bufferedSource.indexOf(1.toByte())
-    }
-
-    assertFailsWith<IllegalStateException> {
-      bufferedSource.skip(1)
-    }
-
-    assertFailsWith<IllegalStateException> {
-      bufferedSource.readByte()
-    }
+    assertFailsWith<IllegalStateException> { bufferedSource.indexOf(1.toByte()) }
+    assertFailsWith<IllegalStateException> { bufferedSource.skip(1) }
+    assertFailsWith<IllegalStateException> { bufferedSource.readByte() }
+    assertFailsWith<IllegalStateException> { bufferedSource.exhausted() }
+    assertFailsWith<IllegalStateException> { bufferedSource.require(1) }
+    assertFailsWith<IllegalStateException> { bufferedSource.readByteArray() }
+    assertFailsWith<IllegalStateException> { bufferedSource.peek() }
   }
 
   /**
-   * We don't want readAll to buffer an unbounded amount of data. Instead it
+   * We don't want transferTo to buffer an unbounded amount of data. Instead it
    * should buffer a segment, write it, and repeat.
    */
-  @Test fun readAllReadsOneSegmentAtATime() {
+  @Test fun transferToReadsOneSegmentAtATime() {
     val write1 = Buffer().also { it.writeUtf8("a".repeat(Segment.SIZE)) }
     val write2 = Buffer().also { it.writeUtf8("b".repeat(Segment.SIZE)) }
     val write3 = Buffer().also { it.writeUtf8("c".repeat(Segment.SIZE)) }

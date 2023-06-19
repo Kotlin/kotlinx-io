@@ -140,25 +140,11 @@ class CommonRealSinkTest {
     bufferedSink.close()
 
     // Test a sample set of methods.
-    assertFailsWith<IllegalStateException> {
-      bufferedSink.writeByte('a'.code.toByte())
-    }
-
-    assertFailsWith<IllegalStateException> {
-      bufferedSink.write(ByteArray(10))
-    }
-
-    assertFailsWith<IllegalStateException> {
-      bufferedSink.hintEmit()
-    }
-
-    assertFailsWith<IllegalStateException> {
-      bufferedSink.emit()
-    }
-
-    assertFailsWith<IllegalStateException> {
-      bufferedSink.flush()
-    }
+    assertFailsWith<IllegalStateException> { bufferedSink.writeByte('a'.code.toByte()) }
+    assertFailsWith<IllegalStateException> { bufferedSink.write(ByteArray(10)) }
+    assertFailsWith<IllegalStateException> { bufferedSink.hintEmit() }
+    assertFailsWith<IllegalStateException> { bufferedSink.emit() }
+    assertFailsWith<IllegalStateException> { bufferedSink.flush() }
   }
 
   @Test fun writeAll() {
