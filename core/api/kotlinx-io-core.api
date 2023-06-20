@@ -162,7 +162,8 @@ public final class kotlinx/io/SourceExtKt {
 	public static final fun readIntLe (Lkotlinx/io/Source;)I
 	public static final fun readLongLe (Lkotlinx/io/Source;)J
 	public static final fun readShortLe (Lkotlinx/io/Source;)S
-	public static final fun readTo (Lkotlinx/io/Source;[B)V
+	public static final fun readTo (Lkotlinx/io/Source;[BII)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Source;[BIIILjava/lang/Object;)V
 	public static final fun readUByte (Lkotlinx/io/Source;)B
 	public static final fun readUInt (Lkotlinx/io/Source;)I
 	public static final fun readUIntLe (Lkotlinx/io/Source;)I

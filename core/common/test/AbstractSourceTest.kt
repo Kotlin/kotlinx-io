@@ -414,6 +414,41 @@ abstract class AbstractBufferedSourceTest internal constructor(
     assertArrayEquals(expected, sink)
   }
 
+  @Test fun readToByteArraySubrange() {
+    val buffer = Buffer()
+    val source: Source = buffer
+
+    val sink = ByteArray(8)
+
+    buffer.writeUtf8("hello")
+    source.readTo(sink, 0, 3)
+    assertContentEquals(byteArrayOf('h'.code.toByte(), 'e'.code.toByte(), 'l'.code.toByte(), 0, 0, 0, 0, 0), sink)
+    assertEquals("lo", source.readUtf8())
+
+    sink.fill(0)
+    buffer.writeUtf8("hello")
+    source.readTo(sink, 3)
+    assertContentEquals(byteArrayOf(0, 0, 0, 'h'.code.toByte(), 'e'.code.toByte(), 'l'.code.toByte(), 'l'.code.toByte(),
+      'o'.code.toByte()), sink)
+    assertTrue(source.exhausted())
+
+    sink.fill(0)
+    buffer.writeUtf8("hello")
+    source.readTo(sink, 3, 4)
+    assertContentEquals(byteArrayOf(0, 0, 0, 'h'.code.toByte(), 0, 0, 0, 0), sink)
+    assertEquals("ello", source.readUtf8())
+  }
+
+  @Test fun readToByteArrayInvalidArguments() {
+    val source: Source = Buffer()
+    val sink = ByteArray(32)
+
+    assertFailsWith<IllegalArgumentException> { source.readTo(sink, 2, 0) }
+    assertFailsWith<IndexOutOfBoundsException> { source.readTo(sink, -1) }
+    assertFailsWith<IndexOutOfBoundsException> { source.readTo(sink, 33, endIndex = 34) }
+    assertFailsWith<IndexOutOfBoundsException> { source.readTo(sink, endIndex = 33) }
+  }
+
   @Test fun readToByteArrayTooShortThrows() {
     sink.writeUtf8("Hello")
     sink.emit()

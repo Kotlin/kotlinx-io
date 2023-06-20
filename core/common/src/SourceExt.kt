@@ -228,17 +228,26 @@ private fun Source.readByteArrayImpl(size: Int): ByteArray {
 
 
 /**
- * Removes exactly `sink.length` bytes from this source and copies them into [sink].
+ * Removes exactly `endIndex - startIndex` bytes from this source and copies them into [sink] subrange starting at
+ * [startIndex] and ending at [endIndex].
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
  *
  * @throws EOFException when the requested number of bytes cannot be read.
  * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
  */
-public fun Source.readTo(sink: ByteArray) {
-    var offset = 0
-    while (offset < sink.size) {
-        val bytesRead = readAtMostTo(sink, offset)
+public fun Source.readTo(sink: ByteArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    var offset = startIndex
+    while (offset < endIndex) {
+        val bytesRead = readAtMostTo(sink, offset, endIndex)
         if (bytesRead == -1) {
-            throw EOFException("Source exhausted before reading ${sink.size} bytes. Only $bytesRead bytes were read.")
+            throw EOFException("Source exhausted before reading ${endIndex - startIndex} bytes. " +
+                    "Only $bytesRead bytes were read.")
         }
         offset += bytesRead
     }
