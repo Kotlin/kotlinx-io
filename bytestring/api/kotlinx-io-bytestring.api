@@ -1,0 +1,47 @@
+public final class kotlinx/io/bytestring/ByteString : java/lang/Comparable {
+	public static final field Companion Lkotlinx/io/bytestring/ByteString$Companion;
+	public fun <init> ([B)V
+	public fun <init> ([BII)V
+	public synthetic fun <init> ([BIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun compareTo (Lkotlinx/io/bytestring/ByteString;)I
+	public final fun copyInto ([BIII)V
+	public static synthetic fun copyInto$default (Lkotlinx/io/bytestring/ByteString;[BIIIILjava/lang/Object;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun get (I)B
+	public final fun getSize ()I
+	public fun hashCode ()I
+	public final fun substring (II)Lkotlinx/io/bytestring/ByteString;
+	public static synthetic fun substring$default (Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)Lkotlinx/io/bytestring/ByteString;
+	public final fun toByteArray (II)[B
+	public static synthetic fun toByteArray$default (Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)[B
+	public fun toString ()Ljava/lang/String;
+	public final fun toString (Z)Ljava/lang/String;
+	public static synthetic fun toString$default (Lkotlinx/io/bytestring/ByteString;ZILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class kotlinx/io/bytestring/ByteString$Companion {
+	public final fun getEMPTY ()Lkotlinx/io/bytestring/ByteString;
+}
+
+public final class kotlinx/io/bytestring/ByteStringKt {
+	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
+	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
+	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;BI)I
+	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;I)I
+	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;[BI)I
+	public static synthetic fun indexOf$default (Lkotlinx/io/bytestring/ByteString;BIILjava/lang/Object;)I
+	public static synthetic fun indexOf$default (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;IILjava/lang/Object;)I
+	public static synthetic fun indexOf$default (Lkotlinx/io/bytestring/ByteString;[BIILjava/lang/Object;)I
+	public static final fun indices (Lkotlinx/io/bytestring/ByteString;)Lkotlin/ranges/IntRange;
+	public static final fun isEmpty (Lkotlinx/io/bytestring/ByteString;)Z
+	public static final fun lastIndexOf (Lkotlinx/io/bytestring/ByteString;BI)I
+	public static final fun lastIndexOf (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;I)I
+	public static final fun lastIndexOf (Lkotlinx/io/bytestring/ByteString;[BI)I
+	public static synthetic fun lastIndexOf$default (Lkotlinx/io/bytestring/ByteString;BIILjava/lang/Object;)I
+	public static synthetic fun lastIndexOf$default (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;IILjava/lang/Object;)I
+	public static synthetic fun lastIndexOf$default (Lkotlinx/io/bytestring/ByteString;[BIILjava/lang/Object;)I
+	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
+	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
+}
+
