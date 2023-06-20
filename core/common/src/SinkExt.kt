@@ -181,7 +181,7 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun Sink.writeByte(byte: UByte) {
+public fun Sink.writeUByte(byte: UByte) {
     writeByte(byte.toByte())
 }
 
@@ -192,7 +192,7 @@ public fun Sink.writeByte(byte: UByte) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun Sink.writeShort(short: UShort) {
+public fun Sink.writeUShort(short: UShort) {
     writeShort(short.toShort())
 }
 
@@ -203,7 +203,7 @@ public fun Sink.writeShort(short: UShort) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun Sink.writeInt(int: UInt) {
+public fun Sink.writeUInt(int: UInt) {
     writeInt(int.toInt())
 }
 
@@ -214,7 +214,7 @@ public fun Sink.writeInt(int: UInt) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun Sink.writeLong(long: ULong) {
+public fun Sink.writeULong(long: ULong) {
     writeLong(long.toLong())
 }
 
@@ -225,7 +225,7 @@ public fun Sink.writeLong(long: ULong) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun Sink.writeShortLe(short: UShort) {
+public fun Sink.writeUShortLe(short: UShort) {
     writeShortLe(short.toShort())
 }
 
@@ -236,7 +236,7 @@ public fun Sink.writeShortLe(short: UShort) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun Sink.writeIntLe(int: UInt) {
+public fun Sink.writeUIntLe(int: UInt) {
     writeIntLe(int.toInt())
 }
 
@@ -247,7 +247,7 @@ public fun Sink.writeIntLe(int: UInt) {
  *
  * @throws IllegalStateException when the sink is closed.
  */
-public fun Sink.writeLongLe(long: ULong) {
+public fun Sink.writeULongLe(long: ULong) {
     writeLongLe(long.toLong())
 }
 

@@ -368,43 +368,43 @@ abstract class AbstractSinkTest internal constructor(
   }
 
   @Test fun writeUByte() {
-    sink.writeByte(0xffu)
+    sink.writeUByte(0xffu)
     sink.flush()
     assertEquals(-1, data.readByte())
   }
 
   @Test fun writeUShort() {
-    sink.writeShort(0xffffu)
+    sink.writeUShort(0xffffu)
     sink.flush()
     assertEquals(-1, data.readShort())
   }
 
   @Test fun writeUShortLe() {
-    sink.writeShortLe(0x1234u)
+    sink.writeUShortLe(0x1234u)
     sink.flush()
     assertEquals("[hex=3412]", data.toString())
   }
 
   @Test fun writeUInt() {
-    sink.writeInt(0xffffffffu)
+    sink.writeUInt(0xffffffffu)
     sink.flush()
     assertEquals(-1, data.readInt())
   }
 
   @Test fun writeUIntLe() {
-    sink.writeIntLe(0x12345678u)
+    sink.writeUIntLe(0x12345678u)
     sink.flush()
     assertEquals("[hex=78563412]", data.toString())
   }
 
   @Test fun writeULong() {
-    sink.writeLong(0xffffffffffffffffu)
+    sink.writeULong(0xffffffffffffffffu)
     sink.flush()
     assertEquals(-1, data.readLong())
   }
 
   @Test fun writeULongLe() {
-    sink.writeLongLe(0x1234567890abcdefu)
+    sink.writeULongLe(0x1234567890abcdefu)
     sink.flush()
     assertEquals("[hex=efcdab9078563412]", data.toString())
   }

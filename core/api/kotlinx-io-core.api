@@ -109,19 +109,19 @@ public final class kotlinx/io/SinkExtJvmKt {
 }
 
 public final class kotlinx/io/SinkExtKt {
-	public static final fun writeByte-EK-6454 (Lkotlinx/io/Sink;B)V
 	public static final fun writeDecimalLong (Lkotlinx/io/Sink;J)V
 	public static final fun writeHexadecimalUnsignedLong (Lkotlinx/io/Sink;J)V
-	public static final fun writeInt-Qn1smSk (Lkotlinx/io/Sink;I)V
 	public static final fun writeIntLe (Lkotlinx/io/Sink;I)V
-	public static final fun writeIntLe-Qn1smSk (Lkotlinx/io/Sink;I)V
-	public static final fun writeLong-2TYgG_w (Lkotlinx/io/Sink;J)V
 	public static final fun writeLongLe (Lkotlinx/io/Sink;J)V
-	public static final fun writeLongLe-2TYgG_w (Lkotlinx/io/Sink;J)V
-	public static final fun writeShort-i8woANY (Lkotlinx/io/Sink;S)V
 	public static final fun writeShortLe (Lkotlinx/io/Sink;S)V
-	public static final fun writeShortLe-i8woANY (Lkotlinx/io/Sink;S)V
 	public static final fun writeToInternalBuffer (Lkotlinx/io/Sink;Lkotlin/jvm/functions/Function1;)V
+	public static final fun writeUByte-EK-6454 (Lkotlinx/io/Sink;B)V
+	public static final fun writeUInt-Qn1smSk (Lkotlinx/io/Sink;I)V
+	public static final fun writeUIntLe-Qn1smSk (Lkotlinx/io/Sink;I)V
+	public static final fun writeULong-2TYgG_w (Lkotlinx/io/Sink;J)V
+	public static final fun writeULongLe-2TYgG_w (Lkotlinx/io/Sink;J)V
+	public static final fun writeUShort-i8woANY (Lkotlinx/io/Sink;S)V
+	public static final fun writeUShortLe-i8woANY (Lkotlinx/io/Sink;S)V
 }
 
 public abstract interface class kotlinx/io/Source : kotlinx/io/RawSource {
