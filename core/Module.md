@@ -28,18 +28,23 @@ data class Message(val timestamp: Long, val text: String) {
 
 fun Message.toBson(sink: Sink) {
     val buffer = Buffer()
-    buffer.writeByte(0x9)                        // UTC-timestamp field
-        .writeUtf8("timestamp").writeByte(0)     // field name
-        .writeLongLe(timestamp)                  // field value
-        .writeByte(0x2)                          // string field
-        .writeUtf8("text").writeByte(0)          // field name
-        .writeIntLe(text.utf8Size().toInt() + 1) // field value: length followed by the string
-        .writeUtf8(text).writeByte(0)
-        .writeByte(0)                            // end of BSON document
+    with (buffer) {
+        writeByte(0x9)                          // UTC-timestamp field
+        writeUtf8("timestamp")                  // field name
+        writeByte(0)
+        writeLongLe(timestamp)                  // field value
+        writeByte(0x2)                          // string field
+        writeUtf8("text")                       // field name
+        writeByte(0)
+        writeIntLe(text.utf8Size().toInt() + 1) // field value: length followed by the string
+        writeUtf8(text)
+        writeByte(0)
+        writeByte(0)                            // end of BSON document
+    }
 
     // Write document length and then its body
     sink.writeIntLe(buffer.size.toInt() + 4)
-        .writeAll(buffer)
+    buffer.transferTo(sink)
     sink.flush()
 }
 
@@ -55,7 +60,7 @@ fun Message.Companion.fromBson(source: Source): Message {
         source.skip(1)                                   // skip the terminator
         return fieldName
     }
-    
+
     // for simplicity, let's assume that the order of fields matches serialization order
     var tag = source.readByte().toInt()                // read the field type
     check(tag == 0x9 && readFieldName(source) == "timestamp")
