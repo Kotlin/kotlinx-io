@@ -75,7 +75,7 @@ class BufferTest {
         buffer.writeUtf8("b".repeat(SEGMENT_SIZE * 2))
         val out = ByteArrayOutputStream()
         buffer.skip(10)
-        buffer.writeTo(out, SEGMENT_SIZE * 3L)
+        buffer.readTo(out, SEGMENT_SIZE * 3L)
         assertEquals("a".repeat(SEGMENT_SIZE * 2 - 10) + "b".repeat(SEGMENT_SIZE + 10), out.toString())
         assertEquals("b".repeat(SEGMENT_SIZE - 10), buffer.readUtf8(buffer.size))
     }
@@ -84,7 +84,7 @@ class BufferTest {
     fun writeToStream() {
         val buffer = Buffer().also { it.writeUtf8("hello, world!") }
         val out = ByteArrayOutputStream()
-        buffer.writeTo(out)
+        buffer.readTo(out)
         val outString = String(out.toByteArray(), UTF_8)
         assertEquals("hello, world!", outString)
         assertEquals(0, buffer.size)
@@ -217,22 +217,22 @@ class BufferTest {
         assertEquals("", target.readUtf8())
     }
 
-    @Test fun writeToOutputStream() {
+    @Test fun readToOutputStream() {
         val source = Buffer()
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.writeTo(target.outputStream())
+        source.readTo(target.outputStream())
         assertEquals("party", target.readUtf8())
         assertEquals("", source.readUtf8())
     }
 
-    @Test fun writeToOutputStreamWithByteCount() {
+    @Test fun readToOutputStreamWithByteCount() {
         val source = Buffer()
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.writeTo(target.outputStream(), byteCount = 3)
+        source.readTo(target.outputStream(), byteCount = 3)
         assertEquals("par", target.readUtf8())
         assertEquals("ty", source.readUtf8())
     }

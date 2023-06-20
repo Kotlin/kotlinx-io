@@ -33,7 +33,7 @@ import java.nio.channels.ByteChannel
  * @param input the stream to read data from.
  */
 public fun Buffer.transferFrom(input: InputStream): Buffer {
-  readFrom(input, Long.MAX_VALUE, true)
+  write(input, Long.MAX_VALUE, true)
   return this
 }
 
@@ -49,11 +49,11 @@ public fun Buffer.transferFrom(input: InputStream): Buffer {
  */
 public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
   require(byteCount >= 0L) { "byteCount: $byteCount" }
-  readFrom(input, byteCount, false)
+  write(input, byteCount, false)
   return this
 }
 
-private fun Buffer.readFrom(input: InputStream, byteCount: Long, forever: Boolean) {
+private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) {
   var remainingByteCount = byteCount
   while (remainingByteCount > 0L || forever) {
     val tail = writableSegment(1)
@@ -75,14 +75,14 @@ private fun Buffer.readFrom(input: InputStream, byteCount: Long, forever: Boolea
 }
 
 /**
- * Writes [byteCount] bytes from this buffer to [out].
+ * Consumes [byteCount] bytes from this buffer and writes it to [out].
  *
  * @param out the [OutputStream] to write to.
  * @param byteCount the number of bytes to be written, [Buffer.size] by default.
  *
  * @throws IllegalArgumentException when [byteCount] is negative or exceeds the buffer size.
  */
-public fun Buffer.writeTo(out: OutputStream, byteCount: Long = size) {
+public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
   checkOffsetAndCount(size, 0, byteCount)
   var remainingByteCount = byteCount
 

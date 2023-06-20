@@ -40,11 +40,11 @@ public final class kotlinx/io/BufferExtJvmKt {
 	public static final fun copyTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJ)V
 	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJILjava/lang/Object;)V
 	public static final fun readAtMostTo (Lkotlinx/io/Buffer;Ljava/nio/ByteBuffer;)I
+	public static final fun readTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;J)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JILjava/lang/Object;)V
 	public static final fun transferFrom (Lkotlinx/io/Buffer;Ljava/io/InputStream;)Lkotlinx/io/Buffer;
 	public static final fun transferFrom (Lkotlinx/io/Buffer;Ljava/nio/ByteBuffer;)Lkotlinx/io/Buffer;
 	public static final fun write (Lkotlinx/io/Buffer;Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
-	public static final fun writeTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;J)V
-	public static synthetic fun writeTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JILjava/lang/Object;)V
 }
 
 public final class kotlinx/io/CoreKt {
