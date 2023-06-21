@@ -21,6 +21,7 @@
 
 package kotlinx.io
 
+import kotlinx.io.bytestring.ByteString
 import kotlin.test.*
 
 private const val SEGMENT_SIZE = Segment.SIZE
@@ -1536,4 +1537,155 @@ abstract class AbstractBufferedSourceTest internal constructor(
         }
         assertTrue(source.request(7))
     }
+  @Test fun readByteString() {
+    with (sink) {
+      writeUtf8("abcd")
+      writeUtf8("e".repeat(Segment.SIZE))
+      emit()
+    }
+    assertEquals("abcd" + "e".repeat(Segment.SIZE), source.readByteString().toUtf8())
+  }
+
+  @Test fun readByteStringPartial() {
+    with (sink) {
+      writeUtf8("abcd")
+      writeUtf8("e".repeat(Segment.SIZE))
+      emit()
+    }
+    assertEquals("abc", source.readByteString(3).toUtf8())
+    assertEquals("d", source.readUtf8(1))
+  }
+
+  @Test fun readByteStringTooShortThrows() {
+    sink.writeUtf8("abc")
+    sink.emit()
+    assertFailsWith<EOFException> { source.readByteString(4) }
+
+    assertEquals("abc", source.readUtf8()) // The read shouldn't consume any data.
+  }
+
+  @Test fun indexOfByteString() {
+    assertEquals(-1, source.indexOf("flop".encodeUtf8()))
+
+    sink.writeUtf8("flip flop")
+    sink.emit()
+    assertEquals(5, source.indexOf("flop".encodeUtf8()))
+    source.readUtf8() // Clear stream.
+
+    // Make sure we backtrack and resume searching after partial match.
+    sink.writeUtf8("hi hi hi hey")
+    sink.emit()
+    assertEquals(3, source.indexOf("hi hi hey".encodeUtf8()))
+  }
+
+  @Test fun indexOfByteStringAtSegmentBoundary() {
+    sink.writeUtf8("a".repeat(Segment.SIZE - 1))
+    sink.writeUtf8("bcd")
+    sink.emit()
+    assertEquals(
+      (Segment.SIZE - 3).toLong(),
+      source.indexOf("aabc".encodeUtf8(), (Segment.SIZE - 4).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE - 3).toLong(),
+      source.indexOf("aabc".encodeUtf8(), (Segment.SIZE - 3).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE - 2).toLong(),
+      source.indexOf("abcd".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE - 2).toLong(),
+      source.indexOf("abc".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE - 2).toLong(),
+      source.indexOf("abc".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE - 2).toLong(),
+      source.indexOf("ab".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE - 2).toLong(),
+      source.indexOf("a".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE - 1).toLong(),
+      source.indexOf("bc".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE - 1).toLong(),
+      source.indexOf("b".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      Segment.SIZE.toLong(),
+      source.indexOf("c".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      Segment.SIZE.toLong(),
+      source.indexOf("c".encodeUtf8(), Segment.SIZE.toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE + 1).toLong(),
+      source.indexOf("d".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+    )
+    assertEquals(
+      (Segment.SIZE + 1).toLong(),
+      source.indexOf("d".encodeUtf8(), (Segment.SIZE + 1).toLong()),
+    )
+  }
+
+  @Test fun indexOfDoesNotWrapAround() {
+    sink.writeUtf8("a".repeat(Segment.SIZE - 1))
+    sink.writeUtf8("bcd")
+    sink.emit()
+    assertEquals(-1, source.indexOf("abcda".encodeUtf8(), (Segment.SIZE - 3).toLong()))
+  }
+
+  @Test fun indexOfByteStringWithOffset() {
+    assertEquals(-1, source.indexOf("flop".encodeUtf8(), 1))
+
+    sink.writeUtf8("flop flip flop")
+    sink.emit()
+    assertEquals(10, source.indexOf("flop".encodeUtf8(), 1))
+    source.readUtf8() // Clear stream
+
+    // Make sure we backtrack and resume searching after partial match.
+    sink.writeUtf8("hi hi hi hi hey")
+    sink.emit()
+    assertEquals(6, source.indexOf("hi hi hey".encodeUtf8(), 1))
+  }
+
+  @Test fun indexOfEmptyByteString() {
+    assertEquals(0, source.indexOf(ByteString.EMPTY))
+  }
+
+  @Test fun indexOfByteStringInvalidArgumentsThrows() {
+    assertFailsWith<IllegalArgumentException> {
+      source.indexOf("hi".encodeUtf8(), -1)
+    }
+  }
+
+  /**
+   * With [BufferedSourceFactory.ONE_BYTE_AT_A_TIME_BUFFERED_SOURCE], this code was extremely slow.
+   * https://github.com/square/okio/issues/171
+   */
+  @Test fun indexOfByteStringAcrossSegmentBoundaries() {
+    sink.writeUtf8("a".repeat(Segment.SIZE * 2 - 3))
+    sink.writeUtf8("bcdefg")
+    sink.emit()
+    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("ab".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abc".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcd".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcde".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcdef".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcdefg".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 - 3).toLong(), source.indexOf("bcdefg".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 - 2).toLong(), source.indexOf("cdefg".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 - 1).toLong(), source.indexOf("defg".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2).toLong(), source.indexOf("efg".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 + 1).toLong(), source.indexOf("fg".encodeUtf8()))
+    assertEquals((Segment.SIZE * 2 + 2).toLong(), source.indexOf("g".encodeUtf8()))
+  }
 }

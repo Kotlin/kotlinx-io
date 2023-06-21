@@ -27,9 +27,27 @@ import kotlin.math.min
 private val HEX_DIGITS = "0123456789ABCDEF".toCharArray()
 
 /**
- * ByteString is an immutable wrapper around a byte sequence providing [String] like functionality.
+ * Marks declarations whose usage may brake some ByteString invariants.
  *
- *
+ * Consider using other APIs instead when possible.
+ * Otherwise, make sure to read documentation describing an unsafe API.
+ */
+@MustBeDocumented
+@Retention(AnnotationRetention.BINARY)
+@RequiresOptIn(
+    level = RequiresOptIn.Level.ERROR,
+    message = "This is a delicate API and its use requires care. " +
+            "Make sure you fully read and understand documentation of the declaration that is marked as a delicate API."
+)
+public annotation class UnsafeByteStringApi
+
+/**
+ * Constructs empty byte string.
+ */
+public fun ByteString(): ByteString = ByteString.EMPTY
+
+/**
+ * An immutable wrapper around a byte sequence providing [String] like functionality.
  */
 public class ByteString private constructor(
     private val data: ByteArray,
@@ -41,7 +59,16 @@ public class ByteString private constructor(
         /**
          * An empty ByteString.
          */
-        public val EMPTY: ByteString = ByteString()
+        public val EMPTY: ByteString = ByteString(ByteArray(0), null)
+
+        /**
+         * Creates a new byte string by wrapping [byteArray] without copying it.
+         * Make sure that the wrapped array won't be modified during the lifespan of the returned byte string.
+         *
+         * @param byteArray the array to wrap into the byte string.
+         */
+        @UnsafeByteStringApi
+        public fun wrapUnsafe(byteArray: ByteArray): ByteString = ByteString(byteArray, null)
     }
 
     /**
@@ -223,7 +250,14 @@ public class ByteString private constructor(
      */
     override fun toString(): String = toString(false)
 
-    internal fun getByteArray(): ByteArray = data
+    /**
+     * Returns a reference to the underlying array.
+     *
+     * These methods return reference to the underlying array, not to its copy.
+     * Consider using [toByteArray] if it's impossible to guarantee that the array won't be modified.
+     */
+    @UnsafeByteStringApi
+    public fun getByteArrayUnsafe(): ByteArray = data
 }
 
 /**

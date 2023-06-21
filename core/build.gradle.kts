@@ -40,7 +40,11 @@ kotlin {
 
     configureNativePlatforms()
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                implementation(project(":kotlinx-io-bytestring"))
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))

@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import kotlinx.io.bytestring.ByteString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -584,4 +585,14 @@ class CommonBufferTest {
         copy.transferTo(buffer)
         assertArrayEquals(byteArrayOf(42, 42), buffer.readByteArray())
     }
+
+  @Test
+  fun snapshot() {
+    val buffer = Buffer()
+    assertEquals(ByteString(), buffer.snapshot())
+    buffer.writeUtf8("hello")
+    assertEquals("hello".encodeUtf8(), buffer.snapshot())
+    buffer.clear()
+    assertEquals(ByteString(), buffer.snapshot())
+  }
 }

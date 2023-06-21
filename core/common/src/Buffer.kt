@@ -322,9 +322,10 @@ public class Buffer : Source, Sink {
 
         val s = head ?: return -1
         val toCopy = minOf(endIndex - startIndex, s.limit - s.pos)
-        s.data.copyInto(
-            destination = sink, destinationOffset = startIndex, startIndex = s.pos, endIndex = s.pos + toCopy
-        )
+        println("${s.limit} ${s.pos}")
+    s.data.copyInto(
+      destination = sink, destinationOffset = startIndex, startIndex = s.pos, endIndex = s.pos + toCopy
+    )
 
         s.pos += toCopy
         size -= toCopy.toLong()

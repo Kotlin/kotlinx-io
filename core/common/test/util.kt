@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import kotlinx.io.bytestring.ByteString
 import kotlin.test.assertEquals
 
 fun segmentSizes(buffer: Buffer): List<Int> {
@@ -67,3 +68,5 @@ fun Char.repeat(count: Int): String {
 fun assertArrayEquals(a: ByteArray, b: ByteArray) {
     assertEquals(a.contentToString(), b.contentToString())
 }
+
+fun String.encodeUtf8(): ByteString = ByteString.fromUtf8(this)
