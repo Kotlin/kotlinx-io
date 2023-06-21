@@ -3,12 +3,14 @@ public final class kotlinx/io/bytestring/ByteString : java/lang/Comparable {
 	public fun <init> ([B)V
 	public fun <init> ([BII)V
 	public synthetic fun <init> ([BIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> ([BLjava/lang/Object;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun compareTo (Ljava/lang/Object;)I
 	public fun compareTo (Lkotlinx/io/bytestring/ByteString;)I
 	public final fun copyInto ([BIII)V
 	public static synthetic fun copyInto$default (Lkotlinx/io/bytestring/ByteString;[BIIIILjava/lang/Object;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun get (I)B
+	public final fun getByteArrayUnsafe ()[B
 	public final fun getSize ()I
 	public fun hashCode ()I
 	public final fun substring (II)Lkotlinx/io/bytestring/ByteString;
@@ -22,9 +24,28 @@ public final class kotlinx/io/bytestring/ByteString : java/lang/Comparable {
 
 public final class kotlinx/io/bytestring/ByteString$Companion {
 	public final fun getEMPTY ()Lkotlinx/io/bytestring/ByteString;
+	public final fun wrapUnsafe ([B)Lkotlinx/io/bytestring/ByteString;
+}
+
+public final class kotlinx/io/bytestring/ByteStringBuilder {
+	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun append (B)V
+	public final fun append ([BII)V
+	public static synthetic fun append$default (Lkotlinx/io/bytestring/ByteStringBuilder;[BIIILjava/lang/Object;)V
+	public final fun getCapacity ()I
+	public final fun getSize ()I
+	public final fun toByteString ()Lkotlinx/io/bytestring/ByteString;
+}
+
+public final class kotlinx/io/bytestring/ByteStringBuilderKt {
+	public static final fun append (Lkotlinx/io/bytestring/ByteStringBuilder;Lkotlinx/io/bytestring/ByteString;)V
+	public static final fun append-EK-6454 (Lkotlinx/io/bytestring/ByteStringBuilder;B)V
 }
 
 public final class kotlinx/io/bytestring/ByteStringKt {
+	public static final fun ByteString ()Lkotlinx/io/bytestring/ByteString;
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;BI)I
@@ -43,5 +64,8 @@ public final class kotlinx/io/bytestring/ByteStringKt {
 	public static synthetic fun lastIndexOf$default (Lkotlinx/io/bytestring/ByteString;[BIILjava/lang/Object;)I
 	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
+}
+
+public abstract interface annotation class kotlinx/io/bytestring/UnsafeByteStringApi : java/lang/annotation/Annotation {
 }
 

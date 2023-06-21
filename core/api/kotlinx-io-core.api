@@ -47,6 +47,21 @@ public final class kotlinx/io/BufferExtJvmKt {
 	public static final fun write (Lkotlinx/io/Buffer;Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
 }
 
+public final class kotlinx/io/BufferExtKt {
+	public static final fun snapshot (Lkotlinx/io/Buffer;)Lkotlinx/io/bytestring/ByteString;
+}
+
+public final class kotlinx/io/ByteStringExtKt {
+	public static final fun fromUtf8 (Lkotlinx/io/bytestring/ByteString$Companion;Ljava/lang/String;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun indexOf (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;J)J
+	public static synthetic fun indexOf$default (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)J
+	public static final fun readByteString (Lkotlinx/io/Source;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun readByteString (Lkotlinx/io/Source;I)Lkotlinx/io/bytestring/ByteString;
+	public static final fun toUtf8 (Lkotlinx/io/bytestring/ByteString;)Ljava/lang/String;
+	public static final fun write (Lkotlinx/io/Sink;Lkotlinx/io/bytestring/ByteString;II)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)V
+}
+
 public final class kotlinx/io/CoreKt {
 	public static final fun buffered (Lkotlinx/io/RawSink;)Lkotlinx/io/Sink;
 	public static final fun buffered (Lkotlinx/io/RawSource;)Lkotlinx/io/Source;
