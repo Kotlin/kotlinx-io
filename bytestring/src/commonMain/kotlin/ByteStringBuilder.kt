@@ -86,7 +86,7 @@ public class ByteStringBuilder(initialCapacity: Int = 0) {
     }
 
     private fun ensureCapacity(requiredCapacity: Int) {
-        if (buffer.size <= requiredCapacity) {
+        if (buffer.size >= requiredCapacity) {
             return
         }
 
