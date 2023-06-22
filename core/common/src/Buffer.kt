@@ -320,9 +320,8 @@ public class Buffer : Source, Sink {
     override fun readAtMostTo(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         checkBounds(sink.size, startIndex, endIndex)
 
-        val s = head ?: return -1
-        val toCopy = minOf(endIndex - startIndex, s.limit - s.pos)
-        println("${s.limit} ${s.pos}")
+    val s = head ?: return -1
+    val toCopy = minOf(endIndex - startIndex, s.limit - s.pos)
     s.data.copyInto(
       destination = sink, destinationOffset = startIndex, startIndex = s.pos, endIndex = s.pos + toCopy
     )
