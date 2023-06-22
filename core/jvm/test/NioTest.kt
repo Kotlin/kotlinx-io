@@ -22,7 +22,6 @@
 package kotlinx.io
 
 import org.junit.jupiter.api.io.TempDir
-import kotlin.test.*
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
@@ -32,6 +31,11 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.createFile
+import kotlin.io.path.inputStream
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.text.Charsets.UTF_8
 
 /** Test interop with java.nio.  */
@@ -59,7 +63,7 @@ class NioTest {
         val file = Paths.get(temporaryFolder.toString(), "test").createFile()
         val fileChannel: FileChannel = FileChannel.open(file, StandardOpenOption.WRITE)
         testWritableByteChannel(false, fileChannel)
-        val emitted: Source = file.source().buffer()
+        val emitted: Source = file.inputStream().source().buffer()
         assertEquals("defghijklmnopqrstuvw", emitted.readUtf8())
         emitted.close()
     }
@@ -82,7 +86,7 @@ class NioTest {
     @Test
     fun readableChannelNioFile() {
         val file: File = Paths.get(temporaryFolder.toString(), "test").toFile()
-        val initialData: Sink = file.sink().buffer()
+        val initialData: Sink = file.outputStream().sink().buffer()
         initialData.writeUtf8("abcdefghijklmnopqrstuvwxyz")
         initialData.close()
         val fileChannel: FileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)

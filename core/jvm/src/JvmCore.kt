@@ -21,12 +21,9 @@
 
 package kotlinx.io
 
-import java.io.*
 import java.io.IOException
-import java.net.Socket
-import java.nio.file.Files
-import java.nio.file.OpenOption
-import java.nio.file.Path as NioPath
+import java.io.InputStream
+import java.io.OutputStream
 
 /**
  * Returns [RawSink] that writes to an output stream.
@@ -105,61 +102,6 @@ private open class InputStreamSource(
 
   override fun toString() = "source($input)"
 }
-
-/**
- * Returns [RawSink] that writes to a socket. Prefer this over [sink]
- * because this method honors timeouts. When the socket
- * write times out, the socket is asynchronously closed by a watchdog thread.
- *
- * Use [RawSink.buffer] to create a buffered sink from it.
- */
-public fun Socket.sink(): RawSink = OutputStreamSink(getOutputStream())
-
-/**
- * Returns [RawSource] that reads from a socket. Prefer this over [source]
- * because this method honors timeouts. When the socket
- * read times out, the socket is asynchronously closed by a watchdog thread.
- *
- * Use [RawSource.buffer] to create a buffered source from it.
- */
-public fun Socket.source(): RawSource = InputStreamSource(getInputStream())
-
-/**
- * Returns [RawSink] that writes to a file.
- *
- * Use [RawSink.buffer] to create a buffered sink from it.
- *
- * @param append the flag indicating whether the file should be overwritten or appended, `false` by default,
- * meaning the file will be overwritten.
- */
-public fun File.sink(append: Boolean = false): RawSink = FileOutputStream(this, append).sink()
-
-/**
- * Returns [RawSource] that reads from a file.
- *
- * Use [RawSource.buffer] to create a buffered source from it.
- */
-public fun File.source(): RawSource = InputStreamSource(inputStream())
-
-/**
- * Returns [RawSink] that reads from a path.
- *
- * Use [RawSink.buffer] to create a buffered sink from it.
- *
- * @param options set of [OpenOption] for opening a file.
- */
-public fun NioPath.sink(vararg options: OpenOption): RawSink =
-  Files.newOutputStream(this, *options).sink()
-
-/**
- * Returns [RawSource] that writes to a path.
- *
- * Use [RawSource.buffer] to create a buffered source from it.
- *
- * @param options set of [OpenOption] for opening a file.
- */
-public fun NioPath.source(vararg options: OpenOption): RawSource =
-  Files.newInputStream(this, *options).source()
 
 /**
  * Returns true if this error is due to a firmware bug fixed after Android 4.2.2.

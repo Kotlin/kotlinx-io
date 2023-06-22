@@ -60,15 +60,8 @@ public abstract interface annotation class kotlinx/io/InternalIoApi : java/lang/
 }
 
 public final class kotlinx/io/JvmCoreKt {
-	public static final fun sink (Ljava/io/File;Z)Lkotlinx/io/RawSink;
 	public static final fun sink (Ljava/io/OutputStream;)Lkotlinx/io/RawSink;
-	public static final fun sink (Ljava/net/Socket;)Lkotlinx/io/RawSink;
-	public static final fun sink (Ljava/nio/file/Path;[Ljava/nio/file/OpenOption;)Lkotlinx/io/RawSink;
-	public static synthetic fun sink$default (Ljava/io/File;ZILjava/lang/Object;)Lkotlinx/io/RawSink;
-	public static final fun source (Ljava/io/File;)Lkotlinx/io/RawSource;
 	public static final fun source (Ljava/io/InputStream;)Lkotlinx/io/RawSource;
-	public static final fun source (Ljava/net/Socket;)Lkotlinx/io/RawSource;
-	public static final fun source (Ljava/nio/file/Path;[Ljava/nio/file/OpenOption;)Lkotlinx/io/RawSource;
 }
 
 public abstract interface class kotlinx/io/RawSink : java/io/Flushable, java/lang/AutoCloseable {
