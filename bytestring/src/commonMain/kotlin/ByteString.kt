@@ -209,46 +209,33 @@ public class ByteString private constructor(
 
     /**
      * Returns a string representation of this byte string. A string representation consists of [size] and
-     * prefix of the byte sequence wrapped by this byte string encoded to hexadecimal string.
+     * a hexadecimal-encoded string of a byte sequence wrapped by this byte string.
      *
-     * By default, for short byte string, the string representation looks like `[size=3 hex=ABCDEF]`,
-     * for empty strings it's always `[size=0]` and for long string only a prefix of data will be included:
-     * `[size=128 hex=0123456789…]`.
-     * This behavior can be changed by setting [full] to `true`, in that case a string representation will include
-     * hexadecimal string encoding full byte string's content.
+     * The string representation has the following format `ByteString(size=3 hex=ABCDEF)`,
+     * for empty strings it's always `ByteString(size=0)`.
      *
-     * @param full the flag indicating whether the resulting string will include the whole byte string or only
-     * its prefix.
+     * Note that a string representation includes the whole byte string content encoded.
+     * Due to limitations of the maxi
      */
-    public fun toString(full: Boolean = false): String {
+    override fun toString(): String {
         if (isEmpty()) {
-            return "[size=0]"
+            return "ByteString(size=0)"
         }
-        // format: "[size=XXX hex=YYYY]"
+        // format: "ByteString(size=XXX hex=YYYY)"
         val sizeStr = size.toString()
-        val hexLen = if (full) size else min(64, size)
-        val len = 12 + sizeStr.length + hexLen * 2
+        val len = 22 + sizeStr.length + size * 2
         return with(StringBuilder(len)) {
-            append("[size=")
+            append("ByteString(size=")
             append(sizeStr)
             append(" hex=")
-            for (i in 0 until hexLen) {
+            for (i in 0 until size) {
                 val b = this@ByteString[i].toInt()
                 append(HEX_DIGITS[(b ushr 4) and 0xf])
                 append(HEX_DIGITS[b and 0xf])
             }
-            if (!full && size > 64) {
-                append('…')
-            }
-            append(']')
+            append(')')
         }.toString()
     }
-
-    /**
-     * Returns a string representation of this byte string.
-     * This call is equivalent to `toString(false)`.
-     */
-    override fun toString(): String = toString(false)
 
     /**
      * Returns a reference to the underlying array.

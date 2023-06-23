@@ -369,31 +369,16 @@ class ByteStringTest {
 
     @Test
     fun testToString() {
-        assertEquals("[size=0]", ByteString.EMPTY.toString())
-        assertEquals("[size=1 hex=00]", ByteString(0).toString())
+        assertEquals("ByteString(size=0)", ByteString.EMPTY.toString())
+        assertEquals("ByteString(size=1 hex=00)", ByteString(0).toString())
         assertEquals(
-            "[size=16 hex=000102030405060708090A0B0C0D0E0F]",
+            "ByteString(size=16 hex=000102030405060708090A0B0C0D0E0F)",
             ByteString(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15).toString()
         )
         assertEquals(
-            "[size=64 hex=0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000000000000000000000]",
+            "ByteString(size=64 hex=0000000000000000000000000000000000000000000000000000000000000000" +
+                    "0000000000000000000000000000000000000000000000000000000000000000)",
             ByteString(ByteArray(64)).toString()
-        )
-        assertEquals(
-            "[size=65 hex=0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000000000000000000000…]",
-            ByteString(ByteArray(65)).toString()
-        )
-        assertEquals(
-            "[size=65 hex=0000000000000000000000000000000000000000000000000000000000000000" +
-                    "000000000000000000000000000000000000000000000000000000000000000000]",
-            ByteString(ByteArray(65)).toString(true)
-        )
-        assertEquals(
-            "[size=65 hex=0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000000000000000000000…]",
-            ByteString(ByteArray(65)).toString(false)
         )
     }
 }
