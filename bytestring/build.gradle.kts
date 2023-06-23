@@ -53,5 +53,10 @@ fun KotlinSourceSet.configureSourceSet() {
 tasks.withType<DokkaTaskPartial>().configureEach {
     dokkaSourceSets.configureEach {
         includes.from("Module.md")
+
+        perPackageOption {
+            suppress.set(true)
+            matchingRegex.set(".*unsafe.*")
+        }
     }
 }
