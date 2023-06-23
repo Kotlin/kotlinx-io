@@ -435,3 +435,12 @@ public fun ByteString.toUtf8String(): String {
 public fun ByteString.Companion.fromUtf8String(string: String): ByteString {
     return wrap(string.encodeToByteArray())
 }
+
+/**
+ * Returns `true` if the content of this byte string equals to the [array].
+ *
+ * @param array the array to test this byte string's content against.
+ */
+public fun ByteString.contentEquals(array: ByteArray): Boolean {
+    return getBackingArrayReference().contentEquals(array)
+}

@@ -46,6 +46,7 @@ public final class kotlinx/io/bytestring/ByteStringJvmExtKt {
 
 public final class kotlinx/io/bytestring/ByteStringKt {
 	public static final fun ByteString ()Lkotlinx/io/bytestring/ByteString;
+	public static final fun contentEquals (Lkotlinx/io/bytestring/ByteString;[B)Z
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
 	public static final fun fromUtf8String (Lkotlinx/io/bytestring/ByteString$Companion;Ljava/lang/String;)Lkotlinx/io/bytestring/ByteString;

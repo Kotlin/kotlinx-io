@@ -391,4 +391,16 @@ class ByteStringTest {
         assertEquals(byteString, ByteString(*bronzeHorseman.encodeToByteArray()))
         assertEquals(byteString.toUtf8String(), bronzeHorseman)
     }
+
+    @Test
+    fun contentEquals() {
+        assertTrue(ByteString().contentEquals(byteArrayOf()))
+        assertFalse(ByteString(1, 2, 3).contentEquals(byteArrayOf()))
+        assertFalse(ByteString().contentEquals(byteArrayOf(1, 2, 3)))
+
+        assertTrue(ByteString(1, 2, 3, 4, 5).contentEquals(byteArrayOf(1, 2, 3, 4, 5)))
+        assertFalse(ByteString(1, 2, 3, 4, 5).contentEquals(byteArrayOf(1, 2, 3, 4, 4)))
+        assertFalse(ByteString(1, 2, 3, 4, 5).contentEquals(byteArrayOf(1, 2, 3, 4, 5, 6)))
+        assertFalse(ByteString(1, 2, 3, 4, 5, 6).contentEquals(byteArrayOf(1, 2, 3, 4, 5)))
+    }
 }
