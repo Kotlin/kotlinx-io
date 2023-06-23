@@ -9,12 +9,12 @@ import kotlinx.benchmark.Benchmark
 import kotlinx.benchmark.Blackhole
 import kotlinx.benchmark.Param
 import kotlinx.benchmark.Setup
-import kotlinx.io.inputStream
-import kotlinx.io.outputStream
+import kotlinx.io.asInputStream
+import kotlinx.io.asOutputStream
 import kotlinx.io.readTo
 
 open class InputStreamByteRead: BufferRWBenchmarkBase() {
-   private val stream = buffer.inputStream()
+   private val stream = buffer.asInputStream()
 
     @Benchmark
     fun benchmark(): Int {
@@ -24,7 +24,7 @@ open class InputStreamByteRead: BufferRWBenchmarkBase() {
 }
 
 open class OutputStreamByteWrite: BufferRWBenchmarkBase() {
-    private val stream = buffer.outputStream()
+    private val stream = buffer.asOutputStream()
 
     @Benchmark
     fun benchmark(): Byte {
@@ -48,7 +48,7 @@ abstract class StreamByteArrayBenchmarkBase: BufferRWBenchmarkBase() {
 }
 
 open class InputStreamByteArrayRead: StreamByteArrayBenchmarkBase() {
-    private val stream = buffer.inputStream()
+    private val stream = buffer.asInputStream()
 
     @Benchmark
     fun benchmark(blackhole: Blackhole) {
@@ -62,7 +62,7 @@ open class InputStreamByteArrayRead: StreamByteArrayBenchmarkBase() {
 }
 
 open class OutputStreamByteArrayWrite: StreamByteArrayBenchmarkBase() {
-    private val stream = buffer.outputStream()
+    private val stream = buffer.asOutputStream()
 
     @Benchmark
     fun benchmark(blackhole: Blackhole) {

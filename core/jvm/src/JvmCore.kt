@@ -28,9 +28,9 @@ import java.io.OutputStream
 /**
  * Returns [RawSink] that writes to an output stream.
  *
- * Use [RawSink.buffer] to create a buffered sink from it.
+ * Use [RawSink.buffered] to create a buffered sink from it.
  */
-public fun OutputStream.sink(): RawSink = OutputStreamSink(this)
+public fun OutputStream.asSink(): RawSink = OutputStreamSink(this)
 
 private open class OutputStreamSink(
   private val out: OutputStream,
@@ -66,9 +66,9 @@ private open class OutputStreamSink(
 /**
  * Returns [RawSource] that reads from an input stream.
  *
- * Use [RawSource.buffer] to create a buffered source from it.
+ * Use [RawSource.buffered] to create a buffered source from it.
  */
-public fun InputStream.source(): RawSource = InputStreamSource(this)
+public fun InputStream.asSource(): RawSource = InputStreamSource(this)
 
 private open class InputStreamSource(
   private val input: InputStream,

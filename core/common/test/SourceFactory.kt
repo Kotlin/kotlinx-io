@@ -56,7 +56,7 @@ interface SourceFactory {
         val buffer = Buffer()
         return Pipe(
           buffer,
-          (buffer as RawSource).buffer()
+          (buffer as RawSource).buffered()
         )
       }
     }
@@ -84,7 +84,7 @@ interface SourceFactory {
               if (result > 0L) sink.write(box.copy(), result)
               return result
             }
-          }.buffer()
+          }.buffered()
         )
       }
     }
@@ -108,7 +108,7 @@ interface SourceFactory {
                 buffer.write(box.copy(), 1)
               }
             }
-          }.buffer(),
+          }.buffered(),
           buffer
         )
       }
@@ -138,7 +138,7 @@ interface SourceFactory {
         val buffer = Buffer()
         return Pipe(
           buffer,
-          (buffer as RawSource).buffer().peek()
+          (buffer as RawSource).buffered().peek()
         )
       }
     }

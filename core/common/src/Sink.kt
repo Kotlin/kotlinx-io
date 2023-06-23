@@ -25,7 +25,7 @@ package kotlinx.io
  * sending it directly to an upstream.
  *
  * [Sink] is the main `kotlinx-io` interface to write data in client's code,
- * any [RawSink] could be turned into [Sink] using [RawSink.buffer].
+ * any [RawSink] could be turned into [Sink] using [RawSink.buffered].
  *
  * Depending on the kind of upstream and the number of bytes written, buffering may improve the performance
  * by hiding the latency of small writes.
@@ -166,10 +166,10 @@ public sealed interface Sink : RawSink {
    * there are no guarantees how many bytes will be emitted.
    *
    * Typically, application code will not need to call this: it is only necessary when
-   * application code writes directly to this [buffer].
+   * application code writes directly to this [buffered].
    * Use this to limit the memory held in the buffer.
    *
-   * Consider using [Sink.writeToInternalBuffer] for writes into [buffer] followed by [hintEmit] call.
+   * Consider using [Sink.writeToInternalBuffer] for writes into [buffered] followed by [hintEmit] call.
    *
    * @throws IllegalStateException when the sink is closed.
    */

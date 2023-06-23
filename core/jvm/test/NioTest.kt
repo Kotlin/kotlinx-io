@@ -44,7 +44,7 @@ class NioTest {
     lateinit var temporaryFolder: Path
     @Test
     fun sourceIsOpen() {
-        val source = RealSource(Buffer()).channel()
+        val source = RealSource(Buffer()).asByteChannel()
         assertTrue(source.isOpen())
         source.close()
         assertFalse(source.isOpen())
@@ -52,7 +52,7 @@ class NioTest {
 
     @Test
     fun sinkIsOpen() {
-        val sink = RealSink(Buffer()).channel()
+        val sink = RealSink(Buffer()).asByteChannel()
         assertTrue(sink.isOpen())
         sink.close()
         assertFalse(sink.isOpen())
@@ -63,7 +63,7 @@ class NioTest {
         val file = Paths.get(temporaryFolder.toString(), "test").createFile()
         val fileChannel: FileChannel = FileChannel.open(file, StandardOpenOption.WRITE)
         testWritableByteChannel(false, fileChannel)
-        val emitted: Source = file.inputStream().source().buffer()
+        val emitted: Source = file.inputStream().asSource().buffered()
         assertEquals("defghijklmnopqrstuvw", emitted.readUtf8())
         emitted.close()
     }
@@ -71,7 +71,7 @@ class NioTest {
     @Test
     fun writableChannelBuffer() {
         val buffer = Buffer()
-        testWritableByteChannel(true, buffer.channel())
+        testWritableByteChannel(true, buffer.asByteChannel())
         assertEquals("defghijklmnopqrstuvw", buffer.readUtf8())
     }
 
@@ -79,14 +79,14 @@ class NioTest {
     fun writableChannelBufferedSink() {
         val buffer = Buffer()
         val bufferedSink: Sink = buffer
-        testWritableByteChannel(true, bufferedSink.channel())
+        testWritableByteChannel(true, bufferedSink.asByteChannel())
         assertEquals("defghijklmnopqrstuvw", buffer.readUtf8())
     }
 
     @Test
     fun readableChannelNioFile() {
         val file: File = Paths.get(temporaryFolder.toString(), "test").toFile()
-        val initialData: Sink = file.outputStream().sink().buffer()
+        val initialData: Sink = file.outputStream().asSink().buffered()
         initialData.writeUtf8("abcdefghijklmnopqrstuvwxyz")
         initialData.close()
         val fileChannel: FileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)
@@ -97,7 +97,7 @@ class NioTest {
     fun readableChannelBuffer() {
         val buffer = Buffer()
         buffer.writeUtf8("abcdefghijklmnopqrstuvwxyz")
-        testReadableByteChannel(true, buffer.channel())
+        testReadableByteChannel(true, buffer.asByteChannel())
     }
 
     @Test
@@ -105,7 +105,7 @@ class NioTest {
         val buffer = Buffer()
         val bufferedSource: Source = buffer
         buffer.writeUtf8("abcdefghijklmnopqrstuvwxyz")
-        testReadableByteChannel(true, bufferedSource.channel())
+        testReadableByteChannel(true, bufferedSource.asByteChannel())
     }
 
     /**

@@ -15,7 +15,7 @@ class DelicateApiTest {
     fun testWriteIntoBuffer() {
         val sink = Buffer()
         val rawSink = sink as RawSink
-        val bufferedSink = rawSink.buffer()
+        val bufferedSink = rawSink.buffered()
 
         bufferedSink.writeToInternalBuffer {
             it.writeByte(42)

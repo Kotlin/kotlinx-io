@@ -28,7 +28,7 @@ package kotlinx.io
  * or remove protocol framing.
  *
  * Most applications shouldn't operate on a raw source directly, but rather on a buffered [Source] which
- * is both more efficient and more convenient. Use [buffer] to wrap any raw source with a buffer.
+ * is both more efficient and more convenient. Use [buffered] to wrap any raw source with a buffer.
  *
  * Implementors should abstain from throwing exceptions other than those that are documented for RawSource methods.
  */

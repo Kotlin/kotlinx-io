@@ -25,13 +25,13 @@ package kotlinx.io
  * reads into its in-memory buffer. Use this wherever you read a source to get ergonomic and
  * efficient access to data.
  */
-public fun RawSource.buffer(): Source = RealSource(this)
+public fun RawSource.buffered(): Source = RealSource(this)
 
 /**
  * Returns a new sink that buffers writes to the sink. The returned sink will batch writes to the sink.
  * Use this wherever you write to a sink to get ergonomic and efficient access to data.
  */
-public fun RawSink.buffer(): Sink = RealSink(this)
+public fun RawSink.buffered(): Sink = RealSink(this)
 
 /**
  * Returns a sink that writes nowhere.

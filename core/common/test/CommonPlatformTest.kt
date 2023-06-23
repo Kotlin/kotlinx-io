@@ -27,14 +27,14 @@ import kotlin.test.assertEquals
 class CommonPlatformTest {
   @Test fun sourceBuffer() {
     val source = Buffer().also { it.writeUtf8("a") }
-    val buffered = (source as RawSource).buffer()
+    val buffered = (source as RawSource).buffered()
     assertEquals(buffered.readUtf8(), "a")
     assertEquals(source.size, 0L)
   }
 
   @Test fun sinkBuffer() {
     val sink = Buffer()
-    val buffered = (sink as RawSink).buffer()
+    val buffered = (sink as RawSink).buffered()
     buffered.writeUtf8("a")
     assertEquals(sink.size, 0L)
     buffered.flush()

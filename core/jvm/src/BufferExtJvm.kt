@@ -189,7 +189,7 @@ public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
 /**
  * Returns a new [ByteChannel] instance representing this buffer.
  */
-public fun Buffer.channel(): ByteChannel = object : ByteChannel {
+public fun Buffer.asByteChannel(): ByteChannel = object : ByteChannel {
   override fun read(sink: ByteBuffer): Int = readAtMostTo(sink)
 
   override fun write(source: ByteBuffer): Int {

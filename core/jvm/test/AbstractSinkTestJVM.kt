@@ -40,7 +40,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
 
     @Test
     fun outputStream() {
-        val out: OutputStream = sink.outputStream()
+        val out: OutputStream = sink.asOutputStream()
         out.write('a'.code)
         out.write("b".repeat(9998).toByteArray(UTF_8))
         out.write('c'.code)
@@ -50,7 +50,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
 
     @Test
     fun outputStreamBounds() {
-        val out: OutputStream = sink.outputStream()
+        val out: OutputStream = sink.asOutputStream()
         assertFailsWith<IndexOutOfBoundsException> {
             out.write(ByteArray(100), 50, 51)
         }
@@ -61,7 +61,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
         if (sink is Buffer) {
             return
         }
-        val out = sink.outputStream()
+        val out = sink.asOutputStream()
         sink.close()
         assertFailsWith<IOException> { out.write(0) }
         assertFailsWith<IOException> { out.write(ByteArray(1)) }
@@ -74,7 +74,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
             return
         }
 
-        val out = sink.outputStream()
+        val out = sink.asOutputStream()
         out.close()
         assertFailsWith<IllegalStateException> { sink.writeByte(0) }
     }

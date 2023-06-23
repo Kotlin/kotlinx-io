@@ -51,7 +51,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     fun inputStream() {
         sink.writeUtf8("abc")
         sink.emit()
-        val input: InputStream = source.inputStream()
+        val input: InputStream = source.asInputStream()
         val bytes = byteArrayOf('z'.code.toByte(), 'z'.code.toByte(), 'z'.code.toByte())
         var read: Int = input.read(bytes)
         if (factory.isOneByteAtATime) {
@@ -74,7 +74,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     fun inputStreamOffsetCount() {
         sink.writeUtf8("abcde")
         sink.emit()
-        val input: InputStream = source.inputStream()
+        val input: InputStream = source.asInputStream()
         val bytes =
             byteArrayOf('z'.code.toByte(), 'z'.code.toByte(), 'z'.code.toByte(), 'z'.code.toByte(), 'z'.code.toByte())
         val read: Int = input.read(bytes, 1, 3)
@@ -91,7 +91,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     fun inputStreamSkip() {
         sink.writeUtf8("abcde")
         sink.emit()
-        val input: InputStream = source.inputStream()
+        val input: InputStream = source.asInputStream()
         assertEquals(4, input.skip(4))
         assertEquals('e'.code, input.read())
         sink.writeUtf8("abcde")
@@ -104,7 +104,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     fun inputStreamCharByChar() {
         sink.writeUtf8("abc")
         sink.emit()
-        val input: InputStream = source.inputStream()
+        val input: InputStream = source.asInputStream()
         assertEquals('a'.code, input.read())
         assertEquals('b'.code, input.read())
         assertEquals('c'.code, input.read())
@@ -115,7 +115,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     fun inputStreamBounds() {
         sink.writeUtf8("a".repeat(100))
         sink.emit()
-        val input: InputStream = source.inputStream()
+        val input: InputStream = source.asInputStream()
         assertFailsWith<IllegalArgumentException> {
             input.read(ByteArray(100), 50, 51)
         }
@@ -130,7 +130,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         sink.writeByte(0)
         sink.emit()
 
-        val input = source.inputStream()
+        val input = source.asInputStream()
         source.close()
         assertFailsWith<IOException> { input.read() }
         assertFailsWith<IOException> { input.read(ByteArray(1)) }
@@ -146,7 +146,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         sink.writeByte(0)
         sink.emit()
 
-        val input = source.inputStream()
+        val input = source.asInputStream()
         input.close()
 
         assertFailsWith<IllegalStateException> { source.readByte() }
@@ -154,7 +154,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     @Test
     fun inputStreamAvailable() {
-        val input = source.inputStream()
+        val input = source.asInputStream()
         assertEquals(0, input.available())
 
         sink.writeInt(42)
@@ -182,7 +182,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
             return
         }
 
-        val input = source.inputStream()
+        val input = source.asInputStream()
         source.close()
 
         assertFailsWith<IOException> { input.available() }

@@ -25,7 +25,7 @@ package kotlinx.io
  * without requesting it from a downstream on every call.
  *
  * [Source] is the main `kotlinx-io` interface to read data in client's code,
- * any [RawSource] could be converted into [Source] using [RawSource.buffer].
+ * any [RawSource] could be converted into [Source] using [RawSource.buffered].
  *
  * Depending on the kind of downstream and the number of bytes read, buffering may improve the performance by hiding
  * the latency of small reads.

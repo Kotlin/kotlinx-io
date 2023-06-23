@@ -39,7 +39,7 @@ class CommonRealSourceTest {
           return buffer.readAtMostTo(sink, minOf(1, byteCount))
         }
       }
-      ).buffer()
+      ).buffered()
 
     assertEquals(6, buffer.size)
     assertEquals(-1, bufferedSource.indexOf('e'.code.toByte(), 0, 4))
@@ -50,7 +50,7 @@ class CommonRealSourceTest {
     val source = Buffer()
     source.writeUtf8("bb")
 
-    val bufferedSource = (source as RawSource).buffer()
+    val bufferedSource = (source as RawSource).buffered()
     bufferedSource.buffer.writeUtf8("aa")
 
     bufferedSource.require(2)
@@ -62,7 +62,7 @@ class CommonRealSourceTest {
     val source = Buffer()
     source.writeUtf8("b")
 
-    val bufferedSource = (source as RawSource).buffer()
+    val bufferedSource = (source as RawSource).buffered()
     bufferedSource.buffer.writeUtf8("a")
 
     bufferedSource.require(2)
@@ -73,7 +73,7 @@ class CommonRealSourceTest {
     val source = Buffer()
     source.writeUtf8("a")
 
-    val bufferedSource = (source as RawSource).buffer()
+    val bufferedSource = (source as RawSource).buffered()
 
     assertFailsWith<EOFException> {
       bufferedSource.require(2)
@@ -85,7 +85,7 @@ class CommonRealSourceTest {
     source.writeUtf8("a".repeat(Segment.SIZE))
     source.writeUtf8("b".repeat(Segment.SIZE))
 
-    val bufferedSource = (source as RawSource).buffer()
+    val bufferedSource = (source as RawSource).buffered()
 
     bufferedSource.require(2)
     assertEquals(Segment.SIZE.toLong(), source.size)
@@ -96,7 +96,7 @@ class CommonRealSourceTest {
     val source = Buffer()
     source.writeUtf8("a".repeat(Segment.SIZE))
     source.writeUtf8("b".repeat(Segment.SIZE))
-    val bufferedSource = (source as RawSource).buffer()
+    val bufferedSource = (source as RawSource).buffered()
     bufferedSource.skip(2)
     assertEquals(Segment.SIZE.toLong(), source.size)
     assertEquals(Segment.SIZE.toLong() - 2L, bufferedSource.buffer.size)
@@ -106,7 +106,7 @@ class CommonRealSourceTest {
     val source = Buffer()
     source.writeUtf8("bb")
 
-    val bufferedSource = (source as RawSource).buffer()
+    val bufferedSource = (source as RawSource).buffered()
     bufferedSource.buffer.writeUtf8("aa")
 
     bufferedSource.skip(2)
@@ -116,7 +116,7 @@ class CommonRealSourceTest {
 
   @Test fun operationsAfterClose() {
     val source = Buffer()
-    val bufferedSource = (source as RawSource).buffer()
+    val bufferedSource = (source as RawSource).buffered()
     bufferedSource.close()
 
     // Test a sample set of methods.
@@ -143,7 +143,7 @@ class CommonRealSourceTest {
       "${"a".repeat(Segment.SIZE)}${"b".repeat(Segment.SIZE)}${"c".repeat(Segment.SIZE)}")
 
     val mockSink = MockSink()
-    val bufferedSource = (source as RawSource).buffer()
+    val bufferedSource = (source as RawSource).buffered()
     assertEquals(Segment.SIZE.toLong() * 3L, bufferedSource.transferTo(mockSink))
     mockSink.assertLog(
       "write($write1, ${write1.size})",
@@ -158,7 +158,7 @@ class CommonRealSourceTest {
       override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = -1
       override fun close() { closeCalls++ }
     }
-    val source = rawSource.buffer()
+    val source = rawSource.buffered()
 
     source.close()
     assertFailsWith<IllegalStateException> { source.readByte() }
@@ -172,7 +172,7 @@ class CommonRealSourceTest {
       override fun close() {}
     }
 
-    assertEquals(-1, rawSource.buffer().readAtMostTo(Buffer(), 1024))
+    assertEquals(-1, rawSource.buffered().readAtMostTo(Buffer(), 1024))
   }
 
   @Test fun readAtMostFromFinite() {
@@ -188,7 +188,7 @@ class CommonRealSourceTest {
       override fun close() {}
     }
 
-    val source = rawSource.buffer()
+    val source = rawSource.buffered()
     assertEquals(10, source.readAtMostTo(Buffer(), 1024))
     assertEquals(-1, source.readAtMostTo(Buffer(), 1024))
   }

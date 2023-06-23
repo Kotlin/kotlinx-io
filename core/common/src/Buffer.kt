@@ -362,7 +362,7 @@ public class Buffer : Source, Sink {
     return byteCount
   }
 
-  override fun peek(): Source = PeekSource(this).buffer()
+  override fun peek(): Source = PeekSource(this).buffered()
 
   /**
    * Returns a tail segment that we can write at least `minimumCapacity`

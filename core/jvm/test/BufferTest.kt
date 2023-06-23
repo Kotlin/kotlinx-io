@@ -144,7 +144,7 @@ class BufferTest {
     fun bufferInputStreamByteByByte() {
         val source = Buffer()
         source.writeUtf8("abc")
-        val input: InputStream = source.inputStream()
+        val input: InputStream = source.asInputStream()
         assertEquals(3, input.available())
         assertEquals('a'.code, input.read())
         assertEquals('b'.code, input.read())
@@ -159,7 +159,7 @@ class BufferTest {
         source.writeUtf8("abc")
         val byteArray = ByteArray(4)
         Arrays.fill(byteArray, (-5).toByte())
-        val input: InputStream = source.inputStream()
+        val input: InputStream = source.asInputStream()
         assertEquals(3, input.read(byteArray))
         assertEquals("[97, 98, 99, -5]", byteArray.contentToString())
         Arrays.fill(byteArray, (-7).toByte())
@@ -172,7 +172,7 @@ class BufferTest {
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.copyTo(target.outputStream())
+        source.copyTo(target.asOutputStream())
         assertEquals("party", target.readUtf8())
         assertEquals("party", source.readUtf8())
     }
@@ -182,7 +182,7 @@ class BufferTest {
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.copyTo(target.outputStream(), startIndex = 2)
+        source.copyTo(target.asOutputStream(), startIndex = 2)
         assertEquals("rty", target.readUtf8())
         assertEquals("party", source.readUtf8())
     }
@@ -192,7 +192,7 @@ class BufferTest {
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.copyTo(target.outputStream(), endIndex = 3)
+        source.copyTo(target.asOutputStream(), endIndex = 3)
         assertEquals("par", target.readUtf8())
         assertEquals("party", source.readUtf8())
     }
@@ -202,7 +202,7 @@ class BufferTest {
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.copyTo(target.outputStream(), startIndex = 1, endIndex = 4)
+        source.copyTo(target.asOutputStream(), startIndex = 1, endIndex = 4)
         assertEquals("art", target.readUtf8())
         assertEquals("party", source.readUtf8())
     }
@@ -212,7 +212,7 @@ class BufferTest {
         source.writeUtf8("hello")
 
         val target = Buffer()
-        source.copyTo(target.outputStream(), startIndex = 1, endIndex = 1)
+        source.copyTo(target.asOutputStream(), startIndex = 1, endIndex = 1)
         assertEquals("hello", source.readUtf8())
         assertEquals("", target.readUtf8())
     }
@@ -222,7 +222,7 @@ class BufferTest {
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.readTo(target.outputStream())
+        source.readTo(target.asOutputStream())
         assertEquals("party", target.readUtf8())
         assertEquals("", source.readUtf8())
     }
@@ -232,7 +232,7 @@ class BufferTest {
         source.writeUtf8("party")
 
         val target = Buffer()
-        source.readTo(target.outputStream(), byteCount = 3)
+        source.readTo(target.asOutputStream(), byteCount = 3)
         assertEquals("par", target.readUtf8())
         assertEquals("ty", source.readUtf8())
     }
