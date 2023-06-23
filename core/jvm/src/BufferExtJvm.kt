@@ -48,7 +48,7 @@ public fun Buffer.transferFrom(input: InputStream): Buffer {
  * @throws IllegalArgumentException when [byteCount] is negative.
  */
 public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
-  require(byteCount >= 0L) { "byteCount: $byteCount" }
+  checkByteCount(byteCount)
   write(input, byteCount, false)
   return this
 }

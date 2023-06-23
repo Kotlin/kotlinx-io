@@ -271,7 +271,7 @@ public fun Source.readUtf8Line(): String? {
  * @throws IllegalArgumentException when [limit] is negative.
  */
 public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
-  require(limit >= 0) { "limit: $limit" }
+  require(limit >= 0) { "limit ($limit) < 0" }
   require(1)
 
   val peekSource = peek()
@@ -505,7 +505,9 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 }
 
 private fun Buffer.commonReadUtf8(byteCount: Long): String {
-  require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) { "byteCount: $byteCount" }
+  require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
+    "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
+  }
   require(byteCount)
   if (byteCount == 0L) return ""
 

@@ -147,7 +147,7 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
         result = result.shl(4) + bDigit
         bytesRead++
     }
-    skip(bytesRead.toLong())
+    skip(bytesRead)
     return result
 }
 
@@ -168,7 +168,10 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
  * @throws IllegalArgumentException when `startIndex > endIndex` or either of indices is negative.
  */
 public fun Source.indexOf(b: Byte, startIndex: Long = 0L, endIndex: Long = Long.MAX_VALUE): Long {
-    require(startIndex in 0..endIndex) { "startIndex: $startIndex, endIndex: $endIndex" }
+    require(startIndex in 0..endIndex) {
+        if (endIndex < 0) { "startIndex ($startIndex) and endIndex ($endIndex) should be non negative" }
+        else { "startIndex ($startIndex) is not within the range [0..endIndex($endIndex))" }
+    }
     if (startIndex == endIndex) return -1L
 
     var offset = startIndex
@@ -204,7 +207,7 @@ public fun Source.readByteArray(): ByteArray {
  * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readByteArray(byteCount: Int): ByteArray {
-    require(byteCount >= 0) { "byteCount: $byteCount" }
+    checkByteCount(byteCount.toLong())
     return readByteArrayImpl(byteCount)
 }
 

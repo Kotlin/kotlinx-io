@@ -28,7 +28,8 @@ internal val HEX_DIGIT_CHARS =
 
 internal fun checkOffsetAndCount(size: Long, offset: Long, byteCount: Long) {
   if (offset < 0 || offset > size || size - offset < byteCount || byteCount < 0) {
-    throw IllegalArgumentException("offset: $offset, byteCount: $byteCount, size: $size")
+    throw IllegalArgumentException(
+      "offset ($offset) and byteCount ($byteCount) are not within the range [0..size($size))")
   }
 }
 
@@ -37,14 +38,17 @@ internal inline fun checkBounds(size: Int, startIndex: Int, endIndex: Int) =
 
 internal fun checkBounds(size: Long, startIndex: Long, endIndex: Long) {
   if (startIndex < 0 || endIndex > size) {
-    throw IndexOutOfBoundsException("startIndex: $startIndex, endIndex: $endIndex, size: $size")
+    throw IndexOutOfBoundsException(
+      "startIndex ($startIndex) and endIndex ($endIndex) are not within the range [0..size($size))")
   }
   if (startIndex > endIndex) {
-    throw IllegalArgumentException("startIndex: $startIndex > endIndex: $endIndex")
+    throw IllegalArgumentException("startIndex ($startIndex) > endIndex ($endIndex)")
   }
 }
 
-/* ktlint-disable no-multi-spaces indent */
+internal inline fun checkByteCount(byteCount: Long) {
+  require(byteCount >= 0) { "byteCount ($byteCount) < 0" }
+}
 
 internal fun Short.reverseBytes(): Short {
   val i = toInt() and 0xffff
@@ -104,19 +108,6 @@ internal inline fun minOf(a: Long, b: Int): Long = minOf(a, b.toLong())
 
 // Syntactic sugar.
 internal inline fun minOf(a: Int, b: Long): Long = minOf(a.toLong(), b)
-
-internal fun arrayRangeEquals(
-  a: ByteArray,
-  aOffset: Int,
-  b: ByteArray,
-  bOffset: Int,
-  byteCount: Int
-): Boolean {
-  for (i in 0 until byteCount) {
-    if (a[i + aOffset] != b[i + bOffset]) return false
-  }
-  return true
-}
 
 internal fun Byte.toHexString(): String {
   val result = CharArray(2)

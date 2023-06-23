@@ -76,7 +76,7 @@ private open class InputStreamSource(
 
   override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
     if (byteCount == 0L) return 0L
-    require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
+    checkByteCount(byteCount)
     try {
       val tail = sink.writableSegment(1)
       val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()

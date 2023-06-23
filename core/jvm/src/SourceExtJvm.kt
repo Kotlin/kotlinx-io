@@ -27,7 +27,9 @@ import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
 
 private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
-  require(byteCount >= 0 && byteCount <= Integer.MAX_VALUE) { "byteCount: $byteCount" }
+  require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
+    "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
+  }
   if (size < byteCount) {
     throw EOFException("Buffer contains less bytes then required (byteCount: $byteCount, size: $size)")
   }

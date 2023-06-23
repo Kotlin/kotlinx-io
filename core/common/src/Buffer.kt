@@ -65,7 +65,7 @@ public class Buffer : Source, Sink {
   }
 
   override fun request(byteCount: Long): Boolean {
-    require(byteCount >= 0) { "byteCount: $byteCount" }
+    require(byteCount >= 0) { "byteCount: $byteCount < 0" }
     return size >= byteCount
   }
 
@@ -280,7 +280,7 @@ public class Buffer : Source, Sink {
    */
   public operator fun get(position: Long): Byte {
     if (position < 0 || position >= size) {
-      throw IndexOutOfBoundsException("position: $position, size: $size")
+      throw IndexOutOfBoundsException("position ($position) is not within the range [0..size($size))")
     }
     seek(position) { s, offset ->
       return s!!.data[(s.pos + position - offset).toInt()]
@@ -300,7 +300,7 @@ public class Buffer : Source, Sink {
    * @throws IllegalArgumentException when [byteCount] is negative.
    */
   override fun skip(byteCount: Long) {
-    require(byteCount >= 0) { "byteCount: $byteCount" }
+    checkByteCount(byteCount)
     var remainingByteCount = byteCount
     while (remainingByteCount > 0) {
       val head = head ?: throw EOFException("Buffer exhausted before skipping $byteCount bytes.")
@@ -338,7 +338,7 @@ public class Buffer : Source, Sink {
   }
 
   override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-    require(byteCount >= 0L) { "byteCount: $byteCount" }
+    checkByteCount(byteCount)
     if (size == 0L) return -1L
     val bytesWritten = if (byteCount > size) size else byteCount
     sink.write(this, bytesWritten)
@@ -346,7 +346,7 @@ public class Buffer : Source, Sink {
   }
 
   override fun readTo(sink: RawSink, byteCount: Long) {
-    require(byteCount >= 0) { "byteCount: $byteCount" }
+    checkByteCount(byteCount)
     if (size < byteCount) {
       sink.write(this, size) // Exhaust ourselves.
       throw EOFException("Buffer exhausted before writing $byteCount bytes. Only $size bytes were written.")
@@ -407,7 +407,7 @@ public class Buffer : Source, Sink {
   }
 
   override fun write(source: RawSource, byteCount: Long) {
-    require(byteCount >= 0) { "byteCount: $byteCount" }
+    checkByteCount(byteCount)
     var remainingByteCount = byteCount
     while (remainingByteCount > 0L) {
       val read = source.readAtMostTo(this, remainingByteCount)
@@ -636,10 +636,10 @@ public class Buffer : Source, Sink {
   }
 }
 
-private fun ByteArray.hex(count: Int = this.size): String {
-  require(count >= 0) { "count: $count" }
-  val builder = StringBuilder(count * 2)
-  for (i in 0 until count) {
+private fun ByteArray.hex(byteCount: Int = this.size): String {
+  checkByteCount(byteCount.toLong())
+  val builder = StringBuilder(byteCount * 2)
+  for (i in 0 until byteCount) {
     builder.append(HEX_DIGIT_CHARS[get(i).shr(4) and 0x0f])
     builder.append(HEX_DIGIT_CHARS[get(i) and 0x0f])
   }
