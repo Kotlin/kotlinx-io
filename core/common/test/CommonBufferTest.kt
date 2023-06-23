@@ -48,23 +48,23 @@ class CommonBufferTest {
   }
 
   @Test fun bufferToString() {
-    assertEquals("[size=0]", Buffer().toString())
+    assertEquals("Buffer(size=0)", Buffer().toString())
 
-    assertEquals("[text=a\\r\\nb\\nc\\rd\\\\e]",
+    assertEquals("Buffer(size=10 hex=610d0a620a630d645c65)",
       Buffer().also { it.writeUtf8("a\r\nb\nc\rd\\e") }.toString())
 
-    assertEquals("[text=Tyrannosaur]",
+    assertEquals("Buffer(size=11 hex=547972616e6e6f73617572)",
       Buffer().also { it.writeUtf8("Tyrannosaur") }.toString())
 
-    assertEquals("[text=təˈranəˌsôr]",
+    assertEquals("Buffer(size=16 hex=74c999cb8872616ec999cb8c73c3b472)",
       Buffer().also { it.write("74c999cb8872616ec999cb8c73c3b472".decodeHex()) }.toString())
 
-    assertEquals("[hex=0000000000000000000000000000000000000000000000000000000000000000000000000000" +
-        "0000000000000000000000000000000000000000000000000000]",
+    assertEquals("Buffer(size=64 hex=00000000000000000000000000000000000000000000000000000000000000000000000" +
+            "000000000000000000000000000000000000000000000000000000000)",
       Buffer().also { it.write(ByteArray(64)) }.toString())
 
-    assertEquals("[size=66 hex=000000000000000000000000000000000000000000000000000000000000" +
-            "00000000000000000000000000000000000000000000000000000000000000000000…]",
+    assertEquals("Buffer(size=66 hex=000000000000000000000000000000000000000000000000000000000000" +
+            "00000000000000000000000000000000000000000000000000000000000000000000…)",
       Buffer().also { it.write(ByteArray(66)) }.toString())
   }
 

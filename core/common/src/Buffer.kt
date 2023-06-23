@@ -598,41 +598,39 @@ public class Buffer : Source, Sink {
 
   /**
    * Returns a human-readable string that describes the contents of this buffer. For buffers containing
-   * few bytes, this is a string like `[text=Hello]` or `[hex=0000ffff]`. However, if the buffer is too large,
-   * a string will contain its size and only a prefix of data, like `[size=1024 hex=01234…]`. Thus, the string could not
-   * be used to compare buffers or verify buffer's content.
+   * few bytes, this is a string like `Buffer(size=4 hex=0000ffff)`. However, if the buffer is too large,
+   * a string will contain its size and only a prefix of data, like `Buffer(size=1024 hex=01234…)`.
+   * Thus, the string could not be used to compare buffers or verify buffer's content.
    */
   override fun toString(): String {
-    // TODO: optimize implementation
-    if (size == 0L) return "[size=0]"
+    if (size == 0L) return "Buffer(size=0)"
 
-    val peekSrc = peek()
-    val data = if (peekSrc.request(128)) {
-      peekSrc.readByteArray(128)
-    } else {
-      peekSrc.readByteArray()
-    }
-    val i = codePointIndexToCharIndex(data, 64)
-    if (i == -1) {
-      return if (data.size <= 64) {
-        "[hex=${data.hex()}]"
-      } else {
-        "[size=${size} hex=${data.hex(64)}…]"
+    val maxPrintableBytes = 64
+    val len = minOf(maxPrintableBytes, size).toInt()
+
+    val builder = StringBuilder(len * 2 + if (size > maxPrintableBytes) 1 else 0)
+
+    var curr = head!!
+    var bytesWritten = 0
+    var pos = curr.pos
+    while (bytesWritten < len) {
+      if (pos == curr.limit) {
+        curr = curr.next!!
+        pos = curr.pos
       }
+
+      val b = curr.data[pos++].toInt()
+      bytesWritten++
+
+      builder.append(HEX_DIGIT_CHARS[(b shr 4) and 0xf])
+        .append(HEX_DIGIT_CHARS[b and 0xf])
     }
 
-    val text = data.decodeToString()
-    val escapedText = text
-      .substring(0, i)
-      .replace("\\", "\\\\")
-      .replace("\n", "\\n")
-      .replace("\r", "\\r")
-
-    return if (i < text.length) {
-      "[size=${data.size} text=$escapedText…]"
-    } else {
-      "[text=$escapedText]"
+    if (size > maxPrintableBytes) {
+      builder.append('…')
     }
+
+    return "Buffer(size=$size hex=$builder)"
   }
 }
 

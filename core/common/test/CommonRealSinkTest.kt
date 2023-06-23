@@ -105,7 +105,7 @@ class CommonRealSinkTest {
       bufferedSink.close()
     }
 
-    mockSink.assertLog("write([text=a], 1)", "close()")
+    mockSink.assertLog("write(Buffer(size=1 hex=61), 1)", "close()")
   }
 
   @Test fun closeWithExceptionWhenClosing() {
@@ -117,7 +117,7 @@ class CommonRealSinkTest {
       bufferedSink.close()
     }
 
-    mockSink.assertLog("write([text=a], 1)", "close()")
+    mockSink.assertLog("write(Buffer(size=1 hex=61), 1)", "close()")
   }
 
   @Test fun closeWithExceptionWhenWritingAndClosing() {
@@ -130,7 +130,7 @@ class CommonRealSinkTest {
       bufferedSink.close()
     }
 
-    mockSink.assertLog("write([text=a], 1)", "close()")
+    mockSink.assertLog("write(Buffer(size=1 hex=61), 1)", "close()")
   }
 
   @Test fun operationsAfterClose() {

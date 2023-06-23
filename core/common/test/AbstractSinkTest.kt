@@ -38,17 +38,17 @@ abstract class AbstractSinkTest internal constructor(
     val source = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     sink.write(source)
     sink.flush()
-    assertEquals("[hex=00010203040506070809]", data.toString())
+    assertEquals("Buffer(size=10 hex=00010203040506070809)", data.toString())
     data.clear()
 
     sink.write(source, 3)
     sink.flush()
-    assertEquals("[hex=03040506070809]", data.toString())
+    assertEquals("Buffer(size=7 hex=03040506070809)", data.toString())
     data.clear()
 
     sink.write(source, 0, 3)
     sink.flush()
-    assertEquals("[hex=000102]", data.toString())
+    assertEquals("Buffer(size=3 hex=000102)", data.toString())
     data.clear()
 
     assertFailsWith<IndexOutOfBoundsException> {
@@ -71,14 +71,14 @@ abstract class AbstractSinkTest internal constructor(
   @Test fun writeByte() {
     sink.writeByte(0xba.toByte())
     sink.flush()
-    assertEquals("[hex=ba]", data.toString())
+    assertEquals("Buffer(size=1 hex=ba)", data.toString())
   }
 
   @Test fun writeBytes() {
     sink.writeByte(0xab.toByte())
     sink.writeByte(0xcd.toByte())
     sink.flush()
-    assertEquals("[hex=abcd]", data.toString())
+    assertEquals("Buffer(size=2 hex=abcd)", data.toString())
   }
 
   @Test fun writeLastByteInSegment() {
@@ -88,40 +88,40 @@ abstract class AbstractSinkTest internal constructor(
     sink.flush()
     assertEquals(listOf(Segment.SIZE, 1), segmentSizes(data))
     assertEquals("a".repeat(Segment.SIZE - 1), data.readUtf8(Segment.SIZE - 1L))
-    assertEquals("[text= !]", data.toString())
+    assertEquals("Buffer(size=2 hex=2021)", data.toString())
   }
 
   @Test fun writeShort() {
     sink.writeShort(0xab01.toShort())
     sink.flush()
-    assertEquals("[hex=ab01]", data.toString())
+    assertEquals("Buffer(size=2 hex=ab01)", data.toString())
   }
 
   @Test fun writeShorts() {
     sink.writeShort(0xabcd.toShort())
     sink.writeShort(0x4321)
     sink.flush()
-    assertEquals("[hex=abcd4321]", data.toString())
+    assertEquals("Buffer(size=4 hex=abcd4321)", data.toString())
   }
 
   @Test fun writeShortLe() {
     sink.writeShortLe(0xcdab.toShort())
     sink.writeShortLe(0x2143)
     sink.flush()
-    assertEquals("[hex=abcd4321]", data.toString())
+    assertEquals("Buffer(size=4 hex=abcd4321)", data.toString())
   }
 
   @Test fun writeInt() {
     sink.writeInt(0x197760)
     sink.flush()
-    assertEquals("[hex=00197760]", data.toString())
+    assertEquals("Buffer(size=4 hex=00197760)", data.toString())
   }
 
   @Test fun writeInts() {
     sink.writeInt(-0x543210ff)
     sink.writeInt(-0x789abcdf)
     sink.flush()
-    assertEquals("[hex=abcdef0187654321]", data.toString())
+    assertEquals("Buffer(size=8 hex=abcdef0187654321)", data.toString())
   }
 
   @Test fun writeLastIntegerInSegment() {
@@ -131,7 +131,7 @@ abstract class AbstractSinkTest internal constructor(
     sink.flush()
     assertEquals(listOf(Segment.SIZE, 4), segmentSizes(data))
     assertEquals("a".repeat(Segment.SIZE - 4), data.readUtf8(Segment.SIZE - 4L))
-    assertEquals("[hex=abcdef0187654321]", data.toString())
+    assertEquals("Buffer(size=8 hex=abcdef0187654321)", data.toString())
   }
 
   @Test fun writeIntegerDoesNotQuiteFitInSegment() {
@@ -141,34 +141,34 @@ abstract class AbstractSinkTest internal constructor(
     sink.flush()
     assertEquals(listOf(Segment.SIZE - 3, 8), segmentSizes(data))
     assertEquals("a".repeat(Segment.SIZE - 3), data.readUtf8(Segment.SIZE - 3L))
-    assertEquals("[hex=abcdef0187654321]", data.toString())
+    assertEquals("Buffer(size=8 hex=abcdef0187654321)", data.toString())
   }
 
   @Test fun writeIntLe() {
     sink.writeIntLe(-0x543210ff)
     sink.writeIntLe(-0x789abcdf)
     sink.flush()
-    assertEquals("[hex=01efcdab21436587]", data.toString())
+    assertEquals("Buffer(size=8 hex=01efcdab21436587)", data.toString())
   }
 
   @Test fun writeLong() {
     sink.writeLong(0x123456789abcdef0L)
     sink.flush()
-    assertEquals("[hex=123456789abcdef0]", data.toString())
+    assertEquals("Buffer(size=8 hex=123456789abcdef0)", data.toString())
   }
 
   @Test fun writeLongs() {
     sink.writeLong(-0x543210fe789abcdfL)
     sink.writeLong(-0x350145414f4ea400L)
     sink.flush()
-    assertEquals("[hex=abcdef0187654321cafebabeb0b15c00]", data.toString())
+    assertEquals("Buffer(size=16 hex=abcdef0187654321cafebabeb0b15c00)", data.toString())
   }
 
   @Test fun writeLongLe() {
     sink.writeLongLe(-0x543210fe789abcdfL)
     sink.writeLongLe(-0x350145414f4ea400L)
     sink.flush()
-    assertEquals("[hex=2143658701efcdab005cb1b0bebafeca]", data.toString())
+    assertEquals("Buffer(size=16 hex=2143658701efcdab005cb1b0bebafeca)", data.toString())
   }
 
   @Test fun writeAll() {
@@ -382,7 +382,7 @@ abstract class AbstractSinkTest internal constructor(
   @Test fun writeUShortLe() {
     sink.writeUShortLe(0x1234u)
     sink.flush()
-    assertEquals("[hex=3412]", data.toString())
+    assertEquals("Buffer(size=2 hex=3412)", data.toString())
   }
 
   @Test fun writeUInt() {
@@ -394,7 +394,7 @@ abstract class AbstractSinkTest internal constructor(
   @Test fun writeUIntLe() {
     sink.writeUIntLe(0x12345678u)
     sink.flush()
-    assertEquals("[hex=78563412]", data.toString())
+    assertEquals("Buffer(size=4 hex=78563412)", data.toString())
   }
 
   @Test fun writeULong() {
@@ -406,6 +406,6 @@ abstract class AbstractSinkTest internal constructor(
   @Test fun writeULongLe() {
     sink.writeULongLe(0x1234567890abcdefu)
     sink.flush()
-    assertEquals("[hex=efcdab9078563412]", data.toString())
+    assertEquals("Buffer(size=8 hex=efcdab9078563412)", data.toString())
   }
 }
