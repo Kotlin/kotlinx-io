@@ -20,7 +20,7 @@ class ByteStringBuilderTest {
     @Test
     fun appendByte() {
         val builder = ByteStringBuilder()
-        with (builder) {
+        with(builder) {
             append(1)
             append(2)
             append(3)
@@ -31,7 +31,7 @@ class ByteStringBuilderTest {
     @Test
     fun appendUByte() {
         val builder = ByteStringBuilder()
-        with (builder) {
+        with(builder) {
             append(0x80U)
             append(0x81U)
             append(0x82U)
@@ -41,27 +41,27 @@ class ByteStringBuilderTest {
 
     @Test
     fun appendArray() {
-        with (ByteStringBuilder()) {
+        with(ByteStringBuilder()) {
             append(byteArrayOf(1, 2, 3, 4))
             assertEquals(ByteString(1, 2, 3, 4), toByteString())
         }
 
-        with (ByteStringBuilder()) {
+        with(ByteStringBuilder()) {
             append(byteArrayOf(1, 2, 3, 4), startIndex = 2)
             assertEquals(ByteString(3, 4), toByteString())
         }
 
-        with (ByteStringBuilder()) {
+        with(ByteStringBuilder()) {
             append(byteArrayOf(1, 2, 3, 4), endIndex = 2)
             assertEquals(ByteString(1, 2), toByteString())
         }
 
-        with (ByteStringBuilder()) {
+        with(ByteStringBuilder()) {
             append(byteArrayOf(1, 2, 3, 4), startIndex = 1, endIndex = 3)
             assertEquals(ByteString(2, 3), toByteString())
         }
 
-        with (ByteStringBuilder()) {
+        with(ByteStringBuilder()) {
             append(byteArrayOf(1, 2, 3, 4), startIndex = 1, endIndex = 1)
             assertEquals(ByteString(), toByteString())
         }
@@ -86,7 +86,7 @@ class ByteStringBuilderTest {
 
     @Test
     fun appendMultipleValues() {
-        val string = with (ByteStringBuilder()) {
+        val string = with(ByteStringBuilder()) {
             append(42)
             append(ByteArray(10) { it.toByte() })
             append(42)
@@ -123,7 +123,7 @@ class ByteStringBuilderTest {
         assertEquals(0, ByteStringBuilder().capacity)
         assertEquals(10, ByteStringBuilder(10).capacity)
 
-        with (ByteStringBuilder()) {
+        with(ByteStringBuilder()) {
             append(1)
             assertTrue(capacity >= 1)
             append(ByteArray(1024))
