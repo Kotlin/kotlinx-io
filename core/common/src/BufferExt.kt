@@ -14,7 +14,7 @@ import kotlinx.io.bytestring.ByteStringBuilder
  * This call doesn't consume data from the buffer, but instead copies it.
  */
 public fun Buffer.snapshot(): ByteString {
-    if (size == 0L) return ByteString.EMPTY
+    if (size == 0L) return ByteString()
 
     val bufferSize = this@snapshot.size
     return with (ByteStringBuilder(bufferSize.toInt())) {

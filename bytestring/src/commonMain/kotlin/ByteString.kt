@@ -27,7 +27,7 @@ import kotlin.math.min
 private val HEX_DIGITS = "0123456789ABCDEF".toCharArray()
 
 /**
- * Constructs empty byte string.
+ * Constructs an empty byte string.
  */
 public fun ByteString(): ByteString = ByteString.EMPTY
 
@@ -44,7 +44,7 @@ public class ByteString private constructor(
         /**
          * An empty ByteString.
          */
-        public val EMPTY: ByteString = ByteString(ByteArray(0), null)
+        internal val EMPTY: ByteString = ByteString(ByteArray(0), null)
 
         internal fun wrap(byteArray: ByteArray): ByteString = ByteString(byteArray, null)
     }

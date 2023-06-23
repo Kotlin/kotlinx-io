@@ -45,7 +45,7 @@ public class ByteStringBuilder(initialCapacity: Int = 0) {
      */
     public fun toByteString(): ByteString {
         if (size == 0) {
-            return ByteString.EMPTY
+            return ByteString()
         }
         if (buffer.size == size) {
             return ByteString.wrap(buffer)
