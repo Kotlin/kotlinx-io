@@ -68,7 +68,7 @@ public final class kotlinx/io/bytestring/ByteStringKt {
 	public static final fun toUtf8String (Lkotlinx/io/bytestring/ByteString;)Ljava/lang/String;
 }
 
-public abstract interface annotation class kotlinx/io/bytestring/UnsafeByteStringApi : java/lang/annotation/Annotation {
+public abstract interface annotation class kotlinx/io/bytestring/unsafe/UnsafeByteStringApi : java/lang/annotation/Annotation {
 }
 
 public final class kotlinx/io/bytestring/unsafe/UnsafeByteStringOperations {

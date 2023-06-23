@@ -6,9 +6,9 @@
 package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
-import kotlinx.io.bytestring.UnsafeByteStringApi
 import kotlinx.io.bytestring.indices
 import kotlinx.io.bytestring.isEmpty
+import kotlinx.io.bytestring.unsafe.UnsafeByteStringApi
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringOperations
 import kotlin.math.min
 

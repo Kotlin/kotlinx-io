@@ -6,7 +6,6 @@
 package kotlinx.io.bytestring.unsafe
 
 import kotlinx.io.bytestring.ByteString
-import kotlinx.io.bytestring.UnsafeByteStringApi
 
 /**
  * Collection of helper functions providing unsafe access to the [ByteString]'s underlying byte sequence or allowing
