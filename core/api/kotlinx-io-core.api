@@ -83,14 +83,11 @@ public abstract interface class kotlinx/io/Sink : kotlinx/io/RawSink {
 	public abstract fun transferFrom (Lkotlinx/io/RawSource;)J
 	public abstract fun write (Lkotlinx/io/RawSource;J)V
 	public abstract fun write ([BII)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;[BIIILjava/lang/Object;)V
 	public abstract fun writeByte (B)V
 	public abstract fun writeInt (I)V
 	public abstract fun writeLong (J)V
 	public abstract fun writeShort (S)V
-}
-
-public final class kotlinx/io/Sink$DefaultImpls {
-	public static synthetic fun write$default (Lkotlinx/io/Sink;[BIIILjava/lang/Object;)V
 }
 
 public final class kotlinx/io/SinkExtJvmKt {
@@ -122,6 +119,7 @@ public abstract interface class kotlinx/io/Source : kotlinx/io/RawSource {
 	public abstract fun getBuffer ()Lkotlinx/io/Buffer;
 	public abstract fun peek ()Lkotlinx/io/Source;
 	public abstract fun readAtMostTo ([BII)I
+	public static synthetic fun readAtMostTo$default (Lkotlinx/io/Source;[BIIILjava/lang/Object;)I
 	public abstract fun readByte ()B
 	public abstract fun readInt ()I
 	public abstract fun readLong ()J
@@ -131,10 +129,6 @@ public abstract interface class kotlinx/io/Source : kotlinx/io/RawSource {
 	public abstract fun require (J)V
 	public abstract fun skip (J)V
 	public abstract fun transferTo (Lkotlinx/io/RawSink;)J
-}
-
-public final class kotlinx/io/Source$DefaultImpls {
-	public static synthetic fun readAtMostTo$default (Lkotlinx/io/Source;[BIIILjava/lang/Object;)I
 }
 
 public final class kotlinx/io/SourceExtJvmKt {
