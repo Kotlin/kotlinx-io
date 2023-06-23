@@ -193,7 +193,8 @@ public class ByteString private constructor(
      * for empty strings it's always `ByteString(size=0)`.
      *
      * Note that a string representation includes the whole byte string content encoded.
-     * Due to limitations of the maxi
+     * Due to limitations exposed for the maximum string length, an attempt to return a string representation
+     * of too long byte string may fail.
      */
     override fun toString(): String {
         if (isEmpty()) {
