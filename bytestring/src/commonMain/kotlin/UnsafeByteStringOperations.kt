@@ -16,22 +16,20 @@ import kotlinx.io.bytestring.ByteString
  * consequences in the code using the byte string and should be avoided at all costs.
  */
 @UnsafeByteStringApi
-public class UnsafeByteStringOperations {
-    public companion object {
-        /**
-         * Creates a new byte string by wrapping [array] without copying it.
-         * Make sure that the wrapped array won't be modified during the lifespan of the returned byte string.
-         *
-         * @param array the array to wrap into the byte string.
-         */
-        public fun wrapUnsafe(array: ByteArray): ByteString = ByteString.wrap(array)
+public object UnsafeByteStringOperations {
+    /**
+     * Creates a new byte string by wrapping [array] without copying it.
+     * Make sure that the wrapped array won't be modified during the lifespan of the returned byte string.
+     *
+     * @param array the array to wrap into the byte string.
+     */
+    public fun wrapUnsafe(array: ByteArray): ByteString = ByteString.wrap(array)
 
-        /**
-         * Returns a reference to the underlying array.
-         *
-         * These methods return reference to the underlying array, not to its copy.
-         * Consider using [ByteString.toByteArray] if it's impossible to guarantee that the array won't be modified.
-         */
-        public fun getByteArrayUnsafe(byteString: ByteString): ByteArray = byteString.getBackingArrayReference()
-    }
+    /**
+     * Returns a reference to the underlying array.
+     *
+     * These methods return reference to the underlying array, not to its copy.
+     * Consider using [ByteString.toByteArray] if it's impossible to guarantee that the array won't be modified.
+     */
+    public fun getByteArrayUnsafe(byteString: ByteString): ByteArray = byteString.getBackingArrayReference()
 }

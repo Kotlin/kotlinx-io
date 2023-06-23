@@ -73,11 +73,7 @@ public abstract interface annotation class kotlinx/io/bytestring/unsafe/UnsafeBy
 }
 
 public final class kotlinx/io/bytestring/unsafe/UnsafeByteStringOperations {
-	public static final field Companion Lkotlinx/io/bytestring/unsafe/UnsafeByteStringOperations$Companion;
-	public fun <init> ()V
-}
-
-public final class kotlinx/io/bytestring/unsafe/UnsafeByteStringOperations$Companion {
+	public static final field INSTANCE Lkotlinx/io/bytestring/unsafe/UnsafeByteStringOperations;
 	public final fun getByteArrayUnsafe (Lkotlinx/io/bytestring/ByteString;)[B
 	public final fun wrapUnsafe ([B)Lkotlinx/io/bytestring/ByteString;
 }
