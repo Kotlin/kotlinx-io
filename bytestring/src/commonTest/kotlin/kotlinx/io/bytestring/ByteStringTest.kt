@@ -381,4 +381,14 @@ class ByteStringTest {
             ByteString(ByteArray(64)).toString()
         )
     }
+
+    private val bronzeHorseman = "На берегу пустынных волн"
+
+    @Test
+    fun utf8() {
+        val byteString = ByteString.fromUtf8String(bronzeHorseman)
+        assertEquals(byteString.toByteArray().toList(), bronzeHorseman.encodeToByteArray().toList())
+        assertEquals(byteString, ByteString(*bronzeHorseman.encodeToByteArray()))
+        assertEquals(byteString.toUtf8String(), bronzeHorseman)
+    }
 }

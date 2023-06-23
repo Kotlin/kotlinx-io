@@ -52,12 +52,10 @@ public final class kotlinx/io/BufferExtKt {
 }
 
 public final class kotlinx/io/ByteStringExtKt {
-	public static final fun fromUtf8 (Lkotlinx/io/bytestring/ByteString$Companion;Ljava/lang/String;)Lkotlinx/io/bytestring/ByteString;
 	public static final fun indexOf (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;J)J
 	public static synthetic fun indexOf$default (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)J
 	public static final fun readByteString (Lkotlinx/io/Source;)Lkotlinx/io/bytestring/ByteString;
 	public static final fun readByteString (Lkotlinx/io/Source;I)Lkotlinx/io/bytestring/ByteString;
-	public static final fun toUtf8 (Lkotlinx/io/bytestring/ByteString;)Ljava/lang/String;
 	public static final fun write (Lkotlinx/io/Sink;Lkotlinx/io/bytestring/ByteString;II)V
 	public static synthetic fun write$default (Lkotlinx/io/Sink;Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)V
 }

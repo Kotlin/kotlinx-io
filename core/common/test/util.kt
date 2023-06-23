@@ -21,6 +21,7 @@
 package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.fromUtf8String
 import kotlin.test.assertEquals
 
 fun segmentSizes(buffer: Buffer): List<Int> {
@@ -69,4 +70,4 @@ fun assertArrayEquals(a: ByteArray, b: ByteArray) {
     assertEquals(a.contentToString(), b.contentToString())
 }
 
-fun String.encodeUtf8(): ByteString = ByteString.fromUtf8(this)
+fun String.encodeUtf8(): ByteString = ByteString.fromUtf8String(this)

@@ -10,7 +10,6 @@ public final class kotlinx/io/bytestring/ByteString : java/lang/Comparable {
 	public static synthetic fun copyInto$default (Lkotlinx/io/bytestring/ByteString;[BIIIILjava/lang/Object;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun get (I)B
-	public final fun getByteArrayUnsafe ()[B
 	public final fun getSize ()I
 	public fun hashCode ()I
 	public final fun substring (II)Lkotlinx/io/bytestring/ByteString;
@@ -18,13 +17,10 @@ public final class kotlinx/io/bytestring/ByteString : java/lang/Comparable {
 	public final fun toByteArray (II)[B
 	public static synthetic fun toByteArray$default (Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)[B
 	public fun toString ()Ljava/lang/String;
-	public final fun toString (Z)Ljava/lang/String;
-	public static synthetic fun toString$default (Lkotlinx/io/bytestring/ByteString;ZILjava/lang/Object;)Ljava/lang/String;
 }
 
 public final class kotlinx/io/bytestring/ByteString$Companion {
 	public final fun getEMPTY ()Lkotlinx/io/bytestring/ByteString;
-	public final fun wrapUnsafe ([B)Lkotlinx/io/bytestring/ByteString;
 }
 
 public final class kotlinx/io/bytestring/ByteStringBuilder {
@@ -48,6 +44,7 @@ public final class kotlinx/io/bytestring/ByteStringKt {
 	public static final fun ByteString ()Lkotlinx/io/bytestring/ByteString;
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
+	public static final fun fromUtf8 (Lkotlinx/io/bytestring/ByteString$Companion;Ljava/lang/String;)Lkotlinx/io/bytestring/ByteString;
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;BI)I
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;I)I
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;[BI)I
@@ -64,8 +61,19 @@ public final class kotlinx/io/bytestring/ByteStringKt {
 	public static synthetic fun lastIndexOf$default (Lkotlinx/io/bytestring/ByteString;[BIILjava/lang/Object;)I
 	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
+	public static final fun toUtf8 (Lkotlinx/io/bytestring/ByteString;)Ljava/lang/String;
 }
 
 public abstract interface annotation class kotlinx/io/bytestring/UnsafeByteStringApi : java/lang/annotation/Annotation {
+}
+
+public final class kotlinx/io/bytestring/unsafe/UnsafeByteStringOperations {
+	public static final field Companion Lkotlinx/io/bytestring/unsafe/UnsafeByteStringOperations$Companion;
+	public fun <init> ()V
+}
+
+public final class kotlinx/io/bytestring/unsafe/UnsafeByteStringOperations$Companion {
+	public final fun getByteArrayUnsafe (Lkotlinx/io/bytestring/ByteString;)[B
+	public final fun wrapUnsafe ([B)Lkotlinx/io/bytestring/ByteString;
 }
 

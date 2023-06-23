@@ -43,13 +43,12 @@ public class ByteStringBuilder(initialCapacity: Int = 0) {
      *
      * There will be no additional allocations or copying of data when `size == capacity`.
      */
-    @OptIn(UnsafeByteStringApi::class)
     public fun toByteString(): ByteString {
         if (size == 0) {
             return ByteString.EMPTY
         }
         if (buffer.size == size) {
-            return ByteString.wrapUnsafe(buffer)
+            return ByteString.wrap(buffer)
         }
         return ByteString(buffer, 0, size)
     }
@@ -106,7 +105,6 @@ public fun ByteStringBuilder.append(byte: UByte): Unit = append(byte.toByte())
 /**
  * Appends a byte string to this builder.
  */
-@OptIn(UnsafeByteStringApi::class)
 public fun ByteStringBuilder.append(byteString: ByteString) {
-    append(byteString.getByteArrayUnsafe())
+    append(byteString.getBackingArrayReference())
 }

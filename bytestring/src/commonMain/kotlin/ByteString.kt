@@ -27,21 +27,6 @@ import kotlin.math.min
 private val HEX_DIGITS = "0123456789ABCDEF".toCharArray()
 
 /**
- * Marks declarations whose usage may brake some ByteString invariants.
- *
- * Consider using other APIs instead when possible.
- * Otherwise, make sure to read documentation describing an unsafe API.
- */
-@MustBeDocumented
-@Retention(AnnotationRetention.BINARY)
-@RequiresOptIn(
-    level = RequiresOptIn.Level.ERROR,
-    message = "This is a delicate API and its use requires care. " +
-            "Make sure you fully read and understand documentation of the declaration that is marked as a delicate API."
-)
-public annotation class UnsafeByteStringApi
-
-/**
  * Constructs empty byte string.
  */
 public fun ByteString(): ByteString = ByteString.EMPTY
@@ -61,14 +46,7 @@ public class ByteString private constructor(
          */
         public val EMPTY: ByteString = ByteString(ByteArray(0), null)
 
-        /**
-         * Creates a new byte string by wrapping [byteArray] without copying it.
-         * Make sure that the wrapped array won't be modified during the lifespan of the returned byte string.
-         *
-         * @param byteArray the array to wrap into the byte string.
-         */
-        @UnsafeByteStringApi
-        public fun wrapUnsafe(byteArray: ByteArray): ByteString = ByteString(byteArray, null)
+        internal fun wrap(byteArray: ByteArray): ByteString = ByteString(byteArray, null)
     }
 
     /**
@@ -243,8 +221,7 @@ public class ByteString private constructor(
      * These methods return reference to the underlying array, not to its copy.
      * Consider using [toByteArray] if it's impossible to guarantee that the array won't be modified.
      */
-    @UnsafeByteStringApi
-    public fun getByteArrayUnsafe(): ByteArray = data
+    internal fun getBackingArrayReference(): ByteArray = data
 }
 
 /**
@@ -442,3 +419,19 @@ private fun ByteString.rangeEquals(
  * Returns `true` if this byte string is empty.
  */
 public fun ByteString.isEmpty(): Boolean = size == 0
+
+/**
+ * Decodes content of a byte string into a string using UTF-8 encoding.
+ */
+public fun ByteString.toUtf8String(): String {
+    return getBackingArrayReference().decodeToString()
+}
+
+/**
+ * Encodes a string into a byte sequence using UTF8-encoding and wraps it into a byte string.
+ *
+ * @param string the string to be encoded.
+ */
+public fun ByteString.Companion.fromUtf8String(string: String): ByteString {
+    return wrap(string.encodeToByteArray())
+}

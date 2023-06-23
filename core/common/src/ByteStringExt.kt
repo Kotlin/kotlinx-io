@@ -9,28 +9,8 @@ import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.UnsafeByteStringApi
 import kotlinx.io.bytestring.indices
 import kotlinx.io.bytestring.isEmpty
-import kotlinx.io.internal.commonAsUtf8ToByteArray
-import kotlinx.io.internal.commonToUtf8String
+import kotlinx.io.bytestring.unsafe.UnsafeByteStringOperations
 import kotlin.math.min
-
-
-/**
- * Decodes content of a byte string into a string using UTF-8 encoding.
- */
-@OptIn(UnsafeByteStringApi::class)
-public fun ByteString.toUtf8(): String {
-    return getByteArrayUnsafe().commonToUtf8String()
-}
-
-/**
- * Encodes a string into a byte sequence using UTF8-encoding and wraps it into a byte string.
- *
- * @param string the string to be encoded.
- */
-@OptIn(UnsafeByteStringApi::class)
-public fun ByteString.Companion.fromUtf8(string: String): ByteString {
-    return wrapUnsafe(string.commonAsUtf8ToByteArray())
-}
 
 /**
  * Writes subsequence of data from [byteString] starting at [startIndex] and ending at [endIndex] into a sink.
@@ -67,7 +47,7 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
  */
 @OptIn(UnsafeByteStringApi::class)
 public fun Source.readByteString(): ByteString {
-    return ByteString.wrapUnsafe(readByteArray())
+    return UnsafeByteStringOperations.wrapUnsafe(readByteArray())
 }
 
 /**
@@ -81,7 +61,7 @@ public fun Source.readByteString(): ByteString {
  */
 @OptIn(UnsafeByteStringApi::class)
 public fun Source.readByteString(byteCount: Int): ByteString {
-    return ByteString.wrapUnsafe(readByteArray(byteCount))
+    return UnsafeByteStringOperations.wrapUnsafe(readByteArray(byteCount))
 }
 
 /**

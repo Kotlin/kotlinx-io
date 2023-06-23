@@ -22,6 +22,7 @@
 package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.toUtf8String
 import kotlin.test.*
 
 private const val SEGMENT_SIZE = Segment.SIZE
@@ -1543,7 +1544,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
       writeUtf8("e".repeat(Segment.SIZE))
       emit()
     }
-    assertEquals("abcd" + "e".repeat(Segment.SIZE), source.readByteString().toUtf8())
+    assertEquals("abcd" + "e".repeat(Segment.SIZE), source.readByteString().toUtf8String())
   }
 
   @Test fun readByteStringPartial() {
@@ -1552,7 +1553,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
       writeUtf8("e".repeat(Segment.SIZE))
       emit()
     }
-    assertEquals("abc", source.readByteString(3).toUtf8())
+    assertEquals("abc", source.readByteString(3).toUtf8String())
     assertEquals("d", source.readUtf8(1))
   }
 
