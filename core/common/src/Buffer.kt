@@ -205,6 +205,7 @@ public class Buffer : Source, Sink {
 
   /**
    * Copy bytes from this buffer's subrange starting at [startIndex] and ending at [endIndex], to [out] buffer.
+   * This method does not consume data from the buffer.
    *
    * @param out the destination buffer to copy data into.
    * @param startIndex the index (inclusive) of the first byte of data in this buffer to copy,

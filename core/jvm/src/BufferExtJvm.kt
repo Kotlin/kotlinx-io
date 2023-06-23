@@ -105,7 +105,8 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
 }
 
 /**
- * Copy bytes from this buffer's subrange, starting at [startIndex] and ending at [endIndex], to [out].
+ * Copy bytes from this buffer's subrange, starting at [startIndex] and ending at [endIndex], to [out]. This method
+ * does not consume data from the buffer.
  *
  * @param out the destination to copy data into.
  * @param startIndex the index (inclusive) of the first byte to copy, `0` by default.
