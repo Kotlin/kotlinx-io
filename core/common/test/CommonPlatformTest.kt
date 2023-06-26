@@ -41,7 +41,7 @@ class CommonPlatformTest {
     assertEquals(sink.size, 1L)
   }
 
-  @Test fun blackhole() {
-    blackholeSink().write(Buffer().also { it.writeUtf8("a") }, 1L)
+  @Test fun discardingSinkTest() {
+    discardingSink().write(Buffer().also { it.writeUtf8("a") }, 1L)
   }
 }

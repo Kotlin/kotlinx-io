@@ -34,11 +34,11 @@ public fun RawSource.buffered(): Source = RealSource(this)
 public fun RawSink.buffered(): Sink = RealSink(this)
 
 /**
- * Returns a sink that writes nowhere.
+ * Returns a sink that discards all data written to it.
  */
-public fun blackholeSink(): RawSink = BlackholeSink()
+public fun discardingSink(): RawSink = DiscardingSink()
 
-private class BlackholeSink : RawSink {
+private class DiscardingSink : RawSink {
   override fun write(source: Buffer, byteCount: Long) = source.skip(byteCount)
   override fun flush() {}
   override fun close() {}

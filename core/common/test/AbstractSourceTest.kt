@@ -1151,7 +1151,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     // Peek a little data and skip the rest of the upstream source
     val peek = source.peek()
     assertEquals("ddd", peek.readUtf8(3))
-    source.transferTo(blackholeSink())
+    source.transferTo(discardingSink())
 
     // Skip the rest of the buffered data
     peek.skip(peek.buffer.size)
@@ -1227,7 +1227,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.writeUtf8("Wot do u call it?\r\nWindows")
     sink.flush()
     assertEquals("Wot do u call it?", source.readUtf8Line())
-    source.transferTo(blackholeSink())
+    source.transferTo(discardingSink())
 
     sink.writeUtf8("reo\rde\red\n")
     sink.flush()
@@ -1254,7 +1254,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     sink.writeUtf8("Wot do u call it?\r\nWindows")
     sink.flush()
     assertEquals("Wot do u call it?", source.readUtf8LineStrict())
-    source.transferTo(blackholeSink())
+    source.transferTo(discardingSink())
 
     sink.writeUtf8("reo\rde\red\n")
     sink.flush()

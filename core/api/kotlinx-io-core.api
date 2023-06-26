@@ -48,9 +48,9 @@ public final class kotlinx/io/BufferExtJvmKt {
 }
 
 public final class kotlinx/io/CoreKt {
-	public static final fun blackholeSink ()Lkotlinx/io/RawSink;
 	public static final fun buffered (Lkotlinx/io/RawSink;)Lkotlinx/io/Sink;
 	public static final fun buffered (Lkotlinx/io/RawSource;)Lkotlinx/io/Source;
+	public static final fun discardingSink ()Lkotlinx/io/RawSink;
 }
 
 public abstract interface annotation class kotlinx/io/DelicateIoApi : java/lang/annotation/Annotation {
