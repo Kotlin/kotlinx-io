@@ -76,6 +76,8 @@ public sealed interface Sink : RawSink {
      * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
      * @throws IllegalArgumentException when `startIndex > endIndex`.
      * @throws IllegalStateException when the sink is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeByteArrayToSink
      */
     public fun write(source: ByteArray, startIndex: Int = 0, endIndex: Int = source.size)
 
@@ -87,6 +89,7 @@ public sealed interface Sink : RawSink {
      *
      * @throws IllegalStateException when the sink or [source] is closed.
      *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.transferFrom
      */
     public fun transferFrom(source: RawSource): Long
 
@@ -101,6 +104,8 @@ public sealed interface Sink : RawSink {
      *
      * @throws IllegalArgumentException when [byteCount] is negative.
      * @throws IllegalStateException when the sink or [source] is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeSourceToSink
      */
     public fun write(source: RawSource, byteCount: Long)
 
@@ -110,6 +115,8 @@ public sealed interface Sink : RawSink {
      * @param byte the byte to be written.
      *
      * @throws IllegalStateException when the sink is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeByte
      */
     public fun writeByte(byte: Byte)
 
@@ -119,6 +126,8 @@ public sealed interface Sink : RawSink {
      * @param short the short integer to be written.
      *
      * @throws IllegalStateException when the sink is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeShort
      */
     public fun writeShort(short: Short)
 
@@ -128,6 +137,8 @@ public sealed interface Sink : RawSink {
      * @param int the integer to be written.
      *
      * @throws IllegalStateException when the sink is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeInt
      */
     public fun writeInt(int: Int)
 
@@ -137,6 +148,8 @@ public sealed interface Sink : RawSink {
      * @param long the long integer to be written.
      *
      * @throws IllegalStateException when the sink is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeLong
      */
     public fun writeLong(long: Long)
 
@@ -145,6 +158,8 @@ public sealed interface Sink : RawSink {
      * Then the underlying sink is explicitly flushed.
      *
      * @throws IllegalStateException when the sink is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.flush
      */
     override fun flush()
 
@@ -156,6 +171,8 @@ public sealed interface Sink : RawSink {
      * Call this method before a buffered sink goes out of scope so that its data can reach its destination.
      *
      * @throws IllegalStateException when the sink is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.emit
      */
     public fun emit()
 

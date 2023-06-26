@@ -21,6 +21,9 @@ import kotlin.math.max
  * will be allocated and previously written data will be copied into it.
  *
  * @param initialCapacity the initial size of an underlying byte sequence.
+ *
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamples.builderSample
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamples.builderSampleWithoutAdditionalAllocs
  */
 public class ByteStringBuilder(initialCapacity: Int = 0) {
     private var buffer = ByteArray(initialCapacity)

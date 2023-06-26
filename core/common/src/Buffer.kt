@@ -213,6 +213,8 @@ public class Buffer : Source, Sink {
      * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of this buffer bounds
      * (`[0..buffer.size)`).
      * @throws IllegalArgumentException when `startIndex > endIndex`.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.bufferCopy
      */
     public fun copyTo(
         out: Buffer,
@@ -277,6 +279,8 @@ public class Buffer : Source, Sink {
      * for sequential access to a range of bytes within the buffer.
      *
      * @throws IndexOutOfBoundsException when [position] is negative or greater or equal to [Buffer.size].
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.bufferGetByte
      */
     public operator fun get(position: Long): Byte {
         if (position < 0 || position >= size) {
@@ -291,6 +295,8 @@ public class Buffer : Source, Sink {
      * Discards all bytes in this buffer.
      *
      * Call to this method is equivalent to [skip] with `byteCount = size`.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.bufferClear
      */
     public fun clear(): Unit = skip(size)
 
@@ -320,11 +326,11 @@ public class Buffer : Source, Sink {
     override fun readAtMostTo(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         checkBounds(sink.size, startIndex, endIndex)
 
-    val s = head ?: return -1
-    val toCopy = minOf(endIndex - startIndex, s.limit - s.pos)
-    s.data.copyInto(
-      destination = sink, destinationOffset = startIndex, startIndex = s.pos, endIndex = s.pos + toCopy
-    )
+        val s = head ?: return -1
+        val toCopy = minOf(endIndex - startIndex, s.limit - s.pos)
+        s.data.copyInto(
+            destination = sink, destinationOffset = startIndex, startIndex = s.pos, endIndex = s.pos + toCopy
+        )
 
         s.pos += toCopy
         size -= toCopy.toLong()
@@ -603,6 +609,8 @@ public class Buffer : Source, Sink {
      * few bytes, this is a string like `Buffer(size=4 hex=0000ffff)`. However, if the buffer is too large,
      * a string will contain its size and only a prefix of data, like `Buffer(size=1024 hex=01234…)`.
      * Thus, the string could not be used to compare buffers or verify buffer's content.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.bufferToString
      */
     override fun toString(): String {
         if (size == 0L) return "Buffer(size=0)"

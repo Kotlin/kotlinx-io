@@ -31,6 +31,9 @@ package kotlinx.io
  * is both more efficient and more convenient. Use [buffered] to wrap any raw sink with a buffer.
  *
  * Implementors should abstain from throwing exceptions other than those that are documented for RawSink methods.
+ *
+ * @sample kotlinx.io.samples.CRC32Sink
+ * @sample kotlinx.io.samples.Crc32Sample.crc32
  */
 @OptIn(ExperimentalStdlibApi::class)
 public expect interface RawSink : AutoCloseableAlias {

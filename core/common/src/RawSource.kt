@@ -31,6 +31,9 @@ package kotlinx.io
  * is both more efficient and more convenient. Use [buffered] to wrap any raw source with a buffer.
  *
  * Implementors should abstain from throwing exceptions other than those that are documented for RawSource methods.
+ *
+ * @sample kotlinx.io.samples.RC4DecryptingSource
+ * @sample kotlinx.io.samples.RC4SourceSample.rc4
  */
 @OptIn(ExperimentalStdlibApi::class)
 public interface RawSource : AutoCloseableAlias {
@@ -43,6 +46,8 @@ public interface RawSource : AutoCloseableAlias {
      *
      * @throws IllegalArgumentException when [byteCount] is negative.
      * @throws IllegalStateException when the source is closed.
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readAtMostToSink
      */
     public fun readAtMostTo(sink: Buffer, byteCount: Long): Long
 
