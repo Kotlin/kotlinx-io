@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
     kotlin("multiplatform")
-    id("org.jetbrains.kotlinx.kover") version "0.7.0"
-    id("org.jetbrains.dokka") version "1.8.10"
+    id("org.jetbrains.kotlinx.kover") version "0.7.1"
+    id("org.jetbrains.dokka") version "1.8.20"
 }
 
 kotlin {
