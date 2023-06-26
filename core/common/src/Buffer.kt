@@ -20,9 +20,6 @@
  */
 package kotlinx.io
 
-import kotlinx.io.internal.REPLACEMENT_CODE_POINT
-import kotlinx.io.internal.isIsoControl
-import kotlinx.io.internal.processUtf8CodePoints
 import kotlin.jvm.JvmField
 
 /**
@@ -634,36 +631,6 @@ public class Buffer : Source, Sink {
 
     return "Buffer(size=$size hex=$builder)"
   }
-}
-
-private fun ByteArray.hex(byteCount: Int = this.size): String {
-  checkByteCount(byteCount.toLong())
-  val builder = StringBuilder(byteCount * 2)
-  for (i in 0 until byteCount) {
-    builder.append(HEX_DIGIT_CHARS[get(i).shr(4) and 0x0f])
-    builder.append(HEX_DIGIT_CHARS[get(i) and 0x0f])
-  }
-  return builder.toString()
-}
-
-
-private fun codePointIndexToCharIndex(s: ByteArray, codePointCount: Int): Int {
-  var charCount = 0
-  var j = 0
-  s.processUtf8CodePoints(0, s.size) { c ->
-    if (j++ == codePointCount) {
-      return charCount
-    }
-
-    if ((c != '\n'.code && c != '\r'.code && isIsoControl(c)) ||
-      c == REPLACEMENT_CODE_POINT
-    ) {
-      return -1
-    }
-
-    charCount += if (c < 0x10000) 1 else 2
-  }
-  return charCount
 }
 
 /**
