@@ -57,9 +57,9 @@ public fun Sink.asOutputStream(): OutputStream {
   }
 
   return object : OutputStream() {
-    override fun write(b: Int) {
+    override fun write(byte: Int) {
       if (isClosed()) throw IOException("Underlying sink is closed")
-      writeToInternalBuffer { it.writeByte(b.toByte()) }
+      writeToInternalBuffer { it.writeByte(byte.toByte()) }
     }
 
     override fun write(data: ByteArray, offset: Int, byteCount: Int) {
