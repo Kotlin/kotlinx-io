@@ -167,6 +167,13 @@ class ByteStringTest {
     }
 
     @Test
+    fun isNotEmpty() {
+        assertFalse(ByteString().isNotEmpty())
+        assertFalse(ByteString(byteArrayOf()).isNotEmpty())
+        assertTrue(ByteString(byteArrayOf(0)).isNotEmpty())
+    }
+
+    @Test
     fun indexOfByte() {
         val str = ByteString(1, 2, 3, 4)
         for (idx in str.indices()) {

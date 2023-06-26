@@ -422,6 +422,11 @@ private fun ByteString.rangeEquals(
 public fun ByteString.isEmpty(): Boolean = size == 0
 
 /**
+ * Returns `true` if this byte string is not empty.
+ */
+public fun ByteString.isNotEmpty(): Boolean = !isEmpty()
+
+/**
  * Decodes content of a byte string into a string using UTF-8 encoding.
  */
 public fun ByteString.toUtf8String(): String {
