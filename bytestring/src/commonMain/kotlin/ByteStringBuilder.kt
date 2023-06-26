@@ -108,3 +108,19 @@ public fun ByteStringBuilder.append(byte: UByte): Unit = append(byte.toByte())
 public fun ByteStringBuilder.append(byteString: ByteString) {
     append(byteString.getBackingArrayReference())
 }
+
+/**
+ * Builds new string by populating newly created [ByteStringBuilder] using provided [builderAction]
+ * and then converting it to [ByteString].
+ */
+public inline fun buildByteString(builderAction: ByteStringBuilder.() -> Unit): ByteString {
+    return ByteStringBuilder().apply(builderAction).toByteString()
+}
+
+/**
+ * Builds new byte string by populating newly created [ByteStringBuilder] initialized with the given [capacity]
+ * using provided [builderAction] and then converting it to [ByteString].
+ */
+public inline fun buildByteString(capacity: Int, builderAction: ByteStringBuilder.() -> Unit): ByteString {
+    return ByteStringBuilder(capacity).apply(builderAction).toByteString()
+}

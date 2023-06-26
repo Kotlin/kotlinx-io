@@ -6,7 +6,7 @@
 package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
-import kotlinx.io.bytestring.ByteStringBuilder
+import kotlinx.io.bytestring.buildByteString
 
 /**
  * Creates a byte string containing a copy of all the data from this buffer.
@@ -16,14 +16,14 @@ import kotlinx.io.bytestring.ByteStringBuilder
 public fun Buffer.snapshot(): ByteString {
     if (size == 0L) return ByteString()
 
-    val bufferSize = this@snapshot.size
-    return with (ByteStringBuilder(bufferSize.toInt())) {
+    check(size <= Int.MAX_VALUE) { "Buffer is too long ($size) to be converted into a byte string." }
+
+    return buildByteString(size.toInt()) {
         var curr = head
         do {
             check(curr != null) { "Current segment is null" }
             append(curr.data, curr.pos, curr.limit)
             curr = curr.next
         } while (curr !== head)
-        toByteString()
     }
 }
