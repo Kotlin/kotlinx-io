@@ -29,6 +29,11 @@ class ByteStringBuilderTest {
     }
 
     @Test
+    fun appendBytes() {
+        assertEquals(ByteString(1, 2, 3), buildByteString { append(1, 2, 3) })
+    }
+
+    @Test
     fun appendUByte() {
         val builder = ByteStringBuilder()
         with(builder) {

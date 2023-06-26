@@ -110,6 +110,11 @@ public fun ByteStringBuilder.append(byteString: ByteString) {
 }
 
 /**
+ * Appends bytes to this builder.
+ */
+public fun ByteStringBuilder.append(vararg bytes: Byte): Unit = append(bytes)
+
+/**
  * Builds new string by populating newly created [ByteStringBuilder] using provided [builderAction]
  * and then converting it to [ByteString].
  */
