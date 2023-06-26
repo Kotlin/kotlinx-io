@@ -112,7 +112,7 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
  * @param startIndex the index (inclusive) of the first byte to copy, `0` by default.
  * @param endIndex the index (exclusive) of the last byte to copy, `buffer.size` by default.
  *
- * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of buffer indices.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of this buffer bounds (`[0..buffer.size)`).
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  */
 public fun Buffer.copyTo(

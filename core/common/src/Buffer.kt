@@ -212,7 +212,8 @@ public class Buffer : Source, Sink {
    * 0 by default.
    * @param endIndex the index (exclusive) of the last byte of data in this buffer to copy, `buffer.size` by default.
    *
-   * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of buffer indices.
+   * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of this buffer bounds
+   * (`[0..buffer.size)`).
    * @throws IllegalArgumentException when `startIndex > endIndex`.
    */
   public fun copyTo(
