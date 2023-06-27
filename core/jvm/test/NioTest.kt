@@ -42,6 +42,7 @@ import kotlin.text.Charsets.UTF_8
 class NioTest {
     @TempDir
     lateinit var temporaryFolder: Path
+
     @Test
     fun sourceIsOpen() {
         val source = RealSource(Buffer()).asByteChannel()

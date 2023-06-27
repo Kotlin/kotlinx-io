@@ -21,12 +21,12 @@
 package kotlinx.io
 
 internal actual object SegmentPool {
-  actual val MAX_SIZE: Int = 0
+    actual val MAX_SIZE: Int = 0
 
-  actual val byteCount: Int = 0
+    actual val byteCount: Int = 0
 
-  actual fun take(): Segment = Segment()
+    actual fun take(): Segment = Segment()
 
-  actual fun recycle(segment: Segment) {
-  }
+    actual fun recycle(segment: Segment) {
+    }
 }

@@ -33,34 +33,34 @@ import java.io.OutputStream
 public fun OutputStream.asSink(): RawSink = OutputStreamSink(this)
 
 private open class OutputStreamSink(
-  private val out: OutputStream,
+    private val out: OutputStream,
 ) : RawSink {
 
-  override fun write(source: Buffer, byteCount: Long) {
-    checkOffsetAndCount(source.size, 0, byteCount)
-    var remaining = byteCount
-    while (remaining > 0) {
-      // kotlinx.io TODO: detect Interruption.
-      val head = source.head!!
-      val toCopy = minOf(remaining, head.limit - head.pos).toInt()
-      out.write(head.data, head.pos, toCopy)
+    override fun write(source: Buffer, byteCount: Long) {
+        checkOffsetAndCount(source.size, 0, byteCount)
+        var remaining = byteCount
+        while (remaining > 0) {
+            // kotlinx.io TODO: detect Interruption.
+            val head = source.head!!
+            val toCopy = minOf(remaining, head.limit - head.pos).toInt()
+            out.write(head.data, head.pos, toCopy)
 
-      head.pos += toCopy
-      remaining -= toCopy
-      source.size -= toCopy
+            head.pos += toCopy
+            remaining -= toCopy
+            source.size -= toCopy
 
-      if (head.pos == head.limit) {
-        source.head = head.pop()
-        SegmentPool.recycle(head)
-      }
+            if (head.pos == head.limit) {
+                source.head = head.pop()
+                SegmentPool.recycle(head)
+            }
+        }
     }
-  }
 
-  override fun flush() = out.flush()
+    override fun flush() = out.flush()
 
-  override fun close() = out.close()
+    override fun close() = out.close()
 
-  override fun toString() = "sink($out)"
+    override fun toString() = "sink($out)"
 }
 
 /**
@@ -71,42 +71,43 @@ private open class OutputStreamSink(
 public fun InputStream.asSource(): RawSource = InputStreamSource(this)
 
 private open class InputStreamSource(
-  private val input: InputStream,
+    private val input: InputStream,
 ) : RawSource {
 
-  override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-    if (byteCount == 0L) return 0L
-    checkByteCount(byteCount)
-    try {
-      val tail = sink.writableSegment(1)
-      val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()
-      val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
-      if (bytesRead == -1) {
-        if (tail.pos == tail.limit) {
-          // We allocated a tail segment, but didn't end up needing it. Recycle!
-          sink.head = tail.pop()
-          SegmentPool.recycle(tail)
+    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        if (byteCount == 0L) return 0L
+        checkByteCount(byteCount)
+        try {
+            val tail = sink.writableSegment(1)
+            val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()
+            val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
+            if (bytesRead == -1) {
+                if (tail.pos == tail.limit) {
+                    // We allocated a tail segment, but didn't end up needing it. Recycle!
+                    sink.head = tail.pop()
+                    SegmentPool.recycle(tail)
+                }
+                return -1
+            }
+            tail.limit += bytesRead
+            sink.size += bytesRead
+            return bytesRead.toLong()
+        } catch (e: AssertionError) {
+            if (e.isAndroidGetsocknameError) throw IOException(e)
+            throw e
         }
-        return -1
-      }
-      tail.limit += bytesRead
-      sink.size += bytesRead
-      return bytesRead.toLong()
-    } catch (e: AssertionError) {
-      if (e.isAndroidGetsocknameError) throw IOException(e)
-      throw e
     }
-  }
 
-  override fun close() = input.close()
+    override fun close() = input.close()
 
-  override fun toString() = "source($input)"
+    override fun toString() = "source($input)"
 }
 
 /**
  * Returns true if this error is due to a firmware bug fixed after Android 4.2.2.
  * https://code.google.com/p/android/issues/detail?id=54072
  */
-internal val AssertionError.isAndroidGetsocknameError: Boolean get() {
-  return cause != null && message?.contains("getsockname failed") ?: false
-}
+internal val AssertionError.isAndroidGetsocknameError: Boolean
+    get() {
+        return cause != null && message?.contains("getsockname failed") ?: false
+    }

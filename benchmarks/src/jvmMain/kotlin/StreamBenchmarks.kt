@@ -13,8 +13,8 @@ import kotlinx.io.asInputStream
 import kotlinx.io.asOutputStream
 import kotlinx.io.readTo
 
-open class InputStreamByteRead: BufferRWBenchmarkBase() {
-   private val stream = buffer.asInputStream()
+open class InputStreamByteRead : BufferRWBenchmarkBase() {
+    private val stream = buffer.asInputStream()
 
     @Benchmark
     fun benchmark(): Int {
@@ -23,7 +23,7 @@ open class InputStreamByteRead: BufferRWBenchmarkBase() {
     }
 }
 
-open class OutputStreamByteWrite: BufferRWBenchmarkBase() {
+open class OutputStreamByteWrite : BufferRWBenchmarkBase() {
     private val stream = buffer.asOutputStream()
 
     @Benchmark
@@ -33,7 +33,7 @@ open class OutputStreamByteWrite: BufferRWBenchmarkBase() {
     }
 }
 
-abstract class StreamByteArrayBenchmarkBase: BufferRWBenchmarkBase() {
+abstract class StreamByteArrayBenchmarkBase : BufferRWBenchmarkBase() {
     protected var inputArray = ByteArray(0)
     protected var outputArray = ByteArray(0)
 
@@ -47,7 +47,7 @@ abstract class StreamByteArrayBenchmarkBase: BufferRWBenchmarkBase() {
     }
 }
 
-open class InputStreamByteArrayRead: StreamByteArrayBenchmarkBase() {
+open class InputStreamByteArrayRead : StreamByteArrayBenchmarkBase() {
     private val stream = buffer.asInputStream()
 
     @Benchmark
@@ -61,7 +61,7 @@ open class InputStreamByteArrayRead: StreamByteArrayBenchmarkBase() {
     }
 }
 
-open class OutputStreamByteArrayWrite: StreamByteArrayBenchmarkBase() {
+open class OutputStreamByteArrayWrite : StreamByteArrayBenchmarkBase() {
     private val stream = buffer.asOutputStream()
 
     @Benchmark

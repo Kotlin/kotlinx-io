@@ -24,9 +24,9 @@ import java.io.Flushable
 
 @OptIn(ExperimentalStdlibApi::class)
 public actual interface RawSink : AutoCloseableAlias, Flushable {
-  public actual fun write(source: Buffer, byteCount: Long)
+    public actual fun write(source: Buffer, byteCount: Long)
 
-  actual override fun flush()
+    actual override fun flush()
 
-  actual override fun close()
+    actual override fun close()
 }

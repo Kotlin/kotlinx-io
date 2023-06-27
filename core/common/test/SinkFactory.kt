@@ -23,19 +23,19 @@ package kotlinx.io
 
 internal interface SinkFactory {
 
-  fun create(data: Buffer): Sink
+    fun create(data: Buffer): Sink
 
-  companion object {
-    val BUFFER: SinkFactory = object : SinkFactory {
-      override fun create(data: Buffer): Sink {
-        return data
-      }
-    }
+    companion object {
+        val BUFFER: SinkFactory = object : SinkFactory {
+            override fun create(data: Buffer): Sink {
+                return data
+            }
+        }
 
-    val REAL_BUFFERED_SINK: SinkFactory = object : SinkFactory {
-      override fun create(data: Buffer): Sink {
-        return (data as RawSink).buffered()
-      }
+        val REAL_BUFFERED_SINK: SinkFactory = object : SinkFactory {
+            override fun create(data: Buffer): Sink {
+                return (data as RawSink).buffered()
+            }
+        }
     }
-  }
 }

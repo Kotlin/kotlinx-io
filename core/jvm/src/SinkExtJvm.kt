@@ -40,10 +40,10 @@ import java.nio.charset.Charset
  * @throws IllegalStateException when the sink is closed.
  */
 public fun Sink.writeString(string: String, charset: Charset, startIndex: Int = 0, endIndex: Int = string.length) {
-  checkBounds(string.length, startIndex, endIndex)
-  if (charset == Charsets.UTF_8) return writeUtf8(string, startIndex, endIndex)
-  val data = string.substring(startIndex, endIndex).toByteArray(charset)
-  write(data, 0, data.size)
+    checkBounds(string.length, startIndex, endIndex)
+    if (charset == Charsets.UTF_8) return writeUtf8(string, startIndex, endIndex)
+    val data = string.substring(startIndex, endIndex).toByteArray(charset)
+    write(data, 0, data.size)
 }
 
 /**
@@ -51,33 +51,35 @@ public fun Sink.writeString(string: String, charset: Charset, startIndex: Int = 
  */
 @OptIn(DelicateIoApi::class)
 public fun Sink.asOutputStream(): OutputStream {
-  val isClosed: () -> Boolean = when (this) {
-    is RealSink -> this::closed
-    is Buffer -> { { false } }
-  }
-
-  return object : OutputStream() {
-    override fun write(byte: Int) {
-      if (isClosed()) throw IOException("Underlying sink is closed")
-      writeToInternalBuffer { it.writeByte(byte.toByte()) }
+    val isClosed: () -> Boolean = when (this) {
+        is RealSink -> this::closed
+        is Buffer -> {
+            { false }
+        }
     }
 
-    override fun write(data: ByteArray, offset: Int, byteCount: Int) {
-      if (isClosed()) throw IOException("Underlying sink is closed")
-      writeToInternalBuffer { it.write(data, offset, offset + byteCount) }
+    return object : OutputStream() {
+        override fun write(byte: Int) {
+            if (isClosed()) throw IOException("Underlying sink is closed")
+            writeToInternalBuffer { it.writeByte(byte.toByte()) }
+        }
+
+        override fun write(data: ByteArray, offset: Int, byteCount: Int) {
+            if (isClosed()) throw IOException("Underlying sink is closed")
+            writeToInternalBuffer { it.write(data, offset, offset + byteCount) }
+        }
+
+        override fun flush() {
+            // For backwards compatibility, a flush() on a closed stream is a no-op.
+            if (!isClosed()) {
+                this@asOutputStream.flush()
+            }
+        }
+
+        override fun close() = this@asOutputStream.close()
+
+        override fun toString() = "${this@asOutputStream}.outputStream()"
     }
-
-    override fun flush() {
-      // For backwards compatibility, a flush() on a closed stream is a no-op.
-      if (!isClosed()) {
-        this@asOutputStream.flush()
-      }
-    }
-
-    override fun close() = this@asOutputStream.close()
-
-    override fun toString() = "${this@asOutputStream}.outputStream()"
-  }
 }
 
 /**
@@ -89,32 +91,34 @@ public fun Sink.asOutputStream(): OutputStream {
  */
 @OptIn(InternalIoApi::class)
 public fun Sink.write(source: ByteBuffer): Int {
-  val sizeBefore = buffer.size
-  buffer.transferFrom(source)
-  val bytesRead = buffer.size - sizeBefore
-  hintEmit()
-  return bytesRead.toInt()
+    val sizeBefore = buffer.size
+    buffer.transferFrom(source)
+    val bytesRead = buffer.size - sizeBefore
+    hintEmit()
+    return bytesRead.toInt()
 }
 
 /**
  * Returns [WritableByteChannel] backed by this sink. Closing the channel will also close the sink.
  */
 public fun Sink.asByteChannel(): WritableByteChannel {
-  val isClosed: () -> Boolean = when (this) {
-    is RealSink -> this::closed
-    is Buffer -> { { false } }
-  }
-
-  return object : WritableByteChannel {
-    override fun close() {
-      this@asByteChannel.close()
+    val isClosed: () -> Boolean = when (this) {
+        is RealSink -> this::closed
+        is Buffer -> {
+            { false }
+        }
     }
 
-    override fun isOpen(): Boolean = !isClosed()
+    return object : WritableByteChannel {
+        override fun close() {
+            this@asByteChannel.close()
+        }
 
-    override fun write(source: ByteBuffer): Int {
-      check(!isClosed()) { "Underlying sink is closed." }
-      return this@asByteChannel.write(source)
+        override fun isOpen(): Boolean = !isClosed()
+
+        override fun write(source: ByteBuffer): Int {
+            check(!isClosed()) { "Underlying sink is closed." }
+            return this@asByteChannel.write(source)
+        }
     }
-  }
 }

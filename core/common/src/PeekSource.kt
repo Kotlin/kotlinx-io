@@ -31,45 +31,45 @@ package kotlinx.io
  * invalid and throw [IllegalStateException] on any future reads.
  */
 internal class PeekSource(
-  private val upstream: Source
+    private val upstream: Source
 ) : RawSource {
-  @OptIn(InternalIoApi::class)
-  private val buffer = upstream.buffer
-  private var expectedSegment = buffer.head
-  private var expectedPos = buffer.head?.pos ?: -1
+    @OptIn(InternalIoApi::class)
+    private val buffer = upstream.buffer
+    private var expectedSegment = buffer.head
+    private var expectedPos = buffer.head?.pos ?: -1
 
-  private var closed = false
-  private var pos = 0L
+    private var closed = false
+    private var pos = 0L
 
-  override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-    check(!closed) { "Source is closed." }
-    checkByteCount(byteCount)
-    // Source becomes invalid if there is an expected Segment and it and the expected position
-    // do not match the current head and head position of the upstream buffer
-    check(
-      expectedSegment == null ||
-        expectedSegment === buffer.head && expectedPos == buffer.head!!.pos
-    ) {
-      "Peek source is invalid because upstream source was used"
+    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        check(!closed) { "Source is closed." }
+        checkByteCount(byteCount)
+        // Source becomes invalid if there is an expected Segment and it and the expected position
+        // do not match the current head and head position of the upstream buffer
+        check(
+            expectedSegment == null ||
+                    expectedSegment === buffer.head && expectedPos == buffer.head!!.pos
+        ) {
+            "Peek source is invalid because upstream source was used"
+        }
+        if (byteCount == 0L) return 0L
+        if (!upstream.request(pos + 1)) return -1L
+
+        if (expectedSegment == null && buffer.head != null) {
+            // Only once the buffer actually holds data should an expected Segment and position be
+            // recorded. This allows reads from the peek source to repeatedly return -1 and for data to be
+            // added later. Unit tests depend on this behavior.
+            expectedSegment = buffer.head
+            expectedPos = buffer.head!!.pos
+        }
+
+        val toCopy = minOf(byteCount, buffer.size - pos)
+        buffer.copyTo(sink, pos, pos + toCopy)
+        pos += toCopy
+        return toCopy
     }
-    if (byteCount == 0L) return 0L
-    if (!upstream.request(pos + 1)) return -1L
 
-    if (expectedSegment == null && buffer.head != null) {
-      // Only once the buffer actually holds data should an expected Segment and position be
-      // recorded. This allows reads from the peek source to repeatedly return -1 and for data to be
-      // added later. Unit tests depend on this behavior.
-      expectedSegment = buffer.head
-      expectedPos = buffer.head!!.pos
+    override fun close() {
+        closed = true
     }
-
-    val toCopy = minOf(byteCount, buffer.size - pos)
-    buffer.copyTo(sink, pos, pos + toCopy)
-    pos += toCopy
-    return toCopy
-  }
-
-  override fun close() {
-    closed = true
-  }
 }

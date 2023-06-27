@@ -27,30 +27,30 @@ import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
 
 private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
-  require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
-    "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
-  }
-  if (size < byteCount) {
-    throw EOFException("Buffer contains less bytes then required (byteCount: $byteCount, size: $size)")
-  }
-  if (byteCount == 0L) return ""
+    require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
+        "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
+    }
+    if (size < byteCount) {
+        throw EOFException("Buffer contains less bytes then required (byteCount: $byteCount, size: $size)")
+    }
+    if (byteCount == 0L) return ""
 
-  val s = head!!
-  if (s.pos + byteCount > s.limit) {
-    // If the string spans multiple segments, delegate to readBytes().
-    return String(readByteArray(byteCount.toInt()), charset)
-  }
+    val s = head!!
+    if (s.pos + byteCount > s.limit) {
+        // If the string spans multiple segments, delegate to readBytes().
+        return String(readByteArray(byteCount.toInt()), charset)
+    }
 
-  val result = String(s.data, s.pos, byteCount.toInt(), charset)
-  s.pos += byteCount.toInt()
-  size -= byteCount
+    val result = String(s.data, s.pos, byteCount.toInt(), charset)
+    s.pos += byteCount.toInt()
+    size -= byteCount
 
-  if (s.pos == s.limit) {
-    head = s.pop()
-    SegmentPool.recycle(s)
-  }
+    if (s.pos == s.limit) {
+        head = s.pop()
+        SegmentPool.recycle(s)
+    }
 
-  return result
+    return result
 }
 
 /**
@@ -62,11 +62,11 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readString(charset: Charset): String {
-  var req = 1L
-  while (request(req)) {
-    req *= 2
-  }
-  return buffer.readStringImpl(buffer.size, charset)
+    var req = 1L
+    while (request(req)) {
+        req *= 2
+    }
+    return buffer.readStringImpl(buffer.size, charset)
 }
 
 /**
@@ -81,8 +81,8 @@ public fun Source.readString(charset: Charset): String {
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readString(byteCount: Long, charset: Charset): String {
-  require(byteCount)
-  return buffer.readStringImpl(byteCount, charset)
+    require(byteCount)
+    return buffer.readStringImpl(byteCount, charset)
 }
 
 /**
@@ -90,36 +90,38 @@ public fun Source.readString(byteCount: Long, charset: Charset): String {
  */
 @OptIn(InternalIoApi::class)
 public fun Source.asInputStream(): InputStream {
-  val isClosed: () -> Boolean = when (this) {
-    is RealSource -> this::closed
-    is Buffer -> { { false } }
-  }
-
-  return object : InputStream() {
-    override fun read(): Int {
-      if (isClosed()) throw IOException("Underlying source is closed.")
-      if (exhausted()) {
-        return -1
-      }
-      return readByte() and 0xff
+    val isClosed: () -> Boolean = when (this) {
+        is RealSource -> this::closed
+        is Buffer -> {
+            { false }
+        }
     }
 
-    override fun read(data: ByteArray, offset: Int, byteCount: Int): Int {
-      if (isClosed()) throw IOException("Underlying source is closed.")
-      checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
+    return object : InputStream() {
+        override fun read(): Int {
+            if (isClosed()) throw IOException("Underlying source is closed.")
+            if (exhausted()) {
+                return -1
+            }
+            return readByte() and 0xff
+        }
 
-      return this@asInputStream.readAtMostTo(data, offset, offset + byteCount)
+        override fun read(data: ByteArray, offset: Int, byteCount: Int): Int {
+            if (isClosed()) throw IOException("Underlying source is closed.")
+            checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
+
+            return this@asInputStream.readAtMostTo(data, offset, offset + byteCount)
+        }
+
+        override fun available(): Int {
+            if (isClosed()) throw IOException("Underlying source is closed.")
+            return minOf(buffer.size, Integer.MAX_VALUE).toInt()
+        }
+
+        override fun close() = this@asInputStream.close()
+
+        override fun toString() = "${this@asInputStream}.inputStream()"
     }
-
-    override fun available(): Int {
-      if (isClosed()) throw IOException("Underlying source is closed.")
-      return minOf(buffer.size, Integer.MAX_VALUE).toInt()
-    }
-
-    override fun close() = this@asInputStream.close()
-
-    override fun toString() = "${this@asInputStream}.inputStream()"
-  }
 }
 
 /**
@@ -131,30 +133,32 @@ public fun Source.asInputStream(): InputStream {
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readAtMostTo(sink: ByteBuffer): Int {
-  if (buffer.size == 0L) {
-    request(Segment.SIZE.toLong())
-    if (buffer.size == 0L) return -1
-  }
+    if (buffer.size == 0L) {
+        request(Segment.SIZE.toLong())
+        if (buffer.size == 0L) return -1
+    }
 
-  return buffer.readAtMostTo(sink)
+    return buffer.readAtMostTo(sink)
 }
 
 /**
  * Returns [ReadableByteChannel] backed by this source. Closing the source will close the source.
  */
 public fun Source.asByteChannel(): ReadableByteChannel {
-  val isClosed: () -> Boolean = when (this) {
-    is RealSource -> this::closed
-    is Buffer -> { { false } }
-  }
-
-  return object : ReadableByteChannel {
-    override fun close() {
-      this@asByteChannel.close()
+    val isClosed: () -> Boolean = when (this) {
+        is RealSource -> this::closed
+        is Buffer -> {
+            { false }
+        }
     }
 
-    override fun isOpen(): Boolean = !isClosed()
+    return object : ReadableByteChannel {
+        override fun close() {
+            this@asByteChannel.close()
+        }
 
-    override fun read(sink: ByteBuffer): Int = this@asByteChannel.readAtMostTo(sink)
-  }
+        override fun isOpen(): Boolean = !isClosed()
+
+        override fun read(sink: ByteBuffer): Int = this@asByteChannel.readAtMostTo(sink)
+    }
 }

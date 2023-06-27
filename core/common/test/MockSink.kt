@@ -25,39 +25,39 @@ import kotlin.test.assertTrue
 
 /** A scriptable sink. Like Mockito, but worse and requiring less configuration.  */
 class MockSink : RawSink {
-  private val log = mutableListOf<String>()
-  private val callThrows = mutableMapOf<Int, IOException>()
+    private val log = mutableListOf<String>()
+    private val callThrows = mutableMapOf<Int, IOException>()
 
-  fun assertLog(vararg messages: String) {
-    assertEquals(messages.toList(), log)
-  }
+    fun assertLog(vararg messages: String) {
+        assertEquals(messages.toList(), log)
+    }
 
-  fun assertLogContains(message: String) {
-    assertTrue(message in log)
-  }
+    fun assertLogContains(message: String) {
+        assertTrue(message in log)
+    }
 
-  fun scheduleThrow(call: Int, e: IOException) {
-    callThrows[call] = e
-  }
+    fun scheduleThrow(call: Int, e: IOException) {
+        callThrows[call] = e
+    }
 
-  private fun throwIfScheduled() {
-    val exception = callThrows[log.size - 1]
-    if (exception != null) throw exception
-  }
+    private fun throwIfScheduled() {
+        val exception = callThrows[log.size - 1]
+        if (exception != null) throw exception
+    }
 
-  override fun write(source: Buffer, byteCount: Long) {
-    log.add("write($source, $byteCount)")
-    source.skip(byteCount)
-    throwIfScheduled()
-  }
+    override fun write(source: Buffer, byteCount: Long) {
+        log.add("write($source, $byteCount)")
+        source.skip(byteCount)
+        throwIfScheduled()
+    }
 
-  override fun flush() {
-    log.add("flush()")
-    throwIfScheduled()
-  }
+    override fun flush() {
+        log.add("flush()")
+        throwIfScheduled()
+    }
 
-  override fun close() {
-    log.add("close()")
-    throwIfScheduled()
-  }
+    override fun close() {
+        log.add("close()")
+        throwIfScheduled()
+    }
 }

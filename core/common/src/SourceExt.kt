@@ -64,10 +64,12 @@ public fun Source.readDecimalLong(): Long {
             negative = true
             overflowDigit--
         }
+
         in '0'.code..'9'.code -> {
             value = ('0'.code - b).toLong()
             seen = 1
         }
+
         else -> {
             throw NumberFormatException("Expected a digit or '-' but was 0x${b.toHexString()}")
         }
@@ -169,8 +171,11 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
  */
 public fun Source.indexOf(byte: Byte, startIndex: Long = 0L, endIndex: Long = Long.MAX_VALUE): Long {
     require(startIndex in 0..endIndex) {
-        if (endIndex < 0) { "startIndex ($startIndex) and endIndex ($endIndex) should be non negative" }
-        else { "startIndex ($startIndex) is not within the range [0..endIndex($endIndex))" }
+        if (endIndex < 0) {
+            "startIndex ($startIndex) and endIndex ($endIndex) should be non negative"
+        } else {
+            "startIndex ($startIndex) is not within the range [0..endIndex($endIndex))"
+        }
     }
     if (startIndex == endIndex) return -1L
 
@@ -194,7 +199,7 @@ public fun Source.indexOf(byte: Byte, startIndex: Long = 0L, endIndex: Long = Lo
  * @throws IllegalStateException when the source is closed.
  */
 public fun Source.readByteArray(): ByteArray {
-    return readByteArrayImpl( -1)
+    return readByteArrayImpl(-1)
 }
 
 /**
@@ -219,7 +224,7 @@ private fun Source.readByteArrayImpl(size: Int): ByteArray {
         while (buffer.size < Int.MAX_VALUE && request(fetchSize)) {
             fetchSize *= 2
         }
-        check (buffer.size < Int.MAX_VALUE) { "Can't create an array of size ${buffer.size}" }
+        check(buffer.size < Int.MAX_VALUE) { "Can't create an array of size ${buffer.size}" }
         arraySize = buffer.size.toInt()
     } else {
         require(size.toLong())
@@ -249,8 +254,10 @@ public fun Source.readTo(sink: ByteArray, startIndex: Int = 0, endIndex: Int = s
     while (offset < endIndex) {
         val bytesRead = readAtMostTo(sink, offset, endIndex)
         if (bytesRead == -1) {
-            throw EOFException("Source exhausted before reading ${endIndex - startIndex} bytes. " +
-                    "Only $bytesRead bytes were read.")
+            throw EOFException(
+                "Source exhausted before reading ${endIndex - startIndex} bytes. " +
+                        "Only $bytesRead bytes were read."
+            )
         }
         offset += bytesRead
     }

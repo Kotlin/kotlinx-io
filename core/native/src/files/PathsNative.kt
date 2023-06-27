@@ -13,8 +13,10 @@ import platform.posix.*
  * The very base skeleton just to play around
  */
 
-public actual class Path internal constructor(internal val path: String,
-                                              @Suppress("UNUSED_PARAMETER") any: Any?)
+public actual class Path internal constructor(
+    internal val path: String,
+    @Suppress("UNUSED_PARAMETER") any: Any?
+)
 
 public actual fun Path(path: String): Path = Path(path, null)
 

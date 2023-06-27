@@ -25,17 +25,17 @@ package kotlinx.io
  * This pool is a thread-safe static singleton.
  */
 internal expect object SegmentPool {
-  val MAX_SIZE: Int
+    val MAX_SIZE: Int
 
-  /**
-   * For testing only. Returns a snapshot of the number of bytes currently in the pool. If the pool
-   * is segmented such as by thread, this returns the byte count accessible to the calling thread.
-   */
-  val byteCount: Int
+    /**
+     * For testing only. Returns a snapshot of the number of bytes currently in the pool. If the pool
+     * is segmented such as by thread, this returns the byte count accessible to the calling thread.
+     */
+    val byteCount: Int
 
-  /** Return a segment for the caller's use. */
-  fun take(): Segment
+    /** Return a segment for the caller's use. */
+    fun take(): Segment
 
-  /** Recycle a segment that the caller no longer needs. */
-  fun recycle(segment: Segment)
+    /** Recycle a segment that the caller no longer needs. */
+    fun recycle(segment: Segment)
 }

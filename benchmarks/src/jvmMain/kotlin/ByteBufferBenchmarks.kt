@@ -12,7 +12,7 @@ import kotlinx.io.readAtMostTo
 import kotlinx.io.write
 import java.nio.ByteBuffer
 
-open class ByteBufferReadWrite: BufferRWBenchmarkBase() {
+open class ByteBufferReadWrite : BufferRWBenchmarkBase() {
     private var inputBuffer = ByteBuffer.allocate(0)
     private var outputBuffer = ByteBuffer.allocate(0)
 
