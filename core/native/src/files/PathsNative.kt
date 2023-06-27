@@ -19,13 +19,13 @@ public actual class Path internal constructor(internal val path: String,
 public actual fun Path(path: String): Path = Path(path, null)
 
 public actual fun Path.source(): Source {
-    val openFile: CPointer<FILE> = fopen(path, "r")
+    val openFile: CPointer<FILE> = fopen(path, "rb")
         ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
     return FileSource(openFile).buffered()
 }
 
 public actual fun Path.sink(): Sink {
-    val openFile: CPointer<FILE> = fopen(path, "w")
+    val openFile: CPointer<FILE> = fopen(path, "wb")
         ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
     return FileSink(openFile).buffered()
 }

@@ -20,6 +20,24 @@ kotlin {
         }
     }
 
+    js(IR) {
+        nodejs {
+            testTask {
+                useMocha {
+                    timeout = "30s"
+                }
+            }
+        }
+        browser {
+            testTask {
+                filter.setExcludePatterns("*SmokeFileTest*")
+                useMocha {
+                    timeout = "30s"
+                }
+            }
+        }
+    }
+
     configureNativePlatforms()
     sourceSets {
         val commonMain by getting
