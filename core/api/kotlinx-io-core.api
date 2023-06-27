@@ -165,16 +165,11 @@ public final class kotlinx/io/Utf8Kt {
 	public static final fun readUtf8 (Lkotlinx/io/Buffer;)Ljava/lang/String;
 	public static final fun readUtf8 (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun readUtf8 (Lkotlinx/io/Source;J)Ljava/lang/String;
-	public static final fun readUtf8CodePoint (Lkotlinx/io/Buffer;)I
-	public static final fun readUtf8CodePoint (Lkotlinx/io/Source;)I
 	public static final fun readUtf8Line (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun readUtf8LineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
 	public static synthetic fun readUtf8LineStrict$default (Lkotlinx/io/Source;JILjava/lang/Object;)Ljava/lang/String;
-	public static final fun utf8Size (Ljava/lang/String;II)J
-	public static synthetic fun utf8Size$default (Ljava/lang/String;IIILjava/lang/Object;)J
 	public static final fun writeUtf8 (Lkotlinx/io/Sink;Ljava/lang/String;II)V
 	public static synthetic fun writeUtf8$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
-	public static final fun writeUtf8CodePoint (Lkotlinx/io/Sink;I)V
 }
 
 public final class kotlinx/io/files/Path {

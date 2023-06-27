@@ -80,7 +80,7 @@ import kotlinx.io.internal.*
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of string indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  */
-public fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long {
+internal fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long {
   checkBounds(length, startIndex, endIndex)
 
   var result = 0L
@@ -125,7 +125,7 @@ public fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long {
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
+internal fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
   writeToInternalBuffer { it.commonWriteUtf8CodePoint(codePoint) }
 
 /**
@@ -199,7 +199,7 @@ public fun Source.readUtf8(byteCount: Long): String {
  * @throws IllegalStateException when the source is closed.
  */
 @OptIn(InternalIoApi::class)
-public fun Source.readUtf8CodePoint(): Int {
+internal fun Source.readUtf8CodePoint(): Int {
   require(1)
 
   val b0 = buffer[0].toInt()
@@ -215,7 +215,7 @@ public fun Source.readUtf8CodePoint(): Int {
 /**
  * @see Source.readUtf8CodePoint
  */
-public fun Buffer.readUtf8CodePoint(): Int {
+internal fun Buffer.readUtf8CodePoint(): Int {
   return this.commonReadUtf8CodePoint()
 }
 

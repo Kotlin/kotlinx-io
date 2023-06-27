@@ -142,29 +142,6 @@ open class HexadecimalLongBenchmark: BufferRWBenchmarkBase() {
     }
 }
 
-open class Utf8CodePointBenchmark: BufferRWBenchmarkBase() {
-    @Param("1", "2", "3")
-    var bytes: Int = 0
-
-    private var codePoint: Int = 0
-
-    @Setup
-    fun setupCodePoints() {
-        codePoint = when (bytes) {
-            1 -> 'a'.code
-            2 -> 'ɐ'.code
-            3 -> 'ა'.code
-            else -> throw IllegalArgumentException()
-        }
-    }
-
-    @Benchmark
-    fun benchmark(): Int {
-        buffer.writeUtf8CodePoint(codePoint)
-        return buffer.readUtf8CodePoint()
-    }
-}
-
 // This benchmark is based on Okio benchmark:
 // https://raw.githubusercontent.com/square/okio/master/okio/jvm/jmh/src/jmh/java/com/squareup/okio/benchmarks/BufferUtf8Benchmark.java
 open class Utf8StringBenchmark: BufferRWBenchmarkBase() {
@@ -217,8 +194,9 @@ open class Utf8StringBenchmark: BufferRWBenchmarkBase() {
 
     override fun padding(): ByteArray {
         val baseString = constructString()
-        if (baseString.utf8Size() >= minGap) {
-            return baseString.encodeToByteArray()
+        val baseStringByteArray = baseString.encodeToByteArray()
+        if (baseStringByteArray.size >= minGap) {
+            return baseStringByteArray
         }
         val builder = StringBuilder((minGap * 1.5).toInt())
         while (builder.length < minGap) {
