@@ -26,10 +26,12 @@ public object UnsafeByteStringOperations {
     public fun wrapUnsafe(array: ByteArray): ByteString = ByteString.wrap(array)
 
     /**
-     * Returns a reference to the underlying array.
+     * Applies [block] to a reference to the underlying array.
      *
-     * These methods return reference to the underlying array, not to its copy.
+     * This method invokes [block] on a reference to the underlying array, not to its copy.
      * Consider using [ByteString.toByteArray] if it's impossible to guarantee that the array won't be modified.
      */
-    public fun getByteArrayUnsafe(byteString: ByteString): ByteArray = byteString.getBackingArrayReference()
+    public fun withByteArrayUnsafe(byteString: ByteString, block: (ByteArray) -> Unit) {
+        block(byteString.getBackingArrayReference())
+    }
 }

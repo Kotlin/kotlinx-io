@@ -39,7 +39,7 @@ public final class kotlinx/io/bytestring/ByteStringBuilderKt {
 	public static final fun append (Lkotlinx/io/bytestring/ByteStringBuilder;[B)V
 	public static final fun append-EK-6454 (Lkotlinx/io/bytestring/ByteStringBuilder;B)V
 	public static final fun buildByteString (ILkotlin/jvm/functions/Function1;)Lkotlinx/io/bytestring/ByteString;
-	public static final fun buildByteString (Lkotlin/jvm/functions/Function1;)Lkotlinx/io/bytestring/ByteString;
+	public static synthetic fun buildByteString$default (ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/io/bytestring/ByteString;
 }
 
 public final class kotlinx/io/bytestring/ByteStringJvmExtKt {
@@ -53,13 +53,13 @@ public final class kotlinx/io/bytestring/ByteStringKt {
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
 	public static final fun fromUtf8String (Lkotlinx/io/bytestring/ByteString$Companion;Ljava/lang/String;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun getIndices (Lkotlinx/io/bytestring/ByteString;)Lkotlin/ranges/IntRange;
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;BI)I
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;I)I
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;[BI)I
 	public static synthetic fun indexOf$default (Lkotlinx/io/bytestring/ByteString;BIILjava/lang/Object;)I
 	public static synthetic fun indexOf$default (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;IILjava/lang/Object;)I
 	public static synthetic fun indexOf$default (Lkotlinx/io/bytestring/ByteString;[BIILjava/lang/Object;)I
-	public static final fun indices (Lkotlinx/io/bytestring/ByteString;)Lkotlin/ranges/IntRange;
 	public static final fun isEmpty (Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun isNotEmpty (Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun lastIndexOf (Lkotlinx/io/bytestring/ByteString;BI)I
@@ -78,7 +78,7 @@ public abstract interface annotation class kotlinx/io/bytestring/unsafe/UnsafeBy
 
 public final class kotlinx/io/bytestring/unsafe/UnsafeByteStringOperations {
 	public static final field INSTANCE Lkotlinx/io/bytestring/unsafe/UnsafeByteStringOperations;
-	public final fun getByteArrayUnsafe (Lkotlinx/io/bytestring/ByteString;)[B
+	public final fun withByteArrayUnsafe (Lkotlinx/io/bytestring/ByteString;Lkotlin/jvm/functions/Function1;)V
 	public final fun wrapUnsafe ([B)Lkotlinx/io/bytestring/ByteString;
 }
 

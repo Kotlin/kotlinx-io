@@ -155,8 +155,8 @@ class ByteStringTest {
 
     @Test
     fun indices() {
-        assertEquals(0 until 10, ByteString(ByteArray(10)).indices())
-        assertTrue(ByteString().indices().isEmpty())
+        assertEquals(0 until 10, ByteString(ByteArray(10)).indices)
+        assertTrue(ByteString().indices.isEmpty())
     }
 
     @Test
@@ -176,7 +176,7 @@ class ByteStringTest {
     @Test
     fun indexOfByte() {
         val str = ByteString(1, 2, 3, 4)
-        for (idx in str.indices()) {
+        for (idx in str.indices) {
             assertEquals(idx, str.indexOf(str[idx]))
         }
 
@@ -247,7 +247,7 @@ class ByteStringTest {
     @Test
     fun lastIndexOfByte() {
         val str = ByteString(1, 2, 3, 4)
-        for (idx in str.indices()) {
+        for (idx in str.indices) {
             assertEquals(idx, str.lastIndexOf(str[idx]))
         }
 

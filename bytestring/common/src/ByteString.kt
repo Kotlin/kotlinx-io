@@ -228,7 +228,8 @@ public class ByteString private constructor(
 /**
  * Returns the range of valid byte indices for this byte string.
  */
-public fun ByteString.indices(): IntRange = 0 until size
+public val ByteString.indices: IntRange
+    get() = 0 until size
 
 /**
  * Returns the index within this byte string of the first occurrence of the specified [byte],

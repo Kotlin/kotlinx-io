@@ -114,18 +114,11 @@ public fun ByteStringBuilder.append(byteString: ByteString) {
  */
 public fun ByteStringBuilder.append(vararg bytes: Byte): Unit = append(bytes)
 
-/**
- * Builds new string by populating newly created [ByteStringBuilder] using provided [builderAction]
- * and then converting it to [ByteString].
- */
-public inline fun buildByteString(builderAction: ByteStringBuilder.() -> Unit): ByteString {
-    return ByteStringBuilder().apply(builderAction).toByteString()
-}
 
 /**
  * Builds new byte string by populating newly created [ByteStringBuilder] initialized with the given [capacity]
  * using provided [builderAction] and then converting it to [ByteString].
  */
-public inline fun buildByteString(capacity: Int, builderAction: ByteStringBuilder.() -> Unit): ByteString {
+public inline fun buildByteString(capacity: Int = 0, builderAction: ByteStringBuilder.() -> Unit): ByteString {
     return ByteStringBuilder(capacity).apply(builderAction).toByteString()
 }

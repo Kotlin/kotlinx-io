@@ -101,7 +101,7 @@ public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
         }
 
         var matches = true
-        for (idx in byteString.indices()) {
+        for (idx in byteString.indices) {
             if (byteString[idx] != peek.buffer[idx.toLong()]) {
                 matches = false
                 offset++
