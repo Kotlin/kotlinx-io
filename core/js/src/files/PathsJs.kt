@@ -25,7 +25,8 @@ private val buffer: dynamic
         }
     }
 
-public actual class Path internal constructor(private val path: String, any: Any?) {
+public actual class Path internal constructor(private val path: String,
+                                              @Suppress("UNUSED_PARAMETER") any: Any?) {
     override fun toString(): String = path
 }
 

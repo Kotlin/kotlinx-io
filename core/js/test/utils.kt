@@ -41,7 +41,7 @@ actual fun createTempFile(): String {
         val filename = Random.nextULong().toString()
         val fullpath = "$tmpdir${nodePath.sep}$filename.txt"
 
-        if (fs.existsSync(fullpath)) {
+        if (fs.existsSync(fullpath) as Boolean) {
             continue
         }
         return fullpath
@@ -49,7 +49,7 @@ actual fun createTempFile(): String {
 }
 
 actual fun deleteFile(path: String) {
-    if (!fs.existsSync(path)) {
+    if (!fs.existsSync(path) as Boolean) {
         throw IOException("File does not exist: $path")
     }
     fs.rmSync(path)
