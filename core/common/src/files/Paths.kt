@@ -11,6 +11,8 @@ import kotlinx.io.Source
 /**
  * A wrapper around a string representing a file path allowing to read from and write to a
  * corresponding file using [Sink] and [Source].
+ *
+ * **This API is unstable and subject to change.**
  */
 public expect class Path
 
