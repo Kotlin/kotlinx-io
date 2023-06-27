@@ -19,21 +19,36 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package kotlinx.io
 
-import kotlin.native.concurrent.SharedImmutable
-
-@SharedImmutable
 internal val HEX_DIGIT_CHARS =
   charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 
 internal fun checkOffsetAndCount(size: Long, offset: Long, byteCount: Long) {
-  if (offset or byteCount < 0 || offset > size || size - offset < byteCount) {
-    throw ArrayIndexOutOfBoundsException("size=$size offset=$offset byteCount=$byteCount")
+  if (offset < 0 || offset > size || size - offset < byteCount || byteCount < 0) {
+    throw IllegalArgumentException(
+      "offset ($offset) and byteCount ($byteCount) are not within the range [0..size($size))")
   }
 }
 
-/* ktlint-disable no-multi-spaces indent */
+internal inline fun checkBounds(size: Int, startIndex: Int, endIndex: Int) =
+  checkBounds(size.toLong(), startIndex.toLong(), endIndex.toLong())
+
+internal fun checkBounds(size: Long, startIndex: Long, endIndex: Long) {
+  if (startIndex < 0 || endIndex > size) {
+    throw IndexOutOfBoundsException(
+      "startIndex ($startIndex) and endIndex ($endIndex) are not within the range [0..size($size))")
+  }
+  if (startIndex > endIndex) {
+    throw IllegalArgumentException("startIndex ($startIndex) > endIndex ($endIndex)")
+  }
+}
+
+internal inline fun checkByteCount(byteCount: Long) {
+  require(byteCount >= 0) { "byteCount ($byteCount) < 0" }
+}
 
 internal fun Short.reverseBytes(): Short {
   val i = toInt() and 0xffff
@@ -70,42 +85,29 @@ internal inline infix fun Long.rightRotate(bitCount: Int): Long {
   return (this ushr bitCount) or (this shl (64 - bitCount))
 }
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Byte.shr(other: Int): Int = toInt() shr other
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Byte.shl(other: Int): Int = toInt() shl other
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Byte.and(other: Int): Int = toInt() and other
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Byte.and(other: Long): Long = toLong() and other
 
-@Suppress("NOTHING_TO_INLINE") // Pending `kotlin.experimental.xor` becoming stable
+// Pending `kotlin.experimental.xor` becoming stable
 internal inline infix fun Byte.xor(other: Byte): Byte = (toInt() xor other.toInt()).toByte()
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline infix fun Int.and(other: Long): Long = toLong() and other
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline fun minOf(a: Long, b: Int): Long = minOf(a, b.toLong())
 
-@Suppress("NOTHING_TO_INLINE") // Syntactic sugar.
+// Syntactic sugar.
 internal inline fun minOf(a: Int, b: Long): Long = minOf(a.toLong(), b)
-
-internal fun arrayRangeEquals(
-  a: ByteArray,
-  aOffset: Int,
-  b: ByteArray,
-  bOffset: Int,
-  byteCount: Int
-): Boolean {
-  for (i in 0 until byteCount) {
-    if (a[i + aOffset] != b[i + bOffset]) return false
-  }
-  return true
-}
 
 internal fun Byte.toHexString(): String {
   val result = CharArray(2)
@@ -166,27 +168,4 @@ internal fun Long.toHexString(): String {
   }
 
   return result.concatToString(i, result.size)
-}
-
-// Work around a problem where Kotlin/JS IR can't handle default parameters on expect functions
-// that depend on the receiver. We use well-known, otherwise-impossible values here and must check
-// for them in the receiving function, then swap in the true default value.
-// https://youtrack.jetbrains.com/issue/KT-45542
-
-@SharedImmutable
-internal val DEFAULT__new_UnsafeCursor = Buffer.UnsafeCursor()
-internal fun resolveDefaultParameter(unsafeCursor: Buffer.UnsafeCursor): Buffer.UnsafeCursor {
-  if (unsafeCursor === DEFAULT__new_UnsafeCursor) return Buffer.UnsafeCursor()
-  return unsafeCursor
-}
-
-internal val DEFAULT__ByteString_size = -1234567890
-internal fun ByteString.resolveDefaultParameter(position: Int): Int {
-  if (position == DEFAULT__ByteString_size) return size
-  return position
-}
-
-internal fun ByteArray.resolveDefaultParameter(sizeParam: Int): Int {
-  if (sizeParam == DEFAULT__ByteString_size) return size
-  return sizeParam
 }

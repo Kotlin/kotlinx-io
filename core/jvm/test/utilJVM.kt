@@ -4,7 +4,10 @@
  */
 package kotlinx.io
 
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 actual fun createTempFile(): String = Files.createTempFile(null, null).toString()
 
@@ -13,4 +16,12 @@ actual fun deleteFile(path: String) {
         throw IllegalArgumentException("Path is not a file: $path.")
     }
     Files.delete(Paths.get(path))
+}
+
+fun assertNoEmptySegments(buffer: Buffer) {
+    assertTrue(segmentSizes(buffer).all { it != 0 }, "Expected all segments to be non-empty")
+}
+
+fun assertByteArrayEquals(expectedUtf8: String, b: ByteArray) {
+    assertEquals(expectedUtf8, b.toString(Charsets.UTF_8))
 }

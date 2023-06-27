@@ -20,32 +20,15 @@
  */
 package kotlinx.io
 
-import kotlinx.io.internal.*
-
-internal actual fun ByteArray.toUtf8String(): String = commonToUtf8String()
+import kotlinx.io.internal.commonAsUtf8ToByteArray
 
 internal actual fun String.asUtf8ToByteArray(): ByteArray = commonAsUtf8ToByteArray()
 
-actual open class ArrayIndexOutOfBoundsException actual constructor(
-  message: String?
-) : IndexOutOfBoundsException(message)
-
-internal actual inline fun <R> synchronized(lock: Any, block: () -> R): R = block()
-
-actual open class IOException actual constructor(
+public actual open class IOException actual constructor(
   message: String?,
   cause: Throwable?
 ) : Exception(message, cause) {
-  actual constructor(message: String?) : this(message, null)
+  public actual constructor(message: String?) : this(message, null)
 }
 
-actual class ProtocolException actual constructor(message: String) : IOException(message)
-
-actual open class EOFException actual constructor(message: String?) : IOException(message)
-
-actual open class FileNotFoundException actual constructor(message: String?) : IOException(message)
-
-actual interface Closeable {
-  @Throws(IOException::class)
-  actual fun close()
-}
+public actual open class EOFException actual constructor(message: String?) : IOException(message)

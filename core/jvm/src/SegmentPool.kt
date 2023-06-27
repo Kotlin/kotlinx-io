@@ -126,6 +126,7 @@ internal actual object SegmentPool {
 
   private fun firstRef(): AtomicReference<Segment?> {
     // Get a value in [0..HASH_BUCKET_COUNT) based on the current thread.
+    @Suppress("DEPRECATION") // TODO: switch to threadId after JDK19
     val hashBucket = (Thread.currentThread().id and (HASH_BUCKET_COUNT - 1L)).toInt()
     return hashBuckets[hashBucket]
   }

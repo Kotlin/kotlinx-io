@@ -5,30 +5,29 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.*
 import kotlinx.cinterop.*
+import kotlinx.io.*
 import platform.posix.*
 
 /*
  * The very base skeleton just to play around
  */
 
-public actual class Path internal constructor(internal val path: String, any: Any?) {
-
-}
+public actual class Path internal constructor(internal val path: String,
+                                              @Suppress("UNUSED_PARAMETER") any: Any?)
 
 public actual fun Path(path: String): Path = Path(path, null)
 
 public actual fun Path.source(): Source {
     val openFile: CPointer<FILE> = fopen(path, "r")
         ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
-    return FileSource(openFile).buffer()
+    return FileSource(openFile).buffered()
 }
 
 public actual fun Path.sink(): Sink {
     val openFile: CPointer<FILE> = fopen(path, "w")
         ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
-    return FileSink(openFile).buffer()
+    return FileSink(openFile).buffered()
 }
 
 internal class FileSource(
@@ -36,7 +35,7 @@ internal class FileSource(
 ) : RawSource {
     private var closed = false
 
-    override fun read(
+    override fun readAtMostTo(
         sink: Buffer,
         byteCount: Long
     ): Long {
@@ -57,10 +56,6 @@ internal class FileSource(
         }
     }
 
-    override fun cancel() {
-        // Not cancelable.
-    }
-
     override fun close() {
         if (closed) return
         closed = true
@@ -73,14 +68,14 @@ internal fun variantFread(
     target: CPointer<ByteVarOf<Byte>>,
     byteCount: UInt,
     file: CPointer<FILE>
-): UInt = fread(target, 1, byteCount.convert(), file).convert()
+): UInt = fread(target, 1u, byteCount.convert(), file).convert()
 
 @OptIn(UnsafeNumber::class)
 internal fun variantFwrite(
     source: CPointer<ByteVar>,
     byteCount: UInt,
     file: CPointer<FILE>
-): UInt = fwrite(source, 1, byteCount.convert(), file).convert()
+): UInt = fwrite(source, 1u, byteCount.convert(), file).convert()
 
 internal class FileSink(
     private val file: CPointer<FILE>
@@ -91,11 +86,11 @@ internal class FileSink(
         source: Buffer,
         byteCount: Long
     ) {
-        require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
+        require(byteCount >= 0L) { "byteCount: $byteCount" }
         require(source.size >= byteCount) { "source.size=${source.size} < byteCount=$byteCount" }
         check(!closed) { "closed" }
 
-        val allContent = source.readByteArray(byteCount)
+        val allContent = source.readByteArray(byteCount.toInt())
         // Copy bytes from that segment into the file.
         val bytesWritten = allContent.usePinned { pinned ->
             variantFwrite(pinned.addressOf(0), byteCount.toUInt(), file).toLong()
@@ -109,10 +104,6 @@ internal class FileSink(
         if (fflush(file) != 0) {
             throw IOException(errno.toString())
         }
-    }
-
-    override fun cancel() {
-        // Not cancelable.
     }
 
     override fun close() {

@@ -20,7 +20,7 @@
  */
 package kotlinx.io
 
-import kotlin.random.Random
+import kotlin.test.assertEquals
 
 fun segmentSizes(buffer: Buffer): List<Int> {
   var segment = buffer.head ?: return emptyList()
@@ -34,74 +34,36 @@ fun segmentSizes(buffer: Buffer): List<Int> {
   return sizes
 }
 
-fun bufferWithRandomSegmentLayout(dice: Random, data: ByteArray): Buffer {
-  val result = Buffer()
-
-  // Writing to result directly will yield packed segments. Instead, write to
-  // other buffers, then write those buffers to result.
-  var pos = 0
-  var byteCount: Int
-  while (pos < data.size) {
-    byteCount = Segment.SIZE / 2 + dice.nextInt(Segment.SIZE / 2)
-    if (byteCount > data.size - pos) byteCount = data.size - pos
-    val offset = dice.nextInt(Segment.SIZE - byteCount)
-
-    val segment = Buffer()
-    segment.write(ByteArray(offset))
-    segment.write(data, pos, byteCount)
-    segment.skip(offset.toLong())
-
-    result.write(segment, byteCount.toLong())
-    pos += byteCount
-  }
-
-  return result
-}
-
-fun bufferWithSegments(vararg segments: String): Buffer {
-  val result = Buffer()
-  for (s in segments) {
-    val offsetInSegment = if (s.length < Segment.SIZE) (Segment.SIZE - s.length) / 2 else 0
-    val buffer = Buffer()
-    buffer.writeUtf8('_'.repeat(offsetInSegment))
-    buffer.writeUtf8(s)
-    buffer.skip(offsetInSegment.toLong())
-    result.write(buffer.copyTo(Buffer()), buffer.size)
-  }
-  return result
-}
-
-//fun makeSegments(source: ByteString): ByteString {
-//  val buffer = Buffer()
-//  for (i in 0 until source.size) {
-//    val segment = buffer.writableSegment(Segment.SIZE)
-//    segment.data[segment.pos] = source[i]
-//    segment.limit++
-//    buffer.size++
-//  }
-//  return buffer.snapshot()
-//}
-//
-///**
-// * Returns a string with all '\' slashes replaced with '/' slashes. This is useful for test
-// * assertions that intend to ignore slashes.
-// */
-//fun Path.withUnixSlashes(): String {
-//  return toString().replace('\\', '/')
-//}
-//
-//expect fun assertRelativeTo(
-//  a: Path,
-//  b: Path,
-//  bRelativeToA: Path,
-//  sameAsNio: Boolean = true,
-//)
-//
-//expect fun assertRelativeToFails(
-//  a: Path,
-//  b: Path,
-//  sameAsNio: Boolean = true,
-//): IllegalArgumentException
-
 expect fun createTempFile(): String
 expect fun deleteFile(path: String)
+
+private fun fromHexChar(char: Char): Int {
+  val code = char.code
+  return when (code) {
+    in '0'.code..'9'.code -> code - '0'.code
+    in 'a'.code..'f'.code -> code - 'a'.code + 10
+    in 'A'.code..'F'.code -> code - 'A'.code + 10
+    else -> throw NumberFormatException("Not a hexadecimal digit: $char")
+  }
+}
+
+fun String.decodeHex(): ByteArray {
+  if (length % 2 != 0) throw IllegalArgumentException("Even number of bytes is expected.")
+
+  val result = ByteArray(length / 2)
+
+  for (idx in result.indices) {
+    val byte = fromHexChar(this[idx * 2]).shl(4).or(fromHexChar(this[idx * 2 + 1]))
+    result[idx] = byte.toByte()
+  }
+
+  return result
+}
+
+fun Char.repeat(count: Int): String {
+  return toString().repeat(count)
+}
+
+fun assertArrayEquals(a: ByteArray, b: ByteArray) {
+  assertEquals(a.contentToString(), b.contentToString())
+}

@@ -21,54 +21,40 @@
 package kotlinx.io
 
 /**
- * Receives a stream of bytes. Use this interface to write data wherever it's needed: to the
- * network, storage, or a buffer in memory. Sinks may be layered to transform received data, such as
- * to compress, encrypt, throttle, or add protocol framing.
+ * Receives a stream of bytes. RawSink is a base interface for `kotlinx-io` data receivers.
  *
- * Most application code shouldn't operate on a sink directly, but rather on a [Sink] which
- * is both more efficient and more convenient. Use [buffer] to wrap any sink with a buffer.
+ * This interface should be implemented to write data wherever it's needed: to the network, storage,
+ * or a buffer in memory. Sinks may be layered to transform received data, such as to compress, encrypt, throttle,
+ * or add protocol framing.
  *
- * Sinks are easy to test: just use a [Buffer] in your tests, and read from it to confirm it
- * received the data that was expected.
+ * Most application code shouldn't operate on a raw sink directly, but rather on a buffered [Sink] which
+ * is both more efficient and more convenient. Use [buffered] to wrap any raw sink with a buffer.
  *
- * ### Comparison with OutputStream
- *
- * This interface is functionally equivalent to [java.io.OutputStream].
- *
- * `OutputStream` requires multiple layers when emitted data is heterogeneous: a `DataOutputStream`
- * for primitive values, a `BufferedOutputStream` for buffering, and `OutputStreamWriter` for
- * charset encoding. This library uses `BufferedSink` for all of the above.
- *
- * RawSink is also easier to layer: there is no [write()][java.io.OutputStream.write] method that is
- * awkward to implement efficiently.
- *
- * ### Interop with OutputStream
- *
- * Use [sink] to adapt an `OutputStream` to a sink. Use [outputStream()][Sink.outputStream]
- * to adapt a sink to an `OutputStream`.
+ * Implementors should abstain from throwing exceptions other than those that are documented for RawSink methods.
  */
-expect interface RawSink : Closeable {
-  /** Removes `byteCount` bytes from `source` and appends them to this.  */
-  @Throws(IOException::class)
-  fun write(source: Buffer, byteCount: Long)
-
-  /** Pushes all buffered bytes to their final destination.  */
-  @Throws(IOException::class)
-  fun flush()
+@OptIn(ExperimentalStdlibApi::class)
+public expect interface RawSink : AutoCloseableAlias {
+  /**
+   * Removes [byteCount] bytes from [source] and appends them to this sink.
+   *
+   * @param source the source to read data from.
+   * @param byteCount the number of bytes to write.
+   *
+   * @throws IllegalArgumentException when the [source]'s size is below [byteCount] or [byteCount] is negative.
+   * @throws IllegalStateException when the sink is closed.
+   */
+  public fun write(source: Buffer, byteCount: Long)
 
   /**
-   * Asynchronously cancel this source. Any [write] or [flush] in flight should immediately fail
-   * with an [IOException], and any future writes and flushes should also immediately fail with an
-   * [IOException].
+   * Pushes all buffered bytes to their final destination.
    *
-   * Note that it is always necessary to call [close] on a sink, even if it has been canceled.
+   * @throws IllegalStateException when the sink is closed.
    */
-  fun cancel()
+  public fun flush()
 
   /**
    * Pushes all buffered bytes to their final destination and releases the resources held by this
    * sink. It is an error to write a closed sink. It is safe to close a sink more than once.
    */
-  @Throws(IOException::class)
   override fun close()
 }

@@ -16,11 +16,11 @@ actual fun createTempFile(): String {
     if (path.toKString() == "") {
         val tmpDir = getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: ""
         val rnd = Random(getTimeMillis())
-        var path: String
+        var manuallyConstructedPath: String
         do {
-            path = "$tmpDir/tmp-${rnd.nextInt()}"
-        } while (access(path, F_OK) == 0)
-        return path
+            manuallyConstructedPath = "$tmpDir/tmp-${rnd.nextInt()}"
+        } while (access(manuallyConstructedPath, F_OK) == 0)
+        return manuallyConstructedPath
     }
     return path.toKString()
 }

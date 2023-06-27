@@ -5,9 +5,12 @@
 
 package kotlinx.io.benchmarks
 
+import kotlinx.benchmark.Benchmark
+import kotlinx.benchmark.Param
+import kotlinx.benchmark.Setup
+import kotlinx.io.readAtMostTo
+import kotlinx.io.write
 import java.nio.ByteBuffer
-
-import kotlinx.benchmark.*
 
 open class ByteBufferReadWrite: BufferRWBenchmarkBase() {
     private var inputBuffer = ByteBuffer.allocate(0)
@@ -28,7 +31,7 @@ open class ByteBufferReadWrite: BufferRWBenchmarkBase() {
         inputBuffer.rewind()
         outputBuffer.clear()
         buffer.write(inputBuffer)
-        while (buffer.read(outputBuffer) > 0) {
+        while (buffer.readAtMostTo(outputBuffer) > 0) {
             // do nothing
         }
         return outputBuffer

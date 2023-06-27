@@ -20,50 +20,26 @@
  */
 package kotlinx.io
 
-import kotlin.jvm.JvmName
-
 /**
- * Returns a new source that buffers reads from `source`. The returned source will perform bulk
- * reads into its in-memory buffer. Use this wherever you read a source to get an ergonomic and
+ * Returns a new source that buffers reads from the source. The returned source will perform bulk
+ * reads into its in-memory buffer. Use this wherever you read a source to get ergonomic and
  * efficient access to data.
  */
-fun RawSource.buffer(): Source = RealSource(this)
+public fun RawSource.buffered(): Source = RealSource(this)
 
 /**
- * Returns a new sink that buffers writes to `sink`. The returned sink will batch writes to `sink`.
- * Use this wherever you write to a sink to get an ergonomic and efficient access to data.
+ * Returns a new sink that buffers writes to the sink. The returned sink will batch writes to the sink.
+ * Use this wherever you write to a sink to get ergonomic and efficient access to data.
  */
-fun RawSink.buffer(): Sink = RealSink(this)
+public fun RawSink.buffered(): Sink = RealSink(this)
 
-/** Returns a sink that writes nowhere. */
-@JvmName("blackhole")
-fun blackholeSink(): RawSink = BlackholeSink()
+/**
+ * Returns a sink that discards all data written to it.
+ */
+public fun discardingSink(): RawSink = DiscardingSink()
 
-private class BlackholeSink : RawSink {
+private class DiscardingSink : RawSink {
   override fun write(source: Buffer, byteCount: Long) = source.skip(byteCount)
   override fun flush() {}
-  override fun cancel() {}
   override fun close() {}
-}
-
-/** Execute [block] then close this. This will be closed even if [block] throws. */
-inline fun <T : Closeable?, R> T.use(block: (T) -> R): R {
-  var result: R? = null
-  var thrown: Throwable? = null
-
-  try {
-    result = block(this)
-  } catch (t: Throwable) {
-    thrown = t
-  }
-
-  try {
-    this?.close()
-  } catch (t: Throwable) {
-    if (thrown == null) thrown = t
-    else thrown.addSuppressed(t)
-  }
-
-  if (thrown != null) throw thrown
-  return result!!
 }

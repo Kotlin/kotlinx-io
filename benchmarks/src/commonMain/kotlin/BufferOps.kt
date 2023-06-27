@@ -97,18 +97,21 @@ open class DecimalLongBenchmark: BufferRWBenchmarkBase() {
     var value = 0L
 
     override fun padding(): ByteArray {
-        val tmpBuffer = Buffer()
-        while (tmpBuffer.size < minGap) {
-            // use space as a delimiter between consecutive decimal values
-            tmpBuffer.writeDecimalLong(value).writeByte(' '.code)
+        return with (Buffer()) {
+            while (size < minGap) {
+                writeDecimalLong(value)
+                // use space as a delimiter between consecutive decimal values
+                writeByte(' '.code.toByte())
+            }
+            readByteArray()
         }
-        return tmpBuffer.readByteArray()
     }
 
     @Benchmark
     fun benchmark(): Long {
         // use space as a delimiter between consecutive decimal values
-        buffer.writeDecimalLong(value).writeByte(' '.code)
+        buffer.writeDecimalLong(value)
+        buffer.writeByte(' '.code.toByte())
         val l = buffer.readDecimalLong()
         buffer.readByte() // consume the delimiter
         return l
@@ -120,42 +123,22 @@ open class HexadecimalLongBenchmark: BufferRWBenchmarkBase() {
     var value = 0L
 
     override fun padding(): ByteArray {
-        val tmpBuffer = Buffer()
-        while (tmpBuffer.size < minGap) {
-            tmpBuffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code)
+        return with(Buffer()) {
+            while (size < minGap) {
+                writeHexadecimalUnsignedLong(value)
+                writeByte(' '.code.toByte())
+            }
+            readByteArray()
         }
-        return tmpBuffer.readByteArray()
     }
 
     @Benchmark
     fun benchmark(): Long {
-        buffer.writeHexadecimalUnsignedLong(value).writeByte(' '.code)
+        buffer.writeHexadecimalUnsignedLong(value)
+        buffer.writeByte(' '.code.toByte())
         val l = buffer.readHexadecimalUnsignedLong()
         buffer.readByte()
         return l
-    }
-}
-
-open class Utf8CodePointBenchmark: BufferRWBenchmarkBase() {
-    @Param("1", "2", "3")
-    var bytes: Int = 0
-
-    private var codePoint: Int = 0
-
-    @Setup
-    fun setupCodePoints() {
-        codePoint = when (bytes) {
-            1 -> 'a'.code
-            2 -> 'ɐ'.code
-            3 -> 'ა'.code
-            else -> throw IllegalArgumentException()
-        }
-    }
-
-    @Benchmark
-    fun benchmark(): Int {
-        buffer.writeUtf8CodePoint(codePoint)
-        return buffer.readUtf8CodePoint()
     }
 }
 
@@ -211,8 +194,9 @@ open class Utf8StringBenchmark: BufferRWBenchmarkBase() {
 
     override fun padding(): ByteArray {
         val baseString = constructString()
-        if (baseString.utf8Size() >= minGap) {
-            return baseString.encodeToByteArray()
+        val baseStringByteArray = baseString.encodeToByteArray()
+        if (baseStringByteArray.size >= minGap) {
+            return baseStringByteArray
         }
         val builder = StringBuilder((minGap * 1.5).toInt())
         while (builder.length < minGap) {
@@ -317,7 +301,11 @@ open class IndexOfBenchmark {
         if (valueOffset >= 0) array[valueOffset] = VALUE_TO_FIND
 
         val padding = ByteArray(paddingSize)
-        buffer.write(padding).write(array).skip(paddingSize.toLong())
+        with(buffer) {
+            write(padding)
+            write(array)
+            skip(paddingSize.toLong())
+        }
     }
 
     @Benchmark
@@ -358,7 +346,7 @@ open class BufferReadWriteByteArray: BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(blackhole: Blackhole) {
         buffer.write(inputArray)
-        buffer.readFully(outputArray)
+        buffer.readTo(outputArray)
         blackhole.consume(outputArray)
     }
 }
@@ -377,6 +365,6 @@ open class BufferReadNewByteArray: BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): ByteArray {
         buffer.write(inputArray)
-        return buffer.readByteArray(size.toLong())
+        return buffer.readByteArray(size)
     }
 }

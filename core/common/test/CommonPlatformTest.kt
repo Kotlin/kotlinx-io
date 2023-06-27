@@ -24,24 +24,24 @@ package kotlinx.io
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class CommonOkioKotlinTest {
+class CommonPlatformTest {
   @Test fun sourceBuffer() {
-    val source = Buffer().writeUtf8("a")
-    val buffered = (source as RawSource).buffer()
+    val source = Buffer().also { it.writeUtf8("a") }
+    val buffered = (source as RawSource).buffered()
     assertEquals(buffered.readUtf8(), "a")
     assertEquals(source.size, 0L)
   }
 
   @Test fun sinkBuffer() {
     val sink = Buffer()
-    val buffered = (sink as RawSink).buffer()
+    val buffered = (sink as RawSink).buffered()
     buffered.writeUtf8("a")
     assertEquals(sink.size, 0L)
     buffered.flush()
     assertEquals(sink.size, 1L)
   }
 
-  @Test fun blackhole() {
-    blackholeSink().write(Buffer().writeUtf8("a"), 1L)
+  @Test fun discardingSinkTest() {
+    discardingSink().write(Buffer().also { it.writeUtf8("a") }, 1L)
   }
 }

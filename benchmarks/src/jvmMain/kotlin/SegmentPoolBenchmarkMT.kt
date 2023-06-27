@@ -5,15 +5,16 @@
 
 package kotlinx.io.benchmarks
 
-import kotlinx.io.*
 import kotlinx.benchmark.*
+import kotlinx.io.*
 import org.openjdk.jmh.annotations.Group
 import org.openjdk.jmh.annotations.GroupThreads
 
 @State(Scope.Benchmark)
 open class SegmentPoolBenchmarkMT {
     private fun testCycle(): Buffer {
-        val buffer = Buffer().writeByte(0)
+        val buffer = Buffer()
+        buffer.writeByte(0)
         buffer.clear()
         return buffer
     }

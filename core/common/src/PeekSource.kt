@@ -33,6 +33,7 @@ package kotlinx.io
 internal class PeekSource(
   private val upstream: Source
 ) : RawSource {
+  @OptIn(InternalIoApi::class)
   private val buffer = upstream.buffer
   private var expectedSegment = buffer.head
   private var expectedPos = buffer.head?.pos ?: -1
@@ -40,9 +41,9 @@ internal class PeekSource(
   private var closed = false
   private var pos = 0L
 
-  override fun read(sink: Buffer, byteCount: Long): Long {
-    require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
-    check(!closed) { "closed" }
+  override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+    check(!closed) { "Source is closed." }
+    checkByteCount(byteCount)
     // Source becomes invalid if there is an expected Segment and it and the expected position
     // do not match the current head and head position of the upstream buffer
     check(
@@ -63,13 +64,9 @@ internal class PeekSource(
     }
 
     val toCopy = minOf(byteCount, buffer.size - pos)
-    buffer.copyTo(sink, pos, toCopy)
+    buffer.copyTo(sink, pos, pos + toCopy)
     pos += toCopy
     return toCopy
-  }
-
-  override fun cancel() {
-    return upstream.cancel()
   }
 
   override fun close() {

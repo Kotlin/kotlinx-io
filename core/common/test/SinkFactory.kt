@@ -18,24 +18,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package kotlinx.io
 
-import kotlin.test.assertEquals
+internal interface SinkFactory {
 
-fun Char.repeat(count: Int): String {
-  return toString().repeat(count)
+  fun create(data: Buffer): Sink
+
+  companion object {
+    val BUFFER: SinkFactory = object : SinkFactory {
+      override fun create(data: Buffer): Sink {
+        return data
+      }
+    }
+
+    val REAL_BUFFERED_SINK: SinkFactory = object : SinkFactory {
+      override fun create(data: Buffer): Sink {
+        return (data as RawSink).buffered()
+      }
+    }
+  }
 }
-
-fun assertArrayEquals(a: ByteArray, b: ByteArray) {
-  assertEquals(a.contentToString(), b.contentToString())
-}
-//
-//fun randomBytes(length: Int): ByteString {
-//  val random = Random(0)
-//  val randomBytes = ByteArray(length)
-//  random.nextBytes(randomBytes)
-//  return ByteString.of(*randomBytes)
-//}
-//
-//fun randomToken(length: Int) = Random.nextBytes(length).toByteString(0, length).hex()
-

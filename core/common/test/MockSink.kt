@@ -56,10 +56,6 @@ class MockSink : RawSink {
     throwIfScheduled()
   }
 
-  override fun cancel() {
-    log.add("cancel()")
-  }
-
   override fun close() {
     log.add("close()")
     throwIfScheduled()

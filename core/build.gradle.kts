@@ -3,10 +3,13 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.dokka.gradle.DokkaTaskPartial
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
     kotlin("multiplatform")
+    id("org.jetbrains.kotlinx.kover") version "0.7.1"
+    id("org.jetbrains.dokka") version "1.8.20"
 }
 
 kotlin {
@@ -32,8 +35,7 @@ kotlin {
         createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
     }
 
-    // TODO quite a lot of effort, should be done after the initial set of API is migrated
-//    explicitApi()
+    explicitApi()
     sourceSets.configureEach {
         configureSourceSet()
     }
@@ -50,5 +52,11 @@ fun KotlinSourceSet.configureSourceSet() {
     }
     languageSettings {
         progressiveMode = true
+    }
+}
+
+tasks.withType<DokkaTaskPartial>().configureEach {
+    dokkaSourceSets.configureEach {
+        includes.from("Module.md")
     }
 }

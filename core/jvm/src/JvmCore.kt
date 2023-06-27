@@ -21,23 +21,16 @@
 
 package kotlinx.io
 
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.Socket
-import java.nio.file.Files
-import java.nio.file.OpenOption
-import java.nio.file.Path as NioPath
-import java.security.MessageDigest
-import java.util.logging.Logger
-import javax.crypto.Cipher
-import javax.crypto.Mac
 
-/** Returns a sink that writes to `out`. */
-fun OutputStream.sink(): RawSink = OutputStreamSink(this)
+/**
+ * Returns [RawSink] that writes to an output stream.
+ *
+ * Use [RawSink.buffered] to create a buffered sink from it.
+ */
+public fun OutputStream.asSink(): RawSink = OutputStreamSink(this)
 
 private open class OutputStreamSink(
   private val out: OutputStream,
@@ -67,23 +60,23 @@ private open class OutputStreamSink(
 
   override fun close() = out.close()
 
-  override fun cancel() {
-    // Not cancelable.
-  }
-
   override fun toString() = "sink($out)"
 }
 
-/** Returns a source that reads from `in`. */
-fun InputStream.source(): RawSource = InputStreamSource(this)
+/**
+ * Returns [RawSource] that reads from an input stream.
+ *
+ * Use [RawSource.buffered] to create a buffered source from it.
+ */
+public fun InputStream.asSource(): RawSource = InputStreamSource(this)
 
 private open class InputStreamSource(
   private val input: InputStream,
 ) : RawSource {
 
-  override fun read(sink: Buffer, byteCount: Long): Long {
+  override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
     if (byteCount == 0L) return 0L
-    require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
+    checkByteCount(byteCount)
     try {
       val tail = sink.writableSegment(1)
       val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()
@@ -107,57 +100,8 @@ private open class InputStreamSource(
 
   override fun close() = input.close()
 
-  override fun cancel() {
-    // Not cancelable.
-  }
-
   override fun toString() = "source($input)"
 }
-
-/**
- * Returns a sink that writes to `socket`. Prefer this over [sink]
- * because this method honors timeouts. When the socket
- * write times out, the socket is asynchronously closed by a watchdog thread.
- */
-@Throws(IOException::class)
-fun Socket.sink(): RawSink {
-  return object : OutputStreamSink(getOutputStream()) {
-    override fun cancel() {
-      this@sink.close()
-    }
-  }
-}
-
-/**
- * Returns a source that reads from `socket`. Prefer this over [source]
- * because this method honors timeouts. When the socket
- * read times out, the socket is asynchronously closed by a watchdog thread.
- */
-@Throws(IOException::class)
-fun Socket.source(): RawSource {
-  return object : InputStreamSource(getInputStream()) {
-    override fun cancel() {
-      this@source.close()
-    }
-  }
-}
-
-/** Returns a sink that writes to `file`. */
-fun File.sink(append: Boolean = false): RawSink = FileOutputStream(this, append).sink()
-
-/** Returns a sink that writes to `file`. */
-fun File.appendingSink(): RawSink = FileOutputStream(this, true).sink()
-
-/** Returns a source that reads from `file`. */
-fun File.source(): RawSource = InputStreamSource(inputStream())
-
-/** Returns a source that reads from `path`. */
-fun NioPath.sink(vararg options: OpenOption): RawSink =
-  Files.newOutputStream(this, *options).sink()
-
-/** Returns a sink that writes to `path`. */
-fun NioPath.source(vararg options: OpenOption): RawSource =
-  Files.newInputStream(this, *options).source()
 
 /**
  * Returns true if this error is due to a firmware bug fixed after Android 4.2.2.

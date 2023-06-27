@@ -21,60 +21,34 @@
 package kotlinx.io
 
 /**
- * Supplies a stream of bytes. Use this interface to read data from wherever it's located: from the
- * network, storage, or a buffer in memory. Sources may be layered to transform supplied data, such
- * as to decompress, decrypt, or remove protocol framing.
+ * Supplies a stream of bytes. RawSource is a base interface for `kotlinx-io` data suppliers.
  *
- * Most applications shouldn't operate on a source directly, but rather on a [Source] which
- * is both more efficient and more convenient. Use [buffer] to wrap any source with a buffer.
+ * The interface should be implemented to read data from wherever it's located: from the network, storage,
+ * or a buffer in memory. Sources may be layered to transform supplied data, such as to decompress, decrypt,
+ * or remove protocol framing.
  *
- * Sources are easy to test: just use a [Buffer] in your tests, and fill it with the data your
- * application is to read.
+ * Most applications shouldn't operate on a raw source directly, but rather on a buffered [Source] which
+ * is both more efficient and more convenient. Use [buffered] to wrap any raw source with a buffer.
  *
- * ### Comparison with InputStream
-
- * This interface is functionally equivalent to [java.io.InputStream].
- *
- * `InputStream` requires multiple layers when consumed data is heterogeneous: a `DataInputStream`
- * for primitive values, a `BufferedInputStream` for buffering, and `InputStreamReader` for strings.
- * This library uses `BufferedSource` for all of the above.
- *
- * RawSource avoids the impossible-to-implement [available()][java.io.InputStream.available] method.
- * Instead callers specify how many bytes they [require][Source.require].
- *
- * RawSource omits the unsafe-to-compose [mark and reset][java.io.InputStream.mark] state that's
- * tracked by `InputStream`; instead, callers just buffer what they need.
- *
- * When implementing a source, you don't need to worry about the [read()][java.io.InputStream.read]
- * method that is awkward to implement efficiently and returns one of 257 possible values.
- *
- * And source has a stronger `skip` method: [Source.skip] won't return prematurely.
- *
- * ### Interop with InputStream
- *
- * Use [source] to adapt an `InputStream` to a source. Use [Source.inputStream] to adapt a
- * source to an `InputStream`.
+ * Implementors should abstain from throwing exceptions other than those that are documented for RawSource methods.
  */
-interface RawSource : Closeable {
+@OptIn(ExperimentalStdlibApi::class)
+public interface RawSource : AutoCloseableAlias {
   /**
-   * Removes at least 1, and up to `byteCount` bytes from this and appends them to `sink`. Returns
-   * the number of bytes read, or -1 if this source is exhausted.
-   */
-  @Throws(IOException::class)
-  fun read(sink: Buffer, byteCount: Long): Long
-
-  /**
-   * Asynchronously cancel this source. Any [read] in flight should immediately fail with an
-   * [IOException], and any future read should also immediately fail with an [IOException].
+   * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
+   * Returns the number of bytes read, or -1 if this source is exhausted.
    *
-   * Note that it is always necessary to call [close] on a source, even if it has been canceled.
+   * @param sink the destination to write the data from this source.
+   * @param byteCount the number of bytes to read.
+   *
+   * @throws IllegalArgumentException when [byteCount] is negative.
+   * @throws IllegalStateException when the source is closed.
    */
-  fun cancel()
+  public fun readAtMostTo(sink: Buffer, byteCount: Long): Long
 
   /**
    * Closes this source and releases the resources held by this source. It is an error to read a
    * closed source. It is safe to close a source more than once.
    */
-  @Throws(IOException::class)
   override fun close()
 }

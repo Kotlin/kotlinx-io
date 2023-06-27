@@ -28,8 +28,7 @@ import kotlin.jvm.JvmField
  * Each segment in a buffer is a circularly-linked list node referencing the following and
  * preceding segments in the buffer.
  *
- * Each segment in the pool is a singly-linked list node referencing the rest of segments in the
- * pool.
+ * Each segment in the pool is a singly-linked list node referencing the rest of segments in the pool.
  *
  * The underlying byte arrays of segments may be shared between buffers and byte strings. When a
  * segment's byte array is shared the segment may not be recycled, nor may its byte data be changed.

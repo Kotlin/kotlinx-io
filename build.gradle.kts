@@ -3,10 +3,12 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.*
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
-    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.11.1"
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
+    id("org.jetbrains.dokka") version "1.8.20"
     `maven-publish`
     signing
 }
@@ -33,6 +35,10 @@ apply(plugin = "maven-publish")
 apply(plugin = "signing")
 
 subprojects {
+    if (name.contains("benchmark")) {
+        return@subprojects
+    }
+
     repositories {
         mavenCentral()
     }
@@ -58,6 +64,13 @@ subprojects {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_1_8.toString()
+            allWarningsAsErrors = true
+            freeCompilerArgs += "-Xjvm-default=all"
+        }
+    }
+    tasks.withType<KotlinNativeCompile>().configureEach {
+        kotlinOptions {
+            allWarningsAsErrors = true
         }
     }
 }

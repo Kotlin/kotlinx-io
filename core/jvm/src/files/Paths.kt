@@ -15,6 +15,6 @@ public actual class Path internal constructor(internal val nioPath: NioPath)
 
 public actual fun Path(path: String): Path = Path(Paths.get(path))
 
-public actual fun Path.source(): Source = FileInputStream(nioPath.toFile()).source().buffer()
+public actual fun Path.source(): Source = FileInputStream(nioPath.toFile()).asSource().buffered()
 
-public actual fun Path.sink(): Sink = FileOutputStream(nioPath.toFile()).sink().buffer()
+public actual fun Path.sink(): Sink = FileOutputStream(nioPath.toFile()).asSink().buffered()

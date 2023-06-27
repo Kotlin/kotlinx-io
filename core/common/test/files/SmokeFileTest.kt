@@ -5,8 +5,14 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.*
-import kotlin.test.*
+import kotlinx.io.createTempFile
+import kotlinx.io.deleteFile
+import kotlinx.io.readUtf8Line
+import kotlinx.io.writeUtf8
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class SmokeFileTest {
     private var tempFile: String? = null
@@ -21,6 +27,7 @@ class SmokeFileTest {
         deleteFile(tempFile!!)
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testBasicFile() {
         val path = Path(tempFile!!)

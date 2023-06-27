@@ -21,295 +21,158 @@
 package kotlinx.io
 
 /**
- * A sink that keeps a buffer internally so that callers can do small writes without a performance
- * penalty.
+ * A sink that facilitates typed data writes and keeps a buffer internally so that caller can write some data without
+ * sending it directly to an upstream.
+ *
+ * [Sink] is the main `kotlinx-io` interface to write data in client's code,
+ * any [RawSink] could be turned into [Sink] using [RawSink.buffered].
+ *
+ * Depending on the kind of upstream and the number of bytes written, buffering may improve the performance
+ * by hiding the latency of small writes.
+ *
+ * Data stored inside the internal buffer could be sent to an upstream using [flush], [emit], or [hintEmit]:
+ * - [flush] writes the whole buffer to an upstream and then flushes the upstream.
+ * - [emit] writes all data from the buffer into the upstream without flushing it.
+ * - [hintEmit] hints the source that current write operation is now finished and a part of data from the buffer
+ * may be partially emitted into the upstream.
+ * The latter is aimed to reduce memory footprint by keeping the buffer as small as possible without excessive writes
+ * to the upstream.
+ * All write operations implicitly calls [hintEmit].
+ *
+ * ### Write methods' behavior and naming conventions
+ *
+ * Methods writing a value of some type are usually name `write<Type>`, like [writeByte] or [writeInt], except methods
+ * writing data from a some collection of bytes, like `write(ByteArray, Int, Int)` or
+ * `write(source: RawSource, byteCount: Long)`.
+ * In the latter case, if a collection is consumable (i.e., once data was read from it will no longer be available for
+ * reading again), write method will consume as many bytes as it was requested to write.
+ *
+ * Methods fully consuming its argument are named `transferFrom`, like [transferFrom].
+ *
+ * It is recommended to follow the same naming convention for Sink extensions.
  */
-expect sealed interface Sink : RawSink {
-  /** This sink's internal buffer. */
-  val buffer: Buffer
-
-  /** Like [OutputStream.write], this writes a complete byte array to this sink. */
-  fun write(source: ByteArray): Sink
-
-  /** Like [OutputStream.write], this writes `byteCount` bytes of `source`, starting at `offset`. */
-  fun write(source: ByteArray, offset: Int, byteCount: Int): Sink
-
+public sealed interface Sink : RawSink {
   /**
-   * Removes all bytes from `source` and appends them to this sink. Returns the number of bytes read
-   * which will be 0 if `source` is exhausted.
+   * This sink's internal buffer. It contains data written to the sink, but not yet flushed to the upstream.
+   *
+   * Incorrect use of the buffer may cause data loss or unexpected data being sent to the upstream.
+   * Consider using alternative APIs to write data into the sink, if possible:
+   * - write data into separate [Buffer] instance and write that buffer into the sink and then flush the sink to
+   *   ensure that the upstream will receive complete data;
+   * - implement [RawSink] and wrap an upstream sink into it to intercept data being written.
+   *
+   * If there is an actual need to write data directly into the buffer, consider using [Sink.writeToInternalBuffer] instead.
    */
-  fun writeAll(source: RawSource): Long
-
-  /** Removes `byteCount` bytes from `source` and appends them to this sink. */
-  fun write(source: RawSource, byteCount: Long): Sink
+  @InternalIoApi
+  public val buffer: Buffer
 
   /**
-   * Encodes `string` in UTF-8 and writes it to this sink.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeUtf8("Uh uh uh!");
-   * buffer.writeByte(' ');
-   * buffer.writeUtf8("You didn't say the magic word!");
+   * Writes bytes from [source] array or its subrange to this sink.
    *
-   * assertEquals("Uh uh uh! You didn't say the magic word!", buffer.readUtf8());
-   * ```
+   * @param source the array from which bytes will be written into this sink.
+   * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+   * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+   *
+   * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+   * @throws IllegalArgumentException when `startIndex > endIndex`.
+   * @throws IllegalStateException when the sink is closed.
    */
-  fun writeUtf8(string: String): Sink
+  public fun write(source: ByteArray, startIndex: Int = 0, endIndex: Int = source.size)
 
   /**
-   * Encodes the characters at `beginIndex` up to `endIndex` from `string` in UTF-8 and writes it to
-   * this sink.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeUtf8("I'm a hacker!\n", 6, 12);
-   * buffer.writeByte(' ');
-   * buffer.writeUtf8("That's what I said: you're a nerd.\n", 29, 33);
-   * buffer.writeByte(' ');
-   * buffer.writeUtf8("I prefer to be called a hacker!\n", 24, 31);
+   * Removes all bytes from [source] and write them to this sink.
+   * Returns the number of bytes read which will be 0 if [source] is exhausted.
    *
-   * assertEquals("hacker nerd hacker!", buffer.readUtf8());
-   * ```
+   * @param source the source to consume data from.
+   *
+   * @throws IllegalStateException when the sink or [source] is closed.
+   *
    */
-  fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): Sink
-
-  /** Encodes `codePoint` in UTF-8 and writes it to this sink. */
-  fun writeUtf8CodePoint(codePoint: Int): Sink
-
-  /** Writes a byte to this sink. */
-  fun writeByte(b: Int): Sink
+  public fun transferFrom(source: RawSource): Long
 
   /**
-   * Writes a big-endian short to this sink using two bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeShort(32767);
-   * buffer.writeShort(15);
+   * Removes [byteCount] bytes from [source] and write them to this sink.
    *
-   * assertEquals(4, buffer.size());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
+   * If [source] will be exhausted before reading [byteCount] from it then an exception throws on
+   * an attempt to read remaining bytes will be propagated to a caller of this method.
+   *
+   * @param source the source to consume data from.
+   * @param byteCount the number of bytes to read from [source] and to write into this sink.
+   *
+   * @throws IllegalArgumentException when [byteCount] is negative.
+   * @throws IllegalStateException when the sink or [source] is closed.
    */
-  fun writeShort(s: Int): Sink
+  public fun write(source: RawSource, byteCount: Long)
 
   /**
-   * Writes a little-endian short to this sink using two bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeShortLe(32767);
-   * buffer.writeShortLe(15);
+   * Writes a byte to this sink.
    *
-   * assertEquals(4, buffer.size());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
+   * @param byte the byte to be written.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
-  fun writeShortLe(s: Int): Sink
+  public fun writeByte(byte: Byte)
 
   /**
-   * Writes a big-endian int to this sink using four bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeInt(2147483647);
-   * buffer.writeInt(15);
+   * Writes two bytes containing [short], in the big-endian order, to this sink.
    *
-   * assertEquals(8, buffer.size());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
+   * @param short the short integer to be written.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
-  fun writeInt(i: Int): Sink
+  public fun writeShort(short: Short)
 
   /**
-   * Writes a little-endian int to this sink using four bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeIntLe(2147483647);
-   * buffer.writeIntLe(15);
+   * Writes four bytes containing [int], in the big-endian order, to this sink.
    *
-   * assertEquals(8, buffer.size());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
+   * @param int the integer to be written.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
-  fun writeIntLe(i: Int): Sink
+  public fun writeInt(int: Int)
 
   /**
-   * Writes a big-endian long to this sink using eight bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeLong(9223372036854775807L);
-   * buffer.writeLong(15);
+   * Writes eight bytes containing [long], in the big-endian order, to this sink.
    *
-   * assertEquals(16, buffer.size());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
+   * @param long the long integer to be written.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
-  fun writeLong(v: Long): Sink
+  public fun writeLong(long: Long)
 
   /**
-   * Writes a little-endian long to this sink using eight bytes.
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeLongLe(9223372036854775807L);
-   * buffer.writeLongLe(15);
+   * Writes all buffered data to the underlying sink, if one exists.
+   * Then the underlying sink is explicitly flushed.
    *
-   * assertEquals(16, buffer.size());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0xff, buffer.readByte());
-   * assertEquals((byte) 0x7f, buffer.readByte());
-   * assertEquals((byte) 0x0f, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals((byte) 0x00, buffer.readByte());
-   * assertEquals(0, buffer.size());
-   * ```
-   */
-  fun writeLongLe(v: Long): Sink
-
-  /**
-   * Writes a long to this sink in signed decimal form (i.e., as a string in base 10).
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeDecimalLong(8675309L);
-   * buffer.writeByte(' ');
-   * buffer.writeDecimalLong(-123L);
-   * buffer.writeByte(' ');
-   * buffer.writeDecimalLong(1L);
-   *
-   * assertEquals("8675309 -123 1", buffer.readUtf8());
-   * ```
-   */
-  fun writeDecimalLong(v: Long): Sink
-
-  /**
-   * Writes a long to this sink in hexadecimal form (i.e., as a string in base 16).
-   * ```
-   * Buffer buffer = new Buffer();
-   * buffer.writeHexadecimalUnsignedLong(65535L);
-   * buffer.writeByte(' ');
-   * buffer.writeHexadecimalUnsignedLong(0xcafebabeL);
-   * buffer.writeByte(' ');
-   * buffer.writeHexadecimalUnsignedLong(0x10L);
-   *
-   * assertEquals("ffff cafebabe 10", buffer.readUtf8());
-   * ```
-   */
-  fun writeHexadecimalUnsignedLong(v: Long): Sink
-
-  /**
-   * Writes all buffered data to the underlying sink, if one exists. Then that sink is recursively
-   * flushed which pushes data as far as possible towards its ultimate destination. Typically that
-   * destination is a network socket or file.
-   * ```
-   * BufferedSink b0 = new Buffer();
-   * BufferedSink b1 = Okio.buffer(b0);
-   * BufferedSink b2 = Okio.buffer(b1);
-   *
-   * b2.writeUtf8("hello");
-   * assertEquals(5, b2.buffer().size());
-   * assertEquals(0, b1.buffer().size());
-   * assertEquals(0, b0.buffer().size());
-   *
-   * b2.flush();
-   * assertEquals(0, b2.buffer().size());
-   * assertEquals(0, b1.buffer().size());
-   * assertEquals(5, b0.buffer().size());
-   * ```
+   * @throws IllegalStateException when the sink is closed.
    */
   override fun flush()
 
   /**
-   * Writes all buffered data to the underlying sink, if one exists. Like [flush], but weaker. Call
-   * this before this buffered sink goes out of scope so that its data can reach its destination.
-   * ```
-   * BufferedSink b0 = new Buffer();
-   * BufferedSink b1 = Okio.buffer(b0);
-   * BufferedSink b2 = Okio.buffer(b1);
+   * Writes all buffered data to the underlying sink if one exists.
+   * The underlying sink will not be explicitly flushed.
    *
-   * b2.writeUtf8("hello");
-   * assertEquals(5, b2.buffer().size());
-   * assertEquals(0, b1.buffer().size());
-   * assertEquals(0, b0.buffer().size());
+   * This method behaves like [flush], but has weaker guarantees.
+   * Call this method before a buffered sink goes out of scope so that its data can reach its destination.
    *
-   * b2.emit();
-   * assertEquals(0, b2.buffer().size());
-   * assertEquals(5, b1.buffer().size());
-   * assertEquals(0, b0.buffer().size());
-   *
-   * b1.emit();
-   * assertEquals(0, b2.buffer().size());
-   * assertEquals(0, b1.buffer().size());
-   * assertEquals(5, b0.buffer().size());
-   * ```
+   * @throws IllegalStateException when the sink is closed.
    */
-  fun emit(): Sink
+  public fun emit()
 
   /**
-   * Writes complete segments to the underlying sink, if one exists. Like [flush], but weaker. Use
-   * this to limit the memory held in the buffer to a single segment. Typically application code
-   * will not need to call this: it is only necessary when application code writes directly to this
-   * [sink's buffer][buffer].
-   * ```
-   * BufferedSink b0 = new Buffer();
-   * BufferedSink b1 = Okio.buffer(b0);
-   * BufferedSink b2 = Okio.buffer(b1);
+   * Hints that the buffer may be *partially* emitted (see [emit]) to the underlying sink.
+   * The underlying sink will not be explicitly flushed.
+   * There are no guarantees that this call will cause emit of buffered data as well as
+   * there are no guarantees how many bytes will be emitted.
    *
-   * b2.buffer().write(new byte[20_000]);
-   * assertEquals(20_000, b2.buffer().size());
-   * assertEquals(     0, b1.buffer().size());
-   * assertEquals(     0, b0.buffer().size());
+   * Typically, application code will not need to call this: it is only necessary when
+   * application code writes directly to this [buffered].
+   * Use this to limit the memory held in the buffer.
    *
-   * b2.emitCompleteSegments();
-   * assertEquals( 3_616, b2.buffer().size());
-   * assertEquals(     0, b1.buffer().size());
-   * assertEquals(16_384, b0.buffer().size()); // This example assumes 8192 byte segments.
-   * ```
+   * Consider using [Sink.writeToInternalBuffer] for writes into [buffered] followed by [hintEmit] call.
+   *
+   * @throws IllegalStateException when the sink is closed.
    */
-  fun emitCompleteSegments(): Sink
+  @InternalIoApi
+  public fun hintEmit()
 }
