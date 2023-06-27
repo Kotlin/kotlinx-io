@@ -28,6 +28,14 @@ kotlin {
                 }
             }
         }
+        browser {
+            testTask {
+                filter.setExcludePatterns("*SmokeFileTest*")
+                useMocha {
+                    timeout = "30s"
+                }
+            }
+        }
     }
 
     configureNativePlatforms()
