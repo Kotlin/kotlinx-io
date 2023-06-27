@@ -27,9 +27,15 @@ import kotlin.math.min
 private val HEX_DIGITS = "0123456789ABCDEF".toCharArray()
 
 /**
- * Constructs an empty byte string.
+ * Wraps given [bytes] into a byte string.
+ *
+ * @param bytes a sequence of bytes to be wrapped.
  */
-public fun ByteString(): ByteString = ByteString.EMPTY
+public fun ByteString(vararg bytes: Byte): ByteString = if (bytes.isEmpty()) {
+    ByteString.EMPTY
+} else {
+    ByteString.wrap(bytes)
+}
 
 /**
  * An immutable wrapper around a byte sequence providing [String] like functionality.
@@ -69,13 +75,6 @@ public class ByteString private constructor(
             this(data.copyOfRange(startIndex, endIndex), null)
 
     /**
-     * Wraps given [bytes] into a byte string.
-     *
-     * @param bytes a sequence of bytes to be wrapped.
-     */
-    public constructor(vararg bytes: Byte) : this(bytes, null)
-
-    /**
      * Returns `true` if [other] is a byte string containing exactly the same byte sequence.
      *
      * @param other the other object to compare this byte string for equality to.
@@ -110,7 +109,11 @@ public class ByteString private constructor(
      *
      * @throws IndexOutOfBoundsException when [index] is negative or greater or equal to the [size].
      */
-    public operator fun get(index: Int): Byte = data[index]
+    public operator fun get(index: Int): Byte {
+        if (index < 0 || index >= size) throw IndexOutOfBoundsException(
+            "index ($index) is out of byte string bounds: [0..$size)")
+        return data[index]
+    }
 
     /**
      * Returns a copy of subsequence starting at [startIndex] and ending at [endIndex] of a byte sequence

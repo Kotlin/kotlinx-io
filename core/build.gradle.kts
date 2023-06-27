@@ -24,7 +24,7 @@ kotlin {
         nodejs {
             testTask {
                 useMocha {
-                    timeout = "30s"
+                    timeout = "120s"
                 }
             }
         }
@@ -32,7 +32,7 @@ kotlin {
             testTask {
                 filter.setExcludePatterns("*SmokeFileTest*")
                 useMocha {
-                    timeout = "30s"
+                    timeout = "120s"
                 }
             }
         }

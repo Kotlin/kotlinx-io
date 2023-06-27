@@ -1,6 +1,5 @@
 public final class kotlinx/io/bytestring/ByteString : java/lang/Comparable {
 	public static final field Companion Lkotlinx/io/bytestring/ByteString$Companion;
-	public fun <init> ([B)V
 	public fun <init> ([BII)V
 	public synthetic fun <init> ([BIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> ([BLjava/lang/Object;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -48,7 +47,7 @@ public final class kotlinx/io/bytestring/ByteStringJvmExtKt {
 }
 
 public final class kotlinx/io/bytestring/ByteStringKt {
-	public static final fun ByteString ()Lkotlinx/io/bytestring/ByteString;
+	public static final fun ByteString ([B)Lkotlinx/io/bytestring/ByteString;
 	public static final fun contentEquals (Lkotlinx/io/bytestring/ByteString;[B)Z
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
