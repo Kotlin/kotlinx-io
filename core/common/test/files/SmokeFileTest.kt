@@ -5,10 +5,7 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.createTempFile
-import kotlinx.io.deleteFile
-import kotlinx.io.readUtf8Line
-import kotlinx.io.writeUtf8
+import kotlinx.io.*
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -31,12 +28,29 @@ class SmokeFileTest {
     @Test
     fun testBasicFile() {
         val path = Path(tempFile!!)
+
         path.sink().use {
             it.writeUtf8("example")
         }
 
         path.source().use {
             assertEquals("example", it.readUtf8Line())
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun testReadWriteMultipleSegments() {
+        val path = Path(tempFile!!)
+
+        val data = ByteArray((Segment.SIZE * 2.5).toInt()) { it.toByte() }
+
+        path.sink().use {
+            it.write(data)
+        }
+
+        path.source().use {
+            assertArrayEquals(data, it.readByteArray())
         }
     }
 }

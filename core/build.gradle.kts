@@ -20,6 +20,16 @@ kotlin {
         }
     }
 
+    js(IR) {
+        nodejs {
+            testTask {
+                useMocha {
+                    timeout = "30s"
+                }
+            }
+        }
+    }
+
     configureNativePlatforms()
     sourceSets {
         val commonMain by getting
