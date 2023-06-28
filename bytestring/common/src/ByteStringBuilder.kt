@@ -74,9 +74,10 @@ public class ByteStringBuilder(initialCapacity: Int = 0) {
      * @throws IllegalArgumentException when `startIndex > endIndex`.
      */
     public fun append(array: ByteArray, startIndex: Int = 0, endIndex: Int = array.size) {
-        require(startIndex <= endIndex) { "startIndex: $startIndex, endIndex: $endIndex" }
+        require(startIndex <= endIndex) { "startIndex ($startIndex) > endIndex ($endIndex)" }
         if (startIndex < 0 || endIndex > array.size) {
-            throw IndexOutOfBoundsException("startIndex: $startIndex, endIndex: $endIndex")
+            throw IndexOutOfBoundsException("startIndex ($startIndex) and endIndex ($endIndex) represents " +
+                    "an interval out of array's bounds [0..${array.size}).")
         }
         ensureCapacity(offset + endIndex - startIndex)
 

@@ -8,6 +8,9 @@ package kotlinx.io.bytestring
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+/**
+ * Set of tests covering JVM-specific [ByteString] extensions.
+ */
 class ByteStringJvmTest {
     @Test
     fun createFromString() {

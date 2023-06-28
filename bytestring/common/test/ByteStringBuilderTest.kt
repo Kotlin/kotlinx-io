@@ -94,7 +94,7 @@ class ByteStringBuilderTest {
         val string = with(ByteStringBuilder()) {
             append(42)
             append(ByteArray(10) { it.toByte() })
-            append(42)
+            append(42U)
             append(ByteString(10, 5, 57))
             toByteString()
         }

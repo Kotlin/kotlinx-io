@@ -175,13 +175,16 @@ public class ByteString private constructor(
      * in lexicographical order.
      * Byte values are compared as unsigned integers.
      *
+     * The behavior is similar to [String.compareTo].
+     *
      * @param other the byte string to compare this string to.
      */
     override fun compareTo(other: ByteString): Int {
         if (other === this) return 0
-
+        val localData = data
+        val otherData = other.data
         for (i in 0 until min(size, other.size)) {
-            val cmp = data[i].toUByte().compareTo(other[i].toUByte())
+            val cmp = localData[i].toUByte().compareTo(otherData[i].toUByte())
             if (cmp != 0) return cmp
         }
 
@@ -210,8 +213,9 @@ public class ByteString private constructor(
             append("ByteString(size=")
             append(sizeStr)
             append(" hex=")
+            val localData = data
             for (i in 0 until size) {
-                val b = this@ByteString[i].toInt()
+                val b = localData[i].toInt()
                 append(HEX_DIGITS[(b ushr 4) and 0xf])
                 append(HEX_DIGITS[b and 0xf])
             }
@@ -244,8 +248,9 @@ public val ByteString.indices: IntRange
  * @param startIndex the index (inclusive) starting from which the [byte] should be searched.
  */
 public fun ByteString.indexOf(byte: Byte, startIndex: Int = 0): Int {
+    val localData = getBackingArrayReference()
     for (i in max(startIndex, 0) until size) {
-        if (this[i] == byte) {
+        if (localData[i] == byte) {
             return i
         }
     }
@@ -263,8 +268,10 @@ public fun ByteString.indexOf(byte: Byte, startIndex: Int = 0): Int {
  */
 public fun ByteString.indexOf(byteString: ByteString, startIndex: Int = 0): Int {
     if (byteString.isEmpty()) return max(min(startIndex, size), 0)
+    val localData = getBackingArrayReference()
+    val firstByte = byteString[0]
     for (i in max(startIndex, 0)..size - byteString.size) {
-        if (this[i] == byteString[0] && rangeEquals(i, byteString)) {
+        if (localData[i] == firstByte && rangeEquals(i, byteString)) {
             return i
         }
     }
@@ -282,8 +289,10 @@ public fun ByteString.indexOf(byteString: ByteString, startIndex: Int = 0): Int 
  */
 public fun ByteString.indexOf(byteArray: ByteArray, startIndex: Int = 0): Int {
     if (byteArray.isEmpty()) return max(min(startIndex, size), 0)
+    val localData = getBackingArrayReference()
+    val firstByte = byteArray[0]
     for (i in max(0, startIndex)..size - byteArray.size) {
-        if (this[i] == byteArray[0] && rangeEquals(i, byteArray)) {
+        if (localData[i] == firstByte && rangeEquals(i, byteArray)) {
             return i
         }
     }
@@ -300,8 +309,9 @@ public fun ByteString.indexOf(byteArray: ByteArray, startIndex: Int = 0): Int {
  * @param startIndex the index (inclusive) starting from which the [byte] should be searched.
  */
 public fun ByteString.lastIndexOf(byte: Byte, startIndex: Int = 0): Int {
+    val localData = getBackingArrayReference()
     for (i in size - 1 downTo max(0, startIndex)) {
-        if (this[i] == byte) {
+        if (localData[i] == byte) {
             return i
         }
     }
@@ -400,8 +410,10 @@ private fun ByteString.rangeEquals(
     offset: Int, other: ByteString, otherOffset: Int = 0,
     byteCount: Int = other.size - otherOffset
 ): Boolean {
+    val localData = getBackingArrayReference()
+    val otherData = other.getBackingArrayReference()
     for (i in 0 until byteCount) {
-        if (this[offset + i] != other[otherOffset + i]) {
+        if (localData[offset + i] != otherData[otherOffset + i]) {
             return false
         }
     }
@@ -412,8 +424,9 @@ private fun ByteString.rangeEquals(
     offset: Int, other: ByteArray, otherOffset: Int = 0,
     byteCount: Int = other.size - otherOffset
 ): Boolean {
+    val localData = getBackingArrayReference()
     for (i in 0 until byteCount) {
-        if (this[offset + i] != other[otherOffset + i]) {
+        if (localData[offset + i] != other[otherOffset + i]) {
             return false
         }
     }

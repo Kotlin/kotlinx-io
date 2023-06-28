@@ -1669,6 +1669,10 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun indexOfEmptyByteString() {
         assertEquals(0, source.indexOf(ByteString()))
+
+        sink.writeUtf8("blablabla")
+        sink.emit()
+        assertEquals(0, source.indexOf(ByteString()))
     }
 
     @Test

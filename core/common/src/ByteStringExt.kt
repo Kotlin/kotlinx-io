@@ -6,7 +6,6 @@
 package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
-import kotlinx.io.bytestring.indices
 import kotlinx.io.bytestring.isEmpty
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringApi
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringOperations
@@ -26,9 +25,20 @@ import kotlin.math.min
 @OptIn(DelicateIoApi::class)
 public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int = byteString.size) {
     checkBounds(byteString.size, startIndex, endIndex)
+    if (endIndex == startIndex) {
+        return
+    }
 
     writeToInternalBuffer { buffer ->
         var offset = startIndex
+        val tail = buffer.head?.prev
+        if (tail != null) {
+            val bytesToWrite = min(tail.data.size - tail.limit, endIndex - offset)
+            byteString.copyInto(tail.data, tail.limit, offset, offset + bytesToWrite)
+            offset += bytesToWrite
+            tail.limit += bytesToWrite
+            buffer.size += bytesToWrite
+        }
         while (offset < endIndex) {
             val bytesToWrite = min(endIndex - offset, Segment.SIZE)
             val seg = buffer.writableSegment(bytesToWrite)
@@ -75,7 +85,7 @@ public fun Source.readByteString(byteCount: Int): ByteString {
  * @throws IllegalArgumentException if [startIndex] is negative.
  * @throws IllegalStateException if the source is closed.
  */
-@OptIn(InternalIoApi::class)
+@OptIn(InternalIoApi::class, UnsafeByteStringApi::class)
 public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
     require(startIndex >= 0) { "startIndex: $startIndex" }
 
@@ -89,29 +99,33 @@ public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
         return -1L
     }
     peek.skip(offset)
-    while (!peek.exhausted()) {
-        val index = peek.indexOf(byteString[0])
-        if (index == -1L) {
-            return -1L
-        }
-        offset += index
-        peek.skip(index)
-        if (!peek.request(byteString.size.toLong())) {
-            return -1L
-        }
+    var resultingIndex = -1L
+    UnsafeByteStringOperations.withByteArrayUnsafe(byteString) { data ->
+        while (!peek.exhausted()) {
+            val index = peek.indexOf(data[0])
+            if (index == -1L) {
+                return@withByteArrayUnsafe
+            }
+            offset += index
+            peek.skip(index)
+            if (!peek.request(byteString.size.toLong())) {
+                return@withByteArrayUnsafe
+            }
 
-        var matches = true
-        for (idx in byteString.indices) {
-            if (byteString[idx] != peek.buffer[idx.toLong()]) {
-                matches = false
-                offset++
-                peek.skip(1)
-                break
+            var matches = true
+            for (idx in data.indices) {
+                if (data[idx] != peek.buffer[idx.toLong()]) {
+                    matches = false
+                    offset++
+                    peek.skip(1)
+                    break
+                }
+            }
+            if (matches) {
+                resultingIndex = offset
+                return@withByteArrayUnsafe
             }
         }
-        if (matches) {
-            return offset
-        }
     }
-    return -1L
+    return resultingIndex
 }
