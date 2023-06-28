@@ -9,6 +9,7 @@ public final class kotlinx/io/bytestring/ByteString : java/lang/Comparable {
 	public static synthetic fun copyInto$default (Lkotlinx/io/bytestring/ByteString;[BIIIILjava/lang/Object;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun get (I)B
+	public final fun getBackingArrayReference ()[B
 	public final fun getSize ()I
 	public fun hashCode ()I
 	public final fun substring (II)Lkotlinx/io/bytestring/ByteString;
