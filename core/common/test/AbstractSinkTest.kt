@@ -448,15 +448,17 @@ abstract class AbstractSinkTest internal constructor(
         assertEquals("Buffer(size=8 hex=efcdab9078563412)", data.toString())
     }
 
-  @Test fun writeByteString() {
-    sink.write("təˈranəˌsôr".encodeUtf8())
-    sink.flush()
-    assertEquals(ByteString("74c999cb8872616ec999cb8c73c3b472".decodeHex()), data.readByteString())
-  }
+    @Test
+    fun writeByteString() {
+        sink.write("təˈranəˌsôr".encodeUtf8())
+        sink.flush()
+        assertEquals(ByteString("74c999cb8872616ec999cb8c73c3b472".decodeHex()), data.readByteString())
+    }
 
-  @Test fun writeByteStringOffset() {
-    sink.write("təˈranəˌsôr".encodeUtf8(), 5, 10)
-    sink.flush()
-    assertEquals(ByteString("72616ec999".decodeHex()), data.readByteString())
-  }
+    @Test
+    fun writeByteStringOffset() {
+        sink.write("təˈranəˌsôr".encodeUtf8(), 5, 10)
+        sink.flush()
+        assertEquals(ByteString("72616ec999".decodeHex()), data.readByteString())
+    }
 }

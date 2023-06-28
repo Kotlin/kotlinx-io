@@ -53,25 +53,30 @@ class CommonBufferTest {
     fun bufferToString() {
         assertEquals("Buffer(size=0)", Buffer().toString())
 
-        assertEquals("Buffer(size=10 hex=610d0a620a630d645c65)",
+        assertEquals(
+            "Buffer(size=10 hex=610d0a620a630d645c65)",
             Buffer().also { it.writeUtf8("a\r\nb\nc\rd\\e") }.toString()
         )
 
-        assertEquals("Buffer(size=11 hex=547972616e6e6f73617572)",
+        assertEquals(
+            "Buffer(size=11 hex=547972616e6e6f73617572)",
             Buffer().also { it.writeUtf8("Tyrannosaur") }.toString()
         )
 
-        assertEquals("Buffer(size=16 hex=74c999cb8872616ec999cb8c73c3b472)",
+        assertEquals(
+            "Buffer(size=16 hex=74c999cb8872616ec999cb8c73c3b472)",
             Buffer().also { it.write("74c999cb8872616ec999cb8c73c3b472".decodeHex()) }.toString()
         )
 
-        assertEquals("Buffer(size=64 hex=00000000000000000000000000000000000000000000000000000000000000000000000" +
-                "000000000000000000000000000000000000000000000000000000000)",
+        assertEquals(
+            "Buffer(size=64 hex=00000000000000000000000000000000000000000000000000000000000000000000000" +
+                    "000000000000000000000000000000000000000000000000000000000)",
             Buffer().also { it.write(ByteArray(64)) }.toString()
         )
 
-        assertEquals("Buffer(size=66 hex=000000000000000000000000000000000000000000000000000000000000" +
-                "00000000000000000000000000000000000000000000000000000000000000000000…)",
+        assertEquals(
+            "Buffer(size=66 hex=000000000000000000000000000000000000000000000000000000000000" +
+                    "00000000000000000000000000000000000000000000000000000000000000000000…)",
             Buffer().also { it.write(ByteArray(66)) }.toString()
         )
     }
@@ -586,13 +591,13 @@ class CommonBufferTest {
         assertArrayEquals(byteArrayOf(42, 42), buffer.readByteArray())
     }
 
-  @Test
-  fun snapshot() {
-    val buffer = Buffer()
-    assertEquals(ByteString(), buffer.snapshot())
-    buffer.writeUtf8("hello")
-    assertEquals("hello".encodeUtf8(), buffer.snapshot())
-    buffer.clear()
-    assertEquals(ByteString(), buffer.snapshot())
-  }
+    @Test
+    fun snapshot() {
+        val buffer = Buffer()
+        assertEquals(ByteString(), buffer.snapshot())
+        buffer.writeUtf8("hello")
+        assertEquals("hello".encodeUtf8(), buffer.snapshot())
+        buffer.clear()
+        assertEquals(ByteString(), buffer.snapshot())
+    }
 }
