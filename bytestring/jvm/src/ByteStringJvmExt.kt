@@ -12,13 +12,11 @@ import java.nio.charset.Charset
  *
  * @param charset the charset to decode data into a string.
  */
-public fun ByteString.toString(charset: Charset): String = getBackingArrayReference().toString(charset)
+public fun ByteString.decodeToString(charset: Charset): String = getBackingArrayReference().toString(charset)
 
 /**
- * Constructs a new byte string containing [string] encoded into bytes using [charset].
+ * Encodes a string into a byte string using [charset].
  *
- * @param string string to encode.
  * @param charset the encoding.
  */
-public fun ByteString.Companion.fromString(string: String, charset: Charset): ByteString =
-    wrap(string.toByteArray(charset))
+public fun String.encodeToByteString(charset: Charset): ByteString = ByteString.wrap(toByteArray(charset))

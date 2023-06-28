@@ -42,16 +42,17 @@ public final class kotlinx/io/bytestring/ByteStringBuilderKt {
 }
 
 public final class kotlinx/io/bytestring/ByteStringJvmExtKt {
-	public static final fun fromString (Lkotlinx/io/bytestring/ByteString$Companion;Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/bytestring/ByteString;
-	public static final fun toString (Lkotlinx/io/bytestring/ByteString;Ljava/nio/charset/Charset;)Ljava/lang/String;
+	public static final fun decodeToString (Lkotlinx/io/bytestring/ByteString;Ljava/nio/charset/Charset;)Ljava/lang/String;
+	public static final fun encodeToByteString (Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/bytestring/ByteString;
 }
 
 public final class kotlinx/io/bytestring/ByteStringKt {
 	public static final fun ByteString ([B)Lkotlinx/io/bytestring/ByteString;
 	public static final fun contentEquals (Lkotlinx/io/bytestring/ByteString;[B)Z
+	public static final fun decodeToString (Lkotlinx/io/bytestring/ByteString;)Ljava/lang/String;
+	public static final fun encodeToByteString (Ljava/lang/String;)Lkotlinx/io/bytestring/ByteString;
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun endsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
-	public static final fun fromUtf8String (Lkotlinx/io/bytestring/ByteString$Companion;Ljava/lang/String;)Lkotlinx/io/bytestring/ByteString;
 	public static final fun getIndices (Lkotlinx/io/bytestring/ByteString;)Lkotlin/ranges/IntRange;
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;BI)I
 	public static final fun indexOf (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;I)I
@@ -69,7 +70,6 @@ public final class kotlinx/io/bytestring/ByteStringKt {
 	public static synthetic fun lastIndexOf$default (Lkotlinx/io/bytestring/ByteString;[BIILjava/lang/Object;)I
 	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
-	public static final fun toUtf8String (Lkotlinx/io/bytestring/ByteString;)Ljava/lang/String;
 }
 
 public abstract interface annotation class kotlinx/io/bytestring/unsafe/UnsafeByteStringApi : java/lang/annotation/Annotation {

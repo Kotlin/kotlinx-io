@@ -22,6 +22,7 @@
 package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.encodeToByteString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -450,14 +451,14 @@ abstract class AbstractSinkTest internal constructor(
 
     @Test
     fun writeByteString() {
-        sink.write("təˈranəˌsôr".encodeUtf8())
+        sink.write("təˈranəˌsôr".encodeToByteString())
         sink.flush()
         assertEquals(ByteString("74c999cb8872616ec999cb8c73c3b472".decodeHex()), data.readByteString())
     }
 
     @Test
     fun writeByteStringOffset() {
-        sink.write("təˈranəˌsôr".encodeUtf8(), 5, 10)
+        sink.write("təˈranəˌsôr".encodeToByteString(), 5, 10)
         sink.flush()
         assertEquals(ByteString("72616ec999".decodeHex()), data.readByteString())
     }

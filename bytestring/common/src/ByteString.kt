@@ -446,17 +446,15 @@ public fun ByteString.isNotEmpty(): Boolean = !isEmpty()
 /**
  * Decodes content of a byte string into a string using UTF-8 encoding.
  */
-public fun ByteString.toUtf8String(): String {
+public fun ByteString.decodeToString(): String {
     return getBackingArrayReference().decodeToString()
 }
 
 /**
  * Encodes a string into a byte sequence using UTF8-encoding and wraps it into a byte string.
- *
- * @param string the string to be encoded.
  */
-public fun ByteString.Companion.fromUtf8String(string: String): ByteString {
-    return wrap(string.encodeToByteArray())
+public fun String.encodeToByteString(): ByteString {
+    return ByteString.wrap(encodeToByteArray())
 }
 
 /**

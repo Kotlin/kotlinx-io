@@ -393,10 +393,10 @@ class ByteStringTest {
 
     @Test
     fun utf8() {
-        val byteString = ByteString.fromUtf8String(bronzeHorseman)
+        val byteString = bronzeHorseman.encodeToByteString()
         assertEquals(byteString.toByteArray().toList(), bronzeHorseman.encodeToByteArray().toList())
         assertEquals(byteString, ByteString(*bronzeHorseman.encodeToByteArray()))
-        assertEquals(byteString.toUtf8String(), bronzeHorseman)
+        assertEquals(byteString.decodeToString(), bronzeHorseman)
     }
 
     @Test

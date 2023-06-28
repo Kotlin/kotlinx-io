@@ -22,7 +22,8 @@
 package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
-import kotlinx.io.bytestring.toUtf8String
+import kotlinx.io.bytestring.decodeToString
+import kotlinx.io.bytestring.encodeToByteString
 import kotlin.test.*
 
 private const val SEGMENT_SIZE = Segment.SIZE
@@ -1546,7 +1547,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
             writeUtf8("e".repeat(Segment.SIZE))
             emit()
         }
-        assertEquals("abcd" + "e".repeat(Segment.SIZE), source.readByteString().toUtf8String())
+        assertEquals("abcd" + "e".repeat(Segment.SIZE), source.readByteString().decodeToString())
     }
 
     @Test
@@ -1556,7 +1557,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
             writeUtf8("e".repeat(Segment.SIZE))
             emit()
         }
-        assertEquals("abc", source.readByteString(3).toUtf8String())
+        assertEquals("abc", source.readByteString(3).decodeToString())
         assertEquals("d", source.readUtf8(1))
     }
 
@@ -1571,17 +1572,17 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun indexOfByteString() {
-        assertEquals(-1, source.indexOf("flop".encodeUtf8()))
+        assertEquals(-1, source.indexOf("flop".encodeToByteString()))
 
         sink.writeUtf8("flip flop")
         sink.emit()
-        assertEquals(5, source.indexOf("flop".encodeUtf8()))
+        assertEquals(5, source.indexOf("flop".encodeToByteString()))
         source.readUtf8() // Clear stream.
 
         // Make sure we backtrack and resume searching after partial match.
         sink.writeUtf8("hi hi hi hey")
         sink.emit()
-        assertEquals(3, source.indexOf("hi hi hey".encodeUtf8()))
+        assertEquals(3, source.indexOf("hi hi hey".encodeToByteString()))
     }
 
     @Test
@@ -1591,55 +1592,55 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.emit()
         assertEquals(
             (Segment.SIZE - 3).toLong(),
-            source.indexOf("aabc".encodeUtf8(), (Segment.SIZE - 4).toLong()),
+            source.indexOf("aabc".encodeToByteString(), (Segment.SIZE - 4).toLong()),
         )
         assertEquals(
             (Segment.SIZE - 3).toLong(),
-            source.indexOf("aabc".encodeUtf8(), (Segment.SIZE - 3).toLong()),
+            source.indexOf("aabc".encodeToByteString(), (Segment.SIZE - 3).toLong()),
         )
         assertEquals(
             (Segment.SIZE - 2).toLong(),
-            source.indexOf("abcd".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("abcd".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             (Segment.SIZE - 2).toLong(),
-            source.indexOf("abc".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("abc".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             (Segment.SIZE - 2).toLong(),
-            source.indexOf("abc".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("abc".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             (Segment.SIZE - 2).toLong(),
-            source.indexOf("ab".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("ab".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             (Segment.SIZE - 2).toLong(),
-            source.indexOf("a".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("a".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             (Segment.SIZE - 1).toLong(),
-            source.indexOf("bc".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("bc".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             (Segment.SIZE - 1).toLong(),
-            source.indexOf("b".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("b".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             Segment.SIZE.toLong(),
-            source.indexOf("c".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("c".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             Segment.SIZE.toLong(),
-            source.indexOf("c".encodeUtf8(), Segment.SIZE.toLong()),
+            source.indexOf("c".encodeToByteString(), Segment.SIZE.toLong()),
         )
         assertEquals(
             (Segment.SIZE + 1).toLong(),
-            source.indexOf("d".encodeUtf8(), (Segment.SIZE - 2).toLong()),
+            source.indexOf("d".encodeToByteString(), (Segment.SIZE - 2).toLong()),
         )
         assertEquals(
             (Segment.SIZE + 1).toLong(),
-            source.indexOf("d".encodeUtf8(), (Segment.SIZE + 1).toLong()),
+            source.indexOf("d".encodeToByteString(), (Segment.SIZE + 1).toLong()),
         )
     }
 
@@ -1648,22 +1649,22 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeUtf8("a".repeat(Segment.SIZE - 1))
         sink.writeUtf8("bcd")
         sink.emit()
-        assertEquals(-1, source.indexOf("abcda".encodeUtf8(), (Segment.SIZE - 3).toLong()))
+        assertEquals(-1, source.indexOf("abcda".encodeToByteString(), (Segment.SIZE - 3).toLong()))
     }
 
     @Test
     fun indexOfByteStringWithOffset() {
-        assertEquals(-1, source.indexOf("flop".encodeUtf8(), 1))
+        assertEquals(-1, source.indexOf("flop".encodeToByteString(), 1))
 
         sink.writeUtf8("flop flip flop")
         sink.emit()
-        assertEquals(10, source.indexOf("flop".encodeUtf8(), 1))
+        assertEquals(10, source.indexOf("flop".encodeToByteString(), 1))
         source.readUtf8() // Clear stream
 
         // Make sure we backtrack and resume searching after partial match.
         sink.writeUtf8("hi hi hi hi hey")
         sink.emit()
-        assertEquals(6, source.indexOf("hi hi hey".encodeUtf8(), 1))
+        assertEquals(6, source.indexOf("hi hi hey".encodeToByteString(), 1))
     }
 
     @Test
@@ -1678,7 +1679,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun indexOfByteStringInvalidArgumentsThrows() {
         assertFailsWith<IllegalArgumentException> {
-            source.indexOf("hi".encodeUtf8(), -1)
+            source.indexOf("hi".encodeToByteString(), -1)
         }
     }
 
@@ -1691,17 +1692,17 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeUtf8("a".repeat(Segment.SIZE * 2 - 3))
         sink.writeUtf8("bcdefg")
         sink.emit()
-        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("ab".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abc".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcd".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcde".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcdef".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcdefg".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 - 3).toLong(), source.indexOf("bcdefg".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 - 2).toLong(), source.indexOf("cdefg".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 - 1).toLong(), source.indexOf("defg".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2).toLong(), source.indexOf("efg".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 + 1).toLong(), source.indexOf("fg".encodeUtf8()))
-        assertEquals((Segment.SIZE * 2 + 2).toLong(), source.indexOf("g".encodeUtf8()))
+        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("ab".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abc".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcd".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcde".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcdef".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abcdefg".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 - 3).toLong(), source.indexOf("bcdefg".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 - 2).toLong(), source.indexOf("cdefg".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 - 1).toLong(), source.indexOf("defg".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2).toLong(), source.indexOf("efg".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 + 1).toLong(), source.indexOf("fg".encodeToByteString()))
+        assertEquals((Segment.SIZE * 2 + 2).toLong(), source.indexOf("g".encodeToByteString()))
     }
 }
