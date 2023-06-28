@@ -34,21 +34,21 @@ package kotlinx.io
  */
 @OptIn(ExperimentalStdlibApi::class)
 public interface RawSource : AutoCloseableAlias {
-  /**
-   * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
-   * Returns the number of bytes read, or -1 if this source is exhausted.
-   *
-   * @param sink the destination to write the data from this source.
-   * @param byteCount the number of bytes to read.
-   *
-   * @throws IllegalArgumentException when [byteCount] is negative.
-   * @throws IllegalStateException when the source is closed.
-   */
-  public fun readAtMostTo(sink: Buffer, byteCount: Long): Long
+    /**
+     * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
+     * Returns the number of bytes read, or -1 if this source is exhausted.
+     *
+     * @param sink the destination to write the data from this source.
+     * @param byteCount the number of bytes to read.
+     *
+     * @throws IllegalArgumentException when [byteCount] is negative.
+     * @throws IllegalStateException when the source is closed.
+     */
+    public fun readAtMostTo(sink: Buffer, byteCount: Long): Long
 
-  /**
-   * Closes this source and releases the resources held by this source. It is an error to read a
-   * closed source. It is safe to close a source more than once.
-   */
-  override fun close()
+    /**
+     * Closes this source and releases the resources held by this source. It is an error to read a
+     * closed source. It is safe to close a source more than once.
+     */
+    override fun close()
 }

@@ -47,6 +47,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         sink = pipe.sink
         source = pipe.source
     }
+
     @Test
     fun inputStream() {
         sink.writeUtf8("abc")
@@ -172,7 +173,11 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         sink.writeByte(0)
         sink.emit()
 
-        val expectedBytes = if (source is kotlinx.io.Buffer) { 3 } else { 2 }
+        val expectedBytes = if (source is kotlinx.io.Buffer) {
+            3
+        } else {
+            2
+        }
         assertEquals(expectedBytes, input.available())
     }
 
@@ -228,16 +233,20 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     @Test
     fun readSpecificCharsetPartial() {
-        sink.write(("0000007600000259000002c80000006c000000e40000007300000259000002" +
-                "cc000000720000006100000070000000740000025900000072").decodeHex())
+        sink.write(
+            ("0000007600000259000002c80000006c000000e40000007300000259000002" +
+                    "cc000000720000006100000070000000740000025900000072").decodeHex()
+        )
         sink.emit()
         assertEquals("vəˈläsə", source.readString(7 * 4, Charset.forName("utf-32")))
     }
 
     @Test
     fun readSpecificCharset() {
-        sink.write(("0000007600000259000002c80000006c000000e40000007300000259000002" +
-                "cc000000720000006100000070000000740000025900000072").decodeHex())
+        sink.write(
+            ("0000007600000259000002c80000006c000000e40000007300000259000002" +
+                    "cc000000720000006100000070000000740000025900000072").decodeHex()
+        )
 
         sink.emit()
         assertEquals("vəˈläsəˌraptər", source.readString(Charset.forName("utf-32")))

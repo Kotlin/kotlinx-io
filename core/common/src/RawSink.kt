@@ -34,27 +34,27 @@ package kotlinx.io
  */
 @OptIn(ExperimentalStdlibApi::class)
 public expect interface RawSink : AutoCloseableAlias {
-  /**
-   * Removes [byteCount] bytes from [source] and appends them to this sink.
-   *
-   * @param source the source to read data from.
-   * @param byteCount the number of bytes to write.
-   *
-   * @throws IllegalArgumentException when the [source]'s size is below [byteCount] or [byteCount] is negative.
-   * @throws IllegalStateException when the sink is closed.
-   */
-  public fun write(source: Buffer, byteCount: Long)
+    /**
+     * Removes [byteCount] bytes from [source] and appends them to this sink.
+     *
+     * @param source the source to read data from.
+     * @param byteCount the number of bytes to write.
+     *
+     * @throws IllegalArgumentException when the [source]'s size is below [byteCount] or [byteCount] is negative.
+     * @throws IllegalStateException when the sink is closed.
+     */
+    public fun write(source: Buffer, byteCount: Long)
 
-  /**
-   * Pushes all buffered bytes to their final destination.
-   *
-   * @throws IllegalStateException when the sink is closed.
-   */
-  public fun flush()
+    /**
+     * Pushes all buffered bytes to their final destination.
+     *
+     * @throws IllegalStateException when the sink is closed.
+     */
+    public fun flush()
 
-  /**
-   * Pushes all buffered bytes to their final destination and releases the resources held by this
-   * sink. It is an error to write a closed sink. It is safe to close a sink more than once.
-   */
-  override fun close()
+    /**
+     * Pushes all buffered bytes to their final destination and releases the resources held by this
+     * sink. It is an error to write a closed sink. It is safe to close a sink more than once.
+     */
+    override fun close()
 }

@@ -24,7 +24,7 @@ package kotlinx.io
 internal expect fun String.asUtf8ToByteArray(): ByteArray
 
 public expect open class IOException(message: String?, cause: Throwable?) : Exception {
-  public constructor(message: String? = null)
+    public constructor(message: String? = null)
 }
 
 public expect open class EOFException(message: String? = null) : IOException
