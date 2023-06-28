@@ -30,11 +30,11 @@ class SmokeFileTest {
         val path = Path(tempFile!!)
 
         path.sink().use {
-            it.writeUtf8("example")
+            it.writeString("example")
         }
 
         path.source().use {
-            assertEquals("example", it.readUtf8Line())
+            assertEquals("example", it.readLine())
         }
     }
 

@@ -214,8 +214,8 @@ open class Utf8StringBenchmark : BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): String {
         val s = buffer.size
-        buffer.writeUtf8(string)
-        return buffer.readUtf8(buffer.size - s)
+        buffer.writeString(string)
+        return buffer.readString(buffer.size - s)
     }
 }
 
@@ -257,16 +257,16 @@ open class Utf8LineBenchmarkBase : BufferRWBenchmarkBase() {
 open class Utf8LineBenchmark : Utf8LineBenchmarkBase() {
     @Benchmark
     fun benchmark(): String? {
-        buffer.writeUtf8(string)
-        return buffer.readUtf8Line()
+        buffer.writeString(string)
+        return buffer.readLine()
     }
 }
 
 open class Utf8LineStrictBenchmark : Utf8LineBenchmarkBase() {
     @Benchmark
     fun benchmark(): String {
-        buffer.writeUtf8(string)
-        return buffer.readUtf8LineStrict()
+        buffer.writeString(string)
+        return buffer.readLineStrict()
     }
 }
 

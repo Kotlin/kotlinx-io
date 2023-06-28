@@ -50,7 +50,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     @Test
     fun inputStream() {
-        sink.writeUtf8("abc")
+        sink.writeString("abc")
         sink.emit()
         val input: InputStream = source.asInputStream()
         val bytes = byteArrayOf('z'.code.toByte(), 'z'.code.toByte(), 'z'.code.toByte())
@@ -73,7 +73,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     @Test
     fun inputStreamOffsetCount() {
-        sink.writeUtf8("abcde")
+        sink.writeString("abcde")
         sink.emit()
         val input: InputStream = source.asInputStream()
         val bytes =
@@ -90,12 +90,12 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     @Test
     fun inputStreamSkip() {
-        sink.writeUtf8("abcde")
+        sink.writeString("abcde")
         sink.emit()
         val input: InputStream = source.asInputStream()
         assertEquals(4, input.skip(4))
         assertEquals('e'.code, input.read())
-        sink.writeUtf8("abcde")
+        sink.writeString("abcde")
         sink.emit()
         assertEquals(5, input.skip(10)) // Try to skip too much.
         assertEquals(0, input.skip(1)) // Try to skip when exhausted.
@@ -103,7 +103,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     @Test
     fun inputStreamCharByChar() {
-        sink.writeUtf8("abc")
+        sink.writeString("abc")
         sink.emit()
         val input: InputStream = source.asInputStream()
         assertEquals('a'.code, input.read())
@@ -114,7 +114,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
     @Test
     fun inputStreamBounds() {
-        sink.writeUtf8("a".repeat(100))
+        sink.writeString("a".repeat(100))
         sink.emit()
         val input: InputStream = source.asInputStream()
         assertFailsWith<IllegalArgumentException> {
@@ -196,7 +196,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     @Test
     fun readNioBuffer() {
         val expected = if (factory.isOneByteAtATime) "a" else "abcdefg"
-        sink.writeUtf8("abcdefg")
+        sink.writeString("abcdefg")
         sink.emit()
         val nioByteBuffer: ByteBuffer = ByteBuffer.allocate(1024)
         val byteCount: Int = source.readAtMostTo(nioByteBuffer)
@@ -213,7 +213,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
     @Test
     fun readLargeNioBufferOnlyReadsOneSegment() {
         val expected: String = if (factory.isOneByteAtATime) "a" else "a".repeat(SEGMENT_SIZE)
-        sink.writeUtf8("a".repeat(SEGMENT_SIZE * 4))
+        sink.writeString("a".repeat(SEGMENT_SIZE * 4))
         sink.emit()
         val nioByteBuffer: ByteBuffer = ByteBuffer.allocate(SEGMENT_SIZE * 3)
         val byteCount: Int = source.readAtMostTo(nioByteBuffer)
@@ -259,6 +259,6 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         assertFailsWith<EOFException> {
             source.readString(4, Charsets.US_ASCII)
         }
-        assertEquals("abc", source.readUtf8()) // The read shouldn't consume any data.
+        assertEquals("abc", source.readString()) // The read shouldn't consume any data.
     }
 }

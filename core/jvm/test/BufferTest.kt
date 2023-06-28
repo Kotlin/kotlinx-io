@@ -36,8 +36,8 @@ class BufferTest {
     @Test
     fun copyToSpanningSegments() {
         val source = Buffer()
-        source.writeUtf8("a".repeat(SEGMENT_SIZE * 2))
-        source.writeUtf8("b".repeat(SEGMENT_SIZE * 2))
+        source.writeString("a".repeat(SEGMENT_SIZE * 2))
+        source.writeString("b".repeat(SEGMENT_SIZE * 2))
         val out = ByteArrayOutputStream()
         source.copyTo(out, startIndex = 10L, endIndex = 10L + SEGMENT_SIZE * 3L)
         assertEquals(
@@ -46,49 +46,49 @@ class BufferTest {
         )
         assertEquals(
             "a".repeat(SEGMENT_SIZE * 2) + "b".repeat(SEGMENT_SIZE * 2),
-            source.readUtf8(SEGMENT_SIZE * 4L)
+            source.readString(SEGMENT_SIZE * 4L)
         )
     }
 
     @Test
     fun copyToSkippingSegments() {
         val source = Buffer()
-        source.writeUtf8("a".repeat(SEGMENT_SIZE * 2))
-        source.writeUtf8("b".repeat(SEGMENT_SIZE * 2))
+        source.writeString("a".repeat(SEGMENT_SIZE * 2))
+        source.writeString("b".repeat(SEGMENT_SIZE * 2))
         val out = ByteArrayOutputStream()
         source.copyTo(out, startIndex = SEGMENT_SIZE * 2 + 1L, endIndex = SEGMENT_SIZE * 2 + 4L)
         assertEquals("bbb", out.toString())
         assertEquals(
             "a".repeat(SEGMENT_SIZE * 2) + "b".repeat(SEGMENT_SIZE * 2),
-            source.readUtf8(SEGMENT_SIZE * 4L)
+            source.readString(SEGMENT_SIZE * 4L)
         )
     }
 
     @Test
     fun copyToStream() {
-        val buffer = Buffer().also { it.writeUtf8("hello, world!") }
+        val buffer = Buffer().also { it.writeString("hello, world!") }
         val out = ByteArrayOutputStream()
         buffer.copyTo(out)
         val outString = String(out.toByteArray(), UTF_8)
         assertEquals("hello, world!", outString)
-        assertEquals("hello, world!", buffer.readUtf8())
+        assertEquals("hello, world!", buffer.readString())
     }
 
     @Test
     fun writeToSpanningSegments() {
         val buffer = Buffer()
-        buffer.writeUtf8("a".repeat(SEGMENT_SIZE * 2))
-        buffer.writeUtf8("b".repeat(SEGMENT_SIZE * 2))
+        buffer.writeString("a".repeat(SEGMENT_SIZE * 2))
+        buffer.writeString("b".repeat(SEGMENT_SIZE * 2))
         val out = ByteArrayOutputStream()
         buffer.skip(10)
         buffer.readTo(out, SEGMENT_SIZE * 3L)
         assertEquals("a".repeat(SEGMENT_SIZE * 2 - 10) + "b".repeat(SEGMENT_SIZE + 10), out.toString())
-        assertEquals("b".repeat(SEGMENT_SIZE - 10), buffer.readUtf8(buffer.size))
+        assertEquals("b".repeat(SEGMENT_SIZE - 10), buffer.readString(buffer.size))
     }
 
     @Test
     fun writeToStream() {
-        val buffer = Buffer().also { it.writeUtf8("hello, world!") }
+        val buffer = Buffer().also { it.writeString("hello, world!") }
         val out = ByteArrayOutputStream()
         buffer.readTo(out)
         val outString = String(out.toByteArray(), UTF_8)
@@ -101,16 +101,16 @@ class BufferTest {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
         buffer.transferFrom(input)
-        val out = buffer.readUtf8()
+        val out = buffer.readString()
         assertEquals("hello, world!", out)
     }
 
     @Test
     fun readFromSpanningSegments() {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
-        val buffer = Buffer().also { it.writeUtf8("a".repeat(SEGMENT_SIZE - 10)) }
+        val buffer = Buffer().also { it.writeString("a".repeat(SEGMENT_SIZE - 10)) }
         buffer.transferFrom(input)
-        val out = buffer.readUtf8()
+        val out = buffer.readString()
         assertEquals("a".repeat(SEGMENT_SIZE - 10) + "hello, world!", out)
     }
 
@@ -119,7 +119,7 @@ class BufferTest {
         val input: InputStream = ByteArrayInputStream("hello, world!".toByteArray(UTF_8))
         val buffer = Buffer()
         buffer.write(input, 10)
-        val out = buffer.readUtf8()
+        val out = buffer.readString()
         assertEquals("hello, wor", out)
     }
 
@@ -149,7 +149,7 @@ class BufferTest {
     @Test
     fun bufferInputStreamByteByByte() {
         val source = Buffer()
-        source.writeUtf8("abc")
+        source.writeString("abc")
         val input: InputStream = source.asInputStream()
         assertEquals(3, input.available())
         assertEquals('a'.code, input.read())
@@ -162,7 +162,7 @@ class BufferTest {
     @Test
     fun bufferInputStreamBulkReads() {
         val source = Buffer()
-        source.writeUtf8("abc")
+        source.writeString("abc")
         val byteArray = ByteArray(4)
         Arrays.fill(byteArray, (-5).toByte())
         val input: InputStream = source.asInputStream()
@@ -176,78 +176,78 @@ class BufferTest {
     @Test
     fun copyToOutputStream() {
         val source = Buffer()
-        source.writeUtf8("party")
+        source.writeString("party")
 
         val target = Buffer()
         source.copyTo(target.asOutputStream())
-        assertEquals("party", target.readUtf8())
-        assertEquals("party", source.readUtf8())
+        assertEquals("party", target.readString())
+        assertEquals("party", source.readString())
     }
 
     @Test
     fun copyToOutputStreamWithStartIndex() {
         val source = Buffer()
-        source.writeUtf8("party")
+        source.writeString("party")
 
         val target = Buffer()
         source.copyTo(target.asOutputStream(), startIndex = 2)
-        assertEquals("rty", target.readUtf8())
-        assertEquals("party", source.readUtf8())
+        assertEquals("rty", target.readString())
+        assertEquals("party", source.readString())
     }
 
     @Test
     fun copyToOutputStreamWithEndIndex() {
         val source = Buffer()
-        source.writeUtf8("party")
+        source.writeString("party")
 
         val target = Buffer()
         source.copyTo(target.asOutputStream(), endIndex = 3)
-        assertEquals("par", target.readUtf8())
-        assertEquals("party", source.readUtf8())
+        assertEquals("par", target.readString())
+        assertEquals("party", source.readString())
     }
 
     @Test
     fun copyToOutputStreamWithIndices() {
         val source = Buffer()
-        source.writeUtf8("party")
+        source.writeString("party")
 
         val target = Buffer()
         source.copyTo(target.asOutputStream(), startIndex = 1, endIndex = 4)
-        assertEquals("art", target.readUtf8())
-        assertEquals("party", source.readUtf8())
+        assertEquals("art", target.readString())
+        assertEquals("party", source.readString())
     }
 
     @Test
     fun copyToOutputStreamWithEmptyRange() {
         val source = Buffer()
-        source.writeUtf8("hello")
+        source.writeString("hello")
 
         val target = Buffer()
         source.copyTo(target.asOutputStream(), startIndex = 1, endIndex = 1)
-        assertEquals("hello", source.readUtf8())
-        assertEquals("", target.readUtf8())
+        assertEquals("hello", source.readString())
+        assertEquals("", target.readString())
     }
 
     @Test
     fun readToOutputStream() {
         val source = Buffer()
-        source.writeUtf8("party")
+        source.writeString("party")
 
         val target = Buffer()
         source.readTo(target.asOutputStream())
-        assertEquals("party", target.readUtf8())
-        assertEquals("", source.readUtf8())
+        assertEquals("party", target.readString())
+        assertEquals("", source.readString())
     }
 
     @Test
     fun readToOutputStreamWithByteCount() {
         val source = Buffer()
-        source.writeUtf8("party")
+        source.writeString("party")
 
         val target = Buffer()
         source.readTo(target.asOutputStream(), byteCount = 3)
-        assertEquals("par", target.readUtf8())
-        assertEquals("ty", source.readUtf8())
+        assertEquals("par", target.readString())
+        assertEquals("ty", source.readString())
     }
 
     @Test

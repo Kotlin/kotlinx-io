@@ -88,7 +88,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readShortSplitAcrossMultipleSegments() {
-        sink.writeUtf8("a".repeat(Segment.SIZE - 1))
+        sink.writeString("a".repeat(Segment.SIZE - 1))
         sink.write(byteArrayOf(0xab.toByte(), 0xcd.toByte()))
         sink.emit()
         source.skip((Segment.SIZE - 1).toLong())
@@ -160,7 +160,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readIntSplitAcrossMultipleSegments() {
-        sink.writeUtf8("a".repeat(Segment.SIZE - 3))
+        sink.writeString("a".repeat(Segment.SIZE - 3))
         sink.write(byteArrayOf(0xab.toByte(), 0xcd.toByte(), 0xef.toByte(), 0x01.toByte()))
         sink.emit()
         source.skip((Segment.SIZE - 3).toLong())
@@ -248,7 +248,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readLongSplitAcrossMultipleSegments() {
-        sink.writeUtf8("a".repeat(Segment.SIZE - 7))
+        sink.writeString("a".repeat(Segment.SIZE - 7))
         sink.write(
             byteArrayOf(
                 0xab.toByte(),
@@ -292,13 +292,13 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @OptIn(InternalIoApi::class)
     @Test
     fun transferTo() {
-        source.buffer.writeUtf8("abc")
-        sink.writeUtf8("def")
+        source.buffer.writeString("abc")
+        sink.writeString("def")
         sink.emit()
 
         val sink = Buffer()
         assertEquals(6, source.transferTo(sink))
-        assertEquals("abcdef", sink.readUtf8())
+        assertEquals("abcdef", sink.readString())
         assertTrue(source.exhausted())
     }
 
@@ -313,7 +313,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun readExhaustedSource() {
         val sink = Buffer()
-        sink.writeUtf8("a".repeat(10))
+        sink.writeString("a".repeat(10))
         assertEquals(-1, source.readAtMostTo(sink, 10))
         assertEquals(10, sink.size)
         assertTrue(source.exhausted())
@@ -322,7 +322,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun readZeroBytesFromSource() {
         val sink = Buffer()
-        sink.writeUtf8("a".repeat(10))
+        sink.writeString("a".repeat(10))
 
         // Either 0 or -1 is reasonable here. For consistency with Android's
         // ByteArrayInputStream we return 0.
@@ -394,17 +394,17 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readToSink() {
-        sink.writeUtf8("a".repeat(10000))
+        sink.writeString("a".repeat(10000))
         sink.emit()
         val sink = Buffer()
         source.readTo(sink, 9999)
-        assertEquals("a".repeat(9999), sink.readUtf8())
-        assertEquals("a", source.readUtf8())
+        assertEquals("a".repeat(9999), sink.readString())
+        assertEquals("a", source.readString())
     }
 
     @Test
     fun readToSinkTooShortThrows() {
-        sink.writeUtf8("Hi")
+        sink.writeString("Hi")
         sink.emit()
         val sink = Buffer()
         assertFailsWith<EOFException> {
@@ -412,7 +412,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         }
 
         // Verify we read all that we could from the source.
-        assertEquals("Hi", sink.readUtf8())
+        assertEquals("Hi", sink.readString())
         assertTrue(source.exhausted())
     }
 
@@ -426,19 +426,19 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readToSinkZeroBytes() {
-        sink.writeUtf8("test")
+        sink.writeString("test")
         sink.flush()
         val sink = Buffer()
         source.readTo(sink, 0)
         assertEquals(0, sink.size)
-        assertEquals("test", source.readUtf8())
+        assertEquals("test", source.readString())
     }
 
     @Test
     fun readToByteArray() {
         val data = Buffer()
-        data.writeUtf8("Hello")
-        data.writeUtf8("e".repeat(Segment.SIZE))
+        data.writeString("Hello")
+        data.writeString("e".repeat(Segment.SIZE))
 
         val expected = data.copy().readByteArray()
         sink.write(data, data.size)
@@ -456,13 +456,13 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
         val sink = ByteArray(8)
 
-        buffer.writeUtf8("hello")
+        buffer.writeString("hello")
         source.readTo(sink, 0, 3)
         assertContentEquals(byteArrayOf('h'.code.toByte(), 'e'.code.toByte(), 'l'.code.toByte(), 0, 0, 0, 0, 0), sink)
-        assertEquals("lo", source.readUtf8())
+        assertEquals("lo", source.readString())
 
         sink.fill(0)
-        buffer.writeUtf8("hello")
+        buffer.writeString("hello")
         source.readTo(sink, 3)
         assertContentEquals(
             byteArrayOf(
@@ -473,10 +473,10 @@ abstract class AbstractBufferedSourceTest internal constructor(
         assertTrue(source.exhausted())
 
         sink.fill(0)
-        buffer.writeUtf8("hello")
+        buffer.writeString("hello")
         source.readTo(sink, 3, 4)
         assertContentEquals(byteArrayOf(0, 0, 0, 'h'.code.toByte(), 0, 0, 0, 0), sink)
-        assertEquals("ello", source.readUtf8())
+        assertEquals("ello", source.readString())
     }
 
     @Test
@@ -492,7 +492,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readToByteArrayTooShortThrows() {
-        sink.writeUtf8("Hello")
+        sink.writeString("Hello")
         sink.emit()
 
         val array = ByteArray(6)
@@ -516,7 +516,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readAtMostToByteArray() {
-        sink.writeUtf8("abcd")
+        sink.writeString("abcd")
         sink.emit()
 
         val sink = ByteArray(3)
@@ -534,7 +534,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readAtMostToByteArrayNotEnough() {
-        sink.writeUtf8("abcd")
+        sink.writeString("abcd")
         sink.emit()
 
         val sink = ByteArray(5)
@@ -553,7 +553,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readAtMostToByteArrayOffsetAndCount() {
-        sink.writeUtf8("abcd")
+        sink.writeString("abcd")
         sink.emit()
 
         val sink = ByteArray(7)
@@ -573,7 +573,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readAtMostToByteArrayFromOffset() {
-        sink.writeUtf8("abcd")
+        sink.writeString("abcd")
         sink.emit()
 
         val sink = ByteArray(7)
@@ -613,28 +613,28 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun readByteArray() {
         val string = "abcd" + "e".repeat(Segment.SIZE)
-        sink.writeUtf8(string)
+        sink.writeString(string)
         sink.emit()
         assertArrayEquals(string.asUtf8ToByteArray(), source.readByteArray())
     }
 
     @Test
     fun readByteArrayPartial() {
-        sink.writeUtf8("abcd")
+        sink.writeString("abcd")
         sink.emit()
         assertEquals("[97, 98, 99]", source.readByteArray(3).contentToString())
-        assertEquals("d", source.readUtf8(1))
+        assertEquals("d", source.readString(1))
     }
 
     @Test
     fun readByteArrayTooShortThrows() {
-        sink.writeUtf8("abc")
+        sink.writeString("abc")
         sink.emit()
         assertFailsWith<EOFException> {
             source.readByteArray(4)
         }
 
-        assertEquals("abc", source.readUtf8()) // The read shouldn't consume any data.
+        assertEquals("abc", source.readString()) // The read shouldn't consume any data.
     }
 
     @Test
@@ -644,49 +644,49 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readUtf8SpansSegments() {
-        sink.writeUtf8("a".repeat(Segment.SIZE * 2))
+        sink.writeString("a".repeat(Segment.SIZE * 2))
         sink.emit()
         source.skip((Segment.SIZE - 1).toLong())
-        assertEquals("aa", source.readUtf8(2))
+        assertEquals("aa", source.readString(2))
     }
 
     @Test
     fun readUtf8Segment() {
-        sink.writeUtf8("a".repeat(Segment.SIZE))
+        sink.writeString("a".repeat(Segment.SIZE))
         sink.emit()
-        assertEquals("a".repeat(Segment.SIZE), source.readUtf8(Segment.SIZE.toLong()))
+        assertEquals("a".repeat(Segment.SIZE), source.readString(Segment.SIZE.toLong()))
     }
 
     @Test
     fun readUtf8PartialBuffer() {
-        sink.writeUtf8("a".repeat(Segment.SIZE + 20))
+        sink.writeString("a".repeat(Segment.SIZE + 20))
         sink.emit()
-        assertEquals("a".repeat(Segment.SIZE + 10), source.readUtf8((Segment.SIZE + 10).toLong()))
+        assertEquals("a".repeat(Segment.SIZE + 10), source.readString((Segment.SIZE + 10).toLong()))
     }
 
     @Test
     fun readUtf8EntireBuffer() {
-        sink.writeUtf8("a".repeat(Segment.SIZE * 2))
+        sink.writeString("a".repeat(Segment.SIZE * 2))
         sink.emit()
-        assertEquals("a".repeat(Segment.SIZE * 2), source.readUtf8())
+        assertEquals("a".repeat(Segment.SIZE * 2), source.readString())
     }
 
     @Test
     fun readUtf8TooShortThrows() {
-        sink.writeUtf8("abc")
+        sink.writeString("abc")
         sink.emit()
         assertFailsWith<EOFException> {
-            source.readUtf8(4L)
+            source.readString(4L)
         }
 
-        assertEquals("abc", source.readUtf8()) // The read shouldn't consume any data.
+        assertEquals("abc", source.readString()) // The read shouldn't consume any data.
     }
 
     @Test
     fun skip() {
-        sink.writeUtf8("a")
-        sink.writeUtf8("b".repeat(Segment.SIZE))
-        sink.writeUtf8("c")
+        sink.writeString("a")
+        sink.writeString("b".repeat(Segment.SIZE))
+        sink.writeString("c")
         sink.emit()
         source.skip(1)
         assertEquals('b'.code.toLong(), (source.readByte() and 0xff).toLong())
@@ -698,7 +698,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun skipInsufficientData() {
-        sink.writeUtf8("a")
+        sink.writeString("a")
         sink.emit()
         assertFailsWith<EOFException> {
             source.skip(2)
@@ -716,13 +716,13 @@ abstract class AbstractBufferedSourceTest internal constructor(
         assertEquals(-1, source.indexOf('a'.code.toByte()))
 
         // The segment has one value.
-        sink.writeUtf8("a") // a
+        sink.writeString("a") // a
         sink.emit()
         assertEquals(0, source.indexOf('a'.code.toByte()))
         assertEquals(-1, source.indexOf('b'.code.toByte()))
 
         // The segment has lots of data.
-        sink.writeUtf8("b".repeat(Segment.SIZE - 2)) // ab...b
+        sink.writeString("b".repeat(Segment.SIZE - 2)) // ab...b
         sink.emit()
         assertEquals(0, source.indexOf('a'.code.toByte()))
         assertEquals(1, source.indexOf('b'.code.toByte()))
@@ -735,7 +735,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         assertEquals(-1, source.indexOf('c'.code.toByte()))
 
         // The segment is full.
-        sink.writeUtf8("c") // b...bc
+        sink.writeString("c") // b...bc
         sink.emit()
         assertEquals(-1, source.indexOf('a'.code.toByte()))
         assertEquals(0, source.indexOf('b'.code.toByte()))
@@ -748,7 +748,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         assertEquals((Segment.SIZE - 5).toLong(), source.indexOf('c'.code.toByte()))
 
         // Two segments.
-        sink.writeUtf8("d") // b...bcd, d is in the 2nd segment.
+        sink.writeString("d") // b...bcd, d is in the 2nd segment.
         sink.emit()
         assertEquals((Segment.SIZE - 4).toLong(), source.indexOf('d'.code.toByte()))
         assertEquals(-1, source.indexOf('e'.code.toByte()))
@@ -757,9 +757,9 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun indexOfByteWithStartOffset() {
         with(sink) {
-            writeUtf8("a")
-            writeUtf8("b".repeat(Segment.SIZE))
-            writeUtf8("c")
+            writeString("a")
+            writeString("b".repeat(Segment.SIZE))
+            writeString("c")
             emit()
         }
         assertEquals(-1, source.indexOf('a'.code.toByte(), 1))
@@ -817,14 +817,14 @@ abstract class AbstractBufferedSourceTest internal constructor(
             assertEquals(-1, source.indexOf(c, p.toLong(), p.toLong()))
 
             // Reset.
-            source.readUtf8()
+            source.readString()
             bytes[p] = a
         }
     }
 
     @Test
     fun indexOfByteInvalidBoundsThrows() {
-        sink.writeUtf8("abc")
+        sink.writeString("abc")
         sink.emit()
         assertFailsWith<IllegalArgumentException>("Expected failure: fromIndex < 0") {
             source.indexOf('a'.code.toByte(), -1)
@@ -836,7 +836,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun indexOfByteWithFromIndex() {
-        sink.writeUtf8("aaa")
+        sink.writeString("aaa")
         sink.emit()
         assertEquals(0, source.indexOf('a'.code.toByte()))
         assertEquals(0, source.indexOf('a'.code.toByte(), 0))
@@ -847,9 +847,9 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun request() {
         with(sink) {
-            writeUtf8("a")
-            writeUtf8("b".repeat(Segment.SIZE))
-            writeUtf8("c")
+            writeString("a")
+            writeString("b".repeat(Segment.SIZE))
+            writeString("c")
             emit()
         }
         assertTrue(source.request((Segment.SIZE + 2).toLong()))
@@ -869,9 +869,9 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun require() {
         with(sink) {
-            writeUtf8("a")
-            writeUtf8("b".repeat(Segment.SIZE))
-            writeUtf8("c")
+            writeString("a")
+            writeString("b".repeat(Segment.SIZE))
+            writeString("c")
             emit()
         }
         source.require((Segment.SIZE + 2).toLong())
@@ -914,7 +914,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
 
     private fun assertLongHexString(s: String, expected: Long) {
-        sink.writeUtf8(s)
+        sink.writeString(s)
         sink.emit()
         val actual = source.readHexadecimalUnsignedLong()
         assertEquals(expected, actual, "$s --> $expected")
@@ -923,8 +923,8 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun longHexStringAcrossSegment() {
         with(sink) {
-            writeUtf8("a".repeat(Segment.SIZE - 8))
-            writeUtf8("FFFFFFFFFFFFFFFF")
+            writeString("a".repeat(Segment.SIZE - 8))
+            writeString("FFFFFFFFFFFFFFFF")
             emit()
         }
         source.skip((Segment.SIZE - 8).toLong())
@@ -933,17 +933,17 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun longHexTerminatedByNonDigit() {
-        sink.writeUtf8("abcd,")
+        sink.writeString("abcd,")
         sink.emit()
         assertEquals(0xabcdL, source.readHexadecimalUnsignedLong())
     }
 
     @Test
     fun longHexAlphabet() {
-        sink.writeUtf8("7896543210abcdef")
+        sink.writeString("7896543210abcdef")
         sink.emit()
         assertEquals(0x7896543210abcdefL, source.readHexadecimalUnsignedLong())
-        sink.writeUtf8("ABCDEF")
+        sink.writeString("ABCDEF")
         sink.emit()
         assertEquals(0xabcdefL, source.readHexadecimalUnsignedLong())
     }
@@ -951,31 +951,31 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun longHexStringTooLongThrows() {
         val value = "fffffffffffffffff"
-        sink.writeUtf8(value)
+        sink.writeString(value)
         sink.emit()
 
         val e = assertFailsWith<NumberFormatException> {
             source.readHexadecimalUnsignedLong()
         }
         assertEquals("Number too large: fffffffffffffffff", e.message)
-        assertEquals(value, source.readUtf8())
+        assertEquals(value, source.readString())
     }
 
     @Test
     fun longHexStringTooShortThrows() {
-        sink.writeUtf8(" ")
+        sink.writeString(" ")
         sink.emit()
 
         val e = assertFailsWith<NumberFormatException> {
             source.readHexadecimalUnsignedLong()
         }
         assertEquals("Expected leading [0-9a-fA-F] character but was 0x20", e.message)
-        assertEquals(" ", source.readUtf8())
+        assertEquals(" ", source.readString())
     }
 
     @Test
     fun longHexEmptySourceThrows() {
-        sink.writeUtf8("")
+        sink.writeString("")
         sink.emit()
         assertFailsWith<EOFException> { source.readHexadecimalUnsignedLong() }
     }
@@ -993,81 +993,81 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
 
     private fun assertLongDecimalString(s: String, expected: Long) {
-        sink.writeUtf8(s)
-        sink.writeUtf8("zzz")
+        sink.writeString(s)
+        sink.writeString("zzz")
         sink.emit()
         val actual = source.readDecimalLong()
         assertEquals(expected, actual, "$s --> $expected")
-        assertEquals("zzz", source.readUtf8())
+        assertEquals("zzz", source.readString())
     }
 
     @Test
     fun longDecimalStringAcrossSegment() {
         with(sink) {
-            writeUtf8("a".repeat(Segment.SIZE - 8))
-            writeUtf8("1234567890123456")
-            writeUtf8("zzz")
+            writeString("a".repeat(Segment.SIZE - 8))
+            writeString("1234567890123456")
+            writeString("zzz")
             emit()
         }
         source.skip((Segment.SIZE - 8).toLong())
         assertEquals(1234567890123456L, source.readDecimalLong())
-        assertEquals("zzz", source.readUtf8())
+        assertEquals("zzz", source.readString())
     }
 
     @Test
     fun longDecimalStringTooLongThrows() {
         val value = "12345678901234567890"
-        sink.writeUtf8(value) // Too many digits.
+        sink.writeString(value) // Too many digits.
         sink.emit()
 
         val e = assertFailsWith<NumberFormatException> {
             source.readDecimalLong()
         }
         assertEquals("Number too large: 12345678901234567890", e.message)
-        assertEquals(value, source.readUtf8())
+        assertEquals(value, source.readString())
     }
 
     @Test
     fun longDecimalStringTooHighThrows() {
         val value = "9223372036854775808"
-        sink.writeUtf8(value) // Right size but cannot fit.
+        sink.writeString(value) // Right size but cannot fit.
         sink.emit()
 
         val e = assertFailsWith<NumberFormatException> {
             source.readDecimalLong()
         }
         assertEquals("Number too large: 9223372036854775808", e.message)
-        assertEquals(value, source.readUtf8())
+        assertEquals(value, source.readString())
     }
 
     @Test
     fun longDecimalStringTooLowThrows() {
         val value = "-9223372036854775809"
-        sink.writeUtf8(value) // Right size but cannot fit.
+        sink.writeString(value) // Right size but cannot fit.
         sink.emit()
 
         val e = assertFailsWith<NumberFormatException> {
             source.readDecimalLong()
         }
         assertEquals("Number too large: -9223372036854775809", e.message)
-        assertEquals(value, source.readUtf8())
+        assertEquals(value, source.readString())
     }
 
     @Test
     fun longDecimalStringTooShortThrows() {
-        sink.writeUtf8(" ")
+        sink.writeString(" ")
         sink.emit()
 
         val e = assertFailsWith<NumberFormatException> {
             source.readDecimalLong()
         }
         assertEquals("Expected a digit or '-' but was 0x20", e.message)
-        assertEquals(" ", source.readUtf8())
+        assertEquals(" ", source.readString())
     }
 
     @Test
     fun longDecimalEmptyThrows() {
-        sink.writeUtf8("")
+        sink.writeString("")
         sink.emit()
         assertFailsWith<EOFException> {
             source.readDecimalLong()
@@ -1076,22 +1076,22 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun longDecimalLoneDashThrows() {
-        sink.writeUtf8("-")
+        sink.writeString("-")
         sink.emit()
         assertFailsWith<EOFException> {
             source.readDecimalLong()
         }
-        assertEquals("-", source.readUtf8())
+        assertEquals("-", source.readString())
     }
 
     @Test
     fun longDecimalDashFollowedByNonDigitThrows() {
-        sink.writeUtf8("- ")
+        sink.writeString("- ")
         sink.emit()
         assertFailsWith<NumberFormatException> {
             source.readDecimalLong()
         }
-        assertEquals("- ", source.readUtf8())
+        assertEquals("- ", source.readString())
     }
 
     @Test
@@ -1154,39 +1154,39 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun peek() {
-        sink.writeUtf8("abcdefghi")
+        sink.writeString("abcdefghi")
         sink.emit()
 
-        assertEquals("abc", source.readUtf8(3))
+        assertEquals("abc", source.readString(3))
 
         val peek = source.peek()
-        assertEquals("def", peek.readUtf8(3))
-        assertEquals("ghi", peek.readUtf8(3))
+        assertEquals("def", peek.readString(3))
+        assertEquals("ghi", peek.readString(3))
         assertFalse(peek.request(1))
 
-        assertEquals("def", source.readUtf8(3))
+        assertEquals("def", source.readString(3))
     }
 
     @Test
     fun peekMultiple() {
-        sink.writeUtf8("abcdefghi")
+        sink.writeString("abcdefghi")
         sink.emit()
 
-        assertEquals("abc", source.readUtf8(3))
+        assertEquals("abc", source.readString(3))
 
         val peek1 = source.peek()
         val peek2 = source.peek()
 
-        assertEquals("def", peek1.readUtf8(3))
+        assertEquals("def", peek1.readString(3))
 
-        assertEquals("def", peek2.readUtf8(3))
-        assertEquals("ghi", peek2.readUtf8(3))
+        assertEquals("def", peek2.readString(3))
+        assertEquals("ghi", peek2.readString(3))
         assertFalse(peek2.request(1))
 
-        assertEquals("ghi", peek1.readUtf8(3))
+        assertEquals("ghi", peek1.readString(3))
         assertFalse(peek1.request(1))
 
-        assertEquals("def", source.readUtf8(3))
+        assertEquals("def", source.readString(3))
     }
 
     @Test
@@ -1195,40 +1195,40 @@ abstract class AbstractBufferedSourceTest internal constructor(
             // When run on CI this causes out-of-memory errors.
             return
         }
-        sink.writeUtf8("abcdef")
-        sink.writeUtf8("g".repeat(2 * Segment.SIZE))
-        sink.writeUtf8("hij")
+        sink.writeString("abcdef")
+        sink.writeString("g".repeat(2 * Segment.SIZE))
+        sink.writeString("hij")
         sink.emit()
 
-        assertEquals("abc", source.readUtf8(3))
+        assertEquals("abc", source.readString(3))
 
         val peek = source.peek()
-        assertEquals("def", peek.readUtf8(3))
+        assertEquals("def", peek.readString(3))
         peek.skip((2 * Segment.SIZE).toLong())
-        assertEquals("hij", peek.readUtf8(3))
+        assertEquals("hij", peek.readString(3))
         assertFalse(peek.request(1))
 
-        assertEquals("def", source.readUtf8(3))
+        assertEquals("def", source.readString(3))
         source.skip((2 * Segment.SIZE).toLong())
-        assertEquals("hij", source.readUtf8(3))
+        assertEquals("hij", source.readString(3))
     }
 
     @Test
     fun peekInvalid() {
-        sink.writeUtf8("abcdefghi")
+        sink.writeString("abcdefghi")
         sink.emit()
 
-        assertEquals("abc", source.readUtf8(3))
+        assertEquals("abc", source.readString(3))
 
         val peek = source.peek()
-        assertEquals("def", peek.readUtf8(3))
-        assertEquals("ghi", peek.readUtf8(3))
+        assertEquals("def", peek.readString(3))
+        assertEquals("ghi", peek.readString(3))
         assertFalse(peek.request(1))
 
-        assertEquals("def", source.readUtf8(3))
+        assertEquals("def", source.readString(3))
 
         val e = assertFailsWith<IllegalStateException> {
-            peek.readUtf8()
+            peek.readString()
         }
         assertEquals("Peek source is invalid because upstream source was used", e.message)
     }
@@ -1236,15 +1236,15 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @OptIn(InternalIoApi::class)
     @Test
     fun peekSegmentThenInvalid() {
-        sink.writeUtf8("abc")
-        sink.writeUtf8("d".repeat(2 * Segment.SIZE))
+        sink.writeString("abc")
+        sink.writeString("d".repeat(2 * Segment.SIZE))
         sink.emit()
 
-        assertEquals("abc", source.readUtf8(3))
+        assertEquals("abc", source.readString(3))
 
         // Peek a little data and skip the rest of the upstream source
         val peek = source.peek()
-        assertEquals("ddd", peek.readUtf8(3))
+        assertEquals("ddd", peek.readString(3))
         source.transferTo(discardingSink())
 
         // Skip the rest of the buffered data
@@ -1260,10 +1260,10 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun peekDoesntReadTooMuch() {
         // 6 bytes in source's buffer plus 3 bytes upstream.
-        sink.writeUtf8("abcdef")
+        sink.writeString("abcdef")
         sink.emit()
         source.require(6L)
-        sink.writeUtf8("ghi")
+        sink.writeString("ghi")
         sink.emit()
 
         val peek = source.peek()
@@ -1274,7 +1274,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
             assertEquals(6, source.buffer.size)
             assertEquals(6, peek.buffer.size)
         }
-        assertEquals("abc", peek.readUtf8(3L))
+        assertEquals("abc", peek.readString(3L))
 
         // Read 3 more bytes. This exhausts the buffered data.
         assertTrue(peek.request(3))
@@ -1282,19 +1282,19 @@ abstract class AbstractBufferedSourceTest internal constructor(
             assertEquals(6, source.buffer.size)
             assertEquals(3, peek.buffer.size)
         }
-        assertEquals("def", peek.readUtf8(3L))
+        assertEquals("def", peek.readString(3L))
 
         // Read 3 more bytes. This draws new bytes.
         assertTrue(peek.request(3))
         assertEquals(9, source.buffer.size)
         assertEquals(3, peek.buffer.size)
-        assertEquals("ghi", peek.readUtf8(3L))
+        assertEquals("ghi", peek.readString(3L))
     }
 
     @OptIn(InternalIoApi::class)
     @Test
     fun factorySegmentSizes() {
-        sink.writeUtf8("abc")
+        sink.writeString("abc")
         sink.emit()
         source.require(3)
         if (factory.isOneByteAtATime) {
@@ -1306,73 +1306,73 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun readUtf8Line() {
-        sink.writeUtf8("first line\nsecond line\n")
+        sink.writeString("first line\nsecond line\n")
         sink.flush()
-        assertEquals("first line", source.readUtf8Line())
-        assertEquals("second line\n", source.readUtf8())
-        assertEquals(null, source.readUtf8Line())
+        assertEquals("first line", source.readLine())
+        assertEquals("second line\n", source.readString())
+        assertEquals(null, source.readLine())
 
-        sink.writeUtf8("\nnext line\n")
+        sink.writeString("\nnext line\n")
         sink.flush()
-        assertEquals("", source.readUtf8Line())
-        assertEquals("next line", source.readUtf8Line())
+        assertEquals("", source.readLine())
+        assertEquals("next line", source.readLine())
 
-        sink.writeUtf8("There is no newline!")
+        sink.writeString("There is no newline!")
         sink.flush()
-        assertEquals("There is no newline!", source.readUtf8Line())
+        assertEquals("There is no newline!", source.readLine())
 
-        sink.writeUtf8("Wot do u call it?\r\nWindows")
+        sink.writeString("Wot do u call it?\r\nWindows")
         sink.flush()
-        assertEquals("Wot do u call it?", source.readUtf8Line())
+        assertEquals("Wot do u call it?", source.readLine())
         source.transferTo(discardingSink())
 
-        sink.writeUtf8("reo\rde\red\n")
+        sink.writeString("reo\rde\red\n")
         sink.flush()
-        assertEquals("reo\rde\red", source.readUtf8Line())
+        assertEquals("reo\rde\red", source.readLine())
     }
 
     @Test
     fun readUtf8LineStrict() {
-        sink.writeUtf8("first line\nsecond line\n")
+        sink.writeString("first line\nsecond line\n")
         sink.flush()
-        assertEquals("first line", source.readUtf8LineStrict())
-        assertEquals("second line\n", source.readUtf8())
-        assertFailsWith<EOFException> { source.readUtf8LineStrict() }
+        assertEquals("first line", source.readLineStrict())
+        assertEquals("second line\n", source.readString())
+        assertFailsWith<EOFException> { source.readLineStrict() }
 
-        sink.writeUtf8("\nnext line\n")
+        sink.writeString("\nnext line\n")
         sink.flush()
-        assertEquals("", source.readUtf8LineStrict())
-        assertEquals("next line", source.readUtf8LineStrict())
+        assertEquals("", source.readLineStrict())
+        assertEquals("next line", source.readLineStrict())
 
-        sink.writeUtf8("There is no newline!")
+        sink.writeString("There is no newline!")
         sink.flush()
-        assertFailsWith<EOFException> { source.readUtf8LineStrict() }
-        assertEquals("There is no newline!", source.readUtf8())
+        assertFailsWith<EOFException> { source.readLineStrict() }
+        assertEquals("There is no newline!", source.readString())
 
-        sink.writeUtf8("Wot do u call it?\r\nWindows")
+        sink.writeString("Wot do u call it?\r\nWindows")
         sink.flush()
-        assertEquals("Wot do u call it?", source.readUtf8LineStrict())
+        assertEquals("Wot do u call it?", source.readLineStrict())
         source.transferTo(discardingSink())
 
-        sink.writeUtf8("reo\rde\red\n")
+        sink.writeString("reo\rde\red\n")
         sink.flush()
-        assertEquals("reo\rde\red", source.readUtf8LineStrict())
+        assertEquals("reo\rde\red", source.readLineStrict())
 
-        sink.writeUtf8("line\n")
+        sink.writeString("line\n")
         sink.flush()
-        assertFailsWith<EOFException> { source.readUtf8LineStrict(3) }
-        assertEquals("line", source.readUtf8LineStrict(4))
+        assertFailsWith<EOFException> { source.readLineStrict(3) }
+        assertEquals("line", source.readLineStrict(4))
         assertTrue(source.exhausted())
 
-        sink.writeUtf8("line\r\n")
+        sink.writeString("line\r\n")
         sink.flush()
-        assertFailsWith<EOFException> { source.readUtf8LineStrict(3) }
-        assertEquals("line", source.readUtf8LineStrict(4))
+        assertFailsWith<EOFException> { source.readLineStrict(3) }
+        assertEquals("line", source.readLineStrict(4))
         assertTrue(source.exhausted())
 
-        sink.writeUtf8("line\n")
+        sink.writeString("line\n")
         sink.flush()
-        assertEquals("line", source.readUtf8LineStrict(5))
+        assertEquals("line", source.readLineStrict(5))
         assertTrue(source.exhausted())
     }
 
@@ -1543,8 +1543,8 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun readByteString() {
         with(sink) {
-            writeUtf8("abcd")
-            writeUtf8("e".repeat(Segment.SIZE))
+            writeString("abcd")
+            writeString("e".repeat(Segment.SIZE))
             emit()
         }
         assertEquals("abcd" + "e".repeat(Segment.SIZE), source.readByteString().decodeToString())
@@ -1553,42 +1553,42 @@ abstract class AbstractBufferedSourceTest internal constructor(
     @Test
     fun readByteStringPartial() {
         with(sink) {
-            writeUtf8("abcd")
-            writeUtf8("e".repeat(Segment.SIZE))
+            writeString("abcd")
+            writeString("e".repeat(Segment.SIZE))
             emit()
         }
         assertEquals("abc", source.readByteString(3).decodeToString())
-        assertEquals("d", source.readUtf8(1))
+        assertEquals("d", source.readString(1))
     }
 
     @Test
     fun readByteStringTooShortThrows() {
-        sink.writeUtf8("abc")
+        sink.writeString("abc")
         sink.emit()
         assertFailsWith<EOFException> { source.readByteString(4) }
 
-        assertEquals("abc", source.readUtf8()) // The read shouldn't consume any data.
+        assertEquals("abc", source.readString()) // The read shouldn't consume any data.
     }
 
     @Test
     fun indexOfByteString() {
         assertEquals(-1, source.indexOf("flop".encodeToByteString()))
 
-        sink.writeUtf8("flip flop")
+        sink.writeString("flip flop")
         sink.emit()
         assertEquals(5, source.indexOf("flop".encodeToByteString()))
-        source.readUtf8() // Clear stream.
+        source.readString() // Clear stream.
 
         // Make sure we backtrack and resume searching after partial match.
-        sink.writeUtf8("hi hi hi hey")
+        sink.writeString("hi hi hi hey")
         sink.emit()
         assertEquals(3, source.indexOf("hi hi hey".encodeToByteString()))
     }
 
     @Test
     fun indexOfByteStringAtSegmentBoundary() {
-        sink.writeUtf8("a".repeat(Segment.SIZE - 1))
-        sink.writeUtf8("bcd")
+        sink.writeString("a".repeat(Segment.SIZE - 1))
+        sink.writeString("bcd")
         sink.emit()
         assertEquals(
             (Segment.SIZE - 3).toLong(),
@@ -1646,8 +1646,8 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun indexOfDoesNotWrapAround() {
-        sink.writeUtf8("a".repeat(Segment.SIZE - 1))
-        sink.writeUtf8("bcd")
+        sink.writeString("a".repeat(Segment.SIZE - 1))
+        sink.writeString("bcd")
         sink.emit()
         assertEquals(-1, source.indexOf("abcda".encodeToByteString(), (Segment.SIZE - 3).toLong()))
     }
@@ -1656,13 +1656,13 @@ abstract class AbstractBufferedSourceTest internal constructor(
     fun indexOfByteStringWithOffset() {
         assertEquals(-1, source.indexOf("flop".encodeToByteString(), 1))
 
-        sink.writeUtf8("flop flip flop")
+        sink.writeString("flop flip flop")
         sink.emit()
         assertEquals(10, source.indexOf("flop".encodeToByteString(), 1))
-        source.readUtf8() // Clear stream
+        source.readString() // Clear stream
 
         // Make sure we backtrack and resume searching after partial match.
-        sink.writeUtf8("hi hi hi hi hey")
+        sink.writeString("hi hi hi hi hey")
         sink.emit()
         assertEquals(6, source.indexOf("hi hi hey".encodeToByteString(), 1))
     }
@@ -1671,7 +1671,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     fun indexOfEmptyByteString() {
         assertEquals(0, source.indexOf(ByteString()))
 
-        sink.writeUtf8("blablabla")
+        sink.writeString("blablabla")
         sink.emit()
         assertEquals(0, source.indexOf(ByteString()))
     }
@@ -1689,8 +1689,8 @@ abstract class AbstractBufferedSourceTest internal constructor(
      */
     @Test
     fun indexOfByteStringAcrossSegmentBoundaries() {
-        sink.writeUtf8("a".repeat(Segment.SIZE * 2 - 3))
-        sink.writeUtf8("bcdefg")
+        sink.writeString("a".repeat(Segment.SIZE * 2 - 3))
+        sink.writeString("bcdefg")
         sink.emit()
         assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("ab".encodeToByteString()))
         assertEquals((Segment.SIZE * 2 - 4).toLong(), source.indexOf("abc".encodeToByteString()))

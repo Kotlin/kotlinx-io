@@ -72,7 +72,7 @@ package kotlinx.io
 import kotlinx.io.internal.*
 
 /**
- * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeUtf8].
+ * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeString].
  *
  * @param startIndex the index (inclusive) of the first character to encode, `0` by default.
  * @param endIndex the index (exclusive) of the character past the last character to encode, `string.length` by default.
@@ -140,7 +140,7 @@ internal fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
  * @throws IllegalStateException when the sink is closed.
  */
 @OptIn(DelicateIoApi::class)
-public fun Sink.writeUtf8(string: String, startIndex: Int = 0, endIndex: Int = string.length): Unit =
+public fun Sink.writeString(string: String, startIndex: Int = 0, endIndex: Int = string.length): Unit =
     writeToInternalBuffer { it.commonWriteUtf8(string, startIndex, endIndex) }
 
 /**
@@ -151,7 +151,7 @@ public fun Sink.writeUtf8(string: String, startIndex: Int = 0, endIndex: Int = s
  * @throws IllegalStateException when the source is closed.
  */
 @OptIn(InternalIoApi::class)
-public fun Source.readUtf8(): String {
+public fun Source.readString(): String {
     var req: Long = Segment.SIZE.toLong()
     while (request(req)) {
         req *= 2
@@ -164,7 +164,7 @@ public fun Source.readUtf8(): String {
  *
  * Returns the empty string if this buffer is empty.
  */
-public fun Buffer.readUtf8(): String {
+public fun Buffer.readString(): String {
     return commonReadUtf8(size)
 }
 
@@ -178,7 +178,7 @@ public fun Buffer.readUtf8(): String {
  * @throws IllegalStateException when the source is closed.
  */
 @OptIn(InternalIoApi::class)
-public fun Source.readUtf8(byteCount: Long): String {
+public fun Source.readString(byteCount: Long): String {
     require(byteCount)
     return buffer.commonReadUtf8(byteCount)
 }
@@ -220,7 +220,7 @@ internal fun Buffer.readUtf8CodePoint(): Int {
 }
 
 /**
- * Removes and returns characters up to but not including the next line break. A line break is
+ * Removes and returns UTF-8 encoded characters up to but not including the next line break. A line break is
  * either `"\n"` or `"\r\n"`; these characters are not included in the result.
  *
  * On the end of the stream this method returns null. If the source doesn't end with a line break, then
@@ -228,7 +228,7 @@ internal fun Buffer.readUtf8CodePoint(): Int {
  *
  * @throws IllegalStateException when the source is closed.
  */
-public fun Source.readUtf8Line(): String? {
+public fun Source.readLine(): String? {
     if (!request(1)) return null
 
     val peekSource = peek()
@@ -247,13 +247,13 @@ public fun Source.readUtf8Line(): String? {
         }
         offset++
     }
-    val line = readUtf8(offset)
+    val line = readString(offset)
     skip(newlineSize)
     return line
 }
 
 /**
- * Removes and returns characters up to but not including the next line break, throwing
+ * Removes and returns UTF-8 encoded characters up to but not including the next line break, throwing
  * [EOFException] if a line break was not encountered. A line break is either `"\n"` or `"\r\n"`;
  * these characters are not included in the result.
  *
@@ -270,7 +270,7 @@ public fun Source.readUtf8Line(): String? {
  * @throws IllegalStateException when the source is closed.
  * @throws IllegalArgumentException when [limit] is negative.
  */
-public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
+public fun Source.readLineStrict(limit: Long = Long.MAX_VALUE): String {
     require(limit >= 0) { "limit ($limit) < 0" }
     require(1)
 
@@ -300,7 +300,7 @@ public fun Source.readUtf8LineStrict(limit: Long = Long.MAX_VALUE): String {
         }
     }
     if (newlineSize == 0L) throw EOFException()
-    val line = readUtf8(offset)
+    val line = readString(offset)
     skip(newlineSize)
     return line
 }

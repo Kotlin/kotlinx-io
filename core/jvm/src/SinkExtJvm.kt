@@ -41,7 +41,7 @@ import java.nio.charset.Charset
  */
 public fun Sink.writeString(string: String, charset: Charset, startIndex: Int = 0, endIndex: Int = string.length) {
     checkBounds(string.length, startIndex, endIndex)
-    if (charset == Charsets.UTF_8) return writeUtf8(string, startIndex, endIndex)
+    if (charset == Charsets.UTF_8) return writeString(string, startIndex, endIndex)
     val data = string.substring(startIndex, endIndex).toByteArray(charset)
     write(data, 0, data.size)
 }

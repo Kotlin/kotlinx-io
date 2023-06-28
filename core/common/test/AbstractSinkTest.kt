@@ -67,7 +67,7 @@ abstract class AbstractSinkTest internal constructor(
 
     @Test
     fun writeNothing() {
-        sink.writeUtf8("")
+        sink.writeString("")
         sink.flush()
         assertEquals(0, data.size)
     }
@@ -89,12 +89,12 @@ abstract class AbstractSinkTest internal constructor(
 
     @Test
     fun writeLastByteInSegment() {
-        sink.writeUtf8("a".repeat(Segment.SIZE - 1))
+        sink.writeString("a".repeat(Segment.SIZE - 1))
         sink.writeByte(0x20)
         sink.writeByte(0x21)
         sink.flush()
         assertEquals(listOf(Segment.SIZE, 1), segmentSizes(data))
-        assertEquals("a".repeat(Segment.SIZE - 1), data.readUtf8(Segment.SIZE - 1L))
+        assertEquals("a".repeat(Segment.SIZE - 1), data.readString(Segment.SIZE - 1L))
         assertEquals("Buffer(size=2 hex=2021)", data.toString())
     }
 
@@ -138,23 +138,23 @@ abstract class AbstractSinkTest internal constructor(
 
     @Test
     fun writeLastIntegerInSegment() {
-        sink.writeUtf8("a".repeat(Segment.SIZE - 4))
+        sink.writeString("a".repeat(Segment.SIZE - 4))
         sink.writeInt(-0x543210ff)
         sink.writeInt(-0x789abcdf)
         sink.flush()
         assertEquals(listOf(Segment.SIZE, 4), segmentSizes(data))
-        assertEquals("a".repeat(Segment.SIZE - 4), data.readUtf8(Segment.SIZE - 4L))
+        assertEquals("a".repeat(Segment.SIZE - 4), data.readString(Segment.SIZE - 4L))
         assertEquals("Buffer(size=8 hex=abcdef0187654321)", data.toString())
     }
 
     @Test
     fun writeIntegerDoesNotQuiteFitInSegment() {
-        sink.writeUtf8("a".repeat(Segment.SIZE - 3))
+        sink.writeString("a".repeat(Segment.SIZE - 3))
         sink.writeInt(-0x543210ff)
         sink.writeInt(-0x789abcdf)
         sink.flush()
         assertEquals(listOf(Segment.SIZE - 3, 8), segmentSizes(data))
-        assertEquals("a".repeat(Segment.SIZE - 3), data.readUtf8(Segment.SIZE - 3L))
+        assertEquals("a".repeat(Segment.SIZE - 3), data.readString(Segment.SIZE - 3L))
         assertEquals("Buffer(size=8 hex=abcdef0187654321)", data.toString())
     }
 
@@ -192,12 +192,12 @@ abstract class AbstractSinkTest internal constructor(
     @Test
     fun writeAll() {
         val source = Buffer()
-        source.writeUtf8("abcdef")
+        source.writeString("abcdef")
 
         assertEquals(6, sink.transferFrom(source))
         assertEquals(0, source.size)
         sink.flush()
-        assertEquals("abcdef", data.readUtf8())
+        assertEquals("abcdef", data.readString())
     }
 
     @Test
@@ -210,32 +210,32 @@ abstract class AbstractSinkTest internal constructor(
     @Test
     fun writeSource() {
         val source = Buffer()
-        source.writeUtf8("abcdef")
+        source.writeString("abcdef")
 
         // Force resolution of the Source method overload.
         sink.write(source as RawSource, 4)
         sink.flush()
-        assertEquals("abcd", data.readUtf8())
-        assertEquals("ef", source.readUtf8())
+        assertEquals("abcd", data.readString())
+        assertEquals("ef", source.readString())
     }
 
     @Test
     fun writeSourceReadsFully() {
         val source = object : RawSource by Buffer() {
             override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-                sink.writeUtf8("abcd")
+                sink.writeString("abcd")
                 return 4
             }
         }
 
         sink.write(source, 8)
         sink.flush()
-        assertEquals("abcdabcd", data.readUtf8())
+        assertEquals("abcdabcd", data.readString())
     }
 
     @Test
     fun writeSourcePropagatesEof() {
-        val source: RawSource = Buffer().also { it.writeUtf8("abcd") }
+        val source: RawSource = Buffer().also { it.writeString("abcd") }
 
         assertFailsWith<EOFException> {
             sink.write(source, 8)
@@ -243,20 +243,20 @@ abstract class AbstractSinkTest internal constructor(
 
         // Ensure that whatever was available was correctly written.
         sink.flush()
-        assertEquals("abcd", data.readUtf8())
+        assertEquals("abcd", data.readString())
     }
 
     @Test
     fun writeBufferThrowsIAE() {
         val source = Buffer()
-        source.writeUtf8("abcd")
+        source.writeString("abcd")
 
         assertFailsWith<IllegalArgumentException> {
             sink.write(source, 8)
         }
 
         sink.flush()
-        assertEquals("", data.readUtf8())
+        assertEquals("", data.readString())
     }
 
     @Test
@@ -348,11 +348,11 @@ abstract class AbstractSinkTest internal constructor(
     private fun assertLongDecimalString(string: String, value: Long) {
         with(sink) {
             writeDecimalLong(value)
-            writeUtf8("zzz")
+            writeString("zzz")
             flush()
         }
         val expected = "${string}zzz"
-        val actual = data.readUtf8()
+        val actual = data.readString()
         assertEquals(expected, actual, "$value expected $expected but was $actual")
     }
 
@@ -371,33 +371,33 @@ abstract class AbstractSinkTest internal constructor(
     private fun assertLongHexString(value: Long) {
         with(sink) {
             writeHexadecimalUnsignedLong(value)
-            writeUtf8("zzz")
+            writeString("zzz")
             flush()
         }
         val expected = "${value.toHexString()}zzz"
-        val actual = data.readUtf8()
+        val actual = data.readString()
         assertEquals(expected, actual, "$value expected $expected but was $actual")
     }
 
     @Test
     fun writeUtf8FromIndex() {
-        sink.writeUtf8("12345", 3)
+        sink.writeString("12345", 3)
         sink.emit()
-        assertEquals("45", data.readUtf8())
+        assertEquals("45", data.readString())
     }
 
     @Test
     fun writeUtf8FromRange() {
-        sink.writeUtf8("0123456789", 4, 7)
+        sink.writeString("0123456789", 4, 7)
         sink.emit()
-        assertEquals("456", data.readUtf8())
+        assertEquals("456", data.readString())
     }
 
     @Test
     fun writeUtf8WithInvalidIndexes() {
-        assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", startIndex = -1) }
-        assertFailsWith<IndexOutOfBoundsException> { sink.writeUtf8("hello", startIndex = 0, endIndex = 6) }
-        assertFailsWith<IllegalArgumentException> { sink.writeUtf8("hello", startIndex = 6) }
+        assertFailsWith<IndexOutOfBoundsException> { sink.writeString("hello", startIndex = -1) }
+        assertFailsWith<IndexOutOfBoundsException> { sink.writeString("hello", startIndex = 0, endIndex = 6) }
+        assertFailsWith<IllegalArgumentException> { sink.writeString("hello", startIndex = 6) }
     }
 
     @Test

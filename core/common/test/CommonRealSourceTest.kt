@@ -33,7 +33,7 @@ import kotlin.test.assertFailsWith
 class CommonRealSourceTest {
     @Test
     fun indexOfStopsReadingAtLimit() {
-        val buffer = Buffer().also { it.writeUtf8("abcdef") }
+        val buffer = Buffer().also { it.writeString("abcdef") }
         val bufferedSource = (
                 object : RawSource by buffer {
                     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
@@ -50,10 +50,10 @@ class CommonRealSourceTest {
     @Test
     fun requireTracksBufferFirst() {
         val source = Buffer()
-        source.writeUtf8("bb")
+        source.writeString("bb")
 
         val bufferedSource = (source as RawSource).buffered()
-        bufferedSource.buffer.writeUtf8("aa")
+        bufferedSource.buffer.writeString("aa")
 
         bufferedSource.require(2)
         assertEquals(2, bufferedSource.buffer.size)
@@ -63,19 +63,19 @@ class CommonRealSourceTest {
     @Test
     fun requireIncludesBufferBytes() {
         val source = Buffer()
-        source.writeUtf8("b")
+        source.writeString("b")
 
         val bufferedSource = (source as RawSource).buffered()
-        bufferedSource.buffer.writeUtf8("a")
+        bufferedSource.buffer.writeString("a")
 
         bufferedSource.require(2)
-        assertEquals("ab", bufferedSource.buffer.readUtf8(2))
+        assertEquals("ab", bufferedSource.buffer.readString(2))
     }
 
     @Test
     fun requireInsufficientData() {
         val source = Buffer()
-        source.writeUtf8("a")
+        source.writeString("a")
 
         val bufferedSource = (source as RawSource).buffered()
 
@@ -87,8 +87,8 @@ class CommonRealSourceTest {
     @Test
     fun requireReadsOneSegmentAtATime() {
         val source = Buffer()
-        source.writeUtf8("a".repeat(Segment.SIZE))
-        source.writeUtf8("b".repeat(Segment.SIZE))
+        source.writeString("a".repeat(Segment.SIZE))
+        source.writeString("b".repeat(Segment.SIZE))
 
         val bufferedSource = (source as RawSource).buffered()
 
@@ -100,8 +100,8 @@ class CommonRealSourceTest {
     @Test
     fun skipReadsOneSegmentAtATime() {
         val source = Buffer()
-        source.writeUtf8("a".repeat(Segment.SIZE))
-        source.writeUtf8("b".repeat(Segment.SIZE))
+        source.writeString("a".repeat(Segment.SIZE))
+        source.writeString("b".repeat(Segment.SIZE))
         val bufferedSource = (source as RawSource).buffered()
         bufferedSource.skip(2)
         assertEquals(Segment.SIZE.toLong(), source.size)
@@ -111,10 +111,10 @@ class CommonRealSourceTest {
     @Test
     fun skipTracksBufferFirst() {
         val source = Buffer()
-        source.writeUtf8("bb")
+        source.writeString("bb")
 
         val bufferedSource = (source as RawSource).buffered()
-        bufferedSource.buffer.writeUtf8("aa")
+        bufferedSource.buffer.writeString("aa")
 
         bufferedSource.skip(2)
         assertEquals(0, bufferedSource.buffer.size)
@@ -143,12 +143,12 @@ class CommonRealSourceTest {
      */
     @Test
     fun transferToReadsOneSegmentAtATime() {
-        val write1 = Buffer().also { it.writeUtf8("a".repeat(Segment.SIZE)) }
-        val write2 = Buffer().also { it.writeUtf8("b".repeat(Segment.SIZE)) }
-        val write3 = Buffer().also { it.writeUtf8("c".repeat(Segment.SIZE)) }
+        val write1 = Buffer().also { it.writeString("a".repeat(Segment.SIZE)) }
+        val write2 = Buffer().also { it.writeString("b".repeat(Segment.SIZE)) }
+        val write3 = Buffer().also { it.writeString("c".repeat(Segment.SIZE)) }
 
         val source = Buffer()
-        source.writeUtf8(
+        source.writeString(
             "${"a".repeat(Segment.SIZE)}${"b".repeat(Segment.SIZE)}${"c".repeat(Segment.SIZE)}"
         )
 

@@ -62,7 +62,7 @@ public fun Sink.writeDecimalLong(long: Long) {
     if (v < 0L) {
         v = -v
         if (v < 0L) { // Only true for Long.MIN_VALUE.
-            writeUtf8("-9223372036854775808")
+            writeString("-9223372036854775808")
             return
         }
         negative = true
