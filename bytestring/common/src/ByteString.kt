@@ -24,8 +24,6 @@ package kotlinx.io.bytestring
 import kotlin.math.max
 import kotlin.math.min
 
-private val HEX_DIGITS = "0123456789ABCDEF".toCharArray()
-
 /**
  * Wraps given [bytes] into a byte string.
  *
@@ -44,23 +42,6 @@ public class ByteString private constructor(
     private val data: ByteArray,
     @Suppress("UNUSED_PARAMETER") dummy: Any?
 ) : Comparable<ByteString> {
-    private var hashCode: Int = 0
-
-    public companion object {
-        /**
-         * An empty ByteString.
-         */
-        internal val EMPTY: ByteString = ByteString(ByteArray(0), null)
-
-        internal fun wrap(byteArray: ByteArray): ByteString = ByteString(byteArray, null)
-    }
-
-    /**
-     * Returns size of this ByteString.
-     */
-    public val size: Int
-        get(): Int = data.size
-
     /**
      * Wraps a copy of [data] subarray starting at [startIndex] and ending at [endIndex] into a byte string.
      *
@@ -73,6 +54,25 @@ public class ByteString private constructor(
      */
     public constructor(data: ByteArray, startIndex: Int = 0, endIndex: Int = data.size) :
             this(data.copyOfRange(startIndex, endIndex), null)
+
+    private var hashCode: Int = 0
+
+    public companion object {
+        /**
+         * An empty ByteString.
+         */
+        internal val EMPTY: ByteString = ByteString(ByteArray(0), null)
+
+        internal fun wrap(byteArray: ByteArray): ByteString = ByteString(byteArray, null)
+
+        private val HEX_DIGITS = "0123456789ABCDEF".toCharArray()
+    }
+
+    /**
+     * Returns size of this ByteString.
+     */
+    public val size: Int
+        get(): Int = data.size
 
     /**
      * Returns `true` if [other] is a byte string containing exactly the same byte sequence.
@@ -229,6 +229,7 @@ public class ByteString private constructor(
      * These methods return reference to the underlying array, not to its copy.
      * Consider using [toByteArray] if it's impossible to guarantee that the array won't be modified.
      */
+    @PublishedApi
     internal fun getBackingArrayReference(): ByteArray = data
 }
 
@@ -241,6 +242,7 @@ public val ByteString.indices: IntRange
 /**
  * Returns the index within this byte string of the first occurrence of the specified [byte],
  * starting from the specified [startIndex].
+ * If the [byte] not found, `-1` is returned.
  *
  * Behavior of this method is compatible with [CharSequence.indexOf].
  *
@@ -260,6 +262,7 @@ public fun ByteString.indexOf(byte: Byte, startIndex: Int = 0): Int {
 /**
  * Returns the index within this byte string of the first occurrence of the specified [byteString],
  * starting from the specified [startIndex].
+ * If the [byteString] not found, `-1` is returned.
  *
  * Behavior of this method is compatible with [CharSequence.indexOf].
  *
@@ -281,6 +284,7 @@ public fun ByteString.indexOf(byteString: ByteString, startIndex: Int = 0): Int 
 /**
  * Returns the index within this byte string of the first occurrence of the specified [byteArray],
  * starting from the specified [startIndex].
+ * If the [byteArray] not found, `-1` is returned.
  *
  * Behavior of this method is compatible with [CharSequence.indexOf].
  *
@@ -302,6 +306,7 @@ public fun ByteString.indexOf(byteArray: ByteArray, startIndex: Int = 0): Int {
 /**
  * Returns the index within this char sequence of the last occurrence of the specified [byte],
  * starting from the specified [startIndex].
+ * If the [byte] not found, `-1` is returned.
  *
  * Behavior of this method is compatible with [CharSequence.lastIndexOf].
  *
@@ -321,6 +326,7 @@ public fun ByteString.lastIndexOf(byte: Byte, startIndex: Int = 0): Int {
 /**
  * Returns the index within this char sequence of the last occurrence of the specified [byteString],
  * starting from the specified [startIndex].
+ * If the [byteString] not found, `-1` is returned.
  *
  * Behavior of this method is compatible with [CharSequence.lastIndexOf].
  *
@@ -340,6 +346,7 @@ public fun ByteString.lastIndexOf(byteString: ByteString, startIndex: Int = 0): 
 /**
  * Returns the index within this char sequence of the last occurrence of the specified [byteArray],
  * starting from the specified [startIndex].
+ * If the [byteArray] not found, `-1` is returned.
  *
  * Behavior of this method is compatible with [CharSequence.lastIndexOf].
  *

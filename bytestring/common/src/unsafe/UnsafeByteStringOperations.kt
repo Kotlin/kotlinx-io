@@ -31,7 +31,7 @@ public object UnsafeByteStringOperations {
      * This method invokes [block] on a reference to the underlying array, not to its copy.
      * Consider using [ByteString.toByteArray] if it's impossible to guarantee that the array won't be modified.
      */
-    public fun withByteArrayUnsafe(byteString: ByteString, block: (ByteArray) -> Unit) {
+    public inline fun withByteArrayUnsafe(byteString: ByteString, block: (ByteArray) -> Unit) {
         block(byteString.getBackingArrayReference())
     }
 }
