@@ -25,6 +25,7 @@ class KotlinxIoCoreCommonSamples {
     fun bufferClear() {
         val buffer = Buffer()
         buffer.write(ByteArray(1024))
+        assertFalse(buffer.exhausted())
         buffer.clear()
         assertTrue(buffer.exhausted())
     }
