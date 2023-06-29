@@ -332,7 +332,7 @@ class Utf8Test {
     }
 
     private fun Buffer.assertUtf8StringEncoded(expectedHex: String, string: String) {
-        writeUtf8(string)
+        writeString(string)
         assertArrayEquals(expectedHex.decodeHex(), readByteArray())
     }
 

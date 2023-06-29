@@ -35,7 +35,7 @@ class CommonRealSinkTest {
     fun bufferedSinkEmitsTailWhenItIsComplete() {
         val sink = Buffer()
         val bufferedSink = (sink as RawSink).buffered()
-        bufferedSink.writeUtf8("a".repeat(Segment.SIZE - 1))
+        bufferedSink.writeString("a".repeat(Segment.SIZE - 1))
         assertEquals(0, sink.size)
         bufferedSink.writeByte(0)
         assertEquals(Segment.SIZE.toLong(), sink.size)
@@ -46,7 +46,7 @@ class CommonRealSinkTest {
     fun bufferedSinkEmitMultipleSegments() {
         val sink = Buffer()
         val bufferedSink = (sink as RawSink).buffered()
-        bufferedSink.writeUtf8("a".repeat(Segment.SIZE * 4 - 1))
+        bufferedSink.writeString("a".repeat(Segment.SIZE * 4 - 1))
         assertEquals(Segment.SIZE.toLong() * 3L, sink.size)
         assertEquals(Segment.SIZE.toLong() - 1L, bufferedSink.buffer.size)
     }
@@ -66,7 +66,7 @@ class CommonRealSinkTest {
     fun bytesEmittedToSinkWithFlush() {
         val sink = Buffer()
         val bufferedSink = (sink as RawSink).buffered()
-        bufferedSink.writeUtf8("abc")
+        bufferedSink.writeString("abc")
         bufferedSink.flush()
         assertEquals(3, sink.size)
     }
@@ -75,7 +75,7 @@ class CommonRealSinkTest {
     fun bytesNotEmittedToSinkWithoutFlush() {
         val sink = Buffer()
         val bufferedSink = (sink as RawSink).buffered()
-        bufferedSink.writeUtf8("abc")
+        bufferedSink.writeString("abc")
         assertEquals(0, sink.size)
     }
 
@@ -83,7 +83,7 @@ class CommonRealSinkTest {
     fun bytesEmittedToSinkWithEmit() {
         val sink = Buffer()
         val bufferedSink = (sink as RawSink).buffered()
-        bufferedSink.writeUtf8("abc")
+        bufferedSink.writeString("abc")
         bufferedSink.emit()
         assertEquals(3, sink.size)
     }
@@ -92,7 +92,7 @@ class CommonRealSinkTest {
     fun completeSegmentsEmitted() {
         val sink = Buffer()
         val bufferedSink = (sink as RawSink).buffered()
-        bufferedSink.writeUtf8("a".repeat(Segment.SIZE * 3))
+        bufferedSink.writeString("a".repeat(Segment.SIZE * 3))
         assertEquals(Segment.SIZE.toLong() * 3L, sink.size)
     }
 
@@ -100,7 +100,7 @@ class CommonRealSinkTest {
     fun incompleteSegmentsNotEmitted() {
         val sink = Buffer()
         val bufferedSink = (sink as RawSink).buffered()
-        bufferedSink.writeUtf8("a".repeat(Segment.SIZE * 3 - 1))
+        bufferedSink.writeString("a".repeat(Segment.SIZE * 3 - 1))
         assertEquals(Segment.SIZE.toLong() * 2L, sink.size)
     }
 
@@ -164,11 +164,11 @@ class CommonRealSinkTest {
         val mockSink = MockSink()
         val bufferedSink = mockSink.buffered()
 
-        bufferedSink.buffer.writeUtf8("abc")
-        assertEquals(3, bufferedSink.transferFrom(Buffer().also { it.writeUtf8("def") }))
+        bufferedSink.buffer.writeString("abc")
+        assertEquals(3, bufferedSink.transferFrom(Buffer().also { it.writeString("def") }))
 
         assertEquals(6, bufferedSink.buffer.size)
-        assertEquals("abcdef", bufferedSink.buffer.readUtf8(6))
+        assertEquals("abcdef", bufferedSink.buffer.readString(6))
         mockSink.assertLog() // No writes.
     }
 
@@ -184,12 +184,12 @@ class CommonRealSinkTest {
 
     @Test
     fun writeAllWritesOneSegmentAtATime() {
-        val write1 = Buffer().also { it.writeUtf8("a".repeat(Segment.SIZE)) }
-        val write2 = Buffer().also { it.writeUtf8("b".repeat(Segment.SIZE)) }
-        val write3 = Buffer().also { it.writeUtf8("c".repeat(Segment.SIZE)) }
+        val write1 = Buffer().also { it.writeString("a".repeat(Segment.SIZE)) }
+        val write2 = Buffer().also { it.writeString("b".repeat(Segment.SIZE)) }
+        val write3 = Buffer().also { it.writeString("c".repeat(Segment.SIZE)) }
 
         val source = Buffer()
-        source.writeUtf8(
+        source.writeString(
             "${"a".repeat(Segment.SIZE)}${"b".repeat(Segment.SIZE)}${"c".repeat(Segment.SIZE)}"
         )
 

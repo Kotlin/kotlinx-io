@@ -27,9 +27,9 @@ import kotlin.test.assertEquals
 class CommonPlatformTest {
     @Test
     fun sourceBuffer() {
-        val source = Buffer().also { it.writeUtf8("a") }
+        val source = Buffer().also { it.writeString("a") }
         val buffered = (source as RawSource).buffered()
-        assertEquals(buffered.readUtf8(), "a")
+        assertEquals(buffered.readString(), "a")
         assertEquals(source.size, 0L)
     }
 
@@ -37,7 +37,7 @@ class CommonPlatformTest {
     fun sinkBuffer() {
         val sink = Buffer()
         val buffered = (sink as RawSink).buffered()
-        buffered.writeUtf8("a")
+        buffered.writeString("a")
         assertEquals(sink.size, 0L)
         buffered.flush()
         assertEquals(sink.size, 1L)
@@ -45,6 +45,6 @@ class CommonPlatformTest {
 
     @Test
     fun discardingSinkTest() {
-        discardingSink().write(Buffer().also { it.writeUtf8("a") }, 1L)
+        discardingSink().write(Buffer().also { it.writeString("a") }, 1L)
     }
 }

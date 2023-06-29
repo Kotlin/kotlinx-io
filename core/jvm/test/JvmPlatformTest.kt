@@ -44,7 +44,7 @@ class JvmPlatformTest {
     fun outputStreamSink() {
         val baos = ByteArrayOutputStream()
         val sink = baos.asSink()
-        sink.write(Buffer().also { it.writeUtf8("a") }, 1L)
+        sink.write(Buffer().also { it.writeString("a") }, 1L)
         assertArrayEquals(baos.toByteArray(), byteArrayOf(0x61))
     }
 
@@ -52,7 +52,7 @@ class JvmPlatformTest {
     fun outputStreamSinkWriteZeroBytes() {
         val baos = ByteArrayOutputStream()
         val sink = baos.asSink()
-        sink.write(Buffer().also { it.writeUtf8("a") }, 0L)
+        sink.write(Buffer().also { it.writeString("a") }, 0L)
         assertEquals(0, baos.size())
     }
 
@@ -61,7 +61,7 @@ class JvmPlatformTest {
         val baos = ByteArrayOutputStream()
         val sink = baos.asSink()
         assertFailsWith<IllegalArgumentException> {
-            sink.write(Buffer().also { it.writeUtf8("a") }, -1)
+            sink.write(Buffer().also { it.writeString("a") }, -1)
         }
     }
 
@@ -69,10 +69,10 @@ class JvmPlatformTest {
     fun outputStreamSinkWritePartOfTheBuffer() {
         val baos = ByteArrayOutputStream()
         val sink = baos.asSink()
-        val buffer = Buffer().also { it.writeUtf8("hello") }
+        val buffer = Buffer().also { it.writeString("hello") }
         sink.write(buffer, 2)
         assertArrayEquals(baos.toByteArray(), byteArrayOf('h'.code.toByte(), 'e'.code.toByte()))
-        assertEquals("llo", buffer.readUtf8())
+        assertEquals("llo", buffer.readString())
     }
 
     @Test
@@ -81,7 +81,7 @@ class JvmPlatformTest {
         val source = bais.asSource()
         val buffer = Buffer()
         source.readAtMostTo(buffer, 1)
-        assertEquals(buffer.readUtf8(), "a")
+        assertEquals(buffer.readString(), "a")
     }
 
     @Test
@@ -104,7 +104,7 @@ class JvmPlatformTest {
     fun fileSink() {
         val file = File(tempDir, "test")
         file.outputStream().asSink().use { sink ->
-            sink.write(Buffer().also { it.writeUtf8("a") }, 1L)
+            sink.write(Buffer().also { it.writeString("a") }, 1L)
         }
         assertEquals(file.readText(), "a")
     }
@@ -114,7 +114,7 @@ class JvmPlatformTest {
         val file = File(tempDir, "test")
         file.writeText("a")
         FileOutputStream(file, true).asSink().use { sink ->
-            sink.write(Buffer().also { it.writeUtf8("b") }, 1L)
+            sink.write(Buffer().also { it.writeString("b") }, 1L)
         }
         assertEquals(file.readText(), "ab")
     }
@@ -127,14 +127,14 @@ class JvmPlatformTest {
         file.inputStream().asSource().use { source ->
             source.readAtMostTo(buffer, 1L)
         }
-        assertEquals(buffer.readUtf8(), "a")
+        assertEquals(buffer.readString(), "a")
     }
 
     @Test
     fun pathSink() {
         val file = File(tempDir, "test")
         file.toPath().outputStream().asSink().use { sink ->
-            sink.write(Buffer().also { it.writeUtf8("a") }, 1L)
+            sink.write(Buffer().also { it.writeString("a") }, 1L)
         }
         assertEquals(file.readText(), "a")
     }
@@ -144,7 +144,7 @@ class JvmPlatformTest {
         val file = File(tempDir, "test")
         file.writeText("a")
         file.toPath().outputStream(StandardOpenOption.APPEND).asSink().use { sink ->
-            sink.write(Buffer().also { it.writeUtf8("b") }, 1L)
+            sink.write(Buffer().also { it.writeString("b") }, 1L)
         }
         assertEquals(file.readText(), "ab")
     }
@@ -157,7 +157,7 @@ class JvmPlatformTest {
         file.toPath().inputStream().asSource().use { source ->
             source.readAtMostTo(buffer, 1L)
         }
-        assertEquals(buffer.readUtf8(), "a")
+        assertEquals(buffer.readString(), "a")
     }
 
     @Test
@@ -173,9 +173,9 @@ class JvmPlatformTest {
         }
 
         assertFailsWith<IOException> {
-            link.toPath().inputStream(LinkOption.NOFOLLOW_LINKS).asSource().use { it.buffered().readUtf8Line() }
+            link.toPath().inputStream(LinkOption.NOFOLLOW_LINKS).asSource().use { it.buffered().readLine() }
         }
-        assertNull(link.toPath().inputStream().asSource().use { it.buffered().readUtf8Line() })
+        assertNull(link.toPath().inputStream().asSource().use { it.buffered().readLine() })
     }
 
     @Test
@@ -185,7 +185,7 @@ class JvmPlatformTest {
             override fun getOutputStream() = baos
         }
         val sink = socket.outputStream.asSink()
-        sink.write(Buffer().also { it.writeUtf8("a") }, 1L)
+        sink.write(Buffer().also { it.writeString("a") }, 1L)
         assertArrayEquals(baos.toByteArray(), byteArrayOf(0x61))
     }
 
@@ -198,6 +198,6 @@ class JvmPlatformTest {
         val source = socket.inputStream.asSource()
         val buffer = Buffer()
         source.readAtMostTo(buffer, 1L)
-        assertEquals(buffer.readUtf8(), "a")
+        assertEquals(buffer.readString(), "a")
     }
 }

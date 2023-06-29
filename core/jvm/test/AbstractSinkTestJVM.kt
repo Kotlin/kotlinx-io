@@ -45,7 +45,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
         out.write("b".repeat(9998).toByteArray(UTF_8))
         out.write('c'.code)
         out.flush()
-        assertEquals(("a" + "b".repeat(9998)) + "c", data.readUtf8())
+        assertEquals(("a" + "b".repeat(9998)) + "c", data.readString())
     }
 
     @Test
@@ -90,7 +90,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
         assertEquals(expected.length, nioByteBuffer.position())
         assertEquals(expected.length, nioByteBuffer.limit())
         sink.flush()
-        assertEquals(expected, data.readUtf8())
+        assertEquals(expected, data.readString())
     }
 
     @Test
@@ -104,7 +104,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
         assertEquals(expected.length, nioByteBuffer.position())
         assertEquals(expected.length, nioByteBuffer.limit())
         sink.flush()
-        assertEquals(expected, data.readUtf8())
+        assertEquals(expected, data.readString())
     }
 
     @Test
