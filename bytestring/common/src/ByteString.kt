@@ -111,7 +111,8 @@ public class ByteString private constructor(
      */
     public operator fun get(index: Int): Byte {
         if (index < 0 || index >= size) throw IndexOutOfBoundsException(
-            "index ($index) is out of byte string bounds: [0..$size)")
+            "index ($index) is out of byte string bounds: [0..$size)"
+        )
         return data[index]
     }
 
@@ -126,7 +127,7 @@ public class ByteString private constructor(
      * @throws IllegalArgumentException when `startIndex > endIndex`.
      */
     public fun toByteArray(startIndex: Int = 0, endIndex: Int = size): ByteArray {
-        require(startIndex <= endIndex) { "startIndex: $startIndex, endIndex: $endIndex" }
+        require(startIndex <= endIndex) { "startIndex ($startIndex) > endIndex ($endIndex)" }
         return data.copyOfRange(startIndex, endIndex)
     }
 
@@ -148,9 +149,7 @@ public class ByteString private constructor(
         destination: ByteArray, destinationOffset: Int = 0,
         startIndex: Int = 0, endIndex: Int = size
     ) {
-        require(startIndex <= endIndex) {
-            "destinationOffset: $destinationOffset, startIndex: $startIndex, endIndex: $endIndex"
-        }
+        require(startIndex <= endIndex) { "startIndex ($startIndex) > endIndex ($endIndex)" }
         data.copyInto(destination, destinationOffset, startIndex, endIndex)
     }
 
