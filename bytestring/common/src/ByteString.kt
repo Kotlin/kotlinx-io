@@ -37,6 +37,16 @@ public fun ByteString(vararg bytes: Byte): ByteString = if (bytes.isEmpty()) {
 
 /**
  * An immutable wrapper around a byte sequence providing [String] like functionality.
+ *
+ * ByteString allows treating binary data as a value and passing it to other functions
+ * without worrying about data modification.
+ * The class facilitates various operations on binary data, like comparison or testing for subsequence inclusion.
+ *
+ * ByteString is a good fit for untyped binary data that could not be represented as [String],
+ * like hashes, payload of network packets, encrypted data, etc.
+ *
+ * ByteString copies data on creation as well as on conversion back to [ByteArray], thus guaranteeing that subsequent
+ * modification of source data or data returned from [toByteArray] won't mutate the string itself.
  */
 public class ByteString private constructor(
     private val data: ByteArray,
