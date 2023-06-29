@@ -11,15 +11,17 @@ import kotlin.test.*
 class ByteStringSamples {
     @Test
     fun compareTo() {
-        assertEquals(0, ByteString(1, 2, 3).compareTo(ByteString(1, 2, 3)))
-        assertEquals(-1, ByteString(1, 2, 3).compareTo(ByteString(1, 3, 2)))
+        assertTrue(ByteString(1, 2, 3) == ByteString(1, 2, 3))
+        assertTrue(ByteString(1, 2, 3) <= ByteString(1, 2, 3))
+        assertTrue(ByteString(1, 2, 3) >= ByteString(1, 2, 3))
+        assertTrue(ByteString(1, 2, 3) < ByteString(1, 3, 2))
 
         // If byte strings have different length, their content compared up to the length of the shortest string,
         // and if their content was the same, then the shortest string is considered "smaller"
-        assertEquals(-1, ByteString().compareTo(ByteString(1, 2, 3)))
-        assertEquals(1, ByteString(1, 2, 3).compareTo(ByteString(1)))
-        assertEquals(-1, ByteString(1, 2, 3).compareTo(ByteString(1, 3)))
-        assertEquals(1, ByteString(1, 2, 3).compareTo(ByteString(1, 1, 1, 1)))
+        assertTrue(ByteString() < ByteString(1, 2, 3))
+        assertTrue(ByteString(1, 2, 3) > ByteString(1))
+        assertTrue(ByteString(1, 2, 3) < ByteString(1, 3))
+        assertTrue(ByteString(1, 2, 3) > ByteString(1, 1, 1, 1))
     }
 
     @Test
