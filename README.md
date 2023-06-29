@@ -57,3 +57,11 @@ This project and the corresponding community are governed by the [JetBrains Open
 
 ## License
 kotlinx-io is licensed under the [Apache 2.0 License](LICENSE).
+
+## Credits
+
+Thanks to everyone involved in the project.
+
+A honorable mention goes to the developers of [Okio](https://square.github.io/okio/) 
+that served as the foundation for `kotlinx-io` and to [Jesse Wilson](https://github.com/swankjesse),
+for the help with `Okio` adaption, his suggestions, assistance and guidance with `kotlin-io` development.
