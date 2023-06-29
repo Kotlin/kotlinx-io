@@ -59,6 +59,8 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
  * @param charset the [Charset] to use for string decoding.
  *
  * @throws IllegalStateException when the source is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteStrings
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readString(charset: Charset): String {
@@ -78,6 +80,8 @@ public fun Source.readString(charset: Charset): String {
  * @throws EOFException when the source exhausted before [byteCount] bytes could be read from it.
  * @throws IllegalStateException when the source is closed.
  * @throws IllegalArgumentException if [byteCount] is negative or its value is greater than [Int.MAX_VALUE].
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readStringBounded
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readString(byteCount: Long, charset: Charset): String {
@@ -87,6 +91,8 @@ public fun Source.readString(byteCount: Long, charset: Charset): String {
 
 /**
  * Returns an input stream that reads from this source. Closing the stream will also close this source.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.asStream
  */
 @OptIn(InternalIoApi::class)
 public fun Source.asInputStream(): InputStream {
@@ -130,6 +136,8 @@ public fun Source.asInputStream(): InputStream {
  * @param sink the sink to write the data to.
  *
  * @throws IllegalStateException when the source is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteByteBuffer
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readAtMostTo(sink: ByteBuffer): Int {

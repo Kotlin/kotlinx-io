@@ -29,6 +29,8 @@ import java.io.OutputStream
  * Returns [RawSink] that writes to an output stream.
  *
  * Use [RawSink.buffered] to create a buffered sink from it.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.outputStreamAsSink
  */
 public fun OutputStream.asSink(): RawSink = OutputStreamSink(this)
 
@@ -67,6 +69,8 @@ private open class OutputStreamSink(
  * Returns [RawSource] that reads from an input stream.
  *
  * Use [RawSource.buffered] to create a buffered source from it.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.inputStreamAsSource
  */
 public fun InputStream.asSource(): RawSource = InputStreamSource(this)
 

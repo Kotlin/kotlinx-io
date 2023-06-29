@@ -31,6 +31,8 @@ import java.nio.channels.ByteChannel
  * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
  *
  * @param input the stream to read data from.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.bufferTransferToStream
  */
 public fun Buffer.transferFrom(input: InputStream): Buffer {
     write(input, Long.MAX_VALUE, true)
@@ -46,6 +48,8 @@ public fun Buffer.transferFrom(input: InputStream): Buffer {
  *
  * @throws IOException when [input] exhausted before reading [byteCount] bytes from it.
  * @throws IllegalArgumentException when [byteCount] is negative.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.writeInputStreamToBuffer
  */
 public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
     checkByteCount(byteCount)
@@ -81,6 +85,8 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
  * @param byteCount the number of bytes to be written, [Buffer.size] by default.
  *
  * @throws IllegalArgumentException when [byteCount] is negative or exceeds the buffer size.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.bufferTransferToStream
  */
 public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
     checkOffsetAndCount(size, 0, byteCount)
@@ -114,6 +120,8 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
  *
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of this buffer bounds (`[0..buffer.size)`).
  * @throws IllegalArgumentException when `startIndex > endIndex`.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.copyBufferToOutputStream
  */
 public fun Buffer.copyTo(
     out: OutputStream,
@@ -149,6 +157,8 @@ public fun Buffer.copyTo(
  * Return the number of bytes written.
  *
  * @param sink the sink to write data to.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteByteBuffer
  */
 public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
     val s = head ?: return -1
@@ -169,6 +179,8 @@ public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
 
 /**
  * Reads all data from [source] into this buffer.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.bufferInteropWithNioBuffer
  */
 public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
