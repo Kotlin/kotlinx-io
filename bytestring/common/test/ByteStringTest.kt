@@ -379,7 +379,7 @@ class ByteStringTest {
         assertEquals("ByteString(size=0)", ByteString().toString())
         assertEquals("ByteString(size=1 hex=00)", ByteString(0).toString())
         assertEquals(
-            "ByteString(size=16 hex=000102030405060708090A0B0C0D0E0F)",
+            "ByteString(size=16 hex=000102030405060708090a0b0c0d0e0f)",
             ByteString(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15).toString()
         )
         assertEquals(

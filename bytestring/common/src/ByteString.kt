@@ -79,7 +79,7 @@ public class ByteString private constructor(
 
         internal fun wrap(byteArray: ByteArray): ByteString = ByteString(byteArray, null)
 
-        private val HEX_DIGITS = "0123456789ABCDEF".toCharArray()
+        private val HEX_DIGITS = "0123456789abcdef".toCharArray()
     }
 
     /**
