@@ -87,7 +87,7 @@ public fun Source.readDecimalLong(): Long {
                     writeByte(b)
 
                     if (!negative) readByte() // Skip negative sign.
-                    throw NumberFormatException("Number too large: ${readUtf8()}")
+                    throw NumberFormatException("Number too large: ${readString()}")
                 }
             }
             value = value * 10L + digit
@@ -143,7 +143,7 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
             with(Buffer()) {
                 writeHexadecimalUnsignedLong(result)
                 writeByte(b)
-                throw NumberFormatException("Number too large: " + readUtf8())
+                throw NumberFormatException("Number too large: " + readString())
             }
         }
         result = result.shl(4) + bDigit

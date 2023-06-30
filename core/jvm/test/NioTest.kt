@@ -65,7 +65,7 @@ class NioTest {
         val fileChannel: FileChannel = FileChannel.open(file, StandardOpenOption.WRITE)
         testWritableByteChannel(false, fileChannel)
         val emitted: Source = file.inputStream().asSource().buffered()
-        assertEquals("defghijklmnopqrstuvw", emitted.readUtf8())
+        assertEquals("defghijklmnopqrstuvw", emitted.readString())
         emitted.close()
     }
 
@@ -73,7 +73,7 @@ class NioTest {
     fun writableChannelBuffer() {
         val buffer = Buffer()
         testWritableByteChannel(true, buffer.asByteChannel())
-        assertEquals("defghijklmnopqrstuvw", buffer.readUtf8())
+        assertEquals("defghijklmnopqrstuvw", buffer.readString())
     }
 
     @Test
@@ -81,14 +81,14 @@ class NioTest {
         val buffer = Buffer()
         val bufferedSink: Sink = buffer
         testWritableByteChannel(true, bufferedSink.asByteChannel())
-        assertEquals("defghijklmnopqrstuvw", buffer.readUtf8())
+        assertEquals("defghijklmnopqrstuvw", buffer.readString())
     }
 
     @Test
     fun readableChannelNioFile() {
         val file: File = Paths.get(temporaryFolder.toString(), "test").toFile()
         val initialData: Sink = file.outputStream().asSink().buffered()
-        initialData.writeUtf8("abcdefghijklmnopqrstuvwxyz")
+        initialData.writeString("abcdefghijklmnopqrstuvwxyz")
         initialData.close()
         val fileChannel: FileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)
         testReadableByteChannel(false, fileChannel)
@@ -97,7 +97,7 @@ class NioTest {
     @Test
     fun readableChannelBuffer() {
         val buffer = Buffer()
-        buffer.writeUtf8("abcdefghijklmnopqrstuvwxyz")
+        buffer.writeString("abcdefghijklmnopqrstuvwxyz")
         testReadableByteChannel(true, buffer.asByteChannel())
     }
 
@@ -105,7 +105,7 @@ class NioTest {
     fun readableChannelBufferedSource() {
         val buffer = Buffer()
         val bufferedSource: Source = buffer
-        buffer.writeUtf8("abcdefghijklmnopqrstuvwxyz")
+        buffer.writeString("abcdefghijklmnopqrstuvwxyz")
         testReadableByteChannel(true, bufferedSource.asByteChannel())
     }
 

@@ -47,6 +47,19 @@ public final class kotlinx/io/BufferExtJvmKt {
 	public static final fun write (Lkotlinx/io/Buffer;Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
 }
 
+public final class kotlinx/io/BufferExtKt {
+	public static final fun snapshot (Lkotlinx/io/Buffer;)Lkotlinx/io/bytestring/ByteString;
+}
+
+public final class kotlinx/io/ByteStringExtKt {
+	public static final fun indexOf (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;J)J
+	public static synthetic fun indexOf$default (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)J
+	public static final fun readByteString (Lkotlinx/io/Source;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun readByteString (Lkotlinx/io/Source;I)Lkotlinx/io/bytestring/ByteString;
+	public static final fun write (Lkotlinx/io/Sink;Lkotlinx/io/bytestring/ByteString;II)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)V
+}
+
 public final class kotlinx/io/CoreKt {
 	public static final fun buffered (Lkotlinx/io/RawSink;)Lkotlinx/io/Sink;
 	public static final fun buffered (Lkotlinx/io/RawSource;)Lkotlinx/io/Source;
@@ -162,14 +175,14 @@ public final class kotlinx/io/SourceExtKt {
 }
 
 public final class kotlinx/io/Utf8Kt {
-	public static final fun readUtf8 (Lkotlinx/io/Buffer;)Ljava/lang/String;
-	public static final fun readUtf8 (Lkotlinx/io/Source;)Ljava/lang/String;
-	public static final fun readUtf8 (Lkotlinx/io/Source;J)Ljava/lang/String;
-	public static final fun readUtf8Line (Lkotlinx/io/Source;)Ljava/lang/String;
-	public static final fun readUtf8LineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
-	public static synthetic fun readUtf8LineStrict$default (Lkotlinx/io/Source;JILjava/lang/Object;)Ljava/lang/String;
-	public static final fun writeUtf8 (Lkotlinx/io/Sink;Ljava/lang/String;II)V
-	public static synthetic fun writeUtf8$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
+	public static final fun readLine (Lkotlinx/io/Source;)Ljava/lang/String;
+	public static final fun readLineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
+	public static synthetic fun readLineStrict$default (Lkotlinx/io/Source;JILjava/lang/Object;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Buffer;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Source;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Source;J)Ljava/lang/String;
+	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;II)V
+	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
 }
 
 public final class kotlinx/io/files/Path {
