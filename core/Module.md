@@ -30,14 +30,14 @@ fun Message.toBson(sink: Sink) {
     val buffer = Buffer()
     with (buffer) {
         writeByte(0x9)                          // UTC-timestamp field
-        writeUtf8("timestamp")                  // field name
+        writeString("timestamp")                // field name
         writeByte(0)
         writeLongLe(timestamp)                  // field value
         writeByte(0x2)                          // string field
-        writeUtf8("text")                       // field name
+        writeString("text")                     // field name
         writeByte(0)
         writeIntLe(text.utf8Size().toInt() + 1) // field value: length followed by the string
-        writeUtf8(text)
+        writeString(text)
         writeByte(0)
         writeByte(0)                            // end of BSON document
     }
@@ -56,7 +56,7 @@ fun Message.Companion.fromBson(source: Source): Message {
     fun readFieldName(source: Source): String {
         val delimiterOffset = source.indexOf(0)          // find offset of the 0-byte terminating the name
         check(delimiterOffset >= 0)                      // indexOf return -1 if value not found
-        val fieldName = source.readUtf8(delimiterOffset) // read the string until terminator
+        val fieldName = source.readString(delimiterOffset) // read the string until terminator
         source.skip(1)                                   // skip the terminator
         return fieldName
     }
@@ -68,7 +68,7 @@ fun Message.Companion.fromBson(source: Source): Message {
     tag = source.readByte().toInt()
     check(tag == 0x2 && readFieldName(source) == "text")
     val textLen = source.readIntLe() - 1L              // read string length (it includes the terminator)
-    val text = source.readUtf8(textLen)                // read value
+    val text = source.readString(textLen)                // read value
     source.skip(1)                                     // skip terminator
     source.skip(1)                                     // skip end of the document
     return Message(timestamp, text)

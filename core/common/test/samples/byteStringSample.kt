@@ -37,7 +37,7 @@ class ByteStringSamples {
         assertEquals(-1, buffer.indexOf(ByteString(1, 2, 3, 4)))
         assertEquals(0, buffer.indexOf(ByteString(/* empty */)))
 
-        buffer.writeUtf8("Content-Type: text/plain\nContent-Length: 12\n\nhello world!")
+        buffer.writeString("Content-Type: text/plain\nContent-Length: 12\n\nhello world!")
 
         assertEquals(43, buffer.indexOf("\n\n".encodeToByteString()))
         assertEquals(-1, buffer.indexOf("application/json".encodeToByteString()))

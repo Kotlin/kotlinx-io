@@ -68,7 +68,7 @@ class Crc32Sample {
         val crc32Sink = CRC32Sink(discardingSink())
 
         crc32Sink.buffered().use {
-            it.writeUtf8("hello crc32")
+            it.writeString("hello crc32")
         }
 
         assertEquals(0x9896d398U, crc32Sink.crc32())

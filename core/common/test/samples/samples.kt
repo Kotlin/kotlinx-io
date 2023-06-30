@@ -33,7 +33,7 @@ class KotlinxIoCoreCommonSamples {
     @Test
     fun bufferGetByte() {
         val buffer = Buffer()
-        buffer.writeUtf8("Hello World!")
+        buffer.writeString("Hello World!")
 
         assertEquals('H'.code, buffer[0].toInt())
         assertEquals('W'.code, buffer[buffer.indexOf('W'.code.toByte())].toInt())
@@ -42,49 +42,49 @@ class KotlinxIoCoreCommonSamples {
     @Test
     fun bufferCopy() {
         val buffer = Buffer()
-        buffer.writeUtf8("some string")
+        buffer.writeString("some string")
 
         val copy = Buffer()
-        copy.writeUtf8("sub")
+        copy.writeString("sub")
         buffer.copyTo(copy, startIndex = 5)
 
-        assertEquals("some string", buffer.readUtf8())
-        assertEquals("substring", copy.readUtf8())
+        assertEquals("some string", buffer.readString())
+        assertEquals("substring", copy.readString())
     }
 
     @Test
     fun transferFrom() {
-        val src: Source = Buffer().also { it.writeUtf8("Some data to transfer") }
-        val dst = Buffer().also { it.writeUtf8("Transferred: ") }
+        val src: Source = Buffer().also { it.writeString("Some data to transfer") }
+        val dst = Buffer().also { it.writeString("Transferred: ") }
 
         dst.transferFrom(src)
 
         assertTrue(src.exhausted())
-        assertEquals("Transferred: Some data to transfer", dst.readUtf8())
+        assertEquals("Transferred: Some data to transfer", dst.readString())
     }
 
     @Test
     fun transferTo() {
-        val src: Source = Buffer().also { it.writeUtf8("Some data to transfer") }
-        val dst = Buffer().also { it.writeUtf8("Transferred: ") }
+        val src: Source = Buffer().also { it.writeString("Some data to transfer") }
+        val dst = Buffer().also { it.writeString("Transferred: ") }
 
         src.transferTo(dst)
 
         assertTrue(src.exhausted())
-        assertEquals("Transferred: Some data to transfer", dst.readUtf8())
+        assertEquals("Transferred: Some data to transfer", dst.readString())
     }
 
     @Test
     fun peekSample() {
-        val source: Source = Buffer().also { it.writeUtf8("hello world") }
+        val source: Source = Buffer().also { it.writeString("hello world") }
 
         val peek = source.peek().buffered()
-        assertEquals("hello", peek.readUtf8(5))
+        assertEquals("hello", peek.readString(5))
         peek.skip(1)
-        assertEquals("world", peek.readUtf8(5))
+        assertEquals("world", peek.readString(5))
         assertTrue(peek.exhausted())
 
-        assertEquals("hello world", source.readUtf8())
+        assertEquals("hello world", source.readString())
     }
 
     @Test
@@ -118,14 +118,14 @@ class KotlinxIoCoreCommonSamples {
     @Test
     fun readLinesSample() {
         val buffer = Buffer()
-        buffer.writeUtf8("No new line here.")
+        buffer.writeString("No new line here.")
 
-        assertFailsWith<EOFException> { buffer.readUtf8LineStrict() }
-        assertEquals("No new line here.", buffer.readUtf8Line())
+        assertFailsWith<EOFException> { buffer.readLineStrict() }
+        assertEquals("No new line here.", buffer.readLine())
 
-        buffer.writeUtf8("Line1\n\nLine2")
-        assertEquals("Line1", buffer.readUtf8LineStrict())
-        assertEquals("\nLine2", buffer.readUtf8())
+        buffer.writeString("Line1\n\nLine2")
+        assertEquals("Line1", buffer.readLineStrict())
+        assertEquals("\nLine2", buffer.readString())
     }
 
     @Test
@@ -173,7 +173,7 @@ class KotlinxIoCoreCommonSamples {
     @Test
     fun readDecimalLong() {
         val buffer = Buffer()
-        buffer.writeUtf8("42 -1 1234567!")
+        buffer.writeString("42 -1 1234567!")
 
         assertEquals(42L, buffer.readDecimalLong())
         buffer.skip(1) // skip space
@@ -188,10 +188,10 @@ class KotlinxIoCoreCommonSamples {
         val buffer = Buffer()
 
         buffer.writeDecimalLong(1024)
-        buffer.writeUtf8(", ")
+        buffer.writeString(", ")
         buffer.writeDecimalLong(-24)
 
-        assertEquals("1024, -24", buffer.readUtf8())
+        assertEquals("1024, -24", buffer.readString())
     }
 
     @Test
@@ -199,25 +199,25 @@ class KotlinxIoCoreCommonSamples {
         val buffer = Buffer()
 
         buffer.writeHexadecimalUnsignedLong(10)
-        assertEquals("a", buffer.readUtf8())
+        assertEquals("a", buffer.readString())
 
         buffer.writeHexadecimalUnsignedLong(-10)
-        assertEquals("fffffffffffffff6", buffer.readUtf8())
+        assertEquals("fffffffffffffff6", buffer.readString())
     }
 
     @Test
     fun readHexLong() {
         val buffer = Buffer()
 
-        buffer.writeUtf8("0000a")
+        buffer.writeString("0000a")
         assertEquals(10L, buffer.readHexadecimalUnsignedLong())
 
-        buffer.writeUtf8("fffFffFffFfffff6")
+        buffer.writeString("fffFffFffFfffff6")
         assertEquals(-10L, buffer.readHexadecimalUnsignedLong())
 
-        buffer.writeUtf8("dear friend!")
+        buffer.writeString("dear friend!")
         assertEquals(0xdea, buffer.readHexadecimalUnsignedLong())
-        assertEquals("r friend!", buffer.readUtf8())
+        assertEquals("r friend!", buffer.readString())
     }
 
     @Test
@@ -238,7 +238,7 @@ class KotlinxIoCoreCommonSamples {
 
         assertEquals(-1, buffer.indexOf('\n'.code.toByte()))
 
-        buffer.writeUtf8("Hello\nThis is line 2\nAnd this one is third.")
+        buffer.writeString("Hello\nThis is line 2\nAnd this one is third.")
         assertEquals(5, buffer.indexOf('\n'.code.toByte()))
         assertEquals(20, buffer.indexOf('\n'.code.toByte(), startIndex = 6))
         assertEquals(-1, buffer.indexOf('\n'.code.toByte(), startIndex = 21))
@@ -259,7 +259,7 @@ class KotlinxIoCoreCommonSamples {
     fun writeUtf8Sample() {
         val buffer = Buffer()
 
-        buffer.writeUtf8("hello", startIndex = 1, endIndex = 4)
+        buffer.writeString("hello", startIndex = 1, endIndex = 4)
         assertContentEquals(
             byteArrayOf(
                 'e'.code.toByte(),
@@ -268,7 +268,7 @@ class KotlinxIoCoreCommonSamples {
             ), buffer.readByteArray()
         )
 
-        buffer.writeUtf8("Δ")
+        buffer.writeString("Δ")
         assertContentEquals(byteArrayOf(0xce.toByte(), 0x94.toByte()), buffer.readByteArray())
     }
 
@@ -277,11 +277,11 @@ class KotlinxIoCoreCommonSamples {
         val buffer = Buffer()
 
         buffer.write("hello world".encodeToByteArray())
-        assertEquals("hello", buffer.readUtf8(5))
-        assertEquals(" world", buffer.readUtf8())
+        assertEquals("hello", buffer.readString(5))
+        assertEquals(" world", buffer.readString())
 
         buffer.write(byteArrayOf(0xce.toByte(), 0x94.toByte()))
-        assertEquals("Δ", buffer.readUtf8())
+        assertEquals("Δ", buffer.readString())
     }
 
     @Test

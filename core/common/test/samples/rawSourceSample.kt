@@ -79,6 +79,6 @@ class RC4SourceSample {
         val source = Buffer().also { it.write(byteArrayOf(0x58, 0x09, 0x57, 0x9fU.toByte(), 0x41, 0xfbU.toByte())) }
         val rc4Source = RC4DecryptingSource(source, key).buffered()
 
-        assertEquals("Secret", rc4Source.readUtf8())
+        assertEquals("Secret", rc4Source.readString())
     }
 }

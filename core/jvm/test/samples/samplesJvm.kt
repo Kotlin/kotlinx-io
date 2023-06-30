@@ -57,7 +57,7 @@ class KotlinxIoSamplesJvm {
         val buffer = Buffer()
         val nioByteBuffer = ByteBuffer.allocate(1024)
 
-        buffer.writeUtf8("hello")
+        buffer.writeString("hello")
         val bytesRead = buffer.readAtMostTo(nioByteBuffer)
         assertEquals(5, bytesRead)
         assertEquals(5, nioByteBuffer.capacity() - nioByteBuffer.remaining())
@@ -67,13 +67,13 @@ class KotlinxIoSamplesJvm {
 
         val bytesWrite = buffer.write(nioByteBuffer)
         assertEquals(5, bytesWrite)
-        assertEquals("hello", buffer.readUtf8())
+        assertEquals("hello", buffer.readString())
     }
 
     @Test
     fun bufferTransferToStream() {
         val buffer = Buffer()
-        buffer.writeUtf8("hello")
+        buffer.writeString("hello")
 
         val outputStream = ByteArrayOutputStream()
         buffer.readTo(outputStream)
@@ -83,7 +83,7 @@ class KotlinxIoSamplesJvm {
         val inputStream = ByteArrayInputStream(outputStream.toByteArray())
         buffer.transferFrom(inputStream)
 
-        assertEquals("hello", buffer.readUtf8())
+        assertEquals("hello", buffer.readString())
     }
 
     @Test
@@ -92,18 +92,18 @@ class KotlinxIoSamplesJvm {
         val buffer = Buffer()
 
         buffer.write(inputStream, 5)
-        assertEquals("hello", buffer.readUtf8())
+        assertEquals("hello", buffer.readString())
     }
 
     @Test
     fun copyBufferToOutputStream() {
         val buffer = Buffer()
-        buffer.writeUtf8("string")
+        buffer.writeString("string")
 
         val outputStream = ByteArrayOutputStream()
         buffer.copyTo(outputStream, startIndex = 2, endIndex = 6)
 
-        assertEquals("string", buffer.readUtf8())
+        assertEquals("string", buffer.readString())
         assertEquals("ring", outputStream.toString("UTF-8"))
     }
 
@@ -117,7 +117,7 @@ class KotlinxIoSamplesJvm {
         nioBuffer.limit(5)
         buffer.transferFrom(nioBuffer)
 
-        assertEquals("hello", buffer.readUtf8())
+        assertEquals("hello", buffer.readString())
         assertEquals(5, nioBuffer.position())
     }
 
