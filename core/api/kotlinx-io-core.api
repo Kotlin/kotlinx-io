@@ -47,11 +47,11 @@ public final class kotlinx/io/BuffersJvmKt {
 	public static final fun write (Lkotlinx/io/Buffer;Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
 }
 
-public final class kotlinx/io/BufferExtKt {
+public final class kotlinx/io/BuffersKt {
 	public static final fun snapshot (Lkotlinx/io/Buffer;)Lkotlinx/io/bytestring/ByteString;
 }
 
-public final class kotlinx/io/ByteStringExtKt {
+public final class kotlinx/io/ByteStringsKt {
 	public static final fun indexOf (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;J)J
 	public static synthetic fun indexOf$default (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)J
 	public static final fun readByteString (Lkotlinx/io/Source;)Lkotlinx/io/bytestring/ByteString;
