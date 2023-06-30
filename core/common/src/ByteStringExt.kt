@@ -21,6 +21,8 @@ import kotlin.math.min
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [byteString] indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalStateException if the sink is closed.
+ *
+ * @sample kotlinx.io.samples.ByteStringSamples.writeByteString
  */
 @OptIn(DelicateIoApi::class)
 public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int = byteString.size) {
@@ -54,6 +56,8 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
  * Consumes all bytes from this source and wraps it into a byte string.
  *
  * @throws IllegalStateException if the source is closed.
+ *
+ * @sample kotlinx.io.samples.ByteStringSamples.readByteString
  */
 @OptIn(UnsafeByteStringApi::class)
 public fun Source.readByteString(): ByteString {
@@ -68,6 +72,8 @@ public fun Source.readByteString(): ByteString {
  * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
  * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws IllegalStateException if the source is closed.
+ *
+ * @sample kotlinx.io.samples.ByteStringSamples.readByteString
  */
 @OptIn(UnsafeByteStringApi::class)
 public fun Source.readByteString(byteCount: Int): ByteString {
@@ -84,6 +90,8 @@ public fun Source.readByteString(byteCount: Int): ByteString {
  *
  * @throws IllegalArgumentException if [startIndex] is negative.
  * @throws IllegalStateException if the source is closed.
+ *
+ * @sample kotlinx.io.samples.ByteStringSamples.indexOfByteString
  */
 @OptIn(InternalIoApi::class, UnsafeByteStringApi::class)
 public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {

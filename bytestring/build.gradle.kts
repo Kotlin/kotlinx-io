@@ -76,5 +76,7 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             suppress.set(true)
             matchingRegex.set(".*unsafe.*")
         }
+
+        samples.from("common/test/samples/samples.kt")
     }
 }

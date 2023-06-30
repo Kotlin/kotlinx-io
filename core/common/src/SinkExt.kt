@@ -13,6 +13,8 @@ internal val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
  * @param short the short integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeShortLe
  */
 public fun Sink.writeShortLe(short: Short) {
     this.writeShort(short.reverseBytes())
@@ -24,6 +26,8 @@ public fun Sink.writeShortLe(short: Short) {
  * @param int the integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeIntLe
  */
 public fun Sink.writeIntLe(int: Int) {
     this.writeInt(int.reverseBytes())
@@ -35,6 +39,8 @@ public fun Sink.writeIntLe(int: Int) {
  * @param long the long integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeLongLe
  */
 public fun Sink.writeLongLe(long: Long) {
     this.writeLong(long.reverseBytes())
@@ -48,6 +54,8 @@ public fun Sink.writeLongLe(long: Long) {
  * @param long the long to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDecimalLong
  */
 @OptIn(DelicateIoApi::class)
 public fun Sink.writeDecimalLong(long: Long) {
@@ -127,6 +135,8 @@ public fun Sink.writeDecimalLong(long: Long) {
  * @param long the long to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeHexLong
  */
 @OptIn(DelicateIoApi::class)
 public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
@@ -180,6 +190,8 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
  * @param byte the byte to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUByte
  */
 public fun Sink.writeUByte(byte: UByte) {
     writeByte(byte.toByte())
@@ -191,6 +203,8 @@ public fun Sink.writeUByte(byte: UByte) {
  * @param short the unsigned short integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUShort
  */
 public fun Sink.writeUShort(short: UShort) {
     writeShort(short.toShort())
@@ -202,6 +216,8 @@ public fun Sink.writeUShort(short: UShort) {
  * @param int the unsigned integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUInt
  */
 public fun Sink.writeUInt(int: UInt) {
     writeInt(int.toInt())
@@ -213,6 +229,8 @@ public fun Sink.writeUInt(int: UInt) {
  * @param long the unsigned long integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeULong
  */
 public fun Sink.writeULong(long: ULong) {
     writeLong(long.toLong())
@@ -224,6 +242,8 @@ public fun Sink.writeULong(long: ULong) {
  * @param short the unsigned short integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUShortLe
  */
 public fun Sink.writeUShortLe(short: UShort) {
     writeShortLe(short.toShort())
@@ -235,6 +255,8 @@ public fun Sink.writeUShortLe(short: UShort) {
  * @param int the unsigned integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUIntLe
  */
 public fun Sink.writeUIntLe(int: UInt) {
     writeIntLe(int.toInt())
@@ -246,6 +268,8 @@ public fun Sink.writeUIntLe(int: UInt) {
  * @param long the unsigned long integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeULongLe
  */
 public fun Sink.writeULongLe(long: ULong) {
     writeLongLe(long.toLong())

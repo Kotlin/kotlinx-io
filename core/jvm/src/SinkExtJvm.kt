@@ -38,6 +38,8 @@ import java.nio.charset.Charset
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [string] indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteStrings
  */
 public fun Sink.writeString(string: String, charset: Charset, startIndex: Int = 0, endIndex: Int = string.length) {
     checkBounds(string.length, startIndex, endIndex)
@@ -48,6 +50,8 @@ public fun Sink.writeString(string: String, charset: Charset, startIndex: Int = 
 
 /**
  * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.asStream
  */
 @OptIn(DelicateIoApi::class)
 public fun Sink.asOutputStream(): OutputStream {
@@ -88,6 +92,8 @@ public fun Sink.asOutputStream(): OutputStream {
  * @param source the source to read from.
  *
  * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteByteBuffer
  */
 @OptIn(InternalIoApi::class)
 public fun Sink.write(source: ByteBuffer): Int {

@@ -77,6 +77,8 @@ public sealed interface Source : RawSource {
    * The call of this method will block until there are bytes to read or the source is definitely exhausted.
    *
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.exhausted
    */
   public fun exhausted(): Boolean
 
@@ -92,6 +94,8 @@ public sealed interface Source : RawSource {
    * @throws EOFException when the source is exhausted before the required bytes count could be read.
    * @throws IllegalStateException when the source is closed.
    * @throws IllegalArgumentException when [byteCount] is negative.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.require
    */
   public fun require(byteCount: Long)
 
@@ -106,6 +110,8 @@ public sealed interface Source : RawSource {
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.request
    */
   public fun request(byteCount: Long): Boolean
 
@@ -114,6 +120,8 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when there are no more bytes to read.
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readByte
    */
   public fun readByte(): Byte
 
@@ -122,6 +130,8 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when there are not enough data to read a short value.
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShort
    */
   public fun readShort(): Short
 
@@ -130,6 +140,8 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when there are not enough data to read an int value.
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readInt
    */
   public fun readInt(): Int
 
@@ -138,6 +150,8 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when there are not enough data to read a long value.
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLong
    */
   public fun readLong(): Long
 
@@ -149,6 +163,8 @@ public sealed interface Source : RawSource {
    * @throws EOFException when the source is exhausted before the requested number of bytes can be skipped.
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.skip
    */
   public fun skip(byteCount: Long)
 
@@ -163,6 +179,8 @@ public sealed interface Source : RawSource {
    * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
    * @throws IllegalArgumentException when `startIndex > endIndex`.
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readAtMostToByteArray
    */
   public fun readAtMostTo(sink: ByteArray, startIndex: Int = 0, endIndex: Int = sink.size): Int
 
@@ -175,6 +193,8 @@ public sealed interface Source : RawSource {
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws EOFException when the requested number of bytes cannot be read.
    * @throws IllegalStateException when the source or [sink] is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readSourceToSink
    */
   public fun readTo(sink: RawSink, byteCount: Long)
 
@@ -187,6 +207,8 @@ public sealed interface Source : RawSource {
    * @param sink the sink to which data will be written from this source.
    *
    * @throws IllegalStateException when the source or [sink] is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.transferTo
    */
   public fun transferTo(sink: RawSink): Long
 
@@ -197,6 +219,8 @@ public sealed interface Source : RawSource {
    * Peek could be used to lookahead and read the same data multiple times.
    *
    * @throws IllegalStateException when the source is closed.
+   *
+   * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.peekSample
    */
   public fun peek(): Source
 }
