@@ -35,7 +35,7 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun writeShort (S)V
 }
 
-public final class kotlinx/io/BufferExtJvmKt {
+public final class kotlinx/io/BuffersJvmKt {
 	public static final fun asByteChannel (Lkotlinx/io/Buffer;)Ljava/nio/channels/ByteChannel;
 	public static final fun copyTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJ)V
 	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJILjava/lang/Object;)V
@@ -47,11 +47,11 @@ public final class kotlinx/io/BufferExtJvmKt {
 	public static final fun write (Lkotlinx/io/Buffer;Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
 }
 
-public final class kotlinx/io/BufferExtKt {
+public final class kotlinx/io/BuffersKt {
 	public static final fun snapshot (Lkotlinx/io/Buffer;)Lkotlinx/io/bytestring/ByteString;
 }
 
-public final class kotlinx/io/ByteStringExtKt {
+public final class kotlinx/io/ByteStringsKt {
 	public static final fun indexOf (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;J)J
 	public static synthetic fun indexOf$default (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)J
 	public static final fun readByteString (Lkotlinx/io/Source;)Lkotlinx/io/bytestring/ByteString;
@@ -103,7 +103,7 @@ public abstract interface class kotlinx/io/Sink : kotlinx/io/RawSink {
 	public abstract fun writeShort (S)V
 }
 
-public final class kotlinx/io/SinkExtJvmKt {
+public final class kotlinx/io/SinksJvmKt {
 	public static final fun asByteChannel (Lkotlinx/io/Sink;)Ljava/nio/channels/WritableByteChannel;
 	public static final fun asOutputStream (Lkotlinx/io/Sink;)Ljava/io/OutputStream;
 	public static final fun write (Lkotlinx/io/Sink;Ljava/nio/ByteBuffer;)I
@@ -111,7 +111,7 @@ public final class kotlinx/io/SinkExtJvmKt {
 	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;IIILjava/lang/Object;)V
 }
 
-public final class kotlinx/io/SinkExtKt {
+public final class kotlinx/io/SinksKt {
 	public static final fun writeDecimalLong (Lkotlinx/io/Sink;J)V
 	public static final fun writeHexadecimalUnsignedLong (Lkotlinx/io/Sink;J)V
 	public static final fun writeIntLe (Lkotlinx/io/Sink;I)V
@@ -144,7 +144,7 @@ public abstract interface class kotlinx/io/Source : kotlinx/io/RawSource {
 	public abstract fun transferTo (Lkotlinx/io/RawSink;)J
 }
 
-public final class kotlinx/io/SourceExtJvmKt {
+public final class kotlinx/io/SourcesJvmKt {
 	public static final fun asByteChannel (Lkotlinx/io/Source;)Ljava/nio/channels/ReadableByteChannel;
 	public static final fun asInputStream (Lkotlinx/io/Source;)Ljava/io/InputStream;
 	public static final fun readAtMostTo (Lkotlinx/io/Source;Ljava/nio/ByteBuffer;)I
@@ -152,7 +152,7 @@ public final class kotlinx/io/SourceExtJvmKt {
 	public static final fun readString (Lkotlinx/io/Source;Ljava/nio/charset/Charset;)Ljava/lang/String;
 }
 
-public final class kotlinx/io/SourceExtKt {
+public final class kotlinx/io/SourcesKt {
 	public static final fun indexOf (Lkotlinx/io/Source;BJJ)J
 	public static synthetic fun indexOf$default (Lkotlinx/io/Source;BJJILjava/lang/Object;)J
 	public static final fun readByteArray (Lkotlinx/io/Source;)[B
