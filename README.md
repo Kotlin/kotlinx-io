@@ -32,21 +32,21 @@ There are two `kotlinx-io` modules:
 ### Gradle
 
 Make sure that you have `mavenCentral()` in the list of repositories:
-```
+```kotlin
 repositories {
     mavenCentral()
 }
 ```
 
 Add the library to dependencies:
-```
+```kotlin
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.2.0")
 }
 ```
 
 In multiplatform projects, add a dependency to the `commonMain` source set dependencies:
-```
+```kotlin
 kotlin {
     sourceSets {
         commonMain {
