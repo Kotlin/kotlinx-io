@@ -1,0 +1,196 @@
+public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
+	public fun <init> ()V
+	public final fun clear ()V
+	public fun close ()V
+	public final fun copy ()Lkotlinx/io/Buffer;
+	public final fun copyTo (Lkotlinx/io/Buffer;JJ)V
+	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Lkotlinx/io/Buffer;JJILjava/lang/Object;)V
+	public fun emit ()V
+	public fun exhausted ()Z
+	public fun flush ()V
+	public final fun get (J)B
+	public fun getBuffer ()Lkotlinx/io/Buffer;
+	public final fun getSize ()J
+	public fun hintEmit ()V
+	public fun peek ()Lkotlinx/io/Source;
+	public fun readAtMostTo (Lkotlinx/io/Buffer;J)J
+	public fun readAtMostTo ([BII)I
+	public fun readByte ()B
+	public fun readInt ()I
+	public fun readLong ()J
+	public fun readShort ()S
+	public fun readTo (Lkotlinx/io/RawSink;J)V
+	public fun request (J)Z
+	public fun require (J)V
+	public fun skip (J)V
+	public fun toString ()Ljava/lang/String;
+	public fun transferFrom (Lkotlinx/io/RawSource;)J
+	public fun transferTo (Lkotlinx/io/RawSink;)J
+	public fun write (Lkotlinx/io/Buffer;J)V
+	public fun write (Lkotlinx/io/RawSource;J)V
+	public fun write ([BII)V
+	public fun writeByte (B)V
+	public fun writeInt (I)V
+	public fun writeLong (J)V
+	public fun writeShort (S)V
+}
+
+public final class kotlinx/io/BuffersJvmKt {
+	public static final fun asByteChannel (Lkotlinx/io/Buffer;)Ljava/nio/channels/ByteChannel;
+	public static final fun copyTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJ)V
+	public static synthetic fun copyTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJILjava/lang/Object;)V
+	public static final fun readAtMostTo (Lkotlinx/io/Buffer;Ljava/nio/ByteBuffer;)I
+	public static final fun readTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;J)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JILjava/lang/Object;)V
+	public static final fun transferFrom (Lkotlinx/io/Buffer;Ljava/io/InputStream;)Lkotlinx/io/Buffer;
+	public static final fun transferFrom (Lkotlinx/io/Buffer;Ljava/nio/ByteBuffer;)Lkotlinx/io/Buffer;
+	public static final fun write (Lkotlinx/io/Buffer;Ljava/io/InputStream;J)Lkotlinx/io/Buffer;
+}
+
+public final class kotlinx/io/BuffersKt {
+	public static final fun snapshot (Lkotlinx/io/Buffer;)Lkotlinx/io/bytestring/ByteString;
+}
+
+public final class kotlinx/io/ByteStringsKt {
+	public static final fun indexOf (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;J)J
+	public static synthetic fun indexOf$default (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)J
+	public static final fun readByteString (Lkotlinx/io/Source;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun readByteString (Lkotlinx/io/Source;I)Lkotlinx/io/bytestring/ByteString;
+	public static final fun write (Lkotlinx/io/Sink;Lkotlinx/io/bytestring/ByteString;II)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)V
+}
+
+public final class kotlinx/io/CoreKt {
+	public static final fun buffered (Lkotlinx/io/RawSink;)Lkotlinx/io/Sink;
+	public static final fun buffered (Lkotlinx/io/RawSource;)Lkotlinx/io/Source;
+	public static final fun discardingSink ()Lkotlinx/io/RawSink;
+}
+
+public abstract interface annotation class kotlinx/io/DelicateIoApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class kotlinx/io/InternalIoApi : java/lang/annotation/Annotation {
+}
+
+public final class kotlinx/io/JvmCoreKt {
+	public static final fun asSink (Ljava/io/OutputStream;)Lkotlinx/io/RawSink;
+	public static final fun asSource (Ljava/io/InputStream;)Lkotlinx/io/RawSource;
+}
+
+public abstract interface class kotlinx/io/RawSink : java/io/Flushable, java/lang/AutoCloseable {
+	public abstract fun close ()V
+	public abstract fun flush ()V
+	public abstract fun write (Lkotlinx/io/Buffer;J)V
+}
+
+public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
+	public abstract fun close ()V
+	public abstract fun readAtMostTo (Lkotlinx/io/Buffer;J)J
+}
+
+public abstract interface class kotlinx/io/Sink : kotlinx/io/RawSink {
+	public abstract fun emit ()V
+	public abstract fun flush ()V
+	public abstract fun getBuffer ()Lkotlinx/io/Buffer;
+	public abstract fun hintEmit ()V
+	public abstract fun transferFrom (Lkotlinx/io/RawSource;)J
+	public abstract fun write (Lkotlinx/io/RawSource;J)V
+	public abstract fun write ([BII)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;[BIIILjava/lang/Object;)V
+	public abstract fun writeByte (B)V
+	public abstract fun writeInt (I)V
+	public abstract fun writeLong (J)V
+	public abstract fun writeShort (S)V
+}
+
+public final class kotlinx/io/SinksJvmKt {
+	public static final fun asByteChannel (Lkotlinx/io/Sink;)Ljava/nio/channels/WritableByteChannel;
+	public static final fun asOutputStream (Lkotlinx/io/Sink;)Ljava/io/OutputStream;
+	public static final fun write (Lkotlinx/io/Sink;Ljava/nio/ByteBuffer;)I
+	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;II)V
+	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;Ljava/nio/charset/Charset;IIILjava/lang/Object;)V
+}
+
+public final class kotlinx/io/SinksKt {
+	public static final fun writeDecimalLong (Lkotlinx/io/Sink;J)V
+	public static final fun writeHexadecimalUnsignedLong (Lkotlinx/io/Sink;J)V
+	public static final fun writeIntLe (Lkotlinx/io/Sink;I)V
+	public static final fun writeLongLe (Lkotlinx/io/Sink;J)V
+	public static final fun writeShortLe (Lkotlinx/io/Sink;S)V
+	public static final fun writeToInternalBuffer (Lkotlinx/io/Sink;Lkotlin/jvm/functions/Function1;)V
+	public static final fun writeUByte-EK-6454 (Lkotlinx/io/Sink;B)V
+	public static final fun writeUInt-Qn1smSk (Lkotlinx/io/Sink;I)V
+	public static final fun writeUIntLe-Qn1smSk (Lkotlinx/io/Sink;I)V
+	public static final fun writeULong-2TYgG_w (Lkotlinx/io/Sink;J)V
+	public static final fun writeULongLe-2TYgG_w (Lkotlinx/io/Sink;J)V
+	public static final fun writeUShort-i8woANY (Lkotlinx/io/Sink;S)V
+	public static final fun writeUShortLe-i8woANY (Lkotlinx/io/Sink;S)V
+}
+
+public abstract interface class kotlinx/io/Source : kotlinx/io/RawSource {
+	public abstract fun exhausted ()Z
+	public abstract fun getBuffer ()Lkotlinx/io/Buffer;
+	public abstract fun peek ()Lkotlinx/io/Source;
+	public abstract fun readAtMostTo ([BII)I
+	public static synthetic fun readAtMostTo$default (Lkotlinx/io/Source;[BIIILjava/lang/Object;)I
+	public abstract fun readByte ()B
+	public abstract fun readInt ()I
+	public abstract fun readLong ()J
+	public abstract fun readShort ()S
+	public abstract fun readTo (Lkotlinx/io/RawSink;J)V
+	public abstract fun request (J)Z
+	public abstract fun require (J)V
+	public abstract fun skip (J)V
+	public abstract fun transferTo (Lkotlinx/io/RawSink;)J
+}
+
+public final class kotlinx/io/SourcesJvmKt {
+	public static final fun asByteChannel (Lkotlinx/io/Source;)Ljava/nio/channels/ReadableByteChannel;
+	public static final fun asInputStream (Lkotlinx/io/Source;)Ljava/io/InputStream;
+	public static final fun readAtMostTo (Lkotlinx/io/Source;Ljava/nio/ByteBuffer;)I
+	public static final fun readString (Lkotlinx/io/Source;JLjava/nio/charset/Charset;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Source;Ljava/nio/charset/Charset;)Ljava/lang/String;
+}
+
+public final class kotlinx/io/SourcesKt {
+	public static final fun indexOf (Lkotlinx/io/Source;BJJ)J
+	public static synthetic fun indexOf$default (Lkotlinx/io/Source;BJJILjava/lang/Object;)J
+	public static final fun readByteArray (Lkotlinx/io/Source;)[B
+	public static final fun readByteArray (Lkotlinx/io/Source;I)[B
+	public static final fun readDecimalLong (Lkotlinx/io/Source;)J
+	public static final fun readHexadecimalUnsignedLong (Lkotlinx/io/Source;)J
+	public static final fun readIntLe (Lkotlinx/io/Source;)I
+	public static final fun readLongLe (Lkotlinx/io/Source;)J
+	public static final fun readShortLe (Lkotlinx/io/Source;)S
+	public static final fun readTo (Lkotlinx/io/Source;[BII)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Source;[BIIILjava/lang/Object;)V
+	public static final fun readUByte (Lkotlinx/io/Source;)B
+	public static final fun readUInt (Lkotlinx/io/Source;)I
+	public static final fun readUIntLe (Lkotlinx/io/Source;)I
+	public static final fun readULong (Lkotlinx/io/Source;)J
+	public static final fun readULongLe (Lkotlinx/io/Source;)J
+	public static final fun readUShort (Lkotlinx/io/Source;)S
+	public static final fun readUShortLe (Lkotlinx/io/Source;)S
+	public static final fun startsWith (Lkotlinx/io/Source;B)Z
+}
+
+public final class kotlinx/io/Utf8Kt {
+	public static final fun readLine (Lkotlinx/io/Source;)Ljava/lang/String;
+	public static final fun readLineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
+	public static synthetic fun readLineStrict$default (Lkotlinx/io/Source;JILjava/lang/Object;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Buffer;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Source;)Ljava/lang/String;
+	public static final fun readString (Lkotlinx/io/Source;J)Ljava/lang/String;
+	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;II)V
+	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
+}
+
+public final class kotlinx/io/files/Path {
+}
+
+public final class kotlinx/io/files/PathsKt {
+	public static final fun Path (Ljava/lang/String;)Lkotlinx/io/files/Path;
+	public static final fun sink (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
+	public static final fun source (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
+}
+
