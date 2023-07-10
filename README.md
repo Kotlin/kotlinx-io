@@ -51,7 +51,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-io:0.2.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.2.0")
             }
         }
     }
