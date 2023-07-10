@@ -42,7 +42,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":kotlinx-io-bytestring"))
+                api(project(":kotlinx-io-bytestring"))
             }
         }
         val commonTest by getting {

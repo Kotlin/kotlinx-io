@@ -38,11 +38,10 @@ repositories {
 }
 ```
 
-Add libraries to dependencies:
+Add the library to dependencies:
 ```kotlin
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.2.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-io-bytestring:0.2.0")
 }
 ```
 
@@ -53,7 +52,6 @@ kotlin {
         commonMain {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.2.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-io-bytestring:0.2.0")
             }
         }
     }
@@ -62,16 +60,11 @@ kotlin {
 
 ### Maven
 
-Add libraries to dependencies:
+Add the library to dependencies:
 ```xml
 <dependency>
     <groupId>org.jetbrains.kotlinx</groupId>
     <artifactId>kotlinx-io-core-jvm</artifactId>
-    <version>0.2.0</version>
-</dependency>
-<dependency>
-    <groupId>org.jetbrains.kotlinx</groupId>
-    <artifactId>kotlinx-io-bytestring-jvm</artifactId>
     <version>0.2.0</version>
 </dependency>
 ```
