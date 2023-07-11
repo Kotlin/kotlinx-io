@@ -20,13 +20,12 @@ so do familiarize yourself with the following guidelines.
         * Use imports with '*'.
     * [Build the project](#building) to make sure it all works and passes the tests.
 * If you fix a bug:
-    * Write the test the reproduces the bug.
+    * Write the test that reproduces the bug.
     * Fixes without tests are accepted only in exceptional circumstances if it can be shown that writing the
       corresponding test is too hard or otherwise impractical.
     * Follow the style of writing tests that is used in this project:
       name test functions as `testXxx`. Don't use backticks in test names.
-* Comment on the existing issue if you want to work on it. Ensure that the issue not only describes a problem,
-    but also describes a solution that had received a positive feedback. Propose a solution if there isn't any.
+* Comment on the existing issue if you want to work on it. Ensure that the issue not only describes a problem, but also describes a solution that has received positive feedback. Propose a solution if none has been suggested.
 
 ## Building
 
