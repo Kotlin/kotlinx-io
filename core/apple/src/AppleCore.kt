@@ -7,6 +7,7 @@ package kotlinx.io
 
 import kotlinx.cinterop.*
 import platform.Foundation.NSInputStream
+import platform.Foundation.NSStreamStatusNotOpen
 import platform.darwin.UInt8Var
 
 /**
@@ -22,20 +23,20 @@ private open class NSInputStreamSource(
     private val input: NSInputStream,
 ) : RawSource {
 
-    init {
-        input.open()
-    }
-
     @OptIn(UnsafeNumber::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        if (input.streamStatus == NSStreamStatusNotOpen) input.open()
+
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
+
         val tail = sink.writableSegment(1)
         val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit)
         val bytesRead = tail.data.usePinned {
             val bytes = it.addressOf(tail.limit).reinterpret<UInt8Var>()
             input.read(bytes, maxToCopy.convert()).toLong()
         }
+
         if (bytesRead < 0) throw IOException(input.streamError?.localizedDescription)
         if (bytesRead == 0L) {
             if (tail.pos == tail.limit) {
