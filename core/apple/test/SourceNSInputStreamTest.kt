@@ -7,6 +7,9 @@ package kotlinx.io
 
 import kotlinx.cinterop.*
 import platform.Foundation.NSInputStream
+import platform.Foundation.NSStreamStatusClosed
+import platform.Foundation.NSStreamStatusNotOpen
+import platform.Foundation.NSStreamStatusOpen
 import platform.darwin.NSUIntegerVar
 import platform.darwin.UInt8Var
 import kotlin.test.*
@@ -28,10 +31,14 @@ class SourceNSInputStreamTest {
     }
 
     private fun testInputStream(nsis: NSInputStream) {
-        nsis.open()
         val byteArray = ByteArray(4)
         byteArray.usePinned {
             val cPtr = it.addressOf(0).reinterpret<UInt8Var>()
+
+            assertEquals(NSStreamStatusNotOpen, nsis.streamStatus)
+            assertEquals(-1, nsis.read(cPtr, 4U))
+            nsis.open()
+            assertEquals(NSStreamStatusOpen, nsis.streamStatus)
 
             byteArray.fill(-5)
             assertEquals(3, nsis.read(cPtr, 4U))
@@ -80,6 +87,7 @@ class SourceNSInputStreamTest {
         nsis.open()
         nsis.close()
         assertTrue(source.closed)
+        assertEquals(NSStreamStatusClosed, nsis.streamStatus)
 
         val byteArray = ByteArray(4)
         byteArray.usePinned {

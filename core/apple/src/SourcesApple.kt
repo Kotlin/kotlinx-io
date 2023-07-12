@@ -30,23 +30,38 @@ private class SourceNSInputStream(
         }
     }
 
+    private var status = NSStreamStatusNotOpen
     private var error: NSError? = null
+        set(value) {
+            status = NSStreamStatusError
+            field = value
+        }
+
     private var pinnedBuffer: Pinned<ByteArray>? = null
 
-    override fun streamError(): NSError? = error
+    override fun streamStatus() = if (isClosed()) NSStreamStatusClosed else status
+
+    override fun streamError() = error
 
     override fun open() {
-        // no-op
+        if (status == NSStreamStatusNotOpen) {
+            status = NSStreamStatusOpen
+        }
     }
 
     override fun read(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
         try {
             if (isClosed()) throw IOException("Underlying source is closed.")
+            if (status != NSStreamStatusOpen) return -1
+            status = NSStreamStatusReading
             if (source.exhausted()) {
+                status = NSStreamStatusAtEnd
                 return 0
             }
             val toRead = minOf(maxLength.toInt(), source.buffer.size).toInt()
-            return source.buffer.readNative(buffer, toRead).convert()
+            val read = source.buffer.readNative(buffer, toRead).convert<NSInteger>()
+            status = NSStreamStatusOpen
+            return read
         } catch (e: Exception) {
             error = e.toNSError()
             return -1
@@ -71,6 +86,7 @@ private class SourceNSInputStream(
     override fun hasBytesAvailable() = !source.exhausted()
 
     override fun close() {
+        status = NSStreamStatusClosed
         pinnedBuffer?.unpin()
         pinnedBuffer = null
         source.close()
