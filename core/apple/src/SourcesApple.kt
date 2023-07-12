@@ -23,7 +23,7 @@ private class SourceNSInputStream(
     private val source: Source,
 ) : NSInputStream(NSData()) {
 
-    val isClosed: () -> Boolean = when (source) {
+    private val isClosed: () -> Boolean = when (source) {
         is RealSource -> source::closed
         is Buffer -> {
             { false }
