@@ -126,7 +126,7 @@ public fun Source.asInputStream(): InputStream {
 
         override fun close() = this@asInputStream.close()
 
-        override fun toString() = "${this@asInputStream}.inputStream()"
+        override fun toString() = "${this@asInputStream}.asInputStream()"
     }
 }
 

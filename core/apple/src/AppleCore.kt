@@ -52,5 +52,5 @@ private open class NSInputStreamSource(
 
     override fun close() = input.close()
 
-    override fun toString() = "source($input)"
+    override fun toString() = "RawSource($input)"
 }

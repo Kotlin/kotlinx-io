@@ -104,7 +104,7 @@ private open class InputStreamSource(
 
     override fun close() = input.close()
 
-    override fun toString() = "source($input)"
+    override fun toString() = "RawSource($input)"
 }
 
 /**
