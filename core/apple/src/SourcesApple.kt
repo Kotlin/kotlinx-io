@@ -68,7 +68,7 @@ private class SourceNSInputStream(
         return false
     }
 
-    override fun hasBytesAvailable(): Boolean = source.buffer.size > 0
+    override fun hasBytesAvailable() = source.buffer.size > 0
 
     override fun close() {
         pinnedBuffer?.unpin()
@@ -76,18 +76,7 @@ private class SourceNSInputStream(
         source.close()
     }
 
-    override fun description(): String = "$source.inputStream()"
-
-    private fun Exception.toNSError(): NSError {
-        return NSError(
-            "Kotlin",
-            0,
-            mapOf(
-                NSLocalizedDescriptionKey to message,
-                NSUnderlyingErrorKey to this,
-            ),
-        )
-    }
+    override fun description() = "$source.inputStream()"
 
     private fun Buffer.readNative(sink: CPointer<uint8_tVar>?, maxLength: Int): Int {
         val s = head ?: return 0
