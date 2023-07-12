@@ -37,7 +37,7 @@ private open class NSInputStreamSource(
             input.read(bytes, maxToCopy.convert()).toLong()
         }
 
-        if (bytesRead < 0) throw IOException(input.streamError?.localizedDescription)
+        if (bytesRead < 0L) throw IOException(input.streamError?.localizedDescription ?: "Unknown error")
         if (bytesRead == 0L) {
             if (tail.pos == tail.limit) {
                 // We allocated a tail segment, but didn't end up needing it. Recycle!

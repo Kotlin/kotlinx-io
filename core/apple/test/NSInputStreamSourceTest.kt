@@ -15,8 +15,8 @@ private const val SEGMENT_SIZE = Segment.SIZE
 class NSInputStreamSourceTest {
     @Test
     fun nsInputStreamSource() {
-        val nsis = NSInputStream(byteArrayOf(0x61).toNSData())
-        val source = nsis.asSource()
+        val input = NSInputStream(byteArrayOf(0x61).toNSData())
+        val source = input.asSource()
         val buffer = Buffer()
         source.readAtMostTo(buffer, 1)
         assertEquals("a", buffer.readString())
@@ -24,12 +24,12 @@ class NSInputStreamSourceTest {
 
     @Test
     fun sourceFromInputStream() {
-        val nsis = NSInputStream(
+        val input = NSInputStream(
             ("a" + "b".repeat(SEGMENT_SIZE * 2) + "c").encodeToByteArray().toNSData(),
         )
 
         // Source: ab...bc
-        val source: RawSource = nsis.asSource()
+        val source: RawSource = input.asSource()
         val sink = Buffer()
 
         // Source: b...bc. Sink: abb.
@@ -50,8 +50,8 @@ class NSInputStreamSourceTest {
 
     @Test
     fun sourceFromInputStreamWithSegmentSize() {
-        val nsis = NSInputStream(ByteArray(SEGMENT_SIZE).toNSData())
-        val source = nsis.asSource()
+        val input = NSInputStream(ByteArray(SEGMENT_SIZE).toNSData())
+        val source = input.asSource()
         val sink = Buffer()
 
         assertEquals(SEGMENT_SIZE.toLong(), source.readAtMostTo(sink, SEGMENT_SIZE.toLong()))
