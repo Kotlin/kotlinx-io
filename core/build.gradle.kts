@@ -53,8 +53,10 @@ kotlin {
         val jvmMain by getting
         val jvmTest by getting
 
-        createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
-        createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
+        val nativeMain = createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
+        val nativeTest = createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
+        createSourceSet("appleMain", parent = nativeMain, children = appleTargets)
+        createSourceSet("appleTest", parent = nativeTest, children = appleTargets)
     }
 
     explicitApi()

@@ -32,7 +32,7 @@ fun KotlinMultiplatformExtension.configureNativePlatforms() {
     mingwX64()
 }
 
-private val appleTargets = listOf(
+val appleTargets = listOf(
     "iosArm64",
     "iosX64",
     "iosSimulatorArm64",
@@ -64,7 +64,7 @@ private val androidTargets = listOf(
     "androidNativeX86"
 )
 
-val nativeTargets = appleTargets + linuxTargets + mingwTargets + androidTargets
+val nativeTargets = linuxTargets + mingwTargets + androidTargets
 
 /**
  * Creates a source set for a directory that isn't already a built-in platform. Use this to create
