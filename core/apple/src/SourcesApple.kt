@@ -10,7 +10,6 @@ import platform.Foundation.*
 import platform.darwin.NSInteger
 import platform.darwin.NSUInteger
 import platform.darwin.NSUIntegerVar
-import platform.posix.memcpy
 import platform.posix.uint8_tVar
 import kotlin.concurrent.Volatile
 
@@ -62,16 +61,22 @@ private class SourceNSInputStream(
     }
 
     override fun read(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
+        pinnedBuffer?.unpin()
+        pinnedBuffer = null
+
         try {
             if (isClosed()) throw IOException("Underlying source is closed.")
-            if (status != NSStreamStatusOpen) return -1
-            status = NSStreamStatusReading
+            if (status != NSStreamStatusOpen && status != NSStreamStatusAtEnd) {
+                return -1
+            }
             if (source.exhausted()) {
                 status = NSStreamStatusAtEnd
                 return 0
             }
+
+            status = NSStreamStatusReading
             val toRead = minOf(maxLength.toInt(), source.buffer.size).toInt()
-            val read = source.buffer.readNative(buffer, toRead).convert<NSInteger>()
+            val read = source.buffer.readAtMostTo(buffer, toRead).convert<NSInteger>()
             status = NSStreamStatusOpen
             return read
         } catch (e: Exception) {
@@ -93,24 +98,6 @@ private class SourceNSInputStream(
             }
         }
         return false
-    }
-
-    private fun Buffer.readNative(sink: CPointer<uint8_tVar>?, maxLength: Int): Int {
-        val s = head ?: return 0
-        val toCopy = minOf(maxLength, s.limit - s.pos)
-        s.data.usePinned {
-            memcpy(sink, it.addressOf(s.pos), toCopy.convert())
-        }
-
-        s.pos += toCopy
-        size -= toCopy.toLong()
-
-        if (s.pos == s.limit) {
-            head = s.pop()
-            SegmentPool.recycle(s)
-        }
-
-        return toCopy
     }
 
     override fun hasBytesAvailable() = !source.exhausted()

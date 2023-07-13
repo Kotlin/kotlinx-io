@@ -1,15 +1,16 @@
 package kotlinx.io
 
 import kotlinx.cinterop.IntVar
-import kotlinx.cinterop.pointed
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.get
 import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.value
 import platform.Foundation.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class NSOutputStreamSinkTest {
     @Test
+    @OptIn(UnsafeNumber::class)
     fun nsOutputStreamSink() {
         val out = NSOutputStream.outputStreamToMemory()
         val sink = out.asSink()
@@ -18,8 +19,9 @@ class NSOutputStreamSinkTest {
         }
         sink.write(buffer, 1L)
         val data = out.propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as NSData
-        val byte = data.bytes?.reinterpret<IntVar>()?.pointed?.value
-        assertEquals(0x61, byte)
+        assertEquals(1U, data.length)
+        val bytes = data.bytes!!.reinterpret<IntVar>()
+        assertEquals(0x61, bytes[0])
     }
 
     @Test

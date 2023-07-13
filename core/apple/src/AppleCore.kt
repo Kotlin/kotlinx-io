@@ -8,6 +8,7 @@ package kotlinx.io
 import kotlinx.cinterop.*
 import platform.Foundation.NSInputStream
 import platform.Foundation.NSOutputStream
+import platform.Foundation.NSStreamStatusClosed
 import platform.Foundation.NSStreamStatusNotOpen
 import platform.darwin.UInt8Var
 
@@ -26,6 +27,7 @@ private open class OutputStreamSink(
 
     @OptIn(UnsafeNumber::class)
     override fun write(source: Buffer, byteCount: Long) {
+        if (out.streamStatus == NSStreamStatusClosed) throw IOException("Stream Closed")
         if (out.streamStatus == NSStreamStatusNotOpen) out.open()
 
         checkOffsetAndCount(source.size, 0, byteCount)
@@ -76,6 +78,7 @@ private open class NSInputStreamSource(
 
     @OptIn(UnsafeNumber::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        if (input.streamStatus == NSStreamStatusClosed) throw IOException("Stream Closed")
         if (input.streamStatus == NSStreamStatusNotOpen) input.open()
 
         if (byteCount == 0L) return 0L

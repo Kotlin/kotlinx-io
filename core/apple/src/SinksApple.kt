@@ -63,7 +63,7 @@ private class SinkNSOutputStream(
             if (status != NSStreamStatusOpen) return -1
             status = NSStreamStatusWriting
             sink.writeToInternalBuffer {
-                it.writeNative(buffer, maxLength.toInt())
+                it.write(buffer, maxLength.toInt())
             }
             status = NSStreamStatusOpen
             maxLength.convert()
@@ -73,23 +73,7 @@ private class SinkNSOutputStream(
         }
     }
 
-    private fun Buffer.writeNative(source: CPointer<uint8_tVar>?, maxLength: Int) {
-        var currentOffset = 0
-        while (currentOffset < maxLength) {
-            val tail = writableSegment(1)
-
-            val toCopy = minOf(maxLength - currentOffset, Segment.SIZE - tail.limit)
-            tail.data.usePinned {
-                memcpy(it.addressOf(tail.pos), source + currentOffset, toCopy.convert())
-            }
-
-            currentOffset += toCopy
-            tail.limit += toCopy
-        }
-        size += maxLength
-    }
-
-    override fun hasSpaceAvailable() = true
+    override fun hasSpaceAvailable() = !isClosed()
 
     @OptIn(InternalIoApi::class)
     override fun propertyForKey(key: NSStreamPropertyKey): Any? = when (key) {

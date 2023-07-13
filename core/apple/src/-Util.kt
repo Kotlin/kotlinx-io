@@ -1,3 +1,5 @@
+@file:OptIn(UnsafeNumber::class)
+
 package kotlinx.io
 
 import kotlinx.cinterop.UnsafeNumber
@@ -6,7 +8,6 @@ import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
 import platform.Foundation.*
 
-@OptIn(UnsafeNumber::class)
 internal fun Exception.toNSError() = NSError(
     domain = "Kotlin",
     code = 0,
@@ -18,7 +19,6 @@ internal fun Exception.toNSError() = NSError(
 
 internal fun ByteArray.toNSData() = if (isNotEmpty()) {
     usePinned {
-        @OptIn(UnsafeNumber::class)
         NSData.create(bytes = it.addressOf(0), length = size.convert())
     }
 } else {
