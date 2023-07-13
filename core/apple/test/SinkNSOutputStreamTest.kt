@@ -33,6 +33,10 @@ class SinkNSOutputStreamTest {
 
             assertEquals(3, out.write(cPtr, 3U))
             assertEquals("[97, 98, 99]", sink.buffer.readByteArray().contentToString())
+
+            assertEquals(3, out.write(cPtr, 3U))
+            val data = out.propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as NSData
+            assertEquals("abc", data.toByteArray().decodeToString())
         }
     }
 

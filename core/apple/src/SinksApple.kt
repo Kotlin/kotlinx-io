@@ -48,6 +48,11 @@ private class SinkNSOutputStream(
         }
     }
 
+    override fun close() {
+        status = NSStreamStatusClosed
+        sink.close()
+    }
+
     @OptIn(DelicateIoApi::class)
     override fun write(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
         return try {
@@ -65,15 +70,6 @@ private class SinkNSOutputStream(
         }
     }
 
-    override fun hasSpaceAvailable() = true
-
-    override fun close() {
-        status = NSStreamStatusClosed
-        sink.close()
-    }
-
-    override fun description() = "$sink.asNSOutputStream()"
-
     private fun Buffer.writeNative(source: CPointer<uint8_tVar>?, maxLength: Int) {
         var currentOffset = 0
         while (currentOffset < maxLength) {
@@ -89,4 +85,14 @@ private class SinkNSOutputStream(
         }
         size += maxLength
     }
+
+    override fun hasSpaceAvailable() = true
+
+    @OptIn(InternalIoApi::class)
+    override fun propertyForKey(key: NSStreamPropertyKey): Any? = when (key) {
+        NSStreamDataWrittenToMemoryStreamKey -> sink.buffer.readByteArray().toNSData()
+        else -> null
+    }
+
+    override fun description() = "$sink.asNSOutputStream()"
 }

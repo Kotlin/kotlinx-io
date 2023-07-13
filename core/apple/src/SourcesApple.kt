@@ -51,6 +51,13 @@ private class SourceNSInputStream(
         }
     }
 
+    override fun close() {
+        status = NSStreamStatusClosed
+        pinnedBuffer?.unpin()
+        pinnedBuffer = null
+        source.close()
+    }
+
     override fun read(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
         try {
             if (isClosed()) throw IOException("Underlying source is closed.")
@@ -85,17 +92,6 @@ private class SourceNSInputStream(
         return false
     }
 
-    override fun hasBytesAvailable() = !source.exhausted()
-
-    override fun close() {
-        status = NSStreamStatusClosed
-        pinnedBuffer?.unpin()
-        pinnedBuffer = null
-        source.close()
-    }
-
-    override fun description() = "$source.asNSInputStream()"
-
     private fun Buffer.readNative(sink: CPointer<uint8_tVar>?, maxLength: Int): Int {
         val s = head ?: return 0
         val toCopy = minOf(maxLength, s.limit - s.pos)
@@ -113,4 +109,8 @@ private class SourceNSInputStream(
 
         return toCopy
     }
+
+    override fun hasBytesAvailable() = !source.exhausted()
+
+    override fun description() = "$source.asNSInputStream()"
 }

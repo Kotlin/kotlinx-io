@@ -1,9 +1,10 @@
 package kotlinx.io
 
 import kotlinx.cinterop.UnsafeNumber
-import platform.Foundation.NSError
-import platform.Foundation.NSLocalizedDescriptionKey
-import platform.Foundation.NSUnderlyingErrorKey
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.usePinned
+import platform.Foundation.*
 
 @OptIn(UnsafeNumber::class)
 internal fun Exception.toNSError() = NSError(
@@ -14,3 +15,12 @@ internal fun Exception.toNSError() = NSError(
         NSUnderlyingErrorKey to this
     )
 )
+
+internal fun ByteArray.toNSData() = if (isNotEmpty()) {
+    usePinned {
+        @OptIn(UnsafeNumber::class)
+        NSData.create(bytes = it.addressOf(0), length = size.convert())
+    }
+} else {
+    NSData.data()
+}
