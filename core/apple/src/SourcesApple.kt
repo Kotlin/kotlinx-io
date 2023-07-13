@@ -112,5 +112,7 @@ private class SourceNSInputStream(
 
     override fun hasBytesAvailable() = !source.exhausted()
 
+    override fun propertyForKey(key: NSStreamPropertyKey): Any? = null
+
     override fun description() = "$source.asNSInputStream()"
 }
