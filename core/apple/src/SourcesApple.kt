@@ -12,6 +12,7 @@ import platform.darwin.NSUInteger
 import platform.darwin.NSUIntegerVar
 import platform.posix.memcpy
 import platform.posix.uint8_tVar
+import kotlin.concurrent.Volatile
 
 /**
  * Returns an input stream that reads from this source. Closing the stream will also close this source.
@@ -32,6 +33,8 @@ private class SourceNSInputStream(
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
+    @Volatile
     private var status = NSStreamStatusNotOpen
     private var error: NSError? = null
         set(value) {

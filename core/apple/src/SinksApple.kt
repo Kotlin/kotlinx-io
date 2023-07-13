@@ -11,6 +11,7 @@ import platform.darwin.NSInteger
 import platform.darwin.NSUInteger
 import platform.posix.memcpy
 import platform.posix.uint8_tVar
+import kotlin.concurrent.Volatile
 
 /**
  * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
@@ -31,6 +32,8 @@ private class SinkNSOutputStream(
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
+    @Volatile
     private var status = NSStreamStatusNotOpen
     private var error: NSError? = null
         set(value) {
