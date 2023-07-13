@@ -15,6 +15,8 @@ import platform.posix.uint8_tVar
 
 /**
  * Returns an input stream that reads from this source. Closing the stream will also close this source.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoSamplesApple.asStream
  */
 public fun Source.asNSInputStream(): NSInputStream = SourceNSInputStream(this)
 

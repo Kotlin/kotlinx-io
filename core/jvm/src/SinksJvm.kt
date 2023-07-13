@@ -64,12 +64,12 @@ public fun Sink.asOutputStream(): OutputStream {
 
     return object : OutputStream() {
         override fun write(byte: Int) {
-            if (isClosed()) throw IOException("Underlying sink is closed")
+            if (isClosed()) throw IOException("Underlying sink is closed.")
             writeToInternalBuffer { it.writeByte(byte.toByte()) }
         }
 
         override fun write(data: ByteArray, offset: Int, byteCount: Int) {
-            if (isClosed()) throw IOException("Underlying sink is closed")
+            if (isClosed()) throw IOException("Underlying sink is closed.")
             writeToInternalBuffer { it.write(data, offset, offset + byteCount) }
         }
 
@@ -82,7 +82,7 @@ public fun Sink.asOutputStream(): OutputStream {
 
         override fun close() = this@asOutputStream.close()
 
-        override fun toString() = "${this@asOutputStream}.outputStream()"
+        override fun toString() = "${this@asOutputStream}.asOutputStream()"
     }
 }
 

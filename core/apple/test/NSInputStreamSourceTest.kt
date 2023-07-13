@@ -18,7 +18,7 @@ class NSInputStreamSourceTest {
         val input = NSInputStream(byteArrayOf(0x61).toNSData())
         val source = input.asSource()
         val buffer = Buffer()
-        source.readAtMostTo(buffer, 1)
+        source.readAtMostTo(buffer, 1L)
         assertEquals("a", buffer.readString())
     }
 

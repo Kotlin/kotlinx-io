@@ -1,12 +1,10 @@
 package kotlinx.io
 
-import kotlinx.cinterop.UnsafeNumber
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.convert
-import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.*
 import platform.Foundation.NSData
 import platform.Foundation.create
 import platform.Foundation.data
+import platform.posix.memcpy
 
 fun ByteArray.toNSData() = if (isNotEmpty()) {
     usePinned {
@@ -15,4 +13,11 @@ fun ByteArray.toNSData() = if (isNotEmpty()) {
     }
 } else {
     NSData.data()
+}
+
+@OptIn(UnsafeNumber::class)
+fun NSData.toByteArray() = ByteArray(length.toInt()).apply {
+    if (isNotEmpty()) {
+        memcpy(refTo(0), bytes, length)
+    }
 }

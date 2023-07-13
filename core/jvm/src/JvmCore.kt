@@ -62,7 +62,7 @@ private open class OutputStreamSink(
 
     override fun close() = out.close()
 
-    override fun toString() = "sink($out)"
+    override fun toString() = "RawSink($out)"
 }
 
 /**

@@ -24,7 +24,7 @@ class SourceNSInputStreamTest {
     }
 
     @Test
-    fun realBufferedSourceInputStream() {
+    fun realSourceInputStream() {
         val source = Buffer()
         source.writeString("abc")
         testInputStream(RealSource(source).asNSInputStream())
