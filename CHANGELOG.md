@@ -19,3 +19,6 @@ Initial release of the new `kotlinx-io` version implemented based on `Okio` libr
 - A trimmed-down and reworked version of the core Okio API
   ([#132](https://github.com/Kotlin/kotlinx-io/issues/132), [#137](https://github.com/Kotlin/kotlinx-io/issues/137))
 - ByteString implementation ([#133](https://github.com/Kotlin/kotlinx-io/issues/133))
+
+---
+Changelog for previous versions may be found in [CHANGELOG-0.1.X.md](CHANGELOG-0.1.X.md)
