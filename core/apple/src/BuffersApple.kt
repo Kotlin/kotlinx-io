@@ -3,6 +3,11 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.buildByteString
+import platform.Foundation.*
+import platform.darwin.NSUInteger
+import platform.darwin.NSUIntegerMax
 import platform.posix.memcpy
 import platform.posix.uint8_tVar
 
@@ -38,4 +43,25 @@ internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>?, maxLength: Int): I
     }
 
     return toCopy
+}
+
+internal fun Buffer.snapshotAsNSData(): NSData {
+    if (size == 0L) return NSData.data()
+
+    check(size.toULong() <= NSUIntegerMax) { "Buffer is too long ($size) to be converted into NSData." }
+
+    val data = NSMutableData.create(length = size.convert())!!
+    var curr = head
+    var index: NSUInteger = 0U
+    do {
+        check(curr != null) { "Current segment is null" }
+        val pos = curr.pos
+        val length: NSUInteger = (curr.limit - pos).convert()
+        curr.data.usePinned {
+            data.replaceBytesInRange(NSMakeRange(index, length), it.addressOf(pos))
+        }
+        curr = curr.next
+        index += length
+    } while (curr !== head)
+    return data
 }

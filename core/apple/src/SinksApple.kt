@@ -77,7 +77,7 @@ private class SinkNSOutputStream(
 
     @OptIn(InternalIoApi::class)
     override fun propertyForKey(key: NSStreamPropertyKey): Any? = when (key) {
-        NSStreamDataWrittenToMemoryStreamKey -> sink.buffer.readByteArray().toNSData()
+        NSStreamDataWrittenToMemoryStreamKey -> sink.buffer.snapshotAsNSData()
         else -> null
     }
 
