@@ -1,6 +1,6 @@
 package kotlinx.io
 
-import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.get
 import kotlinx.cinterop.reinterpret
@@ -20,7 +20,7 @@ class NSOutputStreamSinkTest {
         sink.write(buffer, 1L)
         val data = out.propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as NSData
         assertEquals(1U, data.length)
-        val bytes = data.bytes!!.reinterpret<IntVar>()
+        val bytes = data.bytes!!.reinterpret<ByteVar>()
         assertEquals(0x61, bytes[0])
     }
 
