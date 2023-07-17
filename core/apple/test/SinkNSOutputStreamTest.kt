@@ -2,6 +2,7 @@ package kotlinx.io
 
 import kotlinx.cinterop.*
 import platform.Foundation.*
+import platform.darwin.NSUInteger
 import platform.darwin.UInt8Var
 import kotlin.test.*
 
@@ -9,34 +10,39 @@ import kotlin.test.*
 class SinkNSOutputStreamTest {
     @Test
     fun bufferOutputStream() {
-        val sink = Buffer()
-        testOutputStream(sink)
+        testOutputStream(Buffer(), "abc")
+        testOutputStream(Buffer(), "a" + "b".repeat(Segment.SIZE * 2) + "c")
     }
 
     @Test
     fun realSinkOutputStream() {
-        val sink = RealSink(Buffer())
-        testOutputStream(sink)
+        testOutputStream(RealSink(Buffer()), "abc")
+        testOutputStream(RealSink(Buffer()), "a" + "b".repeat(Segment.SIZE * 2) + "c")
     }
 
     @OptIn(InternalIoApi::class)
-    private fun testOutputStream(sink: Sink) {
+    private fun testOutputStream(sink: Sink, input: String) {
         val out = sink.asNSOutputStream()
-        val byteArray = "abc".encodeToByteArray()
+        val byteArray = input.encodeToByteArray()
+        val size: NSUInteger = input.length.convert()
         byteArray.usePinned {
             val cPtr = it.addressOf(0).reinterpret<UInt8Var>()
 
             assertEquals(NSStreamStatusNotOpen, out.streamStatus)
-            assertEquals(-1, out.write(cPtr, 3U))
+            assertEquals(-1, out.write(cPtr, size))
             out.open()
             assertEquals(NSStreamStatusOpen, out.streamStatus)
 
-            assertEquals(3, out.write(cPtr, 3U))
-            assertEquals("[97, 98, 99]", sink.buffer.readByteArray().contentToString())
-
-            assertEquals(3, out.write(cPtr, 3U))
-            val data = out.propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as NSData
-            assertEquals("abc", data.toByteArray().decodeToString())
+            assertEquals(size.convert(), out.write(cPtr, size))
+            sink.flush()
+            when (sink) {
+                is Buffer -> {
+                    val data = out.propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as NSData
+                    assertContentEquals(byteArray, data.toByteArray())
+                    assertContentEquals(byteArray, sink.buffer.readByteArray())
+                }
+                is RealSink -> assertContentEquals(byteArray, (sink.sink as Buffer).readByteArray())
+            }
         }
     }
 

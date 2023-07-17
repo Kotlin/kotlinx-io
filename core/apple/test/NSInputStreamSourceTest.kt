@@ -10,8 +10,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
-private const val SEGMENT_SIZE = Segment.SIZE
-
 class NSInputStreamSourceTest {
     @Test
     fun nsInputStreamSource() {
@@ -25,7 +23,7 @@ class NSInputStreamSourceTest {
     @Test
     fun sourceFromInputStream() {
         val input = NSInputStream(
-            ("a" + "b".repeat(SEGMENT_SIZE * 2) + "c").encodeToByteArray().toNSData(),
+            ("a" + "b".repeat(Segment.SIZE * 2) + "c").encodeToByteArray().toNSData(),
         )
 
         // Source: ab...bc
@@ -37,12 +35,12 @@ class NSInputStreamSourceTest {
         assertEquals("abb", sink.readString(3))
 
         // Source: b...bc. Sink: b...b.
-        assertEquals(SEGMENT_SIZE.toLong(), source.readAtMostTo(sink, 20000))
-        assertEquals("b".repeat(SEGMENT_SIZE), sink.readString())
+        assertEquals(Segment.SIZE.toLong(), source.readAtMostTo(sink, 20000))
+        assertEquals("b".repeat(Segment.SIZE), sink.readString())
 
         // Source: b...bc. Sink: b...bc.
-        assertEquals((SEGMENT_SIZE - 1).toLong(), source.readAtMostTo(sink, 20000))
-        assertEquals("b".repeat(SEGMENT_SIZE - 2) + "c", sink.readString())
+        assertEquals((Segment.SIZE - 1).toLong(), source.readAtMostTo(sink, 20000))
+        assertEquals("b".repeat(Segment.SIZE - 2) + "c", sink.readString())
 
         // Source and sink are empty.
         assertEquals(-1, source.readAtMostTo(sink, 1))
@@ -50,12 +48,12 @@ class NSInputStreamSourceTest {
 
     @Test
     fun sourceFromInputStreamWithSegmentSize() {
-        val input = NSInputStream(ByteArray(SEGMENT_SIZE).toNSData())
+        val input = NSInputStream(ByteArray(Segment.SIZE).toNSData())
         val source = input.asSource()
         val sink = Buffer()
 
-        assertEquals(SEGMENT_SIZE.toLong(), source.readAtMostTo(sink, SEGMENT_SIZE.toLong()))
-        assertEquals(-1, source.readAtMostTo(sink, SEGMENT_SIZE.toLong()))
+        assertEquals(Segment.SIZE.toLong(), source.readAtMostTo(sink, Segment.SIZE.toLong()))
+        assertEquals(-1, source.readAtMostTo(sink, Segment.SIZE.toLong()))
 
         assertNoEmptySegments(sink)
     }
