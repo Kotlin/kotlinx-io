@@ -63,7 +63,6 @@ subprojects {
 subprojects {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_1_8.toString()
             allWarningsAsErrors = true
             freeCompilerArgs += "-Xjvm-default=all"
         }

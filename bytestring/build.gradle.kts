@@ -9,6 +9,9 @@ plugins {
 
 kotlin {
     jvm {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
+        }
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -41,8 +44,6 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val jvmMain by getting
-        val jvmTest by getting
 
         createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
         createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
