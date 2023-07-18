@@ -7,15 +7,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
-    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
-    id("org.jetbrains.dokka") version "1.8.20"
+    alias(libs.plugins.bcv)
+    alias(libs.plugins.dokka)
     `maven-publish`
     signing
 }
 
 buildscript {
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.21")
+        classpath(libs.kotlin.gradle.plugin)
     }
 
     repositories {

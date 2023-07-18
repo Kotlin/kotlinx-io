@@ -4,13 +4,12 @@
  */
 
 import kotlinx.benchmark.gradle.JvmBenchmarkTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
     kotlin("multiplatform")
-    id("org.jetbrains.kotlinx.benchmark") version "0.4.8"
+    alias(libs.plugins.kotlinx.benchmark.plugin)
 }
 
 kotlin {
@@ -25,7 +24,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":kotlinx-io-core"))
-                implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.8")
+                implementation(libs.kotlinx.benchmark.runtime)
             }
         }
 
@@ -43,7 +42,7 @@ benchmark {
     targets {
         register("jvm") {
             this as JvmBenchmarkTarget
-            jmhVersion = "1.36"
+            jmhVersion = libs.versions.jmh.get()
         }
         register("native")
     }
