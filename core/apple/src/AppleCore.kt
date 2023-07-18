@@ -12,7 +12,7 @@ import platform.Foundation.NSInputStream
 import platform.Foundation.NSOutputStream
 import platform.Foundation.NSStreamStatusClosed
 import platform.Foundation.NSStreamStatusNotOpen
-import platform.darwin.UInt8Var
+import platform.posix.uint8_tVar
 
 /**
  * Returns [RawSink] that writes to an output stream.
@@ -40,7 +40,7 @@ private open class OutputStreamSink(
             val head = source.head!!
             val toCopy = minOf(remaining, head.limit - head.pos).toInt()
             val bytesWritten = head.data.usePinned {
-                val bytes = it.addressOf(head.pos).reinterpret<UInt8Var>()
+                val bytes = it.addressOf(head.pos).reinterpret<uint8_tVar>()
                 out.write(bytes, toCopy.convert()).toLong()
             }
 
@@ -93,7 +93,7 @@ private open class NSInputStreamSource(
         val tail = sink.writableSegment(1)
         val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit)
         val bytesRead = tail.data.usePinned {
-            val bytes = it.addressOf(tail.limit).reinterpret<UInt8Var>()
+            val bytes = it.addressOf(tail.limit).reinterpret<uint8_tVar>()
             input.read(bytes, maxToCopy.convert()).toLong()
         }
 

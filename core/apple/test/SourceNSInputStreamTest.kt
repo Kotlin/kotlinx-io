@@ -11,7 +11,7 @@ import platform.Foundation.NSStreamStatusClosed
 import platform.Foundation.NSStreamStatusNotOpen
 import platform.Foundation.NSStreamStatusOpen
 import platform.darwin.NSUIntegerVar
-import platform.darwin.UInt8Var
+import platform.posix.uint8_tVar
 import kotlin.test.*
 
 @OptIn(UnsafeNumber::class)
@@ -33,7 +33,7 @@ class SourceNSInputStreamTest {
     private fun testInputStream(input: NSInputStream) {
         val byteArray = ByteArray(4)
         byteArray.usePinned {
-            val cPtr = it.addressOf(0).reinterpret<UInt8Var>()
+            val cPtr = it.addressOf(0).reinterpret<uint8_tVar>()
 
             assertEquals(NSStreamStatusNotOpen, input.streamStatus)
             assertEquals(-1, input.read(cPtr, 4U))
@@ -60,7 +60,7 @@ class SourceNSInputStreamTest {
         assertTrue(input.hasBytesAvailable)
 
         memScoped {
-            val bufferVar = alloc<CPointerVar<UInt8Var>>()
+            val bufferVar = alloc<CPointerVar<uint8_tVar>>()
             val lengthVar = alloc<NSUIntegerVar>()
             assertTrue(input.getBuffer(bufferVar.ptr, lengthVar.ptr))
 
@@ -91,7 +91,7 @@ class SourceNSInputStreamTest {
 
         val byteArray = ByteArray(4)
         byteArray.usePinned {
-            val cPtr = it.addressOf(0).reinterpret<UInt8Var>()
+            val cPtr = it.addressOf(0).reinterpret<uint8_tVar>()
 
             byteArray.fill(-5)
             assertEquals(-1, input.read(cPtr, 4U))

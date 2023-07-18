@@ -8,7 +8,7 @@ package kotlinx.io
 import kotlinx.cinterop.*
 import platform.Foundation.*
 import platform.darwin.NSUInteger
-import platform.darwin.UInt8Var
+import platform.posix.uint8_tVar
 import kotlin.test.*
 
 @OptIn(UnsafeNumber::class)
@@ -31,7 +31,7 @@ class SinkNSOutputStreamTest {
         val byteArray = input.encodeToByteArray()
         val size: NSUInteger = input.length.convert()
         byteArray.usePinned {
-            val cPtr = it.addressOf(0).reinterpret<UInt8Var>()
+            val cPtr = it.addressOf(0).reinterpret<uint8_tVar>()
 
             assertEquals(NSStreamStatusNotOpen, out.streamStatus)
             assertEquals(-1, out.write(cPtr, size))
@@ -66,7 +66,7 @@ class SinkNSOutputStreamTest {
 
         val byteArray = ByteArray(4)
         byteArray.usePinned {
-            val cPtr = it.addressOf(0).reinterpret<UInt8Var>()
+            val cPtr = it.addressOf(0).reinterpret<uint8_tVar>()
 
             assertEquals(-1, out.write(cPtr, 4U))
             assertNotNull(out.streamError)
