@@ -9,7 +9,6 @@ import kotlinx.cinterop.*
 import platform.Foundation.*
 import platform.darwin.NSInteger
 import platform.darwin.NSUInteger
-import platform.posix.memcpy
 import platform.posix.uint8_tVar
 import kotlin.concurrent.Volatile
 
