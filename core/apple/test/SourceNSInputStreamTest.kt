@@ -51,6 +51,49 @@ class SourceNSInputStreamTest {
     }
 
     @Test
+    fun bufferInputStreamLongData() {
+        val source = Buffer()
+        source.writeString("a" + "b".repeat(Segment.SIZE * 2) + "c")
+        testInputStreamLongData(source.asNSInputStream())
+    }
+
+    @Test
+    fun realSourceInputStreamLongData() {
+        val source = Buffer()
+        source.writeString("a" + "b".repeat(Segment.SIZE * 2) + "c")
+        testInputStreamLongData(RealSource(source).asNSInputStream())
+    }
+
+    private fun testInputStreamLongData(input: NSInputStream) {
+        val lengthPlusOne = Segment.SIZE * 2 + 3
+        val byteArray = ByteArray(lengthPlusOne)
+        byteArray.usePinned {
+            val cPtr = it.addressOf(0).reinterpret<uint8_tVar>()
+
+            assertEquals(NSStreamStatusNotOpen, input.streamStatus)
+            assertEquals(-1, input.read(cPtr, lengthPlusOne.convert()))
+            input.open()
+            assertEquals(NSStreamStatusOpen, input.streamStatus)
+
+            byteArray.fill(-5)
+            assertEquals(Segment.SIZE.convert(), input.read(cPtr, lengthPlusOne.convert()))
+            assertEquals("[97${", 98".repeat(Segment.SIZE - 1)}${", -5".repeat(Segment.SIZE + 3)}]", byteArray.contentToString())
+
+            byteArray.fill(-6)
+            assertEquals(Segment.SIZE.convert(), input.read(cPtr, lengthPlusOne.convert()))
+            assertEquals("[98${", 98".repeat(Segment.SIZE - 1)}${", -6".repeat(Segment.SIZE + 3)}]", byteArray.contentToString())
+
+            byteArray.fill(-7)
+            assertEquals(2, input.read(cPtr, lengthPlusOne.convert()))
+            assertEquals("[98, 99${", -7".repeat(Segment.SIZE * 2 + 1)}]", byteArray.contentToString())
+
+            byteArray.fill(-8)
+            assertEquals(0, input.read(cPtr, lengthPlusOne.convert()))
+            assertEquals("[-8${", -8".repeat(lengthPlusOne - 1)}]", byteArray.contentToString())
+        }
+    }
+
+    @Test
     fun nsInputStreamGetBuffer() {
         val source = Buffer()
         source.writeString("abc")
