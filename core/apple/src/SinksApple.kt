@@ -58,18 +58,20 @@ private class SinkNSOutputStream(
 
     @OptIn(DelicateIoApi::class)
     override fun write(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
-        return try {
+        try {
             if (isClosed()) throw IOException("Underlying sink is closed.")
             if (status != NSStreamStatusOpen) return -1
+            if (buffer == null) return -1
+
             status = NSStreamStatusWriting
             sink.writeToInternalBuffer {
                 it.write(buffer, maxLength.toInt())
             }
             status = NSStreamStatusOpen
-            maxLength.convert()
+            return maxLength.convert()
         } catch (e: Exception) {
             error = e.toNSError()
-            -1
+            return -1
         }
     }
 

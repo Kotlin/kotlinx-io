@@ -15,7 +15,9 @@ import platform.darwin.NSUIntegerMax
 import platform.posix.memcpy
 import platform.posix.uint8_tVar
 
-internal fun Buffer.write(source: CPointer<uint8_tVar>?, maxLength: Int) {
+internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
+    require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
+
     var currentOffset = 0
     while (currentOffset < maxLength) {
         val tail = writableSegment(1)
@@ -31,7 +33,9 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>?, maxLength: Int) {
     size += maxLength
 }
 
-internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>?, maxLength: Int): Int {
+internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): Int {
+    require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
+
     val s = head ?: return 0
     val toCopy = minOf(maxLength, s.limit - s.pos)
     s.data.usePinned {

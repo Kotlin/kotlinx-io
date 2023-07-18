@@ -73,6 +73,7 @@ private class SourceNSInputStream(
                 status = NSStreamStatusAtEnd
                 return 0
             }
+            if (buffer == null) return -1
 
             status = NSStreamStatusReading
             val toRead = minOf(maxLength.toInt(), source.buffer.size).toInt()
