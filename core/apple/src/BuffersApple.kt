@@ -2,14 +2,16 @@
  * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
+
 @file:OptIn(UnsafeNumber::class)
 
 package kotlinx.io
 
 import kotlinx.cinterop.*
 import platform.Foundation.*
-import platform.darwin.NSUInteger
+import platform.darwin.ByteVar
 import platform.darwin.NSUIntegerMax
+import platform.posix.malloc
 import platform.posix.memcpy
 import platform.posix.uint8_tVar
 
@@ -56,18 +58,18 @@ internal fun Buffer.snapshotAsNSData(): NSData {
 
     check(size.toULong() <= NSUIntegerMax) { "Buffer is too long ($size) to be converted into NSData." }
 
-    val data = NSMutableData.create(length = size.convert())!!
+    val bytes = malloc(size.convert())!!.reinterpret<uint8_tVar>()
     var curr = head
-    var index: NSUInteger = 0U
+    var index = 0
     do {
         check(curr != null) { "Current segment is null" }
         val pos = curr.pos
-        val length: NSUInteger = (curr.limit - pos).convert()
+        val length = curr.limit - pos
         curr.data.usePinned {
-            data.replaceBytesInRange(NSMakeRange(index, length), it.addressOf(pos))
+            memcpy(bytes + index, it.addressOf(pos), length.convert())
         }
         curr = curr.next
         index += length
     } while (curr !== head)
-    return data
+    return NSData.create(bytesNoCopy = bytes, length = size.convert())
 }
