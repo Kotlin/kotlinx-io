@@ -3,6 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
+@file:OptIn(UnsafeNumber::class)
+
 package kotlinx.io
 
 import kotlinx.cinterop.*
@@ -25,10 +27,12 @@ private open class OutputStreamSink(
     private val out: NSOutputStream,
 ) : RawSink {
 
-    @OptIn(UnsafeNumber::class)
+    init {
+        if (out.streamStatus == NSStreamStatusNotOpen) out.open()
+    }
+
     override fun write(source: Buffer, byteCount: Long) {
         if (out.streamStatus == NSStreamStatusClosed) throw IOException("Stream Closed")
-        if (out.streamStatus == NSStreamStatusNotOpen) out.open()
 
         checkOffsetAndCount(source.size, 0, byteCount)
         var remaining = byteCount
@@ -76,10 +80,12 @@ private open class NSInputStreamSource(
     private val input: NSInputStream,
 ) : RawSource {
 
-    @OptIn(UnsafeNumber::class)
+    init {
+        if (input.streamStatus == NSStreamStatusNotOpen) input.open()
+    }
+
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         if (input.streamStatus == NSStreamStatusClosed) throw IOException("Stream Closed")
-        if (input.streamStatus == NSStreamStatusNotOpen) input.open()
 
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
