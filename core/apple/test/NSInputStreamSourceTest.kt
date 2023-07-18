@@ -8,7 +8,7 @@ package kotlinx.io
 import platform.Foundation.NSInputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.fail
+import kotlin.test.assertFailsWith
 
 class NSInputStreamSourceTest {
     @Test
@@ -61,11 +61,6 @@ class NSInputStreamSourceTest {
     @Test
     fun sourceFromInputStreamBounds() {
         val source = NSInputStream(ByteArray(100).toNSData()).asSource()
-        try {
-            source.readAtMostTo(Buffer(), -1)
-            fail()
-        } catch (expected: IllegalArgumentException) {
-            // expected
-        }
+        assertFailsWith<IllegalArgumentException> { source.readAtMostTo(Buffer(), -1) }
     }
 }
