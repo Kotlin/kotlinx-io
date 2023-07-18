@@ -7,8 +7,6 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
-import kotlinx.io.bytestring.ByteString
-import kotlinx.io.bytestring.buildByteString
 import platform.Foundation.*
 import platform.darwin.NSUInteger
 import platform.darwin.NSUIntegerMax
