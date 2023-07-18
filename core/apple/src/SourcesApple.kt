@@ -86,9 +86,11 @@ private class SourceNSInputStream(
     }
 
     override fun getBuffer(buffer: CPointer<CPointerVar<uint8_tVar>>?, length: CPointer<NSUIntegerVar>?): Boolean {
+        pinnedBuffer?.unpin()
+        pinnedBuffer = null
+
         if (source.buffer.size > 0) {
             source.buffer.head?.let { s ->
-                pinnedBuffer?.unpin()
                 s.data.pin().let {
                     pinnedBuffer = it
                     buffer?.pointed?.value = it.addressOf(s.pos).reinterpret()

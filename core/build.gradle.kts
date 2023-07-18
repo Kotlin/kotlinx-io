@@ -89,7 +89,8 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             "common/test/samples/moduleDescriptionSample.kt",
             "common/test/samples/samples.kt",
             "common/test/samples/byteStringSample.kt",
-            "jvm/test/samples/samplesJvm.kt"
+            "jvm/test/samples/samplesJvm.kt",
+            "apple/test/samples/samplesApple.kt"
         )
     }
 }
