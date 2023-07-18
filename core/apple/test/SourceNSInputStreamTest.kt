@@ -60,15 +60,15 @@ class SourceNSInputStreamTest {
         assertTrue(input.hasBytesAvailable)
 
         memScoped {
-            val bufferPtr = alloc<CPointerVar<UInt8Var>>()
-            val lengthPtr = alloc<NSUIntegerVar>()
-            assertTrue(input.getBuffer(bufferPtr.ptr, lengthPtr.ptr))
+            val bufferVar = alloc<CPointerVar<UInt8Var>>()
+            val lengthVar = alloc<NSUIntegerVar>()
+            assertTrue(input.getBuffer(bufferVar.ptr, lengthVar.ptr))
 
-            val length = lengthPtr.value
+            val length = lengthVar.value
             assertNotNull(length)
             assertEquals(3.convert(), length)
 
-            val buffer = bufferPtr.value
+            val buffer = bufferVar.value
             assertNotNull(buffer)
             assertEquals('a'.code.convert(), buffer[0])
             assertEquals('b'.code.convert(), buffer[1])
