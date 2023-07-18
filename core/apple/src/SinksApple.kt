@@ -41,7 +41,7 @@ private class SinkNSOutputStream(
             field = value
         }
 
-    override fun streamStatus() = status
+    override fun streamStatus() = if (isClosed()) NSStreamStatusClosed else status
 
     override fun streamError() = error
 
