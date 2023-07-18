@@ -39,6 +39,7 @@ private class SourceNSInputStream(
         set(value) {
             status = NSStreamStatusError
             field = value
+            source.close()
         }
 
     private var pinnedBuffer: Pinned<ByteArray>? = null
@@ -54,9 +55,11 @@ private class SourceNSInputStream(
     }
 
     override fun close() {
-        status = NSStreamStatusClosed
         pinnedBuffer?.unpin()
         pinnedBuffer = null
+
+        if (status == NSStreamStatusError) return
+        status = NSStreamStatusClosed
         source.close()
     }
 
