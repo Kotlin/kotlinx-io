@@ -5,6 +5,7 @@
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -34,6 +35,13 @@ kotlin {
                 filter.setExcludePatterns("*SmokeFileTest*")
             })
         }
+    }
+
+    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+    wasm {
+        nodejs()
+        browser()
+        binaries.executable()
     }
 
     sourceSets {
@@ -163,3 +171,7 @@ fun androidTargets() = listOf(
     "androidNativeX64",
     "androidNativeX86"
 )
+
+rootProject.the<NodeJsRootExtension>().apply {
+    nodeVersion = "20.4.0"
+}
