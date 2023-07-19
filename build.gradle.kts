@@ -7,10 +7,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
+    id("publish-conventions") apply false
+
     alias(libs.plugins.bcv)
     alias(libs.plugins.dokka)
-
-    id("publish-conventions") apply false
 }
 
 allprojects {
@@ -18,13 +18,6 @@ allprojects {
     repositories {
         mavenCentral()
     }
-}
-
-subprojects {
-    if (name.contains("benchmark")) {
-        return@subprojects
-    }
-    apply(plugin = "publish-conventions")
 }
 
 subprojects {

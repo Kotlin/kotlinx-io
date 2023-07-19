@@ -12,63 +12,65 @@ plugins {
     kotlin("multiplatform")
 }
 
-fun KotlinMultiplatformExtension.configureNativePlatforms() {
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    tvosX64()
-    tvosArm64()
-    tvosSimulatorArm64()
-    watchosArm32()
-    watchosArm64()
-    watchosX64()
-    watchosSimulatorArm64()
-    watchosDeviceArm64()
-    linuxArm64()
-    androidNativeArm32()
-    androidNativeArm64()
-    androidNativeX64()
-    androidNativeX86()
-    // Required to generate tests tasks: https://youtrack.jetbrains.com/issue/KT-26547
-    linuxX64()
-    macosX64()
-    macosArm64()
-    mingwX64()
+kotlin {
+
+    val versionCatalog: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+    jvmToolchain {
+        val javaVersion = versionCatalog.findVersion("java").getOrNull()?.requiredVersion
+            ?: throw GradleException("Version 'java' is not specified in the version catalog")
+        languageVersion.set(JavaLanguageVersion.of(javaVersion))
+    }
+
+    jvm {
+        withJava()
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
+        }
+    }
+
+    js(IR) {
+        browser {
+            testTask {
+                filter.setExcludePatterns("*SmokeFileTest*")
+            }
+        }
+    }
+
+    sourceSets {
+        commonTest {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+    }
+
+    explicitApi()
+    sourceSets.configureEach {
+        configureSourceSet()
+    }
+
+    configureNativePlatforms()
+
+    val nativeTargets = nativeTargets()
+    sourceSets {
+        createSourceSet("nativeMain", parent = commonMain.get(), children = nativeTargets)
+        createSourceSet("nativeTest", parent = commonTest.get(), children = nativeTargets)
+    }
 }
 
-private val appleTargets = listOf(
-    "iosArm64",
-    "iosX64",
-    "iosSimulatorArm64",
-    "macosX64",
-    "macosArm64",
-    "tvosArm64",
-    "tvosX64",
-    "tvosSimulatorArm64",
-    "watchosArm32",
-    "watchosArm64",
-    "watchosX64",
-    "watchosSimulatorArm64",
-    "watchosDeviceArm64"
-)
-
-private val mingwTargets = listOf(
-    "mingwX64"
-)
-
-private val linuxTargets = listOf(
-    "linuxX64",
-    "linuxArm64"
-)
-
-private val androidTargets = listOf(
-    "androidNativeArm32",
-    "androidNativeArm64",
-    "androidNativeX64",
-    "androidNativeX86"
-)
-
-val nativeTargets = appleTargets + linuxTargets + mingwTargets + androidTargets
+fun KotlinSourceSet.configureSourceSet() {
+    val srcDir = if (name.endsWith("Main")) "src" else "test"
+    val platform = name.dropLast(4)
+    kotlin.srcDir("$platform/$srcDir")
+    if (name == "jvmMain") {
+        resources.srcDir("$platform/resources")
+    } else if (name == "jvmTest") {
+        resources.srcDir("$platform/test-resources")
+    }
+    languageSettings {
+        progressiveMode = true
+    }
+}
 
 /**
  * Creates a source set for a directory that isn't already a built-in platform. Use this to create
@@ -99,65 +101,62 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.createSourceSet(
     return result
 }
 
-val versionCatalog: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
-
-kotlin {
-    jvmToolchain {
-        val javaVersion = versionCatalog.findVersion("java").getOrNull()?.requiredVersion
-            ?: throw GradleException("Version 'java' is not specified in the version catalog")
-        languageVersion.set(JavaLanguageVersion.of(javaVersion))
-    }
-
-    jvm {
-        withJava()
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
-
-    js(IR) {
-        browser {
-            testTask {
-                filter.setExcludePatterns("*SmokeFileTest*")
-            }
-        }
-    }
-
-
-    sourceSets {
-        named("commonTest") {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-    }
-
-    explicitApi()
-    sourceSets.configureEach {
-        configureSourceSet()
-    }
-
-    configureNativePlatforms()
-    sourceSets {
-        val commonMain by getting
-        val commonTest by getting
-
-        createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
-        createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
-    }
+fun KotlinMultiplatformExtension.configureNativePlatforms() {
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    tvosX64()
+    tvosArm64()
+    tvosSimulatorArm64()
+    watchosArm32()
+    watchosArm64()
+    watchosX64()
+    watchosSimulatorArm64()
+    watchosDeviceArm64()
+    linuxArm64()
+    androidNativeArm32()
+    androidNativeArm64()
+    androidNativeX64()
+    androidNativeX86()
+    // Required to generate tests tasks: https://youtrack.jetbrains.com/issue/KT-26547
+    linuxX64()
+    macosX64()
+    macosArm64()
+    mingwX64()
 }
 
-fun KotlinSourceSet.configureSourceSet() {
-    val srcDir = if (name.endsWith("Main")) "src" else "test"
-    val platform = name.dropLast(4)
-    kotlin.srcDir("$platform/$srcDir")
-    if (name == "jvmMain") {
-        resources.srcDir("$platform/resources")
-    } else if (name == "jvmTest") {
-        resources.srcDir("$platform/test-resources")
-    }
-    languageSettings {
-        progressiveMode = true
-    }
+fun nativeTargets(): List<String> {
+    return appleTargets() + linuxTargets() + mingwTargets() + androidTargets()
 }
 
+fun appleTargets() = listOf(
+    "iosArm64",
+    "iosX64",
+    "iosSimulatorArm64",
+    "macosX64",
+    "macosArm64",
+    "tvosArm64",
+    "tvosX64",
+    "tvosSimulatorArm64",
+    "watchosArm32",
+    "watchosArm64",
+    "watchosX64",
+    "watchosSimulatorArm64",
+    "watchosDeviceArm64"
+)
+
+fun mingwTargets() = listOf(
+    "mingwX64"
+)
+
+fun linuxTargets() = listOf(
+    "linuxX64",
+    "linuxArm64"
+)
+
+fun androidTargets() = listOf(
+    "androidNativeArm32",
+    "androidNativeArm64",
+    "androidNativeX64",
+    "androidNativeX86"
+)

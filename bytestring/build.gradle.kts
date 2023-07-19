@@ -2,6 +2,7 @@ import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 plugins {
     id("multiplatform-lib-conventions")
+    id("publish-conventions")
     alias(libs.plugins.kover)
     alias(libs.plugins.dokka)
 }

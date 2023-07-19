@@ -7,6 +7,7 @@ import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 plugins {
     id("multiplatform-lib-conventions")
+    id("publish-conventions")
     alias(libs.plugins.kover)
     alias(libs.plugins.dokka)
 }
@@ -30,7 +31,7 @@ kotlin {
     }
 
     sourceSets {
-        named("commonMain") {
+        commonMain {
             dependencies {
                 api(project(":kotlinx-io-bytestring"))
             }
