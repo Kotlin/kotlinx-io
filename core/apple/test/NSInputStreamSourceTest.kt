@@ -5,7 +5,10 @@
 
 package kotlinx.io
 
+import kotlinx.io.files.Path
+import kotlinx.io.files.sink
 import platform.Foundation.NSInputStream
+import platform.Foundation.NSURL
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -16,8 +19,27 @@ class NSInputStreamSourceTest {
         val input = NSInputStream(byteArrayOf(0x61).toNSData())
         val source = input.asSource()
         val buffer = Buffer()
-        source.readAtMostTo(buffer, 1L)
+        assertEquals(1, source.readAtMostTo(buffer, 1L))
         assertEquals("a", buffer.readString())
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun nsInputStreamSourceFromFile() {
+        val file = createTempFile()
+        try {
+            Path(file).sink().use {
+                it.writeString("example")
+            }
+
+            val input = NSInputStream(uRL = NSURL.fileURLWithPath(file))
+            val source = input.asSource()
+            val buffer = Buffer()
+            assertEquals(7, source.readAtMostTo(buffer, 10))
+            assertEquals("example", buffer.readString())
+        } finally {
+            deleteFile(file)
+        }
     }
 
     @Test
