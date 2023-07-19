@@ -3,8 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
+import Multiplatform_lib_conventions_gradle.IoMultiplatformExtension
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
     id("multiplatform-lib-conventions")
@@ -13,16 +13,6 @@ plugins {
 }
 
 kotlin {
-    jvm {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
-        }
-        withJava()
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
-
     js(IR) {
         nodejs {
             testTask {
@@ -33,7 +23,6 @@ kotlin {
         }
         browser {
             testTask {
-                filter.setExcludePatterns("*SmokeFileTest*")
                 useMocha {
                     timeout = "300s"
                 }
@@ -47,30 +36,6 @@ kotlin {
                 api(project(":kotlinx-io-bytestring"))
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-    }
-
-    explicitApi()
-    sourceSets.configureEach {
-        configureSourceSet()
-    }
-}
-
-fun KotlinSourceSet.configureSourceSet() {
-    val srcDir = if (name.endsWith("Main")) "src" else "test"
-    val platform = name.dropLast(4)
-    kotlin.srcDir("$platform/$srcDir")
-    if (name == "jvmMain") {
-        resources.srcDir("$platform/resources")
-    } else if (name == "jvmTest") {
-        resources.srcDir("$platform/test-resources")
-    }
-    languageSettings {
-        progressiveMode = true
     }
 }
 
@@ -87,4 +52,8 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             "jvm/test/samples/samplesJvm.kt"
         )
     }
+}
+
+extensions.configure<IoMultiplatformExtension> {
+    javaVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
 }

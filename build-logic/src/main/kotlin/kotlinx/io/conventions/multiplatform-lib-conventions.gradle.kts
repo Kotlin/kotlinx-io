@@ -12,6 +12,12 @@ plugins {
     kotlin("multiplatform")
 }
 
+interface IoMultiplatformExtension {
+    val javaVersion: Property<JavaLanguageVersion>
+}
+
+val extension = extensions.create<IoMultiplatformExtension>("ioMultiplatform")
+
 fun KotlinMultiplatformExtension.configureNativePlatforms() {
     iosX64()
     iosArm64()
@@ -100,6 +106,41 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.createSourceSet(
 }
 
 kotlin {
+    jvmToolchain {
+        // Version catalog cannot be accessed from convention plugin. Until this problem is solved we configure the toolchain by project extension
+        // see https://github.com/gradle/gradle/issues/17963
+        languageVersion.set(extension.javaVersion)
+    }
+
+    jvm {
+        withJava()
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
+        }
+    }
+
+    js(IR) {
+        browser {
+            testTask {
+                filter.setExcludePatterns("*SmokeFileTest*")
+            }
+        }
+    }
+
+
+    sourceSets {
+        named("commonTest") {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+    }
+
+    explicitApi()
+    sourceSets.configureEach {
+        configureSourceSet()
+    }
+
     configureNativePlatforms()
     sourceSets {
         val commonMain by getting
@@ -107,6 +148,20 @@ kotlin {
 
         createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
         createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
+    }
+}
+
+fun KotlinSourceSet.configureSourceSet() {
+    val srcDir = if (name.endsWith("Main")) "src" else "test"
+    val platform = name.dropLast(4)
+    kotlin.srcDir("$platform/$srcDir")
+    if (name == "jvmMain") {
+        resources.srcDir("$platform/resources")
+    } else if (name == "jvmTest") {
+        resources.srcDir("$platform/test-resources")
+    }
+    languageSettings {
+        progressiveMode = true
     }
 }
 
