@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
-    id("publish-conventions") apply false
+    id("kotlinx-io-publish") apply false
 
     alias(libs.plugins.bcv)
     alias(libs.plugins.dokka)

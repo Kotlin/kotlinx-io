@@ -6,8 +6,8 @@
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 plugins {
-    id("multiplatform-lib-conventions")
-    id("publish-conventions")
+    id("kotlinx-io-multiplatform")
+    id("kotlinx-io-publish")
     alias(libs.plugins.kover)
     alias(libs.plugins.dokka)
 }
