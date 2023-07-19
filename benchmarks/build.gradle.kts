@@ -13,7 +13,11 @@ plugins {
 }
 
 kotlin {
-    jvm()
+    jvm {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
+        }
+    }
     // TODO: consider supporting non-host native targets.
     if (HostManager.host === KonanTarget.MACOS_X64) macosX64("native")
     if (HostManager.host === KonanTarget.MACOS_ARM64) macosArm64("native")
@@ -28,11 +32,11 @@ kotlin {
             }
         }
 
-        val jvmMain by getting {
+        named("jvmMain") {
             dependsOn(commonMain.get())
         }
 
-        val nativeMain by getting {
+        named("nativeMain") {
             dependsOn(commonMain.get())
         }
     }

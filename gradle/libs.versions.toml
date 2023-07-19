@@ -1,5 +1,6 @@
 [versions]
 kotlin = "1.8.21"
+java = "8"
 dokka = "1.8.20"
 kover = "0.7.1"
 bcv = "0.13.2"
