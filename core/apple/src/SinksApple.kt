@@ -31,8 +31,6 @@ private class SinkNSOutputStream(
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    @Volatile
     private var status = NSStreamStatusNotOpen
     private var error: NSError? = null
         set(value) {
