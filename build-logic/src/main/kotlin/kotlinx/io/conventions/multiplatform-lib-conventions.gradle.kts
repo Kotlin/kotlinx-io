@@ -6,17 +6,11 @@
 import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-
+import kotlin.jvm.optionals.getOrNull
 
 plugins {
     kotlin("multiplatform")
 }
-
-interface IoMultiplatformExtension {
-    val javaVersion: Property<JavaLanguageVersion>
-}
-
-val extension = extensions.create<IoMultiplatformExtension>("ioMultiplatform")
 
 fun KotlinMultiplatformExtension.configureNativePlatforms() {
     iosX64()
@@ -105,11 +99,13 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.createSourceSet(
     return result
 }
 
+val versionCatalog: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
 kotlin {
     jvmToolchain {
-        // Version catalog cannot be accessed from convention plugin. Until this problem is solved we configure the toolchain by project extension
-        // see https://github.com/gradle/gradle/issues/17963
-        languageVersion.set(extension.javaVersion)
+        val javaVersion = versionCatalog.findVersion("java").getOrNull()?.requiredVersion
+            ?: throw GradleException("Version 'java' is not specified in the version catalog")
+        languageVersion.set(JavaLanguageVersion.of(javaVersion))
     }
 
     jvm {

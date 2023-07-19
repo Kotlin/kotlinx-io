@@ -1,4 +1,3 @@
-import Multiplatform_lib_conventions_gradle.IoMultiplatformExtension
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 plugins {
@@ -27,7 +26,6 @@ kotlin {
 }
 
 
-
 tasks.withType<DokkaTaskPartial>().configureEach {
     dokkaSourceSets.configureEach {
         includes.from("Module.md")
@@ -39,8 +37,4 @@ tasks.withType<DokkaTaskPartial>().configureEach {
 
         samples.from("common/test/samples/samples.kt")
     }
-}
-
-extensions.configure<IoMultiplatformExtension> {
-    javaVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
 }

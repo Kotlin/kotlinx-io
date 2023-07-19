@@ -3,7 +3,6 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-import Multiplatform_lib_conventions_gradle.IoMultiplatformExtension
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 plugins {
@@ -31,7 +30,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        named("commonMain") {
             dependencies {
                 api(project(":kotlinx-io-bytestring"))
             }
@@ -52,8 +51,4 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             "jvm/test/samples/samplesJvm.kt"
         )
     }
-}
-
-extensions.configure<IoMultiplatformExtension> {
-    javaVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
 }
