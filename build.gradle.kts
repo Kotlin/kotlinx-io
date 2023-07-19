@@ -7,56 +7,16 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
+    id("kotlinx-io-publish") apply false
+
     alias(libs.plugins.bcv)
     alias(libs.plugins.dokka)
-    `maven-publish`
-    signing
-}
-
-buildscript {
-    dependencies {
-        classpath(libs.kotlin.gradle.plugin)
-    }
-
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
 }
 
 allprojects {
     properties["DeployVersion"]?.let { version = it }
     repositories {
         mavenCentral()
-    }
-}
-
-apply(plugin = "maven-publish")
-apply(plugin = "signing")
-
-subprojects {
-    if (name.contains("benchmark")) {
-        return@subprojects
-    }
-
-    repositories {
-        mavenCentral()
-    }
-
-    apply(plugin = "maven-publish")
-    apply(plugin = "signing")
-
-    publishing {
-        repositories {
-            configureMavenPublication(project)
-        }
-
-        val javadocJar = project.configureEmptyJavadocArtifact()
-        publications.withType(MavenPublication::class).all {
-            pom.configureMavenCentralMetadata(project)
-            signPublicationIfKeyPresent(project, this)
-            artifact(javadocJar)
-        }
     }
 }
 

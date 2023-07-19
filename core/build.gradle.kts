@@ -4,25 +4,15 @@
  */
 
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-    kotlin("multiplatform")
+    id("kotlinx-io-multiplatform")
+    id("kotlinx-io-publish")
     alias(libs.plugins.kover)
     alias(libs.plugins.dokka)
 }
 
 kotlin {
-    jvm {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
-        }
-        withJava()
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
-
     js(IR) {
         nodejs {
             testTask {
@@ -33,7 +23,6 @@ kotlin {
         }
         browser {
             testTask {
-                filter.setExcludePatterns("*SmokeFileTest*")
                 useMocha {
                     timeout = "300s"
                 }
@@ -41,40 +30,12 @@ kotlin {
         }
     }
 
-    configureNativePlatforms()
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":kotlinx-io-bytestring"))
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-
-        createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
-        createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
-    }
-
-    explicitApi()
-    sourceSets.configureEach {
-        configureSourceSet()
-    }
-}
-
-fun KotlinSourceSet.configureSourceSet() {
-    val srcDir = if (name.endsWith("Main")) "src" else "test"
-    val platform = name.dropLast(4)
-    kotlin.srcDir("$platform/$srcDir")
-    if (name == "jvmMain") {
-        resources.srcDir("$platform/resources")
-    } else if (name == "jvmTest") {
-        resources.srcDir("$platform/test-resources")
-    }
-    languageSettings {
-        progressiveMode = true
     }
 }
 

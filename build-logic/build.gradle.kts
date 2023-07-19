@@ -4,13 +4,13 @@
  */
 
 plugins {
-  `kotlin-dsl`
+    `kotlin-dsl`
 }
 
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-  implementation(libs.kotlin.gradle.plugin)
+    implementation(libs.kotlin.gradle.plugin)
 }
