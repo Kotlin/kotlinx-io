@@ -11,7 +11,6 @@ import platform.darwin.NSInteger
 import platform.darwin.NSUInteger
 import platform.darwin.NSUIntegerVar
 import platform.posix.uint8_tVar
-import kotlin.concurrent.Volatile
 
 /**
  * Returns an input stream that reads from this source. Closing the stream will also close this source.
@@ -40,8 +39,6 @@ private class SourceNSInputStream(
             source.close()
         }
 
-    private var pinnedBuffer: Pinned<ByteArray>? = null
-
     override fun streamStatus() = if (isClosed()) NSStreamStatusClosed else status
 
     override fun streamError() = error
@@ -53,18 +50,12 @@ private class SourceNSInputStream(
     }
 
     override fun close() {
-        pinnedBuffer?.unpin()
-        pinnedBuffer = null
-
         if (status == NSStreamStatusError) return
         status = NSStreamStatusClosed
         source.close()
     }
 
     override fun read(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
-        pinnedBuffer?.unpin()
-        pinnedBuffer = null
-
         try {
             if (isClosed()) throw IOException("Underlying source is closed.")
             if (status != NSStreamStatusOpen && status != NSStreamStatusAtEnd) {
@@ -87,22 +78,7 @@ private class SourceNSInputStream(
         }
     }
 
-    override fun getBuffer(buffer: CPointer<CPointerVar<uint8_tVar>>?, length: CPointer<NSUIntegerVar>?): Boolean {
-        pinnedBuffer?.unpin()
-        pinnedBuffer = null
-
-        if (source.buffer.size > 0) {
-            source.buffer.head?.let { s ->
-                s.data.pin().let {
-                    pinnedBuffer = it
-                    buffer?.pointed?.value = it.addressOf(s.pos).reinterpret()
-                    length?.pointed?.value = (s.limit - s.pos).convert()
-                    return true
-                }
-            }
-        }
-        return false
-    }
+    override fun getBuffer(buffer: CPointer<CPointerVar<uint8_tVar>>?, length: CPointer<NSUIntegerVar>?) = false
 
     override fun hasBytesAvailable() = !source.exhausted()
 

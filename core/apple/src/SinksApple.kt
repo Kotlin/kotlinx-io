@@ -10,7 +10,6 @@ import platform.Foundation.*
 import platform.darwin.NSInteger
 import platform.darwin.NSUInteger
 import platform.posix.uint8_tVar
-import kotlin.concurrent.Volatile
 
 /**
  * Returns an output stream that writes to this sink. Closing the stream will also close this sink.

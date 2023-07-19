@@ -94,32 +94,6 @@ class SourceNSInputStreamTest {
     }
 
     @Test
-    fun nsInputStreamGetBuffer() {
-        val source = Buffer()
-        source.writeString("abc")
-
-        val input = source.asNSInputStream()
-        input.open()
-        assertTrue(input.hasBytesAvailable)
-
-        memScoped {
-            val bufferVar = alloc<CPointerVar<uint8_tVar>>()
-            val lengthVar = alloc<NSUIntegerVar>()
-            assertTrue(input.getBuffer(bufferVar.ptr, lengthVar.ptr))
-
-            val length = lengthVar.value
-            assertNotNull(length)
-            assertEquals(3.convert(), length)
-
-            val buffer = bufferVar.value
-            assertNotNull(buffer)
-            assertEquals('a'.code.convert(), buffer[0])
-            assertEquals('b'.code.convert(), buffer[1])
-            assertEquals('c'.code.convert(), buffer[2])
-        }
-    }
-
-    @Test
     fun nsInputStreamClose() {
         val buffer = Buffer()
         buffer.writeString("abc")
