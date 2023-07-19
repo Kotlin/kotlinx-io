@@ -7,7 +7,7 @@ import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-    kotlin("multiplatform")
+    id("multiplatform-lib-conventions")
     alias(libs.plugins.kover)
     alias(libs.plugins.dokka)
 }
@@ -41,7 +41,6 @@ kotlin {
         }
     }
 
-    configureNativePlatforms()
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -53,9 +52,6 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-
-        createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
-        createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
     }
 
     explicitApi()
