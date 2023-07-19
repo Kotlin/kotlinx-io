@@ -24,10 +24,7 @@ subprojects {
     if (name.contains("benchmark")) {
         return@subprojects
     }
-
-    repositories {
-        mavenCentral()
-    }
+    apply(plugin = "publish-conventions")
 }
 
 subprojects {
@@ -42,8 +39,6 @@ subprojects {
             allWarningsAsErrors = true
         }
     }
-
-    apply(plugin = "publish-conventions")
 }
 
 apiValidation {
