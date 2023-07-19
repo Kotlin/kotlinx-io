@@ -22,6 +22,10 @@ publishing {
         signPublicationIfKeyPresent(project, this)
         artifact(javadocJar)
     }
+
+    tasks.withType<PublishToMavenRepository>().configureEach {
+        dependsOn(tasks.withType<Sign>())
+    }
 }
 
 // Pom configuration
