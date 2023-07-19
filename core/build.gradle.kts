@@ -4,22 +4,15 @@
  */
 
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-    kotlin("multiplatform")
-    id("org.jetbrains.kotlinx.kover") version "0.7.1"
-    id("org.jetbrains.dokka") version "1.8.20"
+    id("kotlinx-io-multiplatform")
+    id("kotlinx-io-publish")
+    alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
 kotlin {
-    jvm {
-        withJava()
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
-
     js(IR) {
         nodejs {
             testTask {
@@ -30,7 +23,6 @@ kotlin {
         }
         browser {
             testTask {
-                filter.setExcludePatterns("*SmokeFileTest*")
                 useMocha {
                     timeout = "300s"
                 }
@@ -38,44 +30,12 @@ kotlin {
         }
     }
 
-    configureNativePlatforms()
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":kotlinx-io-bytestring"))
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-        val jvmMain by getting
-        val jvmTest by getting
-
-        val nativeMain = createSourceSet("nativeMain", parent = commonMain, children = nativeTargets)
-        val nativeTest = createSourceSet("nativeTest", parent = commonTest, children = nativeTargets)
-        createSourceSet("appleMain", parent = nativeMain, children = appleTargets)
-        createSourceSet("appleTest", parent = nativeTest, children = appleTargets)
-    }
-
-    explicitApi()
-    sourceSets.configureEach {
-        configureSourceSet()
-    }
-}
-
-fun KotlinSourceSet.configureSourceSet() {
-    val srcDir = if (name.endsWith("Main")) "src" else "test"
-    val platform = name.dropLast(4)
-    kotlin.srcDir("$platform/$srcDir")
-    if (name == "jvmMain") {
-        resources.srcDir("$platform/resources")
-    } else if (name == "jvmTest") {
-        resources.srcDir("$platform/test-resources")
-    }
-    languageSettings {
-        progressiveMode = true
     }
 }
 

@@ -4,17 +4,20 @@
  */
 
 import kotlinx.benchmark.gradle.JvmBenchmarkTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
     kotlin("multiplatform")
-    id("org.jetbrains.kotlinx.benchmark") version "0.4.8"
+    alias(libs.plugins.kotlinx.benchmark.plugin)
 }
 
 kotlin {
-    jvm()
+    jvm {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
+        }
+    }
     // TODO: consider supporting non-host native targets.
     if (HostManager.host === KonanTarget.MACOS_X64) macosX64("native")
     if (HostManager.host === KonanTarget.MACOS_ARM64) macosArm64("native")
@@ -25,15 +28,15 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":kotlinx-io-core"))
-                implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.8")
+                implementation(libs.kotlinx.benchmark.runtime)
             }
         }
 
-        val jvmMain by getting {
+        named("jvmMain") {
             dependsOn(commonMain.get())
         }
 
-        val nativeMain by getting {
+        named("nativeMain") {
             dependsOn(commonMain.get())
         }
     }
@@ -43,7 +46,7 @@ benchmark {
     targets {
         register("jvm") {
             this as JvmBenchmarkTarget
-            jmhVersion = "1.36"
+            jmhVersion = libs.versions.jmh.get()
         }
         register("native")
     }

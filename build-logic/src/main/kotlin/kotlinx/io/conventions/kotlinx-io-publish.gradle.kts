@@ -3,15 +3,30 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-import org.gradle.api.Project
-import org.gradle.api.artifacts.dsl.*
-import org.gradle.api.file.*
-import org.gradle.api.provider.*
-import org.gradle.api.publish.maven.*
-import org.gradle.jvm.tasks.*
-import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.signing.*
-import java.net.*
+import org.gradle.jvm.tasks.Jar
+import java.net.URI
+
+plugins {
+    `maven-publish`
+    signing
+}
+
+publishing {
+    repositories {
+        configureMavenPublication(project)
+    }
+
+    val javadocJar = project.configureEmptyJavadocArtifact()
+    publications.withType(MavenPublication::class).all {
+        pom.configureMavenCentralMetadata(project)
+        signPublicationIfKeyPresent(project, this)
+        artifact(javadocJar)
+    }
+
+    tasks.withType<PublishToMavenRepository>().configureEach {
+        dependsOn(tasks.withType<Sign>())
+    }
+}
 
 // Pom configuration
 infix fun <T> Property<T>.by(value: T) {
@@ -103,6 +118,6 @@ fun signPublicationIfKeyPresent(project: Project, publication: MavenPublication)
     }
 }
 
-private fun Project.getSensitiveProperty(name: String): String? {
+fun Project.getSensitiveProperty(name: String): String? {
     return project.findProperty(name) as? String ?: System.getenv(name)
 }

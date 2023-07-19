@@ -1,0 +1,20 @@
+[versions]
+kotlin = "1.8.21"
+java = "8"
+dokka = "1.8.20"
+kover = "0.7.1"
+bcv = "0.13.2"
+benchmark = "0.4.8"
+jmh = "1.36"
+
+[libraries]
+
+kotlinx-benchmark-runtime = { group = "org.jetbrains.kotlinx", name = "kotlinx-benchmark-runtime", version.ref = "benchmark" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+
+[plugins]
+
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+bcv = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }
+kotlinx-benchmark-plugin = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "benchmark"}
