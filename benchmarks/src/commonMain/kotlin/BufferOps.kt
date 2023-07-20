@@ -36,6 +36,7 @@ abstract class BufferRWBenchmarkBase {
     }
 }
 
+@State(Scope.Benchmark)
 open class ByteBenchmark : BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): Byte {
@@ -44,6 +45,7 @@ open class ByteBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class ShortBenchmark : BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): Short {
@@ -52,6 +54,7 @@ open class ShortBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class IntBenchmark : BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): Int {
@@ -60,6 +63,7 @@ open class IntBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class LongBenchmark : BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): Long {
@@ -68,6 +72,7 @@ open class LongBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class ShortLeBenchmark : BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): Short {
@@ -76,6 +81,7 @@ open class ShortLeBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class IntLeBenchmark : BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): Int {
@@ -84,6 +90,7 @@ open class IntLeBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class LongLeBenchmark : BufferRWBenchmarkBase() {
     @Benchmark
     fun benchmark(): Long {
@@ -92,6 +99,7 @@ open class LongLeBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class DecimalLongBenchmark : BufferRWBenchmarkBase() {
     @Param("-9223372036854775806", "9223372036854775806", "1")
     var value = 0L
@@ -118,6 +126,7 @@ open class DecimalLongBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class HexadecimalLongBenchmark : BufferRWBenchmarkBase() {
     @Param("9223372036854775806", "1")
     var value = 0L
@@ -144,6 +153,7 @@ open class HexadecimalLongBenchmark : BufferRWBenchmarkBase() {
 
 // This benchmark is based on Okio benchmark:
 // https://raw.githubusercontent.com/square/okio/master/okio/jvm/jmh/src/jmh/java/com/squareup/okio/benchmarks/BufferUtf8Benchmark.java
+@State(Scope.Benchmark)
 open class Utf8StringBenchmark : BufferRWBenchmarkBase() {
     private val strings = mapOf(
         "ascii" to ("Um, I'll tell you the problem with the scientific power that you're using here, "
@@ -219,6 +229,7 @@ open class Utf8StringBenchmark : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class Utf8LineBenchmarkBase : BufferRWBenchmarkBase() {
     @Param("17")
     var length: Int = 0
@@ -254,6 +265,7 @@ open class Utf8LineBenchmarkBase : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class Utf8LineBenchmark : Utf8LineBenchmarkBase() {
     @Benchmark
     fun benchmark(): String? {
@@ -262,6 +274,7 @@ open class Utf8LineBenchmark : Utf8LineBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class Utf8LineStrictBenchmark : Utf8LineBenchmarkBase() {
     @Benchmark
     fun benchmark(): String {
@@ -331,6 +344,7 @@ open class BufferGetBenchmark {
     fun get() = buffer[offset]
 }
 
+@State(Scope.Benchmark)
 open class BufferReadWriteByteArray : BufferRWBenchmarkBase() {
     private var inputArray = ByteArray(0)
     private var outputArray = ByteArray(0)
@@ -352,6 +366,7 @@ open class BufferReadWriteByteArray : BufferRWBenchmarkBase() {
     }
 }
 
+@State(Scope.Benchmark)
 open class BufferReadNewByteArray : BufferRWBenchmarkBase() {
     private var inputArray = ByteArray(0)
 

@@ -5,8 +5,9 @@
 
 package kotlinx.io.benchmarks
 
-import kotlinx.io.*
 import kotlinx.benchmark.*
+import kotlinx.io.Buffer
+import kotlinx.io.Source
 
 const val OFFSET_TO_LAST_BYTE_IN_SEGMENT = (SEGMENT_SIZE_IN_BYTES - 1).toString()
 
@@ -31,21 +32,25 @@ abstract class PeekBenchmark {
     }
 }
 
+@State(Scope.Benchmark)
 open class PeekByteBenchmark : PeekBenchmark() {
     @Benchmark
     fun benchmark() = peek().readByte()
 }
 
+@State(Scope.Benchmark)
 open class PeekShortBenchmark : PeekBenchmark() {
     @Benchmark
     fun benchmark() = peek().readShort()
 }
 
+@State(Scope.Benchmark)
 open class PeekIntBenchmark : PeekBenchmark() {
     @Benchmark
     fun benchmark() = peek().readInt()
 }
 
+@State(Scope.Benchmark)
 open class PeekLongBenchmark : PeekBenchmark() {
     @Benchmark
     fun benchmark() = peek().readLong()
