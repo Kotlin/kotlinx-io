@@ -10,6 +10,7 @@ import platform.Foundation.*
 import platform.darwin.NSInteger
 import platform.darwin.NSUInteger
 import platform.posix.uint8_tVar
+import kotlin.native.ref.WeakReference
 
 /**
  * Returns an output stream that writes to this sink. Closing the stream will also close this sink.
@@ -20,8 +21,8 @@ public fun Sink.asNSOutputStream(): NSOutputStream = SinkNSOutputStream(this)
 
 @OptIn(UnsafeNumber::class)
 private class SinkNSOutputStream(
-    private val sink: Sink,
-) : NSOutputStream(toMemory = Unit) {
+    private val sink: Sink
+) : NSOutputStream(toMemory = Unit), NSStreamDelegateProtocol {
 
     private val isClosed: () -> Boolean = when (sink) {
         is RealSink -> sink::closed
@@ -35,6 +36,7 @@ private class SinkNSOutputStream(
         set(value) {
             status = NSStreamStatusError
             field = value
+            postEvent(NSStreamEventErrorOccurred)
             sink.close()
         }
 
@@ -45,6 +47,8 @@ private class SinkNSOutputStream(
     override fun open() {
         if (status == NSStreamStatusNotOpen) {
             status = NSStreamStatusOpen
+            postEvent(NSStreamEventOpenCompleted)
+            postEvent(NSStreamEventHasSpaceAvailable)
         }
     }
 
@@ -52,6 +56,8 @@ private class SinkNSOutputStream(
         if (status == NSStreamStatusError) return
         status = NSStreamStatusClosed
         sink.close()
+        runLoop = null
+        runLoopModes = listOf()
     }
 
     @OptIn(DelicateIoApi::class)
@@ -79,6 +85,52 @@ private class SinkNSOutputStream(
     override fun propertyForKey(key: NSStreamPropertyKey): Any? = when (key) {
         NSStreamDataWrittenToMemoryStreamKey -> sink.buffer.snapshotAsNSData()
         else -> null
+    }
+
+    override fun setProperty(property: Any?, forKey: NSStreamPropertyKey) = false
+
+    private var _delegate = WeakReference<NSStreamDelegateProtocol>(this)
+    private var runLoop: NSRunLoop? = null
+    private var runLoopModes = listOf<NSRunLoopMode>()
+
+    private fun postEvent(event: NSStreamEvent) {
+        val runLoop = runLoop ?: return
+        runLoop.performInModes(runLoopModes) {
+            if (runLoop == this.runLoop) {
+                delegate?.stream(this, event)
+            }
+        }
+    }
+
+    override fun delegate() = _delegate.value
+
+    override fun setDelegate(delegate: NSStreamDelegateProtocol?) {
+        _delegate = WeakReference(delegate ?: this)
+    }
+
+    override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+        // no-op
+    }
+
+    override fun scheduleInRunLoop(aRunLoop: NSRunLoop, forMode: NSRunLoopMode) {
+        if (runLoop == null) {
+            runLoop = aRunLoop
+        }
+        if (runLoop == aRunLoop) {
+            runLoopModes += forMode
+        }
+        if (status == NSStreamStatusOpen) {
+            postEvent(NSStreamEventHasSpaceAvailable)
+        }
+    }
+
+    override fun removeFromRunLoop(aRunLoop: NSRunLoop, forMode: NSRunLoopMode) {
+        if (aRunLoop == runLoop) {
+            runLoopModes -= forMode
+            if (runLoopModes.isEmpty()) {
+                runLoop = null
+            }
+        }
     }
 
     override fun description() = "$sink.asNSOutputStream()"

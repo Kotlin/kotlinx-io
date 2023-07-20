@@ -8,10 +8,12 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
-import platform.Foundation.NSData
-import platform.Foundation.create
-import platform.Foundation.data
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withTimeout
+import platform.Foundation.*
 import platform.posix.memcpy
+import kotlin.time.Duration.Companion.seconds
 
 internal fun ByteArray.toNSData() = if (isNotEmpty()) {
     usePinned {
@@ -25,4 +27,23 @@ fun NSData.toByteArray() = ByteArray(length.toInt()).apply {
     if (isNotEmpty()) {
         memcpy(refTo(0), bytes, length)
     }
+}
+
+fun startRunLoop(name: String = "run-loop"): NSRunLoop {
+    val created = Mutex(true)
+    lateinit var runLoop: NSRunLoop
+    val thread = NSThread {
+        runLoop = NSRunLoop.currentRunLoop
+        runLoop.addPort(NSMachPort.port(), NSDefaultRunLoopMode)
+        created.unlock()
+        runLoop.run()
+    }
+    thread.name = name
+    thread.start()
+    runBlocking {
+        withTimeout(5.seconds) {
+            created.lock()
+        }
+    }
+    return runLoop
 }

@@ -128,25 +128,6 @@ class SourceNSInputStreamTest {
         }
     }
 
-    private fun startRunLoop(name: String = "run-loop"): NSRunLoop {
-        val created = Mutex(true)
-        lateinit var runLoop: NSRunLoop
-        val thread = NSThread {
-            runLoop = NSRunLoop.currentRunLoop
-            runLoop.addPort(NSMachPort.port(), NSDefaultRunLoopMode)
-            created.unlock()
-            runLoop.run()
-        }
-        thread.name = name
-        thread.start()
-        runBlocking {
-            withTimeout(5.seconds) {
-                created.lock()
-            }
-        }
-        return runLoop
-    }
-
     @Test
     fun delegateTest() {
         val runLoop = startRunLoop()
@@ -284,7 +265,6 @@ class SourceNSInputStreamTest {
             val opened = Mutex(true)
             val read = atomic(0)
             val completed = Mutex(true)
-            val endEvent = atomic(false)
 
             input.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 val sink = ByteArray(data.length)
@@ -314,7 +294,7 @@ class SourceNSInputStreamTest {
                                 completed.unlock()
                             }
                         }
-                        NSStreamEventEndEncountered -> endEvent.value = true
+                        NSStreamEventEndEncountered -> fail("$data shouldn't be subscribed")
                     }
                 }
             }
@@ -325,8 +305,7 @@ class SourceNSInputStreamTest {
                     opened.lock()
                     completed.lock()
                     // wait a bit to be sure delegate is no longer called
-                    delay(100)
-                    assertFalse(endEvent.value, "$data shouldn't be subscribed for end")
+                    delay(200)
                 }
             }
             input.close()
