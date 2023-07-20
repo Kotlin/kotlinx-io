@@ -58,7 +58,7 @@ private class SourceNSInputStream(
         status = NSStreamStatusClosed
         source.close()
         runLoop = null
-        runLoopModes.clear()
+        runLoopModes = listOf()
     }
 
     override fun read(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
@@ -95,7 +95,7 @@ private class SourceNSInputStream(
 
     private var _delegate = WeakReference<NSStreamDelegateProtocol>(this)
     private var runLoop: NSRunLoop? = null
-    private var runLoopModes = mutableListOf<NSRunLoopMode>()
+    private var runLoopModes = listOf<NSRunLoopMode>()
 
     private fun postEvent(event: NSStreamEvent) {
         val delegate = delegate ?: return
@@ -105,7 +105,9 @@ private class SourceNSInputStream(
     }
 
     private fun checkBytes(sendEndEvent: Boolean = true) {
-        runLoop?.performInModes(runLoopModes) {
+        val runLoop = runLoop ?: return
+        runLoop.performInModes(runLoopModes) {
+            if (runLoop != this.runLoop) return@performInModes
             try {
                 if (source.exhausted()) {
                     if (sendEndEvent) delegate?.stream(this, NSStreamEventEndEncountered)
@@ -113,9 +115,10 @@ private class SourceNSInputStream(
                         checkBytes(sendEndEvent = false)
                     }
                     runLoopModes.forEach { mode ->
-                        runLoop?.addTimer(timer, mode)
+                        runLoop.addTimer(timer, mode)
                     }
                 } else {
+                    status = NSStreamStatusOpen
                     delegate?.stream(this, NSStreamEventHasBytesAvailable)
                 }
             } catch (e: IllegalStateException) {
@@ -140,6 +143,9 @@ private class SourceNSInputStream(
         }
         if (runLoop == aRunLoop) {
             runLoopModes += forMode
+        }
+        if (status == NSStreamStatusOpen) {
+            checkBytes()
         }
     }
 
