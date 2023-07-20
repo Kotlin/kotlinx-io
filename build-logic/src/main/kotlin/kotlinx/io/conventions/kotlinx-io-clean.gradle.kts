@@ -3,19 +3,13 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
-import org.gradle.api.tasks.Delete
-import org.gradle.kotlin.dsl.invoke
-import org.gradle.kotlin.dsl.named
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-
-if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) {
-    tasks {
-        // Workaround for https://youtrack.jetbrains.com/issue/KT-58303:
-        // the `clean` task can't delete the expanded.lock file on Windows as it's still held by Gradle, failing the build
-        named("clean", Delete::class) {
-            setDelete(fileTree(buildDir) {
-                exclude("tmp/.cache/expanded/expanded.lock")
-            })
-        }
+tasks {
+    // Workaround for https://youtrack.jetbrains.com/issue/KT-58303:
+    // the `clean` task can't delete the expanded.lock file on Windows as it's still held by Gradle, failing the build
+    named("clean", Delete::class) {
+        setDelete(fileTree(buildDir) {
+            exclude("tmp/.cache/expanded/expanded.lock")
+        })
     }
 }
+
