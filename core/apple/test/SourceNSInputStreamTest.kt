@@ -5,14 +5,25 @@
 
 package kotlinx.io
 
+import io.ktor.server.cio.*
+import io.ktor.server.engine.*
+import io.ktor.server.routing.*
+import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
-import platform.Foundation.NSInputStream
-import platform.Foundation.NSStreamStatusClosed
-import platform.Foundation.NSStreamStatusNotOpen
-import platform.Foundation.NSStreamStatusOpen
-import platform.darwin.NSUIntegerVar
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withTimeout
+import platform.CoreFoundation.CFRunLoopStop
+import platform.Foundation.*
+import platform.darwin.NSObject
+import platform.posix.sleep
 import platform.posix.uint8_tVar
+import platform.posix.usleep
+import kotlin.random.Random
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(UnsafeNumber::class)
 class SourceNSInputStreamTest {
@@ -116,5 +127,228 @@ class SourceNSInputStreamTest {
             assertEquals("Underlying source is closed.", input.streamError?.localizedDescription)
             assertEquals("[-5, -5, -5, -5]", byteArray.contentToString())
         }
+    }
+
+    private fun startRunLoop(name: String = "run-loop"): NSRunLoop {
+        val created = Mutex(true)
+        lateinit var runLoop: NSRunLoop
+        val thread = NSThread {
+            runLoop = NSRunLoop.currentRunLoop
+            runLoop.addPort(NSMachPort.port(), NSDefaultRunLoopMode)
+            created.unlock()
+            runLoop.run()
+        }
+        thread.name = name
+        thread.start()
+        runBlocking {
+            withTimeout(5.seconds) {
+                created.lock()
+            }
+        }
+        return runLoop
+    }
+
+    private fun NSStreamEvent.asString(): String {
+        return when (this) {
+            NSStreamEventNone -> "NSStreamEventNone"
+            NSStreamEventOpenCompleted -> "NSStreamEventOpenCompleted"
+            NSStreamEventHasBytesAvailable -> "NSStreamEventHasBytesAvailable"
+            NSStreamEventHasSpaceAvailable -> "NSStreamEventHasSpaceAvailable"
+            NSStreamEventErrorOccurred -> "NSStreamEventErrorOccurred"
+            NSStreamEventEndEncountered -> "NSStreamEventEndEncountered"
+            else -> "Unknown event $this"
+        }
+    }
+
+    @Test
+    fun delegateTest() {
+        val runLoop = startRunLoop()
+
+        fun consumeWithDelegate(input: NSInputStream, data: String) {
+            val opened = Mutex(true)
+            val read = atomic(0)
+            val completed = Mutex(true)
+
+            input.delegate = object : NSObject(), NSStreamDelegateProtocol {
+                val sink = ByteArray(data.length)
+                override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                    println("$data event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
+                    assertEquals("run-loop", NSThread.currentThread.name)
+                    when (handleEvent) {
+                        NSStreamEventOpenCompleted -> opened.unlock()
+                        NSStreamEventHasBytesAvailable -> {
+                            sink.usePinned {
+                                assertEquals(1, input.read(it.addressOf(read.value).reinterpret(), 1U))
+                                read.value++
+                            }
+                        }
+                        NSStreamEventEndEncountered -> {
+                            assertEquals(data, sink.decodeToString())
+                            input.close()
+                            completed.unlock()
+                        }
+                    }
+                }
+            }
+            input.scheduleInRunLoop(runLoop, NSDefaultRunLoopMode)
+            input.open()
+            runBlocking {
+                withTimeout(5.seconds) {
+                    opened.lock()
+                    completed.lock()
+                }
+            }
+            assertEquals(data.length, read.value)
+        }
+
+        consumeWithDelegate(NSInputStream(data = "default".encodeToByteArray().toNSData()), "default")
+        consumeWithDelegate(Buffer().apply { writeString("custom") }.asNSInputStream(), "custom")
+        consumeWithDelegate(NSInputStream(data = NSData.data()), "")
+        consumeWithDelegate(Buffer().asNSInputStream(), "")
+        CFRunLoopStop(runLoop.getCFRunLoop())
+    }
+
+    @Test
+    fun uploadTest() {
+        val port = Random.nextInt(4000, 8000)
+        fun tryUpload(stream: NSInputStream) {
+            val request = NSMutableURLRequest.requestWithURL(
+                NSURL(string = "http://127.0.0.1:$port")
+            )
+            request.HTTPMethod = "POST"
+            request.HTTPBodyStream = stream
+            request.setValue("application/octet-stream", "Content-Type")
+
+            val session = NSURLSession.sharedSession
+            val task = session.uploadTaskWithStreamedRequest(request)
+            task.resume()
+            while (stream.streamStatus != NSStreamStatusAtEnd &&
+                stream.streamStatus != NSStreamStatusClosed &&
+                stream.streamStatus != NSStreamStatusError
+            ) {
+                usleep(100_000U)
+            }
+        }
+        @Suppress("ExtractKtorModule")
+        val server = embeddedServer(CIO, port = port, host = "localhost") {
+            routing {
+                post {
+                    this.context.request.receiveChannel().readAvailable(1) {
+                        println(it.readText())
+                    }
+                }
+            }
+        }
+        server.start(false)
+        tryUpload(NSInputStream(data = "default".encodeToByteArray().toNSData()))
+        tryUpload(Buffer().apply { writeString("custom") }.asNSInputStream())
+        server.stop()
+    }
+
+    @Test
+    fun testRunLoopPolling() {
+        val runLoop = startRunLoop()
+
+        val opened = Mutex(true)
+        val read = atomic(0)
+        val end = Mutex(true)
+
+        val buffer = Buffer()
+        val input = buffer.asNSInputStream()
+        val sink = ByteArray(6)
+        input.delegate = object : NSObject(), NSStreamDelegateProtocol {
+            override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                println("event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
+                when (handleEvent) {
+                    NSStreamEventOpenCompleted -> opened.unlock()
+                    NSStreamEventHasBytesAvailable -> {
+                        sink.usePinned {
+                            assertEquals(3, input.read(it.addressOf(read.value).reinterpret(), 3U))
+                            read.value += 3
+                        }
+                    }
+                    NSStreamEventEndEncountered -> end.unlock()
+                }
+            }
+        }
+        input.scheduleInRunLoop(runLoop, NSDefaultRunLoopMode)
+        input.open()
+        runBlocking {
+            withTimeout(5.seconds) {
+                opened.lock()
+                end.lock()
+                buffer.writeString("abc")
+                end.lock()
+                assertEquals(3, read.value)
+                buffer.writeString("123")
+                end.lock()
+            }
+        }
+        assertEquals(6, read.value)
+        assertEquals("abc123", sink.decodeToString())
+        input.close()
+        CFRunLoopStop(runLoop.getCFRunLoop())
+    }
+
+    @Test
+    fun testRunLoopSwitch() {
+        val runLoop1 = startRunLoop("run-loop-1")
+        val runLoop2 = startRunLoop("run-loop-2")
+
+        fun consumeSwitching(input: NSInputStream, data: String) {
+            val opened = Mutex(true)
+            val read = atomic(0)
+            val completed = Mutex(true)
+
+            input.delegate = object : NSObject(), NSStreamDelegateProtocol {
+                val sink = ByteArray(data.length)
+                override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                    println("$data event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
+                    if (read.value == 0) {
+                        assertEquals("run-loop-1", NSThread.currentThread.name)
+                    } else {
+                        assertEquals("run-loop-2", NSThread.currentThread.name)
+                    }
+                    when (handleEvent) {
+                        NSStreamEventOpenCompleted -> opened.unlock()
+                        NSStreamEventHasBytesAvailable -> {
+                            if (read.value == 0) {
+                                // switch to other run loop
+                                input.removeFromRunLoop(runLoop1, NSDefaultRunLoopMode)
+                                input.scheduleInRunLoop(runLoop2, NSDefaultRunLoopMode)
+                            } else if (read.value >= data.length - 3) {
+                                // unsubscribe
+                                input.removeFromRunLoop(runLoop2, NSDefaultRunLoopMode)
+                            }
+                            sink.usePinned {
+                                val readBytes = input.read(it.addressOf(read.value).reinterpret(), 3U)
+                                read.value += readBytes.toInt()
+                            }
+                            if (read.value == data.length) {
+                                assertEquals(data, sink.decodeToString())
+                                completed.unlock()
+                            }
+                        }
+                        NSStreamEventEndEncountered -> fail("shouldn't be subscribed")
+                    }
+                }
+            }
+            input.scheduleInRunLoop(runLoop1, NSDefaultRunLoopMode)
+            input.open()
+            runBlocking {
+                withTimeout(5.seconds) {
+                    opened.lock()
+                    completed.lock()
+                    // wait a bit to be sure delegate is no longer called
+                    delay(100)
+                }
+            }
+            input.close()
+        }
+
+        consumeSwitching(NSInputStream(data = "default".encodeToByteArray().toNSData()), "default")
+        consumeSwitching(Buffer().apply { writeString("custom") }.asNSInputStream(), "custom")
+        CFRunLoopStop(runLoop1.getCFRunLoop())
+        CFRunLoopStop(runLoop2.getCFRunLoop())
     }
 }

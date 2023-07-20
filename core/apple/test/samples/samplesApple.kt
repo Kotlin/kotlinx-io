@@ -17,7 +17,7 @@ class KotlinxIoSamplesApple {
     @Test
     fun inputStreamAsSource() {
         val data = ByteArray(100) { it.toByte() }
-        val inputStream = NSInputStream(data.toNSData())
+        val inputStream = NSInputStream(data = data.toNSData())
 
         val receivedData = inputStream.asSource().buffered().readByteArray()
         assertContentEquals(data, receivedData)

@@ -36,6 +36,12 @@ kotlin {
                 api(project(":kotlinx-io-bytestring"))
             }
         }
+        appleTest {
+            dependencies {
+                implementation("io.ktor:ktor-server-core:2.3.2")
+                implementation("io.ktor:ktor-server-cio:2.3.2")
+            }
+        }
     }
 }
 

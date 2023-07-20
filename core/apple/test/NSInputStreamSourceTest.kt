@@ -18,7 +18,7 @@ import kotlin.test.assertFailsWith
 class NSInputStreamSourceTest {
     @Test
     fun nsInputStreamSource() {
-        val input = NSInputStream(byteArrayOf(0x61).toNSData())
+        val input = NSInputStream(data = byteArrayOf(0x61).toNSData())
         val source = input.asSource()
         val buffer = Buffer()
         assertEquals(1, source.readAtMostTo(buffer, 1L))
@@ -48,9 +48,7 @@ class NSInputStreamSourceTest {
 
     @Test
     fun sourceFromInputStream() {
-        val input = NSInputStream(
-            ("a" + "b".repeat(Segment.SIZE * 2) + "c").encodeToByteArray().toNSData(),
-        )
+        val input = NSInputStream(data = ("a" + "b".repeat(Segment.SIZE * 2) + "c").encodeToByteArray().toNSData())
 
         // Source: ab...bc
         val source: RawSource = input.asSource()
@@ -74,7 +72,7 @@ class NSInputStreamSourceTest {
 
     @Test
     fun sourceFromInputStreamWithSegmentSize() {
-        val input = NSInputStream(ByteArray(Segment.SIZE).toNSData())
+        val input = NSInputStream(data = ByteArray(Segment.SIZE).toNSData())
         val source = input.asSource()
         val sink = Buffer()
 
@@ -86,7 +84,7 @@ class NSInputStreamSourceTest {
 
     @Test
     fun sourceFromInputStreamBounds() {
-        val source = NSInputStream(ByteArray(100).toNSData()).asSource()
+        val source = NSInputStream(data = ByteArray(100).toNSData()).asSource()
         assertFailsWith<IllegalArgumentException> { source.readAtMostTo(Buffer(), -1) }
     }
 }

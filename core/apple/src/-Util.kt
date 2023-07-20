@@ -3,16 +3,14 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-@file:OptIn(UnsafeNumber::class)
-
 package kotlinx.io
 
 import kotlinx.cinterop.UnsafeNumber
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.convert
-import kotlinx.cinterop.usePinned
-import platform.Foundation.*
+import platform.Foundation.NSError
+import platform.Foundation.NSLocalizedDescriptionKey
+import platform.Foundation.NSUnderlyingErrorKey
 
+@OptIn(UnsafeNumber::class)
 internal fun Exception.toNSError() = NSError(
     domain = "Kotlin",
     code = 0,
@@ -21,11 +19,3 @@ internal fun Exception.toNSError() = NSError(
         NSUnderlyingErrorKey to this
     )
 )
-
-internal fun ByteArray.toNSData() = if (isNotEmpty()) {
-    usePinned {
-        NSData.create(bytes = it.addressOf(0), length = size.convert())
-    }
-} else {
-    NSData.data()
-}
