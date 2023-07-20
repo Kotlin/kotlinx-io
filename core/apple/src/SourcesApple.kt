@@ -98,9 +98,11 @@ private class SourceNSInputStream(
     private var runLoopModes = listOf<NSRunLoopMode>()
 
     private fun postEvent(event: NSStreamEvent) {
-        val delegate = delegate ?: return
-        runLoop?.performInModes(runLoopModes) {
-            delegate.stream(this, event)
+        val runLoop = runLoop ?: return
+        runLoop.performInModes(runLoopModes) {
+            if (runLoop == this.runLoop) {
+                delegate?.stream(this, event)
+            }
         }
     }
 
