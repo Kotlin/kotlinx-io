@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.konan.target.KonanTarget
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlinx.benchmark.plugin)
+    id("kotlinx-io-clean")
 }
 
 kotlin {
