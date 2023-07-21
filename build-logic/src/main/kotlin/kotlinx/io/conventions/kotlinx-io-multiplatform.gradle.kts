@@ -3,13 +3,13 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
     kotlin("multiplatform")
+    id("kotlinx-io-clean")
 }
 
 kotlin {
