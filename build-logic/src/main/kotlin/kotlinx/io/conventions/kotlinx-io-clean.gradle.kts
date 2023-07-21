@@ -7,7 +7,7 @@ tasks {
     // Workaround for https://youtrack.jetbrains.com/issue/KT-58303:
     // the `clean` task can't delete the expanded.lock file on Windows as it's still held by Gradle, failing the build
     named("clean", Delete::class) {
-        setDelete(fileTree(buildDir) {
+        setDelete(layout.buildDirectory.asFileTree.matching {
             exclude("tmp/.cache/expanded/expanded.lock")
         })
     }
