@@ -10,6 +10,8 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 import kotlinx.cinterop.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -139,6 +141,7 @@ class SourceNSInputStreamTest {
             input.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 val sink = ByteArray(data.length)
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                    println("${input::class} $data event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                     assertEquals("run-loop", NSThread.currentThread.name)
                     when (handleEvent) {
                         NSStreamEventOpenCompleted -> opened.unlock()
@@ -223,6 +226,7 @@ class SourceNSInputStreamTest {
         val sink = ByteArray(6)
         input.delegate = object : NSObject(), NSStreamDelegateProtocol {
             override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                println("event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                 when (handleEvent) {
                     NSStreamEventOpenCompleted -> opened.unlock()
                     NSStreamEventHasBytesAvailable -> {
@@ -260,38 +264,43 @@ class SourceNSInputStreamTest {
         fun consumeSwitching(input: NSInputStream, data: String) {
             println("consumeSwitching(${input::class}, $data)")
             val opened = Mutex(true)
-            val read = atomic(0)
+            val readLock = reentrantLock()
+            var read = 0
             val completed = Mutex(true)
 
             input.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 val sink = ByteArray(data.length)
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
-                    if (read.value == 0) {
-                        assertEquals("run-loop-1", NSThread.currentThread.name)
-                    } else {
-                        assertEquals("run-loop-2", NSThread.currentThread.name)
-                    }
-                    when (handleEvent) {
-                        NSStreamEventOpenCompleted -> opened.unlock()
-                        NSStreamEventHasBytesAvailable -> {
-                            if (read.value == 0) {
-                                // switch to other run loop
-                                input.removeFromRunLoop(runLoop1, NSDefaultRunLoopMode)
-                                input.scheduleInRunLoop(runLoop2, NSDefaultRunLoopMode)
-                            } else if (read.value >= data.length - 3) {
-                                // unsubscribe
-                                input.removeFromRunLoop(runLoop2, NSDefaultRunLoopMode)
-                            }
-                            sink.usePinned {
-                                val readBytes = input.read(it.addressOf(read.value).reinterpret(), 3U)
-                                read.value += readBytes.toInt()
-                            }
-                            if (read.value == data.length) {
-                                assertEquals(data, sink.decodeToString())
-                                completed.unlock()
-                            }
+                    readLock.withLock {
+                        println("${input::class} $data event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
+                        if (read == 0) {
+                            assertEquals("run-loop-1", NSThread.currentThread.name)
+                        } else {
+                            assertEquals("run-loop-2", NSThread.currentThread.name)
                         }
-                        NSStreamEventEndEncountered -> fail("$data shouldn't be subscribed")
+                        when (handleEvent) {
+                            NSStreamEventOpenCompleted -> opened.unlock()
+                            NSStreamEventHasBytesAvailable -> {
+                                if (read == 0) {
+                                    // switch to other run loop
+                                    input.removeFromRunLoop(runLoop1, NSDefaultRunLoopMode)
+                                    input.scheduleInRunLoop(runLoop2, NSDefaultRunLoopMode)
+                                } else if (read >= data.length - 3) {
+                                    // unsubscribe
+                                    input.removeFromRunLoop(runLoop2, NSDefaultRunLoopMode)
+                                }
+                                sink.usePinned {
+                                    val readBytes = input.read(it.addressOf(read).reinterpret(), 3U)
+                                    assertNotEquals(0, readBytes)
+                                    read += readBytes.toInt()
+                                }
+                                if (read == data.length) {
+                                    assertEquals(data, sink.decodeToString())
+                                    completed.unlock()
+                                }
+                            }
+                            NSStreamEventEndEncountered -> fail("$data shouldn't be subscribed")
+                        }
                     }
                 }
             }
@@ -322,6 +331,7 @@ class SourceNSInputStreamTest {
 
             input.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                    println("${input::class} event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                     assertEquals("run-loop", NSThread.currentThread.name)
                     when (handleEvent) {
                         NSStreamEventOpenCompleted -> fail("opened before subscribe")

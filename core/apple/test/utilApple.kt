@@ -55,3 +55,15 @@ suspend fun Mutex.lockWithTimeout(timeout: Duration = 5.seconds) {
         withTimeout(timeout) { lock() }
     }.onFailure { fail("Mutex never unlocked", source) }
 }
+
+fun NSStreamEvent.asString(): String {
+    return when (this) {
+        NSStreamEventNone -> "NSStreamEventNone"
+        NSStreamEventOpenCompleted -> "NSStreamEventOpenCompleted"
+        NSStreamEventHasBytesAvailable -> "NSStreamEventHasBytesAvailable"
+        NSStreamEventHasSpaceAvailable -> "NSStreamEventHasSpaceAvailable"
+        NSStreamEventErrorOccurred -> "NSStreamEventErrorOccurred"
+        NSStreamEventEndEncountered -> "NSStreamEventEndEncountered"
+        else -> "Unknown event $this"
+    }
+}

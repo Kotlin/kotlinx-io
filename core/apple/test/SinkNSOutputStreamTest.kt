@@ -93,6 +93,7 @@ class SinkNSOutputStreamTest {
             out.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 val source = data.encodeToByteArray()
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                    println("${out::class} $data event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                     assertEquals("run-loop", NSThread.currentThread.name)
                     when (handleEvent) {
                         NSStreamEventOpenCompleted -> opened.unlock()
@@ -140,6 +141,7 @@ class SinkNSOutputStreamTest {
 
             out.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                    println("${out::class} event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                     assertEquals("run-loop", NSThread.currentThread.name)
                     when (handleEvent) {
                         NSStreamEventOpenCompleted -> fail("opened before subscribe")
