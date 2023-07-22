@@ -13,6 +13,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeout
 import platform.Foundation.*
 import platform.posix.memcpy
+import kotlin.test.fail
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 internal fun ByteArray.toNSData() = if (isNotEmpty()) {
@@ -41,9 +43,15 @@ fun startRunLoop(name: String = "run-loop"): NSRunLoop {
     thread.name = name
     thread.start()
     runBlocking {
-        withTimeout(5.seconds) {
-            created.lock()
-        }
+        created.lockWithTimeout()
     }
     return runLoop
+}
+
+suspend fun Mutex.lockWithTimeout(timeout: Duration = 5.seconds) {
+    class MutexSource : Throwable()
+    val source = MutexSource()
+    runCatching {
+        withTimeout(timeout) { lock() }
+    }.onFailure { fail("Mutex never unlocked", source) }
 }

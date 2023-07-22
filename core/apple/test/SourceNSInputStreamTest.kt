@@ -14,7 +14,6 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.withTimeout
 import platform.CoreFoundation.CFRunLoopStop
 import platform.Foundation.*
 import platform.darwin.NSObject
@@ -22,7 +21,6 @@ import platform.posix.uint8_tVar
 import platform.posix.usleep
 import kotlin.random.Random
 import kotlin.test.*
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(UnsafeNumber::class)
 class SourceNSInputStreamTest {
@@ -133,6 +131,7 @@ class SourceNSInputStreamTest {
         val runLoop = startRunLoop()
 
         fun consumeWithDelegate(input: NSInputStream, data: String) {
+            println("consumeWithDelegate(${input::class}, $data)")
             val opened = Mutex(true)
             val read = atomic(0)
             val completed = Mutex(true)
@@ -160,10 +159,8 @@ class SourceNSInputStreamTest {
             input.scheduleInRunLoop(runLoop, NSDefaultRunLoopMode)
             input.open()
             runBlocking {
-                withTimeout(5.seconds) {
-                    opened.lock()
-                    completed.lock()
-                }
+                opened.lockWithTimeout()
+                completed.lockWithTimeout()
             }
             assertEquals(data.length, read.value)
         }
@@ -179,6 +176,7 @@ class SourceNSInputStreamTest {
     fun uploadTest() {
         val port = Random.nextInt(4000, 8000)
         fun tryUpload(stream: NSInputStream) {
+            println("tryUpload(${stream::class})")
             val request = NSMutableURLRequest.requestWithURL(
                 NSURL(string = "http://127.0.0.1:$port")
             )
@@ -240,15 +238,13 @@ class SourceNSInputStreamTest {
         input.scheduleInRunLoop(runLoop, NSDefaultRunLoopMode)
         input.open()
         runBlocking {
-            withTimeout(5.seconds) {
-                opened.lock()
-                end.lock()
-                buffer.writeString("abc")
-                end.lock()
-                assertEquals(3, read.value)
-                buffer.writeString("123")
-                end.lock()
-            }
+            opened.lockWithTimeout()
+            end.lockWithTimeout()
+            buffer.writeString("abc")
+            end.lockWithTimeout()
+            assertEquals(3, read.value)
+            buffer.writeString("123")
+            end.lockWithTimeout()
         }
         assertEquals(6, read.value)
         assertEquals("abc123", sink.decodeToString())
@@ -262,6 +258,7 @@ class SourceNSInputStreamTest {
         val runLoop2 = startRunLoop("run-loop-2")
 
         fun consumeSwitching(input: NSInputStream, data: String) {
+            println("consumeSwitching(${input::class}, $data)")
             val opened = Mutex(true)
             val read = atomic(0)
             val completed = Mutex(true)
@@ -301,12 +298,10 @@ class SourceNSInputStreamTest {
             input.scheduleInRunLoop(runLoop1, NSDefaultRunLoopMode)
             input.open()
             runBlocking {
-                withTimeout(5.seconds) {
-                    opened.lock()
-                    completed.lock()
-                    // wait a bit to be sure delegate is no longer called
-                    delay(200)
-                }
+                opened.lockWithTimeout()
+                completed.lockWithTimeout()
+                // wait a bit to be sure delegate is no longer called
+                delay(200)
             }
             input.close()
         }
@@ -322,6 +317,7 @@ class SourceNSInputStreamTest {
         val runLoop = startRunLoop()
 
         fun subscribeAfterOpen(input: NSInputStream) {
+            println("subscribeAfterOpen(${input::class})")
             val available = Mutex(true)
 
             input.delegate = object : NSObject(), NSStreamDelegateProtocol {
@@ -336,9 +332,7 @@ class SourceNSInputStreamTest {
             input.open()
             input.scheduleInRunLoop(runLoop, NSDefaultRunLoopMode)
             runBlocking {
-                withTimeout(5.seconds) {
-                    available.lock()
-                }
+                available.lockWithTimeout()
             }
             input.close()
         }

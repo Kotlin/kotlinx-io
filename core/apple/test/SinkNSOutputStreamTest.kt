@@ -9,14 +9,12 @@ import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.withTimeout
 import platform.CoreFoundation.CFRunLoopStop
 import platform.Foundation.*
 import platform.darwin.NSObject
 import platform.darwin.NSUInteger
 import platform.posix.uint8_tVar
 import kotlin.test.*
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(UnsafeNumber::class)
 class SinkNSOutputStreamTest {
@@ -87,6 +85,7 @@ class SinkNSOutputStreamTest {
         val runLoop = startRunLoop()
 
         fun produceWithDelegate(out: NSOutputStream, data: String) {
+            println("produceWithDelegate(${out::class}, $data)")
             val opened = Mutex(true)
             val written = atomic(0)
             val completed = Mutex(true)
@@ -118,10 +117,8 @@ class SinkNSOutputStreamTest {
             out.scheduleInRunLoop(runLoop, NSDefaultRunLoopMode)
             out.open()
             runBlocking {
-                withTimeout(5.seconds) {
-                    opened.lock()
-                    completed.lock()
-                }
+                opened.lockWithTimeout()
+                completed.lockWithTimeout()
             }
             assertEquals(data.length, written.value)
         }
@@ -138,6 +135,7 @@ class SinkNSOutputStreamTest {
         val runLoop = startRunLoop()
 
         fun subscribeAfterOpen(out: NSOutputStream) {
+            println("subscribeAfterOpen(${out::class})")
             val available = Mutex(true)
 
             out.delegate = object : NSObject(), NSStreamDelegateProtocol {
@@ -152,9 +150,7 @@ class SinkNSOutputStreamTest {
             out.open()
             out.scheduleInRunLoop(runLoop, NSDefaultRunLoopMode)
             runBlocking {
-                withTimeout(5.seconds) {
-                    available.lock()
-                }
+                available.lockWithTimeout()
             }
             out.close()
         }
