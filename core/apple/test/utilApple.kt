@@ -8,6 +8,7 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeout
@@ -51,9 +52,11 @@ fun startRunLoop(name: String = "run-loop"): NSRunLoop {
 suspend fun Mutex.lockWithTimeout(timeout: Duration = 5.seconds) {
     class MutexSource : Throwable()
     val source = MutexSource()
-    runCatching {
+    try {
         withTimeout(timeout) { lock() }
-    }.onFailure { fail("Mutex never unlocked", source) }
+    } catch (e: TimeoutCancellationException) {
+        fail("Mutex never unlocked", source)
+    }
 }
 
 fun NSStreamEvent.asString(): String {
