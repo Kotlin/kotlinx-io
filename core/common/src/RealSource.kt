@@ -152,7 +152,7 @@ internal class RealSource(
         bufferField.clear()
     }
 
-    override fun toString(): String = "buffer($source)"
+    override fun toString(): String = "buffered($source)"
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun checkNotClosed() {

@@ -148,7 +148,7 @@ internal class RealSink(
         if (thrown != null) throw thrown
     }
 
-    override fun toString() = "buffer($sink)"
+    override fun toString() = "buffered($sink)"
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun checkNotClosed() {
