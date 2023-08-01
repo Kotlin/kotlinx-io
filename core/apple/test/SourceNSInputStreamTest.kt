@@ -5,10 +5,6 @@
 
 package kotlinx.io
 
-import io.ktor.server.cio.*
-import io.ktor.server.engine.*
-import io.ktor.server.routing.*
-import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -20,8 +16,6 @@ import platform.CoreFoundation.CFRunLoopStop
 import platform.Foundation.*
 import platform.darwin.NSObject
 import platform.posix.uint8_tVar
-import platform.posix.usleep
-import kotlin.random.Random
 import kotlin.test.*
 
 @OptIn(UnsafeNumber::class)
@@ -122,8 +116,7 @@ class SourceNSInputStreamTest {
 
             byteArray.fill(-5)
             assertEquals(-1, input.read(cPtr, 4U))
-            assertNotNull(input.streamError)
-            assertEquals("Underlying source is closed.", input.streamError?.localizedDescription)
+            assertNull(input.streamError)
             assertEquals("[-5, -5, -5, -5]", byteArray.contentToString())
         }
     }
@@ -133,7 +126,6 @@ class SourceNSInputStreamTest {
         val runLoop = startRunLoop()
 
         fun consumeWithDelegate(input: NSInputStream, data: String) {
-            println("consumeWithDelegate(${input::class}, $data)")
             val opened = Mutex(true)
             val read = atomic(0)
             val completed = Mutex(true)
@@ -141,7 +133,6 @@ class SourceNSInputStreamTest {
             input.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 val sink = ByteArray(data.length)
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
-                    println("${input::class} $data event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                     assertEquals("run-loop", NSThread.currentThread.name)
                     when (handleEvent) {
                         NSStreamEventOpenCompleted -> opened.unlock()
@@ -156,6 +147,7 @@ class SourceNSInputStreamTest {
                             input.close()
                             completed.unlock()
                         }
+                        else -> fail("unexpected event ${handleEvent.asString()}")
                     }
                 }
             }
@@ -168,91 +160,8 @@ class SourceNSInputStreamTest {
             assertEquals(data.length, read.value)
         }
 
-        consumeWithDelegate(NSInputStream(data = "default".encodeToByteArray().toNSData()), "default")
         consumeWithDelegate(Buffer().apply { writeString("custom") }.asNSInputStream(), "custom")
-        consumeWithDelegate(NSInputStream(data = NSData.data()), "")
         consumeWithDelegate(Buffer().asNSInputStream(), "")
-        CFRunLoopStop(runLoop.getCFRunLoop())
-    }
-
-    @Test
-    fun uploadTest() {
-        val port = Random.nextInt(4000, 8000)
-        fun tryUpload(stream: NSInputStream) {
-            println("tryUpload(${stream::class})")
-            val request = NSMutableURLRequest.requestWithURL(
-                NSURL(string = "http://127.0.0.1:$port")
-            )
-            request.HTTPMethod = "POST"
-            request.HTTPBodyStream = stream
-            request.setValue("application/octet-stream", "Content-Type")
-
-            val session = NSURLSession.sharedSession
-            val task = session.uploadTaskWithStreamedRequest(request)
-            task.resume()
-            while (stream.streamStatus != NSStreamStatusAtEnd &&
-                stream.streamStatus != NSStreamStatusClosed &&
-                stream.streamStatus != NSStreamStatusError
-            ) {
-                usleep(100_000U)
-            }
-        }
-        @Suppress("ExtractKtorModule")
-        val server = embeddedServer(CIO, port = port, host = "localhost") {
-            routing {
-                post {
-                    this.context.request.receiveChannel().readAvailable(1) {
-                        println(it.readText())
-                    }
-                }
-            }
-        }
-        server.start(false)
-        tryUpload(NSInputStream(data = "default".encodeToByteArray().toNSData()))
-        tryUpload(Buffer().apply { writeString("custom") }.asNSInputStream())
-        server.stop()
-    }
-
-    @Test
-    fun testRunLoopPolling() {
-        val runLoop = startRunLoop()
-
-        val opened = Mutex(true)
-        val read = atomic(0)
-        val end = Mutex(true)
-
-        val buffer = Buffer()
-        val input = buffer.asNSInputStream()
-        val sink = ByteArray(6)
-        input.delegate = object : NSObject(), NSStreamDelegateProtocol {
-            override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
-                println("event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
-                when (handleEvent) {
-                    NSStreamEventOpenCompleted -> opened.unlock()
-                    NSStreamEventHasBytesAvailable -> {
-                        sink.usePinned {
-                            assertEquals(3, input.read(it.addressOf(read.value).reinterpret(), 3U))
-                            read.value += 3
-                        }
-                    }
-                    NSStreamEventEndEncountered -> end.unlock()
-                }
-            }
-        }
-        input.scheduleInRunLoop(runLoop, NSDefaultRunLoopMode)
-        input.open()
-        runBlocking {
-            opened.lockWithTimeout()
-            end.lockWithTimeout()
-            buffer.writeString("abc")
-            end.lockWithTimeout()
-            assertEquals(3, read.value)
-            buffer.writeString("123")
-            end.lockWithTimeout()
-        }
-        assertEquals(6, read.value)
-        assertEquals("abc123", sink.decodeToString())
-        input.close()
         CFRunLoopStop(runLoop.getCFRunLoop())
     }
 
@@ -262,7 +171,6 @@ class SourceNSInputStreamTest {
         val runLoop2 = startRunLoop("run-loop-2")
 
         fun consumeSwitching(input: NSInputStream, data: String) {
-            println("consumeSwitching(${input::class}, $data)")
             val opened = Mutex(true)
             val readLock = reentrantLock()
             var read = 0
@@ -271,22 +179,24 @@ class SourceNSInputStreamTest {
             input.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 val sink = ByteArray(data.length)
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
+                    // Ensure thread safe access to `read` between scheduled run loops
                     readLock.withLock {
-                        println("${input::class} $data event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                         if (read == 0) {
+                            // until first read
                             assertEquals("run-loop-1", NSThread.currentThread.name)
                         } else {
+                            // after first read
                             assertEquals("run-loop-2", NSThread.currentThread.name)
                         }
                         when (handleEvent) {
                             NSStreamEventOpenCompleted -> opened.unlock()
                             NSStreamEventHasBytesAvailable -> {
                                 if (read == 0) {
-                                    // switch to other run loop
+                                    // switch to other run loop before first read
                                     input.removeFromRunLoop(runLoop1, NSDefaultRunLoopMode)
                                     input.scheduleInRunLoop(runLoop2, NSDefaultRunLoopMode)
                                 } else if (read >= data.length - 3) {
-                                    // unsubscribe
+                                    // unsubscribe before last read
                                     input.removeFromRunLoop(runLoop2, NSDefaultRunLoopMode)
                                 }
                                 sink.usePinned {
@@ -300,6 +210,7 @@ class SourceNSInputStreamTest {
                                 }
                             }
                             NSStreamEventEndEncountered -> fail("$data shouldn't be subscribed")
+                            else -> fail("unexpected event ${handleEvent.asString()}")
                         }
                     }
                 }
@@ -315,7 +226,6 @@ class SourceNSInputStreamTest {
             input.close()
         }
 
-        consumeSwitching(NSInputStream(data = "default".encodeToByteArray().toNSData()), "default")
         consumeSwitching(Buffer().apply { writeString("custom") }.asNSInputStream(), "custom")
         CFRunLoopStop(runLoop1.getCFRunLoop())
         CFRunLoopStop(runLoop2.getCFRunLoop())
@@ -325,17 +235,24 @@ class SourceNSInputStreamTest {
     fun testSubscribeAfterOpen() {
         val runLoop = startRunLoop()
 
-        fun subscribeAfterOpen(input: NSInputStream) {
-            println("subscribeAfterOpen(${input::class})")
+        fun subscribeAfterOpen(input: NSInputStream, data: String) {
             val available = Mutex(true)
 
             input.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
-                    println("${input::class} event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                     assertEquals("run-loop", NSThread.currentThread.name)
                     when (handleEvent) {
                         NSStreamEventOpenCompleted -> fail("opened before subscribe")
-                        NSStreamEventHasBytesAvailable -> available.unlock()
+                        NSStreamEventHasBytesAvailable -> {
+                            val sink = ByteArray(data.length)
+                            sink.usePinned {
+                                assertEquals(data.length.convert(), input.read(it.addressOf(0).reinterpret(), data.length.convert()))
+                            }
+                            assertEquals(data, sink.decodeToString())
+                            input.close()
+                            available.unlock()
+                        }
+                        else -> fail("unexpected event ${handleEvent.asString()}")
                     }
                 }
             }
@@ -344,11 +261,9 @@ class SourceNSInputStreamTest {
             runBlocking {
                 available.lockWithTimeout()
             }
-            input.close()
         }
 
-        subscribeAfterOpen(NSInputStream(data = "default".encodeToByteArray().toNSData()))
-        subscribeAfterOpen(Buffer().apply { writeString("custom") }.asNSInputStream())
+        subscribeAfterOpen(Buffer().apply { writeString("custom") }.asNSInputStream(), "custom")
         CFRunLoopStop(runLoop.getCFRunLoop())
     }
 }

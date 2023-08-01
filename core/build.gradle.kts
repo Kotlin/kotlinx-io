@@ -38,8 +38,6 @@ kotlin {
         }
         appleTest {
             dependencies {
-                implementation("io.ktor:ktor-server-core:2.3.2")
-                implementation("io.ktor:ktor-server-cio:2.3.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
             }
         }

@@ -11,9 +11,7 @@ import kotlinx.cinterop.*
 import platform.Foundation.*
 import platform.darwin.ByteVar
 import platform.darwin.NSUIntegerMax
-import platform.posix.malloc
-import platform.posix.memcpy
-import platform.posix.uint8_tVar
+import platform.posix.*
 
 internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
@@ -58,7 +56,8 @@ internal fun Buffer.snapshotAsNSData(): NSData {
 
     check(size.toULong() <= NSUIntegerMax) { "Buffer is too long ($size) to be converted into NSData." }
 
-    val bytes = malloc(size.convert())!!.reinterpret<uint8_tVar>()
+    val bytes = malloc(size.convert())?.reinterpret<uint8_tVar>()
+        ?: throw Error("malloc failed: ${strerror(errno)?.toKString()}")
     var curr = head
     var index = 0
     do {

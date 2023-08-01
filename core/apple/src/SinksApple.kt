@@ -40,12 +40,13 @@ private class SinkNSOutputStream(
             sink.close()
         }
 
-    override fun streamStatus() = if (isClosed()) NSStreamStatusClosed else status
+    override fun streamStatus() = if (status != NSStreamStatusError && isClosed()) NSStreamStatusClosed else status
 
     override fun streamError() = error
 
     override fun open() {
         if (status == NSStreamStatusNotOpen) {
+            status = NSStreamStatusOpening
             status = NSStreamStatusOpen
             postEvent(NSStreamEventOpenCompleted)
             postEvent(NSStreamEventHasSpaceAvailable)
@@ -53,33 +54,37 @@ private class SinkNSOutputStream(
     }
 
     override fun close() {
-        if (status == NSStreamStatusError) return
+        if (status == NSStreamStatusError || status == NSStreamStatusNotOpen) return
         status = NSStreamStatusClosed
-        sink.close()
         runLoop = null
         runLoopModes = listOf()
+        sink.close()
     }
 
     @OptIn(DelicateIoApi::class)
     override fun write(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
-        try {
-            if (isClosed()) throw IOException("Underlying sink is closed.")
-            if (status != NSStreamStatusOpen) return -1
-            if (buffer == null) return -1
-
-            status = NSStreamStatusWriting
+        if (streamStatus != NSStreamStatusOpen || buffer == null) return -1
+        status = NSStreamStatusWriting
+        val toWrite = minOf(maxLength, Int.MAX_VALUE.convert()).toInt()
+        return try {
             sink.writeToInternalBuffer {
-                it.write(buffer, maxLength.toInt())
+                it.write(buffer, toWrite)
             }
             status = NSStreamStatusOpen
-            return maxLength.convert()
+            toWrite.convert()
         } catch (e: Exception) {
             error = e.toNSError()
-            return -1
+            -1
         }
     }
 
-    override fun hasSpaceAvailable() = !isClosed()
+    override fun hasSpaceAvailable() = !isFinished
+
+    private val isFinished
+        get() = when (streamStatus) {
+            NSStreamStatusClosed, NSStreamStatusError -> true
+            else -> false
+        }
 
     @OptIn(InternalIoApi::class)
     override fun propertyForKey(key: NSStreamPropertyKey): Any? = when (key) {
@@ -89,7 +94,9 @@ private class SinkNSOutputStream(
 
     override fun setProperty(property: Any?, forKey: NSStreamPropertyKey) = false
 
-    private var _delegate = WeakReference<NSStreamDelegateProtocol>(this)
+    // WeakReference as delegate should not be retained
+    // https://developer.apple.com/documentation/foundation/nsstream/1418423-delegate
+    private var _delegate: WeakReference<NSStreamDelegateProtocol>? = null
     private var runLoop: NSRunLoop? = null
     private var runLoopModes = listOf<NSRunLoopMode>()
 
@@ -97,15 +104,17 @@ private class SinkNSOutputStream(
         val runLoop = runLoop ?: return
         runLoop.performInModes(runLoopModes) {
             if (runLoop == this.runLoop) {
-                delegate?.stream(this, event)
+                delegateOrSelf.stream(this, event)
             }
         }
     }
 
-    override fun delegate() = _delegate.value
+    override fun delegate() = _delegate?.value
+
+    private val delegateOrSelf get() = delegate ?: this
 
     override fun setDelegate(delegate: NSStreamDelegateProtocol?) {
-        _delegate = WeakReference(delegate ?: this)
+        _delegate = delegate?.let { WeakReference(it) }
     }
 
     override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {

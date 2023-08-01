@@ -41,12 +41,13 @@ private class SourceNSInputStream(
             source.close()
         }
 
-    override fun streamStatus() = if (isClosed()) NSStreamStatusClosed else status
+    override fun streamStatus() = if (status != NSStreamStatusError && isClosed()) NSStreamStatusClosed else status
 
     override fun streamError() = error
 
     override fun open() {
         if (status == NSStreamStatusNotOpen) {
+            status = NSStreamStatusOpening
             status = NSStreamStatusOpen
             postEvent(NSStreamEventOpenCompleted)
             checkBytes()
@@ -54,27 +55,22 @@ private class SourceNSInputStream(
     }
 
     override fun close() {
-        if (status == NSStreamStatusError) return
+        if (status == NSStreamStatusError || status == NSStreamStatusNotOpen) return
         status = NSStreamStatusClosed
-        source.close()
         runLoop = null
         runLoopModes = listOf()
+        source.close()
     }
 
     override fun read(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
+        if (streamStatus != NSStreamStatusOpen && streamStatus != NSStreamStatusAtEnd || buffer == null) return -1
+        status = NSStreamStatusReading
         try {
-            if (isClosed()) throw IOException("Underlying source is closed.")
-            if (status != NSStreamStatusOpen && status != NSStreamStatusAtEnd) {
-                return -1
-            }
             if (source.exhausted()) {
                 status = NSStreamStatusAtEnd
                 return 0
             }
-            if (buffer == null) return -1
-
-            status = NSStreamStatusReading
-            val toRead = minOf(maxLength.toInt(), source.buffer.size).toInt()
+            val toRead = minOf(maxLength.toLong(), source.buffer.size, Int.MAX_VALUE.toLong()).toInt()
             val read = source.buffer.readAtMostTo(buffer, toRead).convert<NSInteger>()
             status = NSStreamStatusOpen
             checkBytes()
@@ -87,13 +83,21 @@ private class SourceNSInputStream(
 
     override fun getBuffer(buffer: CPointer<CPointerVar<uint8_tVar>>?, length: CPointer<NSUIntegerVar>?) = false
 
-    override fun hasBytesAvailable() = !source.exhausted()
+    override fun hasBytesAvailable() = !isFinished
+
+    private val isFinished
+        get() = when (streamStatus) {
+            NSStreamStatusClosed, NSStreamStatusError -> true
+            else -> false
+        }
 
     override fun propertyForKey(key: NSStreamPropertyKey): Any? = null
 
     override fun setProperty(property: Any?, forKey: NSStreamPropertyKey) = false
 
-    private var _delegate = WeakReference<NSStreamDelegateProtocol>(this)
+    // WeakReference as delegate should not be retained
+    // https://developer.apple.com/documentation/foundation/nsstream/1418423-delegate
+    private var _delegate: WeakReference<NSStreamDelegateProtocol>? = null
     private var runLoop: NSRunLoop? = null
     private var runLoopModes = listOf<NSRunLoopMode>()
 
@@ -101,38 +105,35 @@ private class SourceNSInputStream(
         val runLoop = runLoop ?: return
         runLoop.performInModes(runLoopModes) {
             if (runLoop == this.runLoop) {
-                delegate?.stream(this, event)
+                delegateOrSelf.stream(this, event)
             }
         }
     }
 
-    private fun checkBytes(sendEndEvent: Boolean = true) {
+    private fun checkBytes() {
         val runLoop = runLoop ?: return
         runLoop.performInModes(runLoopModes) {
-            if (runLoop != this.runLoop) return@performInModes
+            if (runLoop != this.runLoop || isFinished) return@performInModes
             try {
-                if (source.exhausted()) {
-                    if (sendEndEvent) delegate?.stream(this, NSStreamEventEndEncountered)
-                    val timer = NSTimer.timerWithTimeInterval(0.1, false) {
-                        checkBytes(sendEndEvent = false)
-                    }
-                    runLoopModes.forEach { mode ->
-                        runLoop.addTimer(timer, mode)
-                    }
+                val event = if (source.exhausted()) {
+                    status = NSStreamStatusAtEnd
+                    NSStreamEventEndEncountered
                 } else {
-                    status = NSStreamStatusOpen
-                    delegate?.stream(this, NSStreamEventHasBytesAvailable)
+                    NSStreamEventHasBytesAvailable
                 }
+                delegateOrSelf.stream(this, event)
             } catch (e: IllegalStateException) {
                 // ignore closed
             }
         }
     }
 
-    override fun delegate() = _delegate.value
+    override fun delegate() = _delegate?.value
+
+    private val delegateOrSelf get() = delegate ?: this
 
     override fun setDelegate(delegate: NSStreamDelegateProtocol?) {
-        _delegate = WeakReference(delegate ?: this)
+        _delegate = delegate?.let { WeakReference(it) }
     }
 
     override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {

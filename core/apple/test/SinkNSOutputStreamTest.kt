@@ -74,8 +74,7 @@ class SinkNSOutputStreamTest {
             val cPtr = it.addressOf(0).reinterpret<uint8_tVar>()
 
             assertEquals(-1, out.write(cPtr, 4U))
-            assertNotNull(out.streamError)
-            assertEquals("Underlying sink is closed.", out.streamError?.localizedDescription)
+            assertNull(out.streamError)
             assertTrue(sink.buffer.readByteArray().isEmpty())
         }
     }
@@ -85,7 +84,6 @@ class SinkNSOutputStreamTest {
         val runLoop = startRunLoop()
 
         fun produceWithDelegate(out: NSOutputStream, data: String) {
-            println("produceWithDelegate(${out::class}, $data)")
             val opened = Mutex(true)
             val written = atomic(0)
             val completed = Mutex(true)
@@ -93,7 +91,6 @@ class SinkNSOutputStreamTest {
             out.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 val source = data.encodeToByteArray()
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
-                    println("${out::class} $data event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                     assertEquals("run-loop", NSThread.currentThread.name)
                     when (handleEvent) {
                         NSStreamEventOpenCompleted -> opened.unlock()
@@ -112,6 +109,7 @@ class SinkNSOutputStreamTest {
                             out.close()
                             completed.unlock()
                         }
+                        else -> fail("unexpected event ${handleEvent.asString()}")
                     }
                 }
             }
@@ -124,9 +122,7 @@ class SinkNSOutputStreamTest {
             assertEquals(data.length, written.value)
         }
 
-        produceWithDelegate(NSOutputStream.outputStreamToMemory(), "default")
         produceWithDelegate(Buffer().asNSOutputStream(), "custom")
-        produceWithDelegate(NSOutputStream.outputStreamToMemory(), "")
         produceWithDelegate(Buffer().asNSOutputStream(), "")
         CFRunLoopStop(runLoop.getCFRunLoop())
     }
@@ -136,16 +132,15 @@ class SinkNSOutputStreamTest {
         val runLoop = startRunLoop()
 
         fun subscribeAfterOpen(out: NSOutputStream) {
-            println("subscribeAfterOpen(${out::class})")
             val available = Mutex(true)
 
             out.delegate = object : NSObject(), NSStreamDelegateProtocol {
                 override fun stream(aStream: NSStream, handleEvent: NSStreamEvent) {
-                    println("${out::class} event = ${handleEvent.asString()} (${NSThread.currentThread.name})")
                     assertEquals("run-loop", NSThread.currentThread.name)
                     when (handleEvent) {
                         NSStreamEventOpenCompleted -> fail("opened before subscribe")
                         NSStreamEventHasSpaceAvailable -> available.unlock()
+                        else -> fail("unexpected event ${handleEvent.asString()}")
                     }
                 }
             }
@@ -157,7 +152,6 @@ class SinkNSOutputStreamTest {
             out.close()
         }
 
-        subscribeAfterOpen(NSOutputStream.outputStreamToMemory())
         subscribeAfterOpen(Buffer().asNSOutputStream())
         CFRunLoopStop(runLoop.getCFRunLoop())
     }
