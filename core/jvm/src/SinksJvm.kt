@@ -82,7 +82,7 @@ public fun Sink.asOutputStream(): OutputStream {
 
         override fun close() = this@asOutputStream.close()
 
-        override fun toString() = "${this@asOutputStream}.outputStream()"
+        override fun toString() = "${this@asOutputStream}.asOutputStream()"
     }
 }
 
