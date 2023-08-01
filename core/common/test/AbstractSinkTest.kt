@@ -450,6 +450,34 @@ abstract class AbstractSinkTest internal constructor(
     }
 
     @Test
+    fun writeFloat() {
+        sink.writeFloat(12345.678F)
+        sink.flush()
+        assertEquals(12345.678F.toBits(), data.readInt())
+    }
+
+    @Test
+    fun writeFloatLe() {
+        sink.writeFloatLe(12345.678F)
+        sink.flush()
+        assertEquals(12345.678F.toBits(), data.readIntLe())
+    }
+
+    @Test
+    fun writeDouble() {
+        sink.writeDouble(123456.78901)
+        sink.flush()
+        assertEquals(123456.78901.toBits(), data.readLong())
+    }
+
+    @Test
+    fun writeDoubleLe() {
+        sink.writeDoubleLe(123456.78901)
+        sink.flush()
+        assertEquals(123456.78901.toBits(), data.readLongLe())
+    }
+
+    @Test
     fun writeByteString() {
         sink.write("təˈranəˌsôr".encodeToByteString())
         sink.flush()

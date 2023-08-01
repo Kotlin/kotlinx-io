@@ -358,6 +358,58 @@ public fun Source.readUIntLe(): UInt = readIntLe().toUInt()
 public fun Source.readULongLe(): ULong = readLongLe().toULong()
 
 /**
+ * Removes four bytes from this source and returns a floating point number with type [Float] composed of it
+ * according to the big-endian order.
+ *
+ * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * @throws EOFException when there are not enough data to read an unsigned int value.
+ * @throws IllegalStateException when the source is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloat
+ */
+public fun Source.readFloat(): Float = Float.fromBits(readInt())
+
+/**
+ * Removes eight bytes from this source and returns a floating point number with type [Double] composed of it
+ * according to the big-endian order.
+ *
+ * The [Double.Companion.fromBits] function is used for decoding bytes into [Double].
+ *
+ * @throws EOFException when there are not enough data to read an unsigned int value.
+ * @throws IllegalStateException when the source is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDouble
+ */
+public fun Source.readDouble(): Double = Double.fromBits(readLong())
+
+/**
+ * Removes four bytes from this source and returns a floating point number with type [Float] composed of it
+ * according to the little-endian order.
+ *
+ * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * @throws EOFException when there are not enough data to read an unsigned int value.
+ * @throws IllegalStateException when the source is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatLe
+ */
+public fun Source.readFloatLe(): Float = Float.fromBits(readIntLe())
+
+/**
+ * Removes eight bytes from this source and returns a floating point number with type [Double] composed of it
+ * according to the little-endian order.
+ *
+ * The [Double.Companion.fromBits] function is used for decoding bytes into [Double].
+ *
+ * @throws EOFException when there are not enough data to read an unsigned int value.
+ * @throws IllegalStateException when the source is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleLe
+ */
+public fun Source.readDoubleLe(): Double = Double.fromBits(readLongLe())
+
+/**
  * Return `true` if the next byte to be consumed from this source is equal to [byte].
  * Otherwise, return `false` as well as when the source is exhausted.
  *

@@ -489,6 +489,21 @@ class KotlinxIoCoreCommonSamples {
     }
 
     @Test
+    fun readFloat() {
+        val buffer = Buffer()
+        buffer.write(byteArrayOf(70, 64, -26, -74))
+        assertEquals(12345.678F.toBits(), buffer.readFloat().toBits())
+    }
+
+    @Test
+    fun readDouble() {
+        val buffer = Buffer()
+        buffer.write(byteArrayOf(64, -2, 36, 12, -97, -56, -13, 35))
+
+        assertEquals(123456.78901, buffer.readDouble())
+    }
+
+    @Test
     fun writeUByte() {
         val buffer = Buffer()
         buffer.writeUByte(255U)
@@ -518,6 +533,22 @@ class KotlinxIoCoreCommonSamples {
         buffer.writeULong(18446744073709551615UL)
 
         assertContentEquals(byteArrayOf(-1, -1, -1, -1, -1, -1, -1, -1), buffer.readByteArray())
+    }
+
+    @Test
+    fun writeFloat() {
+        val buffer = Buffer()
+        buffer.writeFloat(12345.678F)
+
+        assertContentEquals(byteArrayOf(70, 64, -26, -74), buffer.readByteArray())
+    }
+
+    @Test
+    fun writeDouble() {
+        val buffer = Buffer()
+        buffer.writeDouble(123456.78901)
+
+        assertContentEquals(byteArrayOf(64, -2, 36, 12, -97, -56, -13, 35), buffer.readByteArray())
     }
 
     @Test
@@ -651,6 +682,20 @@ class KotlinxIoCoreCommonSamples {
     }
 
     @Test
+    fun readFloatLe() {
+        val buffer = Buffer()
+        buffer.write(byteArrayOf(-74, -26, 64, 70))
+        assertEquals(12345.678F.toBits(), buffer.readFloatLe().toBits())
+    }
+
+    @Test
+    fun readDoubleLe() {
+        val buffer = Buffer()
+        buffer.write(byteArrayOf(35, -13, -56, -97, 12, 36, -2, 64))
+        assertEquals(123456.78901, buffer.readDoubleLe())
+    }
+
+    @Test
     fun writeUShortLe() {
         val buffer = Buffer()
         buffer.writeUShortLe(0x1234U)
@@ -669,5 +714,21 @@ class KotlinxIoCoreCommonSamples {
         val buffer = Buffer()
         buffer.writeULongLe(0x123456789ABCDEF0U)
         assertEquals(0xF0DEBC9A78563412U, buffer.readULong())
+    }
+
+    @Test
+    fun writeFloatLe() {
+        val buffer = Buffer()
+        buffer.writeFloatLe(12345.678F)
+
+        assertContentEquals(byteArrayOf(-74, -26, 64, 70), buffer.readByteArray())
+    }
+
+    @Test
+    fun writeDoubleLe() {
+        val buffer = Buffer()
+        buffer.writeDoubleLe(123456.78901)
+
+        assertContentEquals(byteArrayOf(35, -13, -56, -97, 12, 36, -2, 64), buffer.readByteArray())
     }
 }

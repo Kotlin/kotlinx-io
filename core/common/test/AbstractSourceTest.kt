@@ -1465,6 +1465,70 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
 
     @Test
+    fun readFloat() {
+        sink.write(byteArrayOf(70, 64, -26, -74))
+        sink.flush()
+        assertEquals(12345.678F.toBits(), source.readFloat().toBits())
+    }
+
+    @Test
+    fun readDouble() {
+        sink.write(byteArrayOf(64, -2, 36, 12, -97, -56, -13, 35))
+        sink.flush()
+        assertEquals(123456.78901, source.readDouble())
+    }
+
+    @Test
+    fun readFloatLe() {
+        sink.write(byteArrayOf(-74, -26, 64, 70))
+        sink.flush()
+        assertEquals(12345.678F.toBits(), source.readFloatLe().toBits())
+    }
+
+    @Test
+    fun readDoubleLe() {
+        sink.write(byteArrayOf(35, -13, -56, -97, 12, 36, -2, 64))
+        sink.flush()
+        assertEquals(123456.78901, source.readDoubleLe())
+    }
+
+    @Test
+    fun readTooShortFloatThrows() {
+        assertFailsWith<EOFException> { source.readFloat() }
+        sink.writeByte(0)
+        sink.flush()
+        assertFailsWith<EOFException> { source.readFloat() }
+        assertTrue(source.request(1))
+    }
+
+    @Test
+    fun readTooShortDoubleThrows() {
+        assertFailsWith<EOFException> { source.readDouble() }
+        sink.writeByte(0)
+        sink.flush()
+        assertFailsWith<EOFException> { source.readDouble() }
+        assertTrue(source.request(1))
+    }
+
+    @Test
+    fun readTooShortFloatLeThrows() {
+        assertFailsWith<EOFException> { source.readFloatLe() }
+        sink.writeByte(0)
+        sink.flush()
+        assertFailsWith<EOFException> { source.readFloatLe() }
+        assertTrue(source.request(1))
+    }
+
+    @Test
+    fun readTooShortDoubleLeThrows() {
+        assertFailsWith<EOFException> { source.readDoubleLe() }
+        sink.writeByte(0)
+        sink.flush()
+        assertFailsWith<EOFException> { source.readDoubleLe() }
+        assertTrue(source.request(1))
+    }
+
+    @Test
     fun readTooShortUnsignedIntThrows() {
         assertFailsWith<EOFException> { source.readUInt() }
         sink.writeByte(0)
