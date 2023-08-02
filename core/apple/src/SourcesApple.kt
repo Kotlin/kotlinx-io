@@ -72,7 +72,7 @@ private class SourceNSInputStream(
             }
             val toRead = minOf(maxLength.toLong(), source.buffer.size, Int.MAX_VALUE.toLong()).toInt()
             val read = source.buffer.readAtMostTo(buffer, toRead).convert<NSInteger>()
-            status = NSStreamStatusOpen
+            status = if (source.exhausted()) NSStreamStatusAtEnd else NSStreamStatusOpen
             checkBytes()
             return read
         } catch (e: Exception) {
