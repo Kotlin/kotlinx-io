@@ -36,13 +36,13 @@ abstract class IndexOfByteBenchmarkBase {
 }
 
 @State(Scope.Benchmark)
-open class IndexOfByteBenchmark: IndexOfByteBenchmarkBase() {
+open class IndexOfByteBenchmark : IndexOfByteBenchmarkBase() {
     @Benchmark
     fun benchmark() = byteString.indexOf(TARGET_BYTE)
 }
 
 @State(Scope.Benchmark)
-open class LastIndexOfByteBenchmark: IndexOfByteBenchmarkBase() {
+open class LastIndexOfByteBenchmark : IndexOfByteBenchmarkBase() {
     @Benchmark
     fun benchmark() = byteString.lastIndexOf(TARGET_BYTE)
 }
@@ -80,13 +80,13 @@ abstract class IndexOfByteStringBase {
 }
 
 @State(Scope.Benchmark)
-open class IndexOfByteStringBenchmark: IndexOfByteStringBase() {
+open class IndexOfByteStringBenchmark : IndexOfByteStringBase() {
     @Benchmark
     fun benchmark() = byteString.indexOf(targetByteString)
 }
 
 @State(Scope.Benchmark)
-open class LastIndexOfByteStringBenchmark: IndexOfByteStringBase() {
+open class LastIndexOfByteStringBenchmark : IndexOfByteStringBase() {
     @Benchmark
     fun benchmark() = byteString.lastIndexOf(targetByteString)
 }
@@ -124,13 +124,13 @@ abstract class IndexOfByteStringWithRepeatedMismatchBase {
 }
 
 @State(Scope.Benchmark)
-open class IndexOfByteStringWithRepeatedMismatch: IndexOfByteStringWithRepeatedMismatchBase() {
+open class IndexOfByteStringWithRepeatedMismatch : IndexOfByteStringWithRepeatedMismatchBase() {
     @Benchmark
     fun benchmark() = byteString.indexOf(targetByteString)
 }
 
 @State(Scope.Benchmark)
-open class LastIndexOfByteStringWithRepeatedMismatch: IndexOfByteStringWithRepeatedMismatchBase() {
+open class LastIndexOfByteStringWithRepeatedMismatch : IndexOfByteStringWithRepeatedMismatchBase() {
     @Benchmark
     fun benchmark() = byteString.lastIndexOf(targetByteString)
 }
@@ -166,7 +166,7 @@ abstract class StartsWithBenchmarkBase {
 }
 
 @State(Scope.Benchmark)
-open class StartsWithBenchmark: StartsWithBenchmarkBase() {
+open class StartsWithBenchmark : StartsWithBenchmarkBase() {
     @Param("128:8:-1", "128:8:0", "128:8:7")
     var params: String = "<string length>:<prefix/suffix length>:<mismatch offset, or -1>"
 
@@ -177,7 +177,7 @@ open class StartsWithBenchmark: StartsWithBenchmarkBase() {
 }
 
 @State(Scope.Benchmark)
-open class EndsWithBenchmark: StartsWithBenchmarkBase() {
+open class EndsWithBenchmark : StartsWithBenchmarkBase() {
     @Param("128:8:-1", "128:8:127", "128:8:120")
     var params: String = "<string length>:<prefix/suffix length>:<mismatch offset, or -1>"
 
