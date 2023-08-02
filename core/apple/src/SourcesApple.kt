@@ -37,7 +37,6 @@ private class SourceNSInputStream(
         set(value) {
             status = NSStreamStatusError
             field = value
-            postEvent(NSStreamEventErrorOccurred)
             source.close()
         }
 
@@ -77,6 +76,7 @@ private class SourceNSInputStream(
             return read
         } catch (e: Exception) {
             error = e.toNSError()
+            postEvent(NSStreamEventErrorOccurred)
             return -1
         }
     }
@@ -114,17 +114,18 @@ private class SourceNSInputStream(
         val runLoop = runLoop ?: return
         runLoop.performInModes(runLoopModes) {
             if (runLoop != this.runLoop || isFinished) return@performInModes
-            try {
-                val event = if (source.exhausted()) {
+            val event = try {
+                if (source.exhausted()) {
                     status = NSStreamStatusAtEnd
                     NSStreamEventEndEncountered
                 } else {
                     NSStreamEventHasBytesAvailable
                 }
-                delegateOrSelf.stream(this, event)
-            } catch (e: IllegalStateException) {
-                // ignore closed
+            } catch (e: Exception) {
+                error = e.toNSError()
+                NSStreamEventErrorOccurred
             }
+            delegateOrSelf.stream(this, event)
         }
     }
 
