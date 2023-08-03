@@ -4,7 +4,7 @@ java = "8"
 dokka = "1.8.20"
 kover = "0.7.1"
 bcv = "0.13.2"
-benchmark = "0.4.8"
+benchmark = "0.4.9"
 jmh = "1.36"
 
 [libraries]
