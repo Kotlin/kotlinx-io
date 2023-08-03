@@ -19,11 +19,6 @@ kotlin {
             languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
         }
     }
-    // TODO: consider supporting non-host native targets.
-    if (HostManager.host === KonanTarget.MACOS_X64) macosX64("native")
-    if (HostManager.host === KonanTarget.MACOS_ARM64) macosArm64("native")
-    if (HostManager.hostIsLinux) linuxX64("native")
-    if (HostManager.hostIsMingw) mingwX64("native")
 
     sourceSets {
         commonMain {
@@ -36,9 +31,23 @@ kotlin {
         named("jvmMain") {
             dependsOn(commonMain.get())
         }
+    }
+}
 
-        named("nativeMain") {
-            dependsOn(commonMain.get())
+val nativeBenchmarksEnabled: String by project.parent!!
+
+if (nativeBenchmarksEnabled.toBoolean()) {
+    kotlin {
+        // TODO: consider supporting non-host native targets.
+        if (HostManager.host === KonanTarget.MACOS_X64) macosX64("native")
+        if (HostManager.host === KonanTarget.MACOS_ARM64) macosArm64("native")
+        if (HostManager.hostIsLinux) linuxX64("native")
+        if (HostManager.hostIsMingw) mingwX64("native")
+
+        sourceSets {
+            named("nativeMain") {
+                dependsOn(commonMain.get())
+            }
         }
     }
 }
@@ -49,6 +58,8 @@ benchmark {
             this as JvmBenchmarkTarget
             jmhVersion = libs.versions.jmh.get()
         }
-        register("native")
+        if (nativeBenchmarksEnabled.toBoolean()) {
+            register("native")
+        }
     }
 }
