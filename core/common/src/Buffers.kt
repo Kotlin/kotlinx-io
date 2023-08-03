@@ -49,13 +49,13 @@ public fun Buffer.indexOf(byte: Byte, startIndex: Long = 0, endIndex: Long = siz
     checkBounds(size, startIndex, endOffset)
     if (startIndex == endOffset) return -1L
 
-    var segment = head!!
-    var offset = 0
-    do {
-        if (offset + segment.size <= startIndex) {
-            offset += segment.size
-            segment = segment.next!!
-        } else {
+    seek(startIndex) { seg, o ->
+        if (o == -1L) {
+            return -1L
+        }
+        var segment = seg!!
+        var offset = o
+        do {
             val idx = segment.indexOf(
                 byte,
                 maxOf((startIndex - offset).toInt(), 0),
@@ -66,7 +66,7 @@ public fun Buffer.indexOf(byte: Byte, startIndex: Long = 0, endIndex: Long = siz
             }
             offset += segment.size
             segment = segment.next!!
-        }
-    } while (segment !== head && offset < minOf(size, endOffset))
-    return -1L
+        } while (segment !== head && offset < minOf(size, endOffset))
+        return -1L
+    }
 }
