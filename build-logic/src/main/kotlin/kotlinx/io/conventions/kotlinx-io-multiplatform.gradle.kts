@@ -30,9 +30,9 @@ kotlin {
 
     js(IR) {
         browser {
-            testTask {
+            testTask(Action {
                 filter.setExcludePatterns("*SmokeFileTest*")
-            }
+            })
         }
     }
 
