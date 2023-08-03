@@ -15,18 +15,18 @@ plugins {
 kotlin {
     js(IR) {
         nodejs {
-            testTask {
+            testTask(Action {
                 useMocha {
                     timeout = "300s"
                 }
-            }
+            })
         }
         browser {
-            testTask {
+            testTask(Action {
                 useMocha {
                     timeout = "300s"
                 }
-            }
+            })
         }
     }
 

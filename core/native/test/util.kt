@@ -2,20 +2,25 @@
  * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
+
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package kotlinx.io
 
-import kotlinx.cinterop.*
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.toKString
 import platform.posix.*
 import kotlin.random.Random
-import kotlin.system.getTimeMillis
 
+@OptIn(UnsafeNumber::class)
 actual fun createTempFile(): String {
     val template = "tmp-XXXXXX"
     val path = mktemp(template.cstr) ?: throw IOException("Filed to create temp file: ${strerror(errno)}")
     // mktemp don't work on MacOS 13+ (as well as mkstemp), at least the way it's expected.
     if (path.toKString() == "") {
         val tmpDir = getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: ""
-        val rnd = Random(getTimeMillis())
+        val rnd = Random(time(null))
         var manuallyConstructedPath: String
         do {
             manuallyConstructedPath = "$tmpDir/tmp-${rnd.nextInt()}"
