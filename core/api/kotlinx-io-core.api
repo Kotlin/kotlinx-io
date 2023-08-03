@@ -48,6 +48,8 @@ public final class kotlinx/io/BuffersJvmKt {
 }
 
 public final class kotlinx/io/BuffersKt {
+	public static final fun indexOf (Lkotlinx/io/Buffer;BJJ)J
+	public static synthetic fun indexOf$default (Lkotlinx/io/Buffer;BJJILjava/lang/Object;)J
 	public static final fun snapshot (Lkotlinx/io/Buffer;)Lkotlinx/io/bytestring/ByteString;
 }
 
