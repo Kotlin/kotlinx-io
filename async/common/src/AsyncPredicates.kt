@@ -18,7 +18,7 @@ public interface AwaitPredicate {
 
         public fun dataAvailable(bytesCount: Long): AwaitPredicate {
             if (bytesCount.countOneBits() == 1) {
-                val offset = bytesCount.countLeadingZeroBits()
+                val offset = bytesCount.countTrailingZeroBits()
                 if (offset < dataAvailablePredicates.size) {
                     return dataAvailablePredicates[offset].value
                 }
@@ -87,7 +87,7 @@ private class ByteValuePredicate(
                 return true
             }
             startOffset = buffer.size
-        } while (maxLookAhead <= startOffset && fetchMore())
+        } while (maxLookAhead > startOffset && fetchMore())
         return false
     }
 }
@@ -104,7 +104,7 @@ private class SubstringPredicate(
                 return true
             }
             startOffset = buffer.size
-        } while (maxLookAhead < startOffset && fetchMore())
+        } while (maxLookAhead > startOffset && fetchMore())
         return false
     }
 }

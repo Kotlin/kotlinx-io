@@ -20,6 +20,11 @@ kotlin {
                 implementation(libs.kotlinx.coroutines)
             }
         }
+        commonTest {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
     }
 }
 

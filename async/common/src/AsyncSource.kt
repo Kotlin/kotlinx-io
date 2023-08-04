@@ -6,7 +6,7 @@
 package kotlinx.io.async
 
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.ensureActive
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 
@@ -22,11 +22,10 @@ public class AsyncSource(private val source: AsyncRawSource) : AsyncRawSource {
     }
 
     public suspend fun tryAwait(until: AwaitPredicate): Boolean {
-        if (!currentCoroutineContext().isActive) {
-            return false
-        }
+        currentCoroutineContext().ensureActive()
         return until.apply(buffer) {
-            currentCoroutineContext().isActive && source.readAtMostTo(buffer, SEGMENT_SIZE) >= 0
+            currentCoroutineContext().ensureActive()
+            source.readAtMostTo(buffer, SEGMENT_SIZE) >= 0
         }
     }
 
