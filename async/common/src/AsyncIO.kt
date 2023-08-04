@@ -12,6 +12,10 @@ import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 import kotlin.coroutines.CoroutineContext
 
+public fun AsyncRawSink.buffered(): AsyncSink = AsyncSink(this)
+
+public fun AsyncRawSource.buffered(): AsyncSource = AsyncSource(this)
+
 public suspend fun AsyncRawSink.use(block: suspend (AsyncRawSink) -> Unit) {
     block(this)
     close()
@@ -44,9 +48,9 @@ public fun AsyncRawSink.asBlocking(): RawSink {
 
 public fun RawSink.asAsync(ctx: CoroutineContext = Dispatchers.Default): AsyncRawSink {
     return object : AsyncRawSink {
-        override suspend fun write(buffer: Buffer, bytesCount: Long) {
+        override suspend fun write(source: Buffer, byteCount: Long) {
             withContext(ctx) {
-                this@asAsync.write(buffer, bytesCount)
+                this@asAsync.write(source, byteCount)
             }
         }
 
@@ -84,9 +88,9 @@ public fun AsyncRawSource.asBlocking(): RawSource {
 
 public fun RawSource.asAsync(ctx: CoroutineContext = Dispatchers.Default): AsyncRawSource {
     return object : AsyncRawSource {
-        override suspend fun readAtMostTo(buffer: Buffer, bytesCount: Long): Long {
+        override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
             return withContext(ctx) {
-                readAtMostTo(buffer, bytesCount)
+                readAtMostTo(sink, byteCount)
             }
         }
 

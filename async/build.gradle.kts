@@ -32,6 +32,6 @@ tasks.withType<DokkaTaskPartial>().configureEach {
     dokkaSourceSets.configureEach {
         includes.from("Module.md")
 
-        samples.from("common/test/samples/samples.kt")
+        samples.from(project.fileTree("common/test/samples/"))
     }
 }

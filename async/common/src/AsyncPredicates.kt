@@ -9,8 +9,34 @@ import kotlinx.io.Buffer
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.indexOf
 
-
+/**
+ * An interface representing a condition that should be met to return
+ * from [AsyncSource.await] or [AsyncSource.tryAwait].
+ *
+ * The predicate receives the [AsyncSource.buffer] and a callback to fetch more data from [AsyncSource]'s
+ * underlying source.
+ *
+ * AwaitPredicate implementations should abstain from modifying the buffer as it may not be expected by
+ * users supplying a predicate to await data from an [AsyncSource].
+ *
+ * @sample kotlinx.io.async.samples.KotlinxIOAsyncPredicateSample.predicateSample
+ */
 public interface AwaitPredicate {
+    /**
+     * Returns `true` if data within [buffer] met a criterion represented by a particular [AwaitPredicate] instance.
+     * If the buffer does not contain enough data to satisfy the criterion, the predicate may call
+     * potentially suspending [fetchMore] that will try to fetch more data into the [buffer].
+     * A value returned by the [fetchMore] indicate if a source exhausted (in case of `true`)
+     * or not (in case if `false`).
+     *
+     * Implementations performing long-running computations are responsible for ensuring that the coroutine
+     * was not canceled.
+     *
+     * @param buffer the buffer whose data should be checked for meeting some criterion.
+     * @param fetchMore the callback to fetch more data into the [buffer].
+     *
+     * @throws kotlinx.coroutines.CancellationException if a coroutine executing this method was canceled.
+     */
     public suspend fun apply(buffer: Buffer, fetchMore: suspend () -> Boolean): Boolean
 
     public companion object {

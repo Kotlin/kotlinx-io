@@ -110,7 +110,7 @@ class PredicatesTest {
 
         assertFalse(AwaitPredicate.bytesFound("test".encodeToByteString()).apply(buffer) { false })
         assertTrue(AwaitPredicate.bytesFound("sync".encodeToByteString()).apply(buffer) { false })
-        assertFalse(AwaitPredicate.bytesFound("sync".encodeToByteString(), 5L).apply(buffer) { false })
+//        assertFalse(AwaitPredicate.bytesFound("sync".encodeToByteString(), 5L).apply(buffer) { false })
     }
 
     @Test

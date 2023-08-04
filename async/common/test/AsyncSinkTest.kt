@@ -17,9 +17,9 @@ private class StateCapturingSink : AsyncRawSink {
     public var flushed = false
     public var bytesWritten: Long = 0
 
-    override suspend fun write(buffer: Buffer, bytesCount: Long) {
-        buffer.skip(bytesCount)
-        bytesWritten += bytesCount
+    override suspend fun write(source: Buffer, byteCount: Long) {
+        source.skip(byteCount)
+        bytesWritten += byteCount
     }
 
     override suspend fun flush() {

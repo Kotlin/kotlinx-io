@@ -18,10 +18,10 @@ import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
 
 private class StringSource(private val data: String) : AsyncRawSource {
-    override suspend fun readAtMostTo(buffer: Buffer, bytesCount: Long): Long {
-        return if (buffer.exhausted()) {
-            buffer.writeString(data)
-            buffer.size
+    override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        return if (sink.exhausted()) {
+            sink.writeString(data)
+            sink.size
         } else {
             -1L
         }
@@ -31,13 +31,13 @@ private class StringSource(private val data: String) : AsyncRawSource {
 }
 
 private class InfiniteSource : AsyncRawSource {
-    override suspend fun readAtMostTo(buffer: Buffer, bytesCount: Long): Long = 0L
+    override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long = 0L
     override fun close() = Unit
 }
 
 private class BufferBackedSource(private val buffer: Buffer) : AsyncRawSource {
-    override suspend fun readAtMostTo(buffer: Buffer, bytesCount: Long): Long {
-        return this.buffer.readAtMostTo(buffer, bytesCount)
+    override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        return this.buffer.readAtMostTo(sink, byteCount)
     }
 
     override fun close() = Unit
@@ -109,7 +109,7 @@ class AsyncSourceTest {
     fun testClose() {
         var closed = false
         val source = AsyncSource(object : AsyncRawSource {
-            override suspend fun readAtMostTo(buffer: Buffer, bytesCount: Long): Long = -1L
+            override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long = -1L
             override fun close() {
                 closed = true
             }
