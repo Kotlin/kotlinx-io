@@ -276,6 +276,78 @@ public fun Sink.writeULongLe(long: ULong) {
 }
 
 /**
+ * Writes four bytes of a bit representation of [float], in the big-endian order, to this sink.
+ * Bit representation of the [float] corresponds to the IEEE 754 floating-point "single format" bit layout.
+ *
+ * To obtain a bit representation, the [Float.toBits] function is used.
+ *
+ * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Float.NaN] may vary depending on a platform.
+ *
+ * @param float the floating point number to be written.
+ *
+ * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeFloat
+ */
+public fun Sink.writeFloat(float: Float) {
+    writeInt(float.toBits())
+}
+
+/**
+ * Writes eight bytes of a bit representation of [double], in the big-endian order, to this sink.
+ * Bit representation of the [double] corresponds to the IEEE 754 floating-point "double format" bit layout.
+ *
+ * To obtain a bit representation, the [Double.toBits] function is used.
+ *
+ * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Double.NaN] may vary depending on a platform.
+ *
+ * @param double the floating point number to be written.
+ *
+ * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDouble
+ */
+public fun Sink.writeDouble(double: Double) {
+    writeLong(double.toBits())
+}
+
+/**
+ * Writes four bytes of a bit representation of [float], in the little-endian order, to this sink.
+ * Bit representation of the [float] corresponds to the IEEE 754 floating-point "single format" bit layout.
+ *
+ * To obtain a bit representation, the [Float.toBits] function is used.
+ *
+ * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Float.NaN] may vary depending on a platform.
+ *
+ * @param float the floating point number to be written.
+ *
+ * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeFloatLe
+ */
+public fun Sink.writeFloatLe(float: Float) {
+    writeIntLe(float.toBits())
+}
+
+/**
+ * Writes eight bytes of a bit representation of [double], in the little-endian order, to this sink.
+ * Bit representation of the [double] corresponds to the IEEE 754 floating-point "double format" bit layout.
+ *
+ * To obtain a bit representation, the [Double.toBits] function is used.
+ *
+ * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Double.NaN] may vary depending on a platform.
+ *
+ * @param double the floating point number to be written.
+ *
+ * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDoubleLe
+ */
+public fun Sink.writeDoubleLe(double: Double) {
+    writeLongLe(double.toBits())
+}
+
+/**
  * Provides direct access to the sink's internal buffer and hints its emit before exit.
  *
  * The internal buffer is passed into [lambda],
