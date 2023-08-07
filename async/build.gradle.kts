@@ -5,11 +5,23 @@
 
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
+buildscript {
+    dependencies {
+        classpath(libs.kotlinx.atomicfu.plugin)
+    }
+}
+
 plugins {
     id("kotlinx-io-multiplatform")
     id("kotlinx-io-publish")
     alias(libs.plugins.kover)
     alias(libs.plugins.dokka)
+}
+
+apply(plugin = "kotlinx-atomicfu")
+dependencies {
+    testImplementation(project(mapOf("path" to ":kotlinx-io-core")))
+    testImplementation(project(mapOf("path" to ":kotlinx-io-core")))
 }
 
 kotlin {

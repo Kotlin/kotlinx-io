@@ -8,6 +8,7 @@ benchmark = "0.4.9"
 jmh = "1.36"
 coroutines = "1.7.3"
 animalsniffer = "1.7.1"
+atomicfu = "0.21.0"
 
 [libraries]
 
@@ -15,6 +16,7 @@ kotlinx-benchmark-runtime = { group = "org.jetbrains.kotlinx", name = "kotlinx-b
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-atomicfu-plugin = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "atomicfu" }
 animalsniffer-gradle-plugin = { group = "ru.vyarus", name = "gradle-animalsniffer-plugin", version.ref = "animalsniffer" }
 
 [plugins]

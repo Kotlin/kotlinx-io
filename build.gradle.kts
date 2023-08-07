@@ -7,6 +7,12 @@ import kotlinx.kover.gradle.plugin.dsl.MetricType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
+buildscript {
+    dependencies {
+        classpath(libs.kotlinx.atomicfu.plugin)
+    }
+}
+
 plugins {
     id("kotlinx-io-publish") apply false
 
