@@ -281,6 +281,8 @@ public fun Sink.writeULongLe(long: ULong) {
  *
  * To obtain a bit representation, the [Float.toBits] function is used.
  *
+ * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Float.NaN] may vary depending on a platform.
+ *
  * @param float the floating point number to be written.
  *
  * @throws IllegalStateException when the sink is closed.
@@ -296,6 +298,8 @@ public fun Sink.writeFloat(float: Float) {
  * Bit representation of the [double] corresponds to the IEEE 754 floating-point "double format" bit layout.
  *
  * To obtain a bit representation, the [Double.toBits] function is used.
+ *
+ * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Double.NaN] may vary depending on a platform.
  *
  * @param double the floating point number to be written.
  *
@@ -313,6 +317,8 @@ public fun Sink.writeDouble(double: Double) {
  *
  * To obtain a bit representation, the [Float.toBits] function is used.
  *
+ * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Float.NaN] may vary depending on a platform.
+ *
  * @param float the floating point number to be written.
  *
  * @throws IllegalStateException when the sink is closed.
@@ -328,6 +334,8 @@ public fun Sink.writeFloatLe(float: Float) {
  * Bit representation of the [double] corresponds to the IEEE 754 floating-point "double format" bit layout.
  *
  * To obtain a bit representation, the [Double.toBits] function is used.
+ *
+ * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Double.NaN] may vary depending on a platform.
  *
  * @param double the floating point number to be written.
  *
