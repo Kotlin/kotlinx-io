@@ -185,6 +185,9 @@ internal class Segment {
         pos += byteCount
     }
 
+    val size: Int
+        get() = limit - pos
+
     companion object {
         /** The size of all segments in bytes.  */
         const val SIZE = 8192
@@ -192,4 +195,18 @@ internal class Segment {
         /** Segments will be shared when doing so avoids `arraycopy()` of this many bytes.  */
         const val SHARE_MINIMUM = 1024
     }
+}
+
+internal fun Segment.indexOf(byte: Byte, startOffset: Int, endOffset: Int): Int {
+    require(startOffset in 0 until size) {
+        "$startOffset"
+    }
+    require(endOffset in startOffset..size) { "$endOffset" }
+    val p = pos
+    for (idx in startOffset until endOffset) {
+        if (data[p + idx] == byte) {
+            return idx
+        }
+    }
+    return -1
 }

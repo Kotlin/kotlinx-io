@@ -181,6 +181,7 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.indexOfByteSample
  */
+@OptIn(InternalIoApi::class)
 public fun Source.indexOf(byte: Byte, startIndex: Long = 0L, endIndex: Long = Long.MAX_VALUE): Long {
     require(startIndex in 0..endIndex) {
         if (endIndex < 0) {
@@ -192,15 +193,12 @@ public fun Source.indexOf(byte: Byte, startIndex: Long = 0L, endIndex: Long = Lo
     if (startIndex == endIndex) return -1L
 
     var offset = startIndex
-    val peekSource = peek()
-
-    if (!peekSource.request(offset)) {
-        return -1L
-    }
-    peekSource.skip(offset)
-    while (offset < endIndex && peekSource.request(1)) {
-        if (peekSource.readByte() == byte) return offset
-        offset++
+    while (offset < endIndex && request(offset + 1)) {
+        val idx = buffer.indexOf(byte, offset, minOf(endIndex, buffer.size))
+        if (idx != -1L) {
+            return idx
+        }
+        offset = buffer.size
     }
     return -1L
 }

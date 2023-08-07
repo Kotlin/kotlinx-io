@@ -648,7 +648,7 @@ public class Buffer : Source, Sink {
  * Invoke `lambda` with the segment and offset at `fromIndex`. Searches from the front or the back
  * depending on what's closer to `fromIndex`.
  */
-private inline fun <T> Buffer.seek(
+internal inline fun <T> Buffer.seek(
     fromIndex: Long,
     lambda: (Segment?, Long) -> T
 ): T {
