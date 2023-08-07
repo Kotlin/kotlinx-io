@@ -16,6 +16,16 @@ import kotlin.native.ref.WeakReference
 /**
  * Returns an input stream that reads from this source. Closing the stream will also close this source.
  *
+ * The stream supports both polling and run-loop scheduling, please check
+ * [Apple's documentation](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Streams/Articles/PollingVersusRunloop.html)
+ * for information about stream events handling.
+ *
+ * The stream does not implement initializers
+ * ([NSInputStream.initWithURL](https://developer.apple.com/documentation/foundation/nsinputstream/1417891-initwithurl),
+ * [NSInputStream.initWithData](https://developer.apple.com/documentation/foundation/nsinputstream/1412470-initwithdata),
+ * [NSInputStream.initWithFileAtPath](https://developer.apple.com/documentation/foundation/nsinputstream/1408976-initwithfileatpath)),
+ * their use will result in a runtime error.
+ *
  * @sample kotlinx.io.samples.KotlinxIoSamplesApple.asStream
  */
 public fun Source.asNSInputStream(): NSInputStream = SourceNSInputStream(this)
