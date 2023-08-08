@@ -3,16 +3,16 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-@file:OptIn(UnsafeNumber::class)
+@file:OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 
 package kotlinx.io
 
 import kotlinx.cinterop.*
 import platform.Foundation.*
-import platform.darwin.ByteVar
 import platform.darwin.NSUIntegerMax
 import platform.posix.*
 
+@OptIn(ExperimentalForeignApi::class)
 internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
@@ -51,6 +51,7 @@ internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): In
     return toCopy
 }
 
+@OptIn(BetaInteropApi::class)
 internal fun Buffer.snapshotAsNSData(): NSData {
     if (size == 0L) return NSData.data()
 

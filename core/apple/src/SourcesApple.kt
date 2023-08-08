@@ -3,6 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
+@file:OptIn(ExperimentalNativeApi::class, ExperimentalForeignApi::class)
+
 package kotlinx.io
 
 import kotlinx.cinterop.*
@@ -11,6 +13,7 @@ import platform.darwin.NSInteger
 import platform.darwin.NSUInteger
 import platform.darwin.NSUIntegerVar
 import platform.posix.uint8_tVar
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.ref.WeakReference
 
 /**

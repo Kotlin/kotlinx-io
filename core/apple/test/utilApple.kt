@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-@file:OptIn(UnsafeNumber::class)
+@file:OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, ExperimentalForeignApi::class)
 
 package kotlinx.io
 
@@ -18,6 +18,7 @@ import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(BetaInteropApi::class)
 internal fun ByteArray.toNSData() = if (isNotEmpty()) {
     usePinned {
         NSData.create(bytes = it.addressOf(0), length = size.convert())

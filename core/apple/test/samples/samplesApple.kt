@@ -5,9 +5,7 @@
 
 package kotlinx.io.samples
 
-import kotlinx.cinterop.UnsafeNumber
-import kotlinx.cinterop.convert
-import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.*
 import kotlinx.io.*
 import platform.Foundation.*
 import kotlin.test.Test
@@ -37,7 +35,7 @@ class KotlinxIoSamplesApple {
     }
 
     @Test
-    @OptIn(UnsafeNumber::class)
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, BetaInteropApi::class)
     fun asStream() {
         val buffer = Buffer()
         val data = ByteArray(100) { it.toByte() }.toNSData()

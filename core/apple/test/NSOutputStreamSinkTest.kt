@@ -3,12 +3,11 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
+@file:OptIn(ExperimentalForeignApi::class)
+
 package kotlinx.io
 
-import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.UnsafeNumber
-import kotlinx.cinterop.get
-import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.*
 import platform.Foundation.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
