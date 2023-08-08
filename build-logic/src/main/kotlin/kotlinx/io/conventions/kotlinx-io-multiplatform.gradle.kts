@@ -54,8 +54,10 @@ kotlin {
     val nativeTargets = nativeTargets()
     val appleTargets = appleTargets()
     sourceSets {
-        val nativeMain = createSourceSet("nativeMain", parent = commonMain.get(), children = nativeTargets)
-        val nativeTest = createSourceSet("nativeTest", parent = commonTest.get(), children = nativeTargets)
+        val nativeMain = createSourceSet("nativeMain", parent = commonMain.get())
+        val nativeTest = createSourceSet("nativeTest", parent = commonTest.get())
+        createSourceSet("nonAppleMain", parent = nativeMain, children = nativeTargets)
+        createSourceSet("nonAppleTest", parent = nativeTest, children = nativeTargets)
         createSourceSet("appleMain", parent = nativeMain, children = appleTargets)
         createSourceSet("appleTest", parent = nativeTest, children = appleTargets)
     }

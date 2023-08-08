@@ -13,10 +13,26 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeout
 import platform.Foundation.*
-import platform.posix.memcpy
+import platform.posix.*
 import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+
+actual fun createTempFile(): String {
+    val tmpDir = NSTemporaryDirectory()
+    for (attempt in 0 until 10) {
+        val tempFile = "$tmpDir${NSUUID().UUIDString()}"
+        val fd = open(tempFile, O_RDWR or O_CREAT or O_EXCL,
+            S_IREAD or S_IWRITE or S_IRGRP or S_IWGRP)
+        if (fd >= 0) {
+            close(fd).apply {
+                if (this != 0) throw IOException("Failed to create temp file.")
+            }
+            return tempFile
+        }
+    }
+    throw IOException("Failed to create unique temp file.")
+}
 
 @OptIn(BetaInteropApi::class)
 internal fun ByteArray.toNSData() = if (isNotEmpty()) {
@@ -52,6 +68,7 @@ fun startRunLoop(name: String = "run-loop"): NSRunLoop {
 
 suspend fun Mutex.lockWithTimeout(timeout: Duration = 5.seconds) {
     class MutexSource : Throwable()
+
     val source = MutexSource()
     try {
         withTimeout(timeout) { lock() }
