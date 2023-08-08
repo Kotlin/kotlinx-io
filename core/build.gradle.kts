@@ -36,6 +36,11 @@ kotlin {
                 api(project(":kotlinx-io-bytestring"))
             }
         }
+        appleTest {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
+            }
+        }
     }
 }
 
@@ -49,7 +54,8 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             "common/test/samples/moduleDescriptionSample.kt",
             "common/test/samples/samples.kt",
             "common/test/samples/byteStringSample.kt",
-            "jvm/test/samples/samplesJvm.kt"
+            "jvm/test/samples/samplesJvm.kt",
+            "apple/test/samples/samplesApple.kt"
         )
     }
 }

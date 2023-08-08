@@ -41,7 +41,7 @@ package kotlinx.io
  *
  * ### Write methods' behavior and naming conventions
  *
- * Methods writing a value of some type are usually name `write<Type>`, like [writeByte] or [writeInt], except methods
+ * Methods writing a value of some type are usually named `write<Type>`, like [writeByte] or [writeInt], except methods
  * writing data from a some collection of bytes, like `write(ByteArray, Int, Int)` or
  * `write(source: RawSource, byteCount: Long)`.
  * In the latter case, if a collection is consumable (i.e., once data was read from it will no longer be available for

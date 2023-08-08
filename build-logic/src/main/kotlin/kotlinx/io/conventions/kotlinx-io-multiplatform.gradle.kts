@@ -52,9 +52,12 @@ kotlin {
     configureNativePlatforms()
 
     val nativeTargets = nativeTargets()
+    val appleTargets = appleTargets()
     sourceSets {
-        createSourceSet("nativeMain", parent = commonMain.get(), children = nativeTargets)
-        createSourceSet("nativeTest", parent = commonTest.get(), children = nativeTargets)
+        val nativeMain = createSourceSet("nativeMain", parent = commonMain.get(), children = nativeTargets)
+        val nativeTest = createSourceSet("nativeTest", parent = commonTest.get(), children = nativeTargets)
+        createSourceSet("appleMain", parent = nativeMain, children = appleTargets)
+        createSourceSet("appleTest", parent = nativeTest, children = appleTargets)
     }
 }
 
@@ -126,7 +129,7 @@ fun KotlinMultiplatformExtension.configureNativePlatforms() {
 }
 
 fun nativeTargets(): List<String> {
-    return appleTargets() + linuxTargets() + mingwTargets() + androidTargets()
+    return linuxTargets() + mingwTargets() + androidTargets()
 }
 
 fun appleTargets() = listOf(

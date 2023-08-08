@@ -62,7 +62,7 @@ private open class OutputStreamSink(
 
     override fun close() = out.close()
 
-    override fun toString() = "sink($out)"
+    override fun toString() = "RawSink($out)"
 }
 
 /**
@@ -104,7 +104,7 @@ private open class InputStreamSource(
 
     override fun close() = input.close()
 
-    override fun toString() = "source($input)"
+    override fun toString() = "RawSource($input)"
 }
 
 /**

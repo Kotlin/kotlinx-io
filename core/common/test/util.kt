@@ -21,6 +21,7 @@
 package kotlinx.io
 
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 fun segmentSizes(buffer: Buffer): List<Int> {
     var segment = buffer.head ?: return emptyList()
@@ -32,6 +33,10 @@ fun segmentSizes(buffer: Buffer): List<Int> {
         segment = segment.next!!
     }
     return sizes
+}
+
+fun assertNoEmptySegments(buffer: Buffer) {
+    assertTrue(segmentSizes(buffer).all { it != 0 }, "Expected all segments to be non-empty")
 }
 
 expect fun createTempFile(): String
