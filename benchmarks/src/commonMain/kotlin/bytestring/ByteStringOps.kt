@@ -188,15 +188,16 @@ open class EndsWithBenchmark : StartsWithBenchmarkBase() {
 }
 
 @State(Scope.Benchmark)
-open class CompareBenchmark {
+
+abstract class ByteStringComparisonBenchmarkBase {
     @Param("128")
     var length: Int = 0
 
     @Param("-1", "63")
     var mismatchOffset = 0
 
-    private var stringA = ByteString()
-    private var stringB = ByteString()
+    protected var stringA = ByteString()
+    protected var stringB = ByteString()
 
     @Setup
     fun setup() {
@@ -210,9 +211,29 @@ open class CompareBenchmark {
             }
         })
     }
+}
 
+@State(Scope.Benchmark)
+open class CompareBenchmark : ByteStringComparisonBenchmarkBase() {
     @Benchmark
     fun benchmark() = stringA.compareTo(stringB)
+}
+
+@State(Scope.Benchmark)
+open class EqualsBenchmark : ByteStringComparisonBenchmarkBase() {
+    @Param("true", "false")
+    var useHashCode: Boolean = false
+
+    @Setup
+    fun computeHashCodes() {
+        if (useHashCode) {
+            stringA.hashCode()
+            stringB.hashCode()
+        }
+    }
+
+    @Benchmark
+    fun benchmark() = stringA == stringB
 }
 
 @State(Scope.Benchmark)
