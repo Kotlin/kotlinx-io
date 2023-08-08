@@ -3,8 +3,6 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
-@file:OptIn(ExperimentalStdlibApi::class)
-
 package kotlinx.io.bytestring
 
 /**
@@ -17,7 +15,6 @@ package kotlinx.io.bytestring
  * @throws IllegalArgumentException if the result length is more than [String] maximum capacity.
  */
 @ExperimentalStdlibApi
-@SinceKotlin("1.9")
 public fun ByteString.toHexString(format: HexFormat = HexFormat.Default): String {
     return getBackingArrayReference().toHexString(0, getBackingArrayReference().size, format)
 }
@@ -36,7 +33,6 @@ public fun ByteString.toHexString(format: HexFormat = HexFormat.Default): String
  * @throws IllegalArgumentException if the result length is more than [String] maximum capacity.
  */
 @ExperimentalStdlibApi
-@SinceKotlin("1.9")
 public fun ByteString.toHexString(
     startIndex: Int = 0,
     endIndex: Int = size,
@@ -57,7 +53,6 @@ public fun ByteString.toHexString(
  * @throws IllegalArgumentException if this string does not comply with the specified [format].
  */
 @ExperimentalStdlibApi
-@SinceKotlin("1.9")
 public fun String.hexToByteString(format: HexFormat = HexFormat.Default): ByteString {
     return ByteString.wrap(hexToByteArray(format))
 }

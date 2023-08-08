@@ -3,8 +3,6 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
-@file:OptIn(ExperimentalEncodingApi::class)
-
 package kotlinx.io.bytestring
 
 import kotlin.io.encoding.Base64
@@ -32,6 +30,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  *
  * @return a [ByteArray] with the resulting symbols.
  */
+@ExperimentalEncodingApi
 public fun Base64.encodeToByteArray(source: ByteString, startIndex: Int = 0, endIndex: Int = source.size): ByteArray {
     return encodeToByteArray(source.getBackingArrayReference(), startIndex, endIndex)
 }
@@ -56,6 +55,7 @@ public fun Base64.encodeToByteArray(source: ByteString, startIndex: Int = 0, end
  *
  * @return the number of symbols written into [destination] array.
  */
+@ExperimentalEncodingApi
 public fun Base64.encodeIntoByteArray(
     source: ByteString,
     destination: ByteArray,
@@ -84,6 +84,7 @@ public fun Base64.encodeIntoByteArray(
  *
  * @return a string with the resulting symbols.
  */
+@ExperimentalEncodingApi
 public fun Base64.encode(
     source: ByteString,
     startIndex: Int = 0,
@@ -109,6 +110,7 @@ public fun Base64.encode(
  *
  * @return the destination appendable.
  */
+@ExperimentalEncodingApi
 public fun <A : Appendable> Base64.encodeToAppendable(
     source: ByteString,
     destination: A,
@@ -137,6 +139,7 @@ public fun <A : Appendable> Base64.encodeToAppendable(
  *
  * @return a [ByteArray] with the resulting bytes.
  */
+@ExperimentalEncodingApi
 public fun Base64.decode(source: ByteString, startIndex: Int = 0, endIndex: Int = source.size): ByteArray {
     return decode(source.getBackingArrayReference(), startIndex, endIndex)
 }
@@ -159,6 +162,7 @@ public fun Base64.decode(source: ByteString, startIndex: Int = 0, endIndex: Int 
  *
  * @return a [ByteArray] with the resulting bytes.
  */
+@ExperimentalEncodingApi
 public fun Base64.decodeToByteString(source: CharSequence, startIndex: Int = 0, endIndex: Int = source.length): ByteString {
     return ByteString.wrap(decode(source, startIndex, endIndex))
 }
@@ -185,6 +189,7 @@ public fun Base64.decodeToByteString(source: CharSequence, startIndex: Int = 0, 
  *
  * @return the number of bytes written into [destination] array.
  */
+@ExperimentalEncodingApi
 public fun Base64.decodeIntoByteArray(
     source: ByteString,
     destination: ByteArray,
@@ -213,6 +218,7 @@ public fun Base64.decodeIntoByteArray(
  *
  * @return a [ByteString] with the resulting bytes.
  */
+@ExperimentalEncodingApi
 public fun Base64.decodeToByteString(source: ByteArray, startIndex: Int = 0, endIndex: Int = source.size): ByteString {
     return ByteString.wrap(decode(source, startIndex, endIndex))
 }
@@ -235,6 +241,7 @@ public fun Base64.decodeToByteString(source: ByteArray, startIndex: Int = 0, end
  *
  * @return a [ByteString] with the resulting bytes.
  */
+@ExperimentalEncodingApi
 public fun Base64.decodeToByteString(source: ByteString, startIndex: Int = 0, endIndex: Int = source.size): ByteString {
     return ByteString.wrap(decode(source.getBackingArrayReference(), startIndex, endIndex))
 }
