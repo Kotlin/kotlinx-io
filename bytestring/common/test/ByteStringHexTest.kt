@@ -9,6 +9,7 @@ package kotlinx.io.bytestring
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertTrue
 
 class ByteStringHexTest {
@@ -25,6 +26,13 @@ class ByteStringHexTest {
         assertEquals("0b0c", byteString.toHexString(1, 3))
         assertEquals("0c0d0e0f", byteString.toHexString(2))
         assertEquals("0a0b0c0d", byteString.toHexString(endIndex = 4))
+
+        assertFails { byteString.toHexString(-1) }
+        assertFails { byteString.toHexString(endIndex = -1) }
+        assertFails { byteString.toHexString(3, 2) }
+        assertFails { byteString.toHexString(10) }
+        assertFails { byteString.toHexString(endIndex = 11) }
+        assertFails { byteString.toHexString(10, 11) }
     }
 
     @Test
@@ -38,6 +46,7 @@ class ByteStringHexTest {
         assertEquals("0b|0c|0d", byteString.toHexString(1, 4, format))
 
         assertEquals(byteString, "0a|0b|0c|0d|0e|0f".hexToByteString(format))
+        assertFails { "0a0b0c0d0e0f".hexToByteString(format) }
     }
 
     @Test
@@ -46,6 +55,7 @@ class ByteStringHexTest {
         assertEquals("0b0c0d", byteString.toHexString(1, 4))
 
         assertEquals(byteString, "0a0b0c0d0e0f".hexToByteString())
+        assertFails { "0a|0b|0c|0d|0e|0f".hexToByteString() }
     }
 
 }

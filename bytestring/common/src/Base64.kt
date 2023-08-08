@@ -13,21 +13,21 @@ import kotlin.io.encoding.Base64.Default.encodeToByteArray
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
- * Encodes bytes from the specified [source] array or its subrange.
+ * Encodes bytes from the specified [source] byte string or its subrange.
  * Returns a [ByteArray] containing the resulting symbols.
  *
- * If the size of the [source] array or its subrange is not an integral multiple of 3,
+ * If the size of the [source] byte string or its subrange is not an integral multiple of 3,
  * the result is padded with `'='` to an integral multiple of 4 symbols.
  *
  * Each resulting symbol occupies one byte in the returned byte array.
  *
  * Use [encode] to get the output in string form.
  *
- * @param source the array to encode bytes from.
+ * @param source the byte string to encode bytes from.
  * @param startIndex the beginning (inclusive) of the subrange to encode, 0 by default.
- * @param endIndex the end (exclusive) of the subrange to encode, size of the [source] array by default.
+ * @param endIndex the end (exclusive) of the subrange to encode, size of the [source] byte string by default.
  *
- * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] byte string indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  *
  * @return a [ByteArray] with the resulting symbols.
@@ -79,7 +79,7 @@ public fun Base64.encodeIntoByteArray(
  * @param startIndex the beginning (inclusive) of the subrange to encode, 0 by default.
  * @param endIndex the end (exclusive) of the subrange to encode, size of the [source] byte string by default.
  *
- * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] byte string indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  *
  * @return a string with the resulting symbols.
@@ -104,7 +104,7 @@ public fun Base64.encode(
  * @param startIndex the beginning (inclusive) of the subrange to encode, 0 by default.
  * @param endIndex the end (exclusive) of the subrange to encode, size of the [source] byte string by default.
  *
- * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] byte string indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  *
  * @return the destination appendable.
@@ -205,7 +205,7 @@ public fun Base64.decodeIntoByteArray(
  *
  * @param source the byte string to decode symbols from.
  * @param startIndex the beginning (inclusive) of the subrange to decode, 0 by default.
- * @param endIndex the end (exclusive) of the subrange to decode, size of the [source] array by default.
+ * @param endIndex the end (exclusive) of the subrange to decode, size of the [source] byte string by default.
  *
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] byte string indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.

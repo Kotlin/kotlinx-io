@@ -31,7 +31,7 @@ public fun ByteString.toHexString(format: HexFormat = HexFormat.Default): String
  * @param endIndex the end (exclusive) of the subrange to format, size of this byte string by default.
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  *
- * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of this array indices.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of this byte string indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalArgumentException if the result length is more than [String] maximum capacity.
  */
