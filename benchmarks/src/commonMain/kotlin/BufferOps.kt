@@ -7,6 +7,7 @@ package kotlinx.io.benchmarks
 
 import kotlinx.benchmark.*
 import kotlinx.io.*
+import kotlinx.io.bytestring.ByteString
 
 @State(Scope.Benchmark)
 abstract class BufferRWBenchmarkBase {
@@ -383,4 +384,34 @@ open class BufferReadNewByteArray : BufferRWBenchmarkBase() {
         buffer.write(inputArray)
         return buffer.readByteArray(size)
     }
+}
+
+@State(Scope.Benchmark)
+open class IndexOfByteString {
+    @Param("1024:2", "8192:2", "10000:2", "10000:8")
+    var params: String = "<buffer size>:<bytestring size>"
+
+    private var buffer = Buffer()
+    private var byteString = ByteString()
+
+    @Setup
+    fun setup() {
+        val paramsParsed = params.split(':').map { it.toInt() }.toIntArray()
+        require(paramsParsed.size == 2)
+
+        val bufferSize = paramsParsed[0]
+        val bsSize = paramsParsed[1]
+        byteString = ByteString(ByteArray(bsSize) { 0x42 })
+
+        for (idx in 0 until bufferSize) {
+            if (idx % bsSize == 0) {
+                buffer.writeByte(0)
+            } else {
+                buffer.writeByte(0x42)
+            }
+        }
+    }
+
+    @Benchmark
+    fun benchmark() = buffer.indexOf(byteString)
 }
