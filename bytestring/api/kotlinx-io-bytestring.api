@@ -1,3 +1,24 @@
+public final class kotlinx/io/bytestring/Base64Kt {
+	public static final fun decode (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;II)[B
+	public static synthetic fun decode$default (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)[B
+	public static final fun decodeIntoByteArray (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;[BIII)I
+	public static synthetic fun decodeIntoByteArray$default (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;[BIIIILjava/lang/Object;)I
+	public static final fun decodeToByteString (Lkotlin/io/encoding/Base64;Ljava/lang/CharSequence;II)Lkotlinx/io/bytestring/ByteString;
+	public static final fun decodeToByteString (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;II)Lkotlinx/io/bytestring/ByteString;
+	public static final fun decodeToByteString (Lkotlin/io/encoding/Base64;[BII)Lkotlinx/io/bytestring/ByteString;
+	public static synthetic fun decodeToByteString$default (Lkotlin/io/encoding/Base64;Ljava/lang/CharSequence;IIILjava/lang/Object;)Lkotlinx/io/bytestring/ByteString;
+	public static synthetic fun decodeToByteString$default (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)Lkotlinx/io/bytestring/ByteString;
+	public static synthetic fun decodeToByteString$default (Lkotlin/io/encoding/Base64;[BIIILjava/lang/Object;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun encode (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;II)Ljava/lang/String;
+	public static synthetic fun encode$default (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)Ljava/lang/String;
+	public static final fun encodeIntoByteArray (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;[BIII)I
+	public static synthetic fun encodeIntoByteArray$default (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;[BIIIILjava/lang/Object;)I
+	public static final fun encodeToAppendable (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;Ljava/lang/Appendable;II)Ljava/lang/Appendable;
+	public static synthetic fun encodeToAppendable$default (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;Ljava/lang/Appendable;IIILjava/lang/Object;)Ljava/lang/Appendable;
+	public static final fun encodeToByteArray (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;II)[B
+	public static synthetic fun encodeToByteArray$default (Lkotlin/io/encoding/Base64;Lkotlinx/io/bytestring/ByteString;IIILjava/lang/Object;)[B
+}
+
 public final class kotlinx/io/bytestring/ByteString : java/lang/Comparable {
 	public static final field Companion Lkotlinx/io/bytestring/ByteString$Companion;
 	public fun <init> ([BII)V
@@ -71,6 +92,15 @@ public final class kotlinx/io/bytestring/ByteStringKt {
 	public static synthetic fun lastIndexOf$default (Lkotlinx/io/bytestring/ByteString;[BIILjava/lang/Object;)I
 	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;Lkotlinx/io/bytestring/ByteString;)Z
 	public static final fun startsWith (Lkotlinx/io/bytestring/ByteString;[B)Z
+}
+
+public final class kotlinx/io/bytestring/HexKt {
+	public static final fun hexToByteString (Ljava/lang/String;Lkotlin/text/HexFormat;)Lkotlinx/io/bytestring/ByteString;
+	public static synthetic fun hexToByteString$default (Ljava/lang/String;Lkotlin/text/HexFormat;ILjava/lang/Object;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun toHexString (Lkotlinx/io/bytestring/ByteString;IILkotlin/text/HexFormat;)Ljava/lang/String;
+	public static final fun toHexString (Lkotlinx/io/bytestring/ByteString;Lkotlin/text/HexFormat;)Ljava/lang/String;
+	public static synthetic fun toHexString$default (Lkotlinx/io/bytestring/ByteString;IILkotlin/text/HexFormat;ILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun toHexString$default (Lkotlinx/io/bytestring/ByteString;Lkotlin/text/HexFormat;ILjava/lang/Object;)Ljava/lang/String;
 }
 
 public abstract interface annotation class kotlinx/io/bytestring/unsafe/UnsafeByteStringApi : java/lang/annotation/Annotation {
