@@ -49,6 +49,7 @@ koverReport {
     verify {
         rule {
             minBound(95, MetricType.LINE)
+
             // we allow lower branch coverage, because not all checks in the internal code lead to errors
             minBound(80, MetricType.BRANCH)
         }
