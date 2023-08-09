@@ -1,7 +1,7 @@
 What needs to be done:
 - [+] add tests for predicates
 - [ ] finalize predicates naming
-- [ ] add example of async sink and sources
+- [+] add example of async sink and sources
 - [+] add tests for cancellation
 - [ ] figure out what to do with the runBlocking in common sourceset
 - [ ] add example of code sharing between sync and async IO primitives
