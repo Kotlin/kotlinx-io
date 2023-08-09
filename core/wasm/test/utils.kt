@@ -5,13 +5,10 @@
 
 package kotlinx.io
 
-import kotlin.random.Random
-import kotlin.random.nextULong
-
 actual fun createTempFile(): String {
-    TODO()
+    TODO("Paths are not supported for Wasm target")
 }
 
 actual fun deleteFile(path: String) {
-    TODO()
+    TODO("Paths are not supported for Wasm target")
 }
