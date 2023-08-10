@@ -7,12 +7,15 @@ bcv = "0.13.2"
 benchmark = "0.4.9"
 jmh = "1.36"
 coroutines = "1.7.3"
+animalsniffer = "1.7.1"
 
 [libraries]
 
 kotlinx-benchmark-runtime = { group = "org.jetbrains.kotlinx", name = "kotlinx-benchmark-runtime", version.ref = "benchmark" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+animalsniffer-gradle-plugin = { group = "ru.vyarus", name = "gradle-animalsniffer-plugin", version.ref = "animalsniffer" }
+
 [plugins]
 
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
