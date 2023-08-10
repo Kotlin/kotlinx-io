@@ -5,7 +5,7 @@
 package kotlinx.io.bytestring
 
 /**
- * Annotation indicating that the marked property is the subjectof benign data race.
+ * Annotation indicating that the marked property is the subject of benign data race.
  * LLVM does not support this notion, so on K/N platforms we alias it into `@Volatile` to prevent potential OoTA.
  */
 @OptionalExpectation
