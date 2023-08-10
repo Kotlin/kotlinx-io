@@ -69,6 +69,11 @@ Add the library to dependencies:
 </dependency>
 ```
 
+### Android
+
+`kotlinx-io` is not tested on Android on a regular basis,
+but the library is compatible with Android 5.0+ (API level 21+).
+
 ## Contributing
 
 Read the [Contributing Guidelines](CONTRIBUTING.md).
