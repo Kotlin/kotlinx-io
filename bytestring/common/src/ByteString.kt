@@ -69,6 +69,7 @@ public class ByteString private constructor(
     public constructor(data: ByteArray, startIndex: Int = 0, endIndex: Int = data.size) :
             this(data.copyOfRange(startIndex, endIndex), null)
 
+    @BenignDataRace
     private var hashCode: Int = 0
 
     public companion object {
