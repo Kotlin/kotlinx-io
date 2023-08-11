@@ -29,7 +29,7 @@ kotlin {
         commonMain {
             dependencies {
                 api(project(":kotlinx-io-core"))
-                implementation(libs.kotlinx.coroutines)
+                implementation(libs.kotlinx.coroutines.core)
             }
         }
         commonTest {
