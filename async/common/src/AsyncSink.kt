@@ -59,6 +59,14 @@ public class AsyncSink(private val sink: AsyncRawSink) : AsyncRawSink {
         closed = true
     }
 
+    override fun closeAbruptly() {
+        if (closed) {
+            return
+        }
+        closed = true
+        sink.closeAbruptly()
+    }
+
     private suspend fun emit() {
         sink.write(buffer, buffer.size)
     }

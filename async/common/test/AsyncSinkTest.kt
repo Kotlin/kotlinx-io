@@ -30,6 +30,10 @@ private class StateCapturingSink : AsyncRawSink {
         closed = true
     }
 
+    override fun closeAbruptly() {
+        closed = true
+    }
+
 }
 
 class AsyncSinkTest {

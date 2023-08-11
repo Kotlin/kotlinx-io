@@ -27,12 +27,15 @@ private class StringSource(private val data: String) : AsyncRawSource {
         }
     }
 
-    override fun close() = Unit
+    override suspend fun close() = Unit
+
+    override fun closeAbruptly() = Unit
 }
 
 private class InfiniteSource : AsyncRawSource {
     override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long = 0L
-    override fun close() = Unit
+    override suspend fun close() = Unit
+    override fun closeAbruptly() = Unit
 }
 
 private class BufferBackedSource(private val buffer: Buffer) : AsyncRawSource {
@@ -40,7 +43,9 @@ private class BufferBackedSource(private val buffer: Buffer) : AsyncRawSource {
         return this.buffer.readAtMostTo(sink, byteCount)
     }
 
-    override fun close() = Unit
+    override suspend fun close() = Unit
+
+    override fun closeAbruptly() = Unit
 }
 
 class AsyncSourceTest {
@@ -106,13 +111,14 @@ class AsyncSourceTest {
     }
 
     @Test
-    fun testClose() {
+    fun testClose() = runTest {
         var closed = false
         val source = AsyncSource(object : AsyncRawSource {
             override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long = -1L
-            override fun close() {
+            override suspend fun close() {
                 closed = true
             }
+            override fun closeAbruptly() = Unit
         })
         source.close()
         assertTrue(closed)

@@ -83,9 +83,20 @@ public class AsyncSource(private val source: AsyncRawSource) : AsyncRawSource {
         }
     }
 
-    override fun close() {
-        source.close()
+    override fun closeAbruptly() {
+        if (closed) {
+            return
+        }
         closed = true
+        source.closeAbruptly()
+    }
+
+    override suspend fun close() {
+        if (closed) {
+            return
+        }
+        closed = true
+        source.close()
     }
 
     private fun checkClosed() {

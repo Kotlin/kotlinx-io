@@ -58,4 +58,16 @@ public interface AsyncRawSink {
      * TODO: what if a coroutine was cancelled?
      */
     public suspend fun close()
+
+    /**
+     * Immediately closes this sink and releases the resources held by this sink.
+     * Unlike [close], this method doesn't guarantee graceful termination, and it not attempts
+     * to push pending data to destination if there are any.
+     * Use this method when some error condition is detected and a sink needs to be closed
+     * as soon as possible, without caring about its state integrity.
+     *
+     * It is an error to write a closed sink.
+     * It is safe to close a sink more than once.
+     */
+    public fun closeAbruptly()
 }

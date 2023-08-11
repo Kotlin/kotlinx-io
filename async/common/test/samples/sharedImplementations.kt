@@ -64,6 +64,9 @@ class AsyncCrc32Sink(private val sink: AsyncRawSink): Crc32SinkCommon(), AsyncRa
     override suspend fun flush() = sink.flush()
 
     override suspend fun close() = sink.close()
+    override fun closeAbruptly() {
+        sink.closeAbruptly()
+    }
 }
 
 class BlockingCrc32Sink(private val sink: RawSink): Crc32SinkCommon(), RawSink {

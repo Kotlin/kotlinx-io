@@ -15,6 +15,7 @@ import kotlinx.io.IOException
 import kotlinx.io.async.AsyncRawSource
 import kotlinx.io.async.AwaitPredicate
 import kotlinx.io.async.buffered
+import kotlinx.io.async.use
 import kotlinx.io.readByteString
 import platform.posix.*
 import kotlin.math.min
@@ -46,7 +47,11 @@ class AsyncRandomSource : AsyncRawSource {
         return bytesRead.toLong()
     }
 
-    override fun close() {
+    override fun closeAbruptly() {
+        close(fd)
+    }
+
+    override suspend fun close() {
         close(fd)
     }
 }

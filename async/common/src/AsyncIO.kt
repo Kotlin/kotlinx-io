@@ -16,7 +16,12 @@ public fun AsyncRawSink.buffered(): AsyncSink = AsyncSink(this)
 
 public fun AsyncRawSource.buffered(): AsyncSource = AsyncSource(this)
 
-public suspend fun AsyncRawSink.use(block: suspend (AsyncRawSink) -> Unit) {
+public suspend fun <T: AsyncRawSink> T.use(block: suspend (T) -> Unit) {
+    block(this)
+    close()
+}
+
+public suspend fun <T: AsyncRawSource> T.use(block: suspend (T) -> Unit) {
     block(this)
     close()
 }
@@ -65,6 +70,10 @@ public fun RawSink.asAsync(ctx: CoroutineContext = Dispatchers.Default): AsyncRa
                 this@asAsync.close()
             }
         }
+
+        override fun closeAbruptly() {
+            this@asAsync.close()
+        }
     }
 }
 
@@ -94,7 +103,13 @@ public fun RawSource.asAsync(ctx: CoroutineContext = Dispatchers.Default): Async
             }
         }
 
-        override fun close() {
+        override suspend fun close() {
+            withContext(ctx) {
+                this@asAsync.close()
+            }
+        }
+
+        override fun closeAbruptly() {
             this@asAsync.close()
         }
     }

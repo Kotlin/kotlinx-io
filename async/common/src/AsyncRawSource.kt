@@ -28,7 +28,7 @@ import kotlinx.io.Buffer
  * Implementors should abstain from throwing exceptions other than those that are documented for AsyncRawSource methods.
  */
 @OptIn(ExperimentalStdlibApi::class)
-public interface AsyncRawSource : AutoCloseable {
+public interface AsyncRawSource {
     /**
      * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
      * Returns the number of bytes read, or -1 if this source is exhausted.
@@ -45,8 +45,20 @@ public interface AsyncRawSource : AutoCloseable {
     public suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long
 
     /**
-     * Closes this source and releases the resources held by this source. It is an error to read a
-     * closed source. It is safe to close a source more than once.
+     * Closes this source and releases the resources held by this source. Suspends until the operation completes.
+     * It is an error to read a closed source.
+     * It is safe to close a source more than once.
      */
-    override fun close()
+    public suspend fun close()
+
+    /**
+     * Immediately closes this source and releases the resource held by this source.
+     * Unlike [close], this method doesn't guarantee graceful shutdown.
+     * Use this method when some error condition is detected and a source needs to be closed
+     * as soon as possible, without caring about its state integrity.
+     *
+     * It is an error to read a closed source.
+     * It is safe to close a source more than once.
+     */
+    public fun closeAbruptly()
 }
