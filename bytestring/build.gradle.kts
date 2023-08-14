@@ -3,6 +3,7 @@ import org.jetbrains.dokka.gradle.DokkaTaskPartial
 plugins {
     id("kotlinx-io-multiplatform")
     id("kotlinx-io-publish")
+    id("kotlinx-io-android-compat")
     alias(libs.plugins.kover)
     alias(libs.plugins.dokka)
 }
