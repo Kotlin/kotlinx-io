@@ -5,9 +5,9 @@
 
 import ru.vyarus.gradle.plugin.animalsniffer.AnimalSnifferExtension
 
-plugins.withType(JavaPlugin::class.java) {
-    apply(plugin = "ru.vyarus.animalsniffer")
+apply(plugin = "ru.vyarus.animalsniffer")
 
+plugins.withType(JavaPlugin::class.java).configureEach {
     configure<AnimalSnifferExtension> {
         sourceSets = listOf((project.extensions.getByName("sourceSets") as SourceSetContainer).getByName("main"))
     }
