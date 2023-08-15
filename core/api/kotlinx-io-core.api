@@ -195,6 +195,22 @@ public final class kotlinx/io/Utf8Kt {
 	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
 }
 
+public abstract interface class kotlinx/io/files/FileSystem {
+	public static final field Companion Lkotlinx/io/files/FileSystem$Companion;
+	public abstract fun atomicMove (Lkotlinx/io/files/Path;Lkotlinx/io/files/Path;)V
+	public abstract fun createDirectories (Lkotlinx/io/files/Path;)V
+	public abstract fun delete (Lkotlinx/io/files/Path;Z)V
+	public static synthetic fun delete$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;ZILjava/lang/Object;)V
+	public abstract fun exists (Lkotlinx/io/files/Path;)Z
+	public abstract fun getTemporaryDirectory ()Lkotlinx/io/files/Path;
+	public fun read (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
+	public fun write (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
+}
+
+public final class kotlinx/io/files/FileSystem$Companion {
+	public final fun getSystem ()Lkotlinx/io/files/FileSystem;
+}
+
 public final class kotlinx/io/files/Path {
 }
 
