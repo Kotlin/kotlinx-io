@@ -10,7 +10,14 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-public actual class Path internal constructor(internal val file: File)
+public actual class Path internal constructor(internal val file: File) {
+    public actual fun parent(): Path? {
+        val parentFile = file.parentFile ?: return null
+        return Path(parentFile)
+    }
+
+    public actual fun asString(): String = file.toString()
+}
 
 public actual fun Path(path: String): Path = Path(File(path))
 

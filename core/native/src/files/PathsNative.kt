@@ -18,7 +18,17 @@ import platform.posix.*
 public actual class Path internal constructor(
     internal val path: String,
     @Suppress("UNUSED_PARAMETER") any: Any?
-)
+) {
+    public actual fun parent(): Path? {
+        val parentName = dirnameImpl(path)
+        if (parentName.isBlank() || parentName == path) return null
+        return Path(parentName)
+    }
+
+    public actual fun asString(): String = path
+}
+
+internal expect fun dirnameImpl(path: String): String
 
 public actual fun Path(path: String): Path = Path(path, null)
 

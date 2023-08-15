@@ -60,7 +60,6 @@ kotlin {
 
     configureNativePlatforms()
 
-    val nativeTargets = linuxTargets() + androidTargets()
     val appleTargets = appleTargets()
     val mingwTargets = mingwTargets()
 
@@ -71,7 +70,10 @@ kotlin {
       |-> nonApple
           |
           |-> mingw
-          |-> unix (Linux + Android)
+          |-> unix
+              |
+              |-> linux
+              |-> android
      */
 
     sourceSets {
@@ -83,8 +85,12 @@ kotlin {
         createSourceSet("appleTest", parent = nativeTest, children = appleTargets)
         createSourceSet("mingwMain", parent = nonAppleMain, children = mingwTargets)
         createSourceSet("mingwTest", parent = nonAppleTest, children = mingwTargets)
-        createSourceSet("unixMain", parent = nonAppleMain, children = nativeTargets)
-        createSourceSet("unixTest", parent = nonAppleTest, children = nativeTargets)
+        val unixMain = createSourceSet("unixMain", parent = nonAppleMain)
+        val unixTest = createSourceSet("unixTest", parent = nonAppleTest)
+        createSourceSet("linuxMain", parent = unixMain, children = linuxTargets())
+        createSourceSet("linuxTest", parent = unixTest, children = linuxTargets())
+        createSourceSet("androidMain", parent = unixMain, children = androidTargets())
+        createSourceSet("androidTest", parent = unixTest, children = androidTargets())
     }
 }
 

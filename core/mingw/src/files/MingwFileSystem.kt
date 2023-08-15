@@ -7,7 +7,10 @@ package kotlinx.io.files
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.convert
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
+import platform.posix.dirname
 import platform.windows.GetLastError
 import platform.windows.MOVEFILE_REPLACE_EXISTING
 import platform.windows.MoveFileExA
@@ -18,4 +21,9 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
         // TODO: get formatted error message
         throw IOException("Move failed with error code: ${GetLastError()}")
     }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun dirnameImpl(path: String): String {
+    return dirname(path.cstr)?.toKString() ?: ""
 }

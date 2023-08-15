@@ -6,9 +6,11 @@
 package kotlinx.io.files
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.cstr
 import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
 import platform.Foundation.NSTemporaryDirectory
+import platform.posix.dirname
 import platform.posix.errno
 import platform.posix.rename
 import platform.posix.strerror
@@ -22,3 +24,10 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
 
 internal actual val NativeTempDir: Path
     get() = Path(NSTemporaryDirectory())
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun dirnameImpl(path: String): String {
+    val p = dirname(path.cstr)?.toKString() ?: ""
+    println("$path => $p")
+    return p
+}

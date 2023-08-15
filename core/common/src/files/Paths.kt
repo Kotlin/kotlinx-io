@@ -14,7 +14,11 @@ import kotlinx.io.Source
  *
  * **This API is unstable and subject to change.**
  */
-public expect class Path
+public expect class Path {
+    public fun parent(): Path?
+
+    public fun asString(): String
+}
 
 /**
  * Returns Path for the given string without much of a validation.

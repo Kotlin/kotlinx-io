@@ -114,6 +114,19 @@ class SmokeFileTest {
         }
     }
 
-
     // TODO: createDirectories
+
+    @Test
+    fun pathParent() {
+        val p = Path("/a/b/c/")
+        assertEquals("/a/b", p.parent()?.asString())
+        assertEquals("/a", p.parent()?.parent()?.asString())
+        assertEquals("/", p.parent()?.parent()?.parent()?.asString())
+        assertNull(p.parent()?.parent()?.parent()?.parent())
+
+        val p1 = Path("home/../lib")
+        assertEquals("home/..", p1.parent()?.asString())
+        assertEquals("home", p1.parent()?.parent()?.asString())
+        assertNull(p1.parent()?.parent()?.parent())
+    }
 }

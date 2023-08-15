@@ -16,9 +16,29 @@ private val buffer: dynamic
         }
     }
 
+private val pathLib: dynamic
+    get(): dynamic {
+        return try {
+            js("require('path')")
+        } catch (t: Throwable) {
+            null
+        }
+    }
+
 public actual class Path internal constructor(internal val path: String,
                                               @Suppress("UNUSED_PARAMETER") any: Any?) {
     override fun toString(): String = path
+
+    public actual fun parent(): Path? {
+        check(pathLib !== null) { "Path module not found" }
+        val p = pathLib.dirname(path) as String?
+        if (p.isNullOrBlank()) {
+            return null
+        }
+        return Path(p)
+    }
+
+    public actual fun asString(): String = path
 }
 
 public actual fun Path(path: String): Path {
