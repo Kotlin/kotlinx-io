@@ -4,11 +4,24 @@
  */
 package kotlinx.io
 
+import kotlinx.io.files.FileSystem
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.random.Random
 import kotlin.test.assertEquals
 
-actual fun createTempFile(): String = Files.createTempFile(null, null).toString()
+@OptIn(ExperimentalStdlibApi::class)
+actual fun tempFileName(): String {
+    val tmpDir = FileSystem.System.temporaryDirectory.file
+    while (true) {
+        val randomString = Random.nextBytes(32).toHexString()
+        val res = File(tmpDir, randomString)
+        if (!res.exists()) {
+            return res.absolutePath
+        }
+    }
+}
 
 actual fun deleteFile(path: String) {
     if (!Files.isRegularFile(Paths.get(path))) {

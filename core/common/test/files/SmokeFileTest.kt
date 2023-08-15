@@ -6,34 +6,42 @@
 package kotlinx.io.files
 
 import kotlinx.io.*
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 class SmokeFileTest {
-    private var tempFile: String? = null
-
-    @BeforeTest
-    fun setup() {
-        tempFile = createTempFile()
-    }
+    private val files: MutableList<Path> = arrayListOf()
 
     @AfterTest
     fun cleanup() {
-        deleteFile(tempFile!!)
+        var lastException: Throwable? = null
+        files.forEach {
+            try {
+                FileSystem.System.delete(it, false)
+            } catch (t: Throwable) {
+                lastException = t
+            }
+        }
+        if (lastException != null) {
+            throw lastException!!
+        }
+    }
+
+    private fun createTempPath(): Path {
+        val f = Path(tempFileName())
+        files.add(f)
+        return f
     }
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testBasicFile() {
-        val path = Path(tempFile!!)
+        val path = createTempPath()
 
-        path.sink().use {
+        FileSystem.System.write(path).use {
             it.writeString("example")
         }
 
-        path.source().use {
+        FileSystem.System.read(path).use {
             assertEquals("example", it.readLine())
         }
     }
@@ -41,16 +49,71 @@ class SmokeFileTest {
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testReadWriteMultipleSegments() {
-        val path = Path(tempFile!!)
+        val path = createTempPath()
 
         val data = ByteArray((Segment.SIZE * 2.5).toInt()) { it.toByte() }
 
-        path.sink().use {
+        FileSystem.System.write(path).use {
             it.write(data)
         }
 
-        path.source().use {
+        FileSystem.System.read(path).use {
             assertArrayEquals(data, it.readByteArray())
         }
     }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun testFsOps() {
+        val path = createTempPath()
+        assertFalse(FileSystem.System.exists(path))
+        FileSystem.System.write(path).use {
+            it.writeString("hi")
+        }
+        assertTrue(FileSystem.System.exists(path))
+        FileSystem.System.delete(path)
+        assertFalse(FileSystem.System.exists(path))
+    }
+
+    @Test
+    fun checkTmpDir() {
+        assertTrue(FileSystem.System.exists(FileSystem.System.temporaryDirectory))
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun testMove() {
+        val src = createTempPath()
+        val dst = createTempPath()
+        FileSystem.System.write(src).use {
+            it.writeString("hello")
+        }
+        FileSystem.System.atomicMove(src, dst)
+        assertFalse(FileSystem.System.exists(src))
+        assertTrue(FileSystem.System.exists(dst))
+
+        FileSystem.System.read(dst).use {
+            assertEquals("hello", it.readString())
+        }
+    }
+
+    @Test
+    fun deleteFile() {
+        val p = createTempPath()
+        assertFailsWith<IOException> {
+            FileSystem.System.delete(p, mustExist = true)
+        }
+        // Should not fail
+        FileSystem.System.delete(p, false)
+    }
+
+    @Test
+    fun moveNonExistingFile() {
+        assertFailsWith<IOException> {
+            FileSystem.System.atomicMove(createTempPath(), createTempPath())
+        }
+    }
+
+
+    // TODO: createDirectories
 }

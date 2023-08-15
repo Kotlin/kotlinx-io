@@ -35,7 +35,7 @@ private val nodePath: dynamic
         }
     }
 
-actual fun createTempFile(): String {
+actual fun tempFileName(): String {
     while (true) {
         val tmpdir = os.tmpdir()
         val filename = Random.nextULong().toString()

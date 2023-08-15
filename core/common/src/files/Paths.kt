@@ -24,10 +24,26 @@ public expect fun Path(path: String): Path
 /**
  * Returns [Source] for the given file or throws if path is not a file or does not exist
  */
+@Deprecated(
+    message = "Use FileSystem.read instead",
+    replaceWith = ReplaceWith(
+        expression = "FileSystem.System.read(this)",
+        imports = arrayOf("kotlinx.io.files.FileSystem")
+    ),
+    level = DeprecationLevel.WARNING
+)
 public expect fun Path.source(): Source
 
 /**
  * Returns [Sink] for the given path, creates file if it doesn't exist, throws if it's a directory,
  * overwrites contents.
  */
+@Deprecated(
+    message = "Use FileSystem.sink instead",
+    replaceWith = ReplaceWith(
+        expression = "FileSystem.System.write(this)",
+        imports = arrayOf("kotlinx.io.files.FileSystem")
+    ),
+    level = DeprecationLevel.WARNING
+)
 public expect fun Path.sink(): Sink

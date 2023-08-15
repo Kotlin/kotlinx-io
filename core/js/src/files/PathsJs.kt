@@ -7,15 +7,6 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 
-private val fs: dynamic
-    get(): dynamic {
-        return try {
-            js("require('fs')")
-        } catch (t: Throwable) {
-            null
-        }
-    }
-
 private val buffer: dynamic
     get(): dynamic {
         return try {
@@ -25,7 +16,7 @@ private val buffer: dynamic
         }
     }
 
-public actual class Path internal constructor(private val path: String,
+public actual class Path internal constructor(internal val path: String,
                                               @Suppress("UNUSED_PARAMETER") any: Any?) {
     override fun toString(): String = path
 }
