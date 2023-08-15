@@ -37,8 +37,22 @@ private class NativeFileSystem : FileSystem {
         }
     }
 
-    override fun createDirectories(path: Path) {
-        TODO()
+    override fun createDirectories(path: Path, mustCreate: Boolean) {
+        if (exists(path)) {
+            if (mustCreate) {
+                throw IOException("Path already exists: ${path.asString()}")
+            }
+            return
+        }
+        val paths = arrayListOf<String>()
+        var p: Path? = path
+        while (p != null && !exists(p)) {
+            paths.add(p.asString())
+            p = p.parent()
+        }
+        paths.asReversed().forEach {
+            mkdirImpl(it)
+        }
     }
 
     override fun atomicMove(source: Path, destination: Path) {
@@ -47,6 +61,8 @@ private class NativeFileSystem : FileSystem {
 }
 
 internal expect fun atomicMoveImpl(source: Path, destination: Path)
+
+internal expect fun mkdirImpl(path: String)
 
 public actual val SystemFileSystem: FileSystem
     get() = NativeFileSystem.Instance

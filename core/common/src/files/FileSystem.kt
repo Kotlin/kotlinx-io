@@ -15,7 +15,7 @@ public interface FileSystem {
 
     public fun delete(path: Path, mustExist: Boolean = true)
 
-    public fun createDirectories(path: Path)
+    public fun createDirectories(path: Path, mustCreate: Boolean = true)
 
     public fun atomicMove(source: Path, destination: Path)
 

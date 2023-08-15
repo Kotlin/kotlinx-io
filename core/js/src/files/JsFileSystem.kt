@@ -46,14 +46,34 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
             return
         }
         try {
-            fs.unlinkSync(path.path)
+            val stats = fs.statSync(path.path)
+            if (stats.isDirectory() as Boolean) {
+                fs.rmdirSync(path.path)
+            } else {
+                fs.rmSync(path.path)
+            }
         } catch (t: Throwable) {
             throw IOException("Delete failed", t)
         }
     }
 
-    override fun createDirectories(path: Path) {
-        TODO("Not yet implemented")
+    override fun createDirectories(path: Path, mustCreate: Boolean) {
+        if (exists(path)) {
+            if (mustCreate) {
+                throw IOException("Path already exists: ${path.asString()}")
+            }
+            return
+        }
+
+        val parts = arrayListOf<String>()
+        var p: Path? = path
+        while (p != null && !exists(p)) {
+            parts.add(p.asString())
+            p = p.parent()
+        }
+        parts.asReversed().forEach {
+            fs.mkdirSync(it)
+        }
     }
 
     override fun atomicMove(source: Path, destination: Path) {

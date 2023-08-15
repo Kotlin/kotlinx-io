@@ -19,7 +19,7 @@ public actual class Path internal constructor(internal val file: File) {
     public actual fun asString(): String = file.toString()
 
     public actual companion object {
-        public actual val pathSeparator: Char = File.pathSeparatorChar
+        public actual val pathSeparator: Char = File.separatorChar
     }
 }
 

@@ -29,13 +29,33 @@ public expect class Path {
  */
 public expect fun Path(path: String): Path
 
-public fun Path(base: Path, path: String): Path {
-    val basePath = base.asString()
-    return if (basePath.endsWith(Path.pathSeparator)) {
-        Path(basePath + path)
-    } else {
-        Path(basePath + Path.pathSeparator + path)
-    }
+public fun Path(base: String, vararg parts: String): Path {
+    return Path(buildString {
+        append(base)
+        parts.forEach {
+            if (!endsWith(Path.pathSeparator)) {
+                append(Path.pathSeparator)
+            }
+            append(it)
+        }
+    })
+}
+
+public fun Path(base: Path, path: String, vararg parts: String): Path {
+    return Path(buildString {
+        val basePath = base.asString()
+        append(basePath)
+        if (!endsWith(Path.pathSeparator)) {
+            append(Path.pathSeparator)
+        }
+        append(path)
+        parts.forEach {
+            if (!endsWith(Path.pathSeparator)) {
+                append(Path.pathSeparator)
+            }
+            append(it)
+        }
+    })
 }
 
 /**

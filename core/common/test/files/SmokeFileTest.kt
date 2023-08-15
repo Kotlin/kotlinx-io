@@ -114,7 +114,27 @@ class SmokeFileTest {
         }
     }
 
-    // TODO: createDirectories
+    @Test
+    fun createDirectories() {
+        val p = Path(createTempPath(), "a", "b", "c")
+        FileSystem.System.createDirectories(p)
+        assertTrue(FileSystem.System.exists(p))
+
+        assertFailsWith<IOException> {
+            FileSystem.System.createDirectories(p)
+        }
+        FileSystem.System.createDirectories(p, false)
+
+        val p1 = Path(p, "d")
+        FileSystem.System.createDirectories(p1)
+        assertTrue(FileSystem.System.exists(p1))
+
+        var pr = p1
+        for (i in 0 .. 3) {
+            FileSystem.System.delete(pr)
+            pr = pr.parent()!!
+        }
+    }
 
     @Test
     fun pathParent() {
@@ -141,5 +161,7 @@ class SmokeFileTest {
     fun pathConcat() {
         assertEquals("/a/b/c",
             Path(Path(Path(Path("/"), "a"), "b"), "c").asString())
+
+        assertEquals("/a/b/../c", Path("/a", "b", "../c").asString())
     }
 }

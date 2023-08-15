@@ -62,9 +62,10 @@ private class JvmFileSystem : FileSystem {
         }
     }
 
-    override fun createDirectories(path: Path) {
-        //path.file.mkdirs()
-        TODO()
+    override fun createDirectories(path: Path, mustCreate: Boolean) {
+        if (!path.file.mkdirs() && mustCreate) {
+            throw IOException("Path already exist: ${path.asString()}")
+        }
     }
 
     override fun atomicMove(source: Path, destination: Path) {
