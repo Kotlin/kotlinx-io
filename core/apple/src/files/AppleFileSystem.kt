@@ -28,6 +28,5 @@ internal actual val NativeTempDir: Path
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun dirnameImpl(path: String): String {
     val p = dirname(path.cstr)?.toKString() ?: ""
-    println("$path => $p")
     return p
 }

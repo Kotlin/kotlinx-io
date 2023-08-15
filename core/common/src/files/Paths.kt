@@ -18,12 +18,25 @@ public expect class Path {
     public fun parent(): Path?
 
     public fun asString(): String
+
+    public companion object {
+        public val pathSeparator: Char
+    }
 }
 
 /**
  * Returns Path for the given string without much of a validation.
  */
 public expect fun Path(path: String): Path
+
+public fun Path(base: Path, path: String): Path {
+    val basePath = base.asString()
+    return if (basePath.endsWith(Path.pathSeparator)) {
+        Path(basePath + path)
+    } else {
+        Path(basePath + Path.pathSeparator + path)
+    }
+}
 
 /**
  * Returns [Source] for the given file or throws if path is not a file or does not exist

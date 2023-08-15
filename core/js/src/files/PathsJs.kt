@@ -31,14 +31,28 @@ public actual class Path internal constructor(internal val path: String,
 
     public actual fun parent(): Path? {
         check(pathLib !== null) { "Path module not found" }
-        val p = pathLib.dirname(path) as String?
-        if (p.isNullOrBlank()) {
-            return null
+        when {
+            path.isBlank() -> return null
+            !path.contains(pathSeparator) -> return null
         }
-        return Path(p)
+        val p = pathLib.dirname(path) as String?
+        return when {
+            p.isNullOrBlank() -> null
+            p == path -> null
+            else -> Path(p)
+        }
     }
 
     public actual fun asString(): String = path
+
+    public actual companion object {
+        public actual val pathSeparator: Char by lazy {
+            check(pathLib != null) { "Path module not found" }
+            val sep = pathLib.sep as String
+            check(sep.length == 1)
+            sep[0]
+        }
+    }
 }
 
 public actual fun Path(path: String): Path {

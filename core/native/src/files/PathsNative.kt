@@ -20,12 +20,23 @@ public actual class Path internal constructor(
     @Suppress("UNUSED_PARAMETER") any: Any?
 ) {
     public actual fun parent(): Path? {
+        when {
+            path.isBlank() -> return null
+            !path.contains(pathSeparator) -> return null
+        }
         val parentName = dirnameImpl(path)
-        if (parentName.isBlank() || parentName == path) return null
-        return Path(parentName)
+        return when {
+            parentName.isBlank() -> return null
+            parentName == path -> return null
+            else -> Path(parentName)
+        }
     }
 
     public actual fun asString(): String = path
+
+    public actual companion object {
+        public actual val pathSeparator: Char = '/'
+    }
 }
 
 internal expect fun dirnameImpl(path: String): String

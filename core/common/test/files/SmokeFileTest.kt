@@ -128,5 +128,18 @@ class SmokeFileTest {
         assertEquals("home/..", p1.parent()?.asString())
         assertEquals("home", p1.parent()?.parent()?.asString())
         assertNull(p1.parent()?.parent()?.parent())
+
+        assertNull(Path("").parent())
+        assertNull(Path(".").parent())
+        assertNull(Path("..").parent())
+        assertNull(Path(Path.pathSeparator.toString()).parent())
+
+        assertEquals("..", Path("../..").parent()?.asString())
+    }
+
+    @Test
+    fun pathConcat() {
+        assertEquals("/a/b/c",
+            Path(Path(Path(Path("/"), "a"), "b"), "c").asString())
     }
 }
