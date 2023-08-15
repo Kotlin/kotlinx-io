@@ -5,6 +5,16 @@
 
 package kotlinx.io.files
 
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.toKString
+import kotlinx.io.IOException
+import platform.posix.errno
+import platform.posix.rename
+import platform.posix.strerror
+
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
-    TODO()
+    if (rename(source.path, destination.path) != 0) {
+        throw IOException("Move failed: ${strerror(errno)?.toKString()}")
+    }
 }
