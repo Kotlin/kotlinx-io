@@ -28,7 +28,7 @@ private class NativeFileSystem : FileSystem {
     override fun delete(path: Path, mustExist: Boolean) {
         if (!exists(path)) {
             if (mustExist) {
-                throw IOException("File does not exist: ${path.path}")
+                throw IOException("File does not exist: $path")
             }
             return
         }
@@ -40,7 +40,7 @@ private class NativeFileSystem : FileSystem {
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         if (exists(path)) {
             if (mustCreate) {
-                throw IOException("Path already exists: ${path}")
+                throw IOException("Path already exists: $path")
             }
             return
         }

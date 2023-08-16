@@ -53,14 +53,14 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
                 fs.rmSync(path.path)
             }
         } catch (t: Throwable) {
-            throw IOException("Delete failed", t)
+            throw IOException("Delete failed for $path", t)
         }
     }
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         if (exists(path)) {
             if (mustCreate) {
-                throw IOException("Path already exists: ${path}")
+                throw IOException("Path already exists: $path")
             }
             return
         }
@@ -81,7 +81,7 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
         try {
             fs.renameSync(source.path, destination.path)
         } catch (t: Throwable) {
-            throw IOException("Move failed", t)
+            throw IOException("Move failed from $source to $destination", t)
         }
     }
 
