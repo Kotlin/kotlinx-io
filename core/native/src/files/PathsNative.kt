@@ -25,7 +25,6 @@ public actual class Path internal constructor(
             !path.contains(separator) -> return null
         }
         val parentName = dirnameImpl(path)
-        println("$path -> $parentName")
         return when {
             parentName.isBlank() -> return null
             parentName == path -> return null

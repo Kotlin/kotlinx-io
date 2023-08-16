@@ -49,8 +49,9 @@ public expect class Path {
 public expect fun Path(path: String): Path
 
 public fun Path(base: String, vararg parts: String): Path {
+    val mappedBase = if (base == "/") Path.separator.toString() else base
     return Path(buildString {
-        append(base)
+        append(mappedBase)
         parts.forEach {
             if (!endsWith(Path.separator)) {
                 append(Path.separator)
