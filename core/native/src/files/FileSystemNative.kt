@@ -33,7 +33,7 @@ private class NativeFileSystem : FileSystem {
             return
         }
         if (remove(path.path) != 0) {
-            throw IOException("Delete failed: ${strerror(errno)?.toKString()}")
+            throw IOException("Delete failed for $path: ${strerror(errno)?.toKString()}")
         }
     }
 
