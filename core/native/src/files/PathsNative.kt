@@ -22,7 +22,7 @@ public actual class Path internal constructor(
     public actual fun parent(): Path? {
         when {
             path.isBlank() -> return null
-            !path.contains(pathSeparator) -> return null
+            !path.contains(separator) -> return null
         }
         val parentName = dirnameImpl(path)
         println("$path -> $parentName")
@@ -33,10 +33,20 @@ public actual class Path internal constructor(
         }
     }
 
-    public actual fun asString(): String = path
+    public actual override fun toString(): String = path
+    actual override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Path) return false
+
+        return path == other.path
+    }
+
+    actual override fun hashCode(): Int {
+        return path.hashCode()
+    }
 
     public actual companion object {
-        public actual val pathSeparator: Char = '/'
+        public actual val separator: Char = '/'
     }
 }
 

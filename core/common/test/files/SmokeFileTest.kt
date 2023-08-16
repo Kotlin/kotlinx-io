@@ -130,7 +130,7 @@ class SmokeFileTest {
         assertTrue(FileSystem.System.exists(p1))
 
         var pr = p1
-        for (i in 0 .. 3) {
+        for (i in 0..3) {
             FileSystem.System.delete(pr)
             pr = pr.parent()!!
         }
@@ -139,29 +139,42 @@ class SmokeFileTest {
     @Test
     fun pathParent() {
         val p = Path("/a/b/c/")
-        assertEquals("/a/b", p.parent()?.asString())
-        assertEquals("/a", p.parent()?.parent()?.asString())
-        assertEquals("/", p.parent()?.parent()?.parent()?.asString())
+        assertEquals(constructAbsolutePath("a", "b"), p.parent()?.toString())
+        assertEquals(constructAbsolutePath("a"), p.parent()?.parent()?.toString())
+        assertEquals(constructAbsolutePath(), p.parent()?.parent()?.parent()?.toString())
         assertNull(p.parent()?.parent()?.parent()?.parent())
 
         val p1 = Path("home/../lib")
-        assertEquals("home/..", p1.parent()?.asString())
-        assertEquals("home", p1.parent()?.parent()?.asString())
+        assertEquals(constructRelativePath("home", ".."), p1.parent()?.toString())
+        assertEquals("home", p1.parent()?.parent()?.toString())
         assertNull(p1.parent()?.parent()?.parent())
 
         assertNull(Path("").parent())
         assertNull(Path(".").parent())
         assertNull(Path("..").parent())
-        assertNull(Path(Path.pathSeparator.toString()).parent())
+        assertNull(Path(Path.separator.toString()).parent())
 
-        assertEquals("..", Path("../..").parent()?.asString())
+        assertEquals("..", Path("../..").parent()?.toString())
     }
 
     @Test
     fun pathConcat() {
-        assertEquals("/a/b/c",
-            Path(Path(Path(Path("/"), "a"), "b"), "c").asString())
+        assertEquals(
+            constructAbsolutePath("a", "b", "c"),
+            Path(Path(Path(Path("/"), "a"), "b"), "c").toString()
+        )
 
-        assertEquals("/a/b/../c", Path("/a", "b", "../c").asString())
+        assertEquals(
+            constructAbsolutePath("a", "b", "..", "c"),
+            Path("/a", "b", "../c").toString()
+        )
+    }
+
+    private fun constructAbsolutePath(vararg parts: String): String {
+        return Path.separator.toString() + parts.joinToString(Path.separator.toString())
+    }
+
+    private fun constructRelativePath(vararg parts: String): String {
+        return parts.joinToString(Path.separator.toString())
     }
 }

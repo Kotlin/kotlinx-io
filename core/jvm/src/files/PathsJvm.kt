@@ -16,10 +16,21 @@ public actual class Path internal constructor(internal val file: File) {
         return Path(parentFile)
     }
 
-    public actual fun asString(): String = file.toString()
+    public actual override fun toString(): String = file.toString()
+
+    actual override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Path) return false
+
+        return toString() == other.toString()
+    }
+
+    actual override fun hashCode(): Int {
+        return toString().hashCode()
+    }
 
     public actual companion object {
-        public actual val pathSeparator: Char = File.separatorChar
+        public actual val separator: Char = File.separatorChar
     }
 }
 

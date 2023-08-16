@@ -40,14 +40,14 @@ private class NativeFileSystem : FileSystem {
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         if (exists(path)) {
             if (mustCreate) {
-                throw IOException("Path already exists: ${path.asString()}")
+                throw IOException("Path already exists: ${path}")
             }
             return
         }
         val paths = arrayListOf<String>()
         var p: Path? = path
         while (p != null && !exists(p)) {
-            paths.add(p.asString())
+            paths.add(p.toString())
             p = p.parent()
         }
         paths.asReversed().forEach {

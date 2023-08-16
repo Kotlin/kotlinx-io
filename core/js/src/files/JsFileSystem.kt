@@ -60,7 +60,7 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         if (exists(path)) {
             if (mustCreate) {
-                throw IOException("Path already exists: ${path.asString()}")
+                throw IOException("Path already exists: ${path}")
             }
             return
         }
@@ -68,7 +68,7 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
         val parts = arrayListOf<String>()
         var p: Path? = path
         while (p != null && !exists(p)) {
-            parts.add(p.asString())
+            parts.add(p.toString())
             p = p.parent()
         }
         parts.asReversed().forEach {

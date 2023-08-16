@@ -15,12 +15,31 @@ import kotlinx.io.Source
  * **This API is unstable and subject to change.**
  */
 public expect class Path {
+    /**
+     * Returns a path representing a parent directory for this path,
+     * or `null` if there is no parent directory for this path.
+     *
+     * How the parent path is resolved is platform-specific.
+     */
     public fun parent(): Path?
 
-    public fun asString(): String
+    /**
+     * Returns a string representation of this path.
+     *
+     * Note that the returned value will represent the same path as the value
+     * passed to [Path], but it may not be identical to it.
+     */
+    override fun toString(): String
+
+    override fun hashCode(): Int
+
+    /**
+     * Compares two paths for equality using its string representation ([toString]).
+     */
+    override fun equals(other: Any?): Boolean
 
     public companion object {
-        public val pathSeparator: Char
+        public val separator: Char
     }
 }
 
@@ -33,8 +52,8 @@ public fun Path(base: String, vararg parts: String): Path {
     return Path(buildString {
         append(base)
         parts.forEach {
-            if (!endsWith(Path.pathSeparator)) {
-                append(Path.pathSeparator)
+            if (!endsWith(Path.separator)) {
+                append(Path.separator)
             }
             append(it)
         }
@@ -43,15 +62,15 @@ public fun Path(base: String, vararg parts: String): Path {
 
 public fun Path(base: Path, path: String, vararg parts: String): Path {
     return Path(buildString {
-        val basePath = base.asString()
+        val basePath = base.toString()
         append(basePath)
-        if (!endsWith(Path.pathSeparator)) {
-            append(Path.pathSeparator)
+        if (!endsWith(Path.separator)) {
+            append(Path.separator)
         }
         append(path)
         parts.forEach {
-            if (!endsWith(Path.pathSeparator)) {
-                append(Path.pathSeparator)
+            if (!endsWith(Path.separator)) {
+                append(Path.separator)
             }
             append(it)
         }

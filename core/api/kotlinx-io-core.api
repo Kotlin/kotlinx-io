@@ -214,12 +214,14 @@ public final class kotlinx/io/files/FileSystem$Companion {
 
 public final class kotlinx/io/files/Path {
 	public static final field Companion Lkotlinx/io/files/Path$Companion;
-	public final fun asString ()Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 	public final fun parent ()Lkotlinx/io/files/Path;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class kotlinx/io/files/Path$Companion {
-	public final fun getPathSeparator ()C
+	public final fun getSeparator ()C
 }
 
 public final class kotlinx/io/files/PathsJvmKt {

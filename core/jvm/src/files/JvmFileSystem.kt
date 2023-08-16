@@ -64,7 +64,7 @@ private class JvmFileSystem : FileSystem {
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         if (!path.file.mkdirs() && mustCreate) {
-            throw IOException("Path already exist: ${path.asString()}")
+            throw IOException("Path already exist: ${path}")
         }
     }
 
