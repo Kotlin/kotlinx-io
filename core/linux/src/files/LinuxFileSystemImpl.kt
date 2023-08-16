@@ -5,31 +5,16 @@
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toKString
 import platform.posix.dirname
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun dirnameImpl(path: String): String {
     memScoped {
-        val cstr = path.cstr
-        println(buildString {
-            for (i in path.indices) {
-                val b = cstr.ptr[i]
-                if (b.toInt() == 0) break
-                append(b)
-                append(' ')
-            }
-        })
-        val res = dirname(cstr) ?: return ""
-        println(buildString {
-            for (i in path.indices) {
-                val b = res[i]
-                if (b.toInt() == 0) break
-                append(b)
-                append(' ')
-            }
-        })
-        return res.toKString()
+        return dirname(path.cstr.getPointer(this))?.toKString() ?: ""
     }
 }
 

@@ -7,10 +7,7 @@
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.convert
-import kotlinx.cinterop.cstr
-import kotlinx.cinterop.toKString
+import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.posix.dirname
 import platform.posix.errno
@@ -28,7 +25,9 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
 }
 
 internal actual fun dirnameImpl(path: String): String {
-    return dirname(path.cstr)?.toKString() ?: ""
+    memScoped {
+        return dirname(path.cstr.getPointer(this))?.toKString() ?: ""
+    }
 }
 
 internal actual fun mkdirImpl(path: String) {

@@ -8,6 +8,7 @@ package kotlinx.io.files
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cstr
+import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
 import platform.Foundation.NSTemporaryDirectory
@@ -24,8 +25,9 @@ internal actual val NativeTempDir: Path
     get() = Path(NSTemporaryDirectory())
 
 internal actual fun dirnameImpl(path: String): String {
-    val p = dirname(path.cstr)?.toKString() ?: ""
-    return p
+    memScoped {
+        return dirname(path.cstr.getPointer(this))?.toKString() ?: ""
+    }
 }
 
 internal actual fun mkdirImpl(path: String) {
