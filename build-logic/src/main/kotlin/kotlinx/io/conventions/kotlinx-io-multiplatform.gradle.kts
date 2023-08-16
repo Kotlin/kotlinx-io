@@ -64,14 +64,12 @@ kotlin {
     val mingwTargets = mingwTargets()
 
     /*
+      Native source sets hierarchy:
       native
-      |
       |-> apple
       |-> nonApple
-          |
           |-> mingw
           |-> unix
-              |
               |-> linux
               |-> android
      */
