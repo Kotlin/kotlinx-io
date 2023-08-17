@@ -5,6 +5,7 @@
 
 package kotlinx.io.files
 
+import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlinx.io.Source
 
@@ -49,12 +50,12 @@ public interface FileSystem {
      *
      * @param path the path to be created.
      * @param mustCreate the flag indicating that existence of [path] should be treated as an error,
-     * by default it is `true`.
+     * by default it is `false`.
      *
      * @throws kotlinx.io.IOException when [path] already exists and [mustCreate] is `true`.
      * @throws kotlinx.io.IOException when the creation of one of the directories fails.
      */
-    public fun createDirectories(path: Path, mustCreate: Boolean = true)
+    public fun createDirectories(path: Path, mustCreate: Boolean = false)
 
     /**
      * Atomically renames [source] to [destination] overriding [destination] if it already exists.
@@ -108,3 +109,5 @@ public class FileMetadata(
     public val isRegularFile: Boolean = false,
     public val isDirectory: Boolean = false
 )
+
+public expect open class FileNotFoundException(message: String?) : IOException

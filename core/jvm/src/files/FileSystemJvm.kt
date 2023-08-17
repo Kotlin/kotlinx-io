@@ -18,6 +18,9 @@ private interface Mover {
 private class NioMover : Mover {
     @AnimalSnifferIngore
     override fun move(source: Path, destination: Path) {
+        if (!source.file.exists()) {
+            throw FileNotFoundException("Source file does not exist: ${source.file}")
+        }
         Files.move(
             source.file.toPath(), destination.file.toPath(),
             StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING
@@ -53,7 +56,7 @@ private class JvmFileSystem : FileSystem {
     override fun delete(path: Path, mustExist: Boolean) {
         if (!exists(path)) {
             if (mustExist) {
-                throw IOException("File does not exist: ${path.file}")
+                throw FileNotFoundException("File does not exist: ${path.file}")
             }
             return
         }
@@ -79,3 +82,5 @@ private class JvmFileSystem : FileSystem {
 }
 
 internal actual val SystemFileSystem: FileSystem = JvmFileSystem.Instance
+
+public actual typealias FileNotFoundException = java.io.FileNotFoundException

@@ -27,7 +27,7 @@ private class NativeFileSystem : FileSystem {
     override fun delete(path: Path, mustExist: Boolean) {
         if (!exists(path)) {
             if (mustExist) {
-                throw IOException("File does not exist: $path")
+                throw FileNotFoundException("File does not exist: $path")
             }
             return
         }
@@ -58,6 +58,9 @@ private class NativeFileSystem : FileSystem {
     }
 
     override fun atomicMove(source: Path, destination: Path) {
+        if (!exists(source)) {
+            throw FileNotFoundException("Source does not exist: ${source.path}")
+        }
         atomicMoveImpl(source, destination)
     }
 
@@ -84,3 +87,7 @@ internal expect fun mkdirImpl(path: String)
 
 public actual val SystemFileSystem: FileSystem
     get() = NativeFileSystem.Instance
+
+public actual open class FileNotFoundException actual constructor(
+    message: String?
+) : IOException(message)

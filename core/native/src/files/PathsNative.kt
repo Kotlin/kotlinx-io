@@ -66,8 +66,13 @@ internal expect fun isAbsoluteImpl(path: String): Boolean
 public actual fun Path(path: String): Path = Path(path, null)
 
 public actual fun Path.source(): Source {
-    val openFile: CPointer<FILE> = fopen(path, "rb")
-        ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
+    val openFile: CPointer<FILE>? = fopen(path, "rb")
+    if (openFile == null) {
+        if (errno == ENOENT) {
+            throw FileNotFoundException("File does not exist: $path")
+        }
+        throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
+    }
     return FileSource(openFile).buffered()
 }
 

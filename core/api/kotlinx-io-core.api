@@ -203,10 +203,6 @@ public final class kotlinx/io/files/FileMetadata {
 	public final fun isRegularFile ()Z
 }
 
-public final class kotlinx/io/files/FileNotFoundException : java/io/IOException {
-	public fun <init> ()V
-}
-
 public abstract interface class kotlinx/io/files/FileSystem {
 	public static final field Companion Lkotlinx/io/files/FileSystem$Companion;
 	public abstract fun atomicMove (Lkotlinx/io/files/Path;Lkotlinx/io/files/Path;)V

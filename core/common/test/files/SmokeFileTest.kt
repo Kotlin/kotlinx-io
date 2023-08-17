@@ -48,6 +48,16 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
+    fun testReadNotExistingFile() {
+        assertFailsWith<FileNotFoundException> {
+            FileSystem.System.read(createTempPath()).use {
+                it.readByte()
+            }
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
     fun testReadWriteMultipleSegments() {
         val path = createTempPath()
 
@@ -100,7 +110,7 @@ class SmokeFileTest {
     @Test
     fun deleteFile() {
         val p = createTempPath()
-        assertFailsWith<IOException> {
+        assertFailsWith<FileNotFoundException> {
             FileSystem.System.delete(p, mustExist = true)
         }
         // Should not fail
@@ -109,7 +119,7 @@ class SmokeFileTest {
 
     @Test
     fun moveNonExistingFile() {
-        assertFailsWith<IOException> {
+        assertFailsWith<FileNotFoundException> {
             FileSystem.System.atomicMove(createTempPath(), createTempPath())
         }
     }
@@ -121,7 +131,7 @@ class SmokeFileTest {
         assertTrue(FileSystem.System.exists(p))
 
         assertFailsWith<IOException> {
-            FileSystem.System.createDirectories(p)
+            FileSystem.System.createDirectories(p, true)
         }
         FileSystem.System.createDirectories(p, false)
 

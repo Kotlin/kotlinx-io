@@ -113,7 +113,14 @@ private class FileSource(private val path: Path) : RawSource {
             return 0
         }
         if (buffer === null) {
-            buffer = fs.readFileSync(path.toString(), null)
+            try {
+                buffer = fs.readFileSync(path.toString(), null)
+            } catch (t: Throwable) {
+                if (fs.existsSync(path.path) as Boolean) {
+                    throw IOException("Failed to read data from $path", t)
+                }
+                throw FileNotFoundException("File does not exist: $path")
+            }
         }
         val len: Int = buffer.length as Int
         if (offset >= len) {

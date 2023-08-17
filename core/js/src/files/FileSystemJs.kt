@@ -41,7 +41,7 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
         check(fs !== null) { "Module 'fs' was not found" }
         if (!exists(path)) {
             if (mustExist) {
-                throw IOException("File does not exist: ${path.path}")
+                throw FileNotFoundException("File does not exist: ${path.path}")
             }
             return
         }
@@ -78,6 +78,9 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
 
     override fun atomicMove(source: Path, destination: Path) {
         check(fs !== null) { "Module 'fs' was not found" }
+        if (!exists(source)) {
+            throw FileNotFoundException("Source does not exist: ${source.path}")
+        }
         try {
             fs.renameSync(source.path, destination.path)
         } catch (t: Throwable) {
@@ -100,3 +103,7 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
         }
     }
 }
+
+public actual open class FileNotFoundException actual constructor(
+    message: String?,
+) : IOException(message)
