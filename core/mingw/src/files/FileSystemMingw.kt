@@ -13,6 +13,7 @@ import platform.posix.*
 import platform.windows.GetLastError
 import platform.windows.MOVEFILE_REPLACE_EXISTING
 import platform.windows.MoveFileExA
+import platform.windows.PathIsRelativeA
 
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
     if (MoveFileExA(source.path, destination.path, MOVEFILE_REPLACE_EXISTING.convert()) == 0) {
@@ -35,8 +36,7 @@ internal actual fun basenameImpl(path: String): String {
 
 internal actual fun isAbsoluteImpl(path: String): Boolean {
     if (path.startsWith(Path.separator)) return true
-    if (path.length < 3) return false
-    return path[1] == ':' && path[2] == Path.separator
+    return PathIsRelativeA(path) == 0
 }
 
 internal actual fun mkdirImpl(path: String) {

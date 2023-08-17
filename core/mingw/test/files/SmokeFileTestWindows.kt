@@ -15,6 +15,9 @@ class SmokeFileTestWindows {
         assertTrue(Path("C:\\").isAbsolute)
         assertTrue(Path("C:/").isAbsolute)
         assertTrue(Path("C:/../").isAbsolute)
-        assertFalse(Path("C:file").isAbsolute)
+        // Well, it's a relative path, but Win32's PathIsRelative don't think so.
+        assertTrue(Path("C:file").isAbsolute)
+        assertFalse(Path("bla\\bla\\bla").isAbsolute)
+        assertTrue(Path("\\\\server\\share").isAbsolute)
     }
 }

@@ -193,13 +193,15 @@ class SmokeFileTest {
 
     @Test
     fun isAbsolute() {
-        assertTrue(Path(Path.separator.toString()).isAbsolute)
+        // to make it work on both Windows and Unix, just repeat the separator twice
+        val rootPath = Path.separator.repeat(2)
+        assertTrue(Path(rootPath).isAbsolute)
         assertFalse(Path("").isAbsolute)
         assertFalse(Path("..").isAbsolute)
         assertFalse(Path(".").isAbsolute)
-        assertTrue(Path(Path.separator.toString(), "a", "b", "c").isAbsolute)
+        assertTrue(Path(rootPath, "a", "b", "c").isAbsolute)
         assertFalse(Path("hello", "filesystem").isAbsolute)
-        assertTrue(Path(Path.separator.toString(), "lib", "..", "usr", "lib").isAbsolute)
+        assertTrue(Path(rootPath, "lib", "..", "usr", "lib").isAbsolute)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
