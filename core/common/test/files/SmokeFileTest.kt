@@ -138,13 +138,13 @@ class SmokeFileTest {
 
     @Test
     fun pathParent() {
-        val p = Path("/a/b/c/")
+        val p = Path(Path.separator.toString(), "a", "b", "c")
         assertEquals(constructAbsolutePath("a", "b"), p.parent()?.toString())
         assertEquals(constructAbsolutePath("a"), p.parent()?.parent()?.toString())
         assertEquals(constructAbsolutePath(), p.parent()?.parent()?.parent()?.toString())
         assertNull(p.parent()?.parent()?.parent()?.parent())
 
-        val p1 = Path("home/../lib")
+        val p1 = Path("home", "..", "lib")
         assertEquals(constructRelativePath("home", ".."), p1.parent()?.toString())
         assertEquals("home", p1.parent()?.parent()?.toString())
         assertNull(p1.parent()?.parent()?.parent())
@@ -154,19 +154,19 @@ class SmokeFileTest {
         assertNull(Path("..").parent())
         assertNull(Path(Path.separator.toString()).parent())
 
-        assertEquals("..", Path("../..").parent()?.toString())
+        assertEquals("..", Path("..${Path.separator}..").parent()?.toString())
     }
 
     @Test
     fun pathConcat() {
         assertEquals(
             constructAbsolutePath("a", "b", "c"),
-            Path(Path(Path(Path("/"), "a"), "b"), "c").toString()
+            Path(Path(Path(Path(Path.separator.toString()), "a"), "b"), "c").toString()
         )
 
         assertEquals(
             constructAbsolutePath("a", "b", "..", "c"),
-            Path("/a", "b", "../c").toString()
+            Path("${Path.separator}a", "b", "..${Path.separator}c").toString()
         )
     }
 

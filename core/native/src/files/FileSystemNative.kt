@@ -33,6 +33,9 @@ private class NativeFileSystem : FileSystem {
             return
         }
         if (remove(path.path) != 0) {
+            if (errno == EACCES) {
+                if (rmdir(path.path) == 0) return
+            }
             throw IOException("Delete failed for $path: ${strerror(errno)?.toKString()}")
         }
     }
