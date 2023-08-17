@@ -19,18 +19,19 @@ public actual class Path internal constructor(
     internal val path: String,
     @Suppress("UNUSED_PARAMETER") any: Any?
 ) {
-    public actual fun parent(): Path? {
-        when {
-            path.isBlank() -> return null
-            !path.contains(separator) -> return null
+    public actual val parent: Path?
+        get() {
+            when {
+                path.isBlank() -> return null
+                !path.contains(separator) -> return null
+            }
+            val parentName = dirnameImpl(path)
+            return when {
+                parentName.isBlank() -> return null
+                parentName == path -> return null
+                else -> Path(parentName)
+            }
         }
-        val parentName = dirnameImpl(path)
-        return when {
-            parentName.isBlank() -> return null
-            parentName == path -> return null
-            else -> Path(parentName)
-        }
-    }
 
     public actual override fun toString(): String = path
     actual override fun equals(other: Any?): Boolean {
@@ -47,9 +48,20 @@ public actual class Path internal constructor(
     public actual companion object {
         public actual val separator: Char = '/'
     }
+
+    public actual val isAbsolute: Boolean = isAbsoluteImpl(path)
+    public actual val name: String
+        get() {
+            if (path.isBlank() || path.trim() == separator.toString()) return ""
+            return basenameImpl(path)
+        }
 }
 
 internal expect fun dirnameImpl(path: String): String
+
+internal expect fun basenameImpl(path: String): String
+
+internal expect fun isAbsoluteImpl(path: String): Boolean
 
 public actual fun Path(path: String): Path = Path(path, null)
 

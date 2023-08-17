@@ -195,6 +195,18 @@ public final class kotlinx/io/Utf8Kt {
 	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
 }
 
+public final class kotlinx/io/files/FileMetadata {
+	public fun <init> ()V
+	public fun <init> (ZZ)V
+	public synthetic fun <init> (ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun isDirectory ()Z
+	public final fun isRegularFile ()Z
+}
+
+public final class kotlinx/io/files/FileNotFoundException : java/io/IOException {
+	public fun <init> ()V
+}
+
 public abstract interface class kotlinx/io/files/FileSystem {
 	public static final field Companion Lkotlinx/io/files/FileSystem$Companion;
 	public abstract fun atomicMove (Lkotlinx/io/files/Path;Lkotlinx/io/files/Path;)V
@@ -204,6 +216,7 @@ public abstract interface class kotlinx/io/files/FileSystem {
 	public static synthetic fun delete$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;ZILjava/lang/Object;)V
 	public abstract fun exists (Lkotlinx/io/files/Path;)Z
 	public abstract fun getTemporaryDirectory ()Lkotlinx/io/files/Path;
+	public abstract fun metadataOrNull (Lkotlinx/io/files/Path;)Lkotlinx/io/files/FileMetadata;
 	public fun read (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 	public fun write (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
 }
@@ -215,8 +228,10 @@ public final class kotlinx/io/files/FileSystem$Companion {
 public final class kotlinx/io/files/Path {
 	public static final field Companion Lkotlinx/io/files/Path$Companion;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getParent ()Lkotlinx/io/files/Path;
 	public fun hashCode ()I
-	public final fun parent ()Lkotlinx/io/files/Path;
+	public final fun isAbsolute ()Z
 	public fun toString ()Ljava/lang/String;
 }
 

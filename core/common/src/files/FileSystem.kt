@@ -86,6 +86,14 @@ public interface FileSystem {
      */
     public fun write(path: Path): Sink = path.sink()
 
+    /**
+     * Return [FileMetadata] associated with a file or directory represented by the [path].
+     * If there is not such file or directory, the `null` is returned.
+     *
+     * @param path the path to get the metadata for.
+     */
+    public fun metadataOrNull(path: Path): FileMetadata?
+
     public companion object {
         /**
          * An instance of [FileSystem] representing a default system-wide file system.
@@ -95,3 +103,8 @@ public interface FileSystem {
 }
 
 internal expect val SystemFileSystem: FileSystem
+
+public class FileMetadata(
+    public val isRegularFile: Boolean = false,
+    public val isDirectory: Boolean = false
+)

@@ -5,8 +5,7 @@
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.toKString
+import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.posix.*
 
@@ -51,7 +50,7 @@ private class NativeFileSystem : FileSystem {
         var p: Path? = path
         while (p != null && !exists(p)) {
             paths.add(p.toString())
-            p = p.parent()
+            p = p.parent
         }
         paths.asReversed().forEach {
             mkdirImpl(it)
@@ -60,6 +59,22 @@ private class NativeFileSystem : FileSystem {
 
     override fun atomicMove(source: Path, destination: Path) {
         atomicMoveImpl(source, destination)
+    }
+
+    @OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
+    override fun metadataOrNull(path: Path): FileMetadata? {
+        memScoped {
+            val struct_stat = alloc<stat>()
+            if (stat(path.path, struct_stat.ptr) != 0) {
+                if (errno == ENOENT) return null
+                throw IOException("stat failed to ${path.path}: ${strerror(errno)?.toKString()}")
+            }
+            val mode = struct_stat.st_mode.toInt()
+            return FileMetadata(
+                isRegularFile = (mode and S_IFMT) == S_IFREG,
+                isDirectory = (mode and S_IFMT) == S_IFDIR
+            )
+        }
     }
 }
 

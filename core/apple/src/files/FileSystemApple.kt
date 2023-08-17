@@ -30,6 +30,14 @@ internal actual fun dirnameImpl(path: String): String {
     }
 }
 
+internal actual fun basenameImpl(path: String): String {
+    memScoped {
+        return basename(path.cstr.getPointer(this))?.toKString() ?: ""
+    }
+}
+
+internal actual fun isAbsoluteImpl(path: String): Boolean = path.startsWith('/')
+
 internal actual fun mkdirImpl(path: String) {
     val mode: UShort = 511u
     if (mkdir(path, mode) != 0) {

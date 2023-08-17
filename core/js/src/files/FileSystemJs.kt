@@ -69,7 +69,7 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
         var p: Path? = path
         while (p != null && !exists(p)) {
             parts.add(p.toString())
-            p = p.parent()
+            p = p.parent
         }
         parts.asReversed().forEach {
             fs.mkdirSync(it)
@@ -85,4 +85,18 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
         }
     }
 
+    override fun metadataOrNull(path: Path): FileMetadata? {
+        check(fs !== null) { "Module 'fs' was not found" }
+        return try {
+            val stat = fs.statSync(path.path)
+            val mode = stat.mode as Int
+            FileMetadata(
+                isRegularFile = (mode and fs.constants.S_IFMT as Int) == fs.constants.S_IFREG,
+                isDirectory = (mode and fs.constants.S_IFMT as Int) == fs.constants.S_IFDIR
+            )
+        } catch (t: Throwable) {
+            if (exists(path)) throw IOException("Stat failed for $path", t)
+            return null
+        }
+    }
 }

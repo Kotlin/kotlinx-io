@@ -29,19 +29,39 @@ public actual class Path internal constructor(
     internal val path: String,
     @Suppress("UNUSED_PARAMETER") any: Any?
 ) {
-    public actual fun parent(): Path? {
-        check(pathLib !== null) { "Path module not found" }
-        when {
-            path.isBlank() -> return null
-            !path.contains(separator) -> return null
+    public actual val parent: Path?
+        get() {
+            check(pathLib !== null) { "Path module not found" }
+            when {
+                path.isBlank() -> return null
+                !path.contains(separator) -> return null
+            }
+            val p = pathLib.dirname(path) as String?
+            return when {
+                p.isNullOrBlank() -> null
+                p == path -> null
+                else -> Path(p)
+            }
         }
-        val p = pathLib.dirname(path) as String?
-        return when {
-            p.isNullOrBlank() -> null
-            p == path -> null
-            else -> Path(p)
+
+    public actual val isAbsolute: Boolean
+        get() {
+            check(pathLib !== null) { "Path module not found" }
+            return pathLib.isAbsolute(path) as Boolean
         }
-    }
+
+    public actual val name: String
+        get() {
+            check(pathLib !== null) { "Path module not found" }
+            when {
+                path.isBlank() -> return ""
+            }
+            val p = pathLib.basename(path) as String?
+            return when {
+                p.isNullOrBlank() -> ""
+                else -> p
+            }
+        }
 
     public actual override fun toString(): String = path
 

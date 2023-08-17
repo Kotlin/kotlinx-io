@@ -71,6 +71,11 @@ private class JvmFileSystem : FileSystem {
     override fun atomicMove(source: Path, destination: Path) {
         mover.move(source, destination)
     }
+
+    override fun metadataOrNull(path: Path): FileMetadata? {
+        if (!path.file.exists()) return null
+        return FileMetadata(path.file.isFile, path.file.isDirectory)
+    }
 }
 
 internal actual val SystemFileSystem: FileSystem = JvmFileSystem.Instance

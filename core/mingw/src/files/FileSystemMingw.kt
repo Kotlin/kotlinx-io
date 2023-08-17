@@ -9,10 +9,7 @@ package kotlinx.io.files
 
 import kotlinx.cinterop.*
 import kotlinx.io.IOException
-import platform.posix.dirname
-import platform.posix.errno
-import platform.posix.mkdir
-import platform.posix.strerror
+import platform.posix.*
 import platform.windows.GetLastError
 import platform.windows.MOVEFILE_REPLACE_EXISTING
 import platform.windows.MoveFileExA
@@ -28,6 +25,18 @@ internal actual fun dirnameImpl(path: String): String {
     memScoped {
         return dirname(path.cstr.getPointer(this))?.toKString() ?: ""
     }
+}
+
+internal actual fun basenameImpl(path: String): String {
+    memScoped {
+        return basename(path.cstr.getPointer(this))?.toKString() ?: ""
+    }
+}
+
+internal actual fun isAbsoluteImpl(path: String): Boolean {
+    if (path.startsWith(Path.separator)) return true
+    if (path.length < 3) return false
+    return path[1] == ':' && path[2] == Path.separator
 }
 
 internal actual fun mkdirImpl(path: String) {

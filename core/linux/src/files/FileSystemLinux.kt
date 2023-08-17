@@ -9,6 +9,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
+import platform.posix.__xpg_basename
 import platform.posix.dirname
 
 @OptIn(ExperimentalForeignApi::class)
@@ -18,3 +19,11 @@ internal actual fun dirnameImpl(path: String): String {
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun basenameImpl(path: String): String {
+    memScoped {
+        return __xpg_basename(path.cstr.getPointer(this))?.toKString() ?: ""
+    }
+}
+
+internal actual fun isAbsoluteImpl(path: String): Boolean = path.startsWith('/')

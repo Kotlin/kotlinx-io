@@ -11,10 +11,11 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 public actual class Path internal constructor(internal val file: File) {
-    public actual fun parent(): Path? {
-        val parentFile = file.parentFile ?: return null
-        return Path(parentFile)
-    }
+    public actual val parent: Path?
+        get() {
+            val parentFile = file.parentFile ?: return null
+            return Path(parentFile)
+        }
 
     public actual override fun toString(): String = file.toString()
 
@@ -32,6 +33,11 @@ public actual class Path internal constructor(internal val file: File) {
     public actual companion object {
         public actual val separator: Char = File.separatorChar
     }
+
+    public actual val isAbsolute: Boolean
+        get() = file.isAbsolute
+    public actual val name: String
+        get() = file.name
 }
 
 public actual fun Path(path: String): Path = Path(File(path))

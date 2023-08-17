@@ -132,29 +132,29 @@ class SmokeFileTest {
         var pr = p1
         for (i in 0..3) {
             FileSystem.System.delete(pr)
-            pr = pr.parent()!!
+            pr = pr.parent!!
         }
     }
 
     @Test
     fun pathParent() {
         val p = Path(Path.separator.toString(), "a", "b", "c")
-        assertEquals(constructAbsolutePath("a", "b"), p.parent()?.toString())
-        assertEquals(constructAbsolutePath("a"), p.parent()?.parent()?.toString())
-        assertEquals(constructAbsolutePath(), p.parent()?.parent()?.parent()?.toString())
-        assertNull(p.parent()?.parent()?.parent()?.parent())
+        assertEquals(constructAbsolutePath("a", "b"), p.parent?.toString())
+        assertEquals(constructAbsolutePath("a"), p.parent?.parent?.toString())
+        assertEquals(constructAbsolutePath(), p.parent?.parent?.parent?.toString())
+        assertNull(p.parent?.parent?.parent?.parent)
 
         val p1 = Path("home", "..", "lib")
-        assertEquals(constructRelativePath("home", ".."), p1.parent()?.toString())
-        assertEquals("home", p1.parent()?.parent()?.toString())
-        assertNull(p1.parent()?.parent()?.parent())
+        assertEquals(constructRelativePath("home", ".."), p1.parent?.toString())
+        assertEquals("home", p1.parent?.parent?.toString())
+        assertNull(p1.parent?.parent?.parent)
 
-        assertNull(Path("").parent())
-        assertNull(Path(".").parent())
-        assertNull(Path("..").parent())
-        assertNull(Path(Path.separator.toString()).parent())
+        assertNull(Path("").parent)
+        assertNull(Path(".").parent)
+        assertNull(Path("..").parent)
+        assertNull(Path(Path.separator.toString()).parent)
 
-        assertEquals("..", Path("..${Path.separator}..").parent()?.toString())
+        assertEquals("..", Path("..${Path.separator}..").parent?.toString())
     }
 
     @Test
@@ -168,6 +168,56 @@ class SmokeFileTest {
             constructAbsolutePath("a", "b", "..", "c"),
             Path("${Path.separator}a", "b", "..${Path.separator}c").toString()
         )
+    }
+
+    @Test
+    fun fileName() {
+        assertEquals("", Path("").name)
+        assertEquals("hello", Path("hello").name)
+        assertEquals("", Path(Path.separator.toString()).name)
+        assertEquals(".", Path(".").name)
+        assertEquals("..", Path("..").name)
+        assertEquals("hello.txt", Path("base", "hello.txt").name)
+        assertEquals("dir", Path("dir${Path.separator}").name)
+    }
+
+    @Test
+    fun isAbsolute() {
+        assertTrue(Path(Path.separator.toString()).isAbsolute)
+        assertFalse(Path("").isAbsolute)
+        assertFalse(Path("..").isAbsolute)
+        assertFalse(Path(".").isAbsolute)
+        assertTrue(Path(Path.separator.toString(), "a", "b", "c").isAbsolute)
+        assertFalse(Path("hello", "filesystem").isAbsolute)
+        assertTrue(Path(Path.separator.toString(), "lib", "..", "usr", "lib").isAbsolute)
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun testMetadata() {
+        val path = createTempPath()
+        assertNull(FileSystem.System.metadataOrNull(path))
+
+        FileSystem.System.createDirectories(path)
+        val dirMetadata = FileSystem.System.metadataOrNull(path)
+        assertNotNull(dirMetadata)
+        assertTrue(dirMetadata.isDirectory)
+        assertFalse(dirMetadata.isRegularFile)
+
+        val filePath = Path(path, "test.txt")
+        assertNull(FileSystem.System.metadataOrNull(filePath))
+        FileSystem.System.write(filePath).use {
+            it.writeString("blablabla")
+        }
+
+        try {
+            val fileMetadata = FileSystem.System.metadataOrNull(filePath)
+            assertNotNull(fileMetadata)
+            assertFalse(fileMetadata.isDirectory)
+            assertTrue(fileMetadata.isRegularFile)
+        } finally {
+            FileSystem.System.delete(filePath, false)
+        }
     }
 
     private fun constructAbsolutePath(vararg parts: String): String {
