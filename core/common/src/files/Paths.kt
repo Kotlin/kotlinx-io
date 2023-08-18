@@ -56,6 +56,11 @@ public expect class Path {
     override fun equals(other: Any?): Boolean
 
     public companion object {
+        /**
+         * A platform-specific character separating parts of the path.
+         *
+         * For example, it's usually `/` on Unix and `\` on Windows.
+         */
         public val separator: Char
     }
 }
@@ -65,6 +70,9 @@ public expect class Path {
  */
 public expect fun Path(path: String): Path
 
+/**
+ * Returns Path for the given [base] path concatenated with [parts] using [Path.separator].
+ */
 public fun Path(base: String, vararg parts: String): Path {
     return Path(buildString {
         append(base)
@@ -77,21 +85,11 @@ public fun Path(base: String, vararg parts: String): Path {
     })
 }
 
-public fun Path(base: Path, path: String, vararg parts: String): Path {
-    return Path(buildString {
-        val basePath = base.toString()
-        append(basePath)
-        if (!endsWith(Path.separator)) {
-            append(Path.separator)
-        }
-        append(path)
-        parts.forEach {
-            if (!endsWith(Path.separator)) {
-                append(Path.separator)
-            }
-            append(it)
-        }
-    })
+/**
+ * Returns Path for the given [base] path concatenated with [parts] using [Path.separator].
+ */
+public fun Path(base: Path, vararg parts: String): Path {
+    return Path(base.toString(), *parts)
 }
 
 /**

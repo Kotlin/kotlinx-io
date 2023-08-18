@@ -25,17 +25,20 @@ public interface FileSystem {
      * otherwise returns `false`.
      *
      * @param path the path that should be checked for existence.
+     *
+     * @throws kotlinx.io.IOException when the attempt to check the existence of the [path] failed.
      */
     public fun exists(path: Path): Boolean
 
     /**
      * Deletes [path] from a file system. If there is no file system entity
-     * represented by the [path] this method throws [kotlinx.io.IOException] when [mustExist]
+     * represented by the [path] this method throws [kotlinx.io.files.FileNotFoundException] when [mustExist]
      * is `true`.
      *
      * @param path the path to be deleted.
      * @param mustExist the flag indicating whether missing [path] is an error, `true` by default.
      *
+     * @throws kotlinx.io.files.FileNotFoundException when [path] does not exist and [mustExist] is `true`.
      * @throws kotlinx.io.IOException if the [path] could not be deleted.
      */
     public fun delete(path: Path, mustExist: Boolean = true)
@@ -67,7 +70,8 @@ public interface FileSystem {
      * @param source the path to rename.
      * @param destination desired path name.
      *
-     * @throws kotlinx.io.IOException if [source] does not exist or move failed.
+     * @throws kotlinx.io.files.FileNotFoundException when the [source] does not exist.
+     * @throws kotlinx.io.IOException when the move failed.
      * @throws kotlin.UnsupportedOperationException when the file system does not support atomic move.
      */
     public fun atomicMove(source: Path, destination: Path)
@@ -75,21 +79,33 @@ public interface FileSystem {
     /**
      * Returns [Source] to read from a file represented by the [path].
      *
+     * How a source will read the data is implementation-specific and failures caused
+     * by the missing file or, for example, lack of permissions may not be reported immediately,
+     * but postponed until the source will try to fetch data.
+     *
      * @param path the path to read from.
      *
-     * @throws kotlinx.io.IOException when the file does not exists.
+     * @throws kotlinx.io.files.FileNotFoundException when the file does not exist.
+     * @throws kotlinx.io.IOException when it's not possible to open the file for reading.
      */
     public fun read(path: Path): Source = path.source()
 
     /**
      * Returns [Sink] to write into a file represented by the [path].
      * File will be created if it does not exist yet.
+     *
+     * How a sink will write the data is implementation-specific and failures caused,
+     * for example, by the lack of permissions may not be reported immediately,
+     * but postponed until the sink will try to store data.
+     *
+     * @throws kotlinx.io.IOException when it's not possible to open the file for writing.
      */
     public fun write(path: Path): Sink = path.sink()
 
     /**
      * Return [FileMetadata] associated with a file or directory represented by the [path].
-     * If there is not such file or directory, the `null` is returned.
+     * If there is not such file or directory, or it's impossible to fetch metadata,
+     * the `null` is returned.
      *
      * @param path the path to get the metadata for.
      */
