@@ -12,8 +12,6 @@ import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 import kotlin.coroutines.CoroutineContext
 
-public fun AsyncRawSink.buffered(): AsyncSink = AsyncSink(this)
-
 public fun AsyncRawSource.buffered(): AsyncSource = AsyncSource(this)
 
 public suspend fun <T: AsyncRawSink> T.use(block: suspend (T) -> Unit) {
@@ -24,6 +22,13 @@ public suspend fun <T: AsyncRawSink> T.use(block: suspend (T) -> Unit) {
 public suspend fun <T: AsyncRawSource> T.use(block: suspend (T) -> Unit) {
     block(this)
     close()
+}
+
+public suspend fun AsyncRawSink.writeWithBuffer(block: Buffer.() -> Unit) {
+    val buffer = Buffer()
+    block(buffer)
+    write(buffer, buffer.size)
+    flush()
 }
 
 /*
