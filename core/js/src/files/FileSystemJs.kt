@@ -25,7 +25,11 @@ internal val os: dynamic
         }
     }
 
-internal actual val SystemFileSystem: FileSystem = object : FileSystem {
+private class JsFileSystem : SystemFileSystemImpl() {
+    companion object {
+        val Instance = JsFileSystem()
+    }
+
     override val temporaryDirectory: Path
         get() {
             check(os !== null) { "Module 'os' was not found" }
@@ -103,6 +107,8 @@ internal actual val SystemFileSystem: FileSystem = object : FileSystem {
         }
     }
 }
+
+internal actual val SystemFileSystem: FileSystem = JsFileSystem.Instance
 
 public actual open class FileNotFoundException actual constructor(
     message: String?,

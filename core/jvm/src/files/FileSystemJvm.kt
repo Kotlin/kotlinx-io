@@ -41,7 +41,7 @@ private val mover: Mover by lazy {
     }
 }
 
-private class JvmFileSystem : FileSystem {
+private class JvmFileSystem : SystemFileSystemImpl() {
     companion object {
         val Instance = JvmFileSystem()
     }

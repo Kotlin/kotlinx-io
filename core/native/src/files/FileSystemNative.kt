@@ -11,7 +11,7 @@ import platform.posix.*
 
 internal expect val NativeTempDir: Path
 
-private class NativeFileSystem : FileSystem {
+private class NativeFileSystem : SystemFileSystemImpl() {
     companion object {
         val Instance = NativeFileSystem()
     }
@@ -85,7 +85,7 @@ internal expect fun atomicMoveImpl(source: Path, destination: Path)
 
 internal expect fun mkdirImpl(path: String)
 
-public actual val SystemFileSystem: FileSystem
+internal actual val SystemFileSystem: FileSystem
     get() = NativeFileSystem.Instance
 
 public actual open class FileNotFoundException actual constructor(

@@ -14,7 +14,7 @@ import kotlinx.io.Source
  *
  * **This API is unstable and subject to change.**
  */
-public interface FileSystem {
+public sealed interface FileSystem {
     /**
      * Path to a directory suitable for creating temporary files.
      */
@@ -88,7 +88,7 @@ public interface FileSystem {
      * @throws kotlinx.io.files.FileNotFoundException when the file does not exist.
      * @throws kotlinx.io.IOException when it's not possible to open the file for reading.
      */
-    public fun read(path: Path): Source = path.source()
+    public fun read(path: Path): Source
 
     /**
      * Returns [Sink] to write into a file represented by the [path].
@@ -100,7 +100,7 @@ public interface FileSystem {
      *
      * @throws kotlinx.io.IOException when it's not possible to open the file for writing.
      */
-    public fun write(path: Path): Sink = path.sink()
+    public fun write(path: Path): Sink
 
     /**
      * Return [FileMetadata] associated with a file or directory represented by the [path].
@@ -119,6 +119,12 @@ public interface FileSystem {
     }
 }
 
+internal abstract class SystemFileSystemImpl : FileSystem {
+    override fun read(path: Path): Source = path.source()
+
+    override fun write(path: Path): Sink = path.sink()
+}
+
 internal expect val SystemFileSystem: FileSystem
 
 public class FileMetadata(
@@ -126,4 +132,4 @@ public class FileMetadata(
     public val isDirectory: Boolean = false
 )
 
-public expect open class FileNotFoundException(message: String?) : IOException
+public expect class FileNotFoundException(message: String?) : IOException
