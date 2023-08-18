@@ -77,7 +77,7 @@ public fun Path(base: String, vararg parts: String): Path {
     return Path(buildString {
         append(base)
         parts.forEach {
-            if (!endsWith(Path.separator)) {
+            if (isNotEmpty() && !endsWith(Path.separator)) {
                 append(Path.separator)
             }
             append(it)

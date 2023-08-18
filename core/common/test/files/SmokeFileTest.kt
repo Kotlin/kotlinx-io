@@ -178,6 +178,9 @@ class SmokeFileTest {
             constructAbsolutePath("a", "b", "..", "c"),
             Path("${Path.separator}a", "b", "..${Path.separator}c").toString()
         )
+
+        assertEquals(constructRelativePath("a", "b", "c"),
+            Path("", "a", "b", "c").toString())
     }
 
     @Test
