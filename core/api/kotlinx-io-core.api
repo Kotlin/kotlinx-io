@@ -213,8 +213,8 @@ public abstract interface class kotlinx/io/files/FileSystem {
 	public abstract fun exists (Lkotlinx/io/files/Path;)Z
 	public abstract fun getTemporaryDirectory ()Lkotlinx/io/files/Path;
 	public abstract fun metadataOrNull (Lkotlinx/io/files/Path;)Lkotlinx/io/files/FileMetadata;
-	public fun read (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
-	public fun write (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
+	public abstract fun read (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
+	public abstract fun write (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
 }
 
 public final class kotlinx/io/files/FileSystem$Companion {
@@ -243,6 +243,6 @@ public final class kotlinx/io/files/PathsJvmKt {
 
 public final class kotlinx/io/files/PathsKt {
 	public static final fun Path (Ljava/lang/String;[Ljava/lang/String;)Lkotlinx/io/files/Path;
-	public static final fun Path (Lkotlinx/io/files/Path;Ljava/lang/String;[Ljava/lang/String;)Lkotlinx/io/files/Path;
+	public static final fun Path (Lkotlinx/io/files/Path;[Ljava/lang/String;)Lkotlinx/io/files/Path;
 }
 
