@@ -167,6 +167,7 @@ internal fun Buffer.selectPrefixWithIter(options: Options, selectTruncated: Bool
             val trieLimit = triePos + scanByteCount
             while (true) {
                 val iters = minOf(trieLimit - triePos, limit - pos)
+                check(pos + iters <= seg.size) // used mostly to eliminate the check from Segment::get
                 for (i in 0 until  iters) {
                     val byte = seg[pos++].toInt() and 0xff
                     val trieVal = trie[triePos++]
