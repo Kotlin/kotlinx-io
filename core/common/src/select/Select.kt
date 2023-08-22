@@ -21,6 +21,7 @@ package kotlinx.io.select
 
 import kotlinx.io.Buffer
 import kotlinx.io.Segment
+import kotlin.math.min
 
 public fun Buffer.select(options: Options): Int {
     val index = selectPrefix(options)
@@ -165,10 +166,13 @@ internal fun Buffer.selectPrefixWithIter(options: Options, selectTruncated: Bool
             val scanByteCount = -1 * scanOrSelect
             val trieLimit = triePos + scanByteCount
             while (true) {
-                val byte = seg[pos++].toInt() and 0xff
-                if (byte != trie[triePos++]) return prefixIndex // Fail 'cause we found a mismatch.
+                val iters = minOf(trieLimit - triePos, limit - pos)
+                for (i in 0 until  iters) {
+                    val byte = seg[pos++].toInt() and 0xff
+                    val trieVal = trie[triePos++]
+                    if (byte != trieVal) return prefixIndex
+                }
                 val scanComplete = (triePos == trieLimit)
-
                 // Advance to the next buffer segment if this one is exhausted.
                 if (pos == limit) {
                     if (!iter.hasNext()) {
@@ -191,16 +195,17 @@ internal fun Buffer.selectPrefixWithIter(options: Options, selectTruncated: Bool
             val selectChoiceCount = scanOrSelect
             val byte = seg[pos++].toInt() and 0xff
             val selectLimit = triePos + selectChoiceCount
-            while (true) {
-                if (triePos == selectLimit) return prefixIndex // Fail 'cause we didn't find a match.
 
-                if (byte == trie[triePos]) {
-                    nextStep = trie[triePos + selectChoiceCount]
+            var index = -1
+            for (idx in maxOf(0, triePos) until min(selectLimit, trie.size)) {
+                if (trie[idx] == byte) {
+                    index = idx
                     break
                 }
-
-                triePos++
             }
+            if (index == -1) return prefixIndex
+            triePos = index
+            nextStep = trie[triePos + selectChoiceCount]
 
             // Advance to the next buffer segment if this one is exhausted.
             if (pos == limit) {
