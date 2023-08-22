@@ -642,6 +642,26 @@ public class Buffer : Source, Sink {
 
         return "Buffer(size=$size hex=$builder)"
     }
+
+    public fun segments(): Iterator<Segment> = SegmentsIterator(null)
+
+    private inner class SegmentsIterator(private var current: Segment?): Iterator<Segment> {
+        override fun hasNext(): Boolean {
+            return current != head
+        }
+
+        override fun next(): Segment {
+            return if (current == null) {
+                val c = head ?: throw NoSuchElementException()
+                current = c.next!!
+                c
+            } else {
+                val c = current!!
+                current = c.next
+                c
+            }
+        }
+    }
 }
 
 /**

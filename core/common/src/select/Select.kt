@@ -120,3 +120,105 @@ internal fun Buffer.selectPrefix(options: Options, selectTruncated: Boolean = fa
     if (selectTruncated) return -2 // The buffer is a prefix of at least one option.
     return prefixIndex // Return any matches we encountered while searching for a deeper match.
 }
+
+public fun Buffer.selectWithIter(options: Options): Int {
+    val index = selectPrefixWithIter(options)
+    if (index == -1) return -1
+
+    // If the prefix match actually matched a full byte string, consume it and return it.
+    val selectedSize = options.byteStrings[index].size
+    skip(selectedSize.toLong())
+    return index
+}
+
+internal fun Buffer.selectPrefixWithIter(options: Options, selectTruncated: Boolean = false): Int {
+    val iter = segments()
+    if (!iter.hasNext()) {
+        return if (selectTruncated) -2 else -1
+    }
+
+    val trie = options.trie
+    var triePos = 0
+
+    var prefixIndex = -1
+
+    var seg = iter.next()
+    var pos = 0
+    var limit = seg.size
+    var exhausted = false
+
+    navigateTrie@
+    while (true) {
+        val scanOrSelect = trie[triePos++]
+
+        val possiblePrefixIndex = trie[triePos++]
+        if (possiblePrefixIndex != -1) {
+            prefixIndex = possiblePrefixIndex
+        }
+
+        val nextStep: Int
+
+        if (exhausted) {
+            break@navigateTrie
+        } else if (scanOrSelect < 0) {
+            // Scan: take multiple bytes from the buffer and the trie, looking for any mismatch.
+            val scanByteCount = -1 * scanOrSelect
+            val trieLimit = triePos + scanByteCount
+            while (true) {
+                val byte = seg[pos++].toInt() and 0xff
+                if (byte != trie[triePos++]) return prefixIndex // Fail 'cause we found a mismatch.
+                val scanComplete = (triePos == trieLimit)
+
+                // Advance to the next buffer segment if this one is exhausted.
+                if (pos == limit) {
+                    if (!iter.hasNext()) {
+                        if (!scanComplete) break@navigateTrie // We were exhausted before the scan completed.
+                        exhausted = true // We were exhausted at the end of the scan.
+                    } else {
+                        seg = iter.next()
+                        pos = 0
+                        limit = seg.size
+                    }
+                }
+
+                if (scanComplete) {
+                    nextStep = trie[triePos]
+                    break
+                }
+            }
+        } else {
+            // Select: take one byte from the buffer and find a match in the trie.
+            val selectChoiceCount = scanOrSelect
+            val byte = seg[pos++].toInt() and 0xff
+            val selectLimit = triePos + selectChoiceCount
+            while (true) {
+                if (triePos == selectLimit) return prefixIndex // Fail 'cause we didn't find a match.
+
+                if (byte == trie[triePos]) {
+                    nextStep = trie[triePos + selectChoiceCount]
+                    break
+                }
+
+                triePos++
+            }
+
+            // Advance to the next buffer segment if this one is exhausted.
+            if (pos == limit) {
+                if (iter.hasNext()) {
+                    seg = iter.next()
+                    pos = 0
+                    limit = seg.size
+                } else {
+                    exhausted = true // No more segments! The next trie node will be our last.
+                }
+            }
+        }
+
+        if (nextStep >= 0) return nextStep // Found a matching option.
+        triePos = -nextStep // Found another node to continue the search.
+    }
+
+    // We break out of the loop above when we've exhausted the buffer without exhausting the trie.
+    if (selectTruncated) return -2 // The buffer is a prefix of at least one option.
+    return prefixIndex // Return any matches we encountered while searching for a deeper match.
+}

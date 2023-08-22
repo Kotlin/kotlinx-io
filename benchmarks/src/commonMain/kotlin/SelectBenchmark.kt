@@ -26,6 +26,7 @@ import kotlinx.io.bytestring.encodeToByteString
 import kotlinx.io.readByteString
 import kotlinx.io.select.Options
 import kotlinx.io.select.select
+import kotlinx.io.select.selectWithIter
 import kotlinx.io.write
 import kotlin.random.Random
 
@@ -78,6 +79,15 @@ open class SelectBenchmark {
         buffer.write(sampleData)
         for (i in 0 until selectCount) {
             blackhole.consume(buffer.select(options))
+        }
+        if (!buffer.exhausted()) throw AssertionError()
+    }
+
+    @Benchmark
+    fun selectWithIter(blackhole: Blackhole) {
+        buffer.write(sampleData)
+        for (i in 0 until selectCount) {
+            blackhole.consume(buffer.selectWithIter(options))
         }
         if (!buffer.exhausted()) throw AssertionError()
     }
