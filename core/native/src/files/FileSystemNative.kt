@@ -73,9 +73,11 @@ private class NativeFileSystem : SystemFileSystemImpl() {
                 throw IOException("stat failed to ${path.path}: ${strerror(errno)?.toKString()}")
             }
             val mode = struct_stat.st_mode.toInt()
+            val isFile = (mode and S_IFMT) == S_IFREG
             return FileMetadata(
-                isRegularFile = (mode and S_IFMT) == S_IFREG,
-                isDirectory = (mode and S_IFMT) == S_IFDIR
+                isRegularFile = isFile,
+                isDirectory = (mode and S_IFMT) == S_IFDIR,
+                if (isFile) struct_stat.st_size.toLong() else -1L
             )
         }
     }

@@ -97,9 +97,11 @@ private class JsFileSystem : SystemFileSystemImpl() {
         return try {
             val stat = fs.statSync(path.path)
             val mode = stat.mode as Int
+            val isFile =  (mode and fs.constants.S_IFMT as Int) == fs.constants.S_IFREG
             FileMetadata(
-                isRegularFile = (mode and fs.constants.S_IFMT as Int) == fs.constants.S_IFREG,
-                isDirectory = (mode and fs.constants.S_IFMT as Int) == fs.constants.S_IFDIR
+                isRegularFile = isFile,
+                isDirectory = (mode and fs.constants.S_IFMT as Int) == fs.constants.S_IFDIR,
+                if (isFile) (stat.size as Int).toLong() else -1L
             )
         } catch (t: Throwable) {
             if (exists(path)) throw IOException("Stat failed for $path", t)

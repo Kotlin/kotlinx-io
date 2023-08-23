@@ -130,8 +130,18 @@ internal abstract class SystemFileSystemImpl : FileSystem {
 internal expect val SystemFileSystem: FileSystem
 
 public class FileMetadata(
+    /**
+     * Flag indicating that the metadata was retrieved for a regular file.
+     */
     public val isRegularFile: Boolean = false,
-    public val isDirectory: Boolean = false
+    /**
+     * Flag indicating that the metadata was retrieved for a directory.
+     */
+    public val isDirectory: Boolean = false,
+    /**
+     * File size. Defined only for regular files, for other filesystem entities it will be `-1`.
+     */
+    public val size: Long = 0L
 )
 
 public expect class FileNotFoundException(message: String?) : IOException

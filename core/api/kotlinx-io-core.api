@@ -197,8 +197,9 @@ public final class kotlinx/io/Utf8Kt {
 
 public final class kotlinx/io/files/FileMetadata {
 	public fun <init> ()V
-	public fun <init> (ZZ)V
-	public synthetic fun <init> (ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZJ)V
+	public synthetic fun <init> (ZZJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getSize ()J
 	public final fun isDirectory ()Z
 	public final fun isRegularFile ()Z
 }

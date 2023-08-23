@@ -77,7 +77,8 @@ private class JvmFileSystem : SystemFileSystemImpl() {
 
     override fun metadataOrNull(path: Path): FileMetadata? {
         if (!path.file.exists()) return null
-        return FileMetadata(path.file.isFile, path.file.isDirectory)
+        return FileMetadata(path.file.isFile, path.file.isDirectory,
+            if (path.file.isFile) path.file.length() else -1L)
     }
 }
 

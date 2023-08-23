@@ -235,6 +235,21 @@ class SmokeFileTest {
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun testFileSize() {
+        val path = createTempPath()
+        val expectedSize = 123
+        FileSystem.System.write(path).buffered().use {
+            it.write(ByteArray(expectedSize))
+        }
+        val metadata = FileSystem.System.metadataOrNull(path)
+        assertNotNull(metadata)
+        assertEquals(expectedSize.toLong(), metadata.size)
+
+        assertEquals(-1L, FileSystem.System.metadataOrNull(path.parent!!)!!.size)
+    }
+
     private fun constructAbsolutePath(vararg parts: String): String {
         return Path.separator.toString() + parts.joinToString(Path.separator.toString())
     }
