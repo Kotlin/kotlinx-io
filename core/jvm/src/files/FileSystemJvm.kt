@@ -9,14 +9,14 @@ import kotlinx.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-internal annotation class AnimalSnifferIngore()
+internal annotation class AnimalSnifferIgnore()
 
 private interface Mover {
     fun move(source: Path, destination: Path)
 }
 
 private class NioMover : Mover {
-    @AnimalSnifferIngore
+    @AnimalSnifferIgnore
     override fun move(source: Path, destination: Path) {
         if (!source.file.exists()) {
             throw FileNotFoundException("Source file does not exist: ${source.file}")

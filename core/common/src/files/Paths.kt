@@ -24,19 +24,19 @@ public expect class Path {
     public val parent: Path?
 
     /**
-     * Returns a name of file or directory represented by this path.
+     * Returns the name of the file or directory represented by this path.
      *
      * How the name is resolved is platform-specific.
      *
-     * In general, one may expect that for path like `Path("home", "Downloads", "file.txt")`
+     * In general, one may expect that for a path like `Path("home", "Downloads", "file.txt")`
      * the name is `file.txt`.
      */
     public val name: String
 
     /**
-     * Returns `true` is this path is absolute, `false` otherwise.
+     * Returns `true` if this path is absolute, `false` otherwise.
      *
-     * How the name is resolved is platform-specific.
+     * How an absolute path is resolved is platform-specific.
      */
     public val isAbsolute: Boolean
 

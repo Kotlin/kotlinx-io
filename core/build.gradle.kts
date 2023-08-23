@@ -74,5 +74,5 @@ tasks.withType<DokkaTaskPartial>().configureEach {
 }
 
 animalsniffer {
-    annotation = "kotlinx.io.files.AnimalSnifferIngore"
+    annotation = "kotlinx.io.files.AnimalSnifferIgnore"
 }

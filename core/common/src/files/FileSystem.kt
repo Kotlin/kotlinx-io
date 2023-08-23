@@ -104,8 +104,8 @@ public sealed interface FileSystem {
 
     /**
      * Return [FileMetadata] associated with a file or directory represented by the [path].
-     * If there is not such file or directory, or it's impossible to fetch metadata,
-     * the `null` is returned.
+     * If there is no such file or directory, or it's impossible to fetch metadata,
+     * `null` is returned.
      *
      * @param path the path to get the metadata for.
      */
@@ -120,8 +120,10 @@ public sealed interface FileSystem {
 }
 
 internal abstract class SystemFileSystemImpl : FileSystem {
+    @Suppress("DEPRECATION")
     override fun read(path: Path): Source = path.source()
 
+    @Suppress("DEPRECATION")
     override fun write(path: Path): Sink = path.sink()
 }
 
