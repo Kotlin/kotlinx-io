@@ -20,7 +20,9 @@ import kotlin.test.*
 
 private fun NSOutputStream.write(vararg strings: String) {
     for (str in strings) {
-        str.encodeToByteArray().write(this)
+        str.encodeToByteArray().apply {
+            assertEquals(size, this.write(this@write))
+        }
     }
 }
 

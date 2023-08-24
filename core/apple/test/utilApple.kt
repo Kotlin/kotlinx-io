@@ -72,8 +72,8 @@ fun NSStreamEvent.asString(): String {
     }
 }
 
-fun ByteArray.write(to: NSOutputStream) {
+fun ByteArray.write(to: NSOutputStream): Int {
     this.usePinned {
-        to.write(it.addressOf(0).reinterpret(), size.convert())
+        return to.write(it.addressOf(0).reinterpret(), size.convert()).convert()
     }
 }
