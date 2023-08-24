@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-@file:OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, ExperimentalForeignApi::class)
+@file:OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 
 package kotlinx.io
 
@@ -69,5 +69,11 @@ fun NSStreamEvent.asString(): String {
         NSStreamEventErrorOccurred -> "NSStreamEventErrorOccurred"
         NSStreamEventEndEncountered -> "NSStreamEventEndEncountered"
         else -> "Unknown event $this"
+    }
+}
+
+fun ByteArray.write(to: NSOutputStream) {
+    this.usePinned {
+        to.write(it.addressOf(0).reinterpret(), size.convert())
     }
 }
