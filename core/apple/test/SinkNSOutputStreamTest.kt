@@ -18,8 +18,35 @@ import platform.darwin.NSUInteger
 import platform.posix.uint8_tVar
 import kotlin.test.*
 
+private fun NSOutputStream.write(vararg strings: String) {
+    for (str in strings) {
+        str.encodeToByteArray().apply {
+            assertEquals(size, this.write(this@write))
+        }
+    }
+}
+
 @OptIn(UnsafeNumber::class)
 class SinkNSOutputStreamTest {
+
+    @Test
+    fun multipleWrites() {
+        val buffer = Buffer()
+        buffer.asNSOutputStream().apply {
+            open()
+            write("hello", " ", "world")
+            close()
+        }
+        assertEquals("hello world", buffer.readString())
+
+        RealSink(buffer).asNSOutputStream().apply {
+            open()
+            write("hello", " ", "real", " sink")
+            close()
+        }
+        assertEquals("hello real sink", buffer.readString())
+    }
+
     @Test
     fun bufferOutputStream() {
         testOutputStream(Buffer(), "abc")
