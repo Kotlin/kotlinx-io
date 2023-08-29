@@ -9,6 +9,14 @@ import kotlinx.io.Buffer
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.indexOf
 
+public interface DataSupplierA {
+    public suspend fun fetchAtLeast(minBytes: Long = 1): Boolean
+}
+
+public interface DataSupplierB {
+    public suspend fun fetch(): Boolean
+}
+
 /**
  * An interface representing a condition that should be met to return
  * from [AsyncSource.await] or [AsyncSource.tryAwait].
@@ -38,6 +46,10 @@ public interface AwaitPredicate {
      * @throws kotlinx.coroutines.CancellationException if a coroutine executing this method was canceled.
      */
     public suspend fun apply(buffer: Buffer, fetchMore: suspend () -> Boolean): Boolean
+
+    public suspend fun applyA(buffer: Buffer, fetchMore: DataSupplierA): Boolean
+
+    public suspend fun applyB(buffer: Buffer, fetchMore: DataSupplierB): Boolean
 
     public companion object {
         public fun exhausted(): AwaitPredicate = SourceExhausted.instance
@@ -77,6 +89,20 @@ private class SourceExhausted : AwaitPredicate {
         return true
     }
 
+    override suspend fun applyA(buffer: Buffer, fetchMore: DataSupplierA): Boolean {
+        while (fetchMore.fetchAtLeast()) {
+            // wait until source exhausted
+        }
+        return true
+    }
+
+    override suspend fun applyB(buffer: Buffer, fetchMore: DataSupplierB): Boolean {
+        while (fetchMore.fetch()) {
+            // wait until source exhausted
+        }
+        return true
+    }
+
     companion object {
         val instance: SourceExhausted by lazy(LazyThreadSafetyMode.NONE) { SourceExhausted() }
     }
@@ -91,6 +117,18 @@ private class DataAvailable(
 
     override suspend fun apply(buffer: Buffer, fetchMore: suspend () -> Boolean): Boolean {
         while (buffer.size < bytesCount && fetchMore()) {
+            // do nothing
+        }
+        return buffer.size >= bytesCount
+    }
+
+    override suspend fun applyA(buffer: Buffer, fetchMore: DataSupplierA): Boolean {
+        if (buffer.size >= bytesCount) return true
+        return fetchMore.fetchAtLeast(bytesCount - buffer.size)
+    }
+
+    override suspend fun applyB(buffer: Buffer, fetchMore: DataSupplierB): Boolean {
+        while (buffer.size < bytesCount && fetchMore.fetch()) {
             // do nothing
         }
         return buffer.size >= bytesCount
@@ -116,6 +154,26 @@ private class ByteValuePredicate(
         } while (maxLookAhead > startOffset && fetchMore())
         return false
     }
+
+    override suspend fun applyA(buffer: Buffer, fetchMore: DataSupplierA): Boolean {
+        do {
+            if (buffer.indexOf(byte, startOffset, maxLookAhead) != -1L) {
+                return true
+            }
+            startOffset = buffer.size
+        } while (maxLookAhead > startOffset && fetchMore.fetchAtLeast())
+        return true
+    }
+
+    override suspend fun applyB(buffer: Buffer, fetchMore: DataSupplierB): Boolean {
+        do {
+            if (buffer.indexOf(byte, startOffset, maxLookAhead) != -1L) {
+                return true
+            }
+            startOffset = buffer.size
+        } while (maxLookAhead > startOffset && fetchMore.fetch())
+        return true
+    }
 }
 
 private class SubstringPredicate(
@@ -131,6 +189,26 @@ private class SubstringPredicate(
             }
             startOffset = buffer.size
         } while (maxLookAhead > startOffset && fetchMore())
+        return false
+    }
+
+    override suspend fun applyA(buffer: Buffer, fetchMore: DataSupplierA): Boolean {
+        do {
+            if (buffer.indexOf(string, startOffset/*, maxLookAhead*/) != -1L) {
+                return true
+            }
+            startOffset = buffer.size
+        } while (maxLookAhead > startOffset && fetchMore.fetchAtLeast())
+        return false
+    }
+
+    override suspend fun applyB(buffer: Buffer, fetchMore: DataSupplierB): Boolean {
+        do {
+            if (buffer.indexOf(string, startOffset/*, maxLookAhead*/) != -1L) {
+                return true
+            }
+            startOffset = buffer.size
+        } while (maxLookAhead > startOffset && fetchMore.fetch())
         return false
     }
 }

@@ -9,6 +9,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
+import kotlin.math.max
 
 private const val SEGMENT_SIZE: Long = 8192L
 
@@ -19,8 +20,31 @@ private const val SEGMENT_SIZE: Long = 8192L
  * The typical usage of AsyncSource it to asynchronously fetch enough data into the [buffer] using [await] or [tryAwait]
  * and then process buffered data synchronously.
  */
-public class AsyncSource(private val source: AsyncRawSource) : AsyncRawSource {
+public class AsyncSource(private val source: AsyncRawSource, private val fetchHint: Long = 8192L) : AsyncRawSource {
     private var closed: Boolean = false
+
+    private inner class DataSupplier : DataSupplierA, DataSupplierB {
+        // reads(max(fetchHint, minBytes))
+        override suspend fun fetchAtLeast(minBytes: Long): Boolean {
+            var fetched = 0L
+            val toFetch = max(fetchHint, minBytes)
+            while (fetched < toFetch) {
+                currentCoroutineContext().ensureActive()
+                // Do we need to limit read by fetchHint bytes or only remaining bytes?
+                val readBytes = source.readAtMostTo(buffer, toFetch - fetched)
+                if (readBytes < 0) break
+                fetched += toFetch
+            }
+            return fetched >= toFetch
+        }
+
+        override suspend fun fetch(): Boolean {
+            currentCoroutineContext().ensureActive()
+            return source.readAtMostTo(buffer, fetchHint) >= 0
+        }
+    }
+
+    private val supplier = DataSupplier()
 
     /**
      * A buffer bound to this source. The buffer could be filled by calling [await] or [tryAwait].
@@ -72,6 +96,16 @@ public class AsyncSource(private val source: AsyncRawSource) : AsyncRawSource {
             currentCoroutineContext().ensureActive()
             source.readAtMostTo(buffer, SEGMENT_SIZE) >= 0
         }
+    }
+
+    public suspend fun tryAwaitA(until: AwaitPredicate): Boolean {
+        checkClosed()
+        return until.applyA(buffer, supplier)
+    }
+
+    public suspend fun tryAwaitB(until: AwaitPredicate): Boolean {
+        checkClosed()
+        return until.applyB(buffer, supplier)
     }
 
     override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
