@@ -31,6 +31,18 @@ kotlin {
         }
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+    wasm {
+        nodejs {
+            testTask(Action {
+                useMocha {
+                    timeout = "300s"
+                }
+                filter.setExcludePatterns("*SmokeFileTest*")
+            })
+        }
+    }
+
     sourceSets {
         commonMain {
             dependencies {
