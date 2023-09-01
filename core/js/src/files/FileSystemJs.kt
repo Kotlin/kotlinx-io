@@ -25,11 +25,7 @@ internal val os: dynamic
         }
     }
 
-private class JsFileSystem : SystemFileSystemImpl() {
-    companion object {
-        val Instance = JsFileSystem()
-    }
-
+internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
         check(fs !== null) { "Module 'fs' was not found" }
         return fs.existsSync(path.path) as Boolean
@@ -103,8 +99,6 @@ private class JsFileSystem : SystemFileSystemImpl() {
         }
     }
 }
-
-internal actual val SystemFileSystem: FileSystem = JsFileSystem.Instance
 
 internal actual val SystemTemporaryDirectoryImpl: Path
     get() {

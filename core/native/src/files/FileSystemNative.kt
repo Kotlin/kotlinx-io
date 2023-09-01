@@ -9,11 +9,7 @@ import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.posix.*
 
-private class NativeFileSystem : SystemFileSystemImpl() {
-    companion object {
-        val Instance = NativeFileSystem()
-    }
-
+internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
         return access(path.path, F_OK) == 0
     }
@@ -81,9 +77,6 @@ private class NativeFileSystem : SystemFileSystemImpl() {
 internal expect fun atomicMoveImpl(source: Path, destination: Path)
 
 internal expect fun mkdirImpl(path: String)
-
-internal actual val SystemFileSystem: FileSystem
-    get() = NativeFileSystem.Instance
 
 public actual open class FileNotFoundException actual constructor(
     message: String?

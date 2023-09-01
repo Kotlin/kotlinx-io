@@ -41,10 +41,8 @@ private val mover: Mover by lazy {
     }
 }
 
-private class JvmFileSystem : SystemFileSystemImpl() {
-    companion object {
-        val Instance = JvmFileSystem()
-    }
+@JvmField
+internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
 
     override fun exists(path: Path): Boolean {
         return path.file.exists()
@@ -64,7 +62,7 @@ private class JvmFileSystem : SystemFileSystemImpl() {
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         if (!path.file.mkdirs() && mustCreate) {
-            throw IOException("Path already exist: ${path}")
+            throw IOException("Path already exist: $path")
         }
     }
 
@@ -78,8 +76,6 @@ private class JvmFileSystem : SystemFileSystemImpl() {
             if (path.file.isFile) path.file.length() else -1L)
     }
 }
-
-internal actual val SystemFileSystem: FileSystem = JvmFileSystem.Instance
 
 internal actual val SystemTemporaryDirectoryImpl: Path
     get() = Path(System.getProperty("java.io.tmpdir"))
