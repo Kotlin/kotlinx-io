@@ -29,7 +29,7 @@ class NSInputStreamSourceTest {
     fun nsInputStreamSourceFromFile() {
         val file = tempFileName()
         try {
-            Path(file).sink().use {
+            Path(file).sink().buffered().use {
                 it.writeString("example")
             }
 

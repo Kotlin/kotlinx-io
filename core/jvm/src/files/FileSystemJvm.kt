@@ -5,7 +5,9 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.IOException
+import kotlinx.io.*
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
@@ -75,6 +77,10 @@ internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl
         return FileMetadata(path.file.isFile, path.file.isDirectory,
             if (path.file.isFile) path.file.length() else -1L)
     }
+
+    override fun source(path: Path): RawSource = FileInputStream(path.file).asSource()
+
+    override fun sink(path: Path, append: Boolean): RawSink = FileOutputStream(path.file, append).asSink()
 }
 
 internal actual val SystemTemporaryDirectoryImpl: Path

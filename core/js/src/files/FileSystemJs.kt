@@ -6,6 +6,8 @@
 package kotlinx.io.files
 
 import kotlinx.io.IOException
+import kotlinx.io.RawSink
+import kotlinx.io.RawSource
 
 internal val fs: dynamic
     get(): dynamic {
@@ -97,6 +99,17 @@ internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl
             if (exists(path)) throw IOException("Stat failed for $path", t)
             return null
         }
+    }
+
+    override fun source(path: Path): RawSource {
+        check(fs !== null) { "Module 'fs' was not found" }
+        return FileSource(path)
+    }
+
+    override fun sink(path: Path, append: Boolean): RawSink {
+        check(fs !== null) { "Module 'fs' was not found" }
+        check(buffer !== null) { "Module 'buffer' was not found" }
+        return FileSink(path, append)
     }
 }
 

@@ -7,7 +7,7 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 
-private val buffer: dynamic
+internal val buffer: dynamic
     get(): dynamic {
         return try {
             js("require('buffer')")
@@ -90,18 +90,11 @@ public actual fun Path(path: String): Path {
     return Path(path, null)
 }
 
-public actual fun Path.source(): Source {
-    check(fs !== null) { "Module 'fs' was not found" }
-    return FileSource(this).buffered()
-}
+public actual fun Path.source(): Source = FileSystem.System.source(this).buffered()
 
-public actual fun Path.sink(): Sink {
-    check(fs !== null) { "Module 'fs' was not found" }
-    check(buffer !== null) { "Module 'buffer' was not found" }
-    return FileSink(this).buffered()
-}
+public actual fun Path.sink(): Sink = FileSystem.System.sink(this).buffered()
 
-private class FileSource(private val path: Path) : RawSource {
+internal class FileSource(private val path: Path) : RawSource {
     private var buffer: dynamic = null
     private var closed = false
     private var offset = 0
@@ -139,9 +132,8 @@ private class FileSource(private val path: Path) : RawSource {
     }
 }
 
-private class FileSink(private val path: Path) : RawSink {
+internal class FileSink(private val path: Path, private var append: Boolean) : RawSink {
     private var closed = false
-    private var append = false
 
     override fun write(source: Buffer, byteCount: Long) {
         check(!closed) { "Sink is closed." }

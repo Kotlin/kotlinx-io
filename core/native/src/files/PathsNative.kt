@@ -65,22 +65,9 @@ internal expect fun isAbsoluteImpl(path: String): Boolean
 
 public actual fun Path(path: String): Path = Path(path, null)
 
-public actual fun Path.source(): Source {
-    val openFile: CPointer<FILE>? = fopen(path, "rb")
-    if (openFile == null) {
-        if (errno == ENOENT) {
-            throw FileNotFoundException("File does not exist: $path")
-        }
-        throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
-    }
-    return FileSource(openFile).buffered()
-}
+public actual fun Path.source(): Source = FileSystem.System.source(this).buffered()
 
-public actual fun Path.sink(): Sink {
-    val openFile: CPointer<FILE> = fopen(path, "wb")
-        ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
-    return FileSink(openFile).buffered()
-}
+public actual fun Path.sink(): Sink = FileSystem.System.sink(this).buffered()
 
 internal class FileSource(
     private val file: CPointer<FILE>

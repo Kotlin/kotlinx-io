@@ -6,8 +6,8 @@
 package kotlinx.io.files
 
 import kotlinx.io.IOException
-import kotlinx.io.Sink
-import kotlinx.io.Source
+import kotlinx.io.RawSink
+import kotlinx.io.RawSource
 
 internal fun unsupported(): Nothing = TODO("Paths are not supported for Wasm target")
 
@@ -24,9 +24,9 @@ internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl
 
     override fun atomicMove(source: Path, destination: Path) = unsupported()
 
-    override fun read(path: Path): Source = unsupported()
+    override fun source(path: Path): RawSource = unsupported()
 
-    override fun write(path: Path): Sink = unsupported()
+    override fun sink(path: Path, append: Boolean): RawSink = unsupported()
 
     override fun metadataOrNull(path: Path): FileMetadata = unsupported()
 

@@ -5,10 +5,10 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.*
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.buffered
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 
 public actual class Path internal constructor(internal val file: File) {
     public actual val parent: Path?
@@ -42,6 +42,6 @@ public actual class Path internal constructor(internal val file: File) {
 
 public actual fun Path(path: String): Path = Path(File(path))
 
-public actual fun Path.source(): Source = FileInputStream(file).asSource().buffered()
+public actual fun Path.source(): Source = FileSystem.System.source(this).buffered()
 
-public actual fun Path.sink(): Sink = FileOutputStream(file).asSink().buffered()
+public actual fun Path.sink(): Sink = FileSystem.System.sink(this).buffered()

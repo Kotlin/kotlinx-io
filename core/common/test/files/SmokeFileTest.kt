@@ -37,11 +37,11 @@ class SmokeFileTest {
     fun readWriteFile() {
         val path = createTempPath()
 
-        FileSystem.System.write(path).use {
+        FileSystem.System.sink(path).buffered().use {
             it.writeString("example")
         }
 
-        FileSystem.System.read(path).use {
+        FileSystem.System.source(path).buffered().use {
             assertEquals("example", it.readLine())
         }
     }
@@ -50,7 +50,7 @@ class SmokeFileTest {
     @Test
     fun readNotExistingFile() {
         assertFailsWith<FileNotFoundException> {
-            FileSystem.System.read(createTempPath()).use {
+            FileSystem.System.source(createTempPath()).buffered().use {
                 it.readByte()
             }
         }
@@ -63,11 +63,11 @@ class SmokeFileTest {
 
         val data = ByteArray((Segment.SIZE * 2.5).toInt()) { it.toByte() }
 
-        FileSystem.System.write(path).use {
+        FileSystem.System.sink(path).buffered().use {
             it.write(data)
         }
 
-        FileSystem.System.read(path).use {
+        FileSystem.System.source(path).buffered().use {
             assertArrayEquals(data, it.readByteArray())
         }
     }
@@ -77,7 +77,7 @@ class SmokeFileTest {
     fun basicFileSystemOps() {
         val path = createTempPath()
         assertFalse(FileSystem.System.exists(path))
-        FileSystem.System.write(path).use {
+        FileSystem.System.sink(path).buffered().use {
             it.writeString("hi")
         }
         assertTrue(FileSystem.System.exists(path))
@@ -95,14 +95,14 @@ class SmokeFileTest {
     fun atomicMove() {
         val src = createTempPath()
         val dst = createTempPath()
-        FileSystem.System.write(src).use {
+        FileSystem.System.sink(src).buffered().use {
             it.writeString("hello")
         }
         FileSystem.System.atomicMove(src, dst)
         assertFalse(FileSystem.System.exists(src))
         assertTrue(FileSystem.System.exists(dst))
 
-        FileSystem.System.read(dst).use {
+        FileSystem.System.source(dst).buffered().use {
             assertEquals("hello", it.readString())
         }
     }
@@ -179,8 +179,10 @@ class SmokeFileTest {
             Path("${Path.separator}a", "b", "..${Path.separator}c").toString()
         )
 
-        assertEquals(constructRelativePath("a", "b", "c"),
-            Path("", "a", "b", "c").toString())
+        assertEquals(
+            constructRelativePath("a", "b", "c"),
+            Path("", "a", "b", "c").toString()
+        )
     }
 
     @Test
@@ -221,7 +223,7 @@ class SmokeFileTest {
 
         val filePath = Path(path, "test.txt")
         assertNull(FileSystem.System.metadataOrNull(filePath))
-        FileSystem.System.write(filePath).use {
+        FileSystem.System.sink(filePath).buffered().use {
             it.writeString("blablabla")
         }
 
@@ -240,7 +242,7 @@ class SmokeFileTest {
     fun fileSize() {
         val path = createTempPath()
         val expectedSize = 123
-        FileSystem.System.write(path).buffered().use {
+        FileSystem.System.sink(path).buffered().use {
             it.write(ByteArray(expectedSize))
         }
         val metadata = FileSystem.System.metadataOrNull(path)
@@ -280,7 +282,7 @@ class SmokeFileTest {
         val dir = createTempPath()
         FileSystem.System.createDirectories(dir)
 
-        assertFailsWith<IOException> { FileSystem.System.read(dir).readByte() }
+        assertFailsWith<IOException> { FileSystem.System.source(dir).buffered().readByte() }
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -290,10 +292,32 @@ class SmokeFileTest {
         FileSystem.System.createDirectories(dir)
 
         assertFailsWith<IOException> {
-            FileSystem.System.write(dir).use {
+            FileSystem.System.sink(dir).buffered().use {
                 it.writeByte(0)
             }
         }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun appendToFile() {
+        val path = createTempPath()
+
+        FileSystem.System.sink(path).buffered().use {
+            it.writeString("first")
+        }
+        FileSystem.System.sink(path).buffered().use {
+            it.writeString("second")
+        }
+        assertEquals("second",
+            FileSystem.System.source(path).buffered().use { it.readString() })
+
+        FileSystem.System.sink(path, append = true).buffered().use {
+            it.writeString(" third")
+        }
+        assertEquals("second third",
+            FileSystem.System.source(path).buffered().use { it.readString() })
+
     }
 
     private fun constructAbsolutePath(vararg parts: String): String {

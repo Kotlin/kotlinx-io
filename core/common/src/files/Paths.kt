@@ -5,6 +5,8 @@
 
 package kotlinx.io.files
 
+import kotlinx.io.RawSink
+import kotlinx.io.RawSource
 import kotlinx.io.Sink
 import kotlinx.io.Source
 
@@ -93,12 +95,12 @@ public fun Path(base: Path, vararg parts: String): Path {
 }
 
 /**
- * Returns [Source] for the given file or throws if path is not a file or does not exist
+ * Returns [RawSource] for the given file or throws if path is not a file or does not exist
  */
 @Deprecated(
-    message = "Use FileSystem.read instead",
+    message = "Use FileSystem.source instead",
     replaceWith = ReplaceWith(
-        expression = "FileSystem.System.read(this)",
+        expression = "FileSystem.System.source(this).buffered()",
         imports = arrayOf("kotlinx.io.files.FileSystem")
     ),
     level = DeprecationLevel.WARNING
@@ -106,13 +108,13 @@ public fun Path(base: Path, vararg parts: String): Path {
 public expect fun Path.source(): Source
 
 /**
- * Returns [Sink] for the given path, creates file if it doesn't exist, throws if it's a directory,
+ * Returns [RawSink] for the given path, creates file if it doesn't exist, throws if it's a directory,
  * overwrites contents.
  */
 @Deprecated(
-    message = "Use FileSystem.write instead",
+    message = "Use FileSystem.sink instead",
     replaceWith = ReplaceWith(
-        expression = "FileSystem.System.write(this)",
+        expression = "FileSystem.System.sink(this).buffered()",
         imports = arrayOf("kotlinx.io.files.FileSystem")
     ),
     level = DeprecationLevel.WARNING

@@ -6,8 +6,8 @@
 package kotlinx.io.files
 
 import kotlinx.io.IOException
-import kotlinx.io.Sink
-import kotlinx.io.Source
+import kotlinx.io.RawSink
+import kotlinx.io.RawSource
 
 /**
  * An interface providing basic operations on a filesystem.
@@ -75,7 +75,7 @@ public sealed interface FileSystem {
     public fun atomicMove(source: Path, destination: Path)
 
     /**
-     * Returns [Source] to read from a file the [path] points to.
+     * Returns [RawSource] to read from a file the [path] points to.
      *
      * How a source will read the data is implementation-specific and failures caused
      * by the missing file or, for example, lack of permissions may not be reported immediately,
@@ -88,21 +88,26 @@ public sealed interface FileSystem {
      * @throws kotlinx.io.files.FileNotFoundException when the file does not exist.
      * @throws kotlinx.io.IOException when it's not possible to open the file for reading.
      */
-    public fun read(path: Path): Source
+    public fun source(path: Path): RawSource
 
     /**
-     * Returns [Sink] to write into a file the [path] points to.
+     * Returns [RawSink] to write into a file the [path] points to.
+     * Depending on [append] value, the file will be overwritten or data will be appened to it.
      * File will be created if it does not exist yet.
      *
      * How a sink will write the data is implementation-specific and failures caused,
      * for example, by the lack of permissions may not be reported immediately,
      * but postponed until the sink will try to store data.
      *
-     * If [path] points to a directory, this method will fail with [IOException].
+     * If [path] points to a directory, this method will fail with [IOException]
+     *
+     * @param path the path to a file to write data to.
+     * @param append the flag indicating whether the data should be appended to an existing file or it
+     * should be overwritten, `false` by default, meaning the file will be overwritten.
      *
      * @throws kotlinx.io.IOException when it's not possible to open the file for writing.
      */
-    public fun write(path: Path): Sink
+    public fun sink(path: Path, append: Boolean = false): RawSink
 
     /**
      * Return [FileMetadata] associated with a file or directory the [path] points to.
@@ -128,13 +133,7 @@ public sealed interface FileSystem {
     }
 }
 
-internal abstract class SystemFileSystemImpl : FileSystem {
-    @Suppress("DEPRECATION")
-    override fun read(path: Path): Source = path.source()
-
-    @Suppress("DEPRECATION")
-    override fun write(path: Path): Sink = path.sink()
-}
+internal abstract class SystemFileSystemImpl : FileSystem
 
 internal expect val SystemFileSystem: FileSystem
 

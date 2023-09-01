@@ -7,8 +7,11 @@ package kotlinx.io.files
 
 import kotlinx.cinterop.*
 import kotlinx.io.IOException
+import kotlinx.io.RawSink
+import kotlinx.io.RawSource
 import platform.posix.*
 
+@OptIn(ExperimentalForeignApi::class)
 internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
         return access(path.path, F_OK) == 0
@@ -71,6 +74,23 @@ internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl
                 if (isFile) struct_stat.st_size.toLong() else -1L
             )
         }
+    }
+
+    override fun source(path: Path): RawSource {
+        val openFile: CPointer<FILE>? = fopen(path.path, "rb")
+        if (openFile == null) {
+            if (errno == ENOENT) {
+                throw FileNotFoundException("File does not exist: $path")
+            }
+            throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
+        }
+        return FileSource(openFile)
+    }
+
+    override fun sink(path: Path, append: Boolean): RawSink {
+        val openFile: CPointer<FILE> = fopen(path.path, if (append) "ab" else "wb")
+            ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
+        return FileSink(openFile)
     }
 }
 
