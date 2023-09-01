@@ -23,10 +23,15 @@ private class NioMover : Mover {
         if (!source.file.exists()) {
             throw FileNotFoundException("Source file does not exist: ${source.file}")
         }
-        Files.move(
-            source.file.toPath(), destination.file.toPath(),
-            StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING
-        )
+        try {
+            Files.move(
+                source.file.toPath(), destination.file.toPath(),
+                StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING
+            )
+        } catch (e: Throwable) {
+            if (e is IOException) throw e
+            throw IOException("Move failed", e)
+        }
     }
 }
 

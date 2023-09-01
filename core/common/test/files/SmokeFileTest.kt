@@ -107,6 +107,33 @@ class SmokeFileTest {
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun atomicMoveDir() {
+        val src = createTempPath()
+        val dst = createTempPath()
+        FileSystem.System.createDirectories(src)
+
+        FileSystem.System.atomicMove(src, dst)
+        assertFalse(FileSystem.System.exists(src))
+        assertTrue(FileSystem.System.exists(dst))
+
+        val src2 = createTempPath()
+        FileSystem.System.createDirectories(src2)
+        FileSystem.System.atomicMove(src2, dst)
+        assertFalse(FileSystem.System.exists(src2))
+
+        val src3 = createTempPath()
+        FileSystem.System.sink(src3).buffered().use { it.writeString("hehe") }
+        assertFailsWith<IOException> { FileSystem.System.atomicMove(src3, dst) }
+
+        val dstFile = createTempPath()
+        FileSystem.System.sink(dstFile).buffered().use { it.writeString("hehe") }
+        val srcDir = createTempPath()
+        FileSystem.System.createDirectories(srcDir)
+        assertFailsWith<IOException> { FileSystem.System.atomicMove(srcDir, dstFile) }
+    }
+
     @Test
     fun deleteFile() {
         val p = createTempPath()

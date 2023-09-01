@@ -62,7 +62,7 @@ public sealed interface FileSystem {
      * Atomically renames [source] to [destination] overriding [destination] if it already exists.
      *
      * When the filesystem does not support atomic move of [source] and [destination] corresponds to different
-     * filesystems and the operation could not be performed atomically,
+     * filesystems (or different volumes, on Windows) and the operation could not be performed atomically,
      * [UnsupportedOperationException] is thrown.
      *
      * @param source the path to rename.
