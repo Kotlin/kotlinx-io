@@ -90,10 +90,6 @@ public actual fun Path(path: String): Path {
     return Path(path, null)
 }
 
-public actual fun Path.source(): Source = FileSystem.System.source(this).buffered()
-
-public actual fun Path.sink(): Sink = FileSystem.System.sink(this).buffered()
-
 internal class FileSource(private val path: Path) : RawSource {
     private var buffer: dynamic = null
     private var closed = false

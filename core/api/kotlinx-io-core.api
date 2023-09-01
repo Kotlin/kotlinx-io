@@ -246,5 +246,7 @@ public final class kotlinx/io/files/PathsJvmKt {
 public final class kotlinx/io/files/PathsKt {
 	public static final fun Path (Ljava/lang/String;[Ljava/lang/String;)Lkotlinx/io/files/Path;
 	public static final fun Path (Lkotlinx/io/files/Path;[Ljava/lang/String;)Lkotlinx/io/files/Path;
+	public static final fun sinkDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
+	public static final fun sourceDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 }
 

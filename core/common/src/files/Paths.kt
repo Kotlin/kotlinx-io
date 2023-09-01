@@ -5,10 +5,8 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
-import kotlinx.io.Sink
-import kotlinx.io.Source
+import kotlinx.io.*
+import kotlin.jvm.JvmName
 
 /**
  * A wrapper around a string representing a file path allowing to read from and write to a
@@ -105,7 +103,8 @@ public fun Path(base: Path, vararg parts: String): Path {
     ),
     level = DeprecationLevel.WARNING
 )
-public expect fun Path.source(): Source
+@JvmName("sourceDeprecated")
+public fun Path.source(): Source = FileSystem.System.source(this).buffered()
 
 /**
  * Returns [RawSink] for the given path, creates file if it doesn't exist, throws if it's a directory,
@@ -119,4 +118,5 @@ public expect fun Path.source(): Source
     ),
     level = DeprecationLevel.WARNING
 )
-public expect fun Path.sink(): Sink
+@JvmName("sinkDeprecated")
+public fun Path.sink(): Sink = FileSystem.System.sink(this).buffered()

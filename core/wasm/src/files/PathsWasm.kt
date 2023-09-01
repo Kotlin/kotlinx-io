@@ -5,9 +5,6 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.Sink
-import kotlinx.io.Source
-
 public actual class Path private constructor() {
     actual override fun toString(): String = unsupported()
 
@@ -28,8 +25,3 @@ public actual class Path private constructor() {
 }
 
 public actual fun Path(path: String): Path = unsupported()
-
-
-public actual fun Path.source(): Source = unsupported()
-
-public actual fun Path.sink(): Sink = unsupported()

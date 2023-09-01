@@ -7,7 +7,6 @@ package kotlinx.io
 
 import kotlinx.io.files.FileSystem
 import kotlinx.io.files.Path
-import kotlinx.io.files.sink
 import platform.Foundation.NSInputStream
 import platform.Foundation.NSURL
 import kotlin.test.Test
@@ -29,7 +28,7 @@ class NSInputStreamSourceTest {
     fun nsInputStreamSourceFromFile() {
         val file = tempFileName()
         try {
-            Path(file).sink().buffered().use {
+            FileSystem.System.sink(Path(file)).buffered().use {
                 it.writeString("example")
             }
 

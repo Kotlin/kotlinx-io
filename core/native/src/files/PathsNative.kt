@@ -65,10 +65,6 @@ internal expect fun isAbsoluteImpl(path: String): Boolean
 
 public actual fun Path(path: String): Path = Path(path, null)
 
-public actual fun Path.source(): Source = FileSystem.System.source(this).buffered()
-
-public actual fun Path.sink(): Sink = FileSystem.System.sink(this).buffered()
-
 internal class FileSource(
     private val file: CPointer<FILE>
 ) : RawSource {

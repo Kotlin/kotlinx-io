@@ -42,6 +42,14 @@ public actual class Path internal constructor(internal val file: File) {
 
 public actual fun Path(path: String): Path = Path(File(path))
 
-public actual fun Path.source(): Source = FileSystem.System.source(this).buffered()
+// Function only exists to provide binary compatibility with the earlier releases
+@JvmName("source")
+@PublishedApi
+@Suppress("UNUSED")
+internal fun Path.sourceHack(): Source = FileSystem.System.source(this).buffered()
 
-public actual fun Path.sink(): Sink = FileSystem.System.sink(this).buffered()
+// Function only exists to provide binary compatibility with the earlier releases
+@JvmName("sink")
+@PublishedApi
+@Suppress("UNUSED")
+internal fun Path.sinkHack(): Sink = FileSystem.System.sink(this).buffered()
