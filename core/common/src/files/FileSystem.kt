@@ -65,6 +65,9 @@ public sealed interface FileSystem {
      * filesystems (or different volumes, on Windows) and the operation could not be performed atomically,
      * [UnsupportedOperationException] is thrown.
      *
+     * When [destination] is an existing directory, the operation may fail on some platforms
+     * (on Windows, particularly).
+     *
      * @param source the path to rename.
      * @param destination desired path name.
      *
