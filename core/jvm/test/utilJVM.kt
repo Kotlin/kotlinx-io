@@ -13,7 +13,7 @@ import kotlin.test.assertEquals
 
 @OptIn(ExperimentalStdlibApi::class)
 actual fun tempFileName(): String {
-    val tmpDir = FileSystem.System.temporaryDirectory.file
+    val tmpDir = FileSystem.SystemTemporaryDirectory.file
     while (true) {
         val randomString = Random.nextBytes(32).toHexString()
         val res = File(tmpDir, randomString)

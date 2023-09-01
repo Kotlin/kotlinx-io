@@ -9,15 +9,10 @@ import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.posix.*
 
-internal expect val NativeTempDir: Path
-
 private class NativeFileSystem : SystemFileSystemImpl() {
     companion object {
         val Instance = NativeFileSystem()
     }
-
-    override val temporaryDirectory: Path
-        get() = NativeTempDir
 
     override fun exists(path: Path): Boolean {
         return access(path.path, F_OK) == 0

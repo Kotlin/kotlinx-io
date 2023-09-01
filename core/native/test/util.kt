@@ -15,7 +15,7 @@ import kotlin.random.Random
 
 @OptIn(UnsafeNumber::class, ExperimentalStdlibApi::class)
 actual fun tempFileName(): String {
-    val tmpDir = FileSystem.System.temporaryDirectory.path
+    val tmpDir = FileSystem.SystemTemporaryDirectory.path
     for (i in 0 until 10) {
         val name = Random.nextBytes(32).toHexString()
         val path = "$tmpDir/$name"

@@ -16,11 +16,6 @@ import kotlinx.io.Source
  */
 public sealed interface FileSystem {
     /**
-     * Path to a directory suitable for creating temporary files.
-     */
-    public val temporaryDirectory: Path
-
-    /**
      * Returns `true` if there is a filesystem entity a [path] points to,
      * otherwise returns `false`.
      *
@@ -123,6 +118,13 @@ public sealed interface FileSystem {
          * An instance of [FileSystem] representing a default system-wide filesystem.
          */
         public val System: FileSystem = SystemFileSystem
+
+        /**
+         * Path to a directory suitable for creating temporary files.
+         *
+         * This path is not bound to a particular filesystem, but rather a system-wide temporary directory.
+         */
+        public val SystemTemporaryDirectory: Path = SystemTemporaryDirectoryImpl
     }
 }
 
@@ -135,6 +137,8 @@ internal abstract class SystemFileSystemImpl : FileSystem {
 }
 
 internal expect val SystemFileSystem: FileSystem
+
+internal expect val SystemTemporaryDirectoryImpl: Path
 
 /**
  * Represents information about a file or directory obtainable from a filesystem.

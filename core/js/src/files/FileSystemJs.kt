@@ -30,12 +30,6 @@ private class JsFileSystem : SystemFileSystemImpl() {
         val Instance = JsFileSystem()
     }
 
-    override val temporaryDirectory: Path
-        get() {
-            check(os !== null) { "Module 'os' was not found" }
-            return Path(os.tmpdir() as? String ?: "")
-        }
-
     override fun exists(path: Path): Boolean {
         check(fs !== null) { "Module 'fs' was not found" }
         return fs.existsSync(path.path) as Boolean
@@ -111,6 +105,12 @@ private class JsFileSystem : SystemFileSystemImpl() {
 }
 
 internal actual val SystemFileSystem: FileSystem = JsFileSystem.Instance
+
+internal actual val SystemTemporaryDirectoryImpl: Path
+    get() {
+        check(os !== null) { "Module 'os' was not found" }
+        return Path(os.tmpdir() as? String ?: "")
+    }
 
 public actual open class FileNotFoundException actual constructor(
     message: String?,

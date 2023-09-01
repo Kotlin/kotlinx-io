@@ -46,9 +46,6 @@ private class JvmFileSystem : SystemFileSystemImpl() {
         val Instance = JvmFileSystem()
     }
 
-    override val temporaryDirectory: Path
-        get() = Path(System.getProperty("java.io.tmpdir"))
-
     override fun exists(path: Path): Boolean {
         return path.file.exists()
     }
@@ -83,5 +80,8 @@ private class JvmFileSystem : SystemFileSystemImpl() {
 }
 
 internal actual val SystemFileSystem: FileSystem = JvmFileSystem.Instance
+
+internal actual val SystemTemporaryDirectoryImpl: Path
+    get() = Path(System.getProperty("java.io.tmpdir"))
 
 public actual typealias FileNotFoundException = java.io.FileNotFoundException

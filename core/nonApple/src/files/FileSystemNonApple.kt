@@ -10,5 +10,5 @@ import kotlinx.cinterop.toKString
 import platform.posix.getenv
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual val NativeTempDir: Path
+internal actual val SystemTemporaryDirectoryImpl: Path
     get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: "")

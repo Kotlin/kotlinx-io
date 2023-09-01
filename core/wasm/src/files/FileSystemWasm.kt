@@ -11,9 +11,10 @@ import kotlinx.io.Source
 
 internal fun unsupported(): Nothing = TODO("Paths are not supported for Wasm target")
 
+internal actual val SystemTemporaryDirectoryImpl: Path
+    get() = unsupported()
+
 internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
-    override val temporaryDirectory: Path
-        get() = unsupported()
 
     override fun exists(path: Path): Boolean = unsupported()
 

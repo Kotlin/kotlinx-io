@@ -87,7 +87,7 @@ class SmokeFileTest {
 
     @Test
     fun checkTmpDir() {
-        assertTrue(FileSystem.System.exists(FileSystem.System.temporaryDirectory))
+        assertTrue(FileSystem.System.exists(FileSystem.SystemTemporaryDirectory))
     }
 
     @OptIn(ExperimentalStdlibApi::class)
