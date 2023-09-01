@@ -155,11 +155,15 @@ private class FileSink(private val path: Path) : RawSink {
             val segmentBytes = head.limit - head.pos
             val buf = buffer.Buffer.allocUnsafe(segmentBytes)
             buf.fill(head.data, head.pos, segmentBytes)
-            if (append) {
-                fs.appendFileSync(path.toString(), buf)
-            } else {
-                fs.writeFileSync(path.toString(), buf)
-                append = true
+            try {
+                if (append) {
+                    fs.appendFileSync(path.toString(), buf)
+                } else {
+                    fs.writeFileSync(path.toString(), buf)
+                    append = true
+                }
+            } catch (e: Throwable) {
+                throw IOException("Write failed", e)
             }
 
             source.skip(segmentBytes.toLong())

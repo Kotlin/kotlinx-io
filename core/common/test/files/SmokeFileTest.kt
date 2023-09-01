@@ -263,6 +263,39 @@ class SmokeFileTest {
         assertNotEquals(p0, Path(p0, "d", ".."))
     }
 
+    @Test
+    fun deleteNonEmptyDirectory() {
+        val basePath = createTempPath()
+        val childPath = Path(basePath, "child")
+
+        FileSystem.System.createDirectories(childPath, true)
+        assertFailsWith<IOException> { FileSystem.System.delete(basePath) }
+
+        FileSystem.System.delete(childPath)
+        FileSystem.System.delete(basePath)
+    }
+
+    @Test
+    fun readDirectory() {
+        val dir = createTempPath()
+        FileSystem.System.createDirectories(dir)
+
+        assertFailsWith<IOException> { FileSystem.System.read(dir).readByte() }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun writeDirectory() {
+        val dir = createTempPath()
+        FileSystem.System.createDirectories(dir)
+
+        assertFailsWith<IOException> {
+            FileSystem.System.write(dir).use {
+                it.writeByte(0)
+            }
+        }
+    }
+
     private fun constructAbsolutePath(vararg parts: String): String {
         return Path.separator.toString() + parts.joinToString(Path.separator.toString())
     }

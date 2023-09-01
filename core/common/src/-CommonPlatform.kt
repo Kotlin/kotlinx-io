@@ -23,10 +23,16 @@ package kotlinx.io
 
 internal expect fun String.asUtf8ToByteArray(): ByteArray
 
+/**
+ * Signals about a general issue occurred during I/O operation.
+ */
 public expect open class IOException(message: String?, cause: Throwable?) : Exception {
     public constructor(message: String? = null)
 }
 
+/**
+ * Signals that the end of the file or stream was reached unexpectedly during an input operation.
+ */
 public expect open class EOFException(message: String? = null) : IOException
 
 
