@@ -110,7 +110,7 @@ public expect fun Path.source(): Source
  * overwrites contents.
  */
 @Deprecated(
-    message = "Use FileSystem.sink instead",
+    message = "Use FileSystem.write instead",
     replaceWith = ReplaceWith(
         expression = "FileSystem.System.write(this)",
         imports = arrayOf("kotlinx.io.files.FileSystem")

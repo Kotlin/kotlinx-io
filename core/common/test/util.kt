@@ -40,7 +40,6 @@ fun assertNoEmptySegments(buffer: Buffer) {
 }
 
 expect fun tempFileName(): String
-expect fun deleteFile(path: String)
 
 private fun fromHexChar(char: Char): Int {
     val code = char.code

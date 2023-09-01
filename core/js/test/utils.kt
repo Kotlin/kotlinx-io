@@ -47,10 +47,3 @@ actual fun tempFileName(): String {
         return fullpath
     }
 }
-
-actual fun deleteFile(path: String) {
-    if (!fs.existsSync(path) as Boolean) {
-        throw IOException("File does not exist: $path")
-    }
-    fs.rmSync(path)
-}

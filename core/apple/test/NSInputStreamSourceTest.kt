@@ -5,6 +5,7 @@
 
 package kotlinx.io
 
+import kotlinx.io.files.FileSystem
 import kotlinx.io.files.Path
 import kotlinx.io.files.sink
 import platform.Foundation.NSInputStream
@@ -38,7 +39,7 @@ class NSInputStreamSourceTest {
             assertEquals(7, source.readAtMostTo(buffer, 10))
             assertEquals("example", buffer.readString())
         } finally {
-            deleteFile(file)
+            FileSystem.System.delete(Path(file))
         }
     }
 

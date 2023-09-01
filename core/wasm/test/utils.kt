@@ -8,5 +8,3 @@ package kotlinx.io
 import kotlinx.io.files.unsupported
 
 actual fun tempFileName(): String = unsupported()
-
-actual fun deleteFile(path: String): Unit = unsupported()

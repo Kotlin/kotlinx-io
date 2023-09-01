@@ -6,8 +6,6 @@ package kotlinx.io
 
 import kotlinx.io.files.FileSystem
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.random.Random
 import kotlin.test.assertEquals
 
@@ -21,13 +19,6 @@ actual fun tempFileName(): String {
             return res.absolutePath
         }
     }
-}
-
-actual fun deleteFile(path: String) {
-    if (!Files.isRegularFile(Paths.get(path))) {
-        throw IllegalArgumentException("Path is not a file: $path.")
-    }
-    Files.delete(Paths.get(path))
 }
 
 fun assertByteArrayEquals(expectedUtf8: String, b: ByteArray) {
