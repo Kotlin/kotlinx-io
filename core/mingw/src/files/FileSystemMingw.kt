@@ -24,13 +24,13 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
 
 internal actual fun dirnameImpl(path: String): String {
     memScoped {
-        return dirname(path.cstr.getPointer(this))?.toKString() ?: ""
+        return dirname(path.cstr.ptr)?.toKString() ?: ""
     }
 }
 
 internal actual fun basenameImpl(path: String): String {
     memScoped {
-        return basename(path.cstr.getPointer(this))?.toKString() ?: ""
+        return basename(path.cstr.ptr)?.toKString() ?: ""
     }
 }
 

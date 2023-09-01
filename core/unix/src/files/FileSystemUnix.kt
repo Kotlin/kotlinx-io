@@ -24,8 +24,7 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
 }
 
 internal actual fun mkdirImpl(path: String) {
-    val mode: UShort = 511u
-    if (mkdir(path, mode.convert()) != 0) {
+    if (mkdir(path, PermissionAllowAll.convert()) != 0) {
         throw IOException("mkdir failed: ${strerror(errno)?.toKString()}")
     }
 }

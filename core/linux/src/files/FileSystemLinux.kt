@@ -15,14 +15,14 @@ import platform.posix.dirname
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun dirnameImpl(path: String): String {
     memScoped {
-        return dirname(path.cstr.getPointer(this))?.toKString() ?: ""
+        return dirname(path.cstr.ptr)?.toKString() ?: ""
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun basenameImpl(path: String): String {
     memScoped {
-        return __xpg_basename(path.cstr.getPointer(this))?.toKString() ?: ""
+        return __xpg_basename(path.cstr.ptr)?.toKString() ?: ""
     }
 }
 

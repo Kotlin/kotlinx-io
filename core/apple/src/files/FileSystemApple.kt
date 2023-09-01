@@ -26,21 +26,20 @@ internal actual val SystemTemporaryDirectoryImpl: Path
 
 internal actual fun dirnameImpl(path: String): String {
     memScoped {
-        return dirname(path.cstr.getPointer(this))?.toKString() ?: ""
+        return dirname(path.cstr.ptr)?.toKString() ?: ""
     }
 }
 
 internal actual fun basenameImpl(path: String): String {
     memScoped {
-        return basename(path.cstr.getPointer(this))?.toKString() ?: ""
+        return basename(path.cstr.ptr)?.toKString() ?: ""
     }
 }
 
 internal actual fun isAbsoluteImpl(path: String): Boolean = path.startsWith('/')
 
 internal actual fun mkdirImpl(path: String) {
-    val mode: UShort = 511u
-    if (mkdir(path, mode) != 0) {
+    if (mkdir(path, PermissionAllowAll) != 0) {
         throw IOException("mkdir failed: ${strerror(errno)?.toKString()}")
     }
 }

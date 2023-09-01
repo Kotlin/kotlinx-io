@@ -81,3 +81,6 @@ internal expect fun mkdirImpl(path: String)
 public actual open class FileNotFoundException actual constructor(
     message: String?
 ) : IOException(message)
+
+// 777 in octal, rwx for all (owner, group and others).
+internal const val PermissionAllowAll: UShort = 511u
