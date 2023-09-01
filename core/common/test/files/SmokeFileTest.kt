@@ -250,6 +250,19 @@ class SmokeFileTest {
         assertEquals(-1L, FileSystem.System.metadataOrNull(path.parent!!)!!.size)
     }
 
+    @Test
+    fun pathEquality() {
+        val p0 = Path("/", "a", "b", "c")
+        assertEquals(p0, p0)
+
+        assertEquals(p0, Path("/", "a", "b", "c"))
+
+        // Paths compared by the string representation, so even if two Paths represent
+        // the same entity in the file system, they may not be equal
+        // (but it depends on how a platform treats paths).
+        assertNotEquals(p0, Path(p0, "d", ".."))
+    }
+
     private fun constructAbsolutePath(vararg parts: String): String {
         return Path.separator.toString() + parts.joinToString(Path.separator.toString())
     }
