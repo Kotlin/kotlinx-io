@@ -34,7 +34,7 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testBasicFile() {
+    fun readWriteFile() {
         val path = createTempPath()
 
         FileSystem.System.write(path).use {
@@ -48,7 +48,7 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testReadNotExistingFile() {
+    fun readNotExistingFile() {
         assertFailsWith<FileNotFoundException> {
             FileSystem.System.read(createTempPath()).use {
                 it.readByte()
@@ -58,7 +58,7 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testReadWriteMultipleSegments() {
+    fun readWriteMultipleSegments() {
         val path = createTempPath()
 
         val data = ByteArray((Segment.SIZE * 2.5).toInt()) { it.toByte() }
@@ -74,7 +74,7 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testFsOps() {
+    fun basicFileSystemOps() {
         val path = createTempPath()
         assertFalse(FileSystem.System.exists(path))
         FileSystem.System.write(path).use {
@@ -92,7 +92,7 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testMove() {
+    fun atomicMove() {
         val src = createTempPath()
         val dst = createTempPath()
         FileSystem.System.write(src).use {
@@ -209,7 +209,7 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testMetadata() {
+    fun fileMetadata() {
         val path = createTempPath()
         assertNull(FileSystem.System.metadataOrNull(path))
 
@@ -237,7 +237,7 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testFileSize() {
+    fun fileSize() {
         val path = createTempPath()
         val expectedSize = 123
         FileSystem.System.write(path).buffered().use {
