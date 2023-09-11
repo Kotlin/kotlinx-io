@@ -48,6 +48,10 @@ public expect class Path {
      */
     override fun toString(): String
 
+    /**
+     * Returns hash code of this Path.
+     * The hash code is calculated for the path's string representations ([toString]).
+     */
     override fun hashCode(): Int
 
     /**
@@ -55,11 +59,16 @@ public expect class Path {
      */
     override fun equals(other: Any?): Boolean
 
+    /**
+     * Properties shared by all Paths.
+     */
     public companion object {
         /**
          * A platform-specific character separating parts of the path.
+         * It's inherited from the default system's filesystem.
+         * It should not be used if an application is working with multiple filesystems having different separators.
          *
-         * For example, it's usually `/` on Unix and `\` on Windows.
+         * For example, the separator is usually `/` on Unix and `\` on Windows.
          */
         public val separator: Char
     }
@@ -94,6 +103,8 @@ public fun Path(base: Path, vararg parts: String): Path {
 
 /**
  * Returns [RawSource] for the given file or throws if path is not a file or does not exist
+ *
+ * Use of this method is deprecated with warning since kotlinx-io 0.2.3. The method will be removed in 0.3.0.
  */
 @Deprecated(
     message = "Use FileSystem.source instead",
@@ -109,6 +120,8 @@ public fun Path.source(): Source = FileSystem.System.source(this).buffered()
 /**
  * Returns [RawSink] for the given path, creates file if it doesn't exist, throws if it's a directory,
  * overwrites contents.
+ *
+ * Use of this method is deprecated with warning since kotlinx-io 0.2.3. The method will be removed in 0.3.0.
  */
 @Deprecated(
     message = "Use FileSystem.sink instead",
