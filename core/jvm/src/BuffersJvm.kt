@@ -180,7 +180,7 @@ public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
 /**
  * Reads all data from [source] into this buffer.
  *
- * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.bufferInteropWithNioBuffer
+ * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.transferBufferFromByteBuffer
  */
 public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
