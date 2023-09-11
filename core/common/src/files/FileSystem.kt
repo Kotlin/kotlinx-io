@@ -55,6 +55,7 @@ public sealed interface FileSystem {
      *
      * @throws kotlinx.io.IOException when [path] already exists and [mustCreate] is `true`.
      * @throws kotlinx.io.IOException when the creation of one of the directories fails.
+     * @throws kotlinx.io.IOException when [path] is an existing file and [mustCreate] is `false`.
      */
     public fun createDirectories(path: Path, mustCreate: Boolean = false)
 

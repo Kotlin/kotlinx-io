@@ -34,9 +34,13 @@ internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl
     }
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
-        if (exists(path)) {
+        val metadata = metadataOrNull(path)
+        if (metadata != null) {
             if (mustCreate) {
                 throw IOException("Path already exists: $path")
+            }
+            if (metadata.isRegularFile) {
+                throw IOException("Path already exists and it's a file: $path")
             }
             return
         }

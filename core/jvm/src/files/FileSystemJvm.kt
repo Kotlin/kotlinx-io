@@ -68,8 +68,13 @@ internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl
     }
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
-        if (!path.file.mkdirs() && mustCreate) {
-            throw IOException("Path already exist: $path")
+        if (!path.file.mkdirs()) {
+            if (mustCreate) {
+                throw IOException("Path already exist: $path")
+            }
+            if (path.file.isFile) {
+                throw IOException("Path already exists and it's a file: $path")
+            }
         }
     }
 

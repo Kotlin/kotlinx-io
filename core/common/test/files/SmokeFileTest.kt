@@ -136,6 +136,7 @@ class SmokeFileTest {
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun createDirectories() {
         val p = Path(createTempPath(), "a", "b", "c")
@@ -156,6 +157,12 @@ class SmokeFileTest {
             FileSystem.System.delete(pr)
             pr = pr.parent!!
         }
+
+        val p2 = createTempPath()
+        FileSystem.System.sink(p2).buffered().use {
+            it.writeString("hello")
+        }
+        assertFailsWith<IOException> { FileSystem.System.createDirectories(p2, false) }
     }
 
     @Test
