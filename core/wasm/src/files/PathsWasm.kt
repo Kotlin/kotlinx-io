@@ -17,11 +17,9 @@ public actual class Path private constructor() {
 
     public actual val isAbsolute: Boolean
         get() = unsupported()
-
-    public actual companion object {
-        public actual val separator: Char
-            get() = unsupported()
-    }
 }
+
+public actual val SystemPathSeparator: Char
+    get() = unsupported()
 
 public actual fun Path(path: String): Path = unsupported()

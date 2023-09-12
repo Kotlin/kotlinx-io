@@ -205,7 +205,6 @@ public final class kotlinx/io/files/FileMetadata {
 }
 
 public abstract interface class kotlinx/io/files/FileSystem {
-	public static final field Companion Lkotlinx/io/files/FileSystem$Companion;
 	public abstract fun atomicMove (Lkotlinx/io/files/Path;Lkotlinx/io/files/Path;)V
 	public abstract fun createDirectories (Lkotlinx/io/files/Path;Z)V
 	public static synthetic fun createDirectories$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;ZILjava/lang/Object;)V
@@ -218,13 +217,12 @@ public abstract interface class kotlinx/io/files/FileSystem {
 	public abstract fun source (Lkotlinx/io/files/Path;)Lkotlinx/io/RawSource;
 }
 
-public final class kotlinx/io/files/FileSystem$Companion {
-	public final fun getSystem ()Lkotlinx/io/files/FileSystem;
-	public final fun getSystemTemporaryDirectory ()Lkotlinx/io/files/Path;
+public final class kotlinx/io/files/FileSystemJvmKt {
+	public static final field SystemFileSystem Lkotlinx/io/files/FileSystem;
+	public static final field SystemTemporaryDirectory Lkotlinx/io/files/Path;
 }
 
 public final class kotlinx/io/files/Path {
-	public static final field Companion Lkotlinx/io/files/Path$Companion;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getName ()Ljava/lang/String;
 	public final fun getParent ()Lkotlinx/io/files/Path;
@@ -233,11 +231,8 @@ public final class kotlinx/io/files/Path {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class kotlinx/io/files/Path$Companion {
-	public final fun getSeparator ()C
-}
-
 public final class kotlinx/io/files/PathsJvmKt {
+	public static final field SystemPathSeparator C
 	public static final fun Path (Ljava/lang/String;)Lkotlinx/io/files/Path;
 	public static final fun sink (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
 	public static final fun source (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;

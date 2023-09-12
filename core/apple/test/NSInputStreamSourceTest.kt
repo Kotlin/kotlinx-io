@@ -5,8 +5,8 @@
 
 package kotlinx.io
 
-import kotlinx.io.files.FileSystem
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import platform.Foundation.NSInputStream
 import platform.Foundation.NSURL
 import kotlin.test.Test
@@ -28,7 +28,7 @@ class NSInputStreamSourceTest {
     fun nsInputStreamSourceFromFile() {
         val file = tempFileName()
         try {
-            FileSystem.System.sink(Path(file)).buffered().use {
+            SystemFileSystem.sink(Path(file)).buffered().use {
                 it.writeString("example")
             }
 
@@ -38,7 +38,7 @@ class NSInputStreamSourceTest {
             assertEquals(7, source.readAtMostTo(buffer, 10))
             assertEquals("example", buffer.readString())
         } finally {
-            FileSystem.System.delete(Path(file))
+            SystemFileSystem.delete(Path(file))
         }
     }
 

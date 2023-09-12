@@ -4,14 +4,14 @@
  */
 package kotlinx.io
 
-import kotlinx.io.files.FileSystem
+import kotlinx.io.files.SystemTemporaryDirectory
 import java.io.File
 import kotlin.random.Random
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalStdlibApi::class)
 actual fun tempFileName(): String {
-    val tmpDir = FileSystem.SystemTemporaryDirectory.file
+    val tmpDir = SystemTemporaryDirectory.file
     while (true) {
         val randomString = Random.nextBytes(32).toHexString()
         val res = File(tmpDir, randomString)

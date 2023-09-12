@@ -121,27 +121,21 @@ public sealed interface FileSystem {
      * @param path the path to get the metadata for.
      */
     public fun metadataOrNull(path: Path): FileMetadata?
-
-    public companion object {
-        /**
-         * An instance of [FileSystem] representing a default system-wide filesystem.
-         */
-        public val System: FileSystem = SystemFileSystem
-
-        /**
-         * Path to a directory suitable for creating temporary files.
-         *
-         * This path is not bound to a particular filesystem, but rather a system-wide temporary directory.
-         */
-        public val SystemTemporaryDirectory: Path = SystemTemporaryDirectoryImpl
-    }
 }
 
 internal abstract class SystemFileSystemImpl : FileSystem
 
-internal expect val SystemFileSystem: FileSystem
+/**
+ * An instance of [FileSystem] representing a default system-wide filesystem.
+ */
+public expect val SystemFileSystem: FileSystem
 
-internal expect val SystemTemporaryDirectoryImpl: Path
+/**
+ * Path to a directory suitable for creating temporary files.
+ *
+ * This path is not bound to a particular filesystem, but rather a system-wide temporary directory.
+ */
+public expect val SystemTemporaryDirectory: Path
 
 /**
  * Represents information about a file or directory obtainable from a filesystem.

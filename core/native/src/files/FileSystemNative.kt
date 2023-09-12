@@ -12,7 +12,7 @@ import kotlinx.io.RawSource
 import platform.posix.*
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
+public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
         return access(path.path, F_OK) == 0
     }

@@ -30,15 +30,14 @@ public actual class Path internal constructor(internal val file: File) {
         return toString().hashCode()
     }
 
-    public actual companion object {
-        public actual val separator: Char = File.separatorChar
-    }
-
     public actual val isAbsolute: Boolean
         get() = file.isAbsolute
     public actual val name: String
         get() = file.name
 }
+
+@JvmField
+public actual val SystemPathSeparator: Char = File.separatorChar
 
 public actual fun Path(path: String): Path = Path(File(path))
 
@@ -46,10 +45,10 @@ public actual fun Path(path: String): Path = Path(File(path))
 @JvmName("source")
 @PublishedApi
 @Suppress("UNUSED")
-internal fun Path.sourceHack(): Source = FileSystem.System.source(this).buffered()
+internal fun Path.sourceHack(): Source = SystemFileSystem.source(this).buffered()
 
 // Function only exists to provide binary compatibility with the earlier releases
 @JvmName("sink")
 @PublishedApi
 @Suppress("UNUSED")
-internal fun Path.sinkHack(): Sink = FileSystem.System.sink(this).buffered()
+internal fun Path.sinkHack(): Sink = SystemFileSystem.sink(this).buffered()

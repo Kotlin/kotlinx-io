@@ -35,7 +35,7 @@ internal actual fun basenameImpl(path: String): String {
 }
 
 internal actual fun isAbsoluteImpl(path: String): Boolean {
-    if (path.startsWith(Path.separator)) return true
+    if (path.startsWith(SystemPathSeparator)) return true
     return PathIsRelativeA(path) == 0
 }
 

@@ -23,7 +23,7 @@ public actual class Path internal constructor(
         get() {
             when {
                 path.isBlank() -> return null
-                !path.contains(separator) -> return null
+                !path.contains(SystemPathSeparator) -> return null
             }
             val parentName = dirnameImpl(path)
             return when {
@@ -45,17 +45,15 @@ public actual class Path internal constructor(
         return path.hashCode()
     }
 
-    public actual companion object {
-        public actual val separator: Char = '/'
-    }
-
     public actual val isAbsolute: Boolean = isAbsoluteImpl(path)
     public actual val name: String
         get() {
-            if (path.isBlank() || path.trim() == separator.toString()) return ""
+            if (path.isBlank() || path.trim() == SystemPathSeparator.toString()) return ""
             return basenameImpl(path)
         }
 }
+
+public actual val SystemPathSeparator: Char = '/'
 
 internal expect fun dirnameImpl(path: String): String
 

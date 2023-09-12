@@ -34,7 +34,7 @@ public actual class Path internal constructor(
             check(pathLib !== null) { "Path module not found" }
             when {
                 path.isBlank() -> return null
-                !path.contains(separator) -> return null
+                !path.contains(SystemPathSeparator) -> return null
             }
             val p = pathLib.dirname(path) as String?
             return when {
@@ -75,15 +75,13 @@ public actual class Path internal constructor(
     actual override fun hashCode(): Int {
         return path.hashCode()
     }
+}
 
-    public actual companion object {
-        public actual val separator: Char by lazy {
-            check(pathLib != null) { "Path module not found" }
-            val sep = pathLib.sep as String
-            check(sep.length == 1)
-            sep[0]
-        }
-    }
+public actual val SystemPathSeparator: Char by lazy {
+    check(pathLib != null) { "Path module not found" }
+    val sep = pathLib.sep as String
+    check(sep.length == 1)
+    sep[0]
 }
 
 public actual fun Path(path: String): Path {

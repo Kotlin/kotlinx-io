@@ -49,7 +49,7 @@ private val mover: Mover by lazy {
 }
 
 @JvmField
-internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
+public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
 
     override fun exists(path: Path): Boolean {
         return path.file.exists()
@@ -93,7 +93,7 @@ internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl
     override fun sink(path: Path, append: Boolean): RawSink = FileOutputStream(path.file, append).asSink()
 }
 
-internal actual val SystemTemporaryDirectoryImpl: Path
-    get() = Path(System.getProperty("java.io.tmpdir"))
+@JvmField
+public actual val SystemTemporaryDirectory: Path = Path(System.getProperty("java.io.tmpdir"))
 
 public actual typealias FileNotFoundException = java.io.FileNotFoundException

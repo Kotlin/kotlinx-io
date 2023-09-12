@@ -21,7 +21,7 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
     }
 }
 
-internal actual val SystemTemporaryDirectoryImpl: Path
+public actual val SystemTemporaryDirectory: Path
     get() = Path(NSTemporaryDirectory())
 
 internal actual fun dirnameImpl(path: String): String {

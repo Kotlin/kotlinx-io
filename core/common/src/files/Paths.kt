@@ -58,21 +58,16 @@ public expect class Path {
      * Compares two paths for equality using its string representation ([toString]).
      */
     override fun equals(other: Any?): Boolean
-
-    /**
-     * Properties shared by all Paths.
-     */
-    public companion object {
-        /**
-         * A platform-specific character separating parts of the path.
-         * It's inherited from the default system's filesystem.
-         * It should not be used if an application is working with multiple filesystems having different separators.
-         *
-         * For example, the separator is usually `/` on Unix and `\` on Windows.
-         */
-        public val separator: Char
-    }
 }
+
+/**
+ * A platform-specific character separating parts of the path.
+ * It's inherited from the default system's filesystem.
+ * It should not be used if an application is working with multiple filesystems having different separators.
+ *
+ * For example, the separator is usually `/` on Unix and `\` on Windows.
+ */
+public expect val SystemPathSeparator: Char
 
 /**
  * Returns Path for the given string without much of a validation.
@@ -86,8 +81,8 @@ public fun Path(base: String, vararg parts: String): Path {
     return Path(buildString {
         append(base)
         parts.forEach {
-            if (isNotEmpty() && !endsWith(Path.separator)) {
-                append(Path.separator)
+            if (isNotEmpty() && !endsWith(SystemPathSeparator)) {
+                append(SystemPathSeparator)
             }
             append(it)
         }
@@ -109,13 +104,13 @@ public fun Path(base: Path, vararg parts: String): Path {
 @Deprecated(
     message = "Use FileSystem.source instead",
     replaceWith = ReplaceWith(
-        expression = "FileSystem.System.source(this).buffered()",
+        expression = "SystemFileSystem.source(this).buffered()",
         imports = arrayOf("kotlinx.io.files.FileSystem")
     ),
     level = DeprecationLevel.WARNING
 )
 @JvmName("sourceDeprecated")
-public fun Path.source(): Source = FileSystem.System.source(this).buffered()
+public fun Path.source(): Source = SystemFileSystem.source(this).buffered()
 
 /**
  * Returns [RawSink] for the given path, creates file if it doesn't exist, throws if it's a directory,
@@ -126,10 +121,10 @@ public fun Path.source(): Source = FileSystem.System.source(this).buffered()
 @Deprecated(
     message = "Use FileSystem.sink instead",
     replaceWith = ReplaceWith(
-        expression = "FileSystem.System.sink(this).buffered()",
+        expression = "SystemFileSystem.sink(this).buffered()",
         imports = arrayOf("kotlinx.io.files.FileSystem")
     ),
     level = DeprecationLevel.WARNING
 )
 @JvmName("sinkDeprecated")
-public fun Path.sink(): Sink = FileSystem.System.sink(this).buffered()
+public fun Path.sink(): Sink = SystemFileSystem.sink(this).buffered()

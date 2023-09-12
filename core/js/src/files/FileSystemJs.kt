@@ -27,7 +27,7 @@ internal val os: dynamic
         }
     }
 
-internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
+public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
         check(fs !== null) { "Module 'fs' was not found" }
         return fs.existsSync(path.path) as Boolean
@@ -117,7 +117,7 @@ internal actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl
     }
 }
 
-internal actual val SystemTemporaryDirectoryImpl: Path
+public actual val SystemTemporaryDirectory: Path
     get() {
         check(os !== null) { "Module 'os' was not found" }
         return Path(os.tmpdir() as? String ?: "")
