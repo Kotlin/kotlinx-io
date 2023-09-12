@@ -21,9 +21,16 @@ The library also provides interfaces representing data sources and destinations 
 
 In addition to `Buffer`, the library provides an immutable sequence of bytes - `ByteString`.
 
+Also, there's an experimental filesystem support provided by `kotlinx.io.files` package. 
+The package includes `FileSystem` interface  and its implementation - `SystemFileSystem`. 
+
+`FileSystem` provides basic operations for working with files and directories.
+
+File and directory paths are represented by yet another class provided by the package - `Path`.
+
 There are two `kotlinx-io` modules:
 - [kotlinx-io-bytestring](./bytestring) - provides `ByteString`.
-- [kotlinx-io-core](./core) - provides IO primitives (`Buffer`, `Source`, `Sink`), depends on `kotlinx-io-bytestring`.
+- [kotlinx-io-core](./core) - provides IO primitives (`Buffer`, `Source`, `Sink`), filesystems support, depends on `kotlinx-io-bytestring`.
 
 ## Using in your projects
 
