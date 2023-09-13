@@ -4,17 +4,21 @@
  */
 package kotlinx.io
 
-import java.nio.file.Files
-import java.nio.file.Paths
+import kotlinx.io.files.SystemTemporaryDirectory
+import java.io.File
+import kotlin.random.Random
 import kotlin.test.assertEquals
 
-actual fun createTempFile(): String = Files.createTempFile(null, null).toString()
-
-actual fun deleteFile(path: String) {
-    if (!Files.isRegularFile(Paths.get(path))) {
-        throw IllegalArgumentException("Path is not a file: $path.")
+@OptIn(ExperimentalStdlibApi::class)
+actual fun tempFileName(): String {
+    val tmpDir = SystemTemporaryDirectory.file
+    while (true) {
+        val randomString = Random.nextBytes(32).toHexString()
+        val res = File(tmpDir, randomString)
+        if (!res.exists()) {
+            return res.absolutePath
+        }
     }
-    Files.delete(Paths.get(path))
 }
 
 fun assertByteArrayEquals(expectedUtf8: String, b: ByteArray) {

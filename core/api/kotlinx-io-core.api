@@ -195,12 +195,53 @@ public final class kotlinx/io/Utf8Kt {
 	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
 }
 
-public final class kotlinx/io/files/Path {
+public final class kotlinx/io/files/FileMetadata {
+	public fun <init> ()V
+	public fun <init> (ZZJ)V
+	public synthetic fun <init> (ZZJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getSize ()J
+	public final fun isDirectory ()Z
+	public final fun isRegularFile ()Z
 }
 
-public final class kotlinx/io/files/PathsKt {
+public abstract interface class kotlinx/io/files/FileSystem {
+	public abstract fun atomicMove (Lkotlinx/io/files/Path;Lkotlinx/io/files/Path;)V
+	public abstract fun createDirectories (Lkotlinx/io/files/Path;Z)V
+	public static synthetic fun createDirectories$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;ZILjava/lang/Object;)V
+	public abstract fun delete (Lkotlinx/io/files/Path;Z)V
+	public static synthetic fun delete$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;ZILjava/lang/Object;)V
+	public abstract fun exists (Lkotlinx/io/files/Path;)Z
+	public abstract fun metadataOrNull (Lkotlinx/io/files/Path;)Lkotlinx/io/files/FileMetadata;
+	public abstract fun sink (Lkotlinx/io/files/Path;Z)Lkotlinx/io/RawSink;
+	public static synthetic fun sink$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;ZILjava/lang/Object;)Lkotlinx/io/RawSink;
+	public abstract fun source (Lkotlinx/io/files/Path;)Lkotlinx/io/RawSource;
+}
+
+public final class kotlinx/io/files/FileSystemJvmKt {
+	public static final field SystemFileSystem Lkotlinx/io/files/FileSystem;
+	public static final field SystemTemporaryDirectory Lkotlinx/io/files/Path;
+}
+
+public final class kotlinx/io/files/Path {
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getParent ()Lkotlinx/io/files/Path;
+	public fun hashCode ()I
+	public final fun isAbsolute ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlinx/io/files/PathsJvmKt {
+	public static final field SystemPathSeparator C
 	public static final fun Path (Ljava/lang/String;)Lkotlinx/io/files/Path;
 	public static final fun sink (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
 	public static final fun source (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
+}
+
+public final class kotlinx/io/files/PathsKt {
+	public static final fun Path (Ljava/lang/String;[Ljava/lang/String;)Lkotlinx/io/files/Path;
+	public static final fun Path (Lkotlinx/io/files/Path;[Ljava/lang/String;)Lkotlinx/io/files/Path;
+	public static final fun sinkDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
+	public static final fun sourceDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 }
 

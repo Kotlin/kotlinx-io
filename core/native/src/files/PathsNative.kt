@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class)
 
 package kotlinx.io.files
 
@@ -18,21 +18,50 @@ import platform.posix.*
 public actual class Path internal constructor(
     internal val path: String,
     @Suppress("UNUSED_PARAMETER") any: Any?
-)
+) {
+    public actual val parent: Path?
+        get() {
+            when {
+                path.isBlank() -> return null
+                !path.contains(SystemPathSeparator) -> return null
+            }
+            val parentName = dirnameImpl(path)
+            return when {
+                parentName.isBlank() -> return null
+                parentName == path -> return null
+                else -> Path(parentName)
+            }
+        }
+
+    public actual override fun toString(): String = path
+    actual override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Path) return false
+
+        return path == other.path
+    }
+
+    actual override fun hashCode(): Int {
+        return path.hashCode()
+    }
+
+    public actual val isAbsolute: Boolean = isAbsoluteImpl(path)
+    public actual val name: String
+        get() {
+            if (path.isBlank() || path.trim() == SystemPathSeparator.toString()) return ""
+            return basenameImpl(path)
+        }
+}
+
+public actual val SystemPathSeparator: Char = '/'
+
+internal expect fun dirnameImpl(path: String): String
+
+internal expect fun basenameImpl(path: String): String
+
+internal expect fun isAbsoluteImpl(path: String): Boolean
 
 public actual fun Path(path: String): Path = Path(path, null)
-
-public actual fun Path.source(): Source {
-    val openFile: CPointer<FILE> = fopen(path, "rb")
-        ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
-    return FileSource(openFile).buffered()
-}
-
-public actual fun Path.sink(): Sink {
-    val openFile: CPointer<FILE> = fopen(path, "wb")
-        ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
-    return FileSink(openFile).buffered()
-}
 
 internal class FileSource(
     private val file: CPointer<FILE>

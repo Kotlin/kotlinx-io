@@ -6,11 +6,9 @@
 package kotlinx.io
 
 import kotlinx.io.files.Path
-import kotlinx.io.files.sink
+import kotlinx.io.files.SystemFileSystem
 import platform.Foundation.NSInputStream
-import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
-import platform.Foundation.NSUUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -28,11 +26,9 @@ class NSInputStreamSourceTest {
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun nsInputStreamSourceFromFile() {
-        // can be replaced with createTempFile() when #183 is fixed
-        // https://github.com/Kotlin/kotlinx-io/issues/183
-        val file = "${NSTemporaryDirectory()}${NSUUID().UUIDString()}"
+        val file = tempFileName()
         try {
-            Path(file).sink().use {
+            SystemFileSystem.sink(Path(file)).buffered().use {
                 it.writeString("example")
             }
 
@@ -42,7 +38,7 @@ class NSInputStreamSourceTest {
             assertEquals(7, source.readAtMostTo(buffer, 10))
             assertEquals("example", buffer.readString())
         } finally {
-            deleteFile(file)
+            SystemFileSystem.delete(Path(file))
         }
     }
 

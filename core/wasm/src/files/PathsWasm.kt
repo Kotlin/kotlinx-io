@@ -5,23 +5,21 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.Sink
-import kotlinx.io.Source
+public actual class Path private constructor() {
+    actual override fun toString(): String = unsupported()
+
+    public actual val parent: Path?
+        get() = unsupported()
+
+    public actual val name: String
+        get() = unsupported()
 
 
-public actual class Path internal constructor(private val path: String,
-                                              @Suppress("UNUSED_PARAMETER") any: Any?) {
-    override fun toString(): String = path
+    public actual val isAbsolute: Boolean
+        get() = unsupported()
 }
 
-public actual fun Path(path: String): Path {
-    return Path(path, null)
-}
+public actual val SystemPathSeparator: Char
+    get() = unsupported()
 
-public actual fun Path.source(): Source {
-    TODO("Paths are not supported for Wasm target")
-}
-
-public actual fun Path.sink(): Sink {
-    TODO("Paths are not supported for Wasm target")
-}
+public actual fun Path(path: String): Path = unsupported()

@@ -7,16 +7,7 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 
-private val fs: dynamic
-    get(): dynamic {
-        return try {
-            js("require('fs')")
-        } catch (t: Throwable) {
-            null
-        }
-    }
-
-private val buffer: dynamic
+internal val buffer: dynamic
     get(): dynamic {
         return try {
             js("require('buffer')")
@@ -25,27 +16,79 @@ private val buffer: dynamic
         }
     }
 
-public actual class Path internal constructor(private val path: String,
-                                              @Suppress("UNUSED_PARAMETER") any: Any?) {
-    override fun toString(): String = path
+private val pathLib: dynamic
+    get(): dynamic {
+        return try {
+            js("require('path')")
+        } catch (t: Throwable) {
+            null
+        }
+    }
+
+public actual class Path internal constructor(
+    internal val path: String,
+    @Suppress("UNUSED_PARAMETER") any: Any?
+) {
+    public actual val parent: Path?
+        get() {
+            check(pathLib !== null) { "Path module not found" }
+            when {
+                path.isBlank() -> return null
+                !path.contains(SystemPathSeparator) -> return null
+            }
+            val p = pathLib.dirname(path) as String?
+            return when {
+                p.isNullOrBlank() -> null
+                p == path -> null
+                else -> Path(p)
+            }
+        }
+
+    public actual val isAbsolute: Boolean
+        get() {
+            check(pathLib !== null) { "Path module not found" }
+            return pathLib.isAbsolute(path) as Boolean
+        }
+
+    public actual val name: String
+        get() {
+            check(pathLib !== null) { "Path module not found" }
+            when {
+                path.isBlank() -> return ""
+            }
+            val p = pathLib.basename(path) as String?
+            return when {
+                p.isNullOrBlank() -> ""
+                else -> p
+            }
+        }
+
+    public actual override fun toString(): String = path
+
+    actual override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Path) return false
+
+        return path == other.path
+    }
+
+    actual override fun hashCode(): Int {
+        return path.hashCode()
+    }
+}
+
+public actual val SystemPathSeparator: Char by lazy {
+    check(pathLib != null) { "Path module not found" }
+    val sep = pathLib.sep as String
+    check(sep.length == 1)
+    sep[0]
 }
 
 public actual fun Path(path: String): Path {
     return Path(path, null)
 }
 
-public actual fun Path.source(): Source {
-    check(fs !== null) { "Module 'fs' was not found" }
-    return FileSource(this).buffered()
-}
-
-public actual fun Path.sink(): Sink {
-    check(fs !== null) { "Module 'fs' was not found" }
-    check(buffer !== null) { "Module 'buffer' was not found" }
-    return FileSink(this).buffered()
-}
-
-private class FileSource(private val path: Path) : RawSource {
+internal class FileSource(private val path: Path) : RawSource {
     private var buffer: dynamic = null
     private var closed = false
     private var offset = 0
@@ -57,7 +100,14 @@ private class FileSource(private val path: Path) : RawSource {
             return 0
         }
         if (buffer === null) {
-            buffer = fs.readFileSync(path.toString(), null)
+            try {
+                buffer = fs.readFileSync(path.toString(), null)
+            } catch (t: Throwable) {
+                if (fs.existsSync(path.path) as Boolean) {
+                    throw IOException("Failed to read data from $path", t)
+                }
+                throw FileNotFoundException("File does not exist: $path")
+            }
         }
         val len: Int = buffer.length as Int
         if (offset >= len) {
@@ -76,9 +126,8 @@ private class FileSource(private val path: Path) : RawSource {
     }
 }
 
-private class FileSink(private val path: Path) : RawSink {
+internal class FileSink(private val path: Path, private var append: Boolean) : RawSink {
     private var closed = false
-    private var append = false
 
     override fun write(source: Buffer, byteCount: Long) {
         check(!closed) { "Sink is closed." }
@@ -92,11 +141,15 @@ private class FileSink(private val path: Path) : RawSink {
             val segmentBytes = head.limit - head.pos
             val buf = buffer.Buffer.allocUnsafe(segmentBytes)
             buf.fill(head.data, head.pos, segmentBytes)
-            if (append) {
-                fs.appendFileSync(path.toString(), buf)
-            } else {
-                fs.writeFileSync(path.toString(), buf)
-                append = true
+            try {
+                if (append) {
+                    fs.appendFileSync(path.toString(), buf)
+                } else {
+                    fs.writeFileSync(path.toString(), buf)
+                    append = true
+                }
+            } catch (e: Throwable) {
+                throw IOException("Write failed", e)
             }
 
             source.skip(segmentBytes.toLong())

@@ -60,13 +60,35 @@ kotlin {
 
     configureNativePlatforms()
 
-    val nativeTargets = nativeTargets()
     val appleTargets = appleTargets()
+    val mingwTargets = mingwTargets()
+
+    /*
+      Native source sets hierarchy:
+      native
+      |-> apple
+      |-> nonApple
+          |-> mingw
+          |-> unix
+              |-> linux
+              |-> android
+     */
+
     sourceSets {
-        val nativeMain = createSourceSet("nativeMain", parent = commonMain.get(), children = nativeTargets)
-        val nativeTest = createSourceSet("nativeTest", parent = commonTest.get(), children = nativeTargets)
+        val nativeMain = createSourceSet("nativeMain", parent = commonMain.get())
+        val nativeTest = createSourceSet("nativeTest", parent = commonTest.get())
+        val nonAppleMain = createSourceSet("nonAppleMain", parent = nativeMain)
+        val nonAppleTest = createSourceSet("nonAppleTest", parent = nativeTest)
         createSourceSet("appleMain", parent = nativeMain, children = appleTargets)
         createSourceSet("appleTest", parent = nativeTest, children = appleTargets)
+        createSourceSet("mingwMain", parent = nonAppleMain, children = mingwTargets)
+        createSourceSet("mingwTest", parent = nonAppleTest, children = mingwTargets)
+        val unixMain = createSourceSet("unixMain", parent = nonAppleMain)
+        val unixTest = createSourceSet("unixTest", parent = nonAppleTest)
+        createSourceSet("linuxMain", parent = unixMain, children = linuxTargets())
+        createSourceSet("linuxTest", parent = unixTest, children = linuxTargets())
+        createSourceSet("androidMain", parent = unixMain, children = androidTargets())
+        createSourceSet("androidTest", parent = unixTest, children = androidTargets())
     }
 }
 
@@ -135,10 +157,6 @@ fun KotlinMultiplatformExtension.configureNativePlatforms() {
     macosX64()
     macosArm64()
     mingwX64()
-}
-
-fun nativeTargets(): List<String> {
-    return linuxTargets() + mingwTargets() + androidTargets()
 }
 
 fun appleTargets() = listOf(

@@ -39,8 +39,7 @@ fun assertNoEmptySegments(buffer: Buffer) {
     assertTrue(segmentSizes(buffer).all { it != 0 }, "Expected all segments to be non-empty")
 }
 
-expect fun createTempFile(): String
-expect fun deleteFile(path: String)
+expect fun tempFileName(): String
 
 private fun fromHexChar(char: Char): Int {
     val code = char.code

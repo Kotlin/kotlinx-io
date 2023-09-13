@@ -6,7 +6,6 @@
 package kotlinx.io
 
 import kotlin.random.Random
-import kotlin.random.nextULong
 
 private val os: dynamic
     get(): dynamic {
@@ -35,22 +34,16 @@ private val nodePath: dynamic
         }
     }
 
-actual fun createTempFile(): String {
+@OptIn(ExperimentalStdlibApi::class)
+actual fun tempFileName(): String {
     while (true) {
         val tmpdir = os.tmpdir()
-        val filename = Random.nextULong().toString()
-        val fullpath = "$tmpdir${nodePath.sep}$filename.txt"
+        val filename = Random.nextBytes(32).toHexString()
+        val fullpath = "$tmpdir${nodePath.sep}$filename"
 
         if (fs.existsSync(fullpath) as Boolean) {
             continue
         }
         return fullpath
     }
-}
-
-actual fun deleteFile(path: String) {
-    if (!fs.existsSync(path) as Boolean) {
-        throw IOException("File does not exist: $path")
-    }
-    fs.rmSync(path)
 }

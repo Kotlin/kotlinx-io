@@ -5,10 +5,6 @@
 
 package kotlinx.io
 
-actual fun createTempFile(): String {
-    TODO("Paths are not supported for Wasm target")
-}
+import kotlinx.io.files.unsupported
 
-actual fun deleteFile(path: String) {
-    TODO("Paths are not supported for Wasm target")
-}
+actual fun tempFileName(): String = unsupported()
