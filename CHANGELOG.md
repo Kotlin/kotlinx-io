@@ -1,5 +1,5 @@
 # CHANGELOG
-## 0.2.2
+## 0.3.0
 > Published XX Sep 2023
 
 ### Features
