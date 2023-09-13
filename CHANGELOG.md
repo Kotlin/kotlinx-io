@@ -1,6 +1,6 @@
 # CHANGELOG
 ## 0.3.0
-> Published XX Sep 2023
+> Published 13 Sep 2023
 
 ### Features
 - Enabled Wasm target [#164](https://github.com/Kotlin/kotlinx-io/issues/164)
