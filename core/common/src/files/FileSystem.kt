@@ -10,7 +10,15 @@ import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 
 /**
- * An interface providing basic operations on a filesystem.
+ * An interface providing basic operations on a filesystem, such as reading and writing files,
+ * creating directories, gathering file metadata and so on.
+ *
+ * Default implementation of this interface is [SystemFileSystem]. It provides access to files and directories
+ * on disk.
+ *
+ * The interface is sealed until API stabilization, but in the future it will allow
+ * creating custom filesystems that could be used as mocks for testing or provide
+ * access to some network resources and allow working with them as with regular files, for example.
  *
  * **This API is unstable and subject to change.**
  */
@@ -138,7 +146,8 @@ public expect val SystemFileSystem: FileSystem
 public expect val SystemTemporaryDirectory: Path
 
 /**
- * Represents information about a file or directory obtainable from a filesystem.
+ * Represents information about a file or directory obtainable from a filesystem like
+ * a type of filesystem node (is it a directory or a file?), its size, and so on.
  */
 public class FileMetadata(
     /**
