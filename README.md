@@ -22,7 +22,7 @@ The library also provides interfaces representing data sources and destinations 
 In addition to `Buffer`, the library provides an immutable sequence of bytes - `ByteString`.
 
 Also, there's an experimental filesystem support provided by `kotlinx.io.files` package. 
-The package includes `FileSystem` interface  and its implementation - `SystemFileSystem`. 
+The package includes `FileSystem` interface and its implementation - `SystemFileSystem`. 
 
 `FileSystem` provides basic operations for working with files and directories.
 
@@ -95,6 +95,6 @@ kotlinx-io is licensed under the [Apache 2.0 License](LICENSE).
 
 Thanks to everyone involved in the project.
 
-A honorable mention goes to the developers of [Okio](https://square.github.io/okio/) 
+An honorable mention goes to the developers of [Okio](https://square.github.io/okio/) 
 that served as the foundation for `kotlinx-io` and to [Jesse Wilson](https://github.com/swankjesse),
 for the help with `Okio` adaption, his suggestions, assistance and guidance with `kotlinx-io` development.
