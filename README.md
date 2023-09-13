@@ -3,7 +3,7 @@
 [![Kotlin Alpha](https://kotl.in/badges/alpha.svg)](https://kotlinlang.org/docs/components-stability.html)
 [![JetBrains incubator project](https://jb.gg/badges/incubator.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Download](https://img.shields.io/maven-central/v/org.jetbrains.kotlinx/kotlinx-io-core?versionSuffix=0.2.1)](https://central.sonatype.com/artifact/org.jetbrains.kotlinx/kotlinx-io-core/0.2.1)
+[![Download](https://img.shields.io/maven-central/v/org.jetbrains.kotlinx/kotlinx-io-core)](https://central.sonatype.com/artifact/org.jetbrains.kotlinx/kotlinx-io-core/)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![TeamCity build](https://img.shields.io/teamcity/build/s/KotlinTools_KotlinxIo_BuildAggregated.svg?server=http%3A%2F%2Fteamcity.jetbrains.com)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_KotlinxIo_BuildAggregated&guest=1)
 [![KDoc link](https://img.shields.io/badge/API_reference-KDoc-blue)](https://fzhinkin.github.io/kotlinx-io-dokka-docs-preview/)
@@ -22,7 +22,7 @@ The library also provides interfaces representing data sources and destinations 
 In addition to `Buffer`, the library provides an immutable sequence of bytes - `ByteString`.
 
 Also, there's an experimental filesystem support provided by `kotlinx.io.files` package. 
-The package includes `FileSystem` interface  and its implementation - `SystemFileSystem`. 
+The package includes `FileSystem` interface and its implementation - `SystemFileSystem`. 
 
 `FileSystem` provides basic operations for working with files and directories.
 
@@ -48,7 +48,7 @@ repositories {
 Add the library to dependencies:
 ```kotlin
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.3.0")
 }
 ```
 
@@ -58,7 +58,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.2.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.3.0")
             }
         }
     }
@@ -72,7 +72,7 @@ Add the library to dependencies:
 <dependency>
     <groupId>org.jetbrains.kotlinx</groupId>
     <artifactId>kotlinx-io-core-jvm</artifactId>
-    <version>0.2.1</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -95,6 +95,6 @@ kotlinx-io is licensed under the [Apache 2.0 License](LICENSE).
 
 Thanks to everyone involved in the project.
 
-A honorable mention goes to the developers of [Okio](https://square.github.io/okio/) 
+An honorable mention goes to the developers of [Okio](https://square.github.io/okio/) 
 that served as the foundation for `kotlinx-io` and to [Jesse Wilson](https://github.com/swankjesse),
 for the help with `Okio` adaption, his suggestions, assistance and guidance with `kotlinx-io` development.
