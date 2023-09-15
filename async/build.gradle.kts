@@ -36,6 +36,18 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
+
+        create("concurrentMain") {
+            dependsOn(getByName("commonMain"))
+            getByName("jvmMain").dependsOn(this)
+            getByName("nativeMain").dependsOn(this)
+        }
+
+        create("concurrentTest") {
+            dependsOn(getByName("commonTest"))
+            getByName("jvmTest").dependsOn(this)
+            getByName("nativeTest").dependsOn(this)
+        }
     }
 
     js(IR) {

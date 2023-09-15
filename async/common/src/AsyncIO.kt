@@ -31,31 +31,6 @@ public suspend fun AsyncRawSink.writeWithBuffer(block: Buffer.() -> Unit) {
     flush()
 }
 
-/*
-public fun AsyncRawSink.asBlocking(): RawSink {
-    return object : RawSink {
-        override fun write(source: Buffer, byteCount: Long) {
-            runBlocking {
-                this@asBlocking.write(source, byteCount)
-            }
-        }
-
-        override fun flush() {
-            runBlocking {
-                this@asBlocking.flush()
-            }
-        }
-
-        override fun close() {
-            runBlocking {
-                this@asBlocking.close()
-            }
-        }
-    }
-}
-
- */
-
 public fun RawSink.asAsync(ctx: CoroutineContext = Dispatchers.Default): AsyncRawSink {
     return object : AsyncRawSink {
         override suspend fun write(source: Buffer, byteCount: Long) {
@@ -81,24 +56,6 @@ public fun RawSink.asAsync(ctx: CoroutineContext = Dispatchers.Default): AsyncRa
         }
     }
 }
-
-/*
-public fun AsyncRawSource.asBlocking(): RawSource {
-    return object : RawSource {
-        override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-            return runBlocking {
-                this@asBlocking.readAtMostTo(sink, byteCount)
-            }
-        }
-
-        override fun close() {
-            runBlocking {
-                this@asBlocking.close()
-            }
-        }
-    }
-}
- */
 
 public fun RawSource.asAsync(ctx: CoroutineContext = Dispatchers.Default): AsyncRawSource {
     return object : AsyncRawSource {

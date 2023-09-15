@@ -12,7 +12,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-private class TestAsyncSink : AsyncRawSink {
+internal class TestAsyncSink : AsyncRawSink {
     val buffer = Buffer()
     var closed = false
     var flushed = false
@@ -33,9 +33,12 @@ private class TestAsyncSink : AsyncRawSink {
     }
 }
 
-private class TestAsyncSource : AsyncRawSource {
+internal class TestAsyncSource : AsyncRawSource {
     var closed = false
-    override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long = -1
+    val buffer = Buffer()
+    override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        return buffer.readAtMostTo(sink, byteCount)
+    }
 
     override suspend fun close() {
         closed = true
