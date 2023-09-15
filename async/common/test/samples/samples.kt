@@ -16,10 +16,10 @@ data class Message(val timestamp: Long, val text: String) {
 
 
 suspend fun Message.Companion.fromBson(source: AsyncSource): Message {
-    source.await(AwaitPredicate.dataAvailable(4))          // check if the source contains length
+    source.awaitOrThrow(AwaitPredicate.available(4))          // check if the source contains length
     val buffer = source.buffer
     val length = buffer.readIntLe() - 4L
-    source.await(AwaitPredicate.dataAvailable(length))     // check if the source contains the whole message
+    source.awaitOrThrow(AwaitPredicate.available(length))     // check if the source contains the whole message
 
     fun readFieldName(source: Buffer): String {
         val delimiterOffset = source.indexOf(0)            // find offset of the 0-byte terminating the name

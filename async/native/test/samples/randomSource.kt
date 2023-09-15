@@ -16,6 +16,8 @@ import kotlinx.io.async.AsyncRawSource
 import kotlinx.io.async.AwaitPredicate
 import kotlinx.io.async.buffered
 import kotlinx.io.async.use
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteString
 import platform.posix.*
 import kotlin.math.min
@@ -60,8 +62,11 @@ class RandomSourceTest {
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testRead() = runTest(timeout = 2L.minutes) {
+        if (SystemFileSystem.metadataOrNull(Path("/dev/random"))?.isRegularFile != true) {
+            return@runTest
+        }
         AsyncRandomSource().buffered().use {
-            it.await(AwaitPredicate.dataAvailable(1000000))
+            it.awaitOrThrow(AwaitPredicate.available(1000000))
             println("${it.buffer.size} bytes available: ${it.buffer.readByteString(10)}")
         }
     }

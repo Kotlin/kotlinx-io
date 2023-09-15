@@ -29,7 +29,7 @@ class KotlinxIOAsyncPredicateSample {
             }
         }
 
-        if (asyncSource.tryAwait(until = AwaitHttpBodySeparator())) {
+        if (asyncSource.await(until = AwaitHttpBodySeparator()).getOrThrow()) {
             parseHeaders(asyncSource.buffer)
         } else {
             throw IllegalStateException("The source exhausted before reaching HTTP body separator.")

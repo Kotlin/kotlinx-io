@@ -37,6 +37,23 @@ kotlin {
             }
         }
     }
+
+    js(IR) {
+        nodejs {
+            testTask(Action {
+                useMocha {
+                    timeout = "300s"
+                }
+            })
+        }
+        browser {
+            testTask(Action {
+                useMocha {
+                    timeout = "300s"
+                }
+            })
+        }
+    }
 }
 
 tasks.withType<DokkaTaskPartial>().configureEach {

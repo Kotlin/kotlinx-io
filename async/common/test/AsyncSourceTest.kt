@@ -50,12 +50,12 @@ private class BufferBackedSource(private val buffer: Buffer) : AsyncRawSource {
 
 class AsyncSourceTest {
     @Test
-    fun testInterruptAwait() = runTest(timeout = 1L.minutes) {
+    fun interruptAwaitOrThrow() = runTest(timeout = 1L.minutes) {
         val source = AsyncSource(InfiniteSource())
         val m = Mutex()
         val job = launch(Dispatchers.Default) {
             m.withLock {
-                source.await(AwaitPredicate.exhausted())
+                source.awaitOrThrow(AwaitPredicate.exhausted())
             }
             fail("unreachable")
         }
@@ -67,13 +67,13 @@ class AsyncSourceTest {
     }
 
     @Test
-    fun testInterruptTryAwait() = runTest(timeout = 1L.minutes) {
+    fun interruptAwait() = runTest(timeout = 1L.minutes) {
         val source = AsyncSource(InfiniteSource())
 
         val m = Mutex()
         val job = launch(Dispatchers.Default) {
             m.withLock {
-                source.tryAwait(AwaitPredicate.exhausted())
+                source.await(AwaitPredicate.exhausted()).getOrThrow()
             }
             fail("unreachable")
         }
@@ -85,33 +85,33 @@ class AsyncSourceTest {
     }
 
     @Test
-    fun testTryAwait() = runTest {
+    fun await() = runTest {
         val source = AsyncSource(StringSource("data"))
 
-        assertTrue(source.tryAwait(AwaitPredicate.byteFound('d'.code.toByte())))
-        assertFalse(source.tryAwait(AwaitPredicate.byteFound('!'.code.toByte())))
+        assertTrue(source.await(AwaitPredicate.contains('d'.code.toByte())).getOrThrow())
+        assertFalse(source.await(AwaitPredicate.contains('!'.code.toByte())).getOrThrow())
     }
 
     @Test
-    fun testAwait() = runTest {
+    fun awaitOrThrow() = runTest {
         val source = AsyncSource(StringSource("data"))
 
-        source.await(AwaitPredicate.byteFound('d'.code.toByte()))
+        source.awaitOrThrow(AwaitPredicate.contains('d'.code.toByte()))
         assertFails {
-            source.await(AwaitPredicate.byteFound('!'.code.toByte()))
+            source.awaitOrThrow(AwaitPredicate.contains('!'.code.toByte()))
         }
     }
 
     @Test
-    fun testAllDataTransferred() = runTest {
+    fun checkAllDataTransferred() = runTest {
         val source = AsyncSource(StringSource("the message"))
-        source.await(AwaitPredicate.exhausted())
+        source.awaitOrThrow(AwaitPredicate.exhausted())
 
         assertEquals("the message", source.buffer.readString())
     }
 
     @Test
-    fun testClose() = runTest {
+    fun closeSource() = runTest {
         var closed = false
         val source = AsyncSource(object : AsyncRawSource {
             override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long = -1L
@@ -122,10 +122,26 @@ class AsyncSourceTest {
         })
         source.close()
         assertTrue(closed)
+        assertFailsWith<IllegalStateException> { source.awaitOrThrow(AwaitPredicate.exhausted()) }
     }
 
     @Test
-    fun testReadAtMostTo() = runTest {
+    fun closeSourceAbruptly() = runTest {
+        var closed = false
+        val source = AsyncSource(object : AsyncRawSource {
+            override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long = -1L
+            override suspend fun close() = Unit
+            override fun closeAbruptly() {
+                closed = true
+            }
+        })
+        source.closeAbruptly()
+        assertTrue(closed)
+        assertFailsWith<IllegalStateException> { source.awaitOrThrow(AwaitPredicate.exhausted()) }
+    }
+
+    @Test
+    fun readAtMostTo() = runTest {
         val buffer = Buffer().apply { write(ByteArray(64)) }
         val source = AsyncSource(BufferBackedSource(buffer))
 

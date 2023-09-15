@@ -104,7 +104,7 @@ public fun RawSource.asAsync(ctx: CoroutineContext = Dispatchers.Default): Async
     return object : AsyncRawSource {
         override suspend fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
             return withContext(ctx) {
-                readAtMostTo(sink, byteCount)
+                this@asAsync.readAtMostTo(sink, byteCount)
             }
         }
 

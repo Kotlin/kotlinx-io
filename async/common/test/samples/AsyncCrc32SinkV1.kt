@@ -28,7 +28,7 @@ private fun generateCrc32Table(): UIntArray {
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
-abstract class AsyncCRC32Sink(private val upstream: AsyncRawSink): AsyncRawSink {
+class AsyncCrc32SinkV1(private val upstream: AsyncRawSink): AsyncRawSink {
     private val tempBuffer = Buffer()
     private val crc32Table = generateCrc32Table()
     private var crc32: UInt = 0xffffffffU
@@ -53,4 +53,7 @@ abstract class AsyncCRC32Sink(private val upstream: AsyncRawSink): AsyncRawSink 
     override suspend fun flush() = upstream.flush()
 
     override suspend fun close() = upstream.close()
+    override fun closeAbruptly() {
+        upstream.closeAbruptly()
+    }
 }

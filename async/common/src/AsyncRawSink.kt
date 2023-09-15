@@ -15,8 +15,8 @@ import kotlinx.io.Buffer
  * transmitters, like non-blocking sockets. If the data could not be written, AsyncRawSink implementations should
  * suspend until it'll be possible to send the data or the sink will be closed.
  *
- * While users may interact with AsyncRawSink instances directly, it's recommended to use buffered [AsyncSink]
- * encapsulating both a buffer and the underlying sink. Use [buffered] to wrap a sink into [AsyncSink].
+ * To facilitate writing into the AsyncRawSink, there's [AsyncRawSink.writeWithBuffer] function that
+ * allocates a new buffer before calling a lambda and transfers its content into a sink and flushes the sink on exit.
  *
  * Kotlin's coroutines support [cancellation](https://kotlinlang.org/docs/cancellation-and-timeouts.html#cancellation-is-cooperative)
  * which is cooperative. Implementations of AsyncRawSink should provide
@@ -54,8 +54,6 @@ public interface AsyncRawSink {
      * sink. Suspends until the operation completes.
      * It is an error to write a closed sink.
      * It is safe to close a sink more than once.
-     *
-     * TODO: what if a coroutine was cancelled?
      */
     public suspend fun close()
 

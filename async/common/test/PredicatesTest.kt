@@ -7,6 +7,7 @@ package kotlinx.io.async
 
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
+import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
 import kotlinx.io.readString
 import kotlinx.io.writeString
@@ -14,7 +15,7 @@ import kotlin.test.*
 
 class PredicatesTest {
     @Test
-    fun testExhaustedPredicate() = runTest {
+    fun exhausted() = runTest {
         val predicate = AwaitPredicate.exhausted()
         var remainingCalls = 5
         val buffer = Buffer().apply { writeString("test") }
@@ -23,9 +24,9 @@ class PredicatesTest {
     }
 
     @Test
-    fun testBytesAvailable() = runTest {
+    fun available() = runTest {
         val targetBytesNumber = 17L
-        val predicate = AwaitPredicate.dataAvailable(targetBytesNumber)
+        val predicate = AwaitPredicate.available(targetBytesNumber)
         val buffer = Buffer()
         var bytesWritten = 0L
         assertTrue(predicate.apply(buffer) {
@@ -37,11 +38,11 @@ class PredicatesTest {
     }
 
     @Test
-    fun testCacheDataAvailablePredicate() {
+    fun cacheAvailablePredicate() {
         for (i in 0 until 16) {
             assertSame(
-                AwaitPredicate.dataAvailable(1L.shl(i)),
-                AwaitPredicate.dataAvailable(1L.shl(i))
+                AwaitPredicate.available(1L.shl(i)),
+                AwaitPredicate.available(1L.shl(i))
             )
         }
         for (i in 0 until 16) {
@@ -49,16 +50,16 @@ class PredicatesTest {
                 if (i == j) continue
 
                 assertNotSame(
-                    AwaitPredicate.dataAvailable(1L.shl(i)),
-                    AwaitPredicate.dataAvailable(1L.shl(j))
+                    AwaitPredicate.available(1L.shl(i)),
+                    AwaitPredicate.available(1L.shl(j))
                 )
             }
         }
     }
 
     @Test
-    fun testNoFetchIfBufferContainsData() = runTest {
-        val predicate = AwaitPredicate.dataAvailable(8)
+    fun noFetchIfBufferContainsData() = runTest {
+        val predicate = AwaitPredicate.available(8)
         val buffer = Buffer().apply { write(ByteArray(8)) }
         assertTrue(predicate.apply(buffer) {
             fail("Fetch should be invoked.")
@@ -66,32 +67,32 @@ class PredicatesTest {
     }
 
     @Test
-    fun testExhaustedBeforeBufferFilled() = runTest {
-        val predicate = AwaitPredicate.dataAvailable(Long.MAX_VALUE)
+    fun exhaustedBeforeBufferFilled() = runTest {
+        val predicate = AwaitPredicate.available(Long.MAX_VALUE)
         val buffer = Buffer()
         assertFalse(predicate.apply(buffer) { false })
     }
 
     @Test
-    fun testBytePresentedPredicate() = runTest {
+    fun bytePresentedPredicate() = runTest {
         val str = "hello async world"
         val buffer = Buffer().apply { writeString(str) }
 
-        assertFalse(AwaitPredicate.byteFound('!'.code.toByte()).apply(buffer) { false })
-        assertTrue(AwaitPredicate.byteFound(' '.code.toByte()).apply(buffer) { false })
-        assertFalse(AwaitPredicate.byteFound(' '.code.toByte(), str.indexOf(' ').toLong())
+        assertFalse(AwaitPredicate.contains('!'.code.toByte()).apply(buffer) { false })
+        assertTrue(AwaitPredicate.contains(' '.code.toByte()).apply(buffer) { false })
+        assertFalse(AwaitPredicate.contains(' '.code.toByte(), str.indexOf(' ').toLong())
             .apply(buffer) { false })
-        assertTrue(AwaitPredicate.byteFound(' '.code.toByte(), str.indexOf(' ').toLong() + 1L)
+        assertTrue(AwaitPredicate.contains(' '.code.toByte(), str.indexOf(' ').toLong() + 1L)
             .apply(buffer) { false })
 
         assertEquals(str, buffer.readString())
     }
 
     @Test
-    fun testFetchDataUntilByteFound() = runTest {
+    fun fetchDataUntilByteFound() = runTest {
         val buffer = Buffer()
         var fetches = 0
-        assertTrue(AwaitPredicate.byteFound(0x42).apply(buffer) {
+        assertTrue(AwaitPredicate.contains(0x42).apply(buffer) {
             fetches++
             if (fetches == 3) {
                 buffer.writeByte(0x42)
@@ -104,20 +105,20 @@ class PredicatesTest {
     }
 
     @Test
-    fun testBytesPresentedPredicates() = runTest {
+    fun bytesPresentedPredicates() = runTest {
         val str = "hello async world"
         val buffer = Buffer().apply { writeString(str) }
 
-        assertFalse(AwaitPredicate.bytesFound("test".encodeToByteString()).apply(buffer) { false })
-        assertTrue(AwaitPredicate.bytesFound("sync".encodeToByteString()).apply(buffer) { false })
-//        assertFalse(AwaitPredicate.bytesFound("sync".encodeToByteString(), 5L).apply(buffer) { false })
+        assertFalse(AwaitPredicate.contains("test".encodeToByteString()).apply(buffer) { false })
+        assertTrue(AwaitPredicate.contains("sync".encodeToByteString()).apply(buffer) { false })
+        assertFalse(AwaitPredicate.contains("sync".encodeToByteString(), 5L).apply(buffer) { false })
     }
 
     @Test
-    fun testFetchDataUntilBytesFound() = runTest {
+    fun fetchDataUntilBytesFound() = runTest {
         val buffer = Buffer()
         var fetches = 0
-        assertTrue(AwaitPredicate.bytesFound("found!".encodeToByteString()).apply(buffer) {
+        assertTrue(AwaitPredicate.contains("found!".encodeToByteString()).apply(buffer) {
             fetches++
             if (fetches == 3) {
                 buffer.writeString("found! ")
@@ -127,5 +128,26 @@ class PredicatesTest {
             true
         })
         assertEquals(3, fetches)
+    }
+
+    @Test
+    fun newline() = runTest {
+        val buffer = Buffer().apply { writeString("hello\nworld") }
+        assertTrue(AwaitPredicate.newLine().apply(buffer) { false })
+        assertFalse(AwaitPredicate.newLine(5).apply(buffer) { false })
+        assertTrue(AwaitPredicate.newLine(6).apply(buffer) { false })
+        assertFalse(AwaitPredicate.newLine().apply(Buffer()) { false })
+    }
+
+
+    @Test
+    fun invalidParameters() {
+        assertFailsWith<IllegalArgumentException> { AwaitPredicate.available(-1) }
+        assertFailsWith<IllegalArgumentException> { AwaitPredicate.contains(42, 0) }
+        assertFailsWith<IllegalArgumentException> { AwaitPredicate.contains(42, -1) }
+        assertFailsWith<IllegalArgumentException> { AwaitPredicate.contains(ByteString(1, 2, 3), 2) }
+        assertFailsWith<IllegalArgumentException> { AwaitPredicate.contains(ByteString(1, 2, 3), -1) }
+        assertFailsWith<IllegalArgumentException> { AwaitPredicate.contains(ByteString()) }
+        assertFailsWith<IllegalArgumentException> { AwaitPredicate.newLine(0) }
     }
 }
