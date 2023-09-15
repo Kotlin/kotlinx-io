@@ -1,17 +1,17 @@
 What needs to be done:
 - [+] add tests for predicates
-- [ ] finalize predicates naming
+- [+] finalize predicates naming
 - [+] add example of async sink and sources
 - [+] add tests for cancellation
-- [ ] figure out what to do with the runBlocking in common sourceset
-- [ ] add example of code sharing between sync and async IO primitives
+- [+] figure out what to do with the runBlocking in common sourceset
+- [+] add example of code sharing between sync and async IO primitives
 - [ ] add interop functions (like transferTo/From)
 - [ ] finish Module.md
 - [+] add docs for classes
-- [ ] what should we throw out of await?
+- [+] what should we throw out of await?
 - [ ] add samples
 - [ ] what should happen when the flush called from the close is cancelled?
-- [ ] do we need a separate `cancel` method?
-- [ ] maybe the fetchMore should accept max number of bytes to fetch?
-- [ ] is closing an underlying source if an expection or just unfulfilled predicate in terms of `tryAwait`?
-- [ ] do we need a public emit in AsyncSink?
+- [+] do we need a separate `cancel` method?
+- [+] maybe the fetchMore should accept max number of bytes to fetch?
+- [+] is closing an underlying source if an expection or just unfulfilled predicate in terms of `tryAwait`?
+- [+] do we need a public emit in AsyncSink?

@@ -7,9 +7,8 @@ package kotlinx.io.async
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.readString
@@ -52,16 +51,13 @@ class AsyncSourceTest {
     @Test
     fun interruptAwaitOrThrow() = runTest(timeout = 1L.minutes) {
         val source = AsyncSource(InfiniteSource())
-        val m = Mutex()
+        val q = Channel<Unit>(1)
         val job = launch(Dispatchers.Default) {
-            m.withLock {
-                source.awaitOrThrow(AwaitPredicate.exhausted())
-            }
+            q.send(Unit)
+            source.awaitOrThrow(AwaitPredicate.exhausted())
             fail("unreachable")
         }
-        while (m.tryLock()) {
-            m.unlock()
-        }
+        q.receive()
         job.cancelAndJoin()
         assertTrue(job.isCancelled)
     }
@@ -69,17 +65,14 @@ class AsyncSourceTest {
     @Test
     fun interruptAwait() = runTest(timeout = 1L.minutes) {
         val source = AsyncSource(InfiniteSource())
+        val q = Channel<Unit>(1)
 
-        val m = Mutex()
         val job = launch(Dispatchers.Default) {
-            m.withLock {
-                source.await(AwaitPredicate.exhausted()).getOrThrow()
-            }
+            q.send(Unit)
+            source.await(AwaitPredicate.exhausted()).getOrThrow()
             fail("unreachable")
         }
-        while (m.tryLock()) {
-            m.unlock()
-        }
+        q.receive()
         job.cancelAndJoin()
         assertTrue(job.isCancelled)
     }
@@ -118,6 +111,7 @@ class AsyncSourceTest {
             override suspend fun close() {
                 closed = true
             }
+
             override fun closeAbruptly() = Unit
         })
         source.close()

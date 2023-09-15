@@ -5,6 +5,7 @@
 
 package kotlinx.io.async
 
+import kotlinx.coroutines.yield
 import kotlinx.io.Buffer
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.isEmpty
@@ -137,6 +138,7 @@ private class SourceExhausted : AwaitPredicate {
     override suspend fun apply(buffer: Buffer, fetchMore: suspend () -> Boolean): Boolean {
         while (fetchMore()) {
             // wait until source exhausted
+            yield()
         }
         return true
     }
@@ -156,6 +158,7 @@ private class DataAvailable(
     override suspend fun apply(buffer: Buffer, fetchMore: suspend () -> Boolean): Boolean {
         while (buffer.size < bytesCount && fetchMore()) {
             // do nothing
+            yield()
         }
         return buffer.size >= bytesCount
     }
@@ -177,6 +180,7 @@ private class ByteValuePredicate(
                 return true
             }
             startOffset = buffer.size
+            yield()
         } while (maxLookAhead > startOffset && fetchMore())
         return false
     }
@@ -194,6 +198,7 @@ private class SubstringPredicate(
                 return true
             }
             startOffset = buffer.size
+            yield()
         } while (maxLookAhead > startOffset && fetchMore())
         return false
     }
