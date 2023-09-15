@@ -1,0 +1,56 @@
+public final class kotlinx/io/async/AsyncIOConcurrentKt {
+	public static final fun asBlocking (Lkotlinx/io/async/AsyncRawSink;)Lkotlinx/io/RawSink;
+	public static final fun asBlocking (Lkotlinx/io/async/AsyncRawSource;)Lkotlinx/io/RawSource;
+}
+
+public final class kotlinx/io/async/AsyncIOKt {
+	public static final fun asAsync (Lkotlinx/io/RawSink;Lkotlin/coroutines/CoroutineContext;)Lkotlinx/io/async/AsyncRawSink;
+	public static final fun asAsync (Lkotlinx/io/RawSource;Lkotlin/coroutines/CoroutineContext;)Lkotlinx/io/async/AsyncRawSource;
+	public static synthetic fun asAsync$default (Lkotlinx/io/RawSink;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/io/async/AsyncRawSink;
+	public static synthetic fun asAsync$default (Lkotlinx/io/RawSource;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/io/async/AsyncRawSource;
+	public static final fun buffered (Lkotlinx/io/async/AsyncRawSource;)Lkotlinx/io/async/AsyncSource;
+	public static final fun use (Lkotlinx/io/async/AsyncRawSink;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun use (Lkotlinx/io/async/AsyncRawSource;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun writeWithBuffer (Lkotlinx/io/async/AsyncRawSink;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class kotlinx/io/async/AsyncRawSink {
+	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun closeAbruptly ()V
+	public abstract fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun write (Lkotlinx/io/Buffer;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class kotlinx/io/async/AsyncRawSource {
+	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun closeAbruptly ()V
+	public abstract fun readAtMostTo (Lkotlinx/io/Buffer;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class kotlinx/io/async/AsyncSource : kotlinx/io/async/AsyncRawSource {
+	public fun <init> (Lkotlinx/io/async/AsyncRawSource;J)V
+	public synthetic fun <init> (Lkotlinx/io/async/AsyncRawSource;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun await-gIAlu-s (Lkotlinx/io/async/AwaitPredicate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun awaitOrThrow (Lkotlinx/io/async/AwaitPredicate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun closeAbruptly ()V
+	public final fun getBuffer ()Lkotlinx/io/Buffer;
+	public fun readAtMostTo (Lkotlinx/io/Buffer;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class kotlinx/io/async/AwaitPredicate {
+	public static final field Companion Lkotlinx/io/async/AwaitPredicate$Companion;
+	public abstract fun apply (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class kotlinx/io/async/AwaitPredicate$Companion {
+	public final fun available (J)Lkotlinx/io/async/AwaitPredicate;
+	public final fun contains (BJ)Lkotlinx/io/async/AwaitPredicate;
+	public final fun contains (Lkotlinx/io/bytestring/ByteString;J)Lkotlinx/io/async/AwaitPredicate;
+	public static synthetic fun contains$default (Lkotlinx/io/async/AwaitPredicate$Companion;BJILjava/lang/Object;)Lkotlinx/io/async/AwaitPredicate;
+	public static synthetic fun contains$default (Lkotlinx/io/async/AwaitPredicate$Companion;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)Lkotlinx/io/async/AwaitPredicate;
+	public final fun exhausted ()Lkotlinx/io/async/AwaitPredicate;
+	public final fun newLine (J)Lkotlinx/io/async/AwaitPredicate;
+	public static synthetic fun newLine$default (Lkotlinx/io/async/AwaitPredicate$Companion;JILjava/lang/Object;)Lkotlinx/io/async/AwaitPredicate;
+}
+
