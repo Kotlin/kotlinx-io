@@ -21,7 +21,6 @@ plugins {
 apply(plugin = "kotlinx-atomicfu")
 dependencies {
     testImplementation(project(mapOf("path" to ":kotlinx-io-core")))
-    testImplementation(project(mapOf("path" to ":kotlinx-io-core")))
 }
 
 kotlin {

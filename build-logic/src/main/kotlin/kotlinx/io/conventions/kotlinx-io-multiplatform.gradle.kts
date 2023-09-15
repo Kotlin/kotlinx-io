@@ -37,12 +37,14 @@ kotlin {
         }
     }
 
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasm {
-        nodejs()
-        //  Disabled because we can't exclude some tests: https://youtrack.jetbrains.com/issue/KT-58291
-        // browser()
-        binaries.executable()
+    if (!project.hasProperty("disableWasm")) {
+        @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+        wasm {
+            nodejs()
+            //  Disabled because we can't exclude some tests: https://youtrack.jetbrains.com/issue/KT-58291
+            // browser()
+            binaries.executable()
+        }
     }
 
     sourceSets {
