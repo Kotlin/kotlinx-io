@@ -28,6 +28,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.min
 import kotlin.random.Random
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.minutes
 
@@ -39,11 +40,11 @@ class SimpleNioReactor {
     suspend fun start(ctx: CoroutineContext = Dispatchers.IO) = withContext(ctx) {
         while (continueExecution) {
             if (selector.select(1000L) == 0) continue
-            val keys = selector.selectedKeys().iterator()
+            val sel = selector.selectedKeys()
+            val keys = sel.iterator()
 
             while (keys.hasNext()) {
                 val key = keys.next()
-                keys.remove()
                 try {
                     val attachment = key.attachment() as Selectable
                     attachment.select(key.readyOps())
@@ -51,6 +52,7 @@ class SimpleNioReactor {
                     key.cancel()
                 }
             }
+            sel.clear()
         }
     }
 
@@ -88,30 +90,41 @@ class AsyncServerSocket(
         require(ops and SelectionKey.OP_ACCEPT != 0)
         val client = socket.accept()
         client.configureBlocking(false)
-        val input = SelectableChannelSource(client)
-        val output = SelectableChannelSink(client)
-        client.register(reactor.selector, SelectionKey.OP_READ, input)
-        client.register(reactor.selector, SelectionKey.OP_WRITE, output)
+        val input = SelectableChannelSource(client, reactor.selector)
+        val output = SelectableChannelSink(client, reactor.selector)
+        //client.register(reactor.selector, SelectionKey.OP_READ, input)
+        //client.register(reactor.selector, SelectionKey.OP_WRITE, output)
         onAccept(input, output)
     }
 }
 
-abstract class Suspendable {
+abstract class Suspendable(private val channel: SelectableChannel,
+                           private val selector: Selector, private val op: Int) {
     private val continuation = atomic<Continuation<Unit>?>(null)
+    private var key: SelectionKey? = null
 
     suspend fun suspend() {
-        suspendCoroutine<Unit> {
-            continuation.update { it }
+        suspendCoroutine {
+            val cont = it
+            continuation.update {
+                key = channel.register(selector, op, this)
+                cont
+            }
         }
     }
 
     fun resume() {
         val cont = continuation.getAndUpdate { null }
-        cont?.resume(Unit)
+        if (cont != null) {
+            key?.cancel()
+            cont.resume(Unit)
+        }
+        //cont?.resume(Unit)
     }
 }
 
-class SelectableChannelSink<T>(private val sink: T) : Suspendable(), AsyncRawSink, Selectable
+class SelectableChannelSink<T>(private val sink: T, private val selector: Selector)
+    : Suspendable(sink, selector, SelectionKey.OP_WRITE), AsyncRawSink, Selectable
         where T : WritableByteChannel, T : SelectableChannel {
     private val internalBuffer = ByteBuffer.allocate(8192)
 
@@ -151,7 +164,8 @@ class SelectableChannelSink<T>(private val sink: T) : Suspendable(), AsyncRawSin
     }
 }
 
-class SelectableChannelSource<T>(private val source: T) : Suspendable(), AsyncRawSource, Selectable
+class SelectableChannelSource<T>(private val source: T, private val selector: Selector) :
+    Suspendable(source, selector, SelectionKey.OP_READ), AsyncRawSource, Selectable
         where T : ReadableByteChannel, T : SelectableChannel {
     private val internalBuffer = ByteBuffer.allocate(8192)
 
@@ -187,8 +201,7 @@ class SelectableChannelSource<T>(private val source: T) : Suspendable(), AsyncRa
 }
 
 class ReactorTest {
-    //@Test
-    // TODO: fix race condition
+    @Test
     fun echoServer() = runTest(timeout = 2L.minutes) {
         val reactor = SimpleNioReactor()
         val reactorJob = launch(Dispatchers.IO) {
