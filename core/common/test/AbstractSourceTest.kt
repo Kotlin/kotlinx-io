@@ -1732,6 +1732,16 @@ abstract class AbstractBufferedSourceTest internal constructor(
     }
 
     @Test
+    fun indexOfByteStringWithOffsetAndLimit() {
+        assertEquals(-1, source.indexOf("flop".encodeToByteString(), 1))
+
+        sink.writeString("flop flip flop")
+        sink.emit()
+        assertEquals(-1, source.indexOf("flop".encodeToByteString(), 1, 13))
+        assertEquals(10, source.indexOf("flop".encodeToByteString(), 1, 14))
+    }
+
+    @Test
     fun indexOfEmptyByteString() {
         assertEquals(0, source.indexOf(ByteString()))
 

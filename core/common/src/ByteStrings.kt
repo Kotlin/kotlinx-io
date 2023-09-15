@@ -86,16 +86,21 @@ public fun Source.readByteString(byteCount: Int): ByteString {
  * bytes into the buffer. Returns `-1` if the stream is exhausted before the requested bytes are found.
  *
  * @param byteString the sequence of bytes to find within the source.
- * @param startIndex the index into the source to start searching from.
+ * @param startIndex the index into the source to start searching from (inclusive), `0` by default.
+ * @param endIndex the end of the range (exclusive) to find [byteString], [Long.MAX_VALUE] by default.
  *
  * @throws IllegalArgumentException if [startIndex] is negative.
+ * @throws IllegalArgumentException if [startIndex] > [endIndex]
  * @throws IllegalStateException if the source is closed.
  *
  * @sample kotlinx.io.samples.ByteStringSamples.indexOfByteString
  */
 @OptIn(InternalIoApi::class, UnsafeByteStringApi::class)
-public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
+public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0, endIndex: Long = Long.MAX_VALUE): Long {
     require(startIndex >= 0) { "startIndex: $startIndex" }
+    require(endIndex >= startIndex) {
+        "Start index should be lower or equal to end index: startIndex: $startIndex, endIndex: $endIndex"
+    }
 
     if (byteString.isEmpty()) {
         return 0
@@ -109,14 +114,17 @@ public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
     peek.skip(offset)
     var resultingIndex = -1L
     UnsafeByteStringOperations.withByteArrayUnsafe(byteString) { data ->
-        while (!peek.exhausted()) {
-            val index = peek.indexOf(data[0])
+        while (!peek.exhausted() && offset < endIndex) {
+            val index = peek.indexOf(data[0], 0, endIndex - offset)
             if (index == -1L) {
                 return@withByteArrayUnsafe
             }
             offset += index
             peek.skip(index)
-            if (!peek.request(byteString.size.toLong())) {
+            if (endIndex - offset < data.size) {
+                return@withByteArrayUnsafe
+            }
+            if (!peek.request(min(byteString.size.toLong(), endIndex - offset))) {
                 return@withByteArrayUnsafe
             }
 

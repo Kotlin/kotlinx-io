@@ -21,6 +21,7 @@
 
 package kotlinx.io
 
+import kotlinx.io.bytestring.ByteString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -44,6 +45,21 @@ class CommonRealSourceTest {
 
         assertEquals(6, buffer.size)
         assertEquals(-1, bufferedSource.indexOf('e'.code.toByte(), 0, 4))
+        assertEquals(2, buffer.size)
+    }
+
+    @Test
+    fun indexOfByteStringStopsReadingAtLimit() {
+        val buffer = Buffer().also { it.writeString("abcdef") }
+        val bufferedSource = (
+                object : RawSource by buffer {
+                    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+                        return buffer.readAtMostTo(sink, minOf(1, byteCount))
+                    }
+                }).buffered()
+
+        assertEquals(6, buffer.size)
+        assertEquals(-1, bufferedSource.indexOf(ByteString('e'.code.toByte()), 0, 4))
         assertEquals(2, buffer.size)
     }
 
