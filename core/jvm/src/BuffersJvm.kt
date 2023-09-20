@@ -170,7 +170,7 @@ public fun Buffer.copyTo(
     var s = head ?: throw IllegalStateException()
     while (currentOffset >= s.limit - s.pos) {
         currentOffset -= (s.limit - s.pos).toLong()
-        s = s.next ?: throw IllegalStateException()
+        s = s.next ?: break
     }
 
     // Copy from one segment at a time.
@@ -194,7 +194,7 @@ public fun Buffer.copyTo(
         }
         remainingByteCount -= toCopy.toLong()
         currentOffset = 0L
-        s = s.next ?: throw IllegalStateException()
+        s = s.next ?: break
     }
 }
 

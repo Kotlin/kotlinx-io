@@ -33,7 +33,7 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
 
     writeToInternalBuffer { buffer ->
         var offset = startIndex
-        val tail = buffer.head?.prev
+        val tail = buffer.tail
         if (tail != null) {
             val bytesToWrite = min(tail.capacity, endIndex - offset)
             UnsafeByteStringOperations.withByteArrayUnsafe(byteString) {

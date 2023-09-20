@@ -24,13 +24,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 fun segmentSizes(buffer: Buffer): List<Int> {
-    var segment = buffer.head ?: return emptyList()
+    var segment = buffer.head
+    if (segment == null) return emptyList()
 
     val sizes = mutableListOf(segment.limit - segment.pos)
-    segment = segment.next!!
-    while (segment !== buffer.head) {
+    segment = segment.next
+    while (segment !== null) {
         sizes.add(segment.limit - segment.pos)
-        segment = segment.next!!
+        segment = segment.next
     }
     return sizes
 }
