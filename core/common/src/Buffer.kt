@@ -41,6 +41,8 @@ import kotlin.jvm.JvmField
 public class Buffer : Source, Sink {
     @JvmField
     internal var head: Segment? = null
+    @JvmField
+    internal var tail: Segment? = null
 
     /**
      * The number of bytes accessible for read from this buffer.
@@ -73,7 +75,11 @@ public class Buffer : Source, Sink {
         val b = segment.readByte()
         size -= 1L
         if (segment.isEmpty()) {
-            head = segment.pop()
+            val newHead = segment.pop()
+            if (newHead == null) {
+                tail = null
+            }
+            head = newHead
             SegmentPool.recycle(segment)
         }
         return b
@@ -93,7 +99,11 @@ public class Buffer : Source, Sink {
         size -= 2L
 
         if (segmentSize == 2) {
-            head = segment.pop()
+            val newHead = segment.pop()
+            if (newHead == null) {
+                tail = null
+            }
+            head = newHead
             SegmentPool.recycle(segment)
         }
 
@@ -120,7 +130,11 @@ public class Buffer : Source, Sink {
         size -= 4L
 
         if (segmentSize == 4) {
-            head = segment.pop()
+            val newHead = segment.pop()
+            if (newHead == null) {
+                tail = null
+            }
+            head = newHead
             SegmentPool.recycle(segment)
         }
 
@@ -145,7 +159,11 @@ public class Buffer : Source, Sink {
         size -= 8L
 
         if (segmentSize == 8) {
-            head = segment.pop()
+            val newHead = segment.pop()
+            if (newHead == null) {
+                tail = null
+            }
+            head = newHead
             SegmentPool.recycle(segment)
         }
 
@@ -209,11 +227,12 @@ public class Buffer : Source, Sink {
             copy.pos += currentOffset.toInt()
             copy.limit = minOf(copy.pos + remainingByteCount.toInt(), copy.limit)
             if (out.head == null) {
-                copy.prev = copy
-                copy.next = copy.prev
-                out.head = copy.next
+                copy.next = null
+                copy.prev = null
+                out.head = copy
+                out.tail = copy
             } else {
-                out.head!!.prev!!.push(copy)
+                out.tail = out.tail!!.push(copy)
             }
             remainingByteCount -= (copy.limit - copy.pos).toLong()
             currentOffset = 0L
@@ -231,9 +250,10 @@ public class Buffer : Source, Sink {
         if (result == 0L) return 0L
 
         // Omit the tail if it's still writable.
-        val tail = head!!.prev!!
-        if (tail.limit < Segment.SIZE && tail.owner) {
-            result -= (tail.limit - tail.pos).toLong()
+        val t = tail
+        check(t != null)
+        if (t.limit < Segment.SIZE && t.owner) {
+            result -= (t.limit - t.pos).toLong()
         }
 
         return result
@@ -284,7 +304,11 @@ public class Buffer : Source, Sink {
             head.pos += toSkip
 
             if (head.pos == head.limit) {
-                this.head = head.pop()
+                val newHead = head.pop()
+                if (newHead == null) {
+                    this.tail = null
+                }
+                this.head = newHead
                 SegmentPool.recycle(head)
             }
         }
@@ -299,7 +323,11 @@ public class Buffer : Source, Sink {
         size -= toCopy.toLong()
 
         if (s.isEmpty()) {
-            head = s.pop()
+            val newHead = s.pop()
+            if (newHead == null) {
+                tail = null
+            }
+            head = newHead
             SegmentPool.recycle(s)
         }
 
@@ -344,16 +372,20 @@ public class Buffer : Source, Sink {
         if (head == null) {
             val result = SegmentPool.take() // Acquire a first segment.
             head = result
-            result.prev = result
-            result.next = result
+            tail = result
+            result.prev = null
+            result.next = null
             return result
         }
 
-        var tail = head!!.prev
-        if (tail!!.limit + minimumCapacity > Segment.SIZE || !tail.owner) {
-            tail = tail.push(SegmentPool.take()) // Append a new empty segment to fill up.
+        val t = tail
+        check(t != null)
+        if (t.limit + minimumCapacity > Segment.SIZE || !t.owner) {
+            val newTail = t.push(SegmentPool.take()) // Append a new empty segment to fill up.
+            tail = newTail
+            return newTail
         }
-        return tail
+        return t
     }
 
     override fun write(source: ByteArray, startIndex: Int, endIndex: Int) {
@@ -442,7 +474,7 @@ public class Buffer : Source, Sink {
         while (remainingByteCount > 0L) {
             // Is a prefix of the source's head segment all that we need to move?
             if (remainingByteCount < source.head!!.limit - source.head!!.pos) {
-                val tail = if (head != null) head!!.prev else null
+                val tail = tail
                 if (tail != null && tail.owner &&
                     remainingByteCount + tail.limit - (if (tail.shared) 0 else tail.pos) <= Segment.SIZE
                 ) {
@@ -454,7 +486,11 @@ public class Buffer : Source, Sink {
                 } else {
                     // We're going to need another segment. Split the source's head
                     // segment in two, then move the first of those two to this buffer.
-                    source.head = source.head!!.split(remainingByteCount.toInt())
+                    val newHead = source.head!!.split(remainingByteCount.toInt())
+                    if (source.head === source.tail) {
+                        source.tail = newHead
+                    }
+                    source.head = newHead
                 }
             }
 
@@ -462,14 +498,20 @@ public class Buffer : Source, Sink {
             val segmentToMove = source.head
             val movedByteCount = (segmentToMove!!.limit - segmentToMove.pos).toLong()
             source.head = segmentToMove.pop()
+            if (source.head == null) {
+                source.tail = null
+            }
             if (head == null) {
                 head = segmentToMove
-                segmentToMove.prev = segmentToMove
-                segmentToMove.next = segmentToMove.prev
+                tail = segmentToMove
+                segmentToMove.prev = null
+                segmentToMove.next = null
             } else {
-                var tail = head!!.prev
-                tail = tail!!.push(segmentToMove)
-                tail.compact()
+                val newTail = tail!!.push(segmentToMove).compact()
+                tail = newTail
+                if (newTail.prev == null) {
+                    head = newTail
+                }
             }
             source.size -= movedByteCount
             size += movedByteCount
@@ -534,12 +576,11 @@ public class Buffer : Source, Sink {
         val headCopy = head.sharedCopy()
 
         result.head = headCopy
-        headCopy.prev = result.head
-        headCopy.next = headCopy.prev
+        result.tail = headCopy
 
         var s = head.next
-        while (s !== head) {
-            headCopy.prev!!.push(s!!.sharedCopy())
+        while (s != null) {
+            result.tail = result.tail!!.push(s.sharedCopy())
             s = s.next
         }
 
@@ -600,23 +641,26 @@ internal inline fun <T> Buffer.seek(
     fromIndex: Long,
     lambda: (Segment?, Long) -> T
 ): T {
-    var s: Segment = head ?: return lambda(null, -1L)
+    if (head == null) lambda(null, -1L)
 
     if (size - fromIndex < fromIndex) {
+        var s = tail
         // We're scanning in the back half of this buffer. Find the segment starting at the back.
         var offset = size
-        while (offset > fromIndex) {
-            s = s.prev!!
+        while (s != null && offset > fromIndex) {
             offset -= (s.limit - s.pos).toLong()
+            if (offset <= fromIndex) break
+            s = s.prev
         }
         return lambda(s, offset)
     } else {
+        var s = head
         // We're scanning in the front half of this buffer. Find the segment starting at the front.
         var offset = 0L
-        while (true) {
+        while (s != null) {
             val nextOffset = offset + (s.limit - s.pos)
             if (nextOffset > fromIndex) break
-            s = s.next!!
+            s = s.next
             offset = nextOffset
         }
         return lambda(s, offset)
