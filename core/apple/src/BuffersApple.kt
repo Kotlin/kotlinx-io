@@ -8,7 +8,9 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
-import platform.Foundation.*
+import platform.Foundation.NSData
+import platform.Foundation.create
+import platform.Foundation.data
 import platform.darwin.NSUIntegerMax
 import platform.posix.*
 
@@ -70,6 +72,6 @@ internal fun Buffer.snapshotAsNSData(): NSData {
         }
         curr = curr.next
         index += length
-    } while (curr !== head)
+    } while (curr !== null)
     return NSData.create(bytesNoCopy = bytes, length = size.convert())
 }
