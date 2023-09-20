@@ -601,4 +601,21 @@ class CommonBufferTest {
         buffer.clear()
         assertEquals(ByteString(), buffer.snapshot())
     }
+
+    @Test
+    fun testTransferring() {
+        val aaaa = ByteArray(10000) { 'a'.code.toByte() }
+        val buffer = Buffer().also { it.write(aaaa) }
+        val str = buffer.readString()
+        assertEquals("a".repeat(aaaa.size), str)
+
+        buffer.write(aaaa)
+        val dstBuffer = Buffer()
+        dstBuffer.writeByte('?'.code.toByte())
+
+        dstBuffer.transferFrom(buffer)
+        dstBuffer.readByteArray()
+        assertTrue(buffer.readByteArray().isEmpty())
+        //assertEquals("?" + "a".repeat(aaaa.size), dstBuffer.readString())
+    }
 }

@@ -111,9 +111,13 @@ public class Segment {
      * Returns null if the list is now empty.
      */
     internal fun pop(): Segment? {
-        val result = if (next !== this) next else null
-        prev!!.next = next
-        next!!.prev = prev
+        val result = next
+        if (prev != null) {
+            prev!!.next = next
+        }
+        if (next != null) {
+            next!!.prev = prev
+        }
         next = null
         prev = null
         return result
@@ -125,7 +129,9 @@ public class Segment {
     internal fun push(segment: Segment): Segment {
         segment.prev = this
         segment.next = next
-        next!!.prev = segment
+        if (next != null) {
+            next!!.prev = segment
+        }
         next = segment
         return segment
     }
@@ -156,7 +162,12 @@ public class Segment {
 
         prefix.limit = prefix.pos + byteCount
         pos += byteCount
-        prev!!.push(prefix)
+        if (prev != null) {
+            prev!!.push(prefix)
+        } else {
+            prefix.next = this
+            prev = prefix
+        }
         return prefix
     }
 
@@ -164,15 +175,18 @@ public class Segment {
      * Call this when the tail and its predecessor may both be less than half full. This will copy
      * data so that segments can be recycled.
      */
-    internal fun compact() {
-        check(prev !== this) { "cannot compact" }
-        if (!prev!!.owner) return // Cannot compact: prev isn't writable.
+    internal fun compact(): Segment {
+        check(prev !== null) { "cannot compact" }
+        if (!prev!!.owner) return this // Cannot compact: prev isn't writable.
         val byteCount = limit - pos
         val availableByteCount = SIZE - prev!!.limit + if (prev!!.shared) 0 else prev!!.pos
-        if (byteCount > availableByteCount) return // Cannot compact: not enough writable space.
-        writeTo(prev!!, byteCount)
-        pop()
+        if (byteCount > availableByteCount) return this // Cannot compact: not enough writable space.
+        val predecessor = prev
+        writeTo(predecessor!!, byteCount)
+        val successor = pop()
+        check(successor === null)
         SegmentPool.recycle(this)
+        return predecessor
     }
 
     /** Moves `byteCount` bytes from this segment to `sink`.  */

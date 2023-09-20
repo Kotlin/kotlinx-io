@@ -485,6 +485,15 @@ abstract class AbstractSinkTest internal constructor(
     }
 
     @Test
+    fun writeByteStringToNonEmptyBuffer() {
+        sink.writeUInt(0xdeadc0deU)
+        sink.flush()
+        sink.write("təˈranəˌsôr".encodeToByteString())
+        sink.flush()
+        assertEquals(ByteString("deadc0de74c999cb8872616ec999cb8c73c3b472".decodeHex()), data.readByteString())
+    }
+
+    @Test
     fun writeByteStringOffset() {
         sink.write("təˈranəˌsôr".encodeToByteString(), 5, 10)
         sink.flush()
