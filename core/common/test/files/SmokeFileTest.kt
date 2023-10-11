@@ -176,7 +176,6 @@ class SmokeFileTest {
         val p1 = Path("home", "..", "lib")
         assertEquals(constructRelativePath("home", ".."), p1.parent?.toString())
         assertEquals("home", p1.parent?.parent?.toString())
-        println(p1)
         assertNull(p1.parent?.parent?.parent)
 
         assertNull(Path("").parent)
