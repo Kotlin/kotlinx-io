@@ -23,7 +23,6 @@ public actual class Path internal constructor(
         get() {
             when {
                 path.isBlank() -> return null
-                !path.contains(SystemPathSeparator) -> return null
             }
             val parentName = dirnameImpl(path)
             return when {

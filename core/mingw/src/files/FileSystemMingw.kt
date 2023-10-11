@@ -15,6 +15,8 @@ import platform.windows.MOVEFILE_REPLACE_EXISTING
 import platform.windows.MoveFileExA
 import platform.windows.PathIsRelativeA
 
+private const val WindowsPathSeparator: Char = '\\'
+
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
     if (MoveFileExA(source.path, destination.path, MOVEFILE_REPLACE_EXISTING.convert()) == 0) {
         // TODO: get formatted error message
@@ -23,6 +25,9 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
 }
 
 internal actual fun dirnameImpl(path: String): String {
+    if (!path.contains(SystemPathSeparator) && !path.contains(WindowsPathSeparator)) {
+        return ""
+    }
     memScoped {
         return dirname(path.cstr.ptr)?.toKString() ?: ""
     }

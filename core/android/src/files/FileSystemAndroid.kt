@@ -12,6 +12,9 @@ import platform.posix.dirname
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun dirnameImpl(path: String): String {
+    if (!path.contains(SystemPathSeparator)) {
+        return ""
+    }
     return dirname(path)?.toKString() ?: ""
 }
 
