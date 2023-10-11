@@ -25,5 +25,6 @@ class SmokeFileTestWindows {
         assertNull(Path("a\\b").parent?.parent)
         assertEquals(Path("\\\\server"), Path("\\\\server\\share").parent)
         assertEquals(Path("C:\\"), Path("C:\\Program Files").parent)
+        assertEquals(Path("C:\\Program Files"), Path("C:\\Program Files/Java").parent)
     }
 }
