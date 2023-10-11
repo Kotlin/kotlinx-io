@@ -115,6 +115,12 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         check(buffer !== null) { "Module 'buffer' was not found" }
         return FileSink(path, append)
     }
+
+    override fun resolve(path: Path): Path {
+        check(fs !== null) { "Module 'fs' was not found" }
+        if (!exists(path)) throw FileNotFoundException(path.path)
+        return Path(fs.realpathSync.native(path.path) as String)
+    }
 }
 
 public actual val SystemTemporaryDirectory: Path

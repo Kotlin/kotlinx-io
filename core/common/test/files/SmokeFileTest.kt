@@ -336,7 +336,26 @@ class SmokeFileTest {
         }
         assertEquals("second third",
             SystemFileSystem.source(path).buffered().use { it.readString() })
+    }
 
+    @Test
+    fun resolve() {
+        assertFailsWith<FileNotFoundException> { SystemFileSystem.resolve(createTempPath()) }
+
+        val root = createTempPath()
+        SystemFileSystem.createDirectories(Path(root, "a", "b"))
+        val tgt = Path(root, "c", "d")
+        SystemFileSystem.createDirectories(tgt)
+
+        val src = Path(root, "a", "..", "a", ".", "b", "..", "..", "c", ".", "d")
+        try {
+            assertEquals(SystemFileSystem.resolve(tgt), SystemFileSystem.resolve(src))
+        } finally {
+            SystemFileSystem.delete(Path(root, "a", "b"))
+            SystemFileSystem.delete(Path(root, "a"))
+            SystemFileSystem.delete(Path(root, "c", "d"))
+            SystemFileSystem.delete(Path(root, "c"))
+        }
     }
 
     private fun constructAbsolutePath(vararg parts: String): String {

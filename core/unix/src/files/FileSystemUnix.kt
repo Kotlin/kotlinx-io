@@ -12,14 +12,20 @@ import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
-import platform.posix.errno
-import platform.posix.mkdir
-import platform.posix.rename
-import platform.posix.strerror
+import platform.posix.*
 
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
     if (rename(source.path, destination.path) != 0) {
         throw IOException("Move failed: ${strerror(errno)?.toKString()}")
+    }
+}
+
+internal actual fun realpathImpl(path: String): String {
+    val result = realpath(path, null) ?: throw IllegalStateException()
+    try {
+        return result.toKString()
+    } finally {
+        free(result)
     }
 }
 

@@ -30,6 +30,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 
     override fun metadataOrNull(path: Path): FileMetadata = unsupported()
 
+    override fun resolve(path: Path): Path = unsupported()
 }
 
 public actual open class FileNotFoundException actual constructor(
