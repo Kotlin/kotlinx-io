@@ -5,9 +5,7 @@
 
 package kotlinx.io.files
 
-import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class SmokeFileTestWindows {
     @Test
@@ -19,5 +17,14 @@ class SmokeFileTestWindows {
         assertTrue(Path("C:file").isAbsolute)
         assertFalse(Path("bla\\bla\\bla").isAbsolute)
         assertTrue(Path("\\\\server\\share").isAbsolute)
+    }
+
+    @Test
+    fun getParent() {
+        assertNull(Path("C:\\").parent)
+        assertNull(Path("a\\b").parent?.parent)
+        assertEquals(Path("\\\\server"), Path("\\\\server\\share").parent)
+        assertEquals(Path("C:\\"), Path("C:\\Program Files").parent)
+        assertEquals(Path("C:\\Program Files"), Path("C:\\Program Files/Java").parent)
     }
 }
