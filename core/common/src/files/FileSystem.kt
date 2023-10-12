@@ -131,11 +131,11 @@ public sealed interface FileSystem {
     public fun metadataOrNull(path: Path): FileMetadata?
 
     /**
-     * Returns an absolute path to the same file or directory the [path] is pointing to
-     * where all symbolic links are solved, extra path separators and references to current (`.`) or
+     * Returns an absolute path to the same file or directory the [path] is pointing to.
+     * All symbolic links are solved, extra path separators and references to current (`.`) or
      * parent (`..`) directories are removed.
      * If the [path] is a relative path then it'll be resolved against current working directory.
-     * If there is no file or directory to which [path] point then [FileNotFoundException] will be thrown.
+     * If there is no file or directory to which the [path] is pointing to then [FileNotFoundException] will be thrown.
      *
      * @param path the path to resolve.
      * @return a resolved path.
