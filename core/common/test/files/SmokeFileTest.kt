@@ -356,6 +356,10 @@ class SmokeFileTest {
             SystemFileSystem.delete(Path(root, "c", "d"))
             SystemFileSystem.delete(Path(root, "c"))
         }
+
+        val cwd = SystemFileSystem.resolve(Path("."))
+        val parentRel = Path("..")
+        assertEquals(cwd.parent, SystemFileSystem.resolve(parentRel))
     }
 
     private fun constructAbsolutePath(vararg parts: String): String {
