@@ -273,8 +273,17 @@ public class Segment {
         return v
     }
 
+    public operator fun get(index: Int): Byte {
+        require(index in 0 until size)
+        return data[pos + index]
+    }
+
+    internal fun getUnchecked(index: Int): Byte {
+        return data[pos + index]
+    }
+
     internal fun setChecked(index: Int, value: Byte) {
-        check(index in 0 until capacity)
+        require(index in 0 until capacity)
         data[limit + index] = value
     }
 

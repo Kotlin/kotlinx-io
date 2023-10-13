@@ -95,6 +95,7 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 }
 
 public final class kotlinx/io/Segment {
+	public final fun get (I)B
 	public final fun getCapacity ()I
 	public final fun getSize ()I
 	public final fun setUnchecked (IB)V
@@ -269,6 +270,7 @@ public final class kotlinx/io/files/PathsKt {
 
 public final class kotlinx/io/unsafe/UnsafeSegmentAccessors {
 	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeSegmentAccessors;
+	public final fun getUnsafe (Lkotlinx/io/Segment;I)B
 	public final fun setUnsafe (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IB)V
 }
 
