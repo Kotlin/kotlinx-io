@@ -5,7 +5,7 @@
 
 import ru.vyarus.gradle.plugin.animalsniffer.AnimalSnifferExtension
 
-pluginManager.withPlugin("java") {
+pluginManager.withPlugin("org.gradle.java-base") {
     apply(plugin = "ru.vyarus.animalsniffer")
 
     configure<AnimalSnifferExtension> {
