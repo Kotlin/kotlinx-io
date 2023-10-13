@@ -95,8 +95,11 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 }
 
 public final class kotlinx/io/Segment {
+	public field limit I
+	public field pos I
 	public final fun get (I)B
 	public final fun getCapacity ()I
+	public final fun getRawData ()Ljava/lang/Object;
 	public final fun getSize ()I
 	public final fun setUnchecked (IB)V
 }
@@ -107,6 +110,10 @@ public final class kotlinx/io/SegmentKt {
 
 public abstract interface class kotlinx/io/SegmentSetContext {
 	public abstract fun set (Lkotlinx/io/Segment;IB)V
+}
+
+public final class kotlinx/io/SegmentsJvmKt {
+	public static final fun withContainedData (Lkotlinx/io/Segment;Lkotlin/jvm/functions/Function3;)Ljava/lang/Object;
 }
 
 public abstract interface class kotlinx/io/Sink : kotlinx/io/RawSink {

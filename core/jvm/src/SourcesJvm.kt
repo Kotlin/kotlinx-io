@@ -41,7 +41,23 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
         return String(readByteArray(byteCount.toInt()), charset)
     }
 
-    val result = String(s.data, s.pos, byteCount.toInt(), charset)
+    val result = s.withContainedData { data, pos, _ ->
+        when (data) {
+            is ByteArray -> {
+                String(data, pos, byteCount.toInt(), charset)
+            }
+            else -> {
+                TODO()
+                /*
+                val ba = ByteArray(byteCount.toInt())
+                for (idx in 0 until byteCount.toInt()) {
+                    ba[idx] = s[idx]
+                }
+                String(ba, pos, byteCount.toInt(), charset)
+                 */
+            }
+        }
+    }
     s.pos += byteCount.toInt()
     size -= byteCount
 

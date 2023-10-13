@@ -8,7 +8,9 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
-import platform.Foundation.*
+import platform.Foundation.NSData
+import platform.Foundation.create
+import platform.Foundation.data
 import platform.darwin.NSUIntegerMax
 import platform.posix.*
 
@@ -18,35 +20,42 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
 
     var currentOffset = 0
     while (currentOffset < maxLength) {
-        val tail = writableSegment(1)
-
-        val toCopy = minOf(maxLength - currentOffset, Segment.SIZE - tail.limit)
-        tail.data.usePinned {
-            memcpy(it.addressOf(tail.limit), source + currentOffset, toCopy.convert())
+        writeUnbound(1) {
+            val toCopy = minOf(maxLength - currentOffset, it.capacity)
+            it.withContainedData { data, _, limit ->
+                when (data) {
+                    is ByteArray -> {
+                        data.usePinned {
+                            memcpy(it.addressOf(limit), source + currentOffset, toCopy.convert())
+                        }
+                    }
+                    else -> {
+                        TODO()
+                    }
+                }
+            }
+            currentOffset += toCopy
+            toCopy
         }
-
-        currentOffset += toCopy
-        tail.limit += toCopy
     }
-    size += maxLength
 }
 
 internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): Int {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
     val s = head ?: return 0
-    val toCopy = minOf(maxLength, s.limit - s.pos)
-    s.data.usePinned {
-        memcpy(sink, it.addressOf(s.pos), toCopy.convert())
+    val toCopy = minOf(maxLength, s.size)
+    s.withContainedData { data, pos, _ ->
+        when (data) {
+            is ByteArray -> {
+                data.usePinned {
+                    memcpy(sink, it.addressOf(pos), toCopy.convert())
+                }
+            }
+            else -> TODO()
+        }
     }
-
-    s.pos += toCopy
-    size -= toCopy.toLong()
-
-    if (s.pos == s.limit) {
-        head = s.pop()
-        SegmentPool.recycle(s)
-    }
+    skip(toCopy.toLong())
 
     return toCopy
 }
@@ -63,13 +72,19 @@ internal fun Buffer.snapshotAsNSData(): NSData {
     var index = 0
     do {
         check(curr != null) { "Current segment is null" }
-        val pos = curr.pos
-        val length = curr.limit - pos
-        curr.data.usePinned {
-            memcpy(bytes + index, it.addressOf(pos), length.convert())
+        curr.withContainedData { data, pos, limit ->
+            val length = limit - pos
+            when (data) {
+                is ByteArray -> {
+                    data.usePinned {
+                        memcpy(bytes + index, it.addressOf(pos), length.convert())
+                    }
+                }
+                else -> TODO()
+            }
+            index += length
         }
         curr = curr.next
-        index += length
     } while (curr !== head)
     return NSData.create(bytesNoCopy = bytes, length = size.convert())
 }

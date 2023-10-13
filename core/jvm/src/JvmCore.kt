@@ -44,17 +44,26 @@ private open class OutputStreamSink(
         while (remaining > 0) {
             // kotlinx.io TODO: detect Interruption.
             val head = source.head!!
-            val toCopy = minOf(remaining, head.limit - head.pos).toInt()
-            out.write(head.data, head.pos, toCopy)
+            val toCopy = minOf(remaining, head.size).toInt()
 
-            head.pos += toCopy
-            remaining -= toCopy
-            source.size -= toCopy
-
-            if (head.pos == head.limit) {
-                source.head = head.pop()
-                SegmentPool.recycle(head)
+            head.withContainedData { data, pos, _ ->
+                when (data) {
+                    is ByteArray -> {
+                        out.write(data, pos, toCopy)
+                    }
+                    else -> {
+                        TODO()
+                        /*
+                        for (idx in 0 until toCopy) {
+                            out.write(head[idx].toInt())
+                        }
+                         */
+                    }
+                }
             }
+
+            remaining -= toCopy
+            source.skip(toCopy.toLong())
         }
     }
 
@@ -82,20 +91,35 @@ private open class InputStreamSource(
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
         try {
-            val tail = sink.writableSegment(1)
-            val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()
-            val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
-            if (bytesRead == -1) {
-                if (tail.pos == tail.limit) {
-                    // We allocated a tail segment, but didn't end up needing it. Recycle!
-                    sink.head = tail.pop()
-                    SegmentPool.recycle(tail)
+            var readTotal = 0L
+            sink.writeUnbound(1) {
+                val maxToCopy = minOf(byteCount, it.capacity).toInt()
+                it.withContainedData { data, _, limit ->
+                    when (data) {
+                        is ByteArray -> {
+                            readTotal = input.read(data, limit, maxToCopy).toLong()
+                            if (readTotal == -1L) {
+                                0
+                            } else {
+                                readTotal.toInt()
+                            }
+                        }
+                        else -> {
+                            TODO()
+                            /*
+                            while (readTotal < maxToCopy) {
+                                val b = input.read()
+                                if (b == -1) break
+                                it[readTotal.toInt()] = b.toByte()
+                                readTotal++
+                            }
+                            readTotal.toInt()
+                             */
+                        }
+                    }
                 }
-                return -1
             }
-            tail.limit += bytesRead
-            sink.size += bytesRead
-            return bytesRead.toLong()
+            return readTotal
         } catch (e: AssertionError) {
             if (e.isAndroidGetsocknameError) throw IOException(e)
             throw e
