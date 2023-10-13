@@ -188,6 +188,84 @@ internal class Segment {
     val size: Int
         get() = limit - pos
 
+    fun writeByte(byte: Byte) {
+        data[limit++] = byte
+    }
+
+    fun writeShort(short: Short) {
+        val data = data
+        var limit = limit
+        data[limit++] = (short.toInt() ushr 8 and 0xff).toByte()
+        data[limit++] = (short.toInt() and 0xff).toByte()
+        this.limit = limit
+    }
+
+    fun writeInt(int: Int) {
+        val data = data
+        var limit = limit
+        data[limit++] = (int ushr 24 and 0xff).toByte()
+        data[limit++] = (int ushr 16 and 0xff).toByte()
+        data[limit++] = (int ushr 8 and 0xff).toByte()
+        data[limit++] = (int and 0xff).toByte()
+        this.limit = limit
+    }
+
+   fun writeLong(long: Long) {
+        val data = data
+        var limit = limit
+        data[limit++] = (long ushr 56 and 0xffL).toByte()
+        data[limit++] = (long ushr 48 and 0xffL).toByte()
+        data[limit++] = (long ushr 40 and 0xffL).toByte()
+        data[limit++] = (long ushr 32 and 0xffL).toByte()
+        data[limit++] = (long ushr 24 and 0xffL).toByte()
+        data[limit++] = (long ushr 16 and 0xffL).toByte()
+        data[limit++] = (long ushr 8 and 0xffL).toByte()
+        data[limit++] = (long and 0xffL).toByte()
+        this.limit = limit
+    }
+
+    fun readByte(): Byte {
+        return data[pos++]
+    }
+
+    fun readShort(): Short {
+        val data = data
+        var pos = pos
+        val s = (data[pos++] and 0xff shl 8 or (data[pos++] and 0xff)).toShort()
+        this.pos = pos
+        return s
+    }
+
+    fun readInt(): Int {
+        val data = data
+        var pos = pos
+        val i = (
+                data[pos++] and 0xff shl 24
+                        or (data[pos++] and 0xff shl 16)
+                        or (data[pos++] and 0xff shl 8)
+                        or (data[pos++] and 0xff)
+                )
+        this.pos = pos
+        return i
+    }
+
+    fun readLong(): Long {
+        val data = data
+        var pos = pos
+        val v = (
+                data[pos++] and 0xffL shl 56
+                        or (data[pos++] and 0xffL shl 48)
+                        or (data[pos++] and 0xffL shl 40)
+                        or (data[pos++] and 0xffL shl 32)
+                        or (data[pos++] and 0xffL shl 24)
+                        or (data[pos++] and 0xffL shl 16)
+                        or (data[pos++] and 0xffL shl 8)
+                        or (data[pos++] and 0xffL)
+                )
+        this.pos = pos
+        return v
+    }
+
     companion object {
         /** The size of all segments in bytes.  */
         const val SIZE = 8192
@@ -212,6 +290,8 @@ internal fun Segment.indexOf(byte: Byte, startOffset: Int, endOffset: Int): Int 
     }
     return -1
 }
+
+internal fun Segment.isEmpty() = size == 0
 
 /**
  * Searches for a `bytes` pattern within this segment starting at the offset `startOffset`.
