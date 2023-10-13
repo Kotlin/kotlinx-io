@@ -140,7 +140,18 @@ internal class FileSink(private val path: Path, private var append: Boolean) : R
             val head = source.head!!
             val segmentBytes = head.limit - head.pos
             val buf = buffer.Buffer.allocUnsafe(segmentBytes)
-            buf.fill(head.data, head.pos, segmentBytes)
+            head.withContainedData { data, pos, _ ->
+                when (data) {
+                    is ByteArray -> {
+                        buf.fill(data, pos, segmentBytes)
+                    }
+                    else -> {
+                        for (idx in 0 until segmentBytes) {
+                            buf[idx] = head[idx]
+                        }
+                    }
+                }
+            }
             try {
                 if (append) {
                     fs.appendFileSync(path.toString(), buf)
