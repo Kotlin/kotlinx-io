@@ -70,56 +70,44 @@ public class Buffer : Source, Sink {
     override fun readByte(): Byte {
         require(1)
         val segment = head!!
-        var pos = segment.pos
-        val limit = segment.limit
-        val data = segment.data
-        val b = data[pos++]
+        val b = segment.readByte()
         size -= 1L
-        if (pos == limit) {
+        if (segment.isEmpty()) {
             head = segment.pop()
             SegmentPool.recycle(segment)
-        } else {
-            segment.pos = pos
         }
         return b
     }
 
     override fun readShort(): Short {
         require(2)
-
         val segment = head!!
-        var pos = segment.pos
-        val limit = segment.limit
-
+        val segmentSize = segment.size
         // If the short is split across multiple segments, delegate to readByte().
-        if (limit - pos < 2) {
+        if (segmentSize < 2) {
             val s = readByte() and 0xff shl 8 or (readByte() and 0xff)
             return s.toShort()
         }
 
-        val data = segment.data
-        val s = data[pos++] and 0xff shl 8 or (data[pos++] and 0xff)
+        val s = segment.readShort()
         size -= 2L
 
-        if (pos == limit) {
+        if (segmentSize == 2) {
             head = segment.pop()
             SegmentPool.recycle(segment)
-        } else {
-            segment.pos = pos
         }
 
-        return s.toShort()
+        return s
     }
 
     override fun readInt(): Int {
         require(4)
 
         val segment = head!!
-        var pos = segment.pos
-        val limit = segment.limit
+        val segmentSize = segment.size
 
         // If the int is split across multiple segments, delegate to readByte().
-        if (limit - pos < 4L) {
+        if (segmentSize < 4L) {
             return (
                     readByte() and 0xff shl 24
                             or (readByte() and 0xff shl 16)
@@ -128,20 +116,12 @@ public class Buffer : Source, Sink {
                     )
         }
 
-        val data = segment.data
-        val i = (
-                data[pos++] and 0xff shl 24
-                        or (data[pos++] and 0xff shl 16)
-                        or (data[pos++] and 0xff shl 8)
-                        or (data[pos++] and 0xff)
-                )
+        val i = segment.readInt()
         size -= 4L
 
-        if (pos == limit) {
+        if (segmentSize == 4) {
             head = segment.pop()
             SegmentPool.recycle(segment)
-        } else {
-            segment.pos = pos
         }
 
         return i
@@ -151,35 +131,22 @@ public class Buffer : Source, Sink {
         require(8)
 
         val segment = head!!
-        var pos = segment.pos
-        val limit = segment.limit
+        val segmentSize = segment.size
 
         // If the long is split across multiple segments, delegate to readInt().
-        if (limit - pos < 8L) {
+        if (segmentSize < 8L) {
             return (
                     readInt() and 0xffffffffL shl 32
                             or (readInt() and 0xffffffffL)
                     )
         }
 
-        val data = segment.data
-        val v = (
-                data[pos++] and 0xffL shl 56
-                        or (data[pos++] and 0xffL shl 48)
-                        or (data[pos++] and 0xffL shl 40)
-                        or (data[pos++] and 0xffL shl 32)
-                        or (data[pos++] and 0xffL shl 24)
-                        or (data[pos++] and 0xffL shl 16)
-                        or (data[pos++] and 0xffL shl 8)
-                        or (data[pos++] and 0xffL)
-                )
+        val v = segment.readLong()
         size -= 8L
 
-        if (pos == limit) {
+        if (segmentSize == 8) {
             head = segment.pop()
             SegmentPool.recycle(segment)
-        } else {
-            segment.pos = pos
         }
 
         return v
@@ -532,46 +499,22 @@ public class Buffer : Source, Sink {
     }
 
     override fun writeByte(byte: Byte) {
-        val tail = writableSegment(1)
-        tail.data[tail.limit++] = byte
+        writableSegment(1).writeByte(byte)
         size += 1L
     }
 
     override fun writeShort(short: Short) {
-        val tail = writableSegment(2)
-        val data = tail.data
-        var limit = tail.limit
-        data[limit++] = (short.toInt() ushr 8 and 0xff).toByte()
-        data[limit++] = (short.toInt() and 0xff).toByte()
-        tail.limit = limit
+        writableSegment(2).writeShort(short)
         size += 2L
     }
 
     override fun writeInt(int: Int) {
-        val tail = writableSegment(4)
-        val data = tail.data
-        var limit = tail.limit
-        data[limit++] = (int ushr 24 and 0xff).toByte()
-        data[limit++] = (int ushr 16 and 0xff).toByte()
-        data[limit++] = (int ushr 8 and 0xff).toByte()
-        data[limit++] = (int and 0xff).toByte()
-        tail.limit = limit
+        writableSegment(4).writeInt(int)
         size += 4L
     }
 
     override fun writeLong(long: Long) {
-        val tail = writableSegment(8)
-        val data = tail.data
-        var limit = tail.limit
-        data[limit++] = (long ushr 56 and 0xffL).toByte()
-        data[limit++] = (long ushr 48 and 0xffL).toByte()
-        data[limit++] = (long ushr 40 and 0xffL).toByte()
-        data[limit++] = (long ushr 32 and 0xffL).toByte()
-        data[limit++] = (long ushr 24 and 0xffL).toByte()
-        data[limit++] = (long ushr 16 and 0xffL).toByte()
-        data[limit++] = (long ushr 8 and 0xffL).toByte()
-        data[limit++] = (long and 0xffL).toByte()
-        tail.limit = limit
+        writableSegment(8).writeLong(long)
         size += 8L
     }
 
