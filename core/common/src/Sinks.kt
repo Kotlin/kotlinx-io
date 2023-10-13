@@ -110,20 +110,18 @@ public fun Sink.writeDecimalLong(long: Long) {
     }
 
     writeToInternalBuffer { buffer ->
-        val tail = buffer.writableSegment(width)
-        val data = tail.data
-        var pos = tail.limit + width // We write backwards from right to left.
-        while (v != 0L) {
-            val digit = (v % 10).toInt()
-            data[--pos] = HEX_DIGIT_BYTES[digit]
-            v /= 10
+        buffer.writeUnbound(width) {
+            var pos = width // We write backwards from right to left.
+            while (v != 0L) {
+                val digit = (v % 10).toInt()
+                it[--pos] = HEX_DIGIT_BYTES[digit]
+                v /= 10
+            }
+            if (negative) {
+                it[--pos] = '-'.code.toByte()
+            }
+            width
         }
-        if (negative) {
-            data[--pos] = '-'.code.toByte()
-        }
-
-        tail.limit += width
-        buffer.size += width.toLong()
     }
 }
 
@@ -170,17 +168,13 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
     val width = ((x + 3) / 4).toInt()
 
     writeToInternalBuffer { buffer ->
-        val tail = buffer.writableSegment(width)
-        val data = tail.data
-        var pos = tail.limit + width - 1
-        val start = tail.limit
-        while (pos >= start) {
-            data[pos] = HEX_DIGIT_BYTES[(v and 0xF).toInt()]
-            v = v ushr 4
-            pos--
+        buffer.writeUnbound(width) {
+            for (pos in width - 1 downTo 0) {
+                it[pos] = HEX_DIGIT_BYTES[(v and 0xF).toInt()]
+                v = v ushr 4
+            }
+            width
         }
-        tail.limit += width
-        buffer.size += width.toLong()
     }
 }
 
