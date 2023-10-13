@@ -341,6 +341,7 @@ public class Buffer : Source, Sink {
      * Returns a tail segment that we can write at least `minimumCapacity`
      * bytes to, creating it if necessary.
      */
+    @PublishedApi
     internal fun writableSegment(minimumCapacity: Int): Segment {
         require(minimumCapacity >= 1 && minimumCapacity <= Segment.SIZE) { "unexpected capacity" }
 
@@ -518,6 +519,22 @@ public class Buffer : Source, Sink {
         size += 8L
     }
 
+    // TODO: make inline
+    public /*inline*/ fun writeUnbound(minimumCapacity: Int, block: SegmentSetContext.(Segment) -> Int) {
+        val segment = writableSegment(minimumCapacity)
+        val bytesWritten = block(SegmentSetContextImpl, segment)
+        check(bytesWritten in 0 .. segment.capacity)
+        if (bytesWritten == 0 && segment.isEmpty()) {
+            val res = segment.pop()
+            if (res == null) {
+                head = null
+            }
+            return
+        }
+        segment.limit += bytesWritten
+        size += bytesWritten
+    }
+
     /**
      * Returns a deep copy of this buffer.
      */
@@ -615,5 +632,11 @@ internal inline fun <T> Buffer.seek(
             offset = nextOffset
         }
         return lambda(s, offset)
+    }
+}
+
+private object SegmentSetContextImpl : SegmentSetContext {
+    override fun Segment.set(index: Int, value: Byte) {
+        setChecked(index, value)
     }
 }

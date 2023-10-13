@@ -26,6 +26,7 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun toString ()Ljava/lang/String;
 	public fun transferFrom (Lkotlinx/io/RawSource;)J
 	public fun transferTo (Lkotlinx/io/RawSink;)J
+	public final fun writableSegment (I)Lkotlinx/io/Segment;
 	public fun write (Lkotlinx/io/Buffer;J)V
 	public fun write (Lkotlinx/io/RawSource;J)V
 	public fun write ([BII)V
@@ -33,6 +34,7 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun writeInt (I)V
 	public fun writeLong (J)V
 	public fun writeShort (S)V
+	public final fun writeUnbound (ILkotlin/jvm/functions/Function2;)V
 }
 
 public final class kotlinx/io/BuffersJvmKt {
@@ -90,6 +92,20 @@ public abstract interface class kotlinx/io/RawSink : java/io/Flushable, java/lan
 public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 	public abstract fun close ()V
 	public abstract fun readAtMostTo (Lkotlinx/io/Buffer;J)J
+}
+
+public final class kotlinx/io/Segment {
+	public final fun getCapacity ()I
+	public final fun getSize ()I
+	public final fun setUnchecked (IB)V
+}
+
+public final class kotlinx/io/SegmentKt {
+	public static final fun isEmpty (Lkotlinx/io/Segment;)Z
+}
+
+public abstract interface class kotlinx/io/SegmentSetContext {
+	public abstract fun set (Lkotlinx/io/Segment;IB)V
 }
 
 public abstract interface class kotlinx/io/Sink : kotlinx/io/RawSink {
@@ -249,5 +265,10 @@ public final class kotlinx/io/files/PathsKt {
 	public static final fun Path (Lkotlinx/io/files/Path;[Ljava/lang/String;)Lkotlinx/io/files/Path;
 	public static final fun sinkDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
 	public static final fun sourceDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
+}
+
+public final class kotlinx/io/unsafe/UnsafeSegmentAccessors {
+	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeSegmentAccessors;
+	public final fun setUnsafe (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IB)V
 }
 
