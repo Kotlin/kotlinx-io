@@ -254,7 +254,7 @@ public class Buffer : Source, Sink {
             throw IndexOutOfBoundsException("position ($position) is not within the range [0..size($size))")
         }
         seek(position) { s, offset ->
-            return s!!.data[(s.pos + position - offset).toInt()]
+            return s!![(position - offset).toInt()]
         }
     }
 
@@ -582,14 +582,14 @@ public class Buffer : Source, Sink {
 
         var curr = head!!
         var bytesWritten = 0
-        var pos = curr.pos
+        var pos = 0
         while (bytesWritten < len) {
-            if (pos == curr.limit) {
-                curr = curr.next!!
-                pos = curr.pos
+            if (pos == curr.size) {
+                pos = 0
+                curr = curr.next ?: break
             }
 
-            val b = curr.data[pos++].toInt()
+            val b = curr[pos++].toInt()
             bytesWritten++
 
             builder.append(HEX_DIGIT_CHARS[(b shr 4) and 0xf])

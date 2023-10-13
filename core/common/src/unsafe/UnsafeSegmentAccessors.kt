@@ -13,4 +13,8 @@ public object UnsafeSegmentAccessors {
     public inline fun setUnsafe(context: SegmentSetContext, segment: Segment, index: Int, value: Byte) {
         segment.setUnchecked(index, value)
     }
+
+    public fun getUnsafe(segment: Segment, index: Int) : Byte {
+        return segment.getUnchecked(index)
+    }
 }
