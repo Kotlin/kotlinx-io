@@ -425,45 +425,43 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
 
         when {
             c < 0x80 -> {
-                val tail = writableSegment(1)
-                val data = tail.data
-                val segmentOffset = tail.limit - i
-                val runLimit = minOf(endIndex, Segment.SIZE - segmentOffset)
+                writeUnbound(1) {
+                    val segmentOffset = - i
+                    val runLimit = minOf(endIndex, it.capacity)
 
-                // Emit a 7-bit character with 1 byte.
-                data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+                    // Emit a 7-bit character with 1 byte.
+                    it[segmentOffset + i++] = c.toByte() // 0xxxxxxx
 
-                // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
-                // improvement over independent calls to writeByte().
-                while (i < runLimit) {
-                    c = string[i].code
-                    if (c >= 0x80) break
-                    data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+                    // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
+                    // improvement over independent calls to writeByte().
+                    while (i < runLimit) {
+                        c = string[i].code
+                        if (c >= 0x80) break
+                        it[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+                    }
+
+                     i + segmentOffset // Equivalent to i - (previous i).
                 }
-
-                val runSize = i + segmentOffset - tail.limit // Equivalent to i - (previous i).
-                tail.limit += runSize
-                size += runSize.toLong()
             }
 
             c < 0x800 -> {
                 // Emit a 11-bit character with 2 bytes.
-                val tail = writableSegment(2)
-                tail.data[tail.limit] = (c shr 6 or 0xc0).toByte() // 110xxxxx
-                tail.data[tail.limit + 1] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
-                tail.limit += 2
-                size += 2L
+                writeUnbound(2) {
+                    it[0] = (c shr 6 or 0xc0).toByte() // 110xxxxx
+                    it[1] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
+                    2
+                }
                 i++
             }
 
             c < 0xd800 || c > 0xdfff -> {
                 // Emit a 16-bit character with 3 bytes.
-                val tail = writableSegment(3)
-                tail.data[tail.limit] = (c shr 12 or 0xe0).toByte() // 1110xxxx
-                tail.data[tail.limit + 1] = (c shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
-                tail.data[tail.limit + 2] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
-                tail.limit += 3
-                size += 3L
+                writeUnbound(3) {
+                    it[0] = (c shr 12 or 0xe0).toByte() // 1110xxxx
+                    it[1] = (c shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
+                    it[2] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
+                    3
+                }
                 i++
             }
 
@@ -482,13 +480,13 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
                     val codePoint = 0x010000 + (c and 0x03ff shl 10 or (low and 0x03ff))
 
                     // Emit a 21-bit character with 4 bytes.
-                    val tail = writableSegment(4)
-                    tail.data[tail.limit] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
-                    tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
-                    tail.data[tail.limit + 2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
-                    tail.data[tail.limit + 3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
-                    tail.limit += 4
-                    size += 4L
+                    writeUnbound(4) {
+                        it[0] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
+                        it[1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
+                        it[2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
+                        it[3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
+                        4
+                    }
                     i += 2
                 }
             }
@@ -505,11 +503,11 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 
         codePoint < 0x800 -> {
             // Emit a 11-bit code point with 2 bytes.
-            val tail = writableSegment(2)
-            tail.data[tail.limit] = (codePoint shr 6 or 0xc0).toByte() // 110xxxxx
-            tail.data[tail.limit + 1] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
-            tail.limit += 2
-            size += 2L
+            writeUnbound(2) {
+                it[0] = (codePoint shr 6 or 0xc0).toByte() // 110xxxxx
+                it[1] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
+                2
+            }
         }
 
         codePoint in 0xd800..0xdfff -> {
@@ -519,23 +517,23 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 
         codePoint < 0x10000 -> {
             // Emit a 16-bit code point with 3 bytes.
-            val tail = writableSegment(3)
-            tail.data[tail.limit] = (codePoint shr 12 or 0xe0).toByte() // 1110xxxx
-            tail.data[tail.limit + 1] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
-            tail.data[tail.limit + 2] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
-            tail.limit += 3
-            size += 3L
+            writeUnbound(3) {
+                it[0] = (codePoint shr 12 or 0xe0).toByte() // 1110xxxx
+                it[1] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
+                it[2] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
+                3
+            }
         }
 
         codePoint <= 0x10ffff -> {
             // Emit a 21-bit code point with 4 bytes.
-            val tail = writableSegment(4)
-            tail.data[tail.limit] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
-            tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
-            tail.data[tail.limit + 2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
-            tail.data[tail.limit + 3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
-            tail.limit += 4
-            size += 4L
+            writeUnbound(4) {
+                it[0] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
+                it[1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
+                it[2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
+                it[3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
+                4
+            }
         }
 
         else -> {
