@@ -38,23 +38,24 @@ private open class OutputStreamSink(
         var remaining = byteCount
         while (remaining > 0) {
             val head = source.head!!
-            val toCopy = minOf(remaining, head.limit - head.pos).toInt()
-            val bytesWritten = head.data.usePinned {
-                val bytes = it.addressOf(head.pos).reinterpret<uint8_tVar>()
-                out.write(bytes, toCopy.convert()).toLong()
+            val toCopy = minOf(remaining, head.size).toInt()
+            val bytesWritten = head.withContainedData { data, pos, _ ->
+                when (data) {
+                    is ByteArray -> {
+                        data.usePinned {
+                            val bytes = it.addressOf(pos).reinterpret<uint8_tVar>()
+                            out.write(bytes, toCopy.convert()).toLong()
+                        }
+                    }
+                    else -> TODO()
+                }
             }
 
             if (bytesWritten < 0L) throw IOException(out.streamError?.localizedDescription ?: "Unknown error")
             if (bytesWritten == 0L) throw IOException("NSOutputStream reached capacity")
 
-            head.pos += bytesWritten.toInt()
+            source.skip(bytesWritten)
             remaining -= bytesWritten
-            source.size -= bytesWritten
-
-            if (head.pos == head.limit) {
-                source.head = head.pop()
-                SegmentPool.recycle(head)
-            }
         }
     }
 
@@ -90,24 +91,25 @@ private open class NSInputStreamSource(
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
 
-        val tail = sink.writableSegment(1)
-        val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit)
-        val bytesRead = tail.data.usePinned {
-            val bytes = it.addressOf(tail.limit).reinterpret<uint8_tVar>()
-            input.read(bytes, maxToCopy.convert()).toLong()
-        }
-
-        if (bytesRead < 0L) throw IOException(input.streamError?.localizedDescription ?: "Unknown error")
-        if (bytesRead == 0L) {
-            if (tail.pos == tail.limit) {
-                // We allocated a tail segment, but didn't end up needing it. Recycle!
-                sink.head = tail.pop()
-                SegmentPool.recycle(tail)
+        var bytesRead = 0L
+        sink.writeUnbound(1) {
+            val maxToCopy = minOf(byteCount, it.capacity)
+            val read = it.withContainedData { data, _, limit ->
+                when (data) {
+                    is ByteArray -> {
+                        data.usePinned { ba ->
+                            val bytes = ba.addressOf(limit).reinterpret<uint8_tVar>()
+                            input.read(bytes, maxToCopy.convert()).toLong()
+                        }
+                    }
+                    else -> TODO()
+                }
             }
-            return -1
+            bytesRead = read
+            maxOf(read.toInt(), 0)
         }
-        tail.limit += bytesRead.toInt()
-        sink.size += bytesRead
+        if (bytesRead < 0L) throw IOException(input.streamError?.localizedDescription ?: "Unknown error")
+        if (bytesRead == 0L) return -1
         return bytesRead
     }
 

@@ -44,7 +44,12 @@ public class Segment {
     @JvmField
     internal val data: ByteArray
 
+    @PublishedApi
+    internal val rawData: Any
+        get() = data
+
     /** The next byte of application data byte to read in this segment. */
+    @PublishedApi
     @JvmField
     internal var pos: Int = 0
 
@@ -54,6 +59,7 @@ public class Segment {
      * If the segment is free and linked in the segment pool, the field contains total
      * byte count of this and next segments.
      */
+    @PublishedApi
     @JvmField
     internal var limit: Int = 0
 

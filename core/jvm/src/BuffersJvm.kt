@@ -59,22 +59,47 @@ public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
 
 private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) {
     var remainingByteCount = byteCount
-    while (remainingByteCount > 0L || forever) {
-        val tail = writableSegment(1)
-        val maxToCopy = minOf(remainingByteCount, Segment.SIZE - tail.limit).toInt()
-        val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
-        if (bytesRead == -1) {
-            if (tail.pos == tail.limit) {
-                // We allocated a tail segment, but didn't end up needing it. Recycle!
-                head = tail.pop()
-                SegmentPool.recycle(tail)
+    var exchaused = false
+    while (!exchaused && (remainingByteCount > 0L || forever)) {
+        writeUnbound(1) {
+            val maxToCopy = minOf(remainingByteCount, it.capacity).toInt()
+            it.withContainedData { data, _, limit ->
+                when (data) {
+                    is ByteArray -> {
+                        val bytesRead = input.read(data, limit, maxToCopy)
+                        if (bytesRead == -1) {
+                            if (!forever) {
+                                throw  EOFException("Stream exhausted before $byteCount bytes were read.")
+                            }
+                            exchaused = true
+                            0
+                        } else {
+                            remainingByteCount -= bytesRead
+                            bytesRead
+                        }
+                    }
+                    else -> {
+                        /*
+                        var bytesRead = 0
+                        while (bytesRead < maxToCopy) {
+                            val b = input.read()
+                            if (b == -1) {
+                                if (!forever) {
+                                    throw EOFException("Stream exhausted before $byteCount bytes were read.")
+                                }
+                                exchaused = true
+                                break
+                            }
+                            it[bytesRead++] = b.toByte()
+                        }
+                        bytesRead
+                         */
+                        TODO()
+                    }
+                }
             }
-            if (forever) return
-            throw EOFException("Stream exhausted before $byteCount bytes were read.")
         }
-        tail.limit += bytesRead
-        size += bytesRead.toLong()
-        remainingByteCount -= bytesRead.toLong()
+
     }
 }
 
@@ -92,21 +117,28 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
     checkOffsetAndCount(size, 0, byteCount)
     var remainingByteCount = byteCount
 
-    var s = head
     while (remainingByteCount > 0L) {
-        val toCopy = minOf(remainingByteCount, s!!.limit - s.pos).toInt()
-        out.write(s.data, s.pos, toCopy)
+        val s = head
+        val toCopy = minOf(remainingByteCount, s!!.size).toInt()
 
-        s.pos += toCopy
-        size -= toCopy.toLong()
-        remainingByteCount -= toCopy.toLong()
-
-        if (s.pos == s.limit) {
-            val toRecycle = s
-            s = toRecycle.pop()
-            head = s
-            SegmentPool.recycle(toRecycle)
+        s.withContainedData { data, pos, _ ->
+            when (data) {
+                is ByteArray -> {
+                    out.write(data, pos, toCopy)
+                }
+                else -> {
+                    TODO()
+                    /*
+                    for (idx in 0 until toCopy) {
+                        out.write(s[idx].toInt())
+                    }
+                     */
+                }
+            }
         }
+        skip(toCopy.toLong())
+
+        remainingByteCount -= toCopy.toLong()
     }
 }
 
@@ -135,20 +167,34 @@ public fun Buffer.copyTo(
     var remainingByteCount = endIndex - startIndex
 
     // Skip segments that we aren't copying from.
-    var s = head
-    while (currentOffset >= s!!.limit - s.pos) {
+    var s = head ?: throw IllegalStateException()
+    while (currentOffset >= s.limit - s.pos) {
         currentOffset -= (s.limit - s.pos).toLong()
-        s = s.next
+        s = s.next ?: throw IllegalStateException()
     }
 
     // Copy from one segment at a time.
     while (remainingByteCount > 0L) {
-        val pos = (s!!.pos + currentOffset).toInt()
+        val pos = (s.pos + currentOffset).toInt()
         val toCopy = minOf(s.limit - pos, remainingByteCount).toInt()
-        out.write(s.data, pos, toCopy)
+        s.withContainedData { data, _, _ ->
+            when (data) {
+                is ByteArray -> {
+                    out.write(data, pos, toCopy)
+                }
+                else -> {
+                    TODO()
+                    /*
+                    for (idx in currentOffset until toCopy) {
+                        out.write(s[idx.toInt()].toInt())
+                    }
+                     */
+                }
+            }
+        }
         remainingByteCount -= toCopy.toLong()
         currentOffset = 0L
-        s = s.next
+        s = s.next ?: throw IllegalStateException()
     }
 }
 
@@ -163,17 +209,24 @@ public fun Buffer.copyTo(
 public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
     val s = head ?: return -1
 
-    val toCopy = minOf(sink.remaining(), s.limit - s.pos)
-    sink.put(s.data, s.pos, toCopy)
-
-    s.pos += toCopy
-    size -= toCopy.toLong()
-
-    if (s.pos == s.limit) {
-        head = s.pop()
-        SegmentPool.recycle(s)
+    val toCopy = minOf(sink.remaining(), s.size)
+    s.withContainedData { data, pos, _ ->
+        when (data) {
+            is ByteArray -> {
+                sink.put(data, pos, toCopy)
+            }
+            else -> {
+                TODO()
+                /*
+                for (idx in 0 until toCopy) {
+                    sink.put(s[idx])
+                }
+                 */
+            }
+        }
     }
 
+    skip(toCopy.toLong())
     return toCopy
 }
 
@@ -186,16 +239,29 @@ public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
     var remaining = byteCount
     while (remaining > 0) {
-        val tail = writableSegment(1)
+        writeUnbound(1) {
+            val toCopy = minOf(remaining, it.capacity)
 
-        val toCopy = minOf(remaining, Segment.SIZE - tail.limit)
-        source.get(tail.data, tail.limit, toCopy)
-
-        remaining -= toCopy
-        tail.limit += toCopy
+            it.withContainedData { data, _, limit ->
+                when (data) {
+                    is ByteArray -> {
+                        source.get(data, limit, toCopy)
+                    }
+                    else -> {
+                        TODO()
+                        /*
+                        for (idx in 0 until toCopy) {
+                            it[idx] = source.get()
+                        }
+                         */
+                    }
+                }
+            }
+            remaining -= toCopy
+            toCopy
+        }
     }
 
-    size += byteCount.toLong()
     return this
 }
 
