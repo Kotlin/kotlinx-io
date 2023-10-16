@@ -567,21 +567,6 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
     require(byteCount)
     if (byteCount == 0L) return ""
 
-    val s = head!!
-    if (s.pos + byteCount > s.limit) {
-        // If the string spans multiple segments, delegate to readBytes().
-
-        return readByteArray(byteCount.toInt()).commonToUtf8String()
-    }
-
-    val result = s.data.commonToUtf8String(s.pos, s.pos + byteCount.toInt())
-    s.pos += byteCount.toInt()
-    size -= byteCount
-
-    if (s.pos == s.limit) {
-        head = s.pop()
-        SegmentPool.recycle(s)
-    }
-
-    return result
+    // TODO: optimize implementation to iterate over segment bytes
+    return readByteArray(byteCount.toInt()).commonToUtf8String()
 }
