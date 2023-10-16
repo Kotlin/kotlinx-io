@@ -294,15 +294,11 @@ public class Buffer : Source, Sink {
         checkBounds(sink.size, startIndex, endIndex)
 
         val s = head ?: return -1
-        val toCopy = minOf(endIndex - startIndex, s.limit - s.pos)
-        s.data.copyInto(
-            destination = sink, destinationOffset = startIndex, startIndex = s.pos, endIndex = s.pos + toCopy
-        )
-
-        s.pos += toCopy
+        val toCopy = minOf(endIndex - startIndex, s.size)
+        s.readTo(sink, startIndex, startIndex + toCopy)
         size -= toCopy.toLong()
 
-        if (s.pos == s.limit) {
+        if (s.isEmpty()) {
             head = s.pop()
             SegmentPool.recycle(s)
         }
@@ -365,17 +361,9 @@ public class Buffer : Source, Sink {
         var currentOffset = startIndex
         while (currentOffset < endIndex) {
             val tail = writableSegment(1)
-
-            val toCopy = minOf(endIndex - currentOffset, Segment.SIZE - tail.limit)
-            source.copyInto(
-                destination = tail.data,
-                destinationOffset = tail.limit,
-                startIndex = currentOffset,
-                endIndex = currentOffset + toCopy
-            )
-
+            val toCopy = minOf(endIndex - currentOffset, tail.capacity)
+            tail.write(source, currentOffset, currentOffset + toCopy)
             currentOffset += toCopy
-            tail.limit += toCopy
         }
         size += endIndex - startIndex
     }

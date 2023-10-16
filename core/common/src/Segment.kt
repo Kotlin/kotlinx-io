@@ -279,6 +279,20 @@ public class Segment {
         return v
     }
 
+    internal fun readTo(dst: ByteArray, dstStartOffset: Int, dstEndOffset: Int) {
+        val len = dstEndOffset - dstStartOffset
+        require(len in 0 .. size)
+        data.copyInto(dst, dstStartOffset, pos, pos + len)
+        pos += len
+    }
+
+    // TODO
+    internal fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int) {
+        require(srcEndOffset - srcStartOffset in 0 .. capacity)
+        src.copyInto(data, limit, srcStartOffset, srcEndOffset)
+        limit += srcEndOffset - srcStartOffset
+    }
+
     public operator fun get(index: Int): Byte {
         require(index in 0 until size)
         return data[pos + index]
