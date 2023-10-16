@@ -70,6 +70,7 @@
 package kotlinx.io
 
 import kotlinx.io.internal.*
+import kotlinx.io.unsafe.UnsafeSegmentAccessors
 
 /**
  * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeString].
@@ -446,14 +447,14 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
                     val runLimit = minOf(endIndex, it.capacity)
 
                     // Emit a 7-bit character with 1 byte.
-                    it[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+                    UnsafeSegmentAccessors.setUnsafe(this, it, segmentOffset + i++, c.toByte()) // 0xxxxxxx
 
                     // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
                     // improvement over independent calls to writeByte().
                     while (i < runLimit) {
                         c = string[i].code
                         if (c >= 0x80) break
-                        it[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+                        UnsafeSegmentAccessors.setUnsafe(this, it, segmentOffset + i++, c.toByte()) // 0xxxxxxx
                     }
 
                      i + segmentOffset // Equivalent to i - (previous i).
@@ -463,8 +464,8 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
             c < 0x800 -> {
                 // Emit a 11-bit character with 2 bytes.
                 writeUnbound(2) {
-                    it[0] = (c shr 6 or 0xc0).toByte() // 110xxxxx
-                    it[1] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
+                    UnsafeSegmentAccessors.setUnsafe(this, it, 0, (c shr 6 or 0xc0).toByte()) // 110xxxxx
+                    UnsafeSegmentAccessors.setUnsafe(this, it, 1, (c and 0x3f or 0x80).toByte()) // 10xxxxxx
                     2
                 }
                 i++
@@ -473,9 +474,9 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
             c < 0xd800 || c > 0xdfff -> {
                 // Emit a 16-bit character with 3 bytes.
                 writeUnbound(3) {
-                    it[0] = (c shr 12 or 0xe0).toByte() // 1110xxxx
-                    it[1] = (c shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
-                    it[2] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
+                    UnsafeSegmentAccessors.setUnsafe(this, it, 0, (c shr 12 or 0xe0).toByte()) // 1110xxxx
+                    UnsafeSegmentAccessors.setUnsafe(this, it, 1, (c shr 6 and 0x3f or 0x80).toByte()) // 10xxxxxx
+                    UnsafeSegmentAccessors.setUnsafe(this, it, 2, (c and 0x3f or 0x80).toByte()) // 10xxxxxx
                     3
                 }
                 i++
@@ -497,10 +498,10 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
 
                     // Emit a 21-bit character with 4 bytes.
                     writeUnbound(4) {
-                        it[0] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
-                        it[1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
-                        it[2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
-                        it[3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
+                        UnsafeSegmentAccessors.setUnsafe(this, it, 0, (codePoint shr 18 or 0xf0).toByte()) // 11110xxx
+                        UnsafeSegmentAccessors.setUnsafe(this, it, 1, (codePoint shr 12 and 0x3f or 0x80).toByte()) // 10xxxxxx
+                        UnsafeSegmentAccessors.setUnsafe(this, it, 2, (codePoint shr 6 and 0x3f or 0x80).toByte()) // 10xxyyyy
+                        UnsafeSegmentAccessors.setUnsafe(this, it, 3, (codePoint and 0x3f or 0x80).toByte()) // 10yyyyyy
                         4
                     }
                     i += 2
@@ -567,6 +568,21 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
     require(byteCount)
     if (byteCount == 0L) return ""
 
-    // TODO: optimize implementation to iterate over segment bytes
-    return readByteArray(byteCount.toInt()).commonToUtf8String()
+    val s = head!!
+    if (s.pos + byteCount > s.limit) {
+        // If the string spans multiple segments, delegate to readBytes().
+
+        return readByteArray(byteCount.toInt()).commonToUtf8String()
+    }
+
+    val result = s.data.commonToUtf8String(s.pos, s.pos + byteCount.toInt())
+    s.pos += byteCount.toInt()
+    size -= byteCount
+
+    if (s.pos == s.limit) {
+        head = s.pop()
+        SegmentPool.recycle(s)
+    }
+
+    return result
 }
