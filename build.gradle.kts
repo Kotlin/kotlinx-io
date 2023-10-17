@@ -58,7 +58,7 @@ koverReport {
     verify {
         rule {
             // TODO: rollback to 95
-            minBound(90, MetricType.LINE)
+            minBound(94, MetricType.LINE)
 
             // we allow lower branch coverage, because not all checks in the internal code lead to errors
             minBound(80, MetricType.BRANCH)
