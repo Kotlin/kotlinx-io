@@ -21,6 +21,7 @@
 
 package kotlinx.io.internal
 
+import kotlinx.io.Segment
 import kotlinx.io.and
 import kotlinx.io.shr
 
@@ -431,6 +432,224 @@ internal const val MASK_4BYTES = 0x381f80
 //    (0x80.toByte().toInt())
 
 internal inline fun ByteArray.process4Utf8Bytes(
+    beginIndex: Int,
+    endIndex: Int,
+    yield: (Int) -> Unit
+): Int {
+    if (endIndex <= beginIndex + 3) {
+        // At least 3 bytes remaining
+        yield(REPLACEMENT_CODE_POINT)
+        if (endIndex <= beginIndex + 1 || !isUtf8Continuation(this[beginIndex + 1])) {
+            // Only 1 byte remaining - underflow
+            // Or 2nd byte is not a continuation - malformed
+            return 1
+        } else if (endIndex <= beginIndex + 2 || !isUtf8Continuation(this[beginIndex + 2])) {
+            // Only 2 bytes remaining - underflow
+            // Or 3rd byte is not a continuation - malformed
+            return 2
+        } else {
+            // Only 3 bytes remaining - underflow
+            return 3
+        }
+    }
+
+    val b0 = this[beginIndex]
+    val b1 = this[beginIndex + 1]
+    if (!isUtf8Continuation(b1)) {
+        yield(REPLACEMENT_CODE_POINT)
+        return 1
+    }
+    val b2 = this[beginIndex + 2]
+    if (!isUtf8Continuation(b2)) {
+        yield(REPLACEMENT_CODE_POINT)
+        return 2
+    }
+    val b3 = this[beginIndex + 3]
+    if (!isUtf8Continuation(b3)) {
+        yield(REPLACEMENT_CODE_POINT)
+        return 3
+    }
+
+    val codePoint = (MASK_4BYTES
+            xor (b3.toInt())
+            xor (b2.toInt() shl 6)
+            xor (b1.toInt() shl 12)
+            xor (b0.toInt() shl 18))
+
+    when {
+        codePoint > 0x10ffff -> {
+            yield(REPLACEMENT_CODE_POINT) // Reject code points larger than the Unicode maximum.
+        }
+
+        codePoint in 0xd800..0xdfff -> {
+            yield(REPLACEMENT_CODE_POINT) // Reject partial surrogates.
+        }
+
+        codePoint < 0x10000 -> {
+            yield(REPLACEMENT_CODE_POINT) // Reject overlong code points.
+        }
+
+        else -> {
+            yield(codePoint)
+        }
+    }
+    return 4
+}
+
+// TODO: generate these functions (along with corresponding ByteArray extensions) from a template.
+internal fun Segment.commonToUtf8String(beginIndex: Int = 0, endIndex: Int = size): String {
+    if (beginIndex < 0 || endIndex > size || beginIndex > endIndex) {
+        throw IndexOutOfBoundsException("size=$size beginIndex=$beginIndex endIndex=$endIndex")
+    }
+    val chars = CharArray(endIndex - beginIndex)
+
+    var length = 0
+    processUtf16Chars(beginIndex, endIndex) { c ->
+        chars[length++] = c
+    }
+
+    return chars.concatToString(0, length)
+}
+
+internal inline fun Segment.processUtf16Chars(
+    beginIndex: Int,
+    endIndex: Int,
+    yield: (Char) -> Unit
+) {
+    var index = beginIndex
+    while (index < endIndex) {
+        val b0 = this[index]
+        when {
+            b0 >= 0 -> {
+                // 0b0xxxxxxx
+                yield(b0.toInt().toChar())
+                index++
+
+                // Assume there is going to be more ASCII
+                // This is almost double the performance of the outer loop
+                while (index < endIndex && this[index] >= 0) {
+                    yield(this[index++].toInt().toChar())
+                }
+            }
+
+            b0 shr 5 == -2 -> {
+                // 0b110xxxxx
+                index += process2Utf8Bytes(index, endIndex) { yield(it.toChar()) }
+            }
+
+            b0 shr 4 == -2 -> {
+                // 0b1110xxxx
+                index += process3Utf8Bytes(index, endIndex) { yield(it.toChar()) }
+            }
+
+            b0 shr 3 == -2 -> {
+                // 0b11110xxx
+                index += process4Utf8Bytes(index, endIndex) { codePoint ->
+                    if (codePoint != REPLACEMENT_CODE_POINT) {
+                        // Unicode code point:    00010000000000000000 + xxxxxxxxxxyyyyyyyyyy (21 bits)
+                        // UTF-16 high surrogate: 110110xxxxxxxxxx (10 bits)
+                        // UTF-16 low surrogate:  110111yyyyyyyyyy (10 bits)
+                        /* ktlint-disable no-multi-spaces paren-spacing */
+                        yield(((codePoint ushr 10) + HIGH_SURROGATE_HEADER).toChar())
+                        /* ktlint-enable no-multi-spaces paren-spacing */
+                        yield(((codePoint and 0x03ff) + LOG_SURROGATE_HEADER).toChar())
+                    } else {
+                        yield(REPLACEMENT_CHARACTER)
+                    }
+                }
+            }
+
+            else -> {
+                // 0b10xxxxxx - Unexpected continuation
+                // 0b111111xxx - Unknown encoding
+                yield(REPLACEMENT_CHARACTER)
+                index++
+            }
+        }
+    }
+}
+
+internal inline fun Segment.process2Utf8Bytes(
+    beginIndex: Int,
+    endIndex: Int,
+    yield: (Int) -> Unit
+): Int {
+    if (endIndex <= beginIndex + 1) {
+        yield(REPLACEMENT_CODE_POINT)
+        // Only 1 byte remaining - underflow
+        return 1
+    }
+
+    val b0 = this[beginIndex]
+    val b1 = this[beginIndex + 1]
+    if (!isUtf8Continuation(b1)) {
+        yield(REPLACEMENT_CODE_POINT)
+        return 1
+    }
+
+    val codePoint = (MASK_2BYTES
+            xor (b1.toInt())
+            xor (b0.toInt() shl 6))
+
+    when {
+        codePoint < 0x80 -> yield(REPLACEMENT_CODE_POINT) // Reject overlong code points.
+        else -> yield(codePoint)
+    }
+    return 2
+}
+
+internal inline fun Segment.process3Utf8Bytes(
+    beginIndex: Int,
+    endIndex: Int,
+    yield: (Int) -> Unit
+): Int {
+    if (endIndex <= beginIndex + 2) {
+        // At least 2 bytes remaining
+        yield(REPLACEMENT_CODE_POINT)
+        if (endIndex <= beginIndex + 1 || !isUtf8Continuation(this[beginIndex + 1])) {
+            // Only 1 byte remaining - underflow
+            // Or 2nd byte is not a continuation - malformed
+            return 1
+        } else {
+            // Only 2 bytes remaining - underflow
+            return 2
+        }
+    }
+
+    val b0 = this[beginIndex]
+    val b1 = this[beginIndex + 1]
+    if (!isUtf8Continuation(b1)) {
+        yield(REPLACEMENT_CODE_POINT)
+        return 1
+    }
+    val b2 = this[beginIndex + 2]
+    if (!isUtf8Continuation(b2)) {
+        yield(REPLACEMENT_CODE_POINT)
+        return 2
+    }
+
+    val codePoint = (MASK_3BYTES
+            xor (b2.toInt())
+            xor (b1.toInt() shl 6)
+            xor (b0.toInt() shl 12))
+
+    when {
+        codePoint < 0x800 -> {
+            yield(REPLACEMENT_CODE_POINT) // Reject overlong code points.
+        }
+
+        codePoint in 0xd800..0xdfff -> {
+            yield(REPLACEMENT_CODE_POINT) // Reject partial surrogates.
+        }
+
+        else -> {
+            yield(codePoint)
+        }
+    }
+    return 3
+}
+
+internal inline fun Segment.process4Utf8Bytes(
     beginIndex: Int,
     endIndex: Int,
     yield: (Int) -> Unit
