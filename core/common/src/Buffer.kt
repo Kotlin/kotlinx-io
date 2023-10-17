@@ -40,47 +40,54 @@ import kotlin.jvm.JvmField
  * does not affect buffer's state and [exhausted] only indicates that a buffer is empty.
  */
 public class Buffer : Source, Sink {
+    public val head: Segment? get() = headField
     @JvmField
-    internal var head: Segment? = null
+    @PublishedApi
+    internal var headField: Segment? = null
+
+    public val tail: Segment? get() = tailField
     @JvmField
-    internal var tail: Segment? = null
+    @PublishedApi
+    internal var tailField: Segment? = null
 
     /**
      * The number of bytes accessible for read from this buffer.
      */
-    public var size: Long = 0L
-        internal set
+    public val size: Long get() = sizeField
+
+    @PublishedApi
+    internal var sizeField: Long = 0L
 
     /**
      * Returns the buffer itself.
      */
     @InternalIoApi
     override val buffer: Buffer = this
-    override fun exhausted(): Boolean = size == 0L
+    override fun exhausted(): Boolean = sizeField == 0L
 
     override fun require(byteCount: Long) {
         require(byteCount >= 0) { "byteCount: $byteCount" }
-        if (size < byteCount) {
-            throw EOFException("Buffer doesn't contain required number of bytes (size: $size, required: $byteCount)")
+        if (sizeField < byteCount) {
+            throw EOFException("Buffer doesn't contain required number of bytes (size: $sizeField, required: $byteCount)")
         }
     }
 
     override fun request(byteCount: Long): Boolean {
         require(byteCount >= 0) { "byteCount: $byteCount < 0" }
-        return size >= byteCount
+        return sizeField >= byteCount
     }
 
     override fun readByte(): Byte {
         require(1)
         val segment = head!!
         val b = segment.readByte()
-        size -= 1L
+        sizeField -= 1L
         if (segment.isEmpty()) {
             val newHead = segment.pop()
             if (newHead == null) {
-                tail = null
+                tailField = null
             }
-            head = newHead
+            headField = newHead
             SegmentPool.recycle(segment)
         }
         return b
@@ -97,14 +104,14 @@ public class Buffer : Source, Sink {
         }
 
         val s = segment.readShort()
-        size -= 2L
+        sizeField -= 2L
 
         if (segmentSize == 2) {
             val newHead = segment.pop()
             if (newHead == null) {
-                tail = null
+                tailField = null
             }
-            head = newHead
+            headField = newHead
             SegmentPool.recycle(segment)
         }
 
@@ -128,14 +135,14 @@ public class Buffer : Source, Sink {
         }
 
         val i = segment.readInt()
-        size -= 4L
+        sizeField -= 4L
 
         if (segmentSize == 4) {
             val newHead = segment.pop()
             if (newHead == null) {
-                tail = null
+                tailField = null
             }
-            head = newHead
+            headField = newHead
             SegmentPool.recycle(segment)
         }
 
@@ -145,7 +152,7 @@ public class Buffer : Source, Sink {
     override fun readLong(): Long {
         require(8)
 
-        val segment = head!!
+        val segment = headField!!
         val segmentSize = segment.size
 
         // If the long is split across multiple segments, delegate to readInt().
@@ -157,14 +164,14 @@ public class Buffer : Source, Sink {
         }
 
         val v = segment.readLong()
-        size -= 8L
+        sizeField -= 8L
 
         if (segmentSize == 8) {
             val newHead = segment.pop()
             if (newHead == null) {
-                tail = null
+                tailField = null
             }
-            head = newHead
+            headField = newHead
             SegmentPool.recycle(segment)
         }
 
@@ -205,15 +212,15 @@ public class Buffer : Source, Sink {
     public fun copyTo(
         out: Buffer,
         startIndex: Long = 0L,
-        endIndex: Long = size
+        endIndex: Long = sizeField
     ) {
-        checkBounds(size, startIndex, endIndex)
+        checkBounds(sizeField, startIndex, endIndex)
         if (startIndex == endIndex) return
 
         var currentOffset = startIndex
         var remainingByteCount = endIndex - startIndex
 
-        out.size += remainingByteCount
+        out.sizeField += remainingByteCount
 
         // Skip segments that we aren't copying from.
         var s = head
@@ -230,10 +237,10 @@ public class Buffer : Source, Sink {
             if (out.head == null) {
                 copy.next = null
                 copy.prev = null
-                out.head = copy
-                out.tail = copy
+                out.headField = copy
+                out.tailField = copy
             } else {
-                out.tail = out.tail!!.push(copy)
+                out.tailField = out.tailField!!.push(copy)
             }
             remainingByteCount -= (copy.limit - copy.pos).toLong()
             currentOffset = 0L
@@ -300,16 +307,16 @@ public class Buffer : Source, Sink {
             val head = head ?: throw EOFException("Buffer exhausted before skipping $byteCount bytes.")
 
             val toSkip = minOf(remainingByteCount, head.limit - head.pos).toInt()
-            size -= toSkip.toLong()
+            sizeField -= toSkip.toLong()
             remainingByteCount -= toSkip.toLong()
             head.pos += toSkip
 
             if (head.pos == head.limit) {
                 val newHead = head.pop()
                 if (newHead == null) {
-                    this.tail = null
+                    this.tailField = null
                 }
-                this.head = newHead
+                this.headField = newHead
                 SegmentPool.recycle(head)
             }
         }
@@ -321,14 +328,14 @@ public class Buffer : Source, Sink {
         val s = head ?: return -1
         val toCopy = minOf(endIndex - startIndex, s.size)
         s.readTo(sink, startIndex, startIndex + toCopy)
-        size -= toCopy.toLong()
+        sizeField -= toCopy.toLong()
 
         if (s.isEmpty()) {
             val newHead = s.pop()
             if (newHead == null) {
-                tail = null
+                tailField = null
             }
-            head = newHead
+            headField = newHead
             SegmentPool.recycle(s)
         }
 
@@ -372,8 +379,8 @@ public class Buffer : Source, Sink {
 
         if (head == null) {
             val result = SegmentPool.take() // Acquire a first segment.
-            head = result
-            tail = result
+            headField = result
+            tailField = result
             result.prev = null
             result.next = null
             return result
@@ -383,7 +390,7 @@ public class Buffer : Source, Sink {
         check(t != null)
         if (t.limit + minimumCapacity > Segment.SIZE || !t.owner) {
             val newTail = t.push(SegmentPool.take()) // Append a new empty segment to fill up.
-            tail = newTail
+            tailField = newTail
             return newTail
         }
         return t
@@ -398,7 +405,7 @@ public class Buffer : Source, Sink {
             tail.write(source, currentOffset, currentOffset + toCopy)
             currentOffset += toCopy
         }
-        size += endIndex - startIndex
+        sizeField += endIndex - startIndex
     }
 
     override fun write(source: RawSource, byteCount: Long) {
@@ -481,41 +488,41 @@ public class Buffer : Source, Sink {
                 ) {
                     // Our existing segments are sufficient. Move bytes from source's head to our tail.
                     source.head!!.writeTo(tail, remainingByteCount.toInt())
-                    source.size -= remainingByteCount
-                    size += remainingByteCount
+                    source.sizeField -= remainingByteCount
+                    sizeField += remainingByteCount
                     return
                 } else {
                     // We're going to need another segment. Split the source's head
                     // segment in two, then move the first of those two to this buffer.
                     val newHead = source.head!!.split(remainingByteCount.toInt())
                     if (source.head === source.tail) {
-                        source.tail = newHead
+                        source.tailField = newHead
                     }
-                    source.head = newHead
+                    source.headField = newHead
                 }
             }
 
             // Remove the source's head segment and append it to our tail.
             val segmentToMove = source.head
             val movedByteCount = (segmentToMove!!.limit - segmentToMove.pos).toLong()
-            source.head = segmentToMove.pop()
-            if (source.head == null) {
-                source.tail = null
+            source.headField = segmentToMove.pop()
+            if (source.headField == null) {
+                source.tailField = null
             }
             if (head == null) {
-                head = segmentToMove
-                tail = segmentToMove
+                headField = segmentToMove
+                tailField = segmentToMove
                 segmentToMove.prev = null
                 segmentToMove.next = null
             } else {
                 val newTail = tail!!.push(segmentToMove).compact()
-                tail = newTail
+                tailField = newTail
                 if (newTail.prev == null) {
-                    head = newTail
+                    headField = newTail
                 }
             }
-            source.size -= movedByteCount
-            size += movedByteCount
+            source.sizeField -= movedByteCount
+            sizeField += movedByteCount
             remainingByteCount -= movedByteCount
         }
     }
@@ -532,22 +539,22 @@ public class Buffer : Source, Sink {
 
     override fun writeByte(byte: Byte) {
         writableSegment(1).writeByte(byte)
-        size += 1L
+        sizeField += 1L
     }
 
     override fun writeShort(short: Short) {
         writableSegment(2).writeShort(short)
-        size += 2L
+        sizeField += 2L
     }
 
     override fun writeInt(int: Int) {
         writableSegment(4).writeInt(int)
-        size += 4L
+        sizeField += 4L
     }
 
     override fun writeLong(long: Long) {
         writableSegment(8).writeLong(long)
-        size += 8L
+        sizeField += 8L
     }
 
     // TODO: make inline
@@ -558,21 +565,21 @@ public class Buffer : Source, Sink {
         // fast path
         if (bytesWritten == minimumCapacity) {
             segment.limit += bytesWritten
-            size += bytesWritten
+            sizeField += bytesWritten
             return
         }
 
        check(bytesWritten in 0 .. segment.capacity)
         if (bytesWritten != 0) {
             segment.limit += bytesWritten
-            size += bytesWritten
+            sizeField += bytesWritten
             return
         }
 
         if (segment.isEmpty()) {
             val res = segment.pop()
             if (res == null) {
-                head = null
+                headField = null
             }
         }
     }
@@ -587,16 +594,16 @@ public class Buffer : Source, Sink {
         val head = head!!
         val headCopy = head.sharedCopy()
 
-        result.head = headCopy
-        result.tail = headCopy
+        result.headField = headCopy
+        result.tailField = headCopy
 
         var s = head.next
         while (s != null) {
-            result.tail = result.tail!!.push(s.sharedCopy())
+            result.tailField = result.tail!!.push(s.sharedCopy())
             s = s.next
         }
 
-        result.size = size
+        result.sizeField = size
         return result
     }
 
