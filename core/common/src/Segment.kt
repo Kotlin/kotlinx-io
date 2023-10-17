@@ -110,6 +110,7 @@ public class Segment {
      * Removes this segment of a circularly-linked list and returns its successor.
      * Returns null if the list is now empty.
      */
+    @PublishedApi
     internal fun pop(): Segment? {
         val result = next
         if (prev != null) {
@@ -300,7 +301,6 @@ public class Segment {
         pos += len
     }
 
-    // TODO
     internal fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int) {
         require(srcEndOffset - srcStartOffset in 0 .. capacity)
         src.copyInto(data, limit, srcStartOffset, srcEndOffset)

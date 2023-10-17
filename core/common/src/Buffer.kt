@@ -553,16 +553,27 @@ public class Buffer : Source, Sink {
     public /*inline*/ fun writeUnbound(minimumCapacity: Int, block: SegmentSetContext.(Segment) -> Int) {
         val segment = writableSegment(minimumCapacity)
         val bytesWritten = block(SegmentSetContextImpl, segment)
-        check(bytesWritten in 0 .. segment.capacity)
-        if (bytesWritten == 0 && segment.isEmpty()) {
+
+        // fast path
+        if (bytesWritten == minimumCapacity) {
+            segment.limit += bytesWritten
+            size += bytesWritten
+            return
+        }
+
+       check(bytesWritten in 0 .. segment.capacity)
+        if (bytesWritten != 0) {
+            segment.limit += bytesWritten
+            size += bytesWritten
+            return
+        }
+
+        if (segment.isEmpty()) {
             val res = segment.pop()
             if (res == null) {
                 head = null
             }
-            return
         }
-        segment.limit += bytesWritten
-        size += bytesWritten
     }
 
     /**
@@ -667,7 +678,8 @@ internal inline fun <T> Buffer.seek(
     }
 }
 
-private object SegmentSetContextImpl : SegmentSetContext {
+@PublishedApi
+internal object SegmentSetContextImpl : SegmentSetContext {
     override fun Segment.set(index: Int, value: Byte) {
         setChecked(index, value)
     }
