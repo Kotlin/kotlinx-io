@@ -832,6 +832,9 @@ abstract class AbstractBufferedSourceTest internal constructor(
         assertFailsWith<IllegalArgumentException>("Expected failure: fromIndex > toIndex") {
             source.indexOf('a'.code.toByte(), 10, 0)
         }
+        assertFailsWith<IllegalArgumentException>("Expected failure: fromIndex < toIndex < 0") {
+            source.indexOf('a'.code.toByte(), -20, -1)
+        }
     }
 
     @Test
@@ -946,6 +949,13 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeString("ABCDEF")
         sink.emit()
         assertEquals(0xabcdefL, source.readHexadecimalUnsignedLong())
+        sink.writeString("0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F ")
+        sink.emit()
+        val expectedValues = longArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 10, 11, 12, 13, 14, 15)
+        for (i in expectedValues.indices) {
+            assertEquals(expectedValues[i], source.readHexadecimalUnsignedLong())
+            source.readByte()
+        }
     }
 
     @Test
