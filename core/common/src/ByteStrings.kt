@@ -40,7 +40,7 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
                 tail.write(it, offset, offset + bytesToWrite)
             }
             offset += bytesToWrite
-            buffer.size += bytesToWrite
+            buffer.sizeField += bytesToWrite
         }
         while (offset < endIndex) {
             val segment = buffer.writableSegment(1)
@@ -49,7 +49,7 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
                 segment.write(data, offset, offset + bytesToWrite)
             }
             offset += bytesToWrite
-            buffer.size += bytesToWrite
+            buffer.sizeField += bytesToWrite
         }
     }
 }
