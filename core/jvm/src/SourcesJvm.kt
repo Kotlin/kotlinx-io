@@ -62,8 +62,10 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
     sizeField -= byteCount
 
     if (s.pos == s.limit) {
-        // TODO: update tail too
         headField = s.pop()
+        if (headField == null) {
+            tailField = null
+        }
         SegmentPool.recycle(s)
     }
 
