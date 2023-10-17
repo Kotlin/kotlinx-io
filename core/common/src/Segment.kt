@@ -22,15 +22,33 @@ package kotlinx.io
 
 import kotlin.jvm.JvmField
 
+/**
+ * Context for writing data into [Segment].
+ */
 public sealed interface SegmentSetContext {
+    /**
+     * Writes [value] to [index]-position within this segment.
+     * [index] value must be in range `[0, Segment.capacity)`.
+     *
+     * Unlike [Segment.writeByte] this function does not affect [Segment.size], i.e., the value is not available for
+     * reading immediately after calling this method.
+     * To publish or commit written data, this method should be used inside [Buffer.writeUnbound].
+     *
+     * @param value the value to be written.
+     * @param index the index of byte to read from the segment.
+     *
+     * @throws IllegalArgumentException if [index] is negative or greater or equal to [Segment.capacity].
+     */
     public operator fun Segment.set(index: Int, value: Byte)
 }
 
 /**
  * A segment of a buffer.
  *
- * Each segment in a buffer is a circularly-linked list node referencing the following and
+ * Each segment in a buffer is a list node referencing the following and
  * preceding segments in the buffer.
+ * Buffer's head segment refers to null as its preceding segment and
+ * the tail segment refers to null as its following segment.
  *
  * Each segment in the pool is a singly-linked list node referencing the rest of segments in the pool.
  *
@@ -71,11 +89,11 @@ public class Segment {
     @JvmField
     internal var owner: Boolean = false
 
-    /** Next segment in a linked or circularly-linked list. */
+    /** Next segment. */
     @JvmField
     internal var next: Segment? = null
 
-    /** Previous segment in a circularly-linked list. */
+    /** Previous segment. */
     @JvmField
     internal var prev: Segment? = null
 
@@ -107,7 +125,7 @@ public class Segment {
     internal fun unsharedCopy() = Segment(data.copyOf(), pos, limit, false, true)
 
     /**
-     * Removes this segment of a circularly-linked list and returns its successor.
+     * Removes this segment of a segments list and returns its successor.
      * Returns null if the list is now empty.
      */
     @PublishedApi
@@ -125,7 +143,7 @@ public class Segment {
     }
 
     /**
-     * Appends `segment` after this segment in the circularly-linked list. Returns the pushed segment.
+     * Appends `segment` after this segment in the list. Returns the pushed segment.
      */
     internal fun push(segment: Segment): Segment {
         segment.prev = this
@@ -138,12 +156,12 @@ public class Segment {
     }
 
     /**
-     * Splits this head of a circularly-linked list into two segments. The first segment contains the
+     * Splits this head of a list into two segments. The first segment contains the
      * data in `[pos..pos+byteCount)`. The second segment contains the data in
      * `[pos+byteCount..limit)`. This can be useful when moving partial segments from one buffer to
      * another.
      *
-     * Returns the new head of the circularly-linked list.
+     * Returns the new head of the list.
      */
     internal fun split(byteCount: Int): Segment {
         require(byteCount > 0 && byteCount <= limit - pos) { "byteCount out of range" }
@@ -210,9 +228,15 @@ public class Segment {
         pos += byteCount
     }
 
+    /**
+     * Number of readable bytes within the segment.
+     */
     public val size: Int
         get() = limit - pos
 
+    /**
+     * Number of bytes that could be written in the segment.
+     */
     public val capacity: Int
         get() = data.size - limit
 
@@ -307,6 +331,17 @@ public class Segment {
         limit += srcEndOffset - srcStartOffset
     }
 
+    /**
+     * Returns value at [index]-position within this segment.
+     * [index] value must be in range `[0, Segment.size)`.
+     *
+     * Unlike [Segment.readByte], this method does not affect [Segment.size], i.e., it does not consume value from
+     * the segment.
+     *
+     * @param index the index of byte to read from the segment.
+     *
+     * @throws IllegalArgumentException if [index] is negative or greater or equal to [Segment.size].
+     */
     public operator fun get(index: Int): Byte {
         require(index in 0 until size)
         return data[pos + index]
@@ -351,6 +386,10 @@ internal fun Segment.indexOf(byte: Byte, startOffset: Int, endOffset: Int): Int 
     return -1
 }
 
+/**
+ * Checks if the segment is empty.
+ * Empty segment contains `0` readable bytes (i.e., its [Segment.size] is `0`).
+ */
 public fun Segment.isEmpty(): Boolean = size == 0
 
 /**
