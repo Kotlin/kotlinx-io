@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeSegmentAccessors
 import kotlin.jvm.JvmField
 
 /**
@@ -274,7 +275,7 @@ public class Buffer : Source, Sink {
             throw IndexOutOfBoundsException("position ($position) is not within the range [0..size($size))")
         }
         seek(position) { s, offset ->
-            return s!![(position - offset).toInt()]
+            return UnsafeSegmentAccessors.getUnsafe(s!!, (position - offset).toInt())
         }
     }
 
