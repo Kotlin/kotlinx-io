@@ -129,6 +129,7 @@ internal class FileSource(private val path: Path) : RawSource {
 internal class FileSink(private val path: Path, private var append: Boolean) : RawSink {
     private var closed = false
 
+    @OptIn(UnsafeIoApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         check(!closed) { "Sink is closed." }
         if (byteCount == 0L) {

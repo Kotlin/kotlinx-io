@@ -14,7 +14,7 @@ import platform.Foundation.data
 import platform.darwin.NSUIntegerMax
 import platform.posix.*
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class)
 internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
@@ -40,6 +40,7 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
     }
 }
 
+@OptIn(UnsafeIoApi::class)
 internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): Int {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
@@ -60,7 +61,7 @@ internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): In
     return toCopy
 }
 
-@OptIn(BetaInteropApi::class)
+@OptIn(BetaInteropApi::class, UnsafeIoApi::class)
 internal fun Buffer.snapshotAsNSData(): NSData {
     if (size == 0L) return NSData.data()
 
