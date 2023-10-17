@@ -5,6 +5,7 @@
 
 package kotlinx.io
 
+@UnsafeIoApi
 public inline fun <T> Segment.withContainedData(block: (Any, Int, Int) -> T) : T {
     return block(rawData, pos, limit)
 }

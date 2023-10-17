@@ -31,6 +31,7 @@ private open class OutputStreamSink(
         if (out.streamStatus == NSStreamStatusNotOpen) out.open()
     }
 
+    @OptIn(UnsafeIoApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         if (out.streamStatus == NSStreamStatusClosed) throw IOException("Stream Closed")
 
@@ -85,6 +86,7 @@ private open class NSInputStreamSource(
         if (input.streamStatus == NSStreamStatusNotOpen) input.open()
     }
 
+    @OptIn(UnsafeIoApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         if (input.streamStatus == NSStreamStatusClosed) throw IOException("Stream Closed")
 

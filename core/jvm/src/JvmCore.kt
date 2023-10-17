@@ -38,6 +38,7 @@ private open class OutputStreamSink(
     private val out: OutputStream,
 ) : RawSink {
 
+    @OptIn(UnsafeIoApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         checkOffsetAndCount(source.size, 0, byteCount)
         var remaining = byteCount
@@ -87,6 +88,7 @@ private open class InputStreamSource(
     private val input: InputStream,
 ) : RawSource {
 
+    @OptIn(UnsafeIoApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)

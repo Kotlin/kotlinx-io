@@ -26,6 +26,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
     require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
         "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
