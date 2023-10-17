@@ -603,6 +603,19 @@ class CommonBufferTest {
     }
 
     @Test
+    fun multisegmentSnapshot() {
+        val buffer = Buffer()
+        buffer.writeByte('a'.code.toByte())
+        val segmentCapacity = buffer.head!!.capacity + 1
+
+        val expected = ("a".repeat(segmentCapacity) + "b".repeat(segmentCapacity)).encodeToByteString()
+        buffer.write(expected, 1)
+
+        val snapshot = buffer.snapshot()
+        assertEquals(expected, snapshot)
+    }
+
+    @Test
     fun testTransferring() {
         val aaaa = ByteArray(10000) { 'a'.code.toByte() }
         val buffer = Buffer().also { it.write(aaaa) }
