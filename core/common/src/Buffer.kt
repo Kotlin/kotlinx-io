@@ -54,8 +54,8 @@ public class Buffer : Source, Sink {
      * The number of bytes accessible for read from this buffer.
      */
     public val size: Long get() = sizeField
-
     @PublishedApi
+    @JvmField
     internal var sizeField: Long = 0L
 
     /**
@@ -557,8 +557,7 @@ public class Buffer : Source, Sink {
         sizeField += 8L
     }
 
-    // TODO: make inline
-    public /*inline*/ fun writeUnbound(minimumCapacity: Int, block: SegmentSetContext.(Segment) -> Int) {
+    public inline fun writeUnbound(minimumCapacity: Int, block: SegmentSetContext.(Segment) -> Int) {
         val segment = writableSegment(minimumCapacity)
         val bytesWritten = block(SegmentSetContextImpl, segment)
 
