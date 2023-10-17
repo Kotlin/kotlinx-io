@@ -57,6 +57,7 @@ public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
     return this
 }
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) {
     var remainingByteCount = byteCount
     var exchaused = false
@@ -113,6 +114,7 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.bufferTransferToStream
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
     checkOffsetAndCount(size, 0, byteCount)
     var remainingByteCount = byteCount
@@ -155,6 +157,7 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.copyBufferToOutputStream
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.copyTo(
     out: OutputStream,
     startIndex: Long = 0L,
@@ -206,6 +209,7 @@ public fun Buffer.copyTo(
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteByteBuffer
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
     val s = head ?: return -1
 
@@ -235,6 +239,7 @@ public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.transferBufferFromByteBuffer
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
     var remaining = byteCount
