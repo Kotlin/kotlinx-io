@@ -618,4 +618,86 @@ class CommonBufferTest {
         assertTrue(buffer.readByteArray().isEmpty())
         //assertEquals("?" + "a".repeat(aaaa.size), dstBuffer.readString())
     }
+
+    @Test
+    fun writeUnbound() {
+        assertFailsWith<IllegalArgumentException> { Buffer().writeUnbound(Int.MAX_VALUE) { 0 } }
+
+        assertFailsWith<IllegalStateException> { Buffer().writeUnbound(1) { -1 } }
+        assertFailsWith<IllegalStateException> { Buffer().writeUnbound(1) { it.capacity + 1 } }
+
+        Buffer().apply {
+            writeUnbound(4) {
+                it[0] = 1
+                it[1] = 2
+                it[2] = 3
+                it[3] = 4
+                1
+            }
+            assertEquals(1, size)
+            assertEquals(1, readByte())
+
+            writeUnbound(1) {
+                assertTrue(it.capacity > 1)
+                it[0] = 5
+                it[1] = 6
+                2
+            }
+            assertEquals(2, size)
+            assertEquals(ByteString(5, 6), readByteString())
+
+            writeUnbound(3) {
+                it[0] = 7
+                it[1] = 8
+                it[2] = 9
+                3
+            }
+            assertEquals(3, size)
+            assertEquals(ByteString(7, 8, 9), readByteString())
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            Buffer().apply {
+                writeUnbound(1) {
+                    val cap = it.capacity
+                    it[cap] = 0
+                    0
+                }
+            }
+        }
+        assertFailsWith<IllegalArgumentException> {
+            Buffer().apply {
+                writeUnbound(1) {
+                    it[-1] = 0
+                    0
+                }
+            }
+        }
+    }
+
+    @Test
+    fun segmentRead() {
+        val buffer = Buffer().apply {
+            writeInt(0xdeadc0de.toInt())
+        }
+        buffer.head!!.also { head ->
+            assertEquals(4, head.size)
+            assertEquals(0xde.toByte(), head[0])
+            assertEquals(0xad.toByte(), head[1])
+            assertEquals(0xc0.toByte(), head[2])
+            assertEquals(0xde.toByte(), head[3])
+
+            assertFailsWith<IllegalArgumentException> { head[4] }
+            assertFailsWith<IllegalArgumentException> { head[-1] }
+        }
+
+        buffer.writeByte(0)
+        buffer.skip(2)
+        buffer.head!!.also { head ->
+            assertEquals(3, head.size)
+            assertEquals(0xc0.toByte(), head[0])
+            assertEquals(0xde.toByte(), head[1])
+            assertEquals(0, head[2])
+        }
+    }
 }

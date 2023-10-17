@@ -65,7 +65,7 @@ public fun Sink.writeLongLe(long: Long) {
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDecimalLong
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(DelicateIoApi::class, UnsafeIoApi::class)
 public fun Sink.writeDecimalLong(long: Long) {
     var v = long
     if (v == 0L) {
@@ -143,7 +143,7 @@ public fun Sink.writeDecimalLong(long: Long) {
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeHexLong
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(DelicateIoApi::class, UnsafeIoApi::class)
 public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
     var v = long
     if (v == 0L) {

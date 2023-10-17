@@ -432,6 +432,7 @@ private fun Buffer.commonReadUtf8CodePoint(): Int {
     }
 }
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int) {
     checkBounds(string.length, beginIndex, endIndex)
 
@@ -497,6 +498,8 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
     }
 }
 
+/*
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.commonWriteUtf8_old(string: String, beginIndex: Int, endIndex: Int) {
     checkBounds(string.length, beginIndex, endIndex)
 
@@ -575,6 +578,7 @@ private fun Buffer.commonWriteUtf8_old(string: String, beginIndex: Int, endIndex
         }
     }
 }
+ */
 
 private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
     when {

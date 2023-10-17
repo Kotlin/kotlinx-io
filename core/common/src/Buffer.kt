@@ -40,11 +40,19 @@ import kotlin.jvm.JvmField
  * does not affect buffer's state and [exhausted] only indicates that a buffer is empty.
  */
 public class Buffer : Source, Sink {
+    /**
+     * Returns reference to the head of the segments list.
+     * If the buffer is empty, returns `null`.
+     */
     public val head: Segment? get() = headField
     @JvmField
     @PublishedApi
     internal var headField: Segment? = null
 
+    /**
+     * Returns reference to the tail of the segments list.
+     * If the buffer is empty, returns `null`.
+     */
     public val tail: Segment? get() = tailField
     @JvmField
     @PublishedApi
@@ -277,6 +285,7 @@ public class Buffer : Source, Sink {
      *
      * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.bufferGetByte
      */
+    @OptIn(UnsafeIoApi::class)
     public operator fun get(position: Long): Byte {
         if (position < 0 || position >= size) {
             throw IndexOutOfBoundsException("position ($position) is not within the range [0..size($size))")
@@ -557,6 +566,29 @@ public class Buffer : Source, Sink {
         sizeField += 8L
     }
 
+    /**
+     * Allocates at least [minimumCapacity] bytes of space for writing and supplies it to [block] in form of [Segment].
+     * Actual number of bytes available for writing may exceed [minimumCapacity] and could be checked using
+     * [Segment.capacity].
+     *
+     * [block] can write into [Segment] using [SegmentSetContext.set].
+     * Data written into [Segment] will not be available for reading from the buffer until [block] returned.
+     * A value returned from [block] represent the length of [Segment]'s prefix that should be appended to the buffer.
+     * That value may be less or greater than [minimumCapacity], but it should be non-negative and should not exceed
+     * [Segment.capacity].
+     *
+     * @param minimumCapacity the minimum number of bytes that could be written into a segment
+     * that will be supplied into [block].
+     * @param block the block writing data into provided [Segment], should return the number of consecutive bytes
+     * that will be appended to the buffer.
+     *
+     * @throws IllegalArgumentException when [minimumCapacity] is negative or exceeds the maximum size of a segment.
+     * @throws IllegalStateException when [block] returns negative value or a value that exceeds capacity of a segment
+     * that was supplied to the [block].
+     *
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128
+     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128Array
+     */
     public inline fun writeUnbound(minimumCapacity: Int, block: SegmentSetContext.(Segment) -> Int) {
         val segment = writableSegment(minimumCapacity)
         val bytesWritten = block(SegmentSetContextImpl, segment)
