@@ -93,7 +93,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
     override fun sink(path: Path, append: Boolean): RawSink = FileOutputStream(path.file, append).asSink()
 
     override fun resolve(path: Path): Path {
-        if (!path.file.exists()) throw FileNotFoundException()
+        if (!path.file.exists()) throw FileNotFoundException(path.file.absolutePath)
         return Path(path.file.canonicalFile)
     }
 }
