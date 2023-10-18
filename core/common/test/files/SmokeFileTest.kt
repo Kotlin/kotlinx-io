@@ -336,7 +336,40 @@ class SmokeFileTest {
         }
         assertEquals("second third",
             SystemFileSystem.source(path).buffered().use { it.readString() })
+    }
 
+    @Test
+    fun resolve() {
+        assertFailsWith<FileNotFoundException>("Non-existing path resolution should fail") {
+            SystemFileSystem.resolve(createTempPath())
+        }
+
+        val cwd = SystemFileSystem.resolve(Path("."))
+        val parentRel = Path("..")
+        assertEquals(cwd.parent, SystemFileSystem.resolve(parentRel))
+
+        assertEquals(cwd, SystemFileSystem.resolve(cwd),
+            "Absolute path resolution should not alter the path")
+
+        // root
+        //   |-> a -> b
+        //   |-> c -> d
+        val root = createTempPath()
+        SystemFileSystem.createDirectories(Path(root, "a", "b"))
+        val tgt = Path(root, "c", "d")
+        SystemFileSystem.createDirectories(tgt)
+
+        val src = Path(root, "a", "..", "a", ".", "b", "..", "..", "c", ".", "d")
+        try {
+            // root/a/../a/./b/../../c/./d -> root/c/d
+            assertEquals(SystemFileSystem.resolve(tgt), SystemFileSystem.resolve(src))
+        } finally {
+            // TODO: remove as soon as recursive file removal is implemented
+            SystemFileSystem.delete(Path(root, "a", "b"))
+            SystemFileSystem.delete(Path(root, "a"))
+            SystemFileSystem.delete(Path(root, "c", "d"))
+            SystemFileSystem.delete(Path(root, "c"))
+        }
     }
 
     private fun constructAbsolutePath(vararg parts: String): String {

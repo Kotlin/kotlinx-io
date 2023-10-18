@@ -46,3 +46,12 @@ internal actual fun mkdirImpl(path: String) {
         throw IOException("mkdir failed: ${strerror(errno)?.toKString()}")
     }
 }
+
+internal actual fun realpathImpl(path: String): String {
+    val res = realpath(path, null) ?: throw IllegalStateException()
+    try {
+        return res.toKString()
+    } finally {
+        free(res)
+    }
+}

@@ -10,10 +10,7 @@ package kotlinx.io.files
 import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.posix.*
-import platform.windows.GetLastError
-import platform.windows.MOVEFILE_REPLACE_EXISTING
-import platform.windows.MoveFileExA
-import platform.windows.PathIsRelativeA
+import platform.windows.*
 
 private const val WindowsPathSeparator: Char = '\\'
 
@@ -47,5 +44,16 @@ internal actual fun isAbsoluteImpl(path: String): Boolean {
 internal actual fun mkdirImpl(path: String) {
     if (mkdir(path) != 0) {
         throw IOException("mkdir failed: ${strerror(errno)?.toKString()}")
+    }
+}
+
+private const val MAX_PATH_LENGTH = 32767
+
+internal actual fun realpathImpl(path: String): String {
+    memScoped {
+        val buffer = allocArray<CHARVar>(MAX_PATH_LENGTH)
+        val len = GetFullPathNameA(path, MAX_PATH_LENGTH.convert(), buffer, null)
+        if (len == 0u) throw IllegalStateException()
+        return buffer.toKString()
     }
 }

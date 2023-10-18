@@ -80,6 +80,11 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         }
     }
 
+    override fun resolve(path: Path): Path {
+        if (!exists(path)) throw FileNotFoundException(path.path)
+        return Path(realpathImpl(path.path))
+    }
+
     override fun source(path: Path): RawSource {
         val openFile: CPointer<FILE>? = fopen(path.path, "rb")
         if (openFile == null) {
@@ -101,6 +106,8 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 internal expect fun atomicMoveImpl(source: Path, destination: Path)
 
 internal expect fun mkdirImpl(path: String)
+
+internal expect fun realpathImpl(path: String): String
 
 public actual open class FileNotFoundException actual constructor(
     message: String?

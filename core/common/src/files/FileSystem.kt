@@ -129,6 +129,19 @@ public sealed interface FileSystem {
      * @param path the path to get the metadata for.
      */
     public fun metadataOrNull(path: Path): FileMetadata?
+
+    /**
+     * Returns an absolute path to the same file or directory the [path] is pointing to.
+     * All symbolic links are solved, extra path separators and references to current (`.`) or
+     * parent (`..`) directories are removed.
+     * If the [path] is a relative path then it'll be resolved against current working directory.
+     * If there is no file or directory to which the [path] is pointing to then [FileNotFoundException] will be thrown.
+     *
+     * @param path the path to resolve.
+     * @return a resolved path.
+     * @throws FileNotFoundException if there is no file or directory corresponding to the specified path.
+     */
+    public fun resolve(path: Path): Path
 }
 
 internal abstract class SystemFileSystemImpl : FileSystem
