@@ -1,4 +1,7 @@
 public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
+	public field headField Lkotlinx/io/Segment;
+	public field sizeField J
+	public field tailField Lkotlinx/io/Segment;
 	public fun <init> ()V
 	public final fun clear ()V
 	public fun close ()V
@@ -10,7 +13,9 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun flush ()V
 	public final fun get (J)B
 	public fun getBuffer ()Lkotlinx/io/Buffer;
+	public final fun getHead ()Lkotlinx/io/Segment;
 	public final fun getSize ()J
+	public final fun getTail ()Lkotlinx/io/Segment;
 	public fun hintEmit ()V
 	public fun peek ()Lkotlinx/io/Source;
 	public fun readAtMostTo (Lkotlinx/io/Buffer;J)J
@@ -99,8 +104,11 @@ public final class kotlinx/io/Segment {
 	public field pos I
 	public final fun get (I)B
 	public final fun getCapacity ()I
+	public final fun getNext ()Lkotlinx/io/Segment;
+	public final fun getPrev ()Lkotlinx/io/Segment;
 	public final fun getRawData ()Ljava/lang/Object;
 	public final fun getSize ()I
+	public final fun pop ()Lkotlinx/io/Segment;
 	public final fun setUnchecked (IB)V
 }
 
@@ -110,6 +118,11 @@ public final class kotlinx/io/SegmentKt {
 
 public abstract interface class kotlinx/io/SegmentSetContext {
 	public abstract fun set (Lkotlinx/io/Segment;IB)V
+}
+
+public final class kotlinx/io/SegmentSetContextImpl : kotlinx/io/SegmentSetContext {
+	public static final field INSTANCE Lkotlinx/io/SegmentSetContextImpl;
+	public fun set (Lkotlinx/io/Segment;IB)V
 }
 
 public final class kotlinx/io/SegmentsJvmKt {
@@ -208,6 +221,9 @@ public final class kotlinx/io/SourcesKt {
 	public static final fun readUShort (Lkotlinx/io/Source;)S
 	public static final fun readUShortLe (Lkotlinx/io/Source;)S
 	public static final fun startsWith (Lkotlinx/io/Source;B)Z
+}
+
+public abstract interface annotation class kotlinx/io/UnsafeIoApi : java/lang/annotation/Annotation {
 }
 
 public final class kotlinx/io/Utf8Kt {
