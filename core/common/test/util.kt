@@ -28,10 +28,10 @@ fun segmentSizes(buffer: Buffer): List<Int> {
     if (segment == null) return emptyList()
 
     val sizes = mutableListOf(segment.limit - segment.pos)
-    segment = segment.next
+    segment = segment.nextField
     while (segment !== null) {
         sizes.add(segment.limit - segment.pos)
-        segment = segment.next
+        segment = segment.nextField
     }
     return sizes
 }

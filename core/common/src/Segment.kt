@@ -89,13 +89,19 @@ public class Segment {
     @JvmField
     internal var owner: Boolean = false
 
-    /** Next segment. */
+    /**
+     * Next segment or `null` if this segment is the tail of a list.
+     */
+    public val next: Segment? get() = nextField
     @JvmField
-    internal var next: Segment? = null
+    internal var nextField: Segment? = null
 
-    /** Previous segment. */
+    /**
+     * Previous segment or `null` if this segment is the head of a list.
+     */
+    public val prev: Segment? get() = prevField
     @JvmField
-    internal var prev: Segment? = null
+    internal var prevField: Segment? = null
 
     internal constructor() {
         this.data = ByteArray(SIZE)
@@ -130,15 +136,15 @@ public class Segment {
      */
     @PublishedApi
     internal fun pop(): Segment? {
-        val result = next
-        if (prev != null) {
-            prev!!.next = next
+        val result = nextField
+        if (prevField != null) {
+            prevField!!.nextField = nextField
         }
-        if (next != null) {
-            next!!.prev = prev
+        if (nextField != null) {
+            nextField!!.prevField = prevField
         }
-        next = null
-        prev = null
+        nextField = null
+        prevField = null
         return result
     }
 
@@ -146,12 +152,12 @@ public class Segment {
      * Appends `segment` after this segment in the list. Returns the pushed segment.
      */
     internal fun push(segment: Segment): Segment {
-        segment.prev = this
-        segment.next = next
-        if (next != null) {
-            next!!.prev = segment
+        segment.prevField = this
+        segment.nextField = nextField
+        if (nextField != null) {
+            nextField!!.prevField = segment
         }
-        next = segment
+        nextField = segment
         return segment
     }
 
@@ -181,11 +187,11 @@ public class Segment {
 
         prefix.limit = prefix.pos + byteCount
         pos += byteCount
-        if (prev != null) {
-            prev!!.push(prefix)
+        if (prevField != null) {
+            prevField!!.push(prefix)
         } else {
-            prefix.next = this
-            prev = prefix
+            prefix.nextField = this
+            prevField = prefix
         }
         return prefix
     }
@@ -195,12 +201,12 @@ public class Segment {
      * data so that segments can be recycled.
      */
     internal fun compact(): Segment {
-        check(prev !== null) { "cannot compact" }
-        if (!prev!!.owner) return this // Cannot compact: prev isn't writable.
+        check(prevField !== null) { "cannot compact" }
+        if (!prevField!!.owner) return this // Cannot compact: prev isn't writable.
         val byteCount = limit - pos
-        val availableByteCount = SIZE - prev!!.limit + if (prev!!.shared) 0 else prev!!.pos
+        val availableByteCount = SIZE - prevField!!.limit + if (prevField!!.shared) 0 else prevField!!.pos
         if (byteCount > availableByteCount) return this // Cannot compact: not enough writable space.
-        val predecessor = prev
+        val predecessor = prevField
         writeTo(predecessor!!, byteCount)
         val successor = pop()
         check(successor === null)

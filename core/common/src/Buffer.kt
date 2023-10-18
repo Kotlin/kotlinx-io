@@ -243,8 +243,8 @@ public class Buffer : Source, Sink {
             copy.pos += currentOffset.toInt()
             copy.limit = minOf(copy.pos + remainingByteCount.toInt(), copy.limit)
             if (out.head == null) {
-                copy.next = null
-                copy.prev = null
+                copy.nextField = null
+                copy.prevField = null
                 out.headField = copy
                 out.tailField = copy
             } else {
@@ -390,8 +390,8 @@ public class Buffer : Source, Sink {
             val result = SegmentPool.take() // Acquire a first segment.
             headField = result
             tailField = result
-            result.prev = null
-            result.next = null
+            result.prevField = null
+            result.nextField = null
             return result
         }
 
@@ -521,8 +521,8 @@ public class Buffer : Source, Sink {
             if (head == null) {
                 headField = segmentToMove
                 tailField = segmentToMove
-                segmentToMove.prev = null
-                segmentToMove.next = null
+                segmentToMove.prevField = null
+                segmentToMove.nextField = null
             } else {
                 val newTail = tail!!.push(segmentToMove).compact()
                 tailField = newTail

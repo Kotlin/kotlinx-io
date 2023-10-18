@@ -97,7 +97,7 @@ internal actual object SegmentPool {
             else -> {
                 // We acquired the lock and the pool was not empty. Pop the first element and return it.
                 firstRef.set(first.next)
-                first.next = null
+                first.nextField = null
                 first.limit = 0
                 return first
             }
@@ -116,13 +116,13 @@ internal actual object SegmentPool {
         val firstLimit = first?.limit ?: 0
         if (firstLimit >= MAX_SIZE) return // Pool is full.
 
-        segment.next = first
+        segment.nextField = first
         segment.pos = 0
         segment.limit = firstLimit + Segment.SIZE
 
         // If we lost a race with another operation, don't recycle this segment.
         if (!firstRef.compareAndSet(first, segment)) {
-            segment.next = null // Don't leak a reference in the pool either!
+            segment.nextField = null // Don't leak a reference in the pool either!
         }
     }
 

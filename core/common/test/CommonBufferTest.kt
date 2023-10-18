@@ -22,10 +22,7 @@ package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 private const val SEGMENT_SIZE = Segment.SIZE
 
@@ -712,5 +709,33 @@ class CommonBufferTest {
             assertEquals(0xde.toByte(), head[1])
             assertEquals(0, head[2])
         }
+    }
+
+    @Test
+    fun segmentsIteration() {
+        val buffer = Buffer()
+        assertNull(buffer.head)
+        assertNull(buffer.tail)
+
+        buffer.writeByte(1)
+        assertNotNull(buffer.head)
+        assertSame(buffer.head, buffer.tail)
+
+        buffer.head!!.apply {
+            assertNull(next)
+            assertNull(prev)
+        }
+
+        buffer.write(ByteArray(buffer.head!!.capacity + 1))
+        assertNotSame(buffer.head, buffer.tail)
+
+        assertNull(buffer.head?.prev)
+        assertNull(buffer.tail?.next)
+        assertSame(buffer.tail, buffer.head?.next)
+        assertSame(buffer.head, buffer.tail?.prev)
+
+        buffer.clear()
+        assertNull(buffer.head)
+        assertNull(buffer.tail)
     }
 }
