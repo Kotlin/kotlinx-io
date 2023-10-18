@@ -198,5 +198,5 @@ fun androidTargets() = listOf(
 )
 
 rootProject.the<NodeJsRootExtension>().apply {
-    nodeVersion = "20.4.0"
+    nodeVersion = "21.0.0"
 }
