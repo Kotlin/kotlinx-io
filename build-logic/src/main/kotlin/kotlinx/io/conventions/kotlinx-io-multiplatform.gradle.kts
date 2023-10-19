@@ -6,6 +6,7 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -198,5 +199,10 @@ fun androidTargets() = listOf(
 )
 
 rootProject.the<NodeJsRootExtension>().apply {
-    nodeVersion = "21.0.0"
+    nodeVersion = "21.0.0-v8-canary202310177990572111"
+    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
+}
+
+rootProject.tasks.withType<KotlinNpmInstallTask>().configureEach {
+    args.add("--ignore-engines")
 }
