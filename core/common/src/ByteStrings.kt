@@ -35,7 +35,7 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
         var offset = startIndex
         val tail = buffer.tail
         if (tail != null) {
-            val bytesToWrite = min(tail.capacity, endIndex - offset)
+            val bytesToWrite = min(tail.remainingCapacity, endIndex - offset)
             UnsafeByteStringOperations.withByteArrayUnsafe(byteString) {
                 tail.write(it, offset, offset + bytesToWrite)
             }
@@ -44,7 +44,7 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
         }
         while (offset < endIndex) {
             val segment = buffer.writableSegment(1)
-            val bytesToWrite = min(endIndex - offset, segment.capacity)
+            val bytesToWrite = min(endIndex - offset, segment.remainingCapacity)
             UnsafeByteStringOperations.withByteArrayUnsafe(byteString) { data ->
                 segment.write(data, offset, offset + bytesToWrite)
             }

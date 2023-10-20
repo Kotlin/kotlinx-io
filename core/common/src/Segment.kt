@@ -37,9 +37,9 @@ public sealed interface SegmentSetContext {
      * @param value the value to be written.
      * @param index the index of byte to read from the segment.
      *
-     * @throws IllegalArgumentException if [index] is negative or greater or equal to [Segment.capacity].
+     * @throws IllegalArgumentException if [index] is negative or greater or equal to [Segment.remainingCapacity].
      */
-    public operator fun Segment.set(index: Int, value: Byte)
+    public fun Segment.setChecked(index: Int, value: Byte)
 }
 
 /**
@@ -92,16 +92,14 @@ public class Segment {
     /**
      * Next segment or `null` if this segment is the tail of a list.
      */
-    public val next: Segment? get() = nextField
     @JvmField
-    internal var nextField: Segment? = null
+    internal var next: Segment? = null
 
     /**
      * Previous segment or `null` if this segment is the head of a list.
      */
-    public val prev: Segment? get() = prevField
     @JvmField
-    internal var prevField: Segment? = null
+    internal var prev: Segment? = null
 
     internal constructor() {
         this.data = ByteArray(SIZE)
@@ -136,15 +134,15 @@ public class Segment {
      */
     @PublishedApi
     internal fun pop(): Segment? {
-        val result = nextField
-        if (prevField != null) {
-            prevField!!.nextField = nextField
+        val result = this.next
+        if (this.prev != null) {
+            this.prev!!.next = this.next
         }
-        if (nextField != null) {
-            nextField!!.prevField = prevField
+        if (this.next != null) {
+            this.next!!.prev = this.prev
         }
-        nextField = null
-        prevField = null
+        this.next = null
+        this.prev = null
         return result
     }
 
@@ -152,12 +150,12 @@ public class Segment {
      * Appends `segment` after this segment in the list. Returns the pushed segment.
      */
     internal fun push(segment: Segment): Segment {
-        segment.prevField = this
-        segment.nextField = nextField
-        if (nextField != null) {
-            nextField!!.prevField = segment
+        segment.prev = this
+        segment.next = this.next
+        if (this.next != null) {
+            this.next!!.prev = segment
         }
-        nextField = segment
+        this.next = segment
         return segment
     }
 
@@ -187,11 +185,11 @@ public class Segment {
 
         prefix.limit = prefix.pos + byteCount
         pos += byteCount
-        if (prevField != null) {
-            prevField!!.push(prefix)
+        if (this.prev != null) {
+            this.prev!!.push(prefix)
         } else {
-            prefix.nextField = this
-            prevField = prefix
+            prefix.next = this
+            this.prev = prefix
         }
         return prefix
     }
@@ -201,12 +199,12 @@ public class Segment {
      * data so that segments can be recycled.
      */
     internal fun compact(): Segment {
-        check(prevField !== null) { "cannot compact" }
-        if (!prevField!!.owner) return this // Cannot compact: prev isn't writable.
+        check(this.prev !== null) { "cannot compact" }
+        if (!this.prev!!.owner) return this // Cannot compact: prev isn't writable.
         val byteCount = limit - pos
-        val availableByteCount = SIZE - prevField!!.limit + if (prevField!!.shared) 0 else prevField!!.pos
+        val availableByteCount = SIZE - this.prev!!.limit + if (this.prev!!.shared) 0 else this.prev!!.pos
         if (byteCount > availableByteCount) return this // Cannot compact: not enough writable space.
-        val predecessor = prevField
+        val predecessor = this.prev
         writeTo(predecessor!!, byteCount)
         val successor = pop()
         check(successor === null)
@@ -243,7 +241,7 @@ public class Segment {
     /**
      * Number of bytes that could be written in the segment.
      */
-    public val capacity: Int
+    public val remainingCapacity: Int
         get() = data.size - limit
 
     internal fun writeByte(byte: Byte) {
@@ -332,7 +330,7 @@ public class Segment {
     }
 
     internal fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int) {
-        require(srcEndOffset - srcStartOffset in 0 .. capacity)
+        require(srcEndOffset - srcStartOffset in 0 .. remainingCapacity)
         src.copyInto(data, limit, srcStartOffset, srcEndOffset)
         limit += srcEndOffset - srcStartOffset
     }
@@ -348,7 +346,7 @@ public class Segment {
      *
      * @throws IllegalArgumentException if [index] is negative or greater or equal to [Segment.size].
      */
-    public operator fun get(index: Int): Byte {
+    public fun getChecked(index: Int): Byte {
         require(index in 0 until size)
         return data[pos + index]
     }
@@ -358,7 +356,7 @@ public class Segment {
     }
 
     internal fun setChecked(index: Int, value: Byte) {
-        require(index in 0 until capacity)
+        require(index in 0 until remainingCapacity)
         data[limit + index] = value
     }
 

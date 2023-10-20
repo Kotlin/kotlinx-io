@@ -5,6 +5,7 @@
 
 package kotlinx.io.unsafe
 
+import kotlinx.io.Buffer
 import kotlinx.io.Segment
 import kotlinx.io.SegmentSetContext
 import kotlinx.io.UnsafeIoApi
@@ -31,10 +32,10 @@ public object UnsafeSegmentAccessors {
      * ```
      *
      * [index] value is relative to the beginning of the writable area (i.e.`limit`) and should not exceed
-     * [Segment.capacity] (i.e. space between the `limit` and the end of the container).
+     * [Segment.remainingCapacity] (i.e. space between the `limit` and the end of the container).
      */
     @Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
-    public inline fun setUnsafe(context: SegmentSetContext, segment: Segment, index: Int, value: Byte) {
+    public inline fun setUnchecked(context: SegmentSetContext, segment: Segment, index: Int, value: Byte) {
         segment.setUnchecked(index, value)
     }
 
@@ -43,9 +44,37 @@ public object UnsafeSegmentAccessors {
      *
      * [index] value should be in range `[0, Segment.size)`.
      *
-     * Refer to [setUnsafe] documentation for details on offsets within [Segment].
+     * Refer to [setUnchecked] documentation for details on offsets within [Segment].
      */
-    public fun getUnsafe(segment: Segment, index: Int) : Byte {
+    public fun getUnchecked(segment: Segment, index: Int) : Byte {
         return segment.getUnchecked(index)
     }
+
+    /**
+     * Returns first segment of the [buffer] or `null` if the [buffer] is empty.
+     *
+     * @param buffer the buffer whose head should be accessed.
+     */
+    public fun head(buffer: Buffer): Segment? = buffer.head
+
+    /**
+     * Return last segment of the [buffer] or `null` if the [buffer] is empty.
+     *
+     * @param buffer the buffer whose tail should be accessed.
+     */
+    public fun tail(buffer: Buffer): Segment? = buffer.tail
+
+    /**
+     * Returns the succeeding segment or `null` if there is no such segment.
+     *
+     * @param segment the segment whose successor should be returned.
+     */
+    public fun next(segment: Segment): Segment? = segment.next
+
+    /**
+     * Returns the preceding segment or `null` if there is no such segment.
+     *
+     * @param segment the segment whose predecessor should be returned.
+     */
+    public fun prev(segment: Segment): Segment? = segment.prev
 }

@@ -148,7 +148,7 @@ internal class FileSink(private val path: Path, private var append: Boolean) : R
                     }
                     else -> {
                         for (idx in 0 until segmentBytes) {
-                            buf[idx] = head[idx]
+                            buf[idx] = head.getChecked(idx)
                         }
                     }
                 }

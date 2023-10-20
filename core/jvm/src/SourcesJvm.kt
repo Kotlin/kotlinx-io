@@ -36,7 +36,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
     }
     if (byteCount == 0L) return ""
 
-    val s = head!!
+    val s = this.head!!
     if (s.pos + byteCount > s.limit) {
         // If the string spans multiple segments, delegate to readBytes().
         return String(readByteArray(byteCount.toInt()), charset)
@@ -63,9 +63,9 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
     sizeField -= byteCount
 
     if (s.pos == s.limit) {
-        headField = s.pop()
-        if (headField == null) {
-            tailField = null
+        this.head = s.pop()
+        if (this.head == null) {
+            tail = null
         }
         SegmentPool.recycle(s)
     }
