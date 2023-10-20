@@ -427,7 +427,7 @@ internal inline fun Segment.processUtf16Chars(
 ) {
     var index = beginIndex
     while (index < endIndex) {
-        val b0 = this[index]
+        val b0 = this.getChecked(index)
         when {
             b0 >= 0 -> {
                 // 0b0xxxxxxx
@@ -436,8 +436,8 @@ internal inline fun Segment.processUtf16Chars(
 
                 // Assume there is going to be more ASCII
                 // This is almost double the performance of the outer loop
-                while (index < endIndex && this[index] >= 0) {
-                    yield(this[index++].toInt().toChar())
+                while (index < endIndex && this.getChecked(index) >= 0) {
+                    yield(this.getChecked(index++).toInt().toChar())
                 }
             }
 
@@ -489,8 +489,8 @@ internal inline fun Segment.process2Utf8Bytes(
         return 1
     }
 
-    val b0 = this[beginIndex]
-    val b1 = this[beginIndex + 1]
+    val b0 = this.getChecked(beginIndex)
+    val b1 = this.getChecked(beginIndex + 1)
     if (!isUtf8Continuation(b1)) {
         yield(REPLACEMENT_CODE_POINT)
         return 1
@@ -515,7 +515,7 @@ internal inline fun Segment.process3Utf8Bytes(
     if (endIndex <= beginIndex + 2) {
         // At least 2 bytes remaining
         yield(REPLACEMENT_CODE_POINT)
-        if (endIndex <= beginIndex + 1 || !isUtf8Continuation(this[beginIndex + 1])) {
+        if (endIndex <= beginIndex + 1 || !isUtf8Continuation(this.getChecked(beginIndex + 1))) {
             // Only 1 byte remaining - underflow
             // Or 2nd byte is not a continuation - malformed
             return 1
@@ -525,13 +525,13 @@ internal inline fun Segment.process3Utf8Bytes(
         }
     }
 
-    val b0 = this[beginIndex]
-    val b1 = this[beginIndex + 1]
+    val b0 = this.getChecked(beginIndex)
+    val b1 = this.getChecked(beginIndex + 1)
     if (!isUtf8Continuation(b1)) {
         yield(REPLACEMENT_CODE_POINT)
         return 1
     }
-    val b2 = this[beginIndex + 2]
+    val b2 = this.getChecked(beginIndex + 2)
     if (!isUtf8Continuation(b2)) {
         yield(REPLACEMENT_CODE_POINT)
         return 2
@@ -566,11 +566,11 @@ internal inline fun Segment.process4Utf8Bytes(
     if (endIndex <= beginIndex + 3) {
         // At least 3 bytes remaining
         yield(REPLACEMENT_CODE_POINT)
-        if (endIndex <= beginIndex + 1 || !isUtf8Continuation(this[beginIndex + 1])) {
+        if (endIndex <= beginIndex + 1 || !isUtf8Continuation(this.getChecked(beginIndex + 1))) {
             // Only 1 byte remaining - underflow
             // Or 2nd byte is not a continuation - malformed
             return 1
-        } else if (endIndex <= beginIndex + 2 || !isUtf8Continuation(this[beginIndex + 2])) {
+        } else if (endIndex <= beginIndex + 2 || !isUtf8Continuation(this.getChecked(beginIndex + 2))) {
             // Only 2 bytes remaining - underflow
             // Or 3rd byte is not a continuation - malformed
             return 2
@@ -580,18 +580,18 @@ internal inline fun Segment.process4Utf8Bytes(
         }
     }
 
-    val b0 = this[beginIndex]
-    val b1 = this[beginIndex + 1]
+    val b0 = this.getChecked(beginIndex)
+    val b1 = this.getChecked(beginIndex + 1)
     if (!isUtf8Continuation(b1)) {
         yield(REPLACEMENT_CODE_POINT)
         return 1
     }
-    val b2 = this[beginIndex + 2]
+    val b2 = this.getChecked(beginIndex + 2)
     if (!isUtf8Continuation(b2)) {
         yield(REPLACEMENT_CODE_POINT)
         return 2
     }
-    val b3 = this[beginIndex + 3]
+    val b3 = this.getChecked(beginIndex + 3)
     if (!isUtf8Continuation(b3)) {
         yield(REPLACEMENT_CODE_POINT)
         return 3

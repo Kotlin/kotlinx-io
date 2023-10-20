@@ -5,6 +5,7 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferAccessors
 import kotlinx.io.unsafe.UnsafeSegmentAccessors
 
 private val HEX_DIGIT_BYTES = ByteArray(16) {
@@ -118,14 +119,14 @@ public fun Sink.writeDecimalLong(long: Long) {
     }
 
     writeToInternalBuffer { buffer ->
-        buffer.writeUnbound(width) {
+        UnsafeBufferAccessors.writeUnbound(buffer, width) {
             for (pos in width - 1 downTo if (negative) 1 else 0) {
                 val digit = (v % 10).toByte()
-                UnsafeSegmentAccessors.setUnsafe(this, it, pos, HEX_DIGIT_BYTES_LONG[digit.toInt() and 255])
+                UnsafeSegmentAccessors.setUnchecked(this, it, pos, HEX_DIGIT_BYTES_LONG[digit.toInt() and 255])
                 v /= 10
             }
             if (negative) {
-                UnsafeSegmentAccessors.setUnsafe(this, it, 0, '-'.code.toByte())
+                UnsafeSegmentAccessors.setUnchecked(this, it, 0, '-'.code.toByte())
             }
             width
         }
@@ -175,9 +176,9 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
     val width = ((x + 3) / 4).toInt()
 
     writeToInternalBuffer { buffer ->
-        buffer.writeUnbound(width) {
+        UnsafeBufferAccessors.writeUnbound(buffer, width) {
             for (pos in width - 1 downTo 0) {
-                UnsafeSegmentAccessors.setUnsafe(this, it, pos, HEX_DIGIT_BYTES_LONG[(v and 0xF).toInt()])
+                UnsafeSegmentAccessors.setUnchecked(this, it, pos, HEX_DIGIT_BYTES_LONG[(v and 0xF).toInt()])
                 v = v ushr 4
             }
             width

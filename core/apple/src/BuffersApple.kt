@@ -21,7 +21,7 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
     var currentOffset = 0
     while (currentOffset < maxLength) {
         writeUnbound(1) {
-            val toCopy = minOf(maxLength - currentOffset, it.capacity)
+            val toCopy = minOf(maxLength - currentOffset, it.remainingCapacity)
             it.withContainedData { data, _, limit ->
                 when (data) {
                     is ByteArray -> {
@@ -44,7 +44,7 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
 internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): Int {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
-    val s = head ?: return 0
+    val s = this.head ?: return 0
     val toCopy = minOf(maxLength, s.size)
     s.withContainedData { data, pos, _ ->
         when (data) {
@@ -69,7 +69,7 @@ internal fun Buffer.snapshotAsNSData(): NSData {
 
     val bytes = malloc(size.convert())?.reinterpret<uint8_tVar>()
         ?: throw Error("malloc failed: ${strerror(errno)?.toKString()}")
-    var curr = head
+    var curr = this.head
     var index = 0
     do {
         check(curr != null) { "Current segment is null" }

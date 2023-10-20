@@ -95,7 +95,7 @@ private open class NSInputStreamSource(
 
         var bytesRead = 0L
         sink.writeUnbound(1) {
-            val maxToCopy = minOf(byteCount, it.capacity)
+            val maxToCopy = minOf(byteCount, it.remainingCapacity)
             val read = it.withContainedData { data, _, limit ->
                 when (data) {
                     is ByteArray -> {

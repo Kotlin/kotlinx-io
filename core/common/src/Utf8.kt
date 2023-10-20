@@ -70,6 +70,7 @@
 package kotlinx.io
 
 import kotlinx.io.internal.*
+import kotlinx.io.unsafe.UnsafeBufferAccessors
 import kotlinx.io.unsafe.UnsafeSegmentAccessors
 
 /**
@@ -438,35 +439,35 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
 
     var i = beginIndex
     while (i < endIndex) {
-        writeUnbound(4 /* reserve enough space for the worst case */) {
+        UnsafeBufferAccessors.writeUnbound(this, 4 /* reserve enough space for the worst case */) {
             var j = 0
-            val limit = it.capacity
+            val limit = it.remainingCapacity
             while (i < endIndex && limit - j >= 4) {
                 var c = string[i].code
 
                 when {
                     c < 0x80 -> {
                         val runLimit = minOf(i + limit - j, endIndex)
-                        UnsafeSegmentAccessors.setUnsafe(this, it, j++, c.toByte()) // 0xxxxxxx
+                        UnsafeSegmentAccessors.setUnchecked(this, it, j++, c.toByte()) // 0xxxxxxx
                         i++
 
                         while (i < runLimit) {
                             c = string[i].code
                             if (c >= 0x80) return@writeUnbound j
                             i++
-                            UnsafeSegmentAccessors.setUnsafe(this, it, j++, c.toByte()) // 0xxxxxxx
+                            UnsafeSegmentAccessors.setUnchecked(this, it, j++, c.toByte()) // 0xxxxxxx
                         }
                     }
                     c < 0x800 -> {
-                        UnsafeSegmentAccessors.setUnsafe(this, it, j++, (c shr 6 or 0xc0).toByte()) // 110xxxxx
-                        UnsafeSegmentAccessors.setUnsafe(this, it, j++, (c and 0x3f or 0x80).toByte()) // 10xxxxxx
+                        UnsafeSegmentAccessors.setUnchecked(this, it, j++, (c shr 6 or 0xc0).toByte()) // 110xxxxx
+                        UnsafeSegmentAccessors.setUnchecked(this, it, j++, (c and 0x3f or 0x80).toByte()) // 10xxxxxx
                         i++
                     }
                     c < 0xd800 || c > 0xdfff -> {
                         // Emit a 16-bit character with 3 bytes.
-                        UnsafeSegmentAccessors.setUnsafe(this, it, j++, (c shr 12 or 0xe0).toByte()) // 1110xxxx
-                        UnsafeSegmentAccessors.setUnsafe(this, it, j++, (c shr 6 and 0x3f or 0x80).toByte()) // 10xxxxxx
-                        UnsafeSegmentAccessors.setUnsafe(this, it, j++, (c and 0x3f or 0x80).toByte()) // 10xxxxxx
+                        UnsafeSegmentAccessors.setUnchecked(this, it, j++, (c shr 12 or 0xe0).toByte()) // 1110xxxx
+                        UnsafeSegmentAccessors.setUnchecked(this, it, j++, (c shr 6 and 0x3f or 0x80).toByte()) // 10xxxxxx
+                        UnsafeSegmentAccessors.setUnchecked(this, it, j++, (c and 0x3f or 0x80).toByte()) // 10xxxxxx
                         i++
                     }
                     else -> {
@@ -475,7 +476,7 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
                         // character.
                         val low = (if (i + 1 < endIndex) string[i + 1].code else 0)
                         if (c > 0xdbff || low !in 0xdc00..0xdfff) {
-                            UnsafeSegmentAccessors.setUnsafe(this, it, j++, '?'.code.toByte())
+                            UnsafeSegmentAccessors.setUnchecked(this, it, j++, '?'.code.toByte())
                             i++
                         } else {
                             // UTF-16 high surrogate: 110110xxxxxxxxxx (10 bits)
@@ -484,10 +485,10 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
                             val codePoint = 0x010000 + (c and 0x03ff shl 10 or (low and 0x03ff))
 
                             // Emit a 21-bit character with 4 bytes.
-                            UnsafeSegmentAccessors.setUnsafe(this, it, j++, (codePoint shr 18 or 0xf0).toByte()) // 11110xxx
-                            UnsafeSegmentAccessors.setUnsafe(this, it, j++, (codePoint shr 12 and 0x3f or 0x80).toByte()) // 10xxxxxx
-                            UnsafeSegmentAccessors.setUnsafe(this, it, j++, (codePoint shr 6 and 0x3f or 0x80).toByte()) // 10xxyyyy
-                            UnsafeSegmentAccessors.setUnsafe(this, it, j++, (codePoint and 0x3f or 0x80).toByte()) // 10yyyyyy
+                            UnsafeSegmentAccessors.setUnchecked(this, it, j++, (codePoint shr 18 or 0xf0).toByte()) // 11110xxx
+                            UnsafeSegmentAccessors.setUnchecked(this, it, j++, (codePoint shr 12 and 0x3f or 0x80).toByte()) // 10xxxxxx
+                            UnsafeSegmentAccessors.setUnchecked(this, it, j++, (codePoint shr 6 and 0x3f or 0x80).toByte()) // 10xxyyyy
+                            UnsafeSegmentAccessors.setUnchecked(this, it, j++, (codePoint and 0x3f or 0x80).toByte()) // 10yyyyyy
                             i += 2
                         }
                     }
@@ -580,6 +581,7 @@ private fun Buffer.commonWriteUtf8_old(string: String, beginIndex: Int, endIndex
 }
  */
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
     when {
         codePoint < 0 || codePoint > 0x10ffff -> {
@@ -595,9 +597,9 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 
         codePoint < 0x800 -> {
             // Emit a 11-bit code point with 2 bytes.
-            writeUnbound(2) {
-                it[0] = (codePoint shr 6 or 0xc0).toByte() // 110xxxxx
-                it[1] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
+            UnsafeBufferAccessors.writeUnbound(this, 2) {
+                it.setChecked(0, (codePoint shr 6 or 0xc0).toByte()) // 110xxxxx
+                it.setChecked(1, (codePoint and 0x3f or 0x80).toByte()) // 10xxxxxx
                 2
             }
         }
@@ -609,21 +611,21 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 
         codePoint < 0x10000 -> {
             // Emit a 16-bit code point with 3 bytes.
-            writeUnbound(3) {
-                it[0] = (codePoint shr 12 or 0xe0).toByte() // 1110xxxx
-                it[1] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
-                it[2] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
+            UnsafeBufferAccessors.writeUnbound(this, 3) {
+                it.setChecked(0, (codePoint shr 12 or 0xe0).toByte()) // 1110xxxx
+                it.setChecked(1, (codePoint shr 6 and 0x3f or 0x80).toByte()) // 10xxxxxx
+                it.setChecked(2, (codePoint and 0x3f or 0x80).toByte()) // 10xxxxxx
                 3
             }
         }
 
         else -> { // [0x10000, 0x10ffff]
             // Emit a 21-bit code point with 4 bytes.
-            writeUnbound(4) {
-                it[0] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
-                it[1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
-                it[2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
-                it[3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
+            UnsafeBufferAccessors.writeUnbound(this, 4) {
+                it.setChecked(0, (codePoint shr 18 or 0xf0).toByte()) // 11110xxx
+                it.setChecked(1, (codePoint shr 12 and 0x3f or 0x80).toByte()) // 10xxxxxx
+                it.setChecked(2, (codePoint shr 6 and 0x3f or 0x80).toByte()) // 10xxyyyy
+                it.setChecked(3, (codePoint and 0x3f or 0x80).toByte()) // 10yyyyyy
                 4
             }
         }
@@ -637,7 +639,7 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
     require(byteCount)
     if (byteCount == 0L) return ""
 
-    val s = head!!
+    val s = this.head!!
     if (s.pos + byteCount > s.limit) {
         // If the string spans multiple segments, delegate to readBytes().
         return readByteArray(byteCount.toInt()).commonToUtf8String()
