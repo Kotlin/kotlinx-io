@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferAccessors
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -62,8 +63,8 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
     var remainingByteCount = byteCount
     var exchaused = false
     while (!exchaused && (remainingByteCount > 0L || forever)) {
-        writeUnbound(1) {
-            val maxToCopy = minOf(remainingByteCount, it.capacity).toInt()
+        UnsafeBufferAccessors.writeUnbound(this, 1) {
+            val maxToCopy = minOf(remainingByteCount, it.remainingCapacity).toInt()
             it.withContainedData { data, _, limit ->
                 when (data) {
                     is ByteArray -> {
@@ -120,7 +121,7 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
     var remainingByteCount = byteCount
 
     while (remainingByteCount > 0L) {
-        val s = head
+        val s = this.head
         val toCopy = minOf(remainingByteCount, s!!.size).toInt()
 
         s.withContainedData { data, pos, _ ->
@@ -170,7 +171,7 @@ public fun Buffer.copyTo(
     var remainingByteCount = endIndex - startIndex
 
     // Skip segments that we aren't copying from.
-    var s = head ?: throw IllegalStateException()
+    var s = this.head ?: throw IllegalStateException()
     while (currentOffset >= s.limit - s.pos) {
         currentOffset -= (s.limit - s.pos).toLong()
         s = s.next ?: break
@@ -211,7 +212,7 @@ public fun Buffer.copyTo(
  */
 @OptIn(UnsafeIoApi::class)
 public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
-    val s = head ?: return -1
+    val s = this.head ?: return -1
 
     val toCopy = minOf(sink.remaining(), s.size)
     s.withContainedData { data, pos, _ ->
@@ -244,8 +245,8 @@ public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
     var remaining = byteCount
     while (remaining > 0) {
-        writeUnbound(1) {
-            val toCopy = minOf(remaining, it.capacity)
+        UnsafeBufferAccessors.writeUnbound(this, 1) {
+            val toCopy = minOf(remaining, it.remainingCapacity)
 
             it.withContainedData { data, _, limit ->
                 when (data) {

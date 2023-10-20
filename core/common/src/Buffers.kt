@@ -19,11 +19,11 @@ public fun Buffer.snapshot(): ByteString {
     check(size <= Int.MAX_VALUE) { "Buffer is too long ($size) to be converted into a byte string." }
 
     return buildByteString(size.toInt()) {
-        var curr = head
+        var curr = this@snapshot.head
         do {
             check(curr != null) { "Current segment is null" }
             for (idx in 0 until curr.size) {
-                append(curr[idx])
+                append(curr.getChecked(idx))
             }
             curr = curr.next
         } while (curr !== null)

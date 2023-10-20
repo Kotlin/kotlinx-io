@@ -21,6 +21,7 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferAccessors
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -94,8 +95,8 @@ private open class InputStreamSource(
         checkByteCount(byteCount)
         try {
             var readTotal = 0L
-            sink.writeUnbound(1) {
-                val maxToCopy = minOf(byteCount, it.capacity).toInt()
+            UnsafeBufferAccessors.writeUnbound(sink, 1) {
+                val maxToCopy = minOf(byteCount, it.remainingCapacity).toInt()
                 it.withContainedData { data, _, limit ->
                     when (data) {
                         is ByteArray -> {

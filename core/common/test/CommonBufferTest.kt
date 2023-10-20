@@ -22,6 +22,8 @@ package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
+import kotlinx.io.unsafe.UnsafeBufferAccessors
+import kotlinx.io.unsafe.UnsafeSegmentAccessors
 import kotlin.test.*
 
 private const val SEGMENT_SIZE = Segment.SIZE
@@ -603,7 +605,7 @@ class CommonBufferTest {
     fun multisegmentSnapshot() {
         val buffer = Buffer()
         buffer.writeByte('a'.code.toByte())
-        val segmentCapacity = buffer.head!!.capacity + 1
+        val segmentCapacity = buffer.head!!.remainingCapacity + 1
 
         val expected = ("a".repeat(segmentCapacity) + "b".repeat(segmentCapacity)).encodeToByteString()
         buffer.write(expected, 1)
@@ -629,37 +631,44 @@ class CommonBufferTest {
         //assertEquals("?" + "a".repeat(aaaa.size), dstBuffer.readString())
     }
 
+    @OptIn(UnsafeIoApi::class)
     @Test
     fun writeUnbound() {
-        assertFailsWith<IllegalArgumentException> { Buffer().writeUnbound(Int.MAX_VALUE) { 0 } }
+        assertFailsWith<IllegalArgumentException> {
+            UnsafeBufferAccessors.writeUnbound(Buffer(), Int.MAX_VALUE) { 0 }
+        }
 
-        assertFailsWith<IllegalStateException> { Buffer().writeUnbound(1) { -1 } }
-        assertFailsWith<IllegalStateException> { Buffer().writeUnbound(1) { it.capacity + 1 } }
+        assertFailsWith<IllegalStateException> {
+            UnsafeBufferAccessors.writeUnbound(Buffer(), 1) { -1 }
+        }
+        assertFailsWith<IllegalStateException> {
+            UnsafeBufferAccessors.writeUnbound(Buffer(), 1) { it.remainingCapacity + 1 }
+        }
 
         Buffer().apply {
-            writeUnbound(4) {
-                it[0] = 1
-                it[1] = 2
-                it[2] = 3
-                it[3] = 4
+            UnsafeBufferAccessors.writeUnbound(this, 4) {
+                it.setChecked(0, 1)
+                it.setChecked(1, 2)
+                it.setChecked(2, 3)
+                it.setChecked(3, 4)
                 1
             }
             assertEquals(1, size)
             assertEquals(1, readByte())
 
-            writeUnbound(1) {
-                assertTrue(it.capacity > 1)
-                it[0] = 5
-                it[1] = 6
+            UnsafeBufferAccessors.writeUnbound(this, 1) {
+                assertTrue(it.remainingCapacity > 1)
+                it.setChecked(0, 5)
+                it.setChecked(1, 6)
                 2
             }
             assertEquals(2, size)
             assertEquals(ByteString(5, 6), readByteString())
 
-            writeUnbound(3) {
-                it[0] = 7
-                it[1] = 8
-                it[2] = 9
+            UnsafeBufferAccessors.writeUnbound(this, 3) {
+                it.setChecked(0, 7)
+                it.setChecked(1, 8)
+                it.setChecked(2, 9)
                 3
             }
             assertEquals(3, size)
@@ -668,17 +677,17 @@ class CommonBufferTest {
 
         assertFailsWith<IllegalArgumentException> {
             Buffer().apply {
-                writeUnbound(1) {
-                    val cap = it.capacity
-                    it[cap] = 0
+                UnsafeBufferAccessors.writeUnbound(this, 1) {
+                    val cap = it.remainingCapacity
+                    it.setChecked(cap, 0)
                     0
                 }
             }
         }
         assertFailsWith<IllegalArgumentException> {
             Buffer().apply {
-                writeUnbound(1) {
-                    it[-1] = 0
+                UnsafeBufferAccessors.writeUnbound(this, 1) {
+                    it.setChecked(-1, 0)
                     0
                 }
             }
@@ -692,50 +701,53 @@ class CommonBufferTest {
         }
         buffer.head!!.also { head ->
             assertEquals(4, head.size)
-            assertEquals(0xde.toByte(), head[0])
-            assertEquals(0xad.toByte(), head[1])
-            assertEquals(0xc0.toByte(), head[2])
-            assertEquals(0xde.toByte(), head[3])
+            assertEquals(0xde.toByte(), head.getChecked(0))
+            assertEquals(0xad.toByte(), head.getChecked(1))
+            assertEquals(0xc0.toByte(), head.getChecked(2))
+            assertEquals(0xde.toByte(), head.getChecked(3))
 
-            assertFailsWith<IllegalArgumentException> { head[4] }
-            assertFailsWith<IllegalArgumentException> { head[-1] }
+            assertFailsWith<IllegalArgumentException> { head.getChecked(4) }
+            assertFailsWith<IllegalArgumentException> { head.getChecked(-1) }
         }
 
         buffer.writeByte(0)
         buffer.skip(2)
         buffer.head!!.also { head ->
             assertEquals(3, head.size)
-            assertEquals(0xc0.toByte(), head[0])
-            assertEquals(0xde.toByte(), head[1])
-            assertEquals(0, head[2])
+            assertEquals(0xc0.toByte(), head.getChecked(0))
+            assertEquals(0xde.toByte(), head.getChecked(1))
+            assertEquals(0, head.getChecked(2))
         }
     }
 
+    @OptIn(UnsafeIoApi::class)
     @Test
     fun segmentsIteration() {
         val buffer = Buffer()
-        assertNull(buffer.head)
-        assertNull(buffer.tail)
+        assertNull(UnsafeSegmentAccessors.head(buffer))
+        assertNull(UnsafeSegmentAccessors.tail(buffer))
 
         buffer.writeByte(1)
-        assertNotNull(buffer.head)
-        assertSame(buffer.head, buffer.tail)
+        assertNotNull(UnsafeSegmentAccessors.head(buffer))
+        assertSame(UnsafeSegmentAccessors.head(buffer), UnsafeSegmentAccessors.tail(buffer))
 
-        buffer.head!!.apply {
-            assertNull(next)
-            assertNull(prev)
+        UnsafeSegmentAccessors.head(buffer)!!.apply {
+            assertNull(UnsafeSegmentAccessors.next(this))
+            assertNull(UnsafeSegmentAccessors.prev(this))
         }
 
-        buffer.write(ByteArray(buffer.head!!.capacity + 1))
-        assertNotSame(buffer.head, buffer.tail)
+        buffer.write(ByteArray(UnsafeSegmentAccessors.head(buffer)!!.remainingCapacity + 1))
+        assertNotSame(UnsafeSegmentAccessors.head(buffer), UnsafeSegmentAccessors.tail(buffer))
 
-        assertNull(buffer.head?.prev)
-        assertNull(buffer.tail?.next)
-        assertSame(buffer.tail, buffer.head?.next)
-        assertSame(buffer.head, buffer.tail?.prev)
+        assertNull(UnsafeSegmentAccessors.prev(UnsafeSegmentAccessors.head(buffer)!!))
+        assertNull(UnsafeSegmentAccessors.next(UnsafeSegmentAccessors.tail(buffer)!!))
+        assertSame(UnsafeSegmentAccessors.tail(buffer),
+            UnsafeSegmentAccessors.next(UnsafeSegmentAccessors.head(buffer)!!))
+        assertSame(UnsafeSegmentAccessors.head(buffer),
+            UnsafeSegmentAccessors.prev(UnsafeSegmentAccessors.tail(buffer)!!))
 
         buffer.clear()
-        assertNull(buffer.head)
-        assertNull(buffer.tail)
+        assertNull(UnsafeSegmentAccessors.head(buffer))
+        assertNull(UnsafeSegmentAccessors.tail(buffer))
     }
 }

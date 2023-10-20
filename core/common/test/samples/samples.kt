@@ -7,6 +7,7 @@ package kotlinx.io.samples
 
 import kotlinx.io.*
 import kotlinx.io.bytestring.ByteString
+import kotlinx.io.unsafe.UnsafeBufferAccessors
 import kotlin.math.min
 import kotlin.test.*
 
@@ -734,12 +735,13 @@ class KotlinxIoCoreCommonSamples {
         assertContentEquals(byteArrayOf(35, -13, -56, -97, 12, 36, -2, 64), buffer.readByteArray())
     }
 
+    @OptIn(UnsafeIoApi::class)
     @Test
     fun writeUleb128() {
         // https://en.wikipedia.org/wiki/LEB128
         fun Buffer.writeULEB128(value: UInt) {
             // update buffer's state after writing all bytes
-            writeUnbound(5 /* in the worst case, int will be encoded using 5 bytes */) {
+            UnsafeBufferAccessors.writeUnbound(this, 5 /* in the worst case, int will be encoded using 5 bytes */) {
                 var bytesWritten = 0
                 var remainingBits = value
                 do {
@@ -748,7 +750,7 @@ class KotlinxIoCoreCommonSamples {
                     if (remainingBits != 0u) {
                         b = 0x80u or b
                     }
-                    it[bytesWritten++] = b.toByte()
+                    it.setChecked(bytesWritten++, b.toByte())
                 } while (remainingBits != 0u)
                 // return how many bytes were actually written
                 bytesWritten
@@ -760,9 +762,10 @@ class KotlinxIoCoreCommonSamples {
         assertEquals(ByteString(0xe5.toByte(), 0x8e.toByte(), 0x26), buffer.readByteString())
     }
 
+    @OptIn(UnsafeIoApi::class)
     private fun Buffer.writeULEB128(value: UInt) {
         // update buffer's state after writing all bytes
-        writeUnbound(5 /* in the worst case, int will be encoded using 5 bytes */) {
+        UnsafeBufferAccessors.writeUnbound(this, 5 /* in the worst case, int will be encoded using 5 bytes */) {
             var bytesWritten = 0
             var remainingBits = value
             do {
@@ -771,14 +774,14 @@ class KotlinxIoCoreCommonSamples {
                 if (remainingBits != 0u) {
                     b = 0x80u or b
                 }
-                it[bytesWritten++] = b.toByte()
+                it.setChecked(bytesWritten++, b.toByte())
             } while (remainingBits != 0u)
             // return how many bytes were actually written
             bytesWritten
         }
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
+    @OptIn(ExperimentalUnsignedTypes::class, UnsafeIoApi::class)
     @Test
     fun writeUleb128Array() {
         fun Buffer.writeULEB128(data: UIntArray) {
@@ -791,17 +794,17 @@ class KotlinxIoCoreCommonSamples {
                 // optimize small values encoding: anything below 127 will be encoded using a single byte anyway
                 if (value < 0x80u) {
                     // we need a space for a single byte, but if there's more - we'll try to fill it
-                    writeUnbound(1) {
+                    UnsafeBufferAccessors.writeUnbound(this, 1) {
                         var bytesWritten = 0
-                        it[bytesWritten++] = value.toByte()
+                        it.setChecked(bytesWritten++, value.toByte())
 
                         // let's save as much succeeding small values as possible
                         val remainingDataLength = data.size - index
-                        val remainingCapacity = it.capacity - 1
+                        val remainingCapacity = it.remainingCapacity - 1
                         for (i in 0 until min(remainingDataLength, remainingCapacity)) {
                             val b = data[index]
                             if (b >= 0x80u) break
-                            it[bytesWritten++] = b.toByte()
+                            it.setChecked(bytesWritten++, b.toByte())
                             index++
                         }
                         bytesWritten
