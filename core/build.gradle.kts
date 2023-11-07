@@ -32,7 +32,7 @@ kotlin {
     }
 
     @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasm {
+    wasmJs {
         nodejs {
             testTask(Action {
                 useMocha {

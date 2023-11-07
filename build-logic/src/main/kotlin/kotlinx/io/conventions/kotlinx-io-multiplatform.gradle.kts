@@ -6,6 +6,7 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -38,7 +39,7 @@ kotlin {
     }
 
     @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasm {
+    wasmJs {
         nodejs()
         //  Disabled because we can't exclude some tests: https://youtrack.jetbrains.com/issue/KT-58291
         // browser()
@@ -89,6 +90,12 @@ kotlin {
         createSourceSet("linuxTest", parent = unixTest, children = linuxTargets())
         createSourceSet("androidMain", parent = unixMain, children = androidTargets())
         createSourceSet("androidTest", parent = unixTest, children = androidTargets())
+        getByName("wasmJsMain") {
+            kotlin.srcDir(File(File(projectDir, "wasm"), "src"))
+        }
+        getByName("wasmJsTest") {
+            kotlin.srcDir(File(File(projectDir, "wasm"), "test"))
+        }
     }
 }
 
@@ -192,5 +199,10 @@ fun androidTargets() = listOf(
 )
 
 rootProject.the<NodeJsRootExtension>().apply {
-    nodeVersion = "20.4.0"
+    nodeVersion = "21.0.0-v8-canary202310177990572111"
+    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
+}
+
+rootProject.tasks.withType<KotlinNpmInstallTask>().configureEach {
+    args.add("--ignore-engines")
 }

@@ -27,13 +27,16 @@ internal expect fun String.asUtf8ToByteArray(): ByteArray
  * Signals about a general issue occurred during I/O operation.
  */
 public expect open class IOException(message: String?, cause: Throwable?) : Exception {
-    public constructor(message: String? = null)
+    public constructor()
+    public constructor(message: String?)
 }
 
 /**
  * Signals that the end of the file or stream was reached unexpectedly during an input operation.
  */
-public expect open class EOFException(message: String? = null) : IOException
+public expect open class EOFException(message: String?) : IOException {
+    public constructor()
+}
 
 
 // There is no actual AutoCloseable on JVM (https://youtrack.jetbrains.com/issue/KT-55777),
