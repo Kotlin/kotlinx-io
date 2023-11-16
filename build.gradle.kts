@@ -12,6 +12,10 @@ plugins {
 
     alias(libs.plugins.kover)
     alias(libs.plugins.bcv)
+
+    alias(libs.plugins.android) apply false
+    alias(libs.plugins.androidx.benchmark) apply false
+    alias(libs.plugins.kotlin.android) apply false
 }
 
 allprojects {
@@ -27,6 +31,7 @@ apiValidation {
         "kotlinx-io-benchmarks",
         "kotlinx-io-smoke-tests"
     ))
+    ignoredProjects.add("kotlinx-io-benchmarks-android")
     klib.enabled = true
 }
 
