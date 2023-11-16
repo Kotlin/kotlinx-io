@@ -14,6 +14,10 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.bcv)
     alias(libs.plugins.dokka)
+
+    alias(libs.plugins.android) apply false
+    alias(libs.plugins.androidx.benchmark) apply false
+    alias(libs.plugins.kotlin.android) apply false
 }
 
 allprojects {
@@ -47,6 +51,7 @@ subprojects {
 
 apiValidation {
     ignoredProjects.add("kotlinx-io-benchmarks")
+    ignoredProjects.add("kotlinx-io-benchmarks-android")
 }
 
 dependencies {
