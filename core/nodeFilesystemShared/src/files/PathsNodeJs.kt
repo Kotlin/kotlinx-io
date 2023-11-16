@@ -10,6 +10,7 @@ import kotlinx.io.node.buffer
 import kotlinx.io.node.fs
 import kotlinx.io.node.path as nodeJsPath
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 public actual class Path internal constructor(
     rawPath: String,
     @Suppress("UNUSED_PARAMETER") any: Any?

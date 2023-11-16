@@ -124,6 +124,7 @@ public actual val SystemTemporaryDirectory: Path
         return Path(os.tmpdir() ?: "")
     }
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)

@@ -5,12 +5,8 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.targets.js.KotlinWasmTargetType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import kotlin.jvm.optionals.getOrNull
 
@@ -111,23 +107,6 @@ kotlin {
     }
 }
 
-// will be available in KGP 2.0
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
-fun KotlinHierarchyBuilder.withWasmJs(): Unit = withCompilations {
-    val target = it.target
-    target.platformType == KotlinPlatformType.wasm &&
-            target is KotlinJsIrTarget &&
-            target.wasmTargetType == KotlinWasmTargetType.JS
-}
-
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
-fun KotlinHierarchyBuilder.withWasmWasi(): Unit = withCompilations {
-    val target = it.target
-    target.platformType == KotlinPlatformType.wasm &&
-            target is KotlinJsIrTarget &&
-            target.wasmTargetType == KotlinWasmTargetType.WASI
-}
-
 fun KotlinSourceSet.configureSourceSet() {
     val srcDir = if (name.endsWith("Main")) "src" else "test"
     val platform = name.dropLast(4)
@@ -174,5 +153,5 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
 }
 
 rootProject.the<NodeJsRootExtension>().apply {
-    nodeVersion = "22.1.0"
+    version = "22.1.0"
 }

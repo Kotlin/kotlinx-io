@@ -6,5 +6,4 @@ package kotlinx.io.bytestring
 
 import kotlin.concurrent.*
 
-@Suppress("ACTUAL_WITHOUT_EXPECT") // This suppress can be removed in 2.0: KT-59355
 internal actual typealias BenignDataRace = Volatile

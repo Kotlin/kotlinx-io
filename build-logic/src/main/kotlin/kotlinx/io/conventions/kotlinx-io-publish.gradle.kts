@@ -92,8 +92,8 @@ fun RepositoryHandler.configureMavenPublication( project: Project) {
         }
     }
 
-    // Something that's easy to "clean" for development, not mavenLocal
-    maven("${project.rootProject.buildDir}/repo") {
+    // Something that's easy to "clean" for development not mavenLocal
+    maven("${project.layout.buildDirectory}/repo") {
         name = "buildRepo"
     }
 }

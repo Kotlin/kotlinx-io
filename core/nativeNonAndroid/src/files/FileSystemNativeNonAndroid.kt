@@ -22,7 +22,7 @@ internal actual class OpaqueDirEntry constructor(private val dir: CPointer<DIR>)
         return entry[0].d_name.toKString()
     }
 
-    override fun close() {
+    actual override fun close() {
         closedir(dir)
     }
 }

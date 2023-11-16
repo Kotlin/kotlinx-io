@@ -5,7 +5,9 @@
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
@@ -125,6 +127,7 @@ internal actual val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS
 @OptIn(ExperimentalStdlibApi::class)
 internal expect class OpaqueDirEntry : AutoCloseable {
     fun readdir(): String?
+    override fun close()
 }
 
 internal expect fun opendir(path: String): OpaqueDirEntry
