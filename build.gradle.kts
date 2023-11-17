@@ -51,7 +51,10 @@ subprojects {
 
 apiValidation {
     ignoredProjects.add("kotlinx-io-benchmarks")
-    ignoredProjects.add("kotlinx-io-benchmarks-android")
+    val androidBenchmarksEnabled = project.findProperty("androidBenchmarksEnabled")?.toString()?.toBoolean() ?: false
+    if (androidBenchmarksEnabled) {
+        ignoredProjects.add("kotlinx-io-benchmarks-android")
+    }
 }
 
 dependencies {
