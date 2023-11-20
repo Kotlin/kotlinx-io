@@ -8,6 +8,7 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
+import kotlinx.io.unsafe.UnsafeBufferAccessors
 import platform.Foundation.NSInputStream
 import platform.Foundation.NSOutputStream
 import platform.Foundation.NSStreamStatusClosed
@@ -94,7 +95,7 @@ private open class NSInputStreamSource(
         checkByteCount(byteCount)
 
         var bytesRead = 0L
-        sink.writeUnbound(1) {
+        UnsafeBufferAccessors.writeUnbound(sink, 1) {
             val maxToCopy = minOf(byteCount, it.remainingCapacity)
             val read = it.withContainedData { data, _, limit ->
                 when (data) {
