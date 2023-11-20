@@ -8,6 +8,7 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
+import kotlinx.io.unsafe.UnsafeBufferAccessors
 import platform.Foundation.NSData
 import platform.Foundation.create
 import platform.Foundation.data
@@ -20,7 +21,7 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
 
     var currentOffset = 0
     while (currentOffset < maxLength) {
-        writeUnbound(1) {
+        UnsafeBufferAccessors.writeUnbound(this , 1) {
             val toCopy = minOf(maxLength - currentOffset, it.remainingCapacity)
             it.withContainedData { data, _, limit ->
                 when (data) {
