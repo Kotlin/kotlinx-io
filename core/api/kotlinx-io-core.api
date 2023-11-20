@@ -1,7 +1,7 @@
 public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
-	public field headField Lkotlinx/io/Segment;
+	public field head Lkotlinx/io/Segment;
 	public field sizeField J
-	public field tailField Lkotlinx/io/Segment;
+	public field tail Lkotlinx/io/Segment;
 	public fun <init> ()V
 	public final fun clear ()V
 	public fun close ()V
@@ -13,9 +13,7 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun flush ()V
 	public final fun get (J)B
 	public fun getBuffer ()Lkotlinx/io/Buffer;
-	public final fun getHead ()Lkotlinx/io/Segment;
 	public final fun getSize ()J
-	public final fun getTail ()Lkotlinx/io/Segment;
 	public fun hintEmit ()V
 	public fun peek ()Lkotlinx/io/Source;
 	public fun readAtMostTo (Lkotlinx/io/Buffer;J)J
@@ -39,7 +37,6 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun writeInt (I)V
 	public fun writeLong (J)V
 	public fun writeShort (S)V
-	public final fun writeUnbound (ILkotlin/jvm/functions/Function2;)V
 }
 
 public final class kotlinx/io/BuffersJvmKt {
@@ -102,11 +99,9 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 public final class kotlinx/io/Segment {
 	public field limit I
 	public field pos I
-	public final fun get (I)B
-	public final fun getCapacity ()I
-	public final fun getNext ()Lkotlinx/io/Segment;
-	public final fun getPrev ()Lkotlinx/io/Segment;
+	public final fun getChecked (I)B
 	public final fun getRawData ()Ljava/lang/Object;
+	public final fun getRemainingCapacity ()I
 	public final fun getSize ()I
 	public final fun pop ()Lkotlinx/io/Segment;
 	public final fun setUnchecked (IB)V
@@ -117,12 +112,12 @@ public final class kotlinx/io/SegmentKt {
 }
 
 public abstract interface class kotlinx/io/SegmentSetContext {
-	public abstract fun set (Lkotlinx/io/Segment;IB)V
+	public abstract fun setChecked (Lkotlinx/io/Segment;IB)V
 }
 
 public final class kotlinx/io/SegmentSetContextImpl : kotlinx/io/SegmentSetContext {
 	public static final field INSTANCE Lkotlinx/io/SegmentSetContextImpl;
-	public fun set (Lkotlinx/io/Segment;IB)V
+	public fun setChecked (Lkotlinx/io/Segment;IB)V
 }
 
 public final class kotlinx/io/SegmentsJvmKt {
@@ -288,9 +283,18 @@ public final class kotlinx/io/files/PathsKt {
 	public static final fun sourceDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 }
 
+public final class kotlinx/io/unsafe/UnsafeBufferAccessors {
+	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeBufferAccessors;
+	public final fun writeUnbound (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function2;)V
+}
+
 public final class kotlinx/io/unsafe/UnsafeSegmentAccessors {
 	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeSegmentAccessors;
-	public final fun getUnsafe (Lkotlinx/io/Segment;I)B
-	public final fun setUnsafe (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IB)V
+	public final fun getUnchecked (Lkotlinx/io/Segment;I)B
+	public final fun head (Lkotlinx/io/Buffer;)Lkotlinx/io/Segment;
+	public final fun next (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
+	public final fun prev (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
+	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IB)V
+	public final fun tail (Lkotlinx/io/Buffer;)Lkotlinx/io/Segment;
 }
 
