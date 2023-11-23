@@ -46,6 +46,12 @@ kotlin {
         binaries.executable()
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+    wasmWasi {
+        nodejs()
+        binaries.executable()
+    }
+
     sourceSets {
         commonTest {
             dependencies {
@@ -94,6 +100,12 @@ kotlin {
             kotlin.srcDir(File(File(projectDir, "wasm"), "src"))
         }
         getByName("wasmJsTest") {
+            kotlin.srcDir(File(File(projectDir, "wasm"), "test"))
+        }
+        getByName("wasmWasiMain") {
+            kotlin.srcDir(File(File(projectDir, "wasm"), "src"))
+        }
+        getByName("wasmWasiTest") {
             kotlin.srcDir(File(File(projectDir, "wasm"), "test"))
         }
     }
