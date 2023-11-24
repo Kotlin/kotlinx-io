@@ -244,28 +244,29 @@ internal fun Buffer.readUtf8CodePoint(): Int {
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLinesSample
  */
+@OptIn(InternalIoApi::class)
 public fun Source.readLine(): String? {
     if (!request(1)) return null
 
-    val peekSource = peek()
-    var offset = 0L
-    var newlineSize = 0L
-    while (peekSource.request(1)) {
-        val b = peekSource.readByte().toInt()
-        if (b == '\n'.code) {
-            newlineSize = 1L
-            break
-        } else if (b == '\r'.code) {
-            if (peekSource.startsWith('\n'.code.toByte())) {
-                newlineSize = 2L
-                break
-            }
+    var lfIndex = this.indexOf('\n'.code.toByte())
+    return when (lfIndex) {
+        -1L -> readString()
+        0L -> {
+            skip(1)
+            ""
         }
-        offset++
+
+        else -> {
+            var skipBytes = 1
+            if (buffer[lfIndex - 1] == '\r'.code.toByte()) {
+                lfIndex -= 1
+                skipBytes += 1
+            }
+            val string = readString(lfIndex)
+            skip(skipBytes.toLong())
+            string
+        }
     }
-    val line = readString(offset)
-    skip(newlineSize)
-    return line
 }
 
 /**
@@ -288,39 +289,48 @@ public fun Source.readLine(): String? {
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLinesSample
  */
+@OptIn(InternalIoApi::class)
 public fun Source.readLineStrict(limit: Long = Long.MAX_VALUE): String {
     require(limit >= 0) { "limit ($limit) < 0" }
     require(1)
 
-    val peekSource = peek()
-    var offset = 0L
-    var newlineSize = 0L
-    while (offset < limit && peekSource.request(1)) {
-        val b = peekSource.readByte().toInt()
-        if (b == '\n'.code) {
-            newlineSize = 1L
-            break
-        } else if (b == '\r'.code) {
-            if (peekSource.startsWith('\n'.code.toByte())) {
-                newlineSize = 2L
-                break
-            }
-        }
-        offset++
+    var lfIndex = indexOf('\n'.code.toByte(), startIndex = 0, endIndex = limit)
+
+    if (lfIndex == 0L) {
+        skip(1)
+        return ""
     }
-    if (offset == limit) {
-        if (!peekSource.request(1)) throw EOFException()
-        val nlCandidate = peekSource.readByte().toInt()
-        if (nlCandidate == '\n'.code) {
-            newlineSize = 1
-        } else if (nlCandidate == '\r'.code && peekSource.startsWith('\n'.code.toByte())) {
-            newlineSize = 2
+
+    if (lfIndex > 0) {
+        var skipBytes = 1L
+        if (buffer[lfIndex - 1] == '\r'.code.toByte()) {
+            lfIndex -= 1
+            skipBytes += 1
         }
+        val str = readString(lfIndex)
+        skip(skipBytes)
+        return str
     }
-    if (newlineSize == 0L) throw EOFException()
-    val line = readString(offset)
-    skip(newlineSize)
-    return line
+
+    // we reached the end of the source before hitting the limit
+    if (buffer.size < limit) throw EOFException()
+    // we can't read data anymore
+    if (limit == Long.MAX_VALUE) throw EOFException()
+    // there is no more data
+    if (!request(limit + 1)) throw EOFException()
+
+    val b = buffer[limit]
+    if (b == '\n'.code.toByte()) {
+        val str = readString(limit)
+        skip(1)
+        return str
+    }
+    // check if the last byte is CR and the byte passed it is LF
+    if (b != '\r'.code.toByte() || !request(limit + 2)) throw EOFException()
+    if (buffer[limit + 1] != '\n'.code.toByte()) throw EOFException()
+    val res = readString(limit)
+    skip(2)
+    return res
 }
 
 private fun Buffer.commonReadUtf8CodePoint(): Int {
