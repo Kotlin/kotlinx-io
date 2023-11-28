@@ -1772,12 +1772,14 @@ abstract class AbstractBufferedSourceTest internal constructor(
 
     @Test
     fun indexOfByteStringSpanningAcrossMultipleSegments() {
-        sink.writeString("a".repeat(SEGMENT_SIZE - 1))
-        val target = "b".repeat(SEGMENT_SIZE + 2)
-        sink.writeString(target)
-        sink.writeString("c".repeat(SEGMENT_SIZE - 1))
+        sink.writeString("a".repeat(SEGMENT_SIZE))
+        sink.emit()
+        sink.writeString("bbbb")
+        sink.emit()
+        sink.write(Buffer().also { it.writeString("c".repeat(SEGMENT_SIZE)) }, SEGMENT_SIZE.toLong())
         sink.emit()
 
-        assertEquals((SEGMENT_SIZE - 1).toLong(), source.indexOf(target.encodeToByteString()))
+        source.skip(SEGMENT_SIZE - 10L)
+        assertEquals(9, source.indexOf("abbbbc".encodeToByteString()))
     }
 }
