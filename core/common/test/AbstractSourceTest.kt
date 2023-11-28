@@ -1769,4 +1769,15 @@ abstract class AbstractBufferedSourceTest internal constructor(
         assertEquals((Segment.SIZE * 2 + 1).toLong(), source.indexOf("fg".encodeToByteString()))
         assertEquals((Segment.SIZE * 2 + 2).toLong(), source.indexOf("g".encodeToByteString()))
     }
+
+    @Test
+    fun indexOfByteStringSpanningAcrossMultipleSegments() {
+        sink.writeString("a".repeat(SEGMENT_SIZE - 1))
+        val target = "b".repeat(SEGMENT_SIZE + 2)
+        sink.writeString(target)
+        sink.writeString("c".repeat(SEGMENT_SIZE - 1))
+        sink.emit()
+
+        assertEquals((SEGMENT_SIZE - 1).toLong(), source.indexOf(target.encodeToByteString()))
+    }
 }

@@ -393,6 +393,7 @@ open class IndexOfByteString {
 
     private var buffer = Buffer()
     private var byteString = ByteString()
+    private var source: Source = buffer
 
     @Setup
     fun setup() {
@@ -413,5 +414,5 @@ open class IndexOfByteString {
     }
 
     @Benchmark
-    fun benchmark() = buffer.indexOf(byteString)
+    fun benchmark() = source.indexOf(byteString)
 }

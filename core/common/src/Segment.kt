@@ -201,12 +201,85 @@ internal fun Segment.indexOf(byte: Byte, startOffset: Int, endOffset: Int): Int 
     require(startOffset in 0 until size) {
         "$startOffset"
     }
-    require(endOffset in startOffset..size) { "$endOffset" }
+    require(endOffset in startOffset..size) {
+        "$endOffset"
+    }
     val p = pos
     for (idx in startOffset until endOffset) {
         if (data[p + idx] == byte) {
             return idx
         }
+    }
+    return -1
+}
+
+/**
+ * Searches for a `bytes` pattern within this segment starting at the offset `startOffset`.
+ * `startOffset` is relative and should be within `[0, size)`.
+ */
+internal fun Segment.indexOfBytesInbound(bytes: ByteArray, startOffset: Int): Int {
+    // require(startOffset in 0 until size)
+    var offset = startOffset
+    val limit = size - bytes.size + 1
+    while (offset < limit) {
+        val idx = indexOf(bytes[0], offset, limit)
+        if (idx < 0) {
+            offset++
+            continue
+        }
+        var found = true
+        for (innerIdx in 1 until bytes.size) {
+            if (data[pos + idx + innerIdx] != bytes[innerIdx]) {
+                found = false
+                break
+            }
+        }
+        if (found) {
+            return idx
+        } else {
+            offset++
+        }
+    }
+    return -1
+}
+
+/**
+ * Searches for a `bytes` pattern starting in between offset `startOffset` and `size` within this segment
+ * and continued in the following segments.
+ * `startOffset` is relative and should be within `[0, size)`.
+ */
+internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int, head: Segment?): Int {
+    var offset = startOffset
+
+    while (offset in 0 until size) {
+        val idx = indexOf(bytes[0], offset, size)
+        if (idx < 0) {
+            return -1
+        }
+        // The pattern should start in this segment
+        var seg = this
+        var scanOffset = offset
+
+        var found = true
+        for (element in bytes) {
+            // We ran out of bytes in this segment,
+            // so let's take the next one and continue the scan there.
+            if (scanOffset == seg.size) {
+                val next = seg.next
+                if (next === head) return -1
+                seg = next!!
+                scanOffset = 0 // we're scanning the next segment right from the beginning
+            }
+            if (element != seg.data[seg.pos + scanOffset]) {
+                found = false
+                break
+            }
+            scanOffset++
+        }
+        if (found) {
+            return offset
+        }
+        offset++
     }
     return -1
 }
