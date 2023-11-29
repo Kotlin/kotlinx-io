@@ -142,14 +142,15 @@ public fun Buffer.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
                     // The offset corresponds to the segment's start, idx - to offset within the segment.
                     return offset + idx.toLong()
                 }
+                // firstOutboundOffset corresponds to a first byte starting reading the pattern from which
+                // will result in running out of the current segment bounds.
+                val firstOutboundOffset = maxOf(startOffset, segment.size - byteStringData.size + 1)
                 // Try to find a pattern in all suffixes shorter than the pattern. These suffixes start
                 // in the current segment, but ends in the following segments; thus we're using outbound function.
-                for (spanningIdx in maxOf(startOffset, segment.size - byteStringData.size + 1) until segment.size) {
-                    val idx1 = segment.indexOfBytesOutbound(byteStringData, spanningIdx, head)
-                    if (idx1 != -1) {
-                        // Offset corresponds to the segment's start, idx - to offset within the segment.
-                        return offset + idx1.toLong()
-                    }
+                val idx1 = segment.indexOfBytesOutbound(byteStringData, firstOutboundOffset, head)
+                if (idx1 != -1) {
+                    // Offset corresponds to the segment's start, idx - to offset within the segment.
+                    return offset + idx1.toLong()
                 }
 
                 // We scanned the whole segment, so let's go to the next one

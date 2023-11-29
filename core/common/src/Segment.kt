@@ -221,11 +221,11 @@ internal fun Segment.indexOfBytesInbound(bytes: ByteArray, startOffset: Int): In
     // require(startOffset in 0 until size)
     var offset = startOffset
     val limit = size - bytes.size + 1
+    val firstByte = bytes[0]
     while (offset < limit) {
-        val idx = indexOf(bytes[0], offset, limit)
+        val idx = indexOf(firstByte, offset, limit)
         if (idx < 0) {
-            offset++
-            continue
+            return -1
         }
         var found = true
         for (innerIdx in 1 until bytes.size) {
@@ -250,9 +250,10 @@ internal fun Segment.indexOfBytesInbound(bytes: ByteArray, startOffset: Int): In
  */
 internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int, head: Segment?): Int {
     var offset = startOffset
+    val firstByte = bytes[0]
 
     while (offset in 0 until size) {
-        val idx = indexOf(bytes[0], offset, size)
+        val idx = indexOf(firstByte, offset, size)
         if (idx < 0) {
             return -1
         }
