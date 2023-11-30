@@ -54,7 +54,9 @@ public final class kotlinx/io/BuffersKt {
 }
 
 public final class kotlinx/io/ByteStringsKt {
+	public static final fun indexOf (Lkotlinx/io/Buffer;Lkotlinx/io/bytestring/ByteString;J)J
 	public static final fun indexOf (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;J)J
+	public static synthetic fun indexOf$default (Lkotlinx/io/Buffer;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)J
 	public static synthetic fun indexOf$default (Lkotlinx/io/Source;Lkotlinx/io/bytestring/ByteString;JILjava/lang/Object;)J
 	public static final fun readByteString (Lkotlinx/io/Source;)Lkotlinx/io/bytestring/ByteString;
 	public static final fun readByteString (Lkotlinx/io/Source;I)Lkotlinx/io/bytestring/ByteString;

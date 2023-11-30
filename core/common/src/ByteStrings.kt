@@ -102,38 +102,63 @@ public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
     }
 
     var offset = startIndex
-    val peek = peek()
-    if (!request(startIndex)) {
-        return -1L
-    }
-    peek.skip(offset)
-    var resultingIndex = -1L
-    UnsafeByteStringOperations.withByteArrayUnsafe(byteString) { data ->
-        while (!peek.exhausted()) {
-            val index = peek.indexOf(data[0])
-            if (index == -1L) {
-                return@withByteArrayUnsafe
-            }
-            offset += index
-            peek.skip(index)
-            if (!peek.request(byteString.size.toLong())) {
-                return@withByteArrayUnsafe
-            }
-
-            var matches = true
-            for (idx in data.indices) {
-                if (data[idx] != peek.buffer[idx.toLong()]) {
-                    matches = false
-                    offset++
-                    peek.skip(1)
-                    break
-                }
-            }
-            if (matches) {
-                resultingIndex = offset
-                return@withByteArrayUnsafe
-            }
+    while (request(offset + byteString.size)) {
+        val idx = buffer.indexOf(byteString, offset)
+        if (idx < 0) {
+            // The buffer does not contain the pattern, let's try fetching at least one extra byte
+            // and start a new search attempt so that the pattern would fit in the suffix of
+            // the current buffer + 1 extra byte.
+            offset = buffer.size - byteString.size + 1
+        } else {
+            return idx
         }
     }
-    return resultingIndex
+    return -1
+}
+
+@OptIn(UnsafeByteStringApi::class)
+public fun Buffer.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
+    require(startIndex <= size) {
+        "startIndex ($startIndex) should not exceed size ($size)"
+    }
+    if (byteString.isEmpty()) return 0
+    if (startIndex > size - byteString.size) return -1L
+
+    UnsafeByteStringOperations.withByteArrayUnsafe(byteString) { byteStringData ->
+        seek(startIndex) { seg, o ->
+            if (o == -1L) {
+                return -1L
+            }
+            var segment = seg!!
+            var offset = o
+            do {
+                // If start index within this segment, the diff will be positive and
+                // we'll scan the segment starting from the corresponding offset.
+                // Otherwise, the diff will be negative and we'll scan the segment from the beginning.
+                val startOffset = maxOf((startIndex - offset).toInt(), 0)
+                // Try to search the pattern within the current segment.
+                val idx = segment.indexOfBytesInbound(byteStringData, startOffset)
+                if (idx != -1) {
+                    // The offset corresponds to the segment's start, idx - to offset within the segment.
+                    return offset + idx.toLong()
+                }
+                // firstOutboundOffset corresponds to a first byte starting reading the pattern from which
+                // will result in running out of the current segment bounds.
+                val firstOutboundOffset = maxOf(startOffset, segment.size - byteStringData.size + 1)
+                // Try to find a pattern in all suffixes shorter than the pattern. These suffixes start
+                // in the current segment, but ends in the following segments; thus we're using outbound function.
+                val idx1 = segment.indexOfBytesOutbound(byteStringData, firstOutboundOffset, head)
+                if (idx1 != -1) {
+                    // Offset corresponds to the segment's start, idx - to offset within the segment.
+                    return offset + idx1.toLong()
+                }
+
+                // We scanned the whole segment, so let's go to the next one
+                offset += segment.size
+                segment = segment.next!!
+            } while (segment !== head && offset + byteString.size <= size)
+            return -1L
+        }
+    }
+    return -1
 }
