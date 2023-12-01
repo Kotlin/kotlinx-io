@@ -11,22 +11,22 @@
 A multiplatform Kotlin library providing basic IO primitives. `kotlinx-io` is based on [Okio](https://github.com/square/okio) but does not preserve backward compatibility with it.
 
 ## Overview
-The library is built around `Buffer` - a mutable sequence of bytes. `Buffer` works like a queue allowing one to read data from its head or write data to its tail.
+**kotlinx-io** is built around `Buffer` - a mutable sequence of bytes.
 
-`Buffer` provides functions to read and write data of different built-in types and copy data to or from other buffers. Depending on a target platform, extension functions allowing data exchange with platform-specific types are also provided.
+`Buffer` works like a queue, allowing to read data from its head or to write data to its tail.
+`Buffer` provides functions to read and write data of different built-in types, and to copy data to or from other `Buffer`s.
+Depending on the target platform, extension functions allowing data exchange with platform-specific types are also available.
 
-`Buffer` consists of segments organized as a linked list. Segments allow reducing memory allocations during the buffer's expansion and copying. The latter is achieved by delegating or sharing the ownership over the underlying buffer's segments with other buffers.
+A `Buffer` consists of segments organized as a linked list: segments allow reducing memory allocations during the buffer's expansion and copy,
+with the latter achieved by delegating or sharing the ownership over the underlying buffer's segments with other buffers.
 
-The library also provides interfaces representing data sources and destinations - `Source` and `Sink`.
+**kotlinx-io** provides interfaces representing data sources and destinations - `Source` and `Sink`,
+and in addition to the *mutable* `Buffer` the library also provides an *immutable* sequence of bytes - `ByteString`.
 
-In addition to `Buffer`, the library provides an immutable sequence of bytes - `ByteString`.
+An experimental filesystem support is shipped under the `kotlinx.io.files` package,
+which includes the `FileSystem` interface and its default implementation - `SystemFileSystem`.
 
-Also, there's an experimental filesystem support provided by `kotlinx.io.files` package. 
-The package includes `FileSystem` interface and its implementation - `SystemFileSystem`. 
-
-`FileSystem` provides basic operations for working with files and directories.
-
-File and directory paths are represented by yet another class provided by the package - `Path`.
+`FileSystem` provides basic operations for working with files and directories, which are represented by yet another class under the same package - `Path`.
 
 There are two `kotlinx-io` modules:
 - [kotlinx-io-bytestring](./bytestring) - provides `ByteString`.

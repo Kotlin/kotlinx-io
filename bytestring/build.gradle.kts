@@ -3,9 +3,9 @@ import org.jetbrains.dokka.gradle.DokkaTaskPartial
 plugins {
     id("kotlinx-io-multiplatform")
     id("kotlinx-io-publish")
+    id("kotlinx-io-dokka")
     id("kotlinx-io-android-compat")
     alias(libs.plugins.kover)
-    alias(libs.plugins.dokka)
 }
 
 kotlin {
@@ -30,8 +30,6 @@ kotlin {
 
 tasks.withType<DokkaTaskPartial>().configureEach {
     dokkaSourceSets.configureEach {
-        includes.from("Module.md")
-
         perPackageOption {
             suppress.set(true)
             matchingRegex.set(".*unsafe.*")
