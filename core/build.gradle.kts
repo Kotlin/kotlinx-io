@@ -4,6 +4,7 @@
  */
 
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
+import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinTargetWithNodeJsDsl
 
 plugins {
     id("kotlinx-io-multiplatform")
@@ -31,9 +32,8 @@ kotlin {
         }
     }
 
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasmJs {
-        nodejs {
+    fun KotlinTargetWithNodeJsDsl.filterSmokeTests() {
+        this.nodejs {
             testTask(Action {
                 useMocha {
                     timeout = "300s"
@@ -41,6 +41,16 @@ kotlin {
                 filter.setExcludePatterns("*SmokeFileTest*")
             })
         }
+    }
+
+    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+    wasmJs {
+        filterSmokeTests()
+    }
+
+    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+    wasmWasi {
+        filterSmokeTests()
     }
 
     sourceSets {
