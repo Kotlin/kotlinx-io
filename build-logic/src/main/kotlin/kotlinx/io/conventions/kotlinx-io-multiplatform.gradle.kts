@@ -46,6 +46,12 @@ kotlin {
         binaries.executable()
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+    wasmWasi {
+        nodejs()
+        binaries.executable()
+    }
+
     sourceSets {
         commonTest {
             dependencies {
@@ -90,12 +96,8 @@ kotlin {
         createSourceSet("linuxTest", parent = unixTest, children = linuxTargets())
         createSourceSet("androidMain", parent = unixMain, children = androidTargets())
         createSourceSet("androidTest", parent = unixTest, children = androidTargets())
-        getByName("wasmJsMain") {
-            kotlin.srcDir(File(File(projectDir, "wasm"), "src"))
-        }
-        getByName("wasmJsTest") {
-            kotlin.srcDir(File(File(projectDir, "wasm"), "test"))
-        }
+        createSourceSet("wasmMain", parent = commonMain.get(), children = wasmTargets())
+        createSourceSet("wasmTest", parent = commonTest.get(), children = wasmTargets())
     }
 }
 
@@ -197,6 +199,8 @@ fun androidTargets() = listOf(
     "androidNativeX64",
     "androidNativeX86"
 )
+
+fun wasmTargets() = listOf("wasmJs", "wasmWasi")
 
 rootProject.the<NodeJsRootExtension>().apply {
     nodeVersion = "21.0.0-v8-canary202310177990572111"
