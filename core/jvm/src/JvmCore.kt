@@ -54,12 +54,9 @@ private open class OutputStreamSink(
                         out.write(data, pos, toCopy)
                     }
                     else -> {
-                        TODO()
-                        /*
                         for (idx in 0 until toCopy) {
-                            out.write(head[idx].toInt())
+                            out.write(head.getUnchecked(idx).toInt())
                         }
-                         */
                     }
                 }
             }
@@ -108,16 +105,17 @@ private open class InputStreamSource(
                             }
                         }
                         else -> {
-                            TODO()
-                            /*
                             while (readTotal < maxToCopy) {
                                 val b = input.read()
                                 if (b == -1) break
-                                it[readTotal.toInt()] = b.toByte()
+                                it.setUnchecked(readTotal.toInt(), b.toByte())
                                 readTotal++
                             }
-                            readTotal.toInt()
-                             */
+                            val res = readTotal.toInt()
+                            if (res == 0) {
+                                readTotal = -1
+                            }
+                            res
                         }
                     }
                 }

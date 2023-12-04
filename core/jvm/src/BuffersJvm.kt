@@ -81,7 +81,6 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
                         }
                     }
                     else -> {
-                        /*
                         var bytesRead = 0
                         while (bytesRead < maxToCopy) {
                             val b = input.read()
@@ -92,11 +91,12 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
                                 exchaused = true
                                 break
                             }
-                            it[bytesRead++] = b.toByte()
+                            it.setUnchecked(bytesRead++, b.toByte())
                         }
+                        remainingByteCount -= bytesRead
                         bytesRead
-                         */
-                        TODO()
+                        // */
+                        //TODO()
                     }
                 }
             }
@@ -128,6 +128,11 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
             when (data) {
                 is ByteArray -> {
                     out.write(data, pos, toCopy)
+                }
+                is ByteBuffer -> {
+                    for (idx in 0 until toCopy) {
+                        out.write(s.getUnchecked(idx).toInt())
+                    }
                 }
                 else -> {
                     TODO()
@@ -186,6 +191,11 @@ public fun Buffer.copyTo(
                 is ByteArray -> {
                     out.write(data, pos, toCopy)
                 }
+                is ByteBuffer -> {
+                    for (idx in currentOffset until currentOffset + toCopy) {
+                        out.write(s.getUnchecked(idx.toInt()).toInt())
+                    }
+                }
                 else -> {
                     TODO()
                     /*
@@ -220,6 +230,12 @@ public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
             is ByteArray -> {
                 sink.put(data, pos, toCopy)
             }
+            is ByteBuffer -> {
+                data.position(pos)
+                data.limit(pos + toCopy)
+                sink.put(data)
+                data.clear()
+            }
             else -> {
                 TODO()
                 /*
@@ -252,6 +268,15 @@ public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
                 when (data) {
                     is ByteArray -> {
                         source.get(data, limit, toCopy)
+                    }
+                    is ByteBuffer -> {
+                        data.position(limit)
+                        data.limit(limit + toCopy)
+                        val srcLim = source.limit()
+                        source.limit(source.position() + toCopy)
+                        data.put(source)
+                        data.clear()
+                        source.limit(srcLim)
                     }
                     else -> {
                         TODO()

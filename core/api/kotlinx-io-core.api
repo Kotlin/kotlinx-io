@@ -97,13 +97,15 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 }
 
 public final class kotlinx/io/Segment {
-	public field limit I
-	public field pos I
 	public final fun getChecked (I)B
+	public final fun getLimit ()I
+	public final fun getPos ()I
 	public final fun getRawData ()Ljava/lang/Object;
 	public final fun getRemainingCapacity ()I
 	public final fun getSize ()I
 	public final fun pop ()Lkotlinx/io/Segment;
+	public final fun setLimit (I)V
+	public final fun setPos (I)V
 	public final fun setUnchecked (IB)V
 }
 

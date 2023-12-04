@@ -28,7 +28,7 @@ open class ByteBufferReadWrite : BufferRWBenchmarkBase() {
 
     @Benchmark
     fun benchmark(): ByteBuffer {
-        inputBuffer.rewind()
+        inputBuffer.clear()
         outputBuffer.clear()
         buffer.write(inputBuffer)
         while (buffer.readAtMostTo(outputBuffer) > 0) {

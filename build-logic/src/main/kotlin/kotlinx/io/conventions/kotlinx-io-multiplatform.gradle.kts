@@ -82,8 +82,11 @@ kotlin {
      */
 
     sourceSets {
-        val nativeMain = createSourceSet("nativeMain", parent = commonMain.get())
-        val nativeTest = createSourceSet("nativeTest", parent = commonTest.get())
+        val nonJvmMain = createSourceSet("nonJvmMain", parent = commonMain.get(), children = listOf("js"))
+        val nonJvmTest = createSourceSet("nonJvmTest", parent = commonTest.get(), children = listOf("js"))
+
+        val nativeMain = createSourceSet("nativeMain", parent = nonJvmMain)
+        val nativeTest = createSourceSet("nativeTest", parent = nonJvmTest)
         val nonAppleMain = createSourceSet("nonAppleMain", parent = nativeMain)
         val nonAppleTest = createSourceSet("nonAppleTest", parent = nativeTest)
         createSourceSet("appleMain", parent = nativeMain, children = appleTargets)
@@ -96,8 +99,8 @@ kotlin {
         createSourceSet("linuxTest", parent = unixTest, children = linuxTargets())
         createSourceSet("androidMain", parent = unixMain, children = androidTargets())
         createSourceSet("androidTest", parent = unixTest, children = androidTargets())
-        createSourceSet("wasmMain", parent = commonMain.get(), children = wasmTargets())
-        createSourceSet("wasmTest", parent = commonTest.get(), children = wasmTargets())
+        createSourceSet("wasmMain", parent = nonJvmMain, children = wasmTargets())
+        createSourceSet("wasmTest", parent = nonJvmTest, children = wasmTargets())
     }
 }
 
