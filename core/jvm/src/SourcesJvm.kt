@@ -48,14 +48,11 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
                 String(data, pos, byteCount.toInt(), charset)
             }
             else -> {
-                TODO()
-                /*
                 val ba = ByteArray(byteCount.toInt())
                 for (idx in 0 until byteCount.toInt()) {
-                    ba[idx] = s[idx]
+                    ba[idx] = s.getUnchecked(idx)
                 }
                 String(ba, pos, byteCount.toInt(), charset)
-                 */
             }
         }
     }

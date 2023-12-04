@@ -5,15 +5,9 @@
 
 package kotlinx.io
 
-import java.nio.ByteBuffer
-
-@UnsafeIoApi
-public inline fun <T> Segment.withContainedData(block: (Any, Int, Int) -> T) : T {
-    return block(rawData, pos, limit)
-}
 
 public actual class Segment {
-    internal val data: ByteBuffer
+    internal val data: ByteArray
 
     @PublishedApi
     internal actual val rawData: Any
@@ -49,12 +43,12 @@ public actual class Segment {
     internal actual var prev: Segment? = null
 
     internal actual constructor() {
-        this.data = ByteBuffer.allocateDirect(SIZE)
+        this.data = ByteArray(SIZE)
         this.owner = true
         this.shared = false
     }
 
-    internal constructor(data: ByteBuffer, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
+    internal constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
         this.data = data
         this.pos = pos
         this.limit = limit
@@ -71,6 +65,9 @@ public actual class Segment {
         shared = true
         return Segment(data, pos, limit, true, false)
     }
+
+    /** Returns a new segment that its own private copy of the underlying byte array.  */
+    internal fun unsharedCopy() = Segment(data.copyOf(), pos, limit, false, true)
 
     /**
      * Removes this segment of a segments list and returns its successor.
@@ -124,12 +121,7 @@ public actual class Segment {
             prefix = sharedCopy()
         } else {
             prefix = SegmentPool.take()
-            data.position(pos)
-            data.limit(pos + byteCount)
-            prefix.data.put(data)
-            data.clear()
-            prefix.data.clear()
-            //data.copyInto(prefix.data, startIndex = pos, endIndex = pos + byteCount)
+            data.copyInto(prefix.data, startIndex = pos, endIndex = pos + byteCount)
         }
 
         prefix.limit = prefix.pos + byteCount
@@ -168,36 +160,15 @@ public actual class Segment {
             // We can't fit byteCount bytes at the sink's current position. Shift sink first.
             if (sink.shared) throw IllegalArgumentException()
             if (sink.limit + byteCount - sink.pos > SIZE) throw IllegalArgumentException()
-            sink.data.position(sink.pos)
-            sink.data.limit(sink.limit)
-            sink.data.compact()
-            sink.data.clear()
+            sink.data.copyInto(sink.data, startIndex = sink.pos, endIndex = sink.limit)
             sink.limit -= sink.pos
             sink.pos = 0
         }
 
-        if (sink.data !== data) {
-            sink.data.position(sink.limit)
-            data.position(pos)
-            data.limit(pos + byteCount)
-            sink.data.put(data)
-            data.clear()
-            sink.data.clear()
-        } else {
-            val dataCopy = data.duplicate()
-            sink.data.position(sink.limit)
-            dataCopy.position(pos)
-            dataCopy.limit(pos + byteCount)
-            sink.data.put(dataCopy)
-            sink.data.clear()
-        }
-/*
         data.copyInto(
             sink.data, destinationOffset = sink.limit, startIndex = pos,
             endIndex = pos + byteCount
         )
-
- */
         sink.limit += byteCount
         pos += byteCount
     }
@@ -212,31 +183,42 @@ public actual class Segment {
      * Number of bytes that could be written in the segment.
      */
     public actual val remainingCapacity: Int
-        get() = data.capacity() - limit
+        get() = data.size - limit
 
     internal actual fun writeByte(byte: Byte) {
-        data.put(limit++, byte)
+        data[limit++] = byte
     }
 
     internal actual fun writeShort(short: Short) {
         val data = data
-        val limit = limit
-        data.putShort(limit, short)
-        this.limit = limit + 2
+        var limit = limit
+        data[limit++] = (short.toInt() ushr 8 and 0xff).toByte()
+        data[limit++] = (short.toInt() and 0xff).toByte()
+        this.limit = limit
     }
 
     internal actual fun writeInt(int: Int) {
         val data = data
-        val limit = limit
-        data.putInt(limit, int)
-        this.limit = limit + 4
+        var limit = limit
+        data[limit++] = (int ushr 24 and 0xff).toByte()
+        data[limit++] = (int ushr 16 and 0xff).toByte()
+        data[limit++] = (int ushr 8 and 0xff).toByte()
+        data[limit++] = (int and 0xff).toByte()
+        this.limit = limit
     }
 
     internal actual fun writeLong(long: Long) {
         val data = data
-        val limit = limit
-        data.putLong(limit, long)
-        this.limit = limit + 8
+        var limit = limit
+        data[limit++] = (long ushr 56 and 0xffL).toByte()
+        data[limit++] = (long ushr 48 and 0xffL).toByte()
+        data[limit++] = (long ushr 40 and 0xffL).toByte()
+        data[limit++] = (long ushr 32 and 0xffL).toByte()
+        data[limit++] = (long ushr 24 and 0xffL).toByte()
+        data[limit++] = (long ushr 16 and 0xffL).toByte()
+        data[limit++] = (long ushr 8 and 0xffL).toByte()
+        data[limit++] = (long and 0xffL).toByte()
+        this.limit = limit
     }
 
     internal actual fun readByte(): Byte {
@@ -245,42 +227,52 @@ public actual class Segment {
 
     internal actual fun readShort(): Short {
         val data = data
-        val pos = pos
-        this.pos = pos + 2
-        return data.getShort(pos)
+        var pos = pos
+        val s = (data[pos++] and 0xff shl 8 or (data[pos++] and 0xff)).toShort()
+        this.pos = pos
+        return s
     }
 
     internal actual fun readInt(): Int {
         val data = data
-        val pos = pos
-        this.pos = pos + 4
-        return data.getInt(pos)
+        var pos = pos
+        val i = (
+                data[pos++] and 0xff shl 24
+                        or (data[pos++] and 0xff shl 16)
+                        or (data[pos++] and 0xff shl 8)
+                        or (data[pos++] and 0xff)
+                )
+        this.pos = pos
+        return i
     }
 
     internal actual fun readLong(): Long {
         val data = data
-        val pos = pos
-        this.pos = pos + 8
-        return data.getLong(pos)
+        var pos = pos
+        val v = (
+                data[pos++] and 0xffL shl 56
+                        or (data[pos++] and 0xffL shl 48)
+                        or (data[pos++] and 0xffL shl 40)
+                        or (data[pos++] and 0xffL shl 32)
+                        or (data[pos++] and 0xffL shl 24)
+                        or (data[pos++] and 0xffL shl 16)
+                        or (data[pos++] and 0xffL shl 8)
+                        or (data[pos++] and 0xffL)
+                )
+        this.pos = pos
+        return v
     }
 
     internal actual fun readTo(dst: ByteArray, dstStartOffset: Int, dstEndOffset: Int) {
         val len = dstEndOffset - dstStartOffset
         require(len in 0 .. size)
-        //data.copyInto(dst, dstStartOffset, pos, pos + len)
-        data.position(pos)
-        data.limit(pos + len)
-        data.get(dst, dstStartOffset, len)
-        data.clear()
+        data.copyInto(dst, dstStartOffset, pos, pos + len)
         pos += len
     }
 
     internal actual fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int) {
         require(srcEndOffset - srcStartOffset in 0 .. remainingCapacity)
-        //src.copyInto(data, limit, srcStartOffset, srcEndOffset)
-        data.position(limit)
-        data.put(src, srcStartOffset, srcEndOffset - srcStartOffset)
-        data.clear()
+        src.copyInto(data, limit, srcStartOffset, srcEndOffset)
         limit += srcEndOffset - srcStartOffset
     }
 
@@ -306,12 +298,12 @@ public actual class Segment {
 
     internal actual fun setChecked(index: Int, value: Byte) {
         require(index in 0 until remainingCapacity)
-        data.put(limit + index, value)
+        data[limit + index] = value
     }
 
     @PublishedApi
     internal actual fun setUnchecked(index: Int, value: Byte) {
-        data.put(limit + index, value)
+        data[limit + index] = value
     }
 
     internal actual companion object {
