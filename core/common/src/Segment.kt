@@ -431,7 +431,7 @@ internal fun Segment.indexOfBytesInbound(bytes: ByteArray, startOffset: Int): In
  * and continued in the following segments.
  * `startOffset` is relative and should be within `[0, size)`.
  */
-internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int, head: Segment?): Int {
+internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int): Int {
     var offset = startOffset
     val firstByte = bytes[0]
 
@@ -450,8 +450,8 @@ internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int, he
             // so let's take the next one and continue the scan there.
             if (scanOffset == seg.size) {
                 val next = seg.next
-                if (next === head) return -1
-                seg = next!!
+                if (next === null) return -1
+                seg = next
                 scanOffset = 0 // we're scanning the next segment right from the beginning
             }
             if (element != seg.data[seg.pos + scanOffset]) {
