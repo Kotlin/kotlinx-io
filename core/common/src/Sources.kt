@@ -5,6 +5,8 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeSegmentAccessors
+
 /**
  * Removes two bytes from this source and returns a short integer composed of it according to the little-endian order.
  *
@@ -58,60 +60,63 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDecimalLong
  */
-@OptIn(InternalIoApi::class)
+@OptIn(InternalIoApi::class, UnsafeIoApi::class)
 public fun Source.readDecimalLong(): Long {
     require(1L)
 
-    var currIdx = 0L
     var negative = false
     var value = 0L
-    var seen = 0
     var overflowDigit = OVERFLOW_DIGIT_START
-    when (val b = buffer[currIdx++]) {
+    when (val b = buffer[0]) {
         '-'.code.toByte() -> {
             negative = true
             overflowDigit--
+            require(2)
+            if (buffer[1] !in '0'.code .. '9'.code) {
+                throw NumberFormatException("Expected a digit but was 0x${buffer[1].toHexString()}")
+            }
         }
-
         in '0'.code..'9'.code -> {
             value = ('0'.code - b).toLong()
-            seen = 1
         }
-
         else -> {
             throw NumberFormatException("Expected a digit or '-' but was 0x${b.toHexString()}")
         }
     }
 
-    while (request(currIdx + 1L)) {
-        val b = buffer[currIdx++]
-        if (b in '0'.code..'9'.code) {
-            val digit = '0'.code - b
+    var bufferOffset = 1L
+    while (request(bufferOffset + 1)) {
+        val finished = buffer.seek(bufferOffset) { seg, offset ->
+            seg!!
+            var currIdx = (bufferOffset - offset).toInt()
+            val size = seg.size
+            while (currIdx < size) {
+                val b = UnsafeSegmentAccessors.getUnchecked(seg, currIdx)
+                if (b in '0'.code..'9'.code) {
+                    val digit = '0'.code - b
 
-            // Detect when the digit would cause an overflow.
-            if (value < OVERFLOW_ZONE || value == OVERFLOW_ZONE && digit < overflowDigit) {
-                with(Buffer()) {
-                    writeDecimalLong(value)
-                    writeByte(b)
+                    // Detect when the digit would cause an overflow.
+                    if (value < OVERFLOW_ZONE || value == OVERFLOW_ZONE && digit < overflowDigit) {
+                        with(Buffer()) {
+                            writeDecimalLong(value)
+                            writeByte(b)
 
-                    if (!negative) readByte() // Skip negative sign.
-                    throw NumberFormatException("Number too large: ${readString()}")
+                            if (!negative) readByte() // Skip negative sign.
+                            throw NumberFormatException("Number too large: ${readString()}")
+                        }
+                    }
+                    value = value * 10L + digit
+                    currIdx++
+                    bufferOffset++
+                } else {
+                    return@seek true
                 }
             }
-            value = value * 10L + digit
-            seen++
-        } else {
-            break
+            false
         }
+        if (finished) break
     }
-
-    if (seen < 1) {
-        require(2)
-        val expected = if (negative) "Expected a digit" else "Expected a digit or '-'"
-        throw NumberFormatException("$expected but was 0x${buffer[1].toHexString()}")
-    }
-
-    skip(currIdx.toLong() - 1)
+    skip(bufferOffset)
 
     return if (negative) value else -value
 }
@@ -129,9 +134,10 @@ public fun Source.readDecimalLong(): Long {
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readHexLong
  */
-@OptIn(InternalIoApi::class)
+@OptIn(InternalIoApi::class, UnsafeIoApi::class)
 public fun Source.readHexadecimalUnsignedLong(): Long {
     require(1)
+
     var result = when (val b = buffer[0]) {
         in '0'.code..'9'.code -> b - '0'.code
         in 'a'.code..'f'.code -> b - 'a'.code + 10
@@ -140,24 +146,31 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
     }.toLong()
 
     var bytesRead = 1L
-
     while (request(bytesRead + 1L)) {
-        val b = buffer[bytesRead]
-        val bDigit = when (b) {
-            in '0'.code..'9'.code -> b - '0'.code
-            in 'a'.code..'f'.code -> b - 'a'.code + 10
-            in 'A'.code..'F'.code -> b - 'A'.code + 10
-            else -> break
-        }
-        if (result and -0x1000000000000000L != 0L) {
-            with(Buffer()) {
-                writeHexadecimalUnsignedLong(result)
-                writeByte(b)
-                throw NumberFormatException("Number too large: " + readString())
+        val stop = buffer.seek(bytesRead) { seg, offset ->
+            seg!!
+            val startIndex = (bytesRead - offset).toInt()
+            for (localOffset in startIndex until seg.size) {
+                val b = UnsafeSegmentAccessors.getUnchecked(seg, localOffset)
+                val bDigit = when (b) {
+                    in '0'.code..'9'.code -> b - '0'.code
+                    in 'a'.code..'f'.code -> b - 'a'.code + 10
+                    in 'A'.code..'F'.code -> b - 'A'.code + 10
+                    else -> return@seek true
+                }
+                if (result and -0x1000000000000000L != 0L) {
+                    with(Buffer()) {
+                        writeHexadecimalUnsignedLong(result)
+                        writeByte(b)
+                        throw NumberFormatException("Number too large: " + readString())
+                    }
+                }
+                result = result.shl(4) + bDigit
+                bytesRead++
             }
+            false
         }
-        result = result.shl(4) + bDigit
-        bytesRead++
+        if (stop) break
     }
     skip(bytesRead)
     return result
