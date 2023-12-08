@@ -186,7 +186,7 @@ class SmokeFileTest {
         assertEquals("..", Path("..${SystemPathSeparator}..").parent?.toString())
 
         assertEquals(" ", Path(SystemFileSystem.resolve(Path(".")), " ", "ws").parent?.name)
-        assertEquals(" ", Path(" /.").parent?.name, "\" /.\"\"")
+        assertEquals(" ", Path(" $SystemPathSeparator.").parent?.name)
         assertNull(Path(" ").parent)
         assertNull(Path(" /").parent)
     }
