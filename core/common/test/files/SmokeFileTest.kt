@@ -184,6 +184,11 @@ class SmokeFileTest {
         assertNull(Path(SystemPathSeparator.toString()).parent)
 
         assertEquals("..", Path("..${SystemPathSeparator}..").parent?.toString())
+
+        assertEquals(" ", Path(SystemFileSystem.resolve(Path(".")), " ", "ws").parent?.name)
+        assertEquals(" ", Path(" /.").parent?.name, "\" /.\"\"")
+        assertNull(Path(" ").parent)
+        assertNull(Path(" /").parent)
     }
 
     @Test
@@ -213,6 +218,8 @@ class SmokeFileTest {
         assertEquals("..", Path("..").name)
         assertEquals("hello.txt", Path("base", "hello.txt").name)
         assertEquals("dir", Path("dir${SystemPathSeparator}").name)
+        assertEquals(" ", Path(" ").name)
+        assertEquals("  ", Path(" /  ").name)
     }
 
     @Test

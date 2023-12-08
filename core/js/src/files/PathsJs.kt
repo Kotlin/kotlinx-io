@@ -33,12 +33,13 @@ public actual class Path internal constructor(
         get() {
             check(pathLib !== null) { "Path module not found" }
             when {
-                path.isBlank() -> return null
+                path.isEmpty() -> return null
                 !path.contains(SystemPathSeparator) -> return null
             }
             val p = pathLib.dirname(path) as String?
             return when {
-                p.isNullOrBlank() -> null
+                p.isNullOrEmpty() -> null
+                p == "." -> null
                 p == path -> null
                 else -> Path(p)
             }
@@ -54,11 +55,11 @@ public actual class Path internal constructor(
         get() {
             check(pathLib !== null) { "Path module not found" }
             when {
-                path.isBlank() -> return ""
+                path.isNullOrEmpty() -> return ""
             }
             val p = pathLib.basename(path) as String?
             return when {
-                p.isNullOrBlank() -> ""
+                p.isNullOrEmpty() -> ""
                 else -> p
             }
         }

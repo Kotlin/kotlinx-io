@@ -22,11 +22,12 @@ public actual class Path internal constructor(
     public actual val parent: Path?
         get() {
             when {
-                path.isBlank() -> return null
+                path.isEmpty() -> return null
             }
             val parentName = dirnameImpl(path)
             return when {
-                parentName.isBlank() -> return null
+                parentName.isEmpty() -> return null
+                parentName == "." -> return null
                 parentName == path -> return null
                 else -> Path(parentName)
             }
@@ -47,7 +48,7 @@ public actual class Path internal constructor(
     public actual val isAbsolute: Boolean = isAbsoluteImpl(path)
     public actual val name: String
         get() {
-            if (path.isBlank() || path.trim() == SystemPathSeparator.toString()) return ""
+            if (path.isEmpty() || path == SystemPathSeparator.toString()) return ""
             return basenameImpl(path)
         }
 }
