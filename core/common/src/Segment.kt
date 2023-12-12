@@ -367,23 +367,29 @@ public class Segment {
 
     @PublishedApi
     internal fun setUnchecked(index: Int, b0: Byte, b1: Byte) {
-        data[limit + index] = b0
-        data[limit + index + 1] = b1
+        val d = data
+        val l = limit
+        d[l + index] = b0
+        d[l + index + 1] = b1
     }
 
     @PublishedApi
     internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte) {
-        data[limit + index] = b0
-        data[limit + index + 1] = b1
-        data[limit + index + 2] = b2
+        val d = data
+        val l = limit
+        d[l + index] = b0
+        d[l + index + 1] = b1
+        d[l + index + 2] = b2
     }
 
     @PublishedApi
     internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
-        data[limit + index] = b0
-        data[limit + index + 1] = b1
-        data[limit + index + 2] = b2
-        data[limit + index + 3] = b3
+        val d = data
+        val l = limit
+        d[l + index] = b0
+        d[l + index + 1] = b1
+        d[l + index + 2] = b2
+        d[l + index + 3] = b3
     }
 
 
