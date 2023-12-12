@@ -417,6 +417,7 @@ private fun Buffer.commonReadUtf8CodePoint(): Int {
     }
 }
 
+/*
 @OptIn(UnsafeIoApi::class)
 private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int) {
     checkBounds(string.length, beginIndex, endIndex)
@@ -482,10 +483,10 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
         }
     }
 }
+*/
 
-/*
 @OptIn(UnsafeIoApi::class)
-private fun Buffer.commonWriteUtf8_old(string: String, beginIndex: Int, endIndex: Int) {
+private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int) {
     checkBounds(string.length, beginIndex, endIndex)
 
     // Transcode a UTF-16 Java String to UTF-8 bytes.
@@ -495,30 +496,33 @@ private fun Buffer.commonWriteUtf8_old(string: String, beginIndex: Int, endIndex
 
         when {
             c < 0x80 -> {
-                writeUnbound(1) {
-                    val segmentOffset = - i
-                    val runLimit = minOf(endIndex, it.capacity)
+                UnsafeBufferAccessors.writeUnbound(this, 1) {
+                    val segmentOffset = -i
+                    val runLimit = minOf(endIndex, i + it.remainingCapacity)
 
                     // Emit a 7-bit character with 1 byte.
-                    UnsafeSegmentAccessors.setUnsafe(this, it, segmentOffset + i++, c.toByte()) // 0xxxxxxx
+                    UnsafeSegmentAccessors.setUnchecked(this, it, segmentOffset + i++, c.toByte()) // 0xxxxxxx
 
                     // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
                     // improvement over independent calls to writeByte().
                     while (i < runLimit) {
                         c = string[i].code
                         if (c >= 0x80) break
-                        UnsafeSegmentAccessors.setUnsafe(this, it, segmentOffset + i++, c.toByte()) // 0xxxxxxx
+                        UnsafeSegmentAccessors.setUnchecked(this, it, segmentOffset + i++, c.toByte()) // 0xxxxxxx
                     }
 
-                     i + segmentOffset // Equivalent to i - (previous i).
+                    i + segmentOffset // Equivalent to i - (previous i).
                 }
             }
 
             c < 0x800 -> {
                 // Emit a 11-bit character with 2 bytes.
-                writeUnbound(2) {
-                    UnsafeSegmentAccessors.setUnsafe(this, it, 0, (c shr 6 or 0xc0).toByte()) // 110xxxxx
-                    UnsafeSegmentAccessors.setUnsafe(this, it, 1, (c and 0x3f or 0x80).toByte()) // 10xxxxxx
+                UnsafeBufferAccessors.writeUnbound(this, 2) {
+                    UnsafeSegmentAccessors.setUnchecked(
+                        this, it, 0,
+                        (c shr 6 or 0xc0).toByte(), // 110xxxxx
+                        (c and 0x3f or 0x80).toByte() // 10xxxxxx
+                    )
                     2
                 }
                 i++
@@ -526,10 +530,13 @@ private fun Buffer.commonWriteUtf8_old(string: String, beginIndex: Int, endIndex
 
             c < 0xd800 || c > 0xdfff -> {
                 // Emit a 16-bit character with 3 bytes.
-                writeUnbound(3) {
-                    UnsafeSegmentAccessors.setUnsafe(this, it, 0, (c shr 12 or 0xe0).toByte()) // 1110xxxx
-                    UnsafeSegmentAccessors.setUnsafe(this, it, 1, (c shr 6 and 0x3f or 0x80).toByte()) // 10xxxxxx
-                    UnsafeSegmentAccessors.setUnsafe(this, it, 2, (c and 0x3f or 0x80).toByte()) // 10xxxxxx
+                UnsafeBufferAccessors.writeUnbound(this, 3) {
+                    UnsafeSegmentAccessors.setUnchecked(
+                        this, it, 0,
+                        (c shr 12 or 0xe0).toByte(), // 1110xxxx
+                        (c shr 6 and 0x3f or 0x80).toByte(), // 10xxxxxx
+                        (c and 0x3f or 0x80).toByte() // 10xxxxxx
+                    )
                     3
                 }
                 i++
@@ -550,11 +557,13 @@ private fun Buffer.commonWriteUtf8_old(string: String, beginIndex: Int, endIndex
                     val codePoint = 0x010000 + (c and 0x03ff shl 10 or (low and 0x03ff))
 
                     // Emit a 21-bit character with 4 bytes.
-                    writeUnbound(4) {
-                        UnsafeSegmentAccessors.setUnsafe(this, it, 0, (codePoint shr 18 or 0xf0).toByte()) // 11110xxx
-                        UnsafeSegmentAccessors.setUnsafe(this, it, 1, (codePoint shr 12 and 0x3f or 0x80).toByte()) // 10xxxxxx
-                        UnsafeSegmentAccessors.setUnsafe(this, it, 2, (codePoint shr 6 and 0x3f or 0x80).toByte()) // 10xxyyyy
-                        UnsafeSegmentAccessors.setUnsafe(this, it, 3, (codePoint and 0x3f or 0x80).toByte()) // 10yyyyyy
+                    UnsafeBufferAccessors.writeUnbound(this, 4) {
+                        UnsafeSegmentAccessors.setUnchecked(this, it, 0,
+                            (codePoint shr 18 or 0xf0).toByte(), // 11110xxx
+                            (codePoint shr 12 and 0x3f or 0x80).toByte(), // 10xxxxxx
+                            (codePoint shr 6 and 0x3f or 0x80).toByte(), // 10xxyyyy
+                            (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
+                        )
                         4
                     }
                     i += 2
@@ -563,7 +572,6 @@ private fun Buffer.commonWriteUtf8_old(string: String, beginIndex: Int, endIndex
         }
     }
 }
- */
 
 @OptIn(UnsafeIoApi::class)
 private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {

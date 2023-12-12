@@ -39,6 +39,23 @@ public object UnsafeSegmentAccessors {
         segment.setUnchecked(index, value)
     }
 
+    @Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
+    public inline fun setUnchecked(context: SegmentSetContext, segment: Segment, index: Int, b0: Byte, b1: Byte) {
+        segment.setUnchecked(index, b0, b1)
+    }
+
+    @Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
+    public inline fun setUnchecked(context: SegmentSetContext, segment: Segment, index: Int,
+                                   b0: Byte, b1: Byte, b2: Byte) {
+        segment.setUnchecked(index, b0, b1, b2)
+    }
+
+    @Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
+    public inline fun setUnchecked(context: SegmentSetContext, segment: Segment, index: Int,
+                                   b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
+        segment.setUnchecked(index, b0, b1, b2, b3)
+    }
+
     /**
      * Returns byte located at [index]-position within [segment].
      *
