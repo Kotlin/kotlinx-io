@@ -365,6 +365,28 @@ public class Segment {
         data[limit + index] = value
     }
 
+    @PublishedApi
+    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte) {
+        data[limit + index] = b0
+        data[limit + index + 1] = b1
+    }
+
+    @PublishedApi
+    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte) {
+        data[limit + index] = b0
+        data[limit + index + 1] = b1
+        data[limit + index + 2] = b2
+    }
+
+    @PublishedApi
+    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
+        data[limit + index] = b0
+        data[limit + index + 1] = b1
+        data[limit + index + 2] = b2
+        data[limit + index + 3] = b3
+    }
+
+
     internal companion object {
         /** The size of all segments in bytes.  */
         internal const val SIZE = 8192
