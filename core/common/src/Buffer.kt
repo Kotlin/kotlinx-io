@@ -308,6 +308,12 @@ public class Buffer : Source, Sink {
      * @throws IllegalArgumentException when [byteCount] is negative.
      */
     override fun skip(byteCount: Long) {
+        val h = head
+        if (h != null && h.size > byteCount) {
+            h.pos += byteCount.toInt()
+            sizeField -= byteCount
+            return
+        }
         checkByteCount(byteCount)
         var remainingByteCount = byteCount
         while (remainingByteCount > 0) {
