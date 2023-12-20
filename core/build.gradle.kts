@@ -14,6 +14,10 @@ plugins {
     alias(libs.plugins.kover)
 }
 
+repositories {
+    maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
+}
+
 kotlin {
     js(IR) {
         nodejs {
@@ -43,20 +47,21 @@ kotlin {
         }
     }
 
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasmJs {
-        filterSmokeTests()
-    }
-
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasmWasi {
-        filterSmokeTests()
-    }
+//    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+//    wasmJs {
+//        filterSmokeTests()
+//    }
+//
+//    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+//    wasmWasi {
+//        filterSmokeTests()
+//    }
 
     sourceSets {
         commonMain {
             dependencies {
                 api(project(":kotlinx-io-bytestring"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC-gradle-space2")
             }
         }
         appleTest {
