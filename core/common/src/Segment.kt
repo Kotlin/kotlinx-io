@@ -98,7 +98,6 @@ public expect class Segment {
     internal fun setChecked(index: Int, value: Byte)
     @PublishedApi
     internal fun setUnchecked(index: Int, value: Byte)
-
     @PublishedApi
     internal fun setUnchecked(index: Int, b0: Byte, b1: Byte)
 
@@ -106,7 +105,7 @@ public expect class Segment {
     internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte)
 
     @PublishedApi
-    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
+    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte)
 
     internal companion object {
         /** The size of all segments in bytes.  */

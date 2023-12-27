@@ -266,7 +266,7 @@ public actual class Segment {
 
     internal actual fun readTo(dst: ByteArray, dstStartOffset: Int, dstEndOffset: Int) {
         val len = dstEndOffset - dstStartOffset
-        require(len in 0 .. size)
+        //require(len in 0 .. size)
         //data.copyInto(dst, dstStartOffset, pos, pos + len)
         data.position(pos)
         data.limit(pos + len)
@@ -276,7 +276,7 @@ public actual class Segment {
     }
 
     internal actual fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int) {
-        require(srcEndOffset - srcStartOffset in 0 .. remainingCapacity)
+        //require(srcEndOffset - srcStartOffset in 0 .. remainingCapacity)
         //src.copyInto(data, limit, srcStartOffset, srcEndOffset)
         data.position(limit)
         data.put(src, srcStartOffset, srcEndOffset - srcStartOffset)
@@ -312,6 +312,33 @@ public actual class Segment {
     @PublishedApi
     internal actual fun setUnchecked(index: Int, value: Byte) {
         data.put(limit + index, value)
+    }
+
+    @PublishedApi
+    internal actual fun setUnchecked(index: Int, b0: Byte, b1: Byte) {
+        val d = data
+        val l = limit
+        d.put(l + index, b0)
+        d.put(l + index + 1, b1)
+    }
+
+    @PublishedApi
+    internal actual fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte) {
+        val d = data
+        val l = limit
+        d.put(l + index, b0)
+        d.put(l + index + 1, b1)
+        d.put(l + index + 2, b2)
+    }
+
+    @PublishedApi
+    internal actual fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
+        val d = data
+        val l = limit
+        d.put(l + index, b0)
+        d.put(l + index + 1, b1)
+        d.put(l + index + 2, b2)
+        d.put(l + index + 3, b3)
     }
 
     internal actual companion object {
