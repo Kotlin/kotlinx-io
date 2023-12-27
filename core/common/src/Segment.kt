@@ -98,7 +98,6 @@ public expect class Segment {
     internal fun setChecked(index: Int, value: Byte)
     @PublishedApi
     internal fun setUnchecked(index: Int, value: Byte)
-
     @PublishedApi
     internal fun setUnchecked(index: Int, b0: Byte, b1: Byte)
 
