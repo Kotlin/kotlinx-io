@@ -324,13 +324,15 @@ public class Segment {
 
     internal fun readTo(dst: ByteArray, dstStartOffset: Int, dstEndOffset: Int) {
         val len = dstEndOffset - dstStartOffset
-        require(len in 0 .. size)
+        // TODO: replace with assert
+        // require(len in 0 .. size)
         data.copyInto(dst, dstStartOffset, pos, pos + len)
         pos += len
     }
 
     internal fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int) {
-        require(srcEndOffset - srcStartOffset in 0 .. remainingCapacity)
+        // TODO: replace with assert
+        // require(srcEndOffset - srcStartOffset in 0 .. remainingCapacity)
         src.copyInto(data, limit, srcStartOffset, srcEndOffset)
         limit += srcEndOffset - srcStartOffset
     }
@@ -403,12 +405,15 @@ public class Segment {
 }
 
 internal fun Segment.indexOf(byte: Byte, startOffset: Int, endOffset: Int): Int {
+    // TODO: replace with assert
+    /*
     require(startOffset in 0 until size) {
         "$startOffset"
     }
     require(endOffset in startOffset..size) {
         "$endOffset"
     }
+     */
     val p = pos
     for (idx in startOffset until endOffset) {
         if (data[p + idx] == byte) {
