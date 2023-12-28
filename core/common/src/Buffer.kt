@@ -60,6 +60,7 @@ public class Buffer : Source, Sink {
      * The number of bytes accessible for read from this buffer.
      */
     public val size: Long get() = sizeField
+
     @PublishedApi
     @JvmField
     internal var sizeField: Long = 0L
@@ -74,8 +75,12 @@ public class Buffer : Source, Sink {
     override fun require(byteCount: Long) {
         require(byteCount >= 0) { "byteCount: $byteCount" }
         if (sizeField < byteCount) {
-            throw EOFException("Buffer doesn't contain required number of bytes (size: $sizeField, required: $byteCount)")
+            throwEOF(byteCount)
         }
+    }
+
+    private fun throwEOF(byteCount: Long) {
+        throw EOFException("Buffer doesn't contain required number of bytes (size: $sizeField, required: $byteCount)")
     }
 
     override fun request(byteCount: Long): Boolean {
@@ -84,11 +89,14 @@ public class Buffer : Source, Sink {
     }
 
     override fun readByte(): Byte {
-        require(1)
-        val segment = this.head!!
+        val segment = this.head
+        if (segment == null) {
+            throwEOF(1)
+            return -1 // unreachable
+        }
         val b = segment.readByte()
         sizeField -= 1L
-        if (segment.isEmpty()) {
+        if (segment.limit == segment.pos) {
             val newHead = segment.pop()
             if (newHead == null) {
                 tail = null
@@ -100,11 +108,15 @@ public class Buffer : Source, Sink {
     }
 
     override fun readShort(): Short {
-        require(2)
-        val segment = this.head!!
+        val segment = this.head
+        if (segment == null) {
+            throwEOF(2)
+            return -1 // unreachable
+        }
         val segmentSize = segment.size
         // If the short is split across multiple segments, delegate to readByte().
         if (segmentSize < 2) {
+            require(2)
             val s = readByte() and 0xff shl 8 or (readByte() and 0xff)
             return s.toShort()
         }
@@ -125,13 +137,16 @@ public class Buffer : Source, Sink {
     }
 
     override fun readInt(): Int {
-        require(4)
-
-        val segment = this.head!!
+        val segment = this.head
+        if (segment == null) {
+            throwEOF(4)
+            return -1 // unreachable
+        }
         val segmentSize = segment.size
 
         // If the int is split across multiple segments, delegate to readByte().
         if (segmentSize < 4L) {
+            require(4)
             return (
                     readByte() and 0xff shl 24
                             or (readByte() and 0xff shl 16)
@@ -156,13 +171,16 @@ public class Buffer : Source, Sink {
     }
 
     override fun readLong(): Long {
-        require(8)
-
-        val segment = this.head!!
+        val segment = this.head
+        if (segment == null) {
+            throwEOF(8)
+            return -1 // unreachable
+        }
         val segmentSize = segment.size
 
         // If the long is split across multiple segments, delegate to readInt().
         if (segmentSize < 8L) {
+            require(8)
             return (
                     readInt() and 0xffffffffL shl 32
                             or (readInt() and 0xffffffffL)
