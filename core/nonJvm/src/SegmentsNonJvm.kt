@@ -293,7 +293,7 @@ public actual class Segment {
     }
 
     internal actual fun getUnchecked(index: Int): Byte {
-        return data[pos + index]
+        return data[index]
     }
 
     internal actual fun setChecked(index: Int, value: Byte) {

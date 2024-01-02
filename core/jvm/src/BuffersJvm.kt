@@ -131,7 +131,7 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
                 }
                 is ByteBuffer -> {
                     for (idx in 0 until toCopy) {
-                        out.write(s.getUnchecked(idx).toInt())
+                        out.write(s.getUnchecked(pos + idx).toInt())
                     }
                 }
                 else -> {
@@ -193,7 +193,7 @@ public fun Buffer.copyTo(
                 }
                 is ByteBuffer -> {
                     for (idx in currentOffset until currentOffset + toCopy) {
-                        out.write(s.getUnchecked(idx.toInt()).toInt())
+                        out.write(s.getUnchecked(s.pos + idx.toInt()).toInt())
                     }
                 }
                 else -> {

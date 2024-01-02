@@ -127,9 +127,9 @@ internal fun Segment.indexOf(byte: Byte, startOffset: Int, endOffset: Int): Int 
         "$endOffset"
     }
      */
-    for (idx in startOffset until endOffset) {
-        if (UnsafeSegmentAccessors.getUnchecked(this, + idx) == byte) {
-            return idx
+    for (idx in startOffset + pos until endOffset + pos) {
+        if (UnsafeSegmentAccessors.getUnchecked(this, idx) == byte) {
+            return idx - pos
         }
     }
     return -1
@@ -158,7 +158,7 @@ internal fun Segment.indexOfBytesInbound(bytes: ByteArray, startOffset: Int): In
         }
         var found = true
         for (innerIdx in 1 until bytes.size) {
-            if (UnsafeSegmentAccessors.getUnchecked(this, + idx + innerIdx) != bytes[innerIdx]) {
+            if (UnsafeSegmentAccessors.getUnchecked(this, pos + idx + innerIdx) != bytes[innerIdx]) {
                 found = false
                 break
             }
@@ -201,7 +201,7 @@ internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int): I
                 seg = next
                 scanOffset = 0 // we're scanning the next segment right from the beginning
             }
-            if (element != UnsafeSegmentAccessors.getUnchecked(seg, scanOffset)) {
+            if (element != UnsafeSegmentAccessors.getUnchecked(seg, seg.pos + scanOffset)) {
                 found = false
                 break
             }

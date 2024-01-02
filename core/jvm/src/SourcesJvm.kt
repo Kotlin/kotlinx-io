@@ -50,7 +50,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
             else -> {
                 val ba = ByteArray(byteCount.toInt())
                 for (idx in 0 until byteCount.toInt()) {
-                    ba[idx] = s.getUnchecked(idx)
+                    ba[idx] = s.getUnchecked(pos + idx)
                 }
                 String(ba, pos, byteCount.toInt(), charset)
             }

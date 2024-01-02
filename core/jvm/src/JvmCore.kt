@@ -55,7 +55,7 @@ private open class OutputStreamSink(
                     }
                     else -> {
                         for (idx in 0 until toCopy) {
-                            out.write(head.getUnchecked(idx).toInt())
+                            out.write(head.getUnchecked(pos + idx).toInt())
                         }
                     }
                 }
