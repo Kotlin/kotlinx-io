@@ -504,7 +504,7 @@ internal fun Segment.commonToUtf8String(beginIndex: Int = 0, endIndex: Int = siz
     val chars = CharArray(endIndex - beginIndex)
 
     var length = 0
-    processUtf16Chars(beginIndex, endIndex) { c ->
+    processUtf16Chars(beginIndex + pos, endIndex + pos) { c ->
         chars[length++] = c
     }
 

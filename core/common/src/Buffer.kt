@@ -307,7 +307,7 @@ public class Buffer : Source, Sink {
             throw IndexOutOfBoundsException("position ($position) is not within the range [0..size($size))")
         }
         seek(position) { s, offset ->
-            return UnsafeSegmentAccessors.getUnchecked(s!!, (position - offset).toInt())
+            return UnsafeSegmentAccessors.getUnchecked(s!!, s.pos + (position - offset).toInt())
         }
     }
 

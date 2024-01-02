@@ -88,9 +88,9 @@ public fun Source.readDecimalLong(): Long {
     while (request(bufferOffset + 1)) {
         val finished = buffer.seek(bufferOffset) { seg, offset ->
             seg!!
-            var currIdx = (bufferOffset - offset).toInt()
-            val size = seg.size
-            while (currIdx < size) {
+            var currIdx = (bufferOffset - offset).toInt() + seg.pos
+            val limit = seg.limit
+            while (currIdx < limit) {
                 val b = UnsafeSegmentAccessors.getUnchecked(seg, currIdx)
                 if (b in '0'.code..'9'.code) {
                     val digit = '0'.code - b
@@ -150,7 +150,7 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
         val stop = buffer.seek(bytesRead) { seg, offset ->
             seg!!
             val startIndex = (bytesRead - offset).toInt()
-            for (localOffset in startIndex until seg.size) {
+            for (localOffset in seg.pos + startIndex until seg.limit) {
                 val b = UnsafeSegmentAccessors.getUnchecked(seg, localOffset)
                 val bDigit = when (b) {
                     in '0'.code..'9'.code -> b - '0'.code

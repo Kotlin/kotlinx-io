@@ -354,7 +354,7 @@ public class Segment {
     }
 
     internal fun getUnchecked(index: Int): Byte {
-        return data[pos + index]
+        return data[index]
     }
 
     internal fun setChecked(index: Int, value: Byte) {
