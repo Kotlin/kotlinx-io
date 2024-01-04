@@ -97,8 +97,8 @@ kotlin {
         createSourceSet("linuxTest", parent = unixTest, children = linuxTargets())
         createSourceSet("androidMain", parent = unixMain, children = androidTargets())
         createSourceSet("androidTest", parent = unixTest, children = androidTargets())
-        createSourceSet("wasmMain", parent = nonJvmMain, children = wasmTargets())
-        createSourceSet("wasmTest", parent = nonJvmTest, children = wasmTargets())
+        createSourceSet("wasmMain", parent = commonMain.get(), children = wasmTargets())
+        createSourceSet("wasmTest", parent = commonTest.get(), children = wasmTargets())
     }
 }
 
