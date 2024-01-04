@@ -43,13 +43,11 @@ kotlin {
         nodejs()
         //  Disabled because we can't exclude some tests: https://youtrack.jetbrains.com/issue/KT-58291
         // browser()
-        binaries.executable()
     }
 
     @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
     wasmWasi {
         nodejs()
-        binaries.executable()
     }
 
     sourceSets {
