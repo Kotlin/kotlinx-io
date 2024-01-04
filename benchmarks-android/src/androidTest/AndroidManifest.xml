@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+  ~ Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
+  -->
+
+<manifest
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Important: disable debugging for accurate performance results
+
+      In a com.android.library project, this flag must be disabled from this
+      manifest, as it is not possible to override this flag from Gradle.
+    -->
+    <application
+            android:debuggable="false"
+            tools:ignore="HardcodedDebugMode"
+            tools:replace="android:debuggable"/>
+</manifest>
