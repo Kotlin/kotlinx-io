@@ -9,7 +9,23 @@ import kotlinx.io.Buffer
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.indexOf
+import kotlinx.io.readByteArray
+import kotlinx.io.readDecimalLong
+import kotlinx.io.readHexadecimalUnsignedLong
+import kotlinx.io.readIntLe
+import kotlinx.io.readLine
+import kotlinx.io.readLineStrict
+import kotlinx.io.readLongLe
+import kotlinx.io.readShortLe
 import kotlinx.io.readString
+import kotlinx.io.readTo
+import kotlinx.io.writeDecimalLong
+import kotlinx.io.writeHexadecimalUnsignedLong
+import kotlinx.io.writeIntLe
+import kotlinx.io.writeLongLe
+import kotlinx.io.writeShortLe
 import kotlinx.io.writeString
 import org.junit.After
 import org.junit.Before
@@ -18,6 +34,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
+
+const val SEGMENT_SIZE_IN_BYTES: Int = 8192
 
 abstract class BufferRWBenchmarkBase {
     // Buffers are implemented as a list of segments, as soon as a segment is empty
@@ -67,10 +85,26 @@ open class IntegerValuesBenchmark : BufferRWBenchmarkBase() {
     }
 
     @Test
+    fun shortLeRW() {
+        benchmarkRule.measureRepeated {
+            buffer.writeShortLe(0x42)
+            buffer.readShortLe()
+        }
+    }
+
+    @Test
     fun intRW() {
         benchmarkRule.measureRepeated {
             buffer.writeInt(0x42)
             buffer.readInt()
+        }
+    }
+
+    @Test
+    fun intLeRW() {
+        benchmarkRule.measureRepeated {
+            buffer.writeIntLe(0x42)
+            buffer.readIntLe()
         }
     }
 
@@ -81,8 +115,108 @@ open class IntegerValuesBenchmark : BufferRWBenchmarkBase() {
             buffer.readLong()
         }
     }
+
+    @Test
+    fun longLeRW() {
+        benchmarkRule.measureRepeated {
+            buffer.writeLongLe(0x42)
+            buffer.readLongLe()
+        }
+    }
 }
 
+@RunWith(Parameterized::class)
+open class HexadecimalLongBenchmark(val value: Long) : BufferRWBenchmarkBase() {
+    public companion object {
+        @JvmStatic
+        @Parameters(name = "{0}")
+        fun data(): Collection<Array<Any>> = listOf(arrayOf(9223372036854775806L), arrayOf(1L))
+    }
+
+    override fun padding(): ByteArray {
+        return with(Buffer()) {
+            while (size < minGap) {
+                writeHexadecimalUnsignedLong(value)
+                writeByte(' '.code.toByte())
+            }
+            readByteArray()
+        }
+    }
+
+    @Test
+    fun hexLongRW() {
+        benchmarkRule.measureRepeated {
+            buffer.writeHexadecimalUnsignedLong(value)
+            buffer.writeByte(' '.code.toByte())
+            buffer.readHexadecimalUnsignedLong()
+            buffer.readByte()
+        }
+    }
+}
+
+@RunWith(Parameterized::class)
+open class DecimalLongBenchmark(val value: Long) : BufferRWBenchmarkBase() {
+    public companion object {
+        @JvmStatic
+        @Parameters(name = "{0}")
+        fun data(): Collection<Array<Any>> = listOf(
+            arrayOf(-9223372036854775806L),
+            arrayOf(9223372036854775806L),
+            arrayOf(1L)
+        )
+    }
+
+    override fun padding(): ByteArray {
+        return with(Buffer()) {
+            while (size < minGap) {
+                writeDecimalLong(value)
+                writeByte(' '.code.toByte())
+            }
+            readByteArray()
+        }
+    }
+
+    @Test
+    fun decLongRW() {
+        benchmarkRule.measureRepeated {
+            buffer.writeDecimalLong(value)
+            buffer.writeByte(' '.code.toByte())
+            buffer.readDecimalLong()
+            buffer.readByte()
+        }
+    }
+}
+
+@RunWith(Parameterized::class)
+open class ByteArrayReadWriteBenchmarks(val length: Int) : BufferRWBenchmarkBase() {
+    val inputArray = ByteArray(length)
+
+    companion object {
+        @JvmStatic
+        @Parameters(name = "{0}")
+        fun data(): Collection<Array<Any>> = listOf(
+            arrayOf(1),
+            arrayOf(1024),
+            arrayOf(SEGMENT_SIZE_IN_BYTES * 3)
+        )
+    }
+
+    @Test
+    fun readWriteByteArray() {
+        benchmarkRule.measureRepeated {
+            buffer.write(inputArray)
+            buffer.readTo(inputArray)
+        }
+    }
+
+    @Test
+    fun readWriteNewByteArray() {
+        benchmarkRule.measureRepeated {
+            buffer.write(inputArray)
+            buffer.readByteArray(length)
+        }
+    }
+}
 
 @RunWith(Parameterized::class)
 open class Utf8Benchmark(val length: Int, val encoding: String) : BufferRWBenchmarkBase() {
@@ -136,7 +270,8 @@ open class Utf8Benchmark(val length: Int, val encoding: String) : BufferRWBenchm
     }
 
     private fun constructString(): String {
-        val part = strings[encoding] ?: throw IllegalArgumentException("Unsupported encoding: $encoding")
+        val part =
+            strings[encoding] ?: throw IllegalArgumentException("Unsupported encoding: $encoding")
         val builder = StringBuilder(length + 1000)
         while (builder.length < length) {
             builder.append(part)
@@ -169,6 +304,142 @@ open class Utf8Benchmark(val length: Int, val encoding: String) : BufferRWBenchm
             val s = buffer.size
             buffer.writeString(string)
             buffer.readString(buffer.size - s)
+        }
+    }
+}
+
+@RunWith(Parameterized::class)
+open class Utf8LineBenchmarks(val separatorStyle: String, val length: Int) :
+    BufferRWBenchmarkBase() {
+    companion object {
+        @JvmStatic
+        @Parameters(name = "{0}_{1}")
+        fun data(): Collection<Array<Any>> = listOf(
+            arrayOf("LF", 17),
+            arrayOf("CRLF", 17)
+        )
+    }
+
+    private val string = constructString()
+
+    private fun lineSeparator(): String = when (separatorStyle) {
+        "LF" -> "\n"
+        "CRLF" -> "\r\n"
+        else -> throw IllegalArgumentException("Unsupported line separator type: $separatorStyle")
+    }
+
+    private fun constructString(): String = ".".repeat(length) + lineSeparator()
+
+    override fun padding(): ByteArray {
+        val string = constructString()
+        if (string.length >= minGap) {
+            return string.encodeToByteArray()
+        }
+        val builder = StringBuilder((minGap * 1.5).toInt())
+        while (builder.length < minGap) {
+            builder.append(string)
+        }
+        return builder.toString().encodeToByteArray()
+    }
+
+    @Test
+    fun readLine() {
+        benchmarkRule.measureRepeated {
+            buffer.writeString(string)
+            buffer.readLine()
+        }
+    }
+
+    @Test
+    fun readLineStrict() {
+        benchmarkRule.measureRepeated {
+            buffer.writeString(string)
+            buffer.readLineStrict()
+        }
+    }
+}
+
+private const val VALUE_TO_FIND: Byte = 1
+
+@RunWith(Parameterized::class)
+open class IndexOfBenchmark(val dataSize: Int, val paddingSize: Int, val valueOffset: Int) {
+    companion object {
+        @JvmStatic
+        @Parameters(name = "{0}_{1}_{2}")
+        fun data(): Collection<Array<Any>> = listOf(
+            arrayOf(128, 0, -1),
+            arrayOf(128, 0, 7),
+            arrayOf(128, 0, 100),
+            arrayOf(128, SEGMENT_SIZE_IN_BYTES - 64, 100),
+            arrayOf(SEGMENT_SIZE_IN_BYTES * 3, 0, -1)
+        )
+    }
+
+    @get:Rule
+    val benchmarkRule = BenchmarkRule()
+
+    private val buffer = Buffer()
+
+    @Before
+    fun setupBuffers() {
+        check(paddingSize >= 0 && dataSize >= 0)
+        check(valueOffset == -1 || valueOffset < dataSize)
+
+        val array = ByteArray(dataSize)
+        if (valueOffset >= 0) array[valueOffset] = VALUE_TO_FIND
+
+        val padding = ByteArray(paddingSize)
+        with(buffer) {
+            write(padding)
+            write(array)
+            skip(paddingSize.toLong())
+        }
+    }
+
+    @Test
+    fun indexOf() {
+        benchmarkRule.measureRepeated {
+            buffer.indexOf(VALUE_TO_FIND)
+        }
+    }
+}
+
+@RunWith(Parameterized::class)
+open class IndexOfByteString(val bufferSize: Int, val byteStringSize: Int) {
+    companion object {
+        @JvmStatic
+        @Parameters(name = "{0}_{1}")
+        fun data(): Collection<Array<Any>> = listOf(
+            arrayOf(1024, 2),
+            arrayOf(8192, 2),
+            arrayOf(10000, 2),
+            arrayOf(10000, 8)
+        )
+    }
+
+    @get:Rule
+    val benchmarkRule = BenchmarkRule()
+
+    private var buffer = Buffer()
+    private var byteString = ByteString()
+
+    @Before
+    fun setup() {
+        byteString = ByteString(ByteArray(byteStringSize) { 0x42 })
+
+        for (idx in 0 until bufferSize) {
+            if (idx % byteStringSize == 0) {
+                buffer.writeByte(0)
+            } else {
+                buffer.writeByte(0x42)
+            }
+        }
+    }
+
+    @Test
+    fun indexOf() {
+        benchmarkRule.measureRepeated {
+            buffer.indexOf(byteString)
         }
     }
 }
