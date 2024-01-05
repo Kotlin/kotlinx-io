@@ -5,15 +5,19 @@
 
 package kotlinx.io
 
+import sun.misc.Unsafe
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
 import java.nio.ByteBuffer
 
 @UnsafeIoApi
-public inline fun <T> Segment.withContainedData(block: (Any, Int, Int) -> T) : T {
+public inline fun <T> Segment.withContainedData(block: (Any, Int, Int) -> T): T {
     return block(rawData, pos, limit)
 }
 
 public actual class Segment {
     internal val data: ByteBuffer
+    private val address: Long
 
     @PublishedApi
     internal actual val rawData: Any
@@ -50,12 +54,14 @@ public actual class Segment {
 
     internal actual constructor() {
         this.data = ByteBuffer.allocateDirect(SIZE)
+        this.address = UnsafeSegmentAccessor.accessor.address(this.data)
         this.owner = true
         this.shared = false
     }
 
     internal constructor(data: ByteBuffer, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
         this.data = data
+        this.address = UnsafeSegmentAccessor.accessor.address(this.data)
         this.pos = pos
         this.limit = limit
         this.shared = shared
@@ -191,13 +197,6 @@ public actual class Segment {
             sink.data.put(dataCopy)
             sink.data.clear()
         }
-/*
-        data.copyInto(
-            sink.data, destinationOffset = sink.limit, startIndex = pos,
-            endIndex = pos + byteCount
-        )
-
- */
         sink.limit += byteCount
         pos += byteCount
     }
@@ -215,7 +214,7 @@ public actual class Segment {
         get() = data.capacity() - limit
 
     internal actual fun writeByte(byte: Byte) {
-        data.put(limit++, byte)
+        UnsafeSegmentAccessor.accessor.setUnchecked(address, data, limit++, byte)
     }
 
     internal actual fun writeShort(short: Short) {
@@ -240,7 +239,7 @@ public actual class Segment {
     }
 
     internal actual fun readByte(): Byte {
-        return data[pos++]
+        return UnsafeSegmentAccessor.accessor.getUnchecked(address, data, pos++)
     }
 
     internal actual fun readShort(): Short {
@@ -301,7 +300,7 @@ public actual class Segment {
     }
 
     internal actual fun getUnchecked(index: Int): Byte {
-        return data[pos + index]
+        return UnsafeSegmentAccessor.accessor.getUnchecked(address, data, pos + index)
     }
 
     internal actual fun setChecked(index: Int, value: Byte) {
@@ -311,34 +310,22 @@ public actual class Segment {
 
     @PublishedApi
     internal actual fun setUnchecked(index: Int, value: Byte) {
-        data.put(limit + index, value)
+        UnsafeSegmentAccessor.accessor.setUnchecked(address, data, limit + index, value)
     }
 
     @PublishedApi
     internal actual fun setUnchecked(index: Int, b0: Byte, b1: Byte) {
-        val d = data
-        val l = limit
-        d.put(l + index, b0)
-        d.put(l + index + 1, b1)
+        UnsafeSegmentAccessor.accessor.setUnchecked(address, data, limit + index, b0, b1)
     }
 
     @PublishedApi
     internal actual fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte) {
-        val d = data
-        val l = limit
-        d.put(l + index, b0)
-        d.put(l + index + 1, b1)
-        d.put(l + index + 2, b2)
+        UnsafeSegmentAccessor.accessor.setUnchecked(address, data, limit + index, b0, b1, b2)
     }
 
     @PublishedApi
     internal actual fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
-        val d = data
-        val l = limit
-        d.put(l + index, b0)
-        d.put(l + index + 1, b1)
-        d.put(l + index + 2, b2)
-        d.put(l + index + 3, b3)
+        UnsafeSegmentAccessor.accessor.setUnchecked(address, data, limit + index, b0, b1, b2, b3)
     }
 
     internal actual companion object {
@@ -347,5 +334,98 @@ public actual class Segment {
 
         /** Segments will be shared when doing so avoids `arraycopy()` of this many bytes.  */
         internal actual const val SHARE_MINIMUM = 1024
+    }
+}
+
+private abstract class UnsafeSegmentAccessor {
+    abstract fun address(buffer: ByteBuffer): Long
+    abstract fun getUnchecked(addr: Long, buffer: ByteBuffer, index: Int): Byte
+    abstract fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, value: Byte)
+    abstract fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte)
+    abstract fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte, b2: Byte)
+    abstract fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte)
+
+    companion object {
+        val accessor: UnsafeSegmentAccessor =
+            try {
+                val buffer = ByteBuffer.allocateDirect(1)
+                val unsafeField = Unsafe::class.java.getDeclaredField("theUnsafe")
+                unsafeField.isAccessible = true
+                val unsafe = unsafeField.get(null) as Unsafe
+                val addrGetter = buffer.javaClass.getMethod("address")
+                addrGetter.isAccessible = true
+                val addr = addrGetter.invoke(buffer)
+                check(addr != 0L)
+                TheUnsafeSegmentAccessor(
+                    unsafe,
+                    MethodHandles.lookup().unreflect(addrGetter)
+                )
+            } catch (t: Throwable) {
+                t.printStackTrace()
+                ByteBufferSegmentAccessor()
+            }
+    }
+}
+
+private class ByteBufferSegmentAccessor : UnsafeSegmentAccessor() {
+    override fun address(buffer: ByteBuffer): Long = 0
+
+    override fun getUnchecked(addr: Long, buffer: ByteBuffer, index: Int): Byte = buffer[index]
+
+    override fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, value: Byte) {
+        buffer.put(index, value)
+    }
+
+    override fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte) {
+        buffer.put(index, b0)
+        buffer.put(index + 1, b1)
+    }
+
+    override fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte, b2: Byte) {
+        buffer.put(index, b0)
+        buffer.put(index + 1, b1)
+        buffer.put(index + 2, b2)
+    }
+
+    override fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
+        buffer.put(index, b0)
+        buffer.put(index + 1, b1)
+        buffer.put(index + 2, b2)
+        buffer.put(index + 3, b3)
+    }
+}
+
+private class TheUnsafeSegmentAccessor(
+    private val unsafe: Unsafe,
+    private val addrGetter: MethodHandle
+) : UnsafeSegmentAccessor() {
+    override fun address(buffer: ByteBuffer): Long {
+        return addrGetter.invoke(buffer) as Long
+    }
+
+    override fun getUnchecked(addr: Long, buffer: ByteBuffer, index: Int): Byte {
+        return unsafe.getByte(addr + index)
+    }
+
+    override fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, value: Byte) {
+        unsafe.putByte(addr + index, value)
+    }
+
+    override fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte) {
+        unsafe.putByte(addr + index, b0)
+        unsafe.putByte(addr + index + 1, b1)
+    }
+
+    override fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte, b2: Byte) {
+        unsafe.putByte(addr + index, b0)
+        unsafe.putByte(addr + index + 1, b1)
+        unsafe.putByte(addr + index + 2, b2)
+    }
+
+    override fun setUnchecked(addr: Long, buffer: ByteBuffer, index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
+        unsafe.putByte(addr + index, b0)
+        unsafe.putByte(addr + index + 1, b1)
+        unsafe.putByte(addr + index + 2, b2)
+        unsafe.putByte(addr + index + 3, b3)
     }
 }

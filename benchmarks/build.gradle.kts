@@ -30,6 +30,9 @@ kotlin {
 
         named("jvmMain") {
             dependsOn(commonMain.get())
+            dependencies {
+                implementation("io.github.fzhinkin:xctraceprof:0.0.3")
+            }
         }
     }
 }
