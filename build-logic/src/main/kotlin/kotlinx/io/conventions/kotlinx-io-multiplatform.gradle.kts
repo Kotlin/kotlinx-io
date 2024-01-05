@@ -164,6 +164,7 @@ fun KotlinMultiplatformExtension.configureNativePlatforms() {
     macosX64()
     macosArm64()
     mingwX64()
+    linuxArm32Hfp()
 }
 
 fun appleTargets() = listOf(
@@ -188,7 +189,8 @@ fun mingwTargets() = listOf(
 
 fun linuxTargets() = listOf(
     "linuxX64",
-    "linuxArm64"
+    "linuxArm64",
+    "linuxArm32Hfp"
 )
 
 fun androidTargets() = listOf(
