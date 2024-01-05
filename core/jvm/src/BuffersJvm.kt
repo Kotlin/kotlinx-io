@@ -290,11 +290,11 @@ public fun Buffer.asByteChannel(): ByteChannel = object : ByteChannel {
 }
 
 public fun WritableByteChannel.write(buffer: Buffer) {
-    var segment: Segment = buffer.head ?: return
-    do {
+    var segment = buffer.head
+    while (segment != null) {
         val bb = ByteBuffer.wrap(segment.data, segment.pos, segment.limit - segment.pos)
         this.write(bb)
-        segment = segment.next!!
-    } while (segment != buffer.head)
+        segment = segment.next
+    }
     buffer.clear()
 }
