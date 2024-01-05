@@ -27,6 +27,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
+import java.nio.channels.WritableByteChannel
 
 /**
  * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
@@ -311,4 +312,20 @@ public fun Buffer.asByteChannel(): ByteChannel = object : ByteChannel {
     override fun close() {}
 
     override fun isOpen(): Boolean = true
+}
+
+public fun WritableByteChannel.write(buffer: Buffer) {
+    var segment = buffer.head
+    while (segment != null) {
+        val bb = segment.rawData as ByteBuffer
+        try {
+            bb.position(segment.pos)
+            bb.limit(segment.limit)
+            this.write(bb)
+        } finally {
+            bb.clear()
+        }
+        segment = segment.next
+    }
+    buffer.clear()
 }

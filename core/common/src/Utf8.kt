@@ -131,7 +131,7 @@ internal fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long 
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.utf8CodePointSample
  */
 @OptIn(DelicateIoApi::class)
-internal fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
+public fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
     writeToInternalBuffer { it.commonWriteUtf8CodePoint(codePoint) }
 
 /**
@@ -215,7 +215,7 @@ public fun Source.readString(byteCount: Long): String {
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUtf8CodePointSample
  */
 @OptIn(InternalIoApi::class)
-internal fun Source.readUtf8CodePoint(): Int {
+public fun Source.readUtf8CodePoint(): Int {
     require(1)
 
     val b0 = buffer[0].toInt()
