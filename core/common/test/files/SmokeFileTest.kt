@@ -50,9 +50,7 @@ class SmokeFileTest {
     @Test
     fun readNotExistingFile() {
         assertFailsWith<FileNotFoundException> {
-            SystemFileSystem.source(createTempPath()).buffered().use {
-                it.readByte()
-            }
+            SystemFileSystem.source(createTempPath())
         }
     }
 

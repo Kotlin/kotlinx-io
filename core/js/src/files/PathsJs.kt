@@ -92,6 +92,20 @@ internal class FileSource(private val path: Path) : RawSource {
     private var buffer: dynamic = null
     private var closed = false
     private var offset = 0
+    private val fd = open(path)
+
+    private fun open(path: Path): Int {
+        if (!(fs.existsSync(path.path) as Boolean)) {
+            throw FileNotFoundException("File does not exist: $path")
+        }
+        val fd = try {
+            fs.openSync(path.path, "r") as Int
+        } catch (e: Throwable) {
+            throw IOException("Failed to open a file $path.", e)
+        }
+        if (fd < 0) throw IOException("Failed to open a file $path.")
+        return fd
+    }
 
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
@@ -101,12 +115,9 @@ internal class FileSource(private val path: Path) : RawSource {
         }
         if (buffer === null) {
             try {
-                buffer = fs.readFileSync(path.toString(), null)
+                buffer = fs.readFileSync(fd, null)
             } catch (t: Throwable) {
-                if (fs.existsSync(path.path) as Boolean) {
-                    throw IOException("Failed to read data from $path", t)
-                }
-                throw FileNotFoundException("File does not exist: $path")
+                throw IOException("Failed to read data from $path", t)
             }
         }
         val len: Int = buffer.length as Int
@@ -123,6 +134,7 @@ internal class FileSource(private val path: Path) : RawSource {
 
     override fun close() {
         closed = true
+        fs.closeSync(fd)
     }
 }
 
@@ -133,11 +145,11 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
     private fun open(path: Path, append: Boolean): Int {
         val flags = if (append) "a" else "w"
         val fd = try {
-            fs.openSync(path.toString(), flags) as Int
+            fs.openSync(path.path, flags) as Int
         } catch (e: Throwable) {
-            throw IOException("Failed to open a file.", e)
+            throw IOException("Failed to open a file ${path.path}.", e)
         }
-        if (fd < 0) throw IOException("Failed to open a file.")
+        if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
         return fd
     }
 
@@ -167,7 +179,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
     override fun flush() = Unit
 
     override fun close() {
-        fs.closeSync(fd)
         closed = true
+        fs.closeSync(fd)
     }
 }
