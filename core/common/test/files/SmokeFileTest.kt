@@ -372,6 +372,16 @@ class SmokeFileTest {
         }
     }
 
+    @Test
+    fun createAnEmptyFileUsingSink() {
+        val path = createTempPath()
+        assertFalse(SystemFileSystem.exists(path))
+
+        SystemFileSystem.sink(path).close()
+        assertTrue(SystemFileSystem.exists(path))
+        assertTrue(SystemFileSystem.metadataOrNull(path)!!.isRegularFile)
+    }
+
     private fun constructAbsolutePath(vararg parts: String): String {
         return SystemPathSeparator.toString() + parts.joinToString(SystemPathSeparator.toString())
     }

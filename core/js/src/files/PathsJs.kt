@@ -126,8 +126,20 @@ internal class FileSource(private val path: Path) : RawSource {
     }
 }
 
-internal class FileSink(private val path: Path, private var append: Boolean) : RawSink {
+internal class FileSink(path: Path, append: Boolean) : RawSink {
     private var closed = false
+    private val fd = open(path, append)
+
+    private fun open(path: Path, append: Boolean): Int {
+        val flags = if (append) "a" else "w"
+        val fd = try {
+            fs.openSync(path.toString(), flags) as Int
+        } catch (e: Throwable) {
+            throw IOException("Failed to open a file.", e)
+        }
+        if (fd < 0) throw IOException("Failed to open a file.")
+        return fd
+    }
 
     override fun write(source: Buffer, byteCount: Long) {
         check(!closed) { "Sink is closed." }
@@ -142,12 +154,7 @@ internal class FileSink(private val path: Path, private var append: Boolean) : R
             val buf = buffer.Buffer.allocUnsafe(segmentBytes)
             buf.fill(head.data, head.pos, segmentBytes)
             try {
-                if (append) {
-                    fs.appendFileSync(path.toString(), buf)
-                } else {
-                    fs.writeFileSync(path.toString(), buf)
-                    append = true
-                }
+                fs.writeFileSync(fd, buf)
             } catch (e: Throwable) {
                 throw IOException("Write failed", e)
             }
@@ -160,6 +167,7 @@ internal class FileSink(private val path: Path, private var append: Boolean) : R
     override fun flush() = Unit
 
     override fun close() {
+        fs.closeSync(fd)
         closed = true
     }
 }
