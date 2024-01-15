@@ -94,12 +94,12 @@ internal class FileSource(private val path: Path) : RawSource {
     private var offset = 0
     private val fd = open(path)
 
-    private fun open(path: Path): Int {
+    private fun open(path: Path): dynamic {
         if (!(fs.existsSync(path.path) as Boolean)) {
             throw FileNotFoundException("File does not exist: $path")
         }
         val fd = try {
-            fs.openSync(path.path, "r") as Int
+            fs.openSync(path.path, "r")
         } catch (e: Throwable) {
             throw IOException("Failed to open a file $path.", e)
         }
@@ -107,7 +107,6 @@ internal class FileSource(private val path: Path) : RawSource {
         return fd
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         check(!closed) { "Source is closed." }
         if (byteCount == 0L) {
@@ -142,10 +141,10 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
     private var closed = false
     private val fd = open(path, append)
 
-    private fun open(path: Path, append: Boolean): Int {
+    private fun open(path: Path, append: Boolean): dynamic {
         val flags = if (append) "a" else "w"
         val fd = try {
-            fs.openSync(path.path, flags) as Int
+            fs.openSync(path.path, flags)
         } catch (e: Throwable) {
             throw IOException("Failed to open a file ${path.path}.", e)
         }
