@@ -16,9 +16,13 @@ public actual class Path internal constructor(
     public actual val parent: Path?
         get() {
             check(pathLib !== null) { "Path module not found" }
-            when {
-                path.isEmpty() -> return null
-                !path.contains(SystemPathSeparator) -> return null
+            if (path.isEmpty()) return null
+            if (isWindows) {
+                if (!path.contains(UnixPathSeparator) && !path.contains(WindowsPathSeparator)) {
+                    return null
+                }
+            } else if (!path.contains(SystemPathSeparator)) {
+                return null
             }
             val p = pathLib.dirname(path) as String?
             return when {
