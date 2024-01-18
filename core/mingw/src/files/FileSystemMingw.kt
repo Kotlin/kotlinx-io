@@ -38,6 +38,11 @@ internal actual fun basenameImpl(path: String): String {
 
 internal actual fun isAbsoluteImpl(path: String): Boolean {
     if (path.startsWith(SystemPathSeparator)) return true
+    if (path.length > 1 && path[1] == ':') {
+        if (path.length == 1) return false
+        val next = path[2]
+        return next == WindowsPathSeparator || next == SystemPathSeparator
+    }
     return PathIsRelativeA(path) == 0
 }
 
