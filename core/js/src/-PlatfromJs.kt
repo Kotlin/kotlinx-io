@@ -21,3 +21,5 @@ public actual open class IOException actual constructor(
 public actual open class EOFException actual constructor(message: String?) : IOException(message) {
     public actual constructor() : this(null)
 }
+
+internal val isWindows_ = os.platform() == "win32"

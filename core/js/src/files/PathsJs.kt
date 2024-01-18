@@ -17,7 +17,7 @@ public actual class Path internal constructor(
         get() {
             check(pathLib !== null) { "Path module not found" }
             if (path.isEmpty()) return null
-            if (isWindows) {
+            if (isWindows_) {
                 if (!path.contains(UnixPathSeparator) && !path.contains(WindowsPathSeparator)) {
                     return null
                 }
@@ -74,8 +74,6 @@ public actual val SystemPathSeparator: Char by lazy {
 
 private const val WindowsPathSeparator: Char = '\\'
 private const val UnixPathSeparator: Char = '/'
-private val isWindows = os.platform() == "win32"
-
 public actual fun Path(path: String): Path {
     return Path(path, null)
 }
@@ -164,7 +162,7 @@ private fun isUnc(path: String): Boolean {
 }
 
 internal fun removeTrailingSeparators(path: String): String {
-    if (isWindows) {
+    if (isWindows_) {
         // don't trim the path separator right after the drive name
         val limit = if (path.length > 1) {
             if (path[1] == ':') {

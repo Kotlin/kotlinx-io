@@ -11,6 +11,7 @@ import kotlinx.cinterop.UnsafeNumber
 import kotlinx.io.files.SystemTemporaryDirectory
 import platform.posix.F_OK
 import platform.posix.access
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.random.Random
 
 @OptIn(UnsafeNumber::class, ExperimentalStdlibApi::class)
@@ -25,3 +26,6 @@ actual fun tempFileName(): String {
     }
     throw IOException("Failed to generate temp file name")
 }
+
+@OptIn(ExperimentalNativeApi::class)
+actual val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS

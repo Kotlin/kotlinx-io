@@ -71,3 +71,5 @@ fun Char.repeat(count: Int): String {
 fun assertArrayEquals(a: ByteArray, b: ByteArray) {
     assertEquals(a.contentToString(), b.contentToString())
 }
+
+expect val isWindows: Boolean

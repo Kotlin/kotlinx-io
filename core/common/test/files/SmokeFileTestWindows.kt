@@ -1,15 +1,17 @@
 /*
- * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
 package kotlinx.io.files
 
+import kotlinx.io.isWindows
 import kotlin.test.*
 
 class SmokeFileTestWindows {
     @Test
     fun isAbsolute() {
+        if (!isWindows) return
         assertTrue(Path("C:\\").isAbsolute)
         assertTrue(Path("C:/").isAbsolute)
         assertTrue(Path("C:/../").isAbsolute)
@@ -21,6 +23,7 @@ class SmokeFileTestWindows {
 
     @Test
     fun getParent() {
+        if (!isWindows) return
         assertNull(Path("C:\\").parent)
         assertNull(Path("a\\b").parent?.parent)
         assertEquals(Path("\\\\server"), Path("\\\\server\\share").parent)
@@ -30,6 +33,7 @@ class SmokeFileTestWindows {
 
     @Test
     fun trailingSeparatorsTrimming() {
+        if (!isWindows) return
         assertEquals(".", Path(".\\").toString())
         assertEquals("C:\\", Path("C:\\").toString())
         assertEquals("C:\\", Path("C:\\\\").toString())

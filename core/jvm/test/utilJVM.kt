@@ -24,3 +24,5 @@ actual fun tempFileName(): String {
 fun assertByteArrayEquals(expectedUtf8: String, b: ByteArray) {
     assertEquals(expectedUtf8, b.toString(Charsets.UTF_8))
 }
+
+actual val isWindows: Boolean = System.getProperty("os.name")?.startsWith("Windows") ?: false

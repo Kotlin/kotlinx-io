@@ -8,3 +8,5 @@ package kotlinx.io
 import kotlinx.io.files.unsupported
 
 actual fun tempFileName(): String = unsupported()
+
+actual val isWindows: Boolean = false
