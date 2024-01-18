@@ -33,6 +33,8 @@ class SmokeFileTestWindows {
         assertEquals(".", Path(".\\").toString())
         assertEquals("C:\\", Path("C:\\").toString())
         assertEquals("C:\\", Path("C:\\\\").toString())
+        assertEquals("\\\\", Path("\\\\").toString())
+        assertEquals("//", Path("//").toString())
         assertEquals(".\\a", Path(".\\a\\//\\//\\\\////").toString())
     }
 }

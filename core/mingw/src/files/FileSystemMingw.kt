@@ -58,10 +58,23 @@ internal actual fun realpathImpl(path: String): String {
     }
 }
 
+private fun isUnc(path: String): Boolean {
+    if (path.length < 2) return false
+    if (path.startsWith("$WindowsPathSeparator$WindowsPathSeparator")) return true
+    if (path.startsWith("$SystemPathSeparator$SystemPathSeparator")) return true
+    return false
+}
+
 internal actual fun removeTrailingSeparators(path: String): String {
     // Don't trim path separator following the drive name
-    val limit = if (path.length > 1 && path[1] == ':') {
-        3
+    val limit = if (path.length > 1) {
+        if (path[1] == ':') {
+            3
+        } else if (isUnc(path)) {
+            2
+        } else {
+            1
+        }
     } else {
         1
     }

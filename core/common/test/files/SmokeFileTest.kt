@@ -168,7 +168,6 @@ class SmokeFileTest {
     @Test
     fun trailingSeparatorsTrimming() {
         assertEquals(Path(".").toString(), Path(".///").toString())
-        assertEquals(Path("/").toString(), Path("///").toString())
         assertEquals(Path("/").toString(), Path("/").toString())
         assertEquals(Path("/..").toString(), Path("/../").toString())
         assertEquals(Path("/a/b/c").toString(), Path("/a/b/c").toString())
