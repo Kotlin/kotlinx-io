@@ -128,3 +128,22 @@ public fun Path.source(): Source = SystemFileSystem.source(this).buffered()
 )
 @JvmName("sinkDeprecated")
 public fun Path.sink(): Sink = SystemFileSystem.sink(this).buffered()
+
+internal fun removeTrailingSeparators(path: String, sep: Char): String {
+    var idx = path.length
+    while (idx > 1 && path[idx - 1] == sep) {
+        idx--
+    }
+    return path.substring(0, idx)
+}
+
+internal fun removeTrailingSeparators(suffixLength: Int, path: String, sep1: Char, sep2: Char): String {
+    require(suffixLength >= 1)
+    var idx = path.length
+    while (idx > suffixLength) {
+        val c = path[idx - 1]
+        if (c != sep1 && c != sep2) break
+        idx--
+    }
+    return path.substring(0, idx)
+}

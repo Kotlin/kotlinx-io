@@ -7,28 +7,12 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 
-internal val buffer: dynamic
-    get(): dynamic {
-        return try {
-            js("require('buffer')")
-        } catch (t: Throwable) {
-            null
-        }
-    }
-
-private val pathLib: dynamic
-    get(): dynamic {
-        return try {
-            js("require('path')")
-        } catch (t: Throwable) {
-            null
-        }
-    }
-
 public actual class Path internal constructor(
-    internal val path: String,
+    rawPath: String,
     @Suppress("UNUSED_PARAMETER") any: Any?
 ) {
+    internal val path: String = removeTrailingSeparators(rawPath)
+
     public actual val parent: Path?
         get() {
             check(pathLib !== null) { "Path module not found" }
@@ -39,7 +23,6 @@ public actual class Path internal constructor(
             val p = pathLib.dirname(path) as String?
             return when {
                 p.isNullOrEmpty() -> null
-                p == "." -> null
                 p == path -> null
                 else -> Path(p)
             }
@@ -84,6 +67,10 @@ public actual val SystemPathSeparator: Char by lazy {
     check(sep.length == 1)
     sep[0]
 }
+
+private const val WindowsPathSeparator: Char = '\\'
+private const val UnixPathSeparator: Char = '/'
+private val isWindows = os.platform() == "win32"
 
 public actual fun Path(path: String): Path {
     return Path(path, null)
@@ -163,4 +150,13 @@ internal class FileSink(private val path: Path, private var append: Boolean) : R
     override fun close() {
         closed = true
     }
+}
+
+internal fun removeTrailingSeparators(path: String): String {
+    if (isWindows) {
+        // don't trim the path separator right after the drive name
+        val limit = if (path.length > 1 && path[1] == ':') 3 else 1
+        return removeTrailingSeparators(limit, path, UnixPathSeparator, WindowsPathSeparator)
+    }
+    return removeTrailingSeparators(path, SystemPathSeparator)
 }

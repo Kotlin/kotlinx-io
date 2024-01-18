@@ -27,4 +27,12 @@ class SmokeFileTestWindows {
         assertEquals(Path("C:\\"), Path("C:\\Program Files").parent)
         assertEquals(Path("C:\\Program Files"), Path("C:\\Program Files/Java").parent)
     }
+
+    @Test
+    fun trailingSeparatorsTrimming() {
+        assertEquals(".", Path(".\\").toString())
+        assertEquals("C:\\", Path("C:\\").toString())
+        assertEquals("C:\\", Path("C:\\\\").toString())
+        assertEquals(".\\a", Path(".\\a\\//\\//\\\\////").toString())
+    }
 }

@@ -57,3 +57,13 @@ internal actual fun realpathImpl(path: String): String {
         return buffer.toKString()
     }
 }
+
+internal actual fun removeTrailingSeparators(path: String): String {
+    // Don't trim path separator following the drive name
+    val limit = if (path.length > 1 && path[1] == ':') {
+        3
+    } else {
+        1
+    }
+    return removeTrailingSeparators(limit, path, WindowsPathSeparator, SystemPathSeparator)
+}

@@ -16,9 +16,11 @@ import platform.posix.*
  */
 
 public actual class Path internal constructor(
-    internal val path: String,
+    rawPath: String,
     @Suppress("UNUSED_PARAMETER") any: Any?
 ) {
+    internal val path = removeTrailingSeparators(rawPath)
+
     public actual val parent: Path?
         get() {
             when {
@@ -27,7 +29,6 @@ public actual class Path internal constructor(
             val parentName = dirnameImpl(path)
             return when {
                 parentName.isEmpty() -> return null
-                parentName == "." -> return null
                 parentName == path -> return null
                 else -> Path(parentName)
             }
@@ -60,6 +61,8 @@ internal expect fun dirnameImpl(path: String): String
 internal expect fun basenameImpl(path: String): String
 
 internal expect fun isAbsoluteImpl(path: String): Boolean
+
+internal expect fun removeTrailingSeparators(path: String): String
 
 public actual fun Path(path: String): Path = Path(path, null)
 

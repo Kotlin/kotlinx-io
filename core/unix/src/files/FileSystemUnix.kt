@@ -34,3 +34,7 @@ internal actual fun mkdirImpl(path: String) {
         throw IOException("mkdir failed: ${strerror(errno)?.toKString()}")
     }
 }
+
+internal actual fun removeTrailingSeparators(path: String): String {
+    return removeTrailingSeparators(path, SystemPathSeparator)
+}
