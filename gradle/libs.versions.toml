@@ -1,11 +1,11 @@
 [versions]
-kotlin = "1.9.21"
+kotlin = "1.9.22"
 java = "8"
-dokka = "1.8.20"
-kover = "0.7.3"
+dokka = "1.9.10"
+kover = "0.7.5"
 bcv = "0.13.2"
 benchmark = "0.4.9"
-jmh = "1.36"
+jmh = "1.37"
 coroutines = "1.7.3"
 animalsniffer = "1.7.1"
 
