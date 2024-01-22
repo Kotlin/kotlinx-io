@@ -380,6 +380,24 @@ class SmokeFileTest {
         assertTrue(SystemFileSystem.metadataOrNull(path)!!.isRegularFile)
     }
 
+    @Test
+    fun closeFileSinkTwice() {
+        val path = createTempPath()
+        val sink = SystemFileSystem.sink(path)
+        sink.close()
+        sink.close() // there should be no error
+    }
+
+    @Test
+    fun closeFileSourceTwice() {
+        val path = createTempPath()
+        SystemFileSystem.sink(path).close()
+        assertTrue(SystemFileSystem.exists(path))
+        val source = SystemFileSystem.source(path)
+        source.close()
+        source.close()  // there should be no error
+    }
+
     private fun constructAbsolutePath(vararg parts: String): String {
         return SystemPathSeparator.toString() + parts.joinToString(SystemPathSeparator.toString())
     }

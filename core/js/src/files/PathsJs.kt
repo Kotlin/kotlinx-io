@@ -96,14 +96,14 @@ internal class FileSource(private val path: Path) : RawSource {
 
     private fun open(path: Path): dynamic {
         if (!(fs.existsSync(path.path) as Boolean)) {
-            throw FileNotFoundException("File does not exist: $path")
+            throw FileNotFoundException("File does not exist: ${path.path}")
         }
         val fd = try {
             fs.openSync(path.path, "r")
         } catch (e: Throwable) {
-            throw IOException("Failed to open a file $path.", e)
+            throw IOException("Failed to open a file ${path.path}.", e)
         }
-        if (fd < 0) throw IOException("Failed to open a file $path.")
+        if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
         return fd
     }
 
@@ -116,7 +116,7 @@ internal class FileSource(private val path: Path) : RawSource {
             try {
                 buffer = fs.readFileSync(fd, null)
             } catch (t: Throwable) {
-                throw IOException("Failed to read data from $path", t)
+                throw IOException("Failed to read data from ${path.path}", t)
             }
         }
         val len: Int = buffer.length as Int
@@ -132,8 +132,10 @@ internal class FileSource(private val path: Path) : RawSource {
     }
 
     override fun close() {
-        closed = true
-        fs.closeSync(fd)
+        if (!closed) {
+            closed = true
+            fs.closeSync(fd)
+        }
     }
 }
 
@@ -178,7 +180,9 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
     override fun flush() = Unit
 
     override fun close() {
-        closed = true
-        fs.closeSync(fd)
+        if (!closed) {
+            closed = true
+            fs.closeSync(fd)
+        }
     }
 }
