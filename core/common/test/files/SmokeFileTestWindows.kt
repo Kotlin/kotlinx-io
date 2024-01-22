@@ -11,6 +11,7 @@ class SmokeFileTestWindows {
     @Test
     fun isAbsolute() {
         if (!isWindows) return
+        assertFalse(Path("C:").isAbsolute)
         assertTrue(Path("C:\\").isAbsolute)
         assertTrue(Path("C:/").isAbsolute)
         assertTrue(Path("C:/../").isAbsolute)
@@ -22,6 +23,7 @@ class SmokeFileTestWindows {
     @Test
     fun getParent() {
         if (!isWindows) return
+        assertNull(Path("C:").parent)
         assertNull(Path("C:\\").parent)
         assertNull(Path("a\\b").parent?.parent)
         assertEquals(Path("C:\\"), Path("C:\\Program Files").parent)
