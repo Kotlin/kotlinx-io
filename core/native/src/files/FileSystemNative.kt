@@ -10,6 +10,7 @@ import kotlinx.io.IOException
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 import platform.posix.*
+import kotlin.experimental.ExperimentalNativeApi
 
 @OptIn(ExperimentalForeignApi::class)
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
@@ -115,3 +116,6 @@ public actual open class FileNotFoundException actual constructor(
 
 // 777 in octal, rwx for all (owner, group and others).
 internal const val PermissionAllowAll: UShort = 511u
+
+@OptIn(ExperimentalNativeApi::class)
+internal actual val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS

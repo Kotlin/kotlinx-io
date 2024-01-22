@@ -62,8 +62,6 @@ internal expect fun basenameImpl(path: String): String
 
 internal expect fun isAbsoluteImpl(path: String): Boolean
 
-internal expect fun removeTrailingSeparators(path: String): String
-
 public actual fun Path(path: String): Path = Path(path, null)
 
 internal class FileSource(

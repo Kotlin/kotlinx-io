@@ -55,7 +55,3 @@ internal actual fun realpathImpl(path: String): String {
         free(res)
     }
 }
-
-internal actual fun removeTrailingSeparators(path: String): String {
-    return removeTrailingSeparators(path, SystemPathSeparator)
-}

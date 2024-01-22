@@ -47,5 +47,3 @@ actual fun tempFileName(): String {
         return fullpath
     }
 }
-
-actual val isWindows: Boolean = isWindows_

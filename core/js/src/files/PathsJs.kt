@@ -17,7 +17,7 @@ public actual class Path internal constructor(
         get() {
             check(pathLib !== null) { "Path module not found" }
             if (path.isEmpty()) return null
-            if (isWindows_) {
+            if (isWindows) {
                 if (!path.contains(UnixPathSeparator) && !path.contains(WindowsPathSeparator)) {
                     return null
                 }
@@ -150,30 +150,4 @@ internal class FileSink(private val path: Path, private var append: Boolean) : R
     override fun close() {
         closed = true
     }
-}
-
-private fun isUnc(path: String): Boolean {
-    if (path.length < 2) return false
-    if (path.startsWith("$WindowsPathSeparator$WindowsPathSeparator")) return true
-    if (path.startsWith("$UnixPathSeparator$UnixPathSeparator")) return true
-    return false
-}
-
-internal fun removeTrailingSeparators(path: String): String {
-    if (isWindows_) {
-        // don't trim the path separator right after the drive name
-        val limit = if (path.length > 1) {
-            if (path[1] == ':') {
-                3
-            } else if (isUnc(path)) {
-                2
-            } else {
-                1
-            }
-        } else {
-            1
-        }
-        return removeTrailingSeparators(limit, path, UnixPathSeparator, WindowsPathSeparator)
-    }
-    return removeTrailingSeparators(path, SystemPathSeparator)
 }

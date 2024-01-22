@@ -6,9 +6,6 @@
 package kotlinx.io.files
 
 import kotlinx.io.*
-import kotlinx.io.buffer
-import kotlinx.io.fs
-import kotlinx.io.os
 
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
@@ -115,3 +112,5 @@ public actual val SystemTemporaryDirectory: Path
 public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
+
+internal actual val isWindows = os.platform() == "win32"
