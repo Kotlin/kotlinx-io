@@ -181,3 +181,6 @@ public class FileMetadata(
  * Signals an I/O operation's failure due to a missing file or directory.
  */
 public expect class FileNotFoundException(message: String?) : IOException
+
+internal const val WindowsPathSeparator: Char = '\\'
+internal const val UnixPathSeparator: Char = '/'

@@ -72,8 +72,6 @@ public actual val SystemPathSeparator: Char by lazy {
     sep[0]
 }
 
-private const val WindowsPathSeparator: Char = '\\'
-private const val UnixPathSeparator: Char = '/'
 public actual fun Path(path: String): Path {
     return Path(path, null)
 }
