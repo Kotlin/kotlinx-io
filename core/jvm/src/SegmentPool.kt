@@ -51,7 +51,9 @@ internal actual object SegmentPool {
     // TODO: Is 64 KiB a good maximum size? Do we ever have that many idle segments?
     actual val MAX_SIZE = 64 * 1024 // 64 KiB.
 
-    private val factory: SegmentFactory = if (System.getProperty("kotlinx.io.use.direct.byte.buffer") == "true") {
+    fun enableByteBuffers(): Boolean = System.getProperty("kotlinx.io.use.direct.byte.buffer") == "true"
+
+    private val factory: SegmentFactory = if (enableByteBuffers()) {
         ByteBufferSegmentFactory()
     } else {
         ByteArraySegmentFactory()

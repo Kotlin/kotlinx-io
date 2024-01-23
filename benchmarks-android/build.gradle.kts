@@ -43,6 +43,7 @@ android {
         }
         release {
             isDefault = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "benchmark-proguard-rules.pro")
         }
     }
 }

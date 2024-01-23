@@ -35,3 +35,11 @@
 -dontwarn com.squareup.javawriter.JavaWriter
 
 -keepclasseswithmembers @org.junit.runner.RunWith public class *
+
+-assumenosideeffects class kotlinx.io.SegmentPool {
+    public boolean enableByteBuffers();
+}
+
+-assumevalues class kotlinx.io.SegmentPool {
+  public boolean enableByteBuffers() return false;
+}
