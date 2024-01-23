@@ -76,6 +76,39 @@ tasks.withType<DokkaTaskPartial>().configureEach {
     }
 }
 
+val replaceWasiNodeTestDriver by tasks.creating {
+    dependsOn("compileTestDevelopmentExecutableKotlinWasmWasi")
+    val layout = project.layout
+    val templateFile = layout.projectDirectory.dir("wasmWasi")
+        .dir("test")
+        .file("test-driver.mjs.template")
+        .asFile
+
+    val fileName = "kotlinx-io-kotlinx-io-core-wasm-wasi-test.mjs"
+    val driverFile = layout.buildDirectory.map {
+        it.dir("compileSync")
+            .dir("wasmWasi")
+            .dir("test")
+            .dir("testDevelopmentExecutable")
+            .dir("kotlin")
+            .file(fileName)
+    }
+
+    doLast {
+        val tmpDir = File(System.getProperty("java.io.tmpdir"))//, "kotlinx-io-core-wasi-test")
+            .also { it.mkdirs() }
+            .absolutePath
+
+        val newDriver = templateFile.readText().replace("<SYSTEM_TEMP_DIR>", tmpDir, false)
+
+        driverFile.get().asFile.writeText(newDriver)
+    }
+}
+
+tasks.named("wasmWasiNodeTest").configure {
+    dependsOn(replaceWasiNodeTestDriver)
+}
+
 animalsniffer {
     annotation = "kotlinx.io.files.AnimalSnifferIgnore"
 }

@@ -48,6 +48,22 @@ class SmokeFileTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
+    fun writeFlush() {
+        val path = createTempPath()
+        SystemFileSystem.sink(path).buffered().use {
+            it.writeString("hello")
+            it.flush()
+            it.writeString(" world")
+            it.flush()
+        }
+
+        SystemFileSystem.source(path).buffered().use {
+            assertEquals("hello world", it.readLine())
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
     fun readNotExistingFile() {
         assertFailsWith<FileNotFoundException> {
             SystemFileSystem.source(createTempPath())
@@ -362,12 +378,18 @@ class SmokeFileTest {
             SystemFileSystem.resolve(createTempPath())
         }
 
-        val cwd = SystemFileSystem.resolve(Path("."))
-        val parentRel = Path("..")
-        assertEquals(cwd.parent, SystemFileSystem.resolve(parentRel))
+        if (supportsCurrentWorkingDirectory) {
+            val cwd = SystemFileSystem.resolve(Path("."))
+            val parentRel = Path("..")
+            assertEquals(cwd.parent, SystemFileSystem.resolve(parentRel))
 
-        assertEquals(cwd, SystemFileSystem.resolve(cwd),
-            "Absolute path resolution should not alter the path")
+            assertEquals(
+                cwd, SystemFileSystem.resolve(cwd),
+                "Absolute path resolution should not alter the path"
+            )
+        } else {
+            assertFailsWith<IOException> { SystemFileSystem.resolve(Path(".")) }
+        }
 
         // root
         //   |-> a -> b

@@ -7,7 +7,7 @@ package kotlinx.io.files
 
 public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED_PARAMETER") obj: Any?) {
     // TODO: how to detect host OS?
-    private val path: String = removeTrailingSeparators(rawPath, false)
+    internal val path: String = removeTrailingSeparators(rawPath, false)
 
     actual override fun toString(): String = path
 

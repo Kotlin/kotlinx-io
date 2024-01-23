@@ -119,3 +119,5 @@ internal const val PermissionAllowAll: UShort = 511u
 
 @OptIn(ExperimentalNativeApi::class)
 internal actual val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS
+
+internal actual val supportsCurrentWorkingDirectory: Boolean = true
