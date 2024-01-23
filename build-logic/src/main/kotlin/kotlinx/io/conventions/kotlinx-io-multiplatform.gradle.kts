@@ -43,13 +43,11 @@ kotlin {
         nodejs()
         //  Disabled because we can't exclude some tests: https://youtrack.jetbrains.com/issue/KT-58291
         // browser()
-        binaries.executable()
     }
 
     @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
     wasmWasi {
         nodejs()
-        binaries.executable()
     }
 
     sourceSets {
@@ -99,8 +97,8 @@ kotlin {
         createSourceSet("linuxTest", parent = unixTest, children = linuxTargets())
         createSourceSet("androidMain", parent = unixMain, children = androidTargets())
         createSourceSet("androidTest", parent = unixTest, children = androidTargets())
-        createSourceSet("wasmMain", parent = nonJvmMain, children = wasmTargets())
-        createSourceSet("wasmTest", parent = nonJvmTest, children = wasmTargets())
+        createSourceSet("wasmMain", parent = commonMain.get(), children = wasmTargets())
+        createSourceSet("wasmTest", parent = commonTest.get(), children = wasmTargets())
     }
 }
 

@@ -25,3 +25,8 @@ include(":kotlinx-io-bytestring")
 project(":kotlinx-io-core").projectDir = file("./core")
 project(":kotlinx-io-benchmarks").projectDir = file("./benchmarks")
 project(":kotlinx-io-bytestring").projectDir = file("./bytestring")
+
+if (providers.gradleProperty("androidBenchmarksEnabled").getOrElse("false").toBoolean()) {
+    include(":kotlinx-io-benchmarks-android")
+    project(":kotlinx-io-benchmarks-android").projectDir = file("./benchmarks-android")
+}
