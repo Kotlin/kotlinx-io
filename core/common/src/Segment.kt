@@ -58,61 +58,101 @@ public sealed interface SegmentSetContext {
  * `limit` and beyond. There is a single owning segment for each byte array. Positions,
  * limits, prev, and next references are not shared.
  */
-public expect class Segment {
+public abstract class Segment {
     @PublishedApi
-    internal val rawData: Any
+    internal abstract val rawData: Any
     @PublishedApi
-    internal var pos: Int
+    internal var pos: Int = 0
     @PublishedApi
-    internal var limit: Int
-    internal var shared: Boolean
-    internal var owner: Boolean
-    internal var next: Segment?
-    internal var prev: Segment?
+    internal var limit: Int = 0
+    internal var shared: Boolean = false
+    internal var owner: Boolean = false
+    internal var next: Segment? = null
+    internal var prev: Segment? = null
 
-    internal constructor()
-    internal fun sharedCopy(): Segment
+    internal constructor(pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
+        this.pos = pos
+        this.limit = limit
+        this.shared = shared
+        this.owner = owner
+    }
+    internal abstract fun sharedCopy(): Segment
     @PublishedApi
-    internal fun pop(): Segment?
-    internal fun push(segment: Segment): Segment
-    internal fun split(byteCount: Int): Segment
-    internal fun compact(): Segment
-    internal fun writeTo(sink: Segment, byteCount: Int)
+    internal fun pop(): Segment? {
+        val result = this.next
+        if (this.prev != null) {
+            this.prev!!.next = this.next
+        }
+        if (this.next != null) {
+            this.next!!.prev = this.prev
+        }
+        this.next = null
+        this.prev = null
+        return result
+    }
+
+    internal fun push(segment: Segment): Segment {
+        segment.prev = this
+        segment.next = this.next
+        if (this.next != null) {
+            this.next!!.prev = segment
+        }
+        this.next = segment
+        return segment
+    }
+
+    internal abstract fun split(byteCount: Int): Segment
+    internal fun compact(): Segment {
+        check(this.prev !== null) { "cannot compact" }
+        if (!this.prev!!.owner) return this // Cannot compact: prev isn't writable.
+        val byteCount = limit - pos
+        val availableByteCount = SIZE - this.prev!!.limit + if (this.prev!!.shared) 0 else this.prev!!.pos
+        if (byteCount > availableByteCount) return this // Cannot compact: not enough writable space.
+        val predecessor = this.prev
+        writeTo(predecessor!!, byteCount)
+        val successor = pop()
+        check(successor === null)
+        SegmentPool.recycle(this)
+        return predecessor
+    }
+    internal abstract fun writeTo(sink: Segment, byteCount: Int)
 
     public val size: Int
+        get() = limit - pos
 
-    public val remainingCapacity: Int
+    public abstract val remainingCapacity: Int
 
-    internal fun writeByte(byte: Byte)
-    internal fun writeShort(short: Short)
-    internal fun writeInt(int: Int)
-    internal fun writeLong(long: Long)
-    internal fun readByte(): Byte
-    internal fun readShort(): Short
-    internal fun readInt(): Int
-    internal fun readLong(): Long
-    internal fun readTo(dst: ByteArray, dstStartOffset: Int, dstEndOffset: Int)
-    internal fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int)
-    public fun getChecked(index: Int): Byte
-    internal fun getUnchecked(index: Int): Byte
-    internal fun setChecked(index: Int, value: Byte)
-    @PublishedApi
-    internal fun setUnchecked(index: Int, value: Byte)
-    @PublishedApi
-    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte)
 
+    internal abstract fun writeByte(byte: Byte)
+    internal abstract fun writeShort(short: Short)
+    internal abstract fun writeInt(int: Int)
+    internal abstract fun writeLong(long: Long)
+    internal abstract fun readByte(): Byte
+    internal abstract fun readShort(): Short
+    internal abstract fun readInt(): Int
+    internal abstract fun readLong(): Long
+    internal abstract fun readTo(dst: ByteArray, dstStartOffset: Int, dstEndOffset: Int)
+    internal abstract fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int)
+    public abstract fun getChecked(index: Int): Byte
+    internal abstract fun getUnchecked(index: Int): Byte
+    internal abstract fun setChecked(index: Int, value: Byte)
     @PublishedApi
-    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte)
+    internal abstract fun setUnchecked(index: Int, value: Byte)
+    @PublishedApi
+    internal abstract fun setUnchecked(index: Int, b0: Byte, b1: Byte)
 
     @PublishedApi
-    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte)
+    internal abstract fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte)
+
+    @PublishedApi
+    internal abstract fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte)
 
     internal companion object {
         /** The size of all segments in bytes.  */
-        internal val SIZE: Int
+        internal val SIZE: Int = 8192
 
         /** Segments will be shared when doing so avoids `arraycopy()` of this many bytes.  */
-        internal val SHARE_MINIMUM: Int
+        internal val SHARE_MINIMUM: Int = 1024
     }
 }
 

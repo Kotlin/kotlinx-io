@@ -25,7 +25,6 @@ import kotlinx.io.SegmentPool.LOCK
 import kotlinx.io.SegmentPool.MAX_SIZE
 import kotlinx.io.SegmentPool.recycle
 import kotlinx.io.SegmentPool.take
-import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -52,8 +51,14 @@ internal actual object SegmentPool {
     // TODO: Is 64 KiB a good maximum size? Do we ever have that many idle segments?
     actual val MAX_SIZE = 64 * 1024 // 64 KiB.
 
+    private val factory: SegmentFactory = if (System.getProperty("kotlinx.io.use.direct.byte.buffer") == "true") {
+        ByteBufferSegmentFactory()
+    } else {
+        ByteArraySegmentFactory()
+    }
+
     /** A sentinel segment to indicate that the linked list is currently being modified. */
-    private val LOCK = Segment(ByteBuffer.allocateDirect(0), pos = 0, limit = 0, shared = false, owner = false)
+    private val LOCK = factory.allocate()//Segment(ByteBuffer.allocateDirect(0), pos = 0, limit = 0, shared = false, owner = false)
 
     /**
      * The number of hash buckets. This number needs to balance keeping the pool small and contention
@@ -88,13 +93,13 @@ internal actual object SegmentPool {
         when {
             first === LOCK -> {
                 // We didn't acquire the lock. Don't take a pooled segment.
-                return Segment()
+                return factory.allocate()
             }
 
             first == null -> {
                 // We acquired the lock but the pool was empty. Unlock and return a new segment.
                 firstRef.set(null)
-                return Segment()
+                return factory.allocate()
             }
 
             else -> {
@@ -134,5 +139,21 @@ internal actual object SegmentPool {
         @Suppress("DEPRECATION") // TODO: switch to threadId after JDK19
         val hashBucket = (Thread.currentThread().id and (HASH_BUCKET_COUNT - 1L)).toInt()
         return hashBuckets[hashBucket]
+    }
+}
+
+private sealed class SegmentFactory {
+    abstract fun allocate(): Segment
+}
+
+private class ByteBufferSegmentFactory : SegmentFactory() {
+    override fun allocate(): Segment {
+        return ByteBufferSegment()
+    }
+}
+
+private class ByteArraySegmentFactory : SegmentFactory() {
+    override fun allocate(): Segment {
+        return ByteArraySegment()
     }
 }
