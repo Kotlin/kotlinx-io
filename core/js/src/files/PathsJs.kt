@@ -7,38 +7,26 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 
-internal val buffer: dynamic
-    get(): dynamic {
-        return try {
-            js("require('buffer')")
-        } catch (t: Throwable) {
-            null
-        }
-    }
-
-private val pathLib: dynamic
-    get(): dynamic {
-        return try {
-            js("require('path')")
-        } catch (t: Throwable) {
-            null
-        }
-    }
-
 public actual class Path internal constructor(
-    internal val path: String,
+    rawPath: String,
     @Suppress("UNUSED_PARAMETER") any: Any?
 ) {
+    internal val path: String = removeTrailingSeparators(rawPath)
+
     public actual val parent: Path?
         get() {
             check(pathLib !== null) { "Path module not found" }
-            when {
-                path.isBlank() -> return null
-                !path.contains(SystemPathSeparator) -> return null
+            if (path.isEmpty()) return null
+            if (isWindows) {
+                if (!path.contains(UnixPathSeparator) && !path.contains(WindowsPathSeparator)) {
+                    return null
+                }
+            } else if (!path.contains(SystemPathSeparator)) {
+                return null
             }
             val p = pathLib.dirname(path) as String?
             return when {
-                p.isNullOrBlank() -> null
+                p.isNullOrEmpty() -> null
                 p == path -> null
                 else -> Path(p)
             }
@@ -54,11 +42,11 @@ public actual class Path internal constructor(
         get() {
             check(pathLib !== null) { "Path module not found" }
             when {
-                path.isBlank() -> return ""
+                path.isNullOrEmpty() -> return ""
             }
             val p = pathLib.basename(path) as String?
             return when {
-                p.isNullOrBlank() -> ""
+                p.isNullOrEmpty() -> ""
                 else -> p
             }
         }

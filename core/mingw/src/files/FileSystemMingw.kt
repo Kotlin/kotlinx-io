@@ -12,8 +12,6 @@ import kotlinx.io.IOException
 import platform.posix.*
 import platform.windows.*
 
-private const val WindowsPathSeparator: Char = '\\'
-
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
     if (MoveFileExA(source.path, destination.path, MOVEFILE_REPLACE_EXISTING.convert()) == 0) {
         // TODO: get formatted error message
@@ -22,7 +20,7 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
 }
 
 internal actual fun dirnameImpl(path: String): String {
-    if (!path.contains(SystemPathSeparator) && !path.contains(WindowsPathSeparator)) {
+    if (!path.contains(UnixPathSeparator) && !path.contains(WindowsPathSeparator)) {
         return ""
     }
     memScoped {
@@ -38,6 +36,11 @@ internal actual fun basenameImpl(path: String): String {
 
 internal actual fun isAbsoluteImpl(path: String): Boolean {
     if (path.startsWith(SystemPathSeparator)) return true
+    if (path.length > 1 && path[1] == ':') {
+        if (path.length == 2) return false
+        val next = path[2]
+        return next == WindowsPathSeparator || next == SystemPathSeparator
+    }
     return PathIsRelativeA(path) == 0
 }
 

@@ -164,6 +164,14 @@ class SmokeFileTest {
     }
 
     @Test
+    fun trailingSeparatorsTrimming() {
+        assertEquals(Path(".").toString(), Path(".///").toString())
+        assertEquals(Path("/").toString(), Path("/").toString())
+        assertEquals(Path("/..").toString(), Path("/../").toString())
+        assertEquals(Path("/a/b/c").toString(), Path("/a/b/c").toString())
+    }
+
+    @Test
     fun pathParent() {
         val p = Path(SystemPathSeparator.toString(), "a", "b", "c")
         assertEquals(constructAbsolutePath("a", "b"), p.parent?.toString())
@@ -182,6 +190,15 @@ class SmokeFileTest {
         assertNull(Path(SystemPathSeparator.toString()).parent)
 
         assertEquals("..", Path("..${SystemPathSeparator}..").parent?.toString())
+
+        assertEquals(" ", Path(SystemFileSystem.resolve(Path(".")), " ", "ws").parent?.name)
+        assertEquals(" ", Path(" $SystemPathSeparator.").parent?.name)
+        assertNull(Path(" ").parent)
+        assertNull(Path(" /").parent)
+
+        assertNull(Path("path////").parent)
+        assertEquals(Path("."), Path("./child").parent)
+        assertNull(Path("./").parent)
     }
 
     @Test
@@ -211,6 +228,8 @@ class SmokeFileTest {
         assertEquals("..", Path("..").name)
         assertEquals("hello.txt", Path("base", "hello.txt").name)
         assertEquals("dir", Path("dir${SystemPathSeparator}").name)
+        assertEquals(" ", Path(" ").name)
+        assertEquals("  ", Path(" /  ").name)
     }
 
     @Test

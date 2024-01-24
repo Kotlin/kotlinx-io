@@ -36,3 +36,5 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
+
+internal actual val isWindows: Boolean = false

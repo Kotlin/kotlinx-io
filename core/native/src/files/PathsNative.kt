@@ -16,17 +16,19 @@ import platform.posix.*
  */
 
 public actual class Path internal constructor(
-    internal val path: String,
+    rawPath: String,
     @Suppress("UNUSED_PARAMETER") any: Any?
 ) {
+    internal val path = removeTrailingSeparators(rawPath)
+
     public actual val parent: Path?
         get() {
             when {
-                path.isBlank() -> return null
+                path.isEmpty() -> return null
             }
             val parentName = dirnameImpl(path)
             return when {
-                parentName.isBlank() -> return null
+                parentName.isEmpty() -> return null
                 parentName == path -> return null
                 else -> Path(parentName)
             }
@@ -47,12 +49,12 @@ public actual class Path internal constructor(
     public actual val isAbsolute: Boolean = isAbsoluteImpl(path)
     public actual val name: String
         get() {
-            if (path.isBlank() || path.trim() == SystemPathSeparator.toString()) return ""
+            if (path.isEmpty() || path == SystemPathSeparator.toString()) return ""
             return basenameImpl(path)
         }
 }
 
-public actual val SystemPathSeparator: Char = '/'
+public actual val SystemPathSeparator: Char = UnixPathSeparator
 
 internal expect fun dirnameImpl(path: String): String
 

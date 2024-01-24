@@ -5,27 +5,7 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.IOException
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
-
-internal val fs: dynamic
-    get(): dynamic {
-        return try {
-            js("require('fs')")
-        } catch (t: Throwable) {
-            null
-        }
-    }
-
-internal val os: dynamic
-    get(): dynamic {
-        return try {
-            js("require('os')")
-        } catch (t: Throwable) {
-            null
-        }
-    }
+import kotlinx.io.*
 
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
@@ -132,3 +112,5 @@ public actual val SystemTemporaryDirectory: Path
 public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
+
+internal actual val isWindows = os.platform() == "win32"
