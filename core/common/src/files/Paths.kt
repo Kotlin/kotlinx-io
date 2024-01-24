@@ -143,7 +143,7 @@ internal fun removeTrailingSeparators(path: String, /* only for testing */ isWin
         } else {
             1
         }
-        return removeTrailingSeparatorsWindws(limit, path)
+        return removeTrailingSeparatorsWindows(limit, path)
     }
     return removeTrailingSeparatorsUnix(path)
 }
@@ -163,7 +163,7 @@ private fun removeTrailingSeparatorsUnix(path: String): String {
     return path.substring(0, idx)
 }
 
-private fun removeTrailingSeparatorsWindws(suffixLength: Int, path: String): String {
+private fun removeTrailingSeparatorsWindows(suffixLength: Int, path: String): String {
     require(suffixLength >= 1)
     var idx = path.length
     while (idx > suffixLength) {
