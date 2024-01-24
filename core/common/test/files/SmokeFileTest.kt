@@ -50,9 +50,7 @@ class SmokeFileTest {
     @Test
     fun readNotExistingFile() {
         assertFailsWith<FileNotFoundException> {
-            SystemFileSystem.source(createTempPath()).buffered().use {
-                it.readByte()
-            }
+            SystemFileSystem.source(createTempPath())
         }
     }
 
@@ -370,6 +368,34 @@ class SmokeFileTest {
             SystemFileSystem.delete(Path(root, "c", "d"))
             SystemFileSystem.delete(Path(root, "c"))
         }
+    }
+
+    @Test
+    fun createAnEmptyFileUsingSink() {
+        val path = createTempPath()
+        assertFalse(SystemFileSystem.exists(path))
+
+        SystemFileSystem.sink(path).close()
+        assertTrue(SystemFileSystem.exists(path))
+        assertTrue(SystemFileSystem.metadataOrNull(path)!!.isRegularFile)
+    }
+
+    @Test
+    fun closeFileSinkTwice() {
+        val path = createTempPath()
+        val sink = SystemFileSystem.sink(path)
+        sink.close()
+        sink.close() // there should be no error
+    }
+
+    @Test
+    fun closeFileSourceTwice() {
+        val path = createTempPath()
+        SystemFileSystem.sink(path).close()
+        assertTrue(SystemFileSystem.exists(path))
+        val source = SystemFileSystem.source(path)
+        source.close()
+        source.close()  // there should be no error
     }
 
     private fun constructAbsolutePath(vararg parts: String): String {
