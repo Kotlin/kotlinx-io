@@ -5,13 +5,12 @@
 
 package kotlinx.io
 
-import java.nio.ByteBuffer
-
 @UnsafeIoApi
 public inline fun <T> Segment.withContainedData(block: (Any, Int, Int) -> T) : T {
     return block(rawData, pos, limit)
 }
 
+/*
 public class ByteBufferSegment : Segment {
     internal val data: ByteBuffer
 
@@ -252,7 +251,7 @@ public class ByteBufferSegment : Segment {
         d.put(l + index + 3, b3)
     }
 }
-
+*/
 
 public class ByteArraySegment : Segment {
     internal val data: ByteArray

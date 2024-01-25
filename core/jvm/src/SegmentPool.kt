@@ -148,7 +148,7 @@ private sealed class SegmentFactory {
 
 private class ByteBufferSegmentFactory : SegmentFactory() {
     override fun allocate(): Segment {
-        return ByteBufferSegment()
+        TODO()
     }
 }
 
