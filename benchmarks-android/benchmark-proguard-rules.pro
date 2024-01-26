@@ -43,3 +43,9 @@
 -assumevalues class kotlinx.io.SegmentPool {
   public boolean enableByteBuffers() return false;
 }
+
+-keepclasseswithmembers class androidx.test.** { *; }
+-keepclasseswithmembers class org.junit.** { *; }
+-keepattributes *Annotation*
+-keepclasseswithmembers class androidx.benchmark.** { *; }
+-keepclasseswithmembers class kotlinx.io.benchmark.android.** { *; }

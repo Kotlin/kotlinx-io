@@ -43,7 +43,11 @@ android {
         }
         release {
             isDefault = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "benchmark-proguard-rules.pro")
+            isMinifyEnabled = true
+            testProguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "benchmark-proguard-rules.pro")
+            androidTest {
+                enableMinification = false
+            }
         }
     }
 }
