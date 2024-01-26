@@ -35,3 +35,8 @@
 -dontwarn com.squareup.javawriter.JavaWriter
 
 -keepclasseswithmembers @org.junit.runner.RunWith public class *
+-keepclasseswithmembers class androidx.test.** { *; }
+-keepclasseswithmembers class org.junit.** { *; }
+-keepattributes *Annotation*
+-keepclasseswithmembers class androidx.benchmark.** { *; }
+-keepclasseswithmembers class kotlinx.io.benchmark.android.** { *; }
