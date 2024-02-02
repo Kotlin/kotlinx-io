@@ -1,4 +1,17 @@
 # CHANGELOG
+## 0.3.1
+> Published 2 Feb 2024
+
+### Features
+- Updated Kotlin to `1.9.22`
+- Enabled Wasm Wasi target [#236](https://github.com/Kotlin/kotlinx-io/pull/236) (Note that neither of Wasm targets has filesystem support yet)
+- Support path resolution [#228](https://github.com/Kotlin/kotlinx-io/pull/228)
+
+### Bugfixes
+- Fixed `Path::parent` behavior on Windows [#227](https://github.com/Kotlin/kotlinx-io/pull/227)
+- Aligned behavior of `FileSystem::sink` and `FileSystem::source` across all platforms [#252](https://github.com/Kotlin/kotlinx-io/pull/252)
+- Fixed handling of paths containing a whitespace character [#248](https://github.com/Kotlin/kotlinx-io/pull/248)
+
 ## 0.3.0
 > Published 13 Sep 2023
 
