@@ -53,7 +53,7 @@ internal actual object SegmentPool {
     actual val MAX_SIZE = 64 * 1024 // 64 KiB.
 
     /** A sentinel segment to indicate that the linked list is currently being modified. */
-    private val LOCK = Segment(ByteBuffer.allocateDirect(0), pos = 0, limit = 0, shared = false, owner = false)
+    private val LOCK = Segment(ByteBuffer.allocate(0), pos = 0, limit = 0, shared = false, owner = false)
 
     /**
      * The number of hash buckets. This number needs to balance keeping the pool small and contention

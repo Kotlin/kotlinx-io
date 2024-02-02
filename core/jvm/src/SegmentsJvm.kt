@@ -49,7 +49,7 @@ public actual class Segment {
     internal actual var prev: Segment? = null
 
     internal actual constructor() {
-        this.data = ByteBuffer.allocateDirect(SIZE)
+        this.data = ByteBuffer.allocate(SIZE)
         this.owner = true
         this.shared = false
     }
