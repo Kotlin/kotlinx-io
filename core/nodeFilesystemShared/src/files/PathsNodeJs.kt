@@ -87,10 +87,11 @@ internal class FileSource(private val path: Path) : RawSource {
         if (!existsSync(path.path)) {
             throw FileNotFoundException("File does not exist: ${path.path}")
         }
-        val fd = try {
-            openSync(path.path, "r")
-        } catch (e: Throwable) {
-            throw IOException("Failed to open a file ${path.path}.", e)
+        var fd: Int = -1
+        withCaughtException {
+            fd = openSync(path.path, "r")
+        }?.also {
+            throw IOException("Failed to open a file ${path.path}.", it)
         }
         if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
         return fd
@@ -102,10 +103,10 @@ internal class FileSource(private val path: Path) : RawSource {
             return 0
         }
         if (buffer === null) {
-            try {
+            withCaughtException {
                 buffer = readFileSync(fd, null)
-            } catch (t: Throwable) {
-                throw IOException("Failed to read data from ${path.path}", t)
+            }?.also {
+                throw IOException("Failed to read data from ${path.path}", it)
             }
         }
         val len: Int = buffer!!.length
@@ -148,15 +149,15 @@ internal class FileSink(private val path: Path, private var append: Boolean) : R
             for (offset in 0 until segmentBytes) {
                 buf.writeInt8(data[pos + offset], offset)
             }
-            try {
+            withCaughtException {
                 if (append) {
                     appendFileSync(path.toString(), buf)
                 } else {
                     writeFileSync(path.toString(), buf)
                     append = true
                 }
-            } catch (e: Throwable) {
-                throw IOException("Write failed", e)
+            }?.also {
+                throw IOException("Write failed", it)
             }
             source.skip(segmentBytes.toLong())
             remainingBytes -= segmentBytes

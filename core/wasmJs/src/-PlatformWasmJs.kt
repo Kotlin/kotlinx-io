@@ -11,3 +11,21 @@ internal actual typealias CommonJsModule = JsModule
 @Target(AnnotationTarget.FILE)
 internal actual annotation class CommonJsNonModule()
 
+internal class JsException(message: String) : RuntimeException(message)
+
+internal actual fun withCaughtException(block: () -> Unit): Throwable? {
+    val e = catchJsThrowable(block) ?: return null
+    return JsException(e.toString())
+}
+
+private fun catchJsThrowable(block: () -> Unit): JsAny? = js("""{
+    try {
+        block();
+        return null;
+    } catch (e) {
+        if (e.message) return e.message;
+        if (e && e.toString) return e.toString();
+        return e + "";
+    }
+}""")
+
