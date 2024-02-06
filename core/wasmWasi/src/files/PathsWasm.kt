@@ -6,7 +6,6 @@
 package kotlinx.io.files
 
 public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED_PARAMETER") obj: Any?) {
-    // TODO: how to detect host OS?
     internal val path: String = removeTrailingSeparators(rawPath, false)
 
     actual override fun toString(): String = path
@@ -33,7 +32,6 @@ public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED
             // path ends with '/', but as it was normalized there is only one case -> it's "/"
             if (idx == path.length - 1) return null
             val rawBase = if (idx == 0) "$SystemPathSeparator" else path.substring(0, idx)
-            // TODO: what if it's not Unix?
             val base = removeTrailingSeparators(rawBase, false)
             // there was nothing but multiple '/'
             return Path(base, null)
@@ -41,7 +39,6 @@ public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED
 
     public actual val name: String
         get() {
-            // TODO: name of '/'?
             val idx = path.lastIndexOf(SystemPathSeparator)
             return if (idx < 0) {
                 path
@@ -53,7 +50,8 @@ public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED
     public actual val isAbsolute: Boolean = path.startsWith(SystemPathSeparator)
 }
 
-// TODO: what if we're running on Windows?
+// The path separator is always '/'.
+// https://github.com/WebAssembly/wasi-filesystem/blob/e79b05803e9ffd3b0cfdc0a8af20ac743abbe36a/wit/types.wit#L13C4-L13C71
 public actual val SystemPathSeparator: Char = UnixPathSeparator
 
 public actual fun Path(path: String): Path = Path(path, null as Any?)

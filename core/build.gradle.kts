@@ -82,6 +82,7 @@ val replaceWasiNodeTestDriver by tasks.creating {
         val tmpDir = File(System.getProperty("java.io.tmpdir"), "kotlinx-io-core-wasi-test")
             .also { it.mkdirs() }
             .absolutePath
+            .replace("\\", "\\\\")
 
         val newDriver = templateFile.readText().replace("<SYSTEM_TEMP_DIR>", tmpDir, false)
 

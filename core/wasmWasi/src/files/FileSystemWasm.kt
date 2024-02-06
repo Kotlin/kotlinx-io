@@ -264,7 +264,7 @@ public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
 
-// TODO: test it.
+// The property affects only paths processing and in Wasi paths are always '/'-delimited.
 internal actual val isWindows: Boolean = false
 
 internal object PreOpens {
