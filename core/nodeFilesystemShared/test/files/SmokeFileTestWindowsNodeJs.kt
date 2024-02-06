@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class SmokeFileTestWindowJS  {
+class SmokeFileTestWindowsNodeJs  {
     @Test
     fun uncParent() {
         if (!isWindows) return

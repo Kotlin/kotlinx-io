@@ -44,11 +44,6 @@ kotlin {
     }
 
     @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasmJs {
-        filterSmokeTests()
-    }
-
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
     wasmWasi {
         filterSmokeTests()
     }
