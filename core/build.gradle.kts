@@ -4,7 +4,6 @@
  */
 
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinTargetWithNodeJsDsl
 
 plugins {
     id("kotlinx-io-multiplatform")
@@ -30,22 +29,6 @@ kotlin {
                 }
             })
         }
-    }
-
-    fun KotlinTargetWithNodeJsDsl.filterSmokeTests() {
-        this.nodejs {
-            testTask(Action {
-                useMocha {
-                    timeout = "300s"
-                }
-                filter.setExcludePatterns("*SmokeFileTest*")
-            })
-        }
-    }
-
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasmWasi {
-        //filterSmokeTests()
     }
 
     sourceSets {
@@ -76,6 +59,7 @@ tasks.withType<DokkaTaskPartial>().configureEach {
     }
 }
 
+// TODO: remove once https://youtrack.jetbrains.com/issue/KT-65179 solved
 val replaceWasiNodeTestDriver by tasks.creating {
     dependsOn("compileTestDevelopmentExecutableKotlinWasmWasi")
     val layout = project.layout
@@ -95,7 +79,7 @@ val replaceWasiNodeTestDriver by tasks.creating {
     }
 
     doLast {
-        val tmpDir = File(System.getProperty("java.io.tmpdir"))//, "kotlinx-io-core-wasi-test")
+        val tmpDir = File(System.getProperty("java.io.tmpdir"), "kotlinx-io-core-wasi-test")
             .also { it.mkdirs() }
             .absolutePath
 
