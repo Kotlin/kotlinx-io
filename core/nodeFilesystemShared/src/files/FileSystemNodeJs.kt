@@ -11,6 +11,7 @@ import kotlinx.io.RawSource
 import kotlinx.io.node.fs.*
 import kotlinx.io.node.os.platform
 import kotlinx.io.node.os.tmpdir
+import kotlinx.io.withCaughtException
 
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
@@ -24,15 +25,15 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             }
             return
         }
-        try {
+        withCaughtException {
             val stats = statSync(path.path)
             if (stats!!.isDirectory()) {
                 rmdirSync(path.path)
             } else {
                 rmSync(path.path)
             }
-        } catch (t: Throwable) {
-            throw IOException("Delete failed for $path", t)
+        }?.also {
+            throw IOException("Delete failed for $path", it)
         }
     }
 
@@ -63,27 +64,29 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         if (!exists(source)) {
             throw FileNotFoundException("Source does not exist: ${source.path}")
         }
-        try {
+        withCaughtException {
             renameSync(source.path, destination.path)
-        } catch (t: Throwable) {
-            throw IOException("Move failed from $source to $destination", t)
+        }?.also {
+            throw IOException("Move failed from $source to $destination", it)
         }
     }
 
     override fun metadataOrNull(path: Path): FileMetadata? {
         if (!exists(path)) return null
-        return try {
+        var metadata: FileMetadata? = null
+        withCaughtException {
             val stat = statSync(path.path)
             val mode = stat!!.mode
             val isFile = (mode and constants.S_IFMT) == constants.S_IFREG
-            FileMetadata(
+            metadata = FileMetadata(
                 isRegularFile = isFile,
                 isDirectory = (mode and constants.S_IFMT) == constants.S_IFDIR,
                 if (isFile) stat.size.toLong() else -1L
             )
-        } catch(t: Throwable) {
-            throw IOException("Stat failed for $path", t)
+        }?.also {
+            throw IOException("Stat failed for $path", it)
         }
+        return metadata
     }
 
     override fun source(path: Path): RawSource {
