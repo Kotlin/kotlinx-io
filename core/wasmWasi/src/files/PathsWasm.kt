@@ -5,7 +5,7 @@
 
 package kotlinx.io.files
 
-public actual class Path internal constructor(rawPath: String, obj: Any?) {
+public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED_PARAMETER") obj: Any?) {
     private val path: String = rawPath
 
     actual override fun toString(): String = path
@@ -36,4 +36,4 @@ public actual class Path internal constructor(rawPath: String, obj: Any?) {
 public actual val SystemPathSeparator: Char
     get() = unsupported()
 
-public actual fun Path(path: String): Path = Path(path, null as Any)
+public actual fun Path(path: String): Path = Path(path, null as Any?)

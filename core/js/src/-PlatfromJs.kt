@@ -21,3 +21,9 @@ public actual open class IOException actual constructor(
 public actual open class EOFException actual constructor(message: String?) : IOException(message) {
     public actual constructor() : this(null)
 }
+
+@Suppress("ACTUAL_WITHOUT_EXPECT")
+internal actual typealias CommonJsModule = JsModule
+
+@Suppress("ACTUAL_WITHOUT_EXPECT")
+internal actual typealias CommonJsNonModule = JsNonModule
