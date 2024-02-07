@@ -100,7 +100,10 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             )
             when (res) {
                 Errno.success -> return
-                Errno.noent -> throw FileNotFoundException("TODO") // TODO: proper error message
+                Errno.noent -> throw FileNotFoundException(
+                    "Failed to rename $source to $destination as either source file/directory, " +
+                            "or destination's parent directory does not exist."
+                )
                 else -> throw IOException("Failed to rename $source to $destination: ${res.description}")
             }
         }
