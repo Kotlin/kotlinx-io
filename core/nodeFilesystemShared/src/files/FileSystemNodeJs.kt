@@ -113,5 +113,3 @@ public actual open class FileNotFoundException actual constructor(
 ) : IOException(message)
 
 internal actual val isWindows = platform() == "win32"
-
-internal actual val supportsCurrentWorkingDirectory: Boolean = true

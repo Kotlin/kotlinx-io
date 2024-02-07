@@ -104,5 +104,3 @@ public actual val SystemTemporaryDirectory: Path = Path(System.getProperty("java
 public actual typealias FileNotFoundException = java.io.FileNotFoundException
 
 internal actual val isWindows: Boolean = System.getProperty("os.name")?.startsWith("Windows") ?: false
-
-internal actual val supportsCurrentWorkingDirectory: Boolean = true

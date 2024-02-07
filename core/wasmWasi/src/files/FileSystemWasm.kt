@@ -50,10 +50,10 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         val root = PreOpens.getRoot(path)
         val segments: List<String> = buildList {
-            var currentPath = path
-            while (currentPath != root.path) {
+            var currentPath: Path? = path
+            while (currentPath != null && currentPath != root.path) {
                 add(currentPath.path)
-                currentPath = currentPath.parent!!
+                currentPath = currentPath.parent
             }
         }
         var created = false
@@ -193,10 +193,10 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         val root = PreOpens.getRoot(path)
 
         val parts = mutableListOf<String>()
-        var part = path
-        while (part != root.path) {
+        var part: Path? = path
+        while (part != null && part != root.path) {
             parts.add(part.name)
-            part = part.parent!!
+            part = part.parent
         }
         val stack = mutableListOf<String>()
         parts.reversed().forEach {
@@ -257,7 +257,9 @@ internal object PreOpens {
     }
 
     internal fun getRootOrNull(path: Path): PreOpen? {
-        if (!path.isAbsolute) return null
+        if (!path.isAbsolute) {
+            return preopens.firstOrNull()
+        }
 
         for (root in preopens) {
             var p: Path? = path
@@ -448,5 +450,3 @@ private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
         return Path(resultBuffer.loadBytes(resultLength).decodeToString())
     }
 }
-
-actual internal val supportsCurrentWorkingDirectory: Boolean = false

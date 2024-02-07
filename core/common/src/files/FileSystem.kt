@@ -186,4 +186,3 @@ internal const val WindowsPathSeparator: Char = '\\'
 internal const val UnixPathSeparator: Char = '/'
 
 internal expect val isWindows: Boolean
-internal expect val supportsCurrentWorkingDirectory: Boolean

@@ -378,18 +378,14 @@ class SmokeFileTest {
             SystemFileSystem.resolve(createTempPath())
         }
 
-        if (supportsCurrentWorkingDirectory) {
-            val cwd = SystemFileSystem.resolve(Path("."))
-            val parentRel = Path("..")
-            assertEquals(cwd.parent, SystemFileSystem.resolve(parentRel))
+        val cwd = SystemFileSystem.resolve(Path("."))
+        val childRel = Path("a", "..")
+        assertEquals(cwd, SystemFileSystem.resolve(childRel))
 
-            assertEquals(
-                cwd, SystemFileSystem.resolve(cwd),
-                "Absolute path resolution should not alter the path"
-            )
-        } else {
-            assertFailsWith<IOException> { SystemFileSystem.resolve(Path(".")) }
-        }
+        assertEquals(
+            cwd, SystemFileSystem.resolve(cwd),
+            "Absolute path resolution should not alter the path"
+        )
 
         // root
         //   |-> a -> b
