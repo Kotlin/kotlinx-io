@@ -44,4 +44,10 @@ class WasiFsTest {
             SystemFileSystem.delete(path, false)
         }
     }
+
+    @Test
+    fun testResolution() {
+        val resolved = SystemFileSystem.resolve(Path("/tmp/../../a/../b/../../tmp"))
+        assertEquals(Path("/tmp"), resolved)
+    }
 }

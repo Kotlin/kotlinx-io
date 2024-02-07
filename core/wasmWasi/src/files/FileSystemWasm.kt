@@ -10,9 +10,26 @@ import kotlinx.io.wasi.*
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
 
-public actual val SystemTemporaryDirectory: Path
-    get() = PreOpens.roots.find { it.path.startsWith("/tmp") } ?: throw IOException("'/tmp' was not pre-opened")
+/**
+ * Path to a directory suitable for creating temporary files.
+ *
+ * This path is always `/tmp`, meaning that either `/` or `/tmp` should be pre-opened to use this path.
+ */
+public actual val SystemTemporaryDirectory: Path = Path("/tmp")
 
+/**
+ * An instance of [FileSystem] representing a default system-wide filesystem.
+ *
+ * The implementation is built upon Wasm WASI preview 1.
+ *
+ * To use files, at least one directory should be pre-opened.
+ *
+ * Operations on all absolute paths that are not sub-paths of pre-opened directories will fail.
+ *
+ * Relative paths are treated as paths relative to the first pre-opened directory.
+ * For example, if following directories were pre-opened: `/work`, `/tmp`, `/persistent`, then
+ * the path `a/b/c/d` will be resolved to `/work/a/b/c/d` as `/work` is the first pre-opened directory.
+ */
 @OptIn(UnsafeWasmMemoryApi::class)
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
 
@@ -192,43 +209,59 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         )
     }
 
+    /**
+     * Returns an absolute path to the same file or directory the [path] is pointing to.
+     * All symbolic links are solved, extra path separators and references to current (`.`) or
+     * parent (`..`) directories are removed.
+     * If the [path] is a relative path then it'll be resolved against current working directory.
+     * If there is no file or directory to which the [path] is pointing to then [FileNotFoundException] will be thrown.
+     *
+     * The behavior of this method differs from other platforms as the resolution
+     * may not fail if there is no filesystem-node (file, directory, symlink, etc.) corresponding
+     * to some interior path. This allows successfully resolving paths like `/a/b/c/../../d/e` when
+     * pre-opened directories are `/a/b/c` and `/a/d/e`.
+     *
+     * @param path the path to resolve.
+     * @return a resolved path.
+     * @throws FileNotFoundException if there is no file or directory corresponding to the specified path.
+     */
     override fun resolve(path: Path): Path {
-        val root = PreOpens.getRoot(path)
-
-        val parts = mutableListOf<String>()
-        var part: Path? = path
-        while (part != null && part != root.path) {
-            parts.add(part.name)
-            part = part.parent
-        }
-        val stack = mutableListOf<String>()
-        parts.reversed().forEach {
-            if (it != ".") {
-                if (it == "..") {
-                    if (stack.isEmpty()) {
-                        throw IOException("Path points outside root directory: $path, root: ${root.path}")
-                    }
-                    stack.removeLast()
-                } else {
-                    stack.add(it)
-                }
-            }
+        val absolutePath = if (path.isAbsolute) {
+            path
+        } else {
+            Path(PreOpens.roots.first(), path.path)
         }
 
-        var resolvedPath = root.path
-        for (subDir in stack) {
-            resolvedPath = Path(resolvedPath, subDir)
-
-            val newRoot =
-                PreOpens.getRoot(resolvedPath)
-            val md = metadataOrNullInternal(newRoot.fd, resolvedPath)
-                ?: throw FileNotFoundException("Path does not exists: $resolvedPath")
-            if (md.filetype == FileType.symbolic_link) {
-                resolvedPath = readlinkInternal(newRoot.fd, resolvedPath, md.filesize.toInt())
-            }
+        val resolvedPath = resolvePathImpl(absolutePath, 0)
+            ?: throw FileNotFoundException("Path does not exist: $path")
+        check(resolvedPath.isAbsolute) {
+            "Path is not absolute after symlinks resolution"
         }
-        return resolvedPath
+
+        val normalizedPath = resolvedPath.normalized()
+        if (!exists(normalizedPath)) throw FileNotFoundException("Path does not exist: $path")
+        return normalizedPath
     }
+}
+
+private fun Path.normalized(): Path {
+    require(isAbsolute)
+
+    val parts = path.split(UnixPathSeparator)
+    val constructedPath = mutableListOf<String>()
+    // parts[0] is always empty
+    for (idx in 1 until parts.size) {
+        when (val part = parts[idx]) {
+            "." -> continue
+            ".." -> constructedPath.removeLastOrNull()
+            else -> constructedPath.add(part)
+        }
+    }
+    var result = Path(UnixPathSeparator.toString())
+    for (part in constructedPath) {
+        result = Path(result, part)
+    }
+    return result
 }
 
 public actual open class FileNotFoundException actual constructor(
@@ -424,7 +457,7 @@ private fun metadataOrNullInternal(rootFd: Fd, path: Path): InternalMetadata? {
             )
         )
 
-        if (res == Errno.noent) return null
+        if (res == Errno.noent || res == Errno.notcapable) return null
         if (res != Errno.success) throw IOException(res.description)
 
         return InternalMetadata(filestat.filetype, filestat.filesize)
@@ -452,4 +485,40 @@ private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
         val resultLength = resultPtr.loadInt()
         return Path(resultBuffer.loadBytes(resultLength).decodeToString())
     }
+}
+
+// The value compatible with current Linux defaults
+private const val PATH_RESOLUTION_MAX_LINKS_DEPTH = 40
+
+private fun resolvePathImpl(path: Path, recursion: Int): Path? {
+    if (recursion >= PATH_RESOLUTION_MAX_LINKS_DEPTH) {
+        throw IOException("Too many levels of symbolic links")
+    }
+    val resolvedParent = when(val parent = path.parent) {
+        null -> null
+        else -> resolvePathImpl(parent, recursion + 1)
+    }
+    val withResolvedParent = when(resolvedParent) {
+        null -> path
+        else -> Path(resolvedParent, path.name)
+    }
+    // There are cases when we simply can't resolve the intermediate path, but the resulting path should be fine:
+    // pre-opened directories: [/a/b/c, /a/d/e]
+    // path to resolve: /a/b/c/../../d/e/f
+    // The path, after normalization, is /a/d/e/f and its metadata could be fetched using the root /a/d/e.
+    // However, normalization could not be performed before links resolution, and intermediate non-normalized path
+    // may point to a directory not belonging to any of pre-opened directories (like /a/b/c/../..).
+    // So, let's hope for the best and throw an exception after resolution and normalization.
+    val root = PreOpens.getRootOrNull(withResolvedParent) ?: return withResolvedParent
+    val metadata = metadataOrNullInternal(root.fd, withResolvedParent) ?: return withResolvedParent
+    if (metadata.filetype == FileType.symbolic_link) {
+        val linkTarget = readlinkInternal(root.fd, withResolvedParent, metadata.filesize.toInt())
+        val resolvedPath = if (linkTarget.isAbsolute || resolvedParent == null) {
+            linkTarget
+        } else {
+            Path(resolvedParent, linkTarget.path)
+        }
+        return resolvePathImpl(resolvedPath, recursion + 1)
+    }
+    return withResolvedParent
 }

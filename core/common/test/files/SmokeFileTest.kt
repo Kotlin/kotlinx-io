@@ -32,6 +32,10 @@ class SmokeFileTest {
         return f
     }
 
+    private fun removeOnExit(path: Path) {
+        files.add(path)
+    }
+
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun readWriteFile() {
@@ -207,8 +211,7 @@ class SmokeFileTest {
 
         assertEquals("..", Path("..${SystemPathSeparator}..").parent?.toString())
 
-        // TODO: enable
-        //assertEquals(" ", Path(SystemFileSystem.resolve(Path(".")), " ", "ws").parent?.name)
+        assertEquals(" ", Path(SystemFileSystem.resolve(Path(".")), " ", "ws").parent?.name)
         assertEquals(" ", Path(" $SystemPathSeparator.").parent?.name)
         assertNull(Path(" ").parent)
         assertNull(Path(" /").parent)
@@ -379,6 +382,10 @@ class SmokeFileTest {
         }
 
         val cwd = SystemFileSystem.resolve(Path("."))
+
+        SystemFileSystem.createDirectories(Path("a"))
+        removeOnExit(Path("a"))
+
         val childRel = Path("a", "..")
         assertEquals(cwd, SystemFileSystem.resolve(childRel))
 
