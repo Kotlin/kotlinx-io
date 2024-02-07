@@ -6,6 +6,7 @@
 
 package kotlinx.io
 
+import kotlin.wasm.unsafe.MemoryAllocator
 import kotlin.wasm.unsafe.Pointer
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 
@@ -77,3 +78,18 @@ internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
     }
 }
 
+@OptIn(UnsafeWasmMemoryApi::class)
+internal fun String.store(allocator: MemoryAllocator): Pair<Pointer, Int> {
+    val bytes = encodeToByteArray()
+    val ptr = allocator.allocate(bytes.size + 1)
+    ptr.storeBytes(bytes)
+    ptr.storeByte(bytes.size, 0)
+    return ptr to (bytes.size + 1)
+}
+
+internal fun String.store(address: Pointer): Int {
+    val bytes = encodeToByteArray()
+    address.storeBytes(bytes)
+    address.storeByte(bytes.size, 0)
+    return bytes.size + 1
+}

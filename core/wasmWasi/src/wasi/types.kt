@@ -3,7 +3,17 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
+@file:OptIn(UnsafeWasmMemoryApi::class)
+
 package kotlinx.io.wasi
+
+import kotlinx.io.loadByte
+import kotlinx.io.loadInt
+import kotlinx.io.loadLong
+import kotlinx.io.storeInt
+import kotlin.wasm.unsafe.MemoryAllocator
+import kotlin.wasm.unsafe.Pointer
+import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 
 // https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md
 internal enum class Errno(val description: String) {
@@ -192,3 +202,84 @@ internal fun Iterable<OpenFlags>.toBitset(): Int {
 }
 
 internal typealias Fd = Int
+
+internal enum class PrestatType {
+    dir,
+    invalid
+}
+
+internal interface WasmMemoryAllocated {
+    val address: Int
+}
+
+/**
+ * See https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md#-prestat-variant
+ */
+internal data class Prestat(val ptr: Pointer) : WasmMemoryAllocated {
+    val type: PrestatType
+        get() = if (ptr.loadByte().toInt() == 0) {
+            PrestatType.dir
+        } else {
+            PrestatType.invalid
+        }
+
+    val nameLength: Int
+        get() = ptr.loadInt(4)
+
+    override val address: Int
+        get() = ptr.address.toInt()
+}
+
+internal fun Prestat(allocator: MemoryAllocator): Prestat = Prestat(allocator.allocate(8))
+
+/**
+ * See https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md#-filestat-record
+ */
+internal data class FileStat(val ptr: Pointer) : WasmMemoryAllocated {
+    val dev: Long
+        get() = ptr.loadLong()
+
+    val ino: Long
+        get() = ptr.loadLong(8)
+
+    val filetype: FileType
+        get() = FileType(ptr.loadByte(16))
+
+    val linkCount: Long
+        get() = ptr.loadLong(24)
+
+    val filesize: Long
+        get() = ptr.loadLong(32)
+
+    val accessTime: Long
+        get() = ptr.loadLong(40)
+
+    val modificationTime: Long
+        get() = ptr.loadLong(48)
+
+    val changeTime: Long
+        get() = ptr.loadLong(56)
+
+    override val address: Int
+        get() = ptr.address.toInt()
+}
+
+internal fun FileStat(allocator: MemoryAllocator): FileStat = FileStat(allocator.allocate(64))
+
+/**
+ * See https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md#-ciovec-record
+ */
+internal data class Ciovec(val ptr: Pointer) : WasmMemoryAllocated {
+    var buffer: Pointer
+        get() = Pointer(ptr.loadInt().toUInt())
+        set(value) = ptr.storeInt(value.address.toInt())
+
+    var length: Int
+        get() = ptr.loadInt(4)
+        set(value) = ptr.storeInt(4, value)
+
+    override val address: Int
+        get() = ptr.address.toInt()
+}
+
+internal fun Ciovec(allocator: MemoryAllocator): Ciovec = Ciovec(allocator.allocate(8))

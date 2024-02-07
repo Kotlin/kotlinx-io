@@ -11,7 +11,7 @@ import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
 
 public actual val SystemTemporaryDirectory: Path
-    get() = PreOpens.roots.find { it.path.startsWith("/tmp") } ?: throw IOException("No tmp found pre open")
+    get() = PreOpens.roots.find { it.path.startsWith("/tmp") } ?: throw IOException("'/tmp' was not pre-opened")
 
 @OptIn(UnsafeWasmMemoryApi::class)
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
@@ -25,15 +25,9 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
     override fun delete(path: Path, mustExist: Boolean) {
         val root = PreOpens.getRoot(path)
         withScopedMemoryAllocator { allocator ->
-            val pathBytes = path.path.encodeToByteArray()
-            val stringBuffer = allocator.allocate(pathBytes.size + 1)
-            stringBuffer.storeBytes(pathBytes)
-            stringBuffer.storeByte(pathBytes.size, 0)
+            val (stringBuffer, stringLength) = path.path.store(allocator)
 
-            val unlinkRes = Errno(
-                path_unlink_file(root.fd, stringBuffer.address.toInt(), pathBytes.size + 1)
-            )
-
+            val unlinkRes = Errno(path_unlink_file(root.fd, stringBuffer.address.toInt(), stringLength))
             if (unlinkRes == Errno.success) return
             if (unlinkRes == Errno.noent) {
                 if (mustExist) throw FileNotFoundException("File does not exist: $path")
@@ -43,9 +37,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
                 throw IOException("Unable to remove file $path: ${unlinkRes.description}")
             }
 
-            val removeDirRes = Errno(
-                path_remove_directory(root.fd, stringBuffer.address.toInt(), pathBytes.size + 1)
-            )
+            val removeDirRes = Errno(path_remove_directory(root.fd, stringBuffer.address.toInt(), stringLength))
             if (removeDirRes == Errno.success) return
             if (removeDirRes == Errno.noent) {
                 if (mustExist) throw FileNotFoundException("File does not exist: $path")
@@ -70,16 +62,9 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 
             for (idx in segments.size - 1 downTo 0) {
                 val segment = segments[idx]
-                val segmentBytes = segment.encodeToByteArray()
-                pathBuffer.storeBytes(segmentBytes)
-                pathBuffer.storeByte(segmentBytes.size, 0)
+                val segmentLength = segment.store(pathBuffer)
 
-                val res = Errno(
-                    path_create_directory(
-                        root.fd, pathBuffer.address.toInt(),
-                        segmentBytes.size + 1
-                    )
-                )
+                val res = Errno(path_create_directory(root.fd, pathBuffer.address.toInt(), segmentLength))
                 if (res == Errno.success) {
                     created = true
                 } else if (res != Errno.exist) {
@@ -104,24 +89,13 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         val destRoot = PreOpens.getRoot(destination)
 
         withScopedMemoryAllocator { allocator ->
-            val sourceBytes = source.path.encodeToByteArray()
-            val sourceBuffer = allocator.allocate(sourceBytes.size + 1)
-            sourceBuffer.storeBytes(sourceBytes)
-            sourceBuffer.storeByte(sourceBytes.size, 0)
-
-            val destBytes = destination.path.encodeToByteArray()
-            val destBuffer = allocator.allocate(destBytes.size + 1)
-            destBuffer.storeBytes(destBytes)
-            destBuffer.storeByte(destBytes.size, 0)
+            val (sourceBuffer, sourceBufferLength) = source.path.store(allocator)
+            val (destBuffer, destBufferLength) = destination.path.store(allocator)
 
             val res = Errno(
                 path_rename(
-                    sourceRoot.fd,
-                    sourceBuffer.address.toInt(),
-                    sourceBytes.size + 1,
-                    destRoot.fd,
-                    destBuffer.address.toInt(),
-                    destBytes.size + 1
+                    oldFd = sourceRoot.fd, oldPathPtr = sourceBuffer.address.toInt(), oldPathLen = sourceBufferLength,
+                    newFd = destRoot.fd, newPathPtr = destBuffer.address.toInt(), newPathLen = destBufferLength
                 )
             )
             when (res) {
@@ -137,21 +111,18 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 
         val fd = withScopedMemoryAllocator { allocator ->
             val fdPtr = allocator.allocate(4)
-            val stringBytes = path.path.encodeToByteArray()
-            val stringBuffer = allocator.allocate(stringBytes.size + 1)
-            stringBuffer.storeBytes(stringBytes)
-            stringBuffer.storeByte(stringBytes.size, 0)
+            val (stringBuffer, stringBufferLength) = path.path.store(allocator)
 
             val res = Errno(
                 path_open(
-                    root.fd,
-                    listOf(LookupFlags.symlink_follow).toBitset(),
-                    stringBuffer.address.toInt(), stringBytes.size + 1,
-                    0,
-                    listOf(Rights.fd_read).toBitset(),
-                    0,
-                    0,
-                    fdPtr.address.toInt()
+                    fd = root.fd,
+                    dirflags = listOf(LookupFlags.symlink_follow).toBitset(),
+                    pathPtr = stringBuffer.address.toInt(), pathLen = stringBufferLength,
+                    oflags = 0,
+                    fsRightsBase = listOf(Rights.fd_read).toBitset(),
+                    fsRightsInheriting = 0,
+                    fdFlags = 0,
+                    resultPtr = fdPtr.address.toInt()
                 )
             )
             if (res != Errno.success) {
@@ -169,10 +140,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 
         val fd = withScopedMemoryAllocator { allocator ->
             val fdPtr = allocator.allocate(4)
-            val stringBytes = path.path.encodeToByteArray()
-            val stringBuffer = allocator.allocate(stringBytes.size + 1)
-            stringBuffer.storeBytes(stringBytes)
-            stringBuffer.storeByte(stringBytes.size, 0)
+            val (stringBuffer, stringBufferLength) = path.path.store(allocator)
 
             val fdFlags = buildList {
                 if (append) {
@@ -189,14 +157,14 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 
             val res = Errno(
                 path_open(
-                    root.fd,
-                    listOf(LookupFlags.symlink_follow).toBitset(),
-                    stringBuffer.address.toInt(), stringBytes.size + 1,
-                    openFlags,
-                    listOf(Rights.fd_write, Rights.fd_sync).toBitset(),
-                    0,
-                    fdFlags,
-                    fdPtr.address.toInt()
+                    fd = root.fd,
+                    dirflags = listOf(LookupFlags.symlink_follow).toBitset(),
+                    pathPtr = stringBuffer.address.toInt(), pathLen = stringBufferLength,
+                    oflags = openFlags,
+                    fsRightsBase = listOf(Rights.fd_write, Rights.fd_sync).toBitset(),
+                    fsRightsInheriting = 0,
+                    fdFlags = fdFlags,
+                    resultPtr = fdPtr.address.toInt()
                 )
             )
             if (res != Errno.success) {
@@ -308,8 +276,8 @@ internal object PreOpens {
     @OptIn(UnsafeWasmMemoryApi::class)
     private fun loadPreopenInfo(fd: Int, outputList: MutableList<PreOpen>): Boolean {
         return withScopedMemoryAllocator { allocator ->
-            val resultPtr = allocator.allocate(12)
-            val res = Errno(fd_prestat_get(fd, resultPtr.address.toInt()))
+            val prestat = Prestat(allocator)
+            val res = Errno(fd_prestat_get(fd, prestat.address))
 
             if (res == Errno.badf) {
                 return@withScopedMemoryAllocator false
@@ -319,21 +287,22 @@ internal object PreOpens {
                 throw IOException("Unable to process fd=$fd as preopen: ${res.description}")
             }
 
-            val len = resultPtr.loadInt(4)
-            check(len > 0)
-            val pathBuffer = allocator.allocate(len)
+            check(prestat.type == PrestatType.dir) { "Unsupported prestat type" }
 
-            val dirnameRes = Errno(fd_prestat_dir_name(fd, pathBuffer.address.toInt(), len))
-
+            val nameLength = prestat.nameLength
+            val pathBuffer = allocator.allocate(nameLength)
+            val dirnameRes = Errno(fd_prestat_dir_name(fd, pathBuffer.address.toInt(), nameLength))
             if (dirnameRes != Errno.success) {
                 throw IOException("Unable to get preopen dir name for fd=$fd: ${dirnameRes.description}")
             }
-            outputList.add(PreOpen(Path(pathBuffer.loadBytes(len).decodeToString()), fd))
+            outputList.add(PreOpen(Path(pathBuffer.loadBytes(nameLength).decodeToString()), fd))
 
             true
         }
     }
 }
+
+private const val TEMP_CIOVEC_BUFFER_LEN = 8192
 
 private class FileSink(private val fd: Fd) : RawSink {
     private var closed: Boolean = false
@@ -343,31 +312,26 @@ private class FileSink(private val fd: Fd) : RawSink {
         check(byteCount >= 0)
         if (byteCount == 0L) return
         withScopedMemoryAllocator { allocator ->
-            val buffer = allocator.allocate(8192)
+            val buffer = allocator.allocate(TEMP_CIOVEC_BUFFER_LEN)
             var remaining = byteCount
 
-            val ciovecsArray = allocator.allocate(8)
-            ciovecsArray.storeInt(0, buffer.address.toInt())
+            val ciovec = Ciovec(allocator).also {
+                it.buffer = buffer
+            }
 
             val resultPtr = allocator.allocate(4)
 
             while (remaining > 0) {
-                val toRead = minOf(remaining, 8192).toInt()
+                val toRead = minOf(remaining, TEMP_CIOVEC_BUFFER_LEN).toInt()
                 source.readToLinearMemory(buffer, toRead)
-                ciovecsArray.storeInt(4, toRead)
-                val res = Errno(
-                    fd_write(
-                        fd,
-                        ciovecsArray.address.toInt(),
-                        1,
-                        resultPtr.address.toInt()
-                    )
-                )
+                ciovec.length = toRead
+
+                val res = Errno(fd_write(fd, ciovec.address, 1, resultPtr.address.toInt()))
                 if (res != Errno.success) {
                     throw IOException("Write failed: ${res.description}")
                 }
                 check(resultPtr.loadInt(0) == toRead) {
-                    "Expected to write $toRead, but written: ${resultPtr.loadInt(0)}"
+                    "Expected to write $toRead, but ${resultPtr.loadInt(0)} bytes were written"
                 }
                 remaining -= toRead
             }
@@ -377,7 +341,7 @@ private class FileSink(private val fd: Fd) : RawSink {
     override fun flush() {
         val res = Errno(fd_sync(fd))
         if (res != Errno.success) {
-            throw IOException("fd_datasync failed: ${res.description}")
+            throw IOException("fd_sync failed: ${res.description}")
         }
     }
 
@@ -399,21 +363,19 @@ private class FileSource(private val fd: Fd) : RawSource {
         var totalRead = 0L
 
         withScopedMemoryAllocator { allocator ->
-            val buffer = allocator.allocate(8192)
+            val buffer = allocator.allocate(TEMP_CIOVEC_BUFFER_LEN)
             var remaining = byteCount
 
-            val ciovecsArray = allocator.allocate(8)
+            val ciovec = Ciovec(allocator).also {
+                it.buffer = buffer
+            }
 
             val resultPtr = allocator.allocate(4)
             while (remaining > 0) {
-                val toRead = minOf(remaining, 8192).toInt()
-                ciovecsArray.storeInt(4, toRead)
-                val res = Errno(
-                    fd_read(
-                        fd, ciovecsArray.address.toInt(),
-                        1, resultPtr.address.toInt()
-                    )
-                )
+                val toRead = minOf(remaining, TEMP_CIOVEC_BUFFER_LEN).toInt()
+                ciovec.length = toRead
+
+                val res = Errno(fd_read(fd, ciovec.address, 1, resultPtr.address.toInt()))
                 if (res != Errno.success) {
                     throw IOException("Read failed: ${res.description}")
                 }
@@ -444,28 +406,23 @@ private data class InternalMetadata(val filetype: FileType, val filesize: Long)
 @OptIn(UnsafeWasmMemoryApi::class)
 private fun metadataOrNullInternal(rootFd: Fd, path: Path): InternalMetadata? {
     withScopedMemoryAllocator { allocator ->
-        val pathBytes = path.path.encodeToByteArray()
-        val pathBuffer = allocator.allocate(pathBytes.size + 1)
-        pathBuffer.storeBytes(pathBytes)
-        pathBuffer.storeByte(pathBytes.size, 0)
+        val (pathBuffer, pathBufferLength) = path.path.store(allocator)
 
-        val resultPtr = allocator.allocate(64)
+        val filestat = FileStat(allocator)
 
         val res = Errno(
             path_filestat_get(
-                rootFd, 1,
-                pathBuffer.address.toInt(), pathBytes.size + 1,
-                resultPtr.address.toInt()
+                fd = rootFd,
+                flags = listOf(LookupFlags.symlink_follow).toBitset(),
+                pathPtr = pathBuffer.address.toInt(), pathLen = pathBufferLength,
+                resultPtr = filestat.address
             )
         )
 
         if (res == Errno.noent) return null
         if (res != Errno.success) throw IOException(res.description)
 
-        return InternalMetadata(
-            FileType(resultPtr.loadByte(16)),
-            resultPtr.loadLong(32)
-        )
+        return InternalMetadata(filestat.filetype, filestat.filesize)
     }
 }
 
@@ -473,17 +430,15 @@ private fun metadataOrNullInternal(rootFd: Fd, path: Path): InternalMetadata? {
 private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
     withScopedMemoryAllocator { allocator ->
         val resultPtr = allocator.allocate(4)
-        val pathBytes = path.path.encodeToByteArray()
-        val pathBuffer = allocator.allocate(pathBytes.size + 1)
-        val resultBuffer = allocator.allocate(linkSize + 1)
-        pathBuffer.storeBytes(pathBytes)
-        pathBuffer.storeByte(pathBytes.size, 0)
+        val (pathBuffer, pathBufferLength) = path.path.store(allocator)
+        val resultBuffer = allocator.allocate(linkSize)
 
         val res = Errno(
             path_readlink(
-                rootFd, pathBuffer.address.toInt(), pathBytes.size + 1,
-                resultBuffer.address.toInt(), linkSize + 1,
-                resultPtr.address.toInt()
+                fd = rootFd,
+                pathPtr = pathBuffer.address.toInt(), pathLen = pathBufferLength,
+                bufPtr = resultBuffer.address.toInt(), bufLen = linkSize,
+                resultPtr = resultPtr.address.toInt()
             )
         )
         if (res != Errno.success) {
