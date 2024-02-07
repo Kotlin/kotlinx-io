@@ -65,7 +65,10 @@ external internal fun path_unlink_file(
     fd: Fd, pathPtr: Int, pathLen: Int
 ): Int
 
-@WasmImport("wasi_snapshot_preview1", "path_unlink_file")
+@WasmImport("wasi_snapshot_preview1", "path_readlink")
 external internal fun path_readlink(
     fd: Fd, pathPtr: Int, pathLen: Int, bufPtr: Int, bufLen: Int, resultPtr: Int
 ): Int
+
+@WasmImport("wasi_snapshot_preview1", "path_symlink")
+external internal fun path_symlink(oldPathPtr: Int, oldPathLen: Int, fd: Fd, newPathPtr: Int, newPathLen: Int): Int

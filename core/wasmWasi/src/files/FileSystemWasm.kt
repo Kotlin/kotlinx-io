@@ -30,12 +30,12 @@ public actual val SystemTemporaryDirectory: Path = Path("/tmp")
  * For example, if following directories were pre-opened: `/work`, `/tmp`, `/persistent`, then
  * the path `a/b/c/d` will be resolved to `/work/a/b/c/d` as `/work` is the first pre-opened directory.
  */
+public actual val SystemFileSystem: FileSystem = WasiFileSystem
+
 @OptIn(UnsafeWasmMemoryApi::class)
-public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
+internal object WasiFileSystem : SystemFileSystemImpl() {
 
     override fun exists(path: Path): Boolean {
-        if (!path.isAbsolute) throw UnsupportedOperationException("Can't handle relative paths")
-
         return metadataOrNull(path) != null
     }
 
@@ -121,6 +121,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
                     "Failed to rename $source to $destination as either source file/directory, " +
                             "or destination's parent directory does not exist."
                 )
+
                 else -> throw IOException("Failed to rename $source to $destination: ${res.description}")
             }
         }
@@ -196,8 +197,8 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
     }
 
     override fun metadataOrNull(path: Path): FileMetadata? {
-        val root = PreOpens.getRoot(path)
-        val md = metadataOrNullInternal(root.fd, path) ?: return null
+        val root = PreOpens.getRootOrNull(path) ?: return null
+        val md = metadataOrNullInternal(root.fd, path, true) ?: return null
 
         val filetype = md.filetype
         val isDirectory = filetype == FileType.directory
@@ -241,6 +242,24 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         val normalizedPath = resolvedPath.normalized()
         if (!exists(normalizedPath)) throw FileNotFoundException("Path does not exist: $path")
         return normalizedPath
+    }
+
+    internal fun symlink(linked: Path, target: Path) {
+        val root = PreOpens.getRoot(target)
+
+        withScopedMemoryAllocator { allocator ->
+            val (fromBuffer, fromBufferLength) = linked.path.store(allocator)
+            val (toBuffer, toBufferLength) = target.path.store(allocator)
+            val res = Errno(
+                path_symlink(
+                    fromBuffer.address.toInt(), fromBufferLength,
+                    root.fd, toBuffer.address.toInt(), toBufferLength
+                )
+            )
+
+            if (res == Errno.success) return
+            throw IOException("Can't create symbolic link $target pointing to $linked: ${res.description}")
+        }
     }
 }
 
@@ -442,7 +461,7 @@ private class FileSource(private val fd: Fd) : RawSource {
 private data class InternalMetadata(val filetype: FileType, val filesize: Long)
 
 @OptIn(UnsafeWasmMemoryApi::class)
-private fun metadataOrNullInternal(rootFd: Fd, path: Path): InternalMetadata? {
+private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boolean): InternalMetadata? {
     withScopedMemoryAllocator { allocator ->
         val (pathBuffer, pathBufferLength) = path.path.store(allocator)
 
@@ -451,7 +470,7 @@ private fun metadataOrNullInternal(rootFd: Fd, path: Path): InternalMetadata? {
         val res = Errno(
             path_filestat_get(
                 fd = rootFd,
-                flags = listOf(LookupFlags.symlink_follow).toBitset(),
+                flags = if (followSymlinks) 1 else 0,
                 pathPtr = pathBuffer.address.toInt(), pathLen = pathBufferLength,
                 resultPtr = filestat.address
             )
@@ -469,13 +488,13 @@ private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
     withScopedMemoryAllocator { allocator ->
         val resultPtr = allocator.allocate(4)
         val (pathBuffer, pathBufferLength) = path.path.store(allocator)
-        val resultBuffer = allocator.allocate(linkSize)
+        val resultBuffer = allocator.allocate(linkSize + 1)
 
         val res = Errno(
             path_readlink(
                 fd = rootFd,
                 pathPtr = pathBuffer.address.toInt(), pathLen = pathBufferLength,
-                bufPtr = resultBuffer.address.toInt(), bufLen = linkSize,
+                bufPtr = resultBuffer.address.toInt(), bufLen = linkSize + 1,
                 resultPtr = resultPtr.address.toInt()
             )
         )
@@ -494,11 +513,11 @@ private fun resolvePathImpl(path: Path, recursion: Int): Path? {
     if (recursion >= PATH_RESOLUTION_MAX_LINKS_DEPTH) {
         throw IOException("Too many levels of symbolic links")
     }
-    val resolvedParent = when(val parent = path.parent) {
+    val resolvedParent = when (val parent = path.parent) {
         null -> null
         else -> resolvePathImpl(parent, recursion + 1)
     }
-    val withResolvedParent = when(resolvedParent) {
+    val withResolvedParent = when (resolvedParent) {
         null -> path
         else -> Path(resolvedParent, path.name)
     }
@@ -510,7 +529,7 @@ private fun resolvePathImpl(path: Path, recursion: Int): Path? {
     // may point to a directory not belonging to any of pre-opened directories (like /a/b/c/../..).
     // So, let's hope for the best and throw an exception after resolution and normalization.
     val root = PreOpens.getRootOrNull(withResolvedParent) ?: return withResolvedParent
-    val metadata = metadataOrNullInternal(root.fd, withResolvedParent) ?: return withResolvedParent
+    val metadata = metadataOrNullInternal(root.fd, withResolvedParent, false) ?: return withResolvedParent
     if (metadata.filetype == FileType.symbolic_link) {
         val linkTarget = readlinkInternal(root.fd, withResolvedParent, metadata.filesize.toInt())
         val resolvedPath = if (linkTarget.isAbsolute || resolvedParent == null) {

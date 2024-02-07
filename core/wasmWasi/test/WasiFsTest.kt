@@ -5,10 +5,10 @@
 
 package kotlinx.io.files
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlinx.io.buffered
+import kotlinx.io.readLine
+import kotlinx.io.writeString
+import kotlin.test.*
 
 class WasiFsTest {
     @Test
@@ -49,5 +49,48 @@ class WasiFsTest {
     fun testResolution() {
         val resolved = SystemFileSystem.resolve(Path("/tmp/../../a/../b/../../tmp"))
         assertEquals(Path("/tmp"), resolved)
+
+        SystemFileSystem.createDirectories(Path("/tmp/a/b/c/d/e"))
+        try {
+            WasiFileSystem.symlink(Path("/tmp/a/b/c/d/e"), Path("/tmp/l"))
+            WasiFileSystem.symlink(Path("a/b/c/d/e"), Path("/tmp/lr"))
+            WasiFileSystem.symlink(Path("/blablabla"), Path("/tmp/dangling"))
+
+            assertEquals(Path("/tmp/a/b"), SystemFileSystem.resolve(Path("/tmp/lr/../../..")))
+            assertEquals(Path("/tmp/a/b/c"), SystemFileSystem.resolve(Path("/tmp/l/../..")))
+
+            assertFailsWith<FileNotFoundException> {
+                SystemFileSystem.resolve(Path("/tmp/dangling"))
+            }
+        } finally {
+            SystemFileSystem.delete(Path("/tmp/a/b/c/d/e"))
+            SystemFileSystem.delete(Path("/tmp/a/b/c/d"))
+            SystemFileSystem.delete(Path("/tmp/a/b/c"))
+            SystemFileSystem.delete(Path("/tmp/a/b"))
+            SystemFileSystem.delete(Path("/tmp/a"))
+            SystemFileSystem.delete(Path("/tmp/l"))
+            SystemFileSystem.delete(Path("/tmp/lr"))
+            SystemFileSystem.delete(Path("/tmp/dangling"))
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun testSymlinks() {
+        val src = Path("/tmp/src")
+        val tgt = Path("/tmp/tgt")
+
+        try {
+            SystemFileSystem.sink(src).buffered().use {
+                it.writeString("Hello")
+            }
+            WasiFileSystem.symlink(src, tgt)
+            SystemFileSystem.source(tgt).buffered().use {
+                assertEquals("Hello", it.readLine())
+            }
+        } finally {
+            SystemFileSystem.delete(src)
+            SystemFileSystem.delete(tgt)
+        }
     }
 }
