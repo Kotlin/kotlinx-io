@@ -14,9 +14,32 @@ import kotlin.test.*
 class WasiFsTest {
     @Test
     fun hasTemp() {
-        val preopen = PreOpens.preopens.single()
+        val preopen = PreOpens.preopens.first()
         assertEquals(3, preopen.fd)
         assertEquals(Path("/tmp"), preopen.path)
+    }
+
+    @Test
+    fun multiplePreOpens() {
+        fun checkPreOpen(forPath: String, expected: String?) {
+            val preOpen = PreOpens.findPreopenOrNull(Path(forPath))
+            if (expected == null) {
+                assertNull(preOpen)
+            } else {
+                assertNotNull(preOpen)
+                assertEquals(Path(expected), preOpen.path)
+            }
+        }
+
+        checkPreOpen(forPath = "/data", expected = null)
+        checkPreOpen(forPath = "/tmp", expected = "/tmp")
+        checkPreOpen(forPath = "/tmp/a", expected = "/tmp")
+        checkPreOpen(forPath = "/var", expected = null)
+        checkPreOpen(forPath = "/var/what", expected = null)
+        checkPreOpen(forPath = "/var/log", expected = "/var/log")
+        checkPreOpen(forPath = "/tmp ", expected = null)
+        checkPreOpen(forPath = "/tmpry", expected = null)
+        checkPreOpen(forPath = "/var/logging", expected = null)
     }
 
     @Test

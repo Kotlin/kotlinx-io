@@ -3,7 +3,8 @@ import { WASI } from 'wasi';
 import { argv, env } from 'node:process';
 
 const wasi = new WASI({ version: 'preview1', args: argv, env: env, preopens: {
-    '/tmp': '<SYSTEM_TEMP_DIR>'
+    '/tmp': '<SYSTEM_TEMP_DIR>',
+    '/var/log': '<SYSTEM_TEMP_DIR2>'
 }});
 
 const module = await import(/* webpackIgnore: true */'node:module');

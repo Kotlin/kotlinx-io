@@ -69,12 +69,17 @@ tasks.named("wasmWasiNodeTest") {
             "compileSync/wasmWasi/test/testDevelopmentExecutable/kotlin/kotlinx-io-kotlinx-io-core-wasm-wasi-test.mjs"
         )
 
-        val tmpDir = temporaryDir.resolve("kotlinx-io-core-wasi-test")
-            .also { it.mkdirs() }
-            .absolutePath
-            .replace("\\", "\\\\")
+        fun File.mkdirsAndEscape(): String {
+            mkdirs()
+            return absolutePath.replace("\\", "\\\\")
+        }
 
-        val newDriver = templateFile.readText().replace("<SYSTEM_TEMP_DIR>", tmpDir, false)
+        val tmpDir = temporaryDir.resolve("kotlinx-io-core-wasi-test").mkdirsAndEscape()
+        val tmpDir2 = temporaryDir.resolve("kotlinx-io-core-wasi-test-2").mkdirsAndEscape()
+
+        val newDriver = templateFile.readText()
+            .replace("<SYSTEM_TEMP_DIR>", tmpDir, false)
+            .replace("<SYSTEM_TEMP_DIR2>", tmpDir2, false)
 
         driverFile.get().asFile.writeText(newDriver)
     }
