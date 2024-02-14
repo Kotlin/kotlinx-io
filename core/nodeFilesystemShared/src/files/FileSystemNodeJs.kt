@@ -5,31 +5,35 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.*
+import kotlinx.io.IOException
+import kotlinx.io.RawSink
+import kotlinx.io.RawSource
+import kotlinx.io.node.fs.*
+import kotlinx.io.node.os.platform
+import kotlinx.io.node.os.tmpdir
+import kotlinx.io.withCaughtException
 
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
-        check(fs !== null) { "Module 'fs' was not found" }
-        return fs.existsSync(path.path) as Boolean
+        return existsSync(path.path)
     }
 
     override fun delete(path: Path, mustExist: Boolean) {
-        check(fs !== null) { "Module 'fs' was not found" }
         if (!exists(path)) {
             if (mustExist) {
-                throw FileNotFoundException("File does not exist: ${path.path}")
+                throw FileNotFoundException("File does not exist: $path")
             }
             return
         }
-        try {
-            val stats = fs.statSync(path.path)
-            if (stats.isDirectory() as Boolean) {
-                fs.rmdirSync(path.path)
+        withCaughtException {
+            val stats = statSync(path.path) ?: throw FileNotFoundException("File does not exist: $path")
+            if (stats.isDirectory()) {
+                rmdirSync(path.path)
             } else {
-                fs.rmSync(path.path)
+                rmSync(path.path)
             }
-        } catch (t: Throwable) {
-            throw IOException("Delete failed for $path", t)
+        }?.also {
+            throw IOException("Delete failed for $path", it)
         }
     }
 
@@ -52,65 +56,60 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             p = p.parent
         }
         parts.asReversed().forEach {
-            fs.mkdirSync(it)
+            mkdirSync(it)
         }
     }
 
     override fun atomicMove(source: Path, destination: Path) {
-        check(fs !== null) { "Module 'fs' was not found" }
         if (!exists(source)) {
             throw FileNotFoundException("Source does not exist: ${source.path}")
         }
-        try {
-            fs.renameSync(source.path, destination.path)
-        } catch (t: Throwable) {
-            throw IOException("Move failed from $source to $destination", t)
+        withCaughtException {
+            renameSync(source.path, destination.path)
+        }?.also {
+            throw IOException("Move failed from $source to $destination", it)
         }
     }
 
     override fun metadataOrNull(path: Path): FileMetadata? {
-        check(fs !== null) { "Module 'fs' was not found" }
-        return try {
-            val stat = fs.statSync(path.path)
-            val mode = stat.mode as Int
-            val isFile =  (mode and fs.constants.S_IFMT as Int) == fs.constants.S_IFREG
-            FileMetadata(
+        if (!exists(path)) return null
+        var metadata: FileMetadata? = null
+        withCaughtException {
+            val stat = statSync(path.path) ?: return@withCaughtException
+            val mode = stat.mode
+            val isFile = (mode and constants.S_IFMT) == constants.S_IFREG
+            metadata = FileMetadata(
                 isRegularFile = isFile,
-                isDirectory = (mode and fs.constants.S_IFMT as Int) == fs.constants.S_IFDIR,
-                if (isFile) (stat.size as Int).toLong() else -1L
+                isDirectory = (mode and constants.S_IFMT) == constants.S_IFDIR,
+                if (isFile) stat.size.toLong() else -1L
             )
-        } catch (t: Throwable) {
-            if (exists(path)) throw IOException("Stat failed for $path", t)
-            return null
+        }?.also {
+            throw IOException("Stat failed for $path", it)
         }
+        return metadata
     }
 
     override fun source(path: Path): RawSource {
-        check(fs !== null) { "Module 'fs' was not found" }
         return FileSource(path)
     }
 
     override fun sink(path: Path, append: Boolean): RawSink {
-        check(fs !== null) { "Module 'fs' was not found" }
-        check(buffer !== null) { "Module 'buffer' was not found" }
         return FileSink(path, append)
     }
 
     override fun resolve(path: Path): Path {
-        check(fs !== null) { "Module 'fs' was not found" }
         if (!exists(path)) throw FileNotFoundException(path.path)
-        return Path(fs.realpathSync.native(path.path) as String)
+        return Path(realpathSync.native(path.path))
     }
 }
 
 public actual val SystemTemporaryDirectory: Path
     get() {
-        check(os !== null) { "Module 'os' was not found" }
-        return Path(os.tmpdir() as? String ?: "")
+        return Path(tmpdir() ?: "")
     }
 
 public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
 
-internal actual val isWindows = os.platform() == "win32"
+internal actual val isWindows = platform() == "win32"

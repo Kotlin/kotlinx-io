@@ -94,6 +94,8 @@ kotlin {
         createSourceSet("linuxTest", parent = unixTest, children = linuxTargets())
         createSourceSet("androidMain", parent = unixMain, children = androidTargets())
         createSourceSet("androidTest", parent = unixTest, children = androidTargets())
+        createSourceSet("nodeFilesystemSharedMain", parent = commonMain.get(), children = nodeTargets())
+        createSourceSet("nodeFilesystemSharedTest", parent = commonTest.get(), children = nodeTargets())
         createSourceSet("wasmMain", parent = commonMain.get(), children = wasmTargets())
         createSourceSet("wasmTest", parent = commonTest.get(), children = wasmTargets())
     }
@@ -199,6 +201,8 @@ fun androidTargets() = listOf(
 )
 
 fun wasmTargets() = listOf("wasmJs", "wasmWasi")
+
+fun nodeTargets() = listOf("js", "wasmJs")
 
 rootProject.the<NodeJsRootExtension>().apply {
     nodeVersion = "21.0.0-v8-canary202310177990572111"

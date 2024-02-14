@@ -6,6 +6,11 @@
 package kotlinx.io.files
 
 import kotlinx.io.*
+import kotlinx.io.node.fs.*
+import kotlinx.io.node.path.basename
+import kotlinx.io.node.path.dirname
+import kotlinx.io.node.path.isAbsolute
+import kotlinx.io.node.path.sep
 
 public actual class Path internal constructor(
     rawPath: String,
@@ -15,7 +20,6 @@ public actual class Path internal constructor(
 
     public actual val parent: Path?
         get() {
-            check(pathLib !== null) { "Path module not found" }
             if (path.isEmpty()) return null
             if (isWindows) {
                 if (!path.contains(UnixPathSeparator) && !path.contains(WindowsPathSeparator)) {
@@ -24,9 +28,9 @@ public actual class Path internal constructor(
             } else if (!path.contains(SystemPathSeparator)) {
                 return null
             }
-            val p = pathLib.dirname(path) as String?
+            val p = dirname(path)
             return when {
-                p.isNullOrEmpty() -> null
+                p.isEmpty() -> null
                 p == path -> null
                 else -> Path(p)
             }
@@ -34,19 +38,17 @@ public actual class Path internal constructor(
 
     public actual val isAbsolute: Boolean
         get() {
-            check(pathLib !== null) { "Path module not found" }
-            return pathLib.isAbsolute(path) as Boolean
+            return isAbsolute(path)
         }
 
     public actual val name: String
         get() {
-            check(pathLib !== null) { "Path module not found" }
             when {
-                path.isNullOrEmpty() -> return ""
+                path.isEmpty() -> return ""
             }
-            val p = pathLib.basename(path) as String?
+            val p = basename(path)
             return when {
-                p.isNullOrEmpty() -> ""
+                p.isEmpty() -> ""
                 else -> p
             }
         }
@@ -66,8 +68,7 @@ public actual class Path internal constructor(
 }
 
 public actual val SystemPathSeparator: Char by lazy {
-    check(pathLib != null) { "Path module not found" }
-    val sep = pathLib.sep as String
+    val sep = sep
     check(sep.length == 1)
     sep[0]
 }
@@ -77,19 +78,20 @@ public actual fun Path(path: String): Path {
 }
 
 internal class FileSource(private val path: Path) : RawSource {
-    private var buffer: dynamic = null
+    private var buffer: kotlinx.io.node.buffer.Buffer? = null
     private var closed = false
     private var offset = 0
     private val fd = open(path)
 
-    private fun open(path: Path): dynamic {
-        if (!(fs.existsSync(path.path) as Boolean)) {
+    private fun open(path: Path): Int {
+        if (!existsSync(path.path)) {
             throw FileNotFoundException("File does not exist: ${path.path}")
         }
-        val fd = try {
-            fs.openSync(path.path, "r")
-        } catch (e: Throwable) {
-            throw IOException("Failed to open a file ${path.path}.", e)
+        var fd: Int = -1
+        withCaughtException {
+            fd = openSync(path.path, "r")
+        }?.also {
+            throw IOException("Failed to open a file ${path.path}.", it)
         }
         if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
         return fd
@@ -101,19 +103,19 @@ internal class FileSource(private val path: Path) : RawSource {
             return 0
         }
         if (buffer === null) {
-            try {
-                buffer = fs.readFileSync(fd, null)
-            } catch (t: Throwable) {
-                throw IOException("Failed to read data from ${path.path}", t)
+            withCaughtException {
+                buffer = readFileSync(fd, null)
+            }?.also {
+                throw IOException("Failed to read data from ${path.path}", it)
             }
         }
-        val len: Int = buffer.length as Int
+        val len: Int = buffer!!.length
         if (offset >= len) {
             return -1L
         }
         val bytesToRead = minOf(byteCount, (len - offset))
         for (i in 0 until bytesToRead) {
-            sink.writeByte(buffer.readInt8(offset++) as Byte)
+            sink.writeByte(buffer!!.readInt8(offset++))
         }
 
         return bytesToRead
@@ -122,7 +124,7 @@ internal class FileSource(private val path: Path) : RawSource {
     override fun close() {
         if (!closed) {
             closed = true
-            fs.closeSync(fd)
+            closeSync(fd)
         }
     }
 }
@@ -131,12 +133,13 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
     private var closed = false
     private val fd = open(path, append)
 
-    private fun open(path: Path, append: Boolean): dynamic {
+    private fun open(path: Path, append: Boolean): Int {
         val flags = if (append) "a" else "w"
-        val fd = try {
-            fs.openSync(path.path, flags)
-        } catch (e: Throwable) {
-            throw IOException("Failed to open a file ${path.path}.", e)
+        var fd = -1
+        withCaughtException {
+            fd = openSync(path.path, flags)
+        }?.also {
+            throw IOException("Failed to open a file ${path.path}.", it)
         }
         if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
         return fd
@@ -152,14 +155,18 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
         while (remainingBytes > 0) {
             val head = source.head!!
             val segmentBytes = head.limit - head.pos
-            val buf = buffer.Buffer.allocUnsafe(segmentBytes)
-            buf.fill(head.data, head.pos, segmentBytes)
-            try {
-                fs.writeFileSync(fd, buf)
-            } catch (e: Throwable) {
-                throw IOException("Write failed", e)
-            }
 
+            val buf = kotlinx.io.node.buffer.Buffer.allocUnsafe(segmentBytes)
+            val data = head.data
+            val pos = head.pos
+            for (offset in 0 until segmentBytes) {
+                buf.writeInt8(data[pos + offset], offset)
+            }
+            withCaughtException {
+                writeFileSync(fd, buf)
+            }?.also {
+                throw IOException("Write failed", it)
+            }
             source.skip(segmentBytes.toLong())
             remainingBytes -= segmentBytes
         }
@@ -170,7 +177,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
     override fun close() {
         if (!closed) {
             closed = true
-            fs.closeSync(fd)
+            closeSync(fd)
         }
     }
 }
