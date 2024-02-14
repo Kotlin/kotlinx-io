@@ -21,13 +21,13 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
     override fun delete(path: Path, mustExist: Boolean) {
         if (!exists(path)) {
             if (mustExist) {
-                throw FileNotFoundException("File does not exist: ${path.path}")
+                throw FileNotFoundException("File does not exist: $path")
             }
             return
         }
         withCaughtException {
-            val stats = statSync(path.path)
-            if (stats!!.isDirectory()) {
+            val stats = statSync(path.path) ?: throw FileNotFoundException("File does not exist: $path")
+            if (stats.isDirectory()) {
                 rmdirSync(path.path)
             } else {
                 rmSync(path.path)
@@ -75,8 +75,8 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         if (!exists(path)) return null
         var metadata: FileMetadata? = null
         withCaughtException {
-            val stat = statSync(path.path)
-            val mode = stat!!.mode
+            val stat = statSync(path.path) ?: return@withCaughtException
+            val mode = stat.mode
             val isFile = (mode and constants.S_IFMT) == constants.S_IFREG
             metadata = FileMetadata(
                 isRegularFile = isFile,
