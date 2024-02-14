@@ -59,27 +59,17 @@ tasks.withType<DokkaTaskPartial>().configureEach {
     }
 }
 
-// TODO: remove once https://youtrack.jetbrains.com/issue/KT-65179 solved
-val replaceWasiNodeTestDriver by tasks.creating {
-    dependsOn("compileTestDevelopmentExecutableKotlinWasmWasi")
-    val layout = project.layout
-    val templateFile = layout.projectDirectory.dir("wasmWasi")
-        .dir("test")
-        .file("test-driver.mjs.template")
-        .asFile
+tasks.named("wasmWasiNodeTest") {
+    // TODO: remove once https://youtrack.jetbrains.com/issue/KT-65179 solved
+    doFirst {
+        val layout = project.layout
+        val templateFile = layout.projectDirectory.file("wasmWasi/test/test-driver.mjs.template").asFile
 
-    val fileName = "kotlinx-io-kotlinx-io-core-wasm-wasi-test.mjs"
-    val driverFile = layout.buildDirectory.map {
-        it.dir("compileSync")
-            .dir("wasmWasi")
-            .dir("test")
-            .dir("testDevelopmentExecutable")
-            .dir("kotlin")
-            .file(fileName)
-    }
+        val driverFile = layout.buildDirectory.file(
+            "compileSync/wasmWasi/test/testDevelopmentExecutable/kotlin/kotlinx-io-kotlinx-io-core-wasm-wasi-test.mjs"
+        )
 
-    doLast {
-        val tmpDir = File(System.getProperty("java.io.tmpdir"), "kotlinx-io-core-wasi-test")
+        val tmpDir = temporaryDir.resolve("kotlinx-io-core-wasi-test")
             .also { it.mkdirs() }
             .absolutePath
             .replace("\\", "\\\\")
@@ -88,10 +78,6 @@ val replaceWasiNodeTestDriver by tasks.creating {
 
         driverFile.get().asFile.writeText(newDriver)
     }
-}
-
-tasks.named("wasmWasiNodeTest").configure {
-    dependsOn(replaceWasiNodeTestDriver)
 }
 
 animalsniffer {

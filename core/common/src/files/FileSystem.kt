@@ -74,6 +74,9 @@ public sealed interface FileSystem {
      * filesystems (or different volumes, on Windows) and the operation could not be performed atomically,
      * [UnsupportedOperationException] is thrown.
      *
+     * On some platforms, like Wasm-WASI, there is no way to tell if the underlying filesystem supports atomic move.
+     * In such cases, the move will be performed and no [UnsupportedOperationException] will be thrown.
+     *
      * When [destination] is an existing directory, the operation may fail on some platforms
      * (on Windows, particularly).
      *

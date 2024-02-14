@@ -28,9 +28,9 @@ internal fun Pointer.storeLong(offset: Int, value: Long): Unit = (this + offset)
 internal fun Pointer.storeShort(offset: Int, value: Short): Unit = (this + offset).storeShort(value)
 internal fun Pointer.storeByte(offset: Int, value: Byte): Unit = (this + offset).storeByte(value)
 
-internal fun Pointer.storeBytes(bytes :ByteArray) {
+internal fun Pointer.storeBytes(bytes: ByteArray) {
     for (offset in bytes.indices) {
-       this.storeByte(offset, bytes[offset])
+        this.storeByte(offset, bytes[offset])
     }
 }
 
@@ -78,18 +78,34 @@ internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
     }
 }
 
+/**
+ * Encoding [value] into a NULL-terminated byte sequence using UTF-8 encoding
+ * and writes it to a memory region allocated to fit the sequence.
+ * Return a pointer to the beginning of the written byte sequence and its length.
+ */
 @OptIn(UnsafeWasmMemoryApi::class)
-internal fun String.store(allocator: MemoryAllocator): Pair<Pointer, Int> {
-    val bytes = encodeToByteArray()
-    val ptr = allocator.allocate(bytes.size + 1)
+internal fun MemoryAllocator.storeString(value: String): Pair<Pointer, Int> {
+    val bytes = value.encodeToByteArray()
+    val ptr = allocate(bytes.size + 1)
     ptr.storeBytes(bytes)
     ptr.storeByte(bytes.size, 0)
     return ptr to (bytes.size + 1)
 }
 
-internal fun String.store(address: Pointer): Int {
-    val bytes = encodeToByteArray()
-    address.storeBytes(bytes)
-    address.storeByte(bytes.size, 0)
+/**
+ * Encodes [value] into a NULL-terminated byte sequence using UTF-8 encoding,
+ * stores it in memory starting at the position this pointer points to,
+ * and returns the length of the stored bytes sequence.
+ */
+internal fun Pointer.allocateString(value: String): Int {
+    val bytes = value.encodeToByteArray()
+    storeBytes(bytes)
+    storeByte(bytes.size, 0)
     return bytes.size + 1
 }
+
+/**
+ * Allocates memory to hold a single integer value.
+ */
+@UnsafeWasmMemoryApi
+internal fun MemoryAllocator.allocateInt(): Pointer = allocate(Int.SIZE_BYTES)

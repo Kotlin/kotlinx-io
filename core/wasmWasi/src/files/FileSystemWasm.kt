@@ -40,9 +40,9 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     override fun delete(path: Path, mustExist: Boolean) {
-        val root = PreOpens.getRoot(path)
+        val root = PreOpens.findPreopen(path)
         withScopedMemoryAllocator { allocator ->
-            val (stringBuffer, stringLength) = path.path.store(allocator)
+            val (stringBuffer, stringLength) = allocator.storeString(path.path)
 
             val unlinkRes = Errno(path_unlink_file(root.fd, stringBuffer.address.toInt(), stringLength))
             if (unlinkRes == Errno.success) return
@@ -50,6 +50,8 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
                 if (mustExist) throw FileNotFoundException("File does not exist: $path")
                 return
             }
+            // In case the path corresponding to a directory, either Error.isdir, or Errno.perm will be returned.
+            // In all other cases, there's no sense to continue, so we'll bail out with an exception.
             if (unlinkRes != Errno.isdir && unlinkRes != Errno.perm) {
                 throw IOException("Unable to remove file $path: ${unlinkRes.description}")
             }
@@ -65,7 +67,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
-        val root = PreOpens.getRoot(path)
+        val root = PreOpens.findPreopen(path)
         val segments: List<String> = buildList {
             var currentPath: Path? = path
             while (currentPath != null && currentPath != root.path) {
@@ -75,20 +77,22 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
         }
         var created = false
         withScopedMemoryAllocator { allocator ->
+            // Allocating one extra byte to place the NULL-byte there
             val pathBuffer = allocator.allocate(segments.first().encodeToByteArray().size + 1)
 
             for (idx in segments.size - 1 downTo 0) {
                 val segment = segments[idx]
-                val segmentLength = segment.store(pathBuffer)
+                val segmentLength = pathBuffer.allocateString(segment)
 
                 val res = Errno(path_create_directory(root.fd, pathBuffer.address.toInt(), segmentLength))
                 if (res == Errno.success) {
                     created = true
                 } else if (res != Errno.exist) {
-                    throw IOException("Can't create directory $path: ${res.description}")
+                    throw IOException("Can't create directory $path. " +
+                            "Creation of an intermediate directory $segment failed: ${res.description}")
                 }
             }
-            if (mustCreate && !created) throw IOException("Directory already exists")
+            if (mustCreate && !created) throw IOException("Directory already exists: $path")
             if (!created) {
                 if (!metadataOrNull(path)!!.isDirectory) {
                     throw IOException("Path already exists and it's not a directory: $path")
@@ -102,12 +106,12 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
      * alternatives.
      */
     override fun atomicMove(source: Path, destination: Path) {
-        val sourceRoot = PreOpens.getRoot(source)
-        val destRoot = PreOpens.getRoot(destination)
+        val sourceRoot = PreOpens.findPreopen(source)
+        val destRoot = PreOpens.findPreopen(destination)
 
         withScopedMemoryAllocator { allocator ->
-            val (sourceBuffer, sourceBufferLength) = source.path.store(allocator)
-            val (destBuffer, destBufferLength) = destination.path.store(allocator)
+            val (sourceBuffer, sourceBufferLength) = allocator.storeString(source.path)
+            val (destBuffer, destBufferLength) = allocator.storeString(destination.path)
 
             val res = Errno(
                 path_rename(
@@ -128,11 +132,11 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     override fun source(path: Path): RawSource {
-        val root = PreOpens.getRoot(path)
+        val root = PreOpens.findPreopen(path)
 
         val fd = withScopedMemoryAllocator { allocator ->
-            val fdPtr = allocator.allocate(4)
-            val (stringBuffer, stringBufferLength) = path.path.store(allocator)
+            val fdPtr = allocator.allocateInt()
+            val (stringBuffer, stringBufferLength) = allocator.storeString(path.path)
 
             val res = Errno(
                 path_open(
@@ -148,7 +152,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             )
             if (res != Errno.success) {
                 if (res == Errno.noent) throw FileNotFoundException("File does not exist: $path")
-                throw IOException("Can't open $path for write: ${res.description}")
+                throw IOException("Can't open $path for read: ${res.description}")
             }
             fdPtr.loadInt()
         }
@@ -157,11 +161,11 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
     @OptIn(UnsafeWasmMemoryApi::class)
     override fun sink(path: Path, append: Boolean): RawSink {
-        val root = PreOpens.getRoot(path)
+        val root = PreOpens.findPreopen(path)
 
         val fd = withScopedMemoryAllocator { allocator ->
-            val fdPtr = allocator.allocate(4)
-            val (stringBuffer, stringBufferLength) = path.path.store(allocator)
+            val fdPtr = allocator.allocateInt()
+            val (stringBuffer, stringBufferLength) = allocator.storeString(path.path)
 
             val fdFlags = buildList {
                 if (append) {
@@ -197,7 +201,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     override fun metadataOrNull(path: Path): FileMetadata? {
-        val root = PreOpens.getRootOrNull(path) ?: return null
+        val root = PreOpens.findPreopenOrNull(path) ?: return null
         val md = metadataOrNullInternal(root.fd, path, true) ?: return null
 
         val filetype = md.filetype
@@ -245,11 +249,11 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     internal fun symlink(linked: Path, target: Path) {
-        val root = PreOpens.getRoot(target)
+        val root = PreOpens.findPreopen(target)
 
         withScopedMemoryAllocator { allocator ->
-            val (fromBuffer, fromBufferLength) = linked.path.store(allocator)
-            val (toBuffer, toBufferLength) = target.path.store(allocator)
+            val (fromBuffer, fromBufferLength) = allocator.storeString(linked.path)
+            val (toBuffer, toBufferLength) = allocator.storeString(target.path)
             val res = Errno(
                 path_symlink(
                     fromBuffer.address.toInt(), fromBufferLength,
@@ -276,11 +280,7 @@ private fun Path.normalized(): Path {
             else -> constructedPath.add(part)
         }
     }
-    var result = Path(UnixPathSeparator.toString())
-    for (part in constructedPath) {
-        result = Path(result, part)
-    }
-    return result
+    return Path(UnixPathSeparator.toString(), *constructedPath.toTypedArray())
 }
 
 public actual open class FileNotFoundException actual constructor(
@@ -311,7 +311,7 @@ internal object PreOpens {
         rootPaths
     }
 
-    internal fun getRootOrNull(path: Path): PreOpen? {
+    internal fun findPreopenOrNull(path: Path): PreOpen? {
         if (!path.isAbsolute) {
             return preopens.firstOrNull()
         }
@@ -326,8 +326,8 @@ internal object PreOpens {
         return null
     }
 
-    internal fun getRoot(path: Path): PreOpen {
-        return getRootOrNull(path) ?: throw IOException("Path does not belong to any preopened directory: $path")
+    internal fun findPreopen(path: Path): PreOpen {
+        return findPreopenOrNull(path) ?: throw IOException("Path does not belong to any preopened directory: $path")
     }
 
     @OptIn(UnsafeWasmMemoryApi::class)
@@ -369,28 +369,28 @@ private class FileSink(private val fd: Fd) : RawSink {
         check(byteCount >= 0)
         if (byteCount == 0L) return
         withScopedMemoryAllocator { allocator ->
-            val buffer = allocator.allocate(TEMP_CIOVEC_BUFFER_LEN)
+            val temporaryWriteBuffer = allocator.allocate(TEMP_CIOVEC_BUFFER_LEN)
             var remaining = byteCount
 
             val ciovec = Ciovec(allocator).also {
-                it.buffer = buffer
+                it.buffer = temporaryWriteBuffer
             }
 
-            val resultPtr = allocator.allocate(4)
+            val resultPtr = allocator.allocateInt()
 
             while (remaining > 0) {
-                val toRead = minOf(remaining, TEMP_CIOVEC_BUFFER_LEN).toInt()
-                source.readToLinearMemory(buffer, toRead)
-                ciovec.length = toRead
+                val bytesToWrite = minOf(remaining, TEMP_CIOVEC_BUFFER_LEN).toInt()
+                source.readToLinearMemory(temporaryWriteBuffer, bytesToWrite)
+                ciovec.length = bytesToWrite
 
                 val res = Errno(fd_write(fd, ciovec.address, 1, resultPtr.address.toInt()))
                 if (res != Errno.success) {
                     throw IOException("Write failed: ${res.description}")
                 }
-                check(resultPtr.loadInt(0) == toRead) {
-                    "Expected to write $toRead, but ${resultPtr.loadInt(0)} bytes were written"
+                check(resultPtr.loadInt(0) == bytesToWrite) {
+                    "Expected to write $bytesToWrite, but ${resultPtr.loadInt(0)} bytes were written"
                 }
-                remaining -= toRead
+                remaining -= bytesToWrite
             }
         }
     }
@@ -420,17 +420,17 @@ private class FileSource(private val fd: Fd) : RawSource {
         var totalRead = 0L
 
         withScopedMemoryAllocator { allocator ->
-            val buffer = allocator.allocate(TEMP_CIOVEC_BUFFER_LEN)
+            val temporaryReadBuffer = allocator.allocate(TEMP_CIOVEC_BUFFER_LEN)
             var remaining = byteCount
 
             val ciovec = Ciovec(allocator).also {
-                it.buffer = buffer
+                it.buffer = temporaryReadBuffer
             }
 
-            val resultPtr = allocator.allocate(4)
+            val resultPtr = allocator.allocateInt()
             while (remaining > 0) {
-                val toRead = minOf(remaining, TEMP_CIOVEC_BUFFER_LEN).toInt()
-                ciovec.length = toRead
+                val bytesToRead = minOf(remaining, TEMP_CIOVEC_BUFFER_LEN).toInt()
+                ciovec.length = bytesToRead
 
                 val res = Errno(fd_read(fd, ciovec.address, 1, resultPtr.address.toInt()))
                 if (res != Errno.success) {
@@ -442,7 +442,7 @@ private class FileSource(private val fd: Fd) : RawSource {
                     if (totalRead == 0L) return -1L
                     break
                 }
-                sink.writeFromLinearMemory(buffer, readBytes)
+                sink.writeFromLinearMemory(temporaryReadBuffer, readBytes)
                 remaining -= readBytes
                 totalRead += readBytes
             }
@@ -463,7 +463,7 @@ private data class InternalMetadata(val filetype: FileType, val filesize: Long)
 @OptIn(UnsafeWasmMemoryApi::class)
 private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boolean): InternalMetadata? {
     withScopedMemoryAllocator { allocator ->
-        val (pathBuffer, pathBufferLength) = path.path.store(allocator)
+        val (pathBuffer, pathBufferLength) = allocator.storeString(path.path)
 
         val filestat = FileStat(allocator)
 
@@ -486,8 +486,9 @@ private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boole
 @OptIn(UnsafeWasmMemoryApi::class)
 private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
     withScopedMemoryAllocator { allocator ->
-        val resultPtr = allocator.allocate(4)
-        val (pathBuffer, pathBufferLength) = path.path.store(allocator)
+        val resultPtr = allocator.allocateInt()
+        val (pathBuffer, pathBufferLength) = allocator.storeString(path.path)
+        // Allocating one extra byte to have enough space for the NULL-byte
         val resultBuffer = allocator.allocate(linkSize + 1)
 
         val res = Errno(
@@ -528,7 +529,7 @@ private fun resolvePathImpl(path: Path, recursion: Int): Path? {
     // However, normalization could not be performed before links resolution, and intermediate non-normalized path
     // may point to a directory not belonging to any of pre-opened directories (like /a/b/c/../..).
     // So, let's hope for the best and throw an exception after resolution and normalization.
-    val root = PreOpens.getRootOrNull(withResolvedParent) ?: return withResolvedParent
+    val root = PreOpens.findPreopenOrNull(withResolvedParent) ?: return withResolvedParent
     val metadata = metadataOrNullInternal(root.fd, withResolvedParent, false) ?: return withResolvedParent
     if (metadata.filetype == FileType.symbolic_link) {
         val linkTarget = readlinkInternal(root.fd, withResolvedParent, metadata.filesize.toInt())

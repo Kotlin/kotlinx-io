@@ -5,6 +5,7 @@
 
 package kotlinx.io.files
 
+import kotlinx.io.IOException
 import kotlinx.io.buffered
 import kotlinx.io.readLine
 import kotlinx.io.writeString
@@ -46,7 +47,7 @@ class WasiFsTest {
     }
 
     @Test
-    fun testResolution() {
+    fun resolution() {
         val resolved = SystemFileSystem.resolve(Path("/tmp/../../a/../b/../../tmp"))
         assertEquals(Path("/tmp"), resolved)
 
@@ -76,7 +77,7 @@ class WasiFsTest {
 
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testSymlinks() {
+    fun symlinks() {
         val src = Path("/tmp/src")
         val tgt = Path("/tmp/tgt")
 
@@ -91,6 +92,47 @@ class WasiFsTest {
         } finally {
             SystemFileSystem.delete(src)
             SystemFileSystem.delete(tgt)
+        }
+    }
+
+    @Test
+    fun recursiveSimlinks() {
+        val src = Path("/tmp/src")
+        val tgt = Path("/tmp/tgt")
+
+        WasiFileSystem.symlink(src, tgt)
+        WasiFileSystem.symlink(tgt, src)
+
+        try {
+            assertFailsWith<IOException> {
+                SystemFileSystem.resolve(src)
+            }
+        } finally {
+            SystemFileSystem.delete(src)
+            SystemFileSystem.delete(tgt)
+        }
+    }
+
+    @Test
+    fun intermediateDirectoryCreationFailure() {
+        val targetPath = Path("/tmp/a/b/c/d/e")
+        val existingFile = Path("/tmp/a/b")
+
+        SystemFileSystem.createDirectories(Path("/tmp/a/"))
+        try {
+            SystemFileSystem.sink(existingFile).close()
+            val exception = assertFailsWith<IOException> {
+                SystemFileSystem.createDirectories(targetPath)
+            }
+            assertNotNull(exception.message)
+            assertTrue(
+                exception.message!!.startsWith(
+                    "Can't create directory $targetPath. Creation of an intermediate directory /tmp/a/b/c failed"
+                )
+            )
+        } finally {
+            SystemFileSystem.delete(Path("/tmp/a/b"))
+            SystemFileSystem.delete(Path("/tmp/a"))
         }
     }
 }
