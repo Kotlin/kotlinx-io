@@ -40,11 +40,11 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     override fun delete(path: Path, mustExist: Boolean) {
-        val root = PreOpens.findPreopen(path)
+        val preOpen = PreOpens.findPreopen(path)
         withScopedMemoryAllocator { allocator ->
             val (stringBuffer, stringLength) = allocator.storeString(path.path)
 
-            val unlinkRes = Errno(path_unlink_file(root.fd, stringBuffer.address.toInt(), stringLength))
+            val unlinkRes = Errno(path_unlink_file(preOpen.fd, stringBuffer.address.toInt(), stringLength))
             if (unlinkRes == Errno.success) return
             if (unlinkRes == Errno.noent) {
                 if (mustExist) throw FileNotFoundException("File does not exist: $path")
@@ -56,7 +56,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
                 throw IOException("Unable to remove file $path: ${unlinkRes.description}")
             }
 
-            val removeDirRes = Errno(path_remove_directory(root.fd, stringBuffer.address.toInt(), stringLength))
+            val removeDirRes = Errno(path_remove_directory(preOpen.fd, stringBuffer.address.toInt(), stringLength))
             if (removeDirRes == Errno.success) return
             if (removeDirRes == Errno.noent) {
                 if (mustExist) throw FileNotFoundException("File does not exist: $path")
@@ -67,10 +67,10 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
-        val root = PreOpens.findPreopen(path)
+        val preOpen = PreOpens.findPreopen(path)
         val segments: List<String> = buildList {
             var currentPath: Path? = path
-            while (currentPath != null && currentPath != root.path) {
+            while (currentPath != null && currentPath != preOpen.path) {
                 add(currentPath.path)
                 currentPath = currentPath.parent
             }
@@ -84,7 +84,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
                 val segment = segments[idx]
                 val segmentLength = pathBuffer.allocateString(segment)
 
-                val res = Errno(path_create_directory(root.fd, pathBuffer.address.toInt(), segmentLength))
+                val res = Errno(path_create_directory(preOpen.fd, pathBuffer.address.toInt(), segmentLength))
                 if (res == Errno.success) {
                     created = true
                 } else if (res != Errno.exist) {
@@ -106,8 +106,8 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
      * alternatives.
      */
     override fun atomicMove(source: Path, destination: Path) {
-        val sourceRoot = PreOpens.findPreopen(source)
-        val destRoot = PreOpens.findPreopen(destination)
+        val sourcePreOpen = PreOpens.findPreopen(source)
+        val destPreOpen = PreOpens.findPreopen(destination)
 
         withScopedMemoryAllocator { allocator ->
             val (sourceBuffer, sourceBufferLength) = allocator.storeString(source.path)
@@ -115,8 +115,8 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
             val res = Errno(
                 path_rename(
-                    oldFd = sourceRoot.fd, oldPathPtr = sourceBuffer.address.toInt(), oldPathLen = sourceBufferLength,
-                    newFd = destRoot.fd, newPathPtr = destBuffer.address.toInt(), newPathLen = destBufferLength
+                    oldFd = sourcePreOpen.fd, oldPathPtr = sourceBuffer.address.toInt(), oldPathLen = sourceBufferLength,
+                    newFd = destPreOpen.fd, newPathPtr = destBuffer.address.toInt(), newPathLen = destBufferLength
                 )
             )
             when (res) {
@@ -132,7 +132,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     override fun source(path: Path): RawSource {
-        val root = PreOpens.findPreopen(path)
+        val preOpen = PreOpens.findPreopen(path)
 
         val fd = withScopedMemoryAllocator { allocator ->
             val fdPtr = allocator.allocateInt()
@@ -140,7 +140,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
             val res = Errno(
                 path_open(
-                    fd = root.fd,
+                    fd = preOpen.fd,
                     dirflags = listOf(LookupFlags.symlink_follow).toBitset(),
                     pathPtr = stringBuffer.address.toInt(), pathLen = stringBufferLength,
                     oflags = 0,
@@ -161,7 +161,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
     @OptIn(UnsafeWasmMemoryApi::class)
     override fun sink(path: Path, append: Boolean): RawSink {
-        val root = PreOpens.findPreopen(path)
+        val preOpen = PreOpens.findPreopen(path)
 
         val fd = withScopedMemoryAllocator { allocator ->
             val fdPtr = allocator.allocateInt()
@@ -182,7 +182,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
             val res = Errno(
                 path_open(
-                    fd = root.fd,
+                    fd = preOpen.fd,
                     dirflags = listOf(LookupFlags.symlink_follow).toBitset(),
                     pathPtr = stringBuffer.address.toInt(), pathLen = stringBufferLength,
                     oflags = openFlags,
@@ -201,8 +201,8 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     override fun metadataOrNull(path: Path): FileMetadata? {
-        val root = PreOpens.findPreopenOrNull(path) ?: return null
-        val md = metadataOrNullInternal(root.fd, path, true) ?: return null
+        val preOpen = PreOpens.findPreopenOrNull(path) ?: return null
+        val md = metadataOrNullInternal(preOpen.fd, path, true) ?: return null
 
         val filetype = md.filetype
         val isDirectory = filetype == FileType.directory
@@ -249,7 +249,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 
     internal fun symlink(linked: Path, target: Path) {
-        val root = PreOpens.findPreopen(target)
+        val preOpen = PreOpens.findPreopen(target)
 
         withScopedMemoryAllocator { allocator ->
             val (fromBuffer, fromBufferLength) = allocator.storeString(linked.path)
@@ -257,7 +257,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             val res = Errno(
                 path_symlink(
                     fromBuffer.address.toInt(), fromBufferLength,
-                    root.fd, toBuffer.address.toInt(), toBufferLength
+                    preOpen.fd, toBuffer.address.toInt(), toBufferLength
                 )
             )
 
@@ -316,10 +316,10 @@ internal object PreOpens {
             return preopens.firstOrNull()
         }
 
-        for (root in preopens) {
+        for (preopen in preopens) {
             var p: Path? = path
             while (p != null) {
-                if (root.path == p) return root
+                if (preopen.path == p) return preopen
                 p = p.parent
             }
         }
@@ -529,10 +529,10 @@ private fun resolvePathImpl(path: Path, recursion: Int): Path? {
     // However, normalization could not be performed before links resolution, and intermediate non-normalized path
     // may point to a directory not belonging to any of pre-opened directories (like /a/b/c/../..).
     // So, let's hope for the best and throw an exception after resolution and normalization.
-    val root = PreOpens.findPreopenOrNull(withResolvedParent) ?: return withResolvedParent
-    val metadata = metadataOrNullInternal(root.fd, withResolvedParent, false) ?: return withResolvedParent
+    val preOpen = PreOpens.findPreopenOrNull(withResolvedParent) ?: return withResolvedParent
+    val metadata = metadataOrNullInternal(preOpen.fd, withResolvedParent, false) ?: return withResolvedParent
     if (metadata.filetype == FileType.symbolic_link) {
-        val linkTarget = readlinkInternal(root.fd, withResolvedParent, metadata.filesize.toInt())
+        val linkTarget = readlinkInternal(preOpen.fd, withResolvedParent, metadata.filesize.toInt())
         val resolvedPath = if (linkTarget.isAbsolute || resolvedParent == null) {
             linkTarget
         } else {
