@@ -137,6 +137,34 @@ class WasiFsTest {
     }
 
     @Test
+    fun deepSymlinksChain() {
+        val src = Path("/tmp/src")
+
+        SystemFileSystem.sink(src).close()
+
+        val linksCount = 100
+        val safeSymlinksDepth = 30
+        val paths = mutableListOf(src)
+        for (i in 0 ..< linksCount) {
+            val link = Path("/tmp/link$i")
+            WasiFileSystem.symlink(paths.last(), link)
+            paths.add(link)
+        }
+
+        try {
+            assertEquals(src, SystemFileSystem.resolve(paths[safeSymlinksDepth]))
+            val exception = assertFailsWith<IOException> {
+                SystemFileSystem.resolve(paths.last())
+            }
+            assertEquals("Too many levels of symbolic links", exception.message)
+        } finally {
+            paths.asReversed().forEach {
+                SystemFileSystem.delete(it)
+            }
+        }
+    }
+
+    @Test
     fun intermediateDirectoryCreationFailure() {
         val targetPath = Path("/tmp/a/b/c/d/e")
         val existingFile = Path("/tmp/a/b")

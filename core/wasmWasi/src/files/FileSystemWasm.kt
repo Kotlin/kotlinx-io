@@ -503,7 +503,8 @@ private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
             throw IOException("Link resolution failed for path $path: ${res.description}")
         }
         val resultLength = resultPtr.loadInt()
-        return Path(resultBuffer.loadBytes(resultLength).decodeToString())
+        // resultLength includes the NULL-byte, we don't have to read it
+        return Path(resultBuffer.loadBytes(resultLength - 1).decodeToString())
     }
 }
 
