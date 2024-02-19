@@ -178,7 +178,7 @@ class WasiFsTest {
             SystemFileSystem.sink(src).close()
 
             WasiFileSystem.symlink(Path("/tmp/result"), Path("/tmp/foo"))
-            WasiFileSystem.symlink(Path("/tmp/result/a"), Path("/tmp/x/y"))
+            WasiFileSystem.symlink(Path("/tmp/foo/a"), Path("/tmp/x/y"))
 
             assertEquals(src, WasiFileSystem.resolve(Path(finalLink)))
         } finally {
