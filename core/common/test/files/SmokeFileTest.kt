@@ -32,6 +32,10 @@ class SmokeFileTest {
         return f
     }
 
+    private fun removeOnExit(path: Path) {
+        files.add(path)
+    }
+
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun readWriteFile() {
@@ -43,6 +47,22 @@ class SmokeFileTest {
 
         SystemFileSystem.source(path).buffered().use {
             assertEquals("example", it.readLine())
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun writeFlush() {
+        val path = createTempPath()
+        SystemFileSystem.sink(path).buffered().use {
+            it.writeString("hello")
+            it.flush()
+            it.writeString(" world")
+            it.flush()
+        }
+
+        SystemFileSystem.source(path).buffered().use {
+            assertEquals("hello world", it.readLine())
         }
     }
 
@@ -362,11 +382,17 @@ class SmokeFileTest {
         }
 
         val cwd = SystemFileSystem.resolve(Path("."))
-        val parentRel = Path("..")
-        assertEquals(cwd.parent, SystemFileSystem.resolve(parentRel))
 
-        assertEquals(cwd, SystemFileSystem.resolve(cwd),
-            "Absolute path resolution should not alter the path")
+        SystemFileSystem.createDirectories(Path("a"))
+        removeOnExit(Path("a"))
+
+        val childRel = Path("a", "..")
+        assertEquals(cwd, SystemFileSystem.resolve(childRel))
+
+        assertEquals(
+            cwd, SystemFileSystem.resolve(cwd),
+            "Absolute path resolution should not alter the path"
+        )
 
         // root
         //   |-> a -> b

@@ -5,6 +5,10 @@
 
 package kotlinx.io
 
-import kotlinx.io.files.unsupported
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemTemporaryDirectory
+import kotlin.random.Random
 
-actual fun tempFileName(): String = unsupported()
+@OptIn(ExperimentalStdlibApi::class)
+actual fun tempFileName(): String =
+    Path(SystemTemporaryDirectory, Random.nextBytes(32).toHexString()).toString()

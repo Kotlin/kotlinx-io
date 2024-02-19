@@ -4,7 +4,6 @@
  */
 
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinTargetWithNodeJsDsl
 
 plugins {
     id("kotlinx-io-multiplatform")
@@ -32,22 +31,6 @@ kotlin {
         }
     }
 
-    fun KotlinTargetWithNodeJsDsl.filterSmokeTests() {
-        this.nodejs {
-            testTask(Action {
-                useMocha {
-                    timeout = "300s"
-                }
-                filter.setExcludePatterns("*SmokeFileTest*")
-            })
-        }
-    }
-
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
-    wasmWasi {
-        filterSmokeTests()
-    }
-
     sourceSets {
         commonMain {
             dependencies {
@@ -73,6 +56,32 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             "jvm/test/samples/samplesJvm.kt",
             "apple/test/samples/samplesApple.kt"
         )
+    }
+}
+
+tasks.named("wasmWasiNodeTest") {
+    // TODO: remove once https://youtrack.jetbrains.com/issue/KT-65179 solved
+    doFirst {
+        val layout = project.layout
+        val templateFile = layout.projectDirectory.file("wasmWasi/test/test-driver.mjs.template").asFile
+
+        val driverFile = layout.buildDirectory.file(
+            "compileSync/wasmWasi/test/testDevelopmentExecutable/kotlin/kotlinx-io-kotlinx-io-core-wasm-wasi-test.mjs"
+        )
+
+        fun File.mkdirsAndEscape(): String {
+            mkdirs()
+            return absolutePath.replace("\\", "\\\\")
+        }
+
+        val tmpDir = temporaryDir.resolve("kotlinx-io-core-wasi-test").mkdirsAndEscape()
+        val tmpDir2 = temporaryDir.resolve("kotlinx-io-core-wasi-test-2").mkdirsAndEscape()
+
+        val newDriver = templateFile.readText()
+            .replace("<SYSTEM_TEMP_DIR>", tmpDir, false)
+            .replace("<SYSTEM_TEMP_DIR2>", tmpDir2, false)
+
+        driverFile.get().asFile.writeText(newDriver)
     }
 }
 
