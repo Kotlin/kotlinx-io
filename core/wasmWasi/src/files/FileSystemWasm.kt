@@ -7,6 +7,7 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 import kotlinx.io.wasi.*
+import kotlin.math.min
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
 
@@ -504,7 +505,7 @@ private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
         }
         val resultLength = resultPtr.loadInt()
         // resultLength includes the NULL-byte, we don't have to read it
-        return Path(resultBuffer.loadBytes(resultLength - 1).decodeToString())
+        return Path(resultBuffer.loadBytes(min(resultLength, linkSize)).decodeToString())
     }
 }
 
