@@ -165,6 +165,39 @@ class WasiFsTest {
     }
 
     @Test
+    fun multilevelSymlinks() {
+        val src = Path("/tmp/result/a/z")
+
+        // /tmp/x/y/z -> /tmp/foo/a/z -> /tmp/result/a/z
+        val finalLink = Path("/tmp/x/y/z")
+
+        try {
+            SystemFileSystem.createDirectories(Path("/tmp/result/a"))
+            SystemFileSystem.createDirectories(Path("/tmp/x"))
+            // create a file
+            SystemFileSystem.sink(src).close()
+
+            WasiFileSystem.symlink(Path("/tmp/result"), Path("/tmp/foo"))
+            WasiFileSystem.symlink(Path("/tmp/result/a"), Path("/tmp/x/y"))
+
+            assertEquals(src, WasiFileSystem.resolve(Path(finalLink)))
+        } finally {
+            SystemFileSystem.delete(Path("/tmp/x/y"))
+            SystemFileSystem.delete(Path("/tmp/x"))
+            SystemFileSystem.delete(Path("/tmp/foo"))
+            SystemFileSystem.delete(Path("/tmp/result/a/z"))
+            SystemFileSystem.delete(Path("/tmp/result/a"))
+            SystemFileSystem.delete(Path("/tmp/result"))
+        }
+    }
+
+    @Test
+    fun mkdirRoot() {
+        SystemFileSystem.createDirectories(Path("/tmp")) // should succeed
+        assertFailsWith<IOException> { SystemFileSystem.createDirectories(Path("/tmp"), true) }
+    }
+
+    @Test
     fun intermediateDirectoryCreationFailure() {
         val targetPath = Path("/tmp/a/b/c/d/e")
         val existingFile = Path("/tmp/a/b")

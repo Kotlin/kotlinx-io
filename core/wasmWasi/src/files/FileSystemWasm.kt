@@ -69,6 +69,10 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         val preOpen = PreOpens.findPreopen(path)
+        if (path == preOpen.path) {
+            if (!mustCreate) return
+            throw IOException("Directory already exists: $path")
+        }
         val segments: List<String> = buildList {
             var currentPath: Path? = path
             while (currentPath != null && currentPath != preOpen.path) {
