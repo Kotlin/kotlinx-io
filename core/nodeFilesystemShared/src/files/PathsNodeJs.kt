@@ -6,6 +6,7 @@
 package kotlinx.io.files
 
 import kotlinx.io.*
+import kotlinx.io.node.buffer.allocUnsafe
 import kotlinx.io.node.fs.*
 import kotlinx.io.node.path.basename
 import kotlinx.io.node.path.dirname
@@ -156,7 +157,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
             val head = source.head!!
             val segmentBytes = head.limit - head.pos
 
-            val buf = kotlinx.io.node.buffer.Buffer.allocUnsafe(segmentBytes)
+            val buf = allocUnsafe(segmentBytes)
             val data = head.data
             val pos = head.pos
             for (offset in 0 until segmentBytes) {

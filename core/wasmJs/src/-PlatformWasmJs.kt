@@ -5,12 +5,6 @@
 
 package kotlinx.io
 
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-internal actual typealias CommonJsModule = JsModule
-
-@Target(AnnotationTarget.FILE)
-internal actual annotation class CommonJsNonModule()
-
 internal class JsException(message: String) : RuntimeException(message)
 
 internal actual fun withCaughtException(block: () -> Unit): Throwable? {

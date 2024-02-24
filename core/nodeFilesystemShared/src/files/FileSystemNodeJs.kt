@@ -25,8 +25,14 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             }
             return
         }
+        var fileDoesNotExist = false
         withCaughtException {
-            val stats = statSync(path.path) ?: throw FileNotFoundException("File does not exist: $path")
+            val stats = statSync(path.path)
+            // we can't throw an exception from this block as it won't be handled correctly
+            if (stats == null) {
+                fileDoesNotExist = true
+                return@withCaughtException
+            }
             if (stats.isDirectory()) {
                 rmdirSync(path.path)
             } else {
@@ -35,6 +41,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         }?.also {
             throw IOException("Delete failed for $path", it)
         }
+        if (fileDoesNotExist) throw FileNotFoundException("File does not exist: $path")
     }
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
@@ -77,10 +84,10 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         withCaughtException {
             val stat = statSync(path.path) ?: return@withCaughtException
             val mode = stat.mode
-            val isFile = (mode and constants.S_IFMT) == constants.S_IFREG
+            val isFile = (mode and S_IFMT) == S_IFREG
             metadata = FileMetadata(
                 isRegularFile = isFile,
-                isDirectory = (mode and constants.S_IFMT) == constants.S_IFDIR,
+                isDirectory = (mode and S_IFMT) == S_IFDIR,
                 if (isFile) stat.size.toLong() else -1L
             )
         }?.also {
@@ -99,7 +106,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 
     override fun resolve(path: Path): Path {
         if (!exists(path)) throw FileNotFoundException(path.path)
-        return Path(realpathSync.native(path.path))
+        return Path(realpathSyncNative(path.path))
     }
 }
 

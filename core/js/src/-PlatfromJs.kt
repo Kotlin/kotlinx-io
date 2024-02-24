@@ -22,12 +22,6 @@ public actual open class EOFException actual constructor(message: String?) : IOE
     public actual constructor() : this(null)
 }
 
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-internal actual typealias CommonJsModule = JsModule
-
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-internal actual typealias CommonJsNonModule = JsNonModule
-
 internal actual fun withCaughtException(block: () -> Unit): Throwable? {
     try {
         block()
