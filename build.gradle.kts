@@ -47,6 +47,12 @@ subprojects {
 
 apiValidation {
     ignoredProjects.add("kotlinx-io-benchmarks")
+    nonPublicMarkers.addAll(
+        listOf(
+            "kotlinx.io.bytestring.SnapshotByteStringApi",
+            "kotlinx.io.SnapshotApi"
+        )
+    )
 }
 
 dependencies {
