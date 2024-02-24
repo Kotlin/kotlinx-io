@@ -74,7 +74,10 @@ fun MavenPublication.mavenCentralArtifacts(project: Project, sources: SourceDire
 }
 
 
-fun mavenRepositoryUri(): URI {
+fun mavenRepositoryUri(snapshot: Boolean = false): URI {
+    if (snapshot) {
+        return URI("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    }
     val repositoryId: String? = System.getenv("libs.repository.id")
     return if (repositoryId == null) {
         URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
@@ -83,9 +86,9 @@ fun mavenRepositoryUri(): URI {
     }
 }
 
-fun RepositoryHandler.configureMavenPublication( project: Project) {
+fun RepositoryHandler.configureMavenPublication(project: Project) {
     maven {
-        url = mavenRepositoryUri()
+        url = mavenRepositoryUri(project.version.toString().endsWith("-SNAPSHOT"))
         credentials {
             username = project.getSensitiveProperty("libs.sonatype.user")
             password = project.getSensitiveProperty("libs.sonatype.password")
