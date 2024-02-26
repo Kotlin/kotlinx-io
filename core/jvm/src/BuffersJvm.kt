@@ -227,7 +227,7 @@ public fun Buffer.writeLongVh(long: Long) {
     val data = tail.data
     var limit = tail.limit
     varHandle.set(data, limit, long);
-    tail.limit = limit
+    tail.limit = limit + 8
     size += 8L
 }
 
@@ -249,6 +249,7 @@ public fun Buffer.readLongVh(): Long {
     val data = segment.data
     val v: Long = varHandle.get(data, pos) as Long
     size -= 8L
+    pos += 8
 
     if (pos == limit) {
         head = segment.pop()
