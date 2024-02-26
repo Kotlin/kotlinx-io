@@ -215,3 +215,47 @@ public fun Buffer.asByteChannel(): ByteChannel = object : ByteChannel {
 
     override fun isOpen(): Boolean = true
 }
+
+public val varHandle: java.lang.invoke.VarHandle = java.lang.invoke.MethodHandles.byteArrayViewVarHandle(
+    LongArray::class.java,
+    java.nio.ByteOrder.nativeOrder()
+)
+
+
+public fun Buffer.writeLongVh(long: Long) {
+    val tail = writableSegment(8)
+    val data = tail.data
+    var limit = tail.limit
+    varHandle.set(data, limit, long);
+    tail.limit = limit
+    size += 8L
+}
+
+public fun Buffer.readLongVh(): Long {
+    require(8)
+
+    val segment = head!!
+    var pos = segment.pos
+    val limit = segment.limit
+
+    // If the long is split across multiple segments, delegate to readInt().
+    if (limit - pos < 8L) {
+        return (
+                readInt() and 0xffffffffL shl 32
+                        or (readInt() and 0xffffffffL)
+                )
+    }
+
+    val data = segment.data
+    val v: Long = varHandle.get(data, pos) as Long
+    size -= 8L
+
+    if (pos == limit) {
+        head = segment.pop()
+        SegmentPool.recycle(segment)
+    } else {
+        segment.pos = pos
+    }
+
+    return v
+}
