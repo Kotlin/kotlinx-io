@@ -76,7 +76,7 @@ fun MavenPublication.mavenCentralArtifacts(project: Project, sources: SourceDire
 
 fun mavenRepositoryUri(snapshot: Boolean = false): URI {
     if (snapshot) {
-        return URI("https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
+        return URI("https://maven.pkg.jetbrains.space/kotlin/p/kotlinx/dev")
     }
     val repositoryId: String? = System.getenv("libs.repository.id")
     return if (repositoryId == null) {
@@ -96,11 +96,11 @@ fun RepositoryHandler.configureMavenPublication(project: Project) {
         url = mavenRepositoryUri(isSnapshot)
         credentials {
             if (isSnapshot) {
-                username = project.getSensitiveProperty("libs.sonatype.user")
-                password = project.getSensitiveProperty("libs.sonatype.password")
-            } else {
                 username = project.getSensitiveProperty("libs.space.user")
                 password = project.getSensitiveProperty("libs.space.password")
+            } else {
+                username = project.getSensitiveProperty("libs.sonatype.user")
+                password = project.getSensitiveProperty("libs.sonatype.password")
             }
         }
     }
