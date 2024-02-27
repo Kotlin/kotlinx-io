@@ -45,6 +45,7 @@ public annotation class InternalIoApi
  * There are no guarantees regarding the stability of such an API,
  * and it is a subject of change or removal without notice.
  */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @SnapshotApi
 @Retention(AnnotationRetention.BINARY)
 @RequiresOptIn(message = "This is a snapshot API, it may not be available in regular library release.")

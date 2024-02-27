@@ -56,7 +56,7 @@ public class ReadWriteUnsafe {
         assertEquals("ello world", buffer.readString())
     }
 
-    @OptIn(UnsafeIoApi::class)
+    @OptIn(UnsafeIoApi::class, SnapshotApi::class)
     @Test
     fun basicWriteProperties() {
         val buffer = Buffer()

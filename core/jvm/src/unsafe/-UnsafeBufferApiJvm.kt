@@ -2,21 +2,20 @@
  * Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
-
 package kotlinx.io.unsafe
 
 import kotlinx.io.Buffer
+import kotlinx.io.SnapshotApi
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferAccessors.maxSafeWriteCapacity
 import java.nio.ByteBuffer
 
 /**
  * Provides read-only access to the data from [buffer]'s head by calling [readAction] on it
- * and optionally consumes the data at the end of the action.
+ * and optionally consumes the data by the end of the action.
  *
- * [ByteBuffer.position] if the buffer supplied to the [readAction] is used as an indicator of
- * how many bytes were consumed. If the position is non-zero, corresponding number of bytes will be consumed
- * from the buffer.
+ * [ByteBuffer.position] of the buffer supplied to the [readAction] is used as the number of bytes consumed.
+ * If the position is non-zero, corresponding number of bytes will be consumed from the buffer.
  *
  * If the buffer is empty, [IllegalArgumentException] will be thrown.
  *
@@ -27,6 +26,7 @@ import java.nio.ByteBuffer
  *
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.readFromByteChannel
  */
+@SnapshotApi
 @UnsafeIoApi
 public inline fun UnsafeBufferAccessors.readFromHead(buffer: Buffer, readAction: (data: ByteBuffer) -> Unit) {
     UnsafeBufferAccessors.readFromHead(buffer) { rawData, pos, limit ->
@@ -43,9 +43,8 @@ public inline fun UnsafeBufferAccessors.readFromHead(buffer: Buffer, readAction:
  * Provides write access to the [buffer], allowing to write data
  * into a not yet committed portion of the buffer's tail using a [writeAction].
  *
- * [ByteBuffer.position] of the buffer supplied to the [writeAction] is used as an indicator of how
- * many bytes were written.  If the position is non-zero, corresponding number of bytes will be added
- * to the end of the [buffer].
+ * [ByteBuffer.position] of the buffer supplied to the [writeAction] is used as the number of bytes written.
+ * If the position is non-zero, corresponding number of bytes will be added to the end of the [buffer].
  *
  * It's guaranteed that the size of the range is at least [minimumCapacity],
  * but if the [minimumCapacity] bytes could not be provided for writing,
@@ -60,6 +59,7 @@ public inline fun UnsafeBufferAccessors.readFromHead(buffer: Buffer, readAction:
  *
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.writeToByteChannel
  */
+@SnapshotApi
 @UnsafeIoApi
 public inline fun UnsafeBufferAccessors.writeToTail(
     buffer: Buffer,

@@ -1,4 +1,5 @@
 public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
+	public field head Lkotlinx/io/Segment;
 	public fun <init> ()V
 	public final fun clear ()V
 	public fun close ()V
@@ -12,6 +13,7 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun getBuffer ()Lkotlinx/io/Buffer;
 	public final fun getSize ()J
 	public fun hintEmit ()V
+	public final fun incrementSize (I)V
 	public fun peek ()Lkotlinx/io/Source;
 	public fun readAtMostTo (Lkotlinx/io/Buffer;J)J
 	public fun readAtMostTo ([BII)I
@@ -26,6 +28,8 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun toString ()Ljava/lang/String;
 	public fun transferFrom (Lkotlinx/io/RawSource;)J
 	public fun transferTo (Lkotlinx/io/RawSink;)J
+	public final fun tryRecycleTail ()V
+	public final fun writableSegment (I)Lkotlinx/io/Segment;
 	public fun write (Lkotlinx/io/Buffer;J)V
 	public fun write (Lkotlinx/io/RawSource;J)V
 	public fun write ([BII)V
@@ -90,6 +94,12 @@ public abstract interface class kotlinx/io/RawSink : java/io/Flushable, java/lan
 public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 	public abstract fun close ()V
 	public abstract fun readAtMostTo (Lkotlinx/io/Buffer;J)J
+}
+
+public final class kotlinx/io/Segment {
+	public final field data [B
+	public field limit I
+	public field pos I
 }
 
 public abstract interface class kotlinx/io/Sink : kotlinx/io/RawSink {
@@ -186,6 +196,9 @@ public final class kotlinx/io/SourcesKt {
 	public static final fun startsWith (Lkotlinx/io/Source;B)Z
 }
 
+public abstract interface annotation class kotlinx/io/UnsafeIoApi : java/lang/annotation/Annotation {
+}
+
 public final class kotlinx/io/Utf8Kt {
 	public static final fun readLine (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun readLineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
@@ -246,5 +259,8 @@ public final class kotlinx/io/files/PathsKt {
 	public static final fun Path (Lkotlinx/io/files/Path;[Ljava/lang/String;)Lkotlinx/io/files/Path;
 	public static final fun sinkDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Sink;
 	public static final fun sourceDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
+}
+
+public final class kotlinx/io/unsafe/_UnsafeBufferApiJvmKt {
 }
 

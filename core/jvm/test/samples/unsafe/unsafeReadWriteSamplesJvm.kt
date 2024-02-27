@@ -5,13 +5,10 @@
 
 package kotlinx.io.samples.unsafe
 
-import kotlinx.io.Buffer
-import kotlinx.io.UnsafeIoApi
-import kotlinx.io.readString
+import kotlinx.io.*
 import kotlinx.io.unsafe.UnsafeBufferAccessors
 import kotlinx.io.unsafe.readFromHead
 import kotlinx.io.unsafe.writeToTail
-import kotlinx.io.writeString
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.Files
@@ -20,7 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class UnsafeReadWriteSamplesJvm {
-    @OptIn(UnsafeIoApi::class)
+    @OptIn(UnsafeIoApi::class, SnapshotApi::class)
     @Test
     fun writeToByteChannel() {
         val buffer = Buffer().apply { writeString("hello world") }
@@ -37,7 +34,7 @@ class UnsafeReadWriteSamplesJvm {
         }
     }
 
-    @OptIn(UnsafeIoApi::class)
+    @OptIn(UnsafeIoApi::class, SnapshotApi::class)
     @Test
     fun readFromByteChannel() {
         val buffer = Buffer()

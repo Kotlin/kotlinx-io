@@ -8,7 +8,7 @@ package kotlinx.io.unsafe
 import kotlinx.io.*
 import kotlin.test.*
 
-@OptIn(UnsafeIoApi::class)
+@OptIn(UnsafeIoApi::class, SnapshotApi::class)
 class UnsafeBufferApiWriteTest {
     @Test
     fun testBufferCapacity() {

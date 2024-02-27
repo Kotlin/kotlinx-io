@@ -5,17 +5,14 @@
 
 package kotlinx.io.unsafe
 
-import kotlinx.io.Buffer
-import kotlinx.io.UnsafeIoApi
-import kotlinx.io.assertArrayEquals
-import kotlinx.io.writeString
+import kotlinx.io.*
 import java.nio.ByteBuffer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-@OptIn(UnsafeIoApi::class)
+@OptIn(UnsafeIoApi::class, SnapshotApi::class)
 class UnsafeBufferApiReadTestJvm {
     @Test
     fun testBufferCapacity() {

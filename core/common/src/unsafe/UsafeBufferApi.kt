@@ -6,8 +6,10 @@
 package kotlinx.io.unsafe
 
 import kotlinx.io.Buffer
+import kotlinx.io.SnapshotApi
 import kotlinx.io.UnsafeIoApi
 
+@SnapshotApi
 @UnsafeIoApi
 public object UnsafeBufferAccessors {
     /**

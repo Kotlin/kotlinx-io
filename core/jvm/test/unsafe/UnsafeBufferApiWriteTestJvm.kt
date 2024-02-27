@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-@OptIn(UnsafeIoApi::class)
+@OptIn(UnsafeIoApi::class, SnapshotApi::class)
 class UnsafeBufferApiWriteTestJvm {
     @Test
     fun testBufferCapacity() {
