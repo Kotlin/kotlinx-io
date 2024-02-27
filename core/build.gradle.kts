@@ -53,7 +53,9 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             "common/test/samples/moduleDescriptionSample.kt",
             "common/test/samples/samples.kt",
             "common/test/samples/byteStringSample.kt",
+            "common/test/samples/unsafe/unsafeReadWriteSample.kt",
             "jvm/test/samples/samplesJvm.kt",
+            "jvm/test/samples/unsafe/unsafeReadWriteSamplesJvm.kt",
             "apple/test/samples/samplesApple.kt"
         )
     }
