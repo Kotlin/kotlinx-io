@@ -40,6 +40,7 @@ import kotlin.jvm.JvmField
  */
 public class Buffer : Source, Sink {
     @JvmField
+    @PublishedApi
     internal var head: Segment? = null
 
     /**
@@ -47,6 +48,20 @@ public class Buffer : Source, Sink {
      */
     public var size: Long = 0L
         internal set
+
+    @PublishedApi
+    internal fun incrementSize(incr: Int) {
+        size += incr
+    }
+
+    @PublishedApi
+    internal fun tryRecycleTail() {
+        val tail = head?.prev
+        if (tail != null && tail.size == 0) {
+            head = tail.pop()
+            SegmentPool.recycle(tail)
+        }
+    }
 
     /**
      * Returns the buffer itself.
@@ -374,6 +389,7 @@ public class Buffer : Source, Sink {
      * Returns a tail segment that we can write at least `minimumCapacity`
      * bytes to, creating it if necessary.
      */
+    @PublishedApi
     internal fun writableSegment(minimumCapacity: Int): Segment {
         require(minimumCapacity >= 1 && minimumCapacity <= Segment.SIZE) { "unexpected capacity" }
 

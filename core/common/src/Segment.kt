@@ -36,13 +36,16 @@ import kotlin.jvm.JvmField
  * `limit` and beyond. There is a single owning segment for each byte array. Positions,
  * limits, prev, and next references are not shared.
  */
+@PublishedApi
 internal class Segment {
     @JvmField
-    val data: ByteArray
+    @PublishedApi
+    internal val data: ByteArray
 
     /** The next byte of application data byte to read in this segment. */
     @JvmField
-    var pos: Int = 0
+    @PublishedApi
+    internal var pos: Int = 0
 
     /**
      * The first byte of available data ready to be written to.
@@ -51,31 +54,32 @@ internal class Segment {
      * byte count of this and next segments.
      */
     @JvmField
-    var limit: Int = 0
+    @PublishedApi
+    internal var limit: Int = 0
 
     /** True if other segments or byte strings use the same byte array. */
     @JvmField
-    var shared: Boolean = false
+    internal var shared: Boolean = false
 
     /** True if this segment owns the byte array and can append to it, extending `limit`. */
     @JvmField
-    var owner: Boolean = false
+    internal var owner: Boolean = false
 
     /** Next segment in a linked or circularly-linked list. */
     @JvmField
-    var next: Segment? = null
+    internal var next: Segment? = null
 
     /** Previous segment in a circularly-linked list. */
     @JvmField
-    var prev: Segment? = null
+    internal var prev: Segment? = null
 
-    constructor() {
+    internal constructor() {
         this.data = ByteArray(SIZE)
         this.owner = true
         this.shared = false
     }
 
-    constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
+    internal constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
         this.data = data
         this.pos = pos
         this.limit = limit
@@ -88,19 +92,19 @@ internal class Segment {
      * are safe but writes are forbidden. This also marks the current segment as shared, which
      * prevents it from being pooled.
      */
-    fun sharedCopy(): Segment {
+    internal fun sharedCopy(): Segment {
         shared = true
         return Segment(data, pos, limit, true, false)
     }
 
     /** Returns a new segment that its own private copy of the underlying byte array.  */
-    fun unsharedCopy() = Segment(data.copyOf(), pos, limit, false, true)
+    internal fun unsharedCopy() = Segment(data.copyOf(), pos, limit, false, true)
 
     /**
      * Removes this segment of a circularly-linked list and returns its successor.
      * Returns null if the list is now empty.
      */
-    fun pop(): Segment? {
+    internal fun pop(): Segment? {
         val result = if (next !== this) next else null
         prev!!.next = next
         next!!.prev = prev
@@ -112,7 +116,7 @@ internal class Segment {
     /**
      * Appends `segment` after this segment in the circularly-linked list. Returns the pushed segment.
      */
-    fun push(segment: Segment): Segment {
+    internal fun push(segment: Segment): Segment {
         segment.prev = this
         segment.next = next
         next!!.prev = segment
@@ -128,7 +132,7 @@ internal class Segment {
      *
      * Returns the new head of the circularly-linked list.
      */
-    fun split(byteCount: Int): Segment {
+    internal fun split(byteCount: Int): Segment {
         require(byteCount > 0 && byteCount <= limit - pos) { "byteCount out of range" }
         val prefix: Segment
 
@@ -154,7 +158,7 @@ internal class Segment {
      * Call this when the tail and its predecessor may both be less than half full. This will copy
      * data so that segments can be recycled.
      */
-    fun compact() {
+    internal fun compact() {
         check(prev !== this) { "cannot compact" }
         if (!prev!!.owner) return // Cannot compact: prev isn't writable.
         val byteCount = limit - pos
@@ -166,7 +170,7 @@ internal class Segment {
     }
 
     /** Moves `byteCount` bytes from this segment to `sink`.  */
-    fun writeTo(sink: Segment, byteCount: Int) {
+    internal fun writeTo(sink: Segment, byteCount: Int) {
         check(sink.owner) { "only owner can write" }
         if (sink.limit + byteCount > SIZE) {
             // We can't fit byteCount bytes at the sink's current position. Shift sink first.
@@ -185,15 +189,15 @@ internal class Segment {
         pos += byteCount
     }
 
-    val size: Int
+    internal val size: Int
         get() = limit - pos
 
-    companion object {
+    internal companion object {
         /** The size of all segments in bytes.  */
-        const val SIZE = 8192
+        internal const val SIZE = 8192
 
         /** Segments will be shared when doing so avoids `arraycopy()` of this many bytes.  */
-        const val SHARE_MINIMUM = 1024
+        internal const val SHARE_MINIMUM = 1024
     }
 }
 

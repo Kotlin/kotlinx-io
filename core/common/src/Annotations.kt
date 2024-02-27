@@ -49,3 +49,17 @@ public annotation class InternalIoApi
 @Retention(AnnotationRetention.BINARY)
 @RequiresOptIn(message = "This is a snapshot API, it may not be available in regular library release.")
 public annotation class SnapshotApi
+
+/**
+ * Marks API that may cause data corruption or loss or behave unpredictable when used with invalid argument values.
+ *
+ * Consider using other APIs instead when possible.
+ * Otherwise, make sure to read documentation describing an unsafe API.
+ */
+@Retention(AnnotationRetention.BINARY)
+@RequiresOptIn(
+    level = RequiresOptIn.Level.ERROR,
+    message = "This is an unsafe API and its use requires care. " +
+            "Make sure you fully understand documentation of the declaration marked as UnsafeIoApi"
+)
+public annotation class UnsafeIoApi
