@@ -77,7 +77,7 @@ public object UnsafeBufferAccessors {
      * but if the [minimumCapacity] bytes could not be provided for writing,
      * the method will throw [IllegalStateException].
      * It is safe to use any [minimumCapacity] value below [maxSafeWriteCapacity], but unless exact minimum number of
-     * available space is required, it's recommended to use `1` as [minimumCapacity] value.
+     * available bytes is required, it's recommended to use `1` as [minimumCapacity] value.
      *
      * The value returned by the [writeAction] denotes the number of bytes successfully written to the buffer.
      * If no data was written, `0` should be returned.

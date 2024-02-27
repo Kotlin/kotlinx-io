@@ -24,7 +24,7 @@ import java.nio.ByteBuffer
  *
  * @throws IllegalArgumentException when [buffer] is empty.
  *
- * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.readFromByteChannel
+ * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.writeToByteChannel
  */
 @SnapshotApi
 @UnsafeIoApi
@@ -50,14 +50,14 @@ public inline fun UnsafeBufferAccessors.readFromHead(buffer: Buffer, readAction:
  * but if the [minimumCapacity] bytes could not be provided for writing,
  * the method will throw [IllegalStateException].
  * It is safe to use any [minimumCapacity] value below [maxSafeWriteCapacity], but unless exact minimum number of
- * available space is required, it's recommended to use `1` as [minimumCapacity] value.
+ * available bytes is required, it's recommended to use `1` as [minimumCapacity] value.
  *
  * This method avoids copying buffer's data when providing the [ByteBuffer] on the best-effort basis,
  * meaning that there are no strong zero-copy guarantees and the copy will be created if it could not be omitted.
  *
  * @throws IllegalStateException when [minimumCapacity] is too large and could not be fulfilled.
  *
- * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.writeToByteChannel
+ * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.readFromByteChannel
  */
 @SnapshotApi
 @UnsafeIoApi
