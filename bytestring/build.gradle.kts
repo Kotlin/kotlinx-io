@@ -9,20 +9,20 @@ plugins {
 }
 
 kotlin {
-    js(IR) {
+    js {
         nodejs {
-            testTask(Action {
+            testTask {
                 useMocha {
                     timeout = "30s"
                 }
-            })
+            }
         }
         browser {
-            testTask(Action {
+            testTask {
                 useMocha {
                     timeout = "30s"
                 }
-            })
+            }
         }
     }
 }
