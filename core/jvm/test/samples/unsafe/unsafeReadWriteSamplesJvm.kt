@@ -8,11 +8,13 @@ package kotlinx.io.samples.unsafe
 import kotlinx.io.*
 import kotlinx.io.unsafe.UnsafeBufferAccessors
 import kotlinx.io.unsafe.readFromHead
+import kotlinx.io.unsafe.readFully
 import kotlinx.io.unsafe.writeToTail
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -55,5 +57,26 @@ class UnsafeReadWriteSamplesJvm {
             } while (!finished)
         }
         assertEquals("hello world", buffer.readString())
+    }
+
+    @OptIn(SnapshotApi::class, UnsafeIoApi::class)
+    @Test
+    fun gatheringWrite() {
+        val buffers = Array<ByteBuffer?>(16) { null }
+
+        val buffer = Buffer().apply {
+            write(Random.nextBytes(64 * 1024))
+        }
+        FileChannel.open(
+            Files.createTempFile(null, null),
+            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE
+        ).use { channel ->
+            while (!buffer.exhausted()) {
+                UnsafeBufferAccessors.readFully(buffer, buffers) { bbs, from, to ->
+                    channel.write(bbs, from, to)
+                }
+            }
+            assertEquals(64 * 1024, channel.size())
+        }
     }
 }

@@ -5,6 +5,7 @@
 package kotlinx.io.unsafe
 
 import kotlinx.io.Buffer
+import kotlinx.io.Segment
 import kotlinx.io.SnapshotApi
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferAccessors.maxSafeWriteCapacity
@@ -37,6 +38,63 @@ public inline fun UnsafeBufferAccessors.readFromHead(buffer: Buffer, readAction:
         //originalSize - remaining
         bb.position()
     }
+}
+
+/**
+ * Provides read-only access to all the data from [buffer] by filling the [array] with [ByteBuffer]s
+ * backed by [buffer]'s data and calling [readAction] on it,
+ * and optionally consumes the data by the end of the action.
+ *
+ * The [readAction] receives [array] filled with [ByteBuffer]s and a pair of indices, startIndex and endIndex,
+ * denoting the subarray containing meaningful data.
+ * If the [buffer] has more segments than [array]'s capacity, only the portion that fits into [array] will be
+ * passed down the [readAction].
+ *
+ * The [readAction] should return the number of bytes consumed, the buffer's size will be decreased by that value,
+ * and data from the consumed prefix will be no longer available for read.
+ * If the operation does not consume anything, the action should return `0`.
+ * It's considered an error to return a negative value or a value exceeding the total capacity of [ByteBuffer]s
+ * passed via [array].
+ *
+ * If the buffer or [array] is empty, [IllegalArgumentException] will be thrown.
+ *
+ * This method avoids copying buffer's data when providing the [ByteBuffer]s on the best-effort basis,
+ * meaning that there are no strong zero-copy guarantees and the copy will be created if it could not be omitted.
+ *
+ * @throws IllegalArgumentException when [buffer] or [array] is empty.
+ *
+ * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.gatheringWrite
+ */
+@SnapshotApi
+@UnsafeIoApi
+public inline fun UnsafeBufferAccessors.readFully(
+    buffer: Buffer,
+    array: Array<ByteBuffer?>,
+    readAction: (data: Array<ByteBuffer?>, startIndex: Int, endIndex: Int) -> Long
+) {
+    val head = buffer.head ?: throw IllegalArgumentException("Buffer is empty.")
+    if (array.isEmpty()) throw IllegalArgumentException("Array is empty.")
+
+    var currentSegment: Segment = head
+    var idx = 0
+    var capacity = 0L
+    do {
+        val pos = currentSegment.pos
+        val limit = currentSegment.limit
+        array[idx++] = ByteBuffer.wrap(currentSegment.data, pos, limit)
+            .slice()
+            .asReadOnlyBuffer()
+        currentSegment = currentSegment.next!!
+        capacity += (limit - pos)
+    } while (idx < array.size && currentSegment !== head)
+    val bytesRead = readAction(array, 0, idx)
+    if (bytesRead == 0L) return
+    if (bytesRead < 0 || bytesRead > capacity) {
+        throw IllegalStateException(
+            "readAction should return a value in range [0, $capacity], but returned: $bytesRead"
+        )
+    }
+    buffer.skip(bytesRead)
 }
 
 /**

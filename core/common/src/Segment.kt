@@ -67,6 +67,7 @@ internal class Segment {
 
     /** Next segment in a linked or circularly-linked list. */
     @JvmField
+    @PublishedApi
     internal var next: Segment? = null
 
     /** Previous segment in a circularly-linked list. */

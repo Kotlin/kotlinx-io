@@ -99,6 +99,7 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 public final class kotlinx/io/Segment {
 	public final field data [B
 	public field limit I
+	public field next Lkotlinx/io/Segment;
 	public field pos I
 }
 
