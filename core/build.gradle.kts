@@ -14,33 +14,29 @@ plugins {
 }
 
 kotlin {
-    js(IR) {
+    js {
         nodejs {
-            testTask(Action {
+            testTask {
                 useMocha {
                     timeout = "300s"
                 }
-            })
+            }
         }
         browser {
-            testTask(Action {
+            testTask {
                 useMocha {
                     timeout = "300s"
                 }
-            })
+            }
         }
     }
 
     sourceSets {
-        commonMain {
-            dependencies {
-                api(project(":kotlinx-io-bytestring"))
-            }
+        commonMain.dependencies {
+            api(project(":kotlinx-io-bytestring"))
         }
-        appleTest {
-            dependencies {
-                implementation(libs.kotlinx.coroutines.core)
-            }
+        appleTest.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
         }
     }
 }
