@@ -14,11 +14,11 @@ plugins {
 }
 
 kotlin {
-    jvm {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
-        }
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
     }
+
+    jvm()
 
     sourceSets {
         commonMain {
