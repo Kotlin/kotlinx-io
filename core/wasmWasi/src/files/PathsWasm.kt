@@ -55,3 +55,5 @@ public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED
 public actual val SystemPathSeparator: Char = UnixPathSeparator
 
 public actual fun Path(path: String): Path = Path(path, null as Any?)
+
+internal actual fun PathCtorInternal(path: String): Path = Path(path)

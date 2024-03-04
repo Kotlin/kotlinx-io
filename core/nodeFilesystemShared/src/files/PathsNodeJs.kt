@@ -77,6 +77,8 @@ public actual fun Path(path: String): Path {
     return Path(path, null)
 }
 
+internal actual fun PathCtorInternal(path: String): Path = Path(path)
+
 internal class FileSource(private val path: Path) : RawSource {
     private var buffer: kotlinx.io.node.buffer.Buffer? = null
     private var closed = false
