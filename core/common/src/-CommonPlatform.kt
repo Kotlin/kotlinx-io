@@ -26,17 +26,19 @@ internal expect fun String.asUtf8ToByteArray(): ByteArray
 /**
  * Signals about a general issue occurred during I/O operation.
  */
-public expect open class IOException(message: String?, cause: Throwable?) : Exception {
+public expect open class IOException : Exception {
     public constructor()
     public constructor(message: String?)
     public constructor(cause: Throwable?)
+    public constructor(message: String?, cause: Throwable?)
 }
 
 /**
  * Signals that the end of the file or stream was reached unexpectedly during an input operation.
  */
-public expect open class EOFException(message: String?) : IOException {
+public expect open class EOFException : IOException {
     public constructor()
+    public constructor(message: String?)
 }
 
 
