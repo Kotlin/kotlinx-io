@@ -9,19 +9,20 @@ import kotlinx.io.internal.commonAsUtf8ToByteArray
 
 internal actual fun String.asUtf8ToByteArray(): ByteArray = commonAsUtf8ToByteArray()
 
-public actual open class IOException actual constructor(
-    message: String?,
-    cause: Throwable?
-) : Exception(message, cause) {
-    public actual constructor(message: String?) : this(message, null)
+public actual open class IOException : Exception {
+    public actual constructor() : super()
 
-    public actual constructor(cause: Throwable?) : this(null, cause)
+    public actual constructor(message: String?) : super(message)
 
-    public actual constructor() : this(null, null)
+    public actual constructor(cause: Throwable?) : super(cause)
+
+    public actual constructor(message: String?, cause: Throwable?) : super(message, cause)
 }
 
-public actual open class EOFException actual constructor(message: String?) : IOException(message) {
-    public actual constructor() : this(null)
+public actual open class EOFException : IOException {
+    public actual constructor() : super()
+
+    public actual constructor(message: String?) : super(message)
 }
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
