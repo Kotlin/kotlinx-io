@@ -81,11 +81,12 @@ public inline fun UnsafeBufferAccessors.readFully(
     do {
         val pos = currentSegment.pos
         val limit = currentSegment.limit
-        array[idx++] = ByteBuffer.wrap(currentSegment.data, pos, limit)
+        val len = limit - pos
+        array[idx++] = ByteBuffer.wrap(currentSegment.data, pos, len)
             .slice()
             .asReadOnlyBuffer()
         currentSegment = currentSegment.next!!
-        capacity += (limit - pos)
+        capacity += len
     } while (idx < array.size && currentSegment !== head)
     val bytesRead = readAction(array, 0, idx)
     if (bytesRead == 0L) return
