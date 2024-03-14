@@ -64,8 +64,6 @@ internal expect fun isAbsoluteImpl(path: String): Boolean
 
 public actual fun Path(path: String): Path = Path(path, null)
 
-internal actual fun PathCtorInternal(path: String): Path = Path(path)
-
 internal class FileSource(
     private val file: CPointer<FILE>
 ) : RawSource {

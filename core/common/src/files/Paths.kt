@@ -74,14 +74,12 @@ public expect val SystemPathSeparator: Char
  */
 public expect fun Path(path: String): Path
 
-// Workaround for https://youtrack.jetbrains.com/issue/KT-22520
-internal expect fun PathCtorInternal(path: String): Path
-
 /**
  * Returns Path for the given [base] path concatenated with [parts] using [SystemPathSeparator].
  */
 public fun Path(base: String, vararg parts: String): Path {
-    return PathCtorInternal(buildString {
+    // Parameter name has to be specified explicitly to overcome https://youtrack.jetbrains.com/issue/KT-22520
+    return Path(path = buildString {
         append(base)
         parts.forEach {
             if (isNotEmpty() && !endsWith(SystemPathSeparator)) {

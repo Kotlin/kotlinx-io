@@ -41,8 +41,6 @@ public actual val SystemPathSeparator: Char = File.separatorChar
 
 public actual fun Path(path: String): Path = Path(File(path))
 
-internal actual fun PathCtorInternal(path: String): Path = Path(path)
-
 // Function only exists to provide binary compatibility with the earlier releases
 @JvmName("source")
 @PublishedApi
