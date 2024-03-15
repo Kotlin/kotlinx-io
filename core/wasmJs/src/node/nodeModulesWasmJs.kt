@@ -22,13 +22,13 @@ internal fun loadModule(name: String): JsAny {
     if (!requireExists()) {
         throw UnsupportedOperationException("Module $name could not be loaded")
     }
-    val mod = requireModule(name) ?: throw UnsupportedOperationException("Module $name could not be loaded")
+    val mod = requireModule(name) ?: throw UnsupportedOperationException("Module '$name' could not be imported")
     return mod
 }
 
-internal actual val buffer: ModBuffer by lazy {
+internal actual val buffer: BufferModule by lazy {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    loadModule("buffer") as ModBuffer
+    loadModule("buffer") as BufferModule
 }
 
 internal actual val os: Os  by lazy {
@@ -36,7 +36,7 @@ internal actual val os: Os  by lazy {
     loadModule("os") as Os
 }
 
-internal actual val pathMod: Path by lazy {
+internal actual val path: Path by lazy {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     loadModule("path") as Path
 }

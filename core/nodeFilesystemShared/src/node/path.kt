@@ -14,4 +14,4 @@ internal external interface Path {
     val sep: String
 }
 
-internal expect val pathMod: Path
+internal expect val path: Path

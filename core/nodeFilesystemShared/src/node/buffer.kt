@@ -5,7 +5,7 @@
 
 package kotlinx.io.node
 
-internal external interface ModBuffer {
+internal external interface BufferModule {
     val Buffer: BufferObj
 }
 
@@ -22,4 +22,4 @@ internal external interface Buffer {
     fun writeInt8(value: Byte, offset: Int)
 }
 
-internal expect val buffer: ModBuffer
+internal expect val buffer: BufferModule

@@ -8,7 +8,7 @@ package kotlinx.io.files
 import kotlinx.io.*
 import kotlinx.io.node.buffer
 import kotlinx.io.node.fs
-import kotlinx.io.node.pathMod
+import kotlinx.io.node.path as nodeJsPath
 
 public actual class Path internal constructor(
     rawPath: String,
@@ -26,7 +26,7 @@ public actual class Path internal constructor(
             } else if (!path.contains(SystemPathSeparator)) {
                 return null
             }
-            val p = pathMod.dirname(path)
+            val p = nodeJsPath.dirname(path)
             return when {
                 p.isEmpty() -> null
                 p == path -> null
@@ -36,7 +36,7 @@ public actual class Path internal constructor(
 
     public actual val isAbsolute: Boolean
         get() {
-            return pathMod.isAbsolute(path)
+            return nodeJsPath.isAbsolute(path)
         }
 
     public actual val name: String
@@ -44,7 +44,7 @@ public actual class Path internal constructor(
             when {
                 path.isEmpty() -> return ""
             }
-            val p = pathMod.basename(path)
+            val p = nodeJsPath.basename(path)
             return when {
                 p.isEmpty() -> ""
                 else -> p
@@ -66,7 +66,7 @@ public actual class Path internal constructor(
 }
 
 public actual val SystemPathSeparator: Char by lazy {
-    val sep = pathMod.sep
+    val sep = nodeJsPath.sep
     check(sep.length == 1)
     sep[0]
 }

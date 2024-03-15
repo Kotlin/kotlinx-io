@@ -5,7 +5,7 @@
 
 package kotlinx.io.node
 
-internal actual val pathMod: Path by lazy {
+internal actual val path: Path by lazy {
     try {
         js("require(\"path\")")
     } catch (e: Throwable) {
@@ -29,7 +29,7 @@ internal actual val os: Os by lazy {
     }
 }
 
-internal actual val buffer: ModBuffer by lazy {
+internal actual val buffer: BufferModule by lazy {
     try {
         js("require(\"buffer\")")
     } catch (e: Throwable) {
