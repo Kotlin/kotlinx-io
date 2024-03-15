@@ -5,19 +5,19 @@
 
 package kotlinx.io
 
-import kotlinx.io.node.fs.existsSync
-import kotlinx.io.node.os.tmpdir
-import kotlinx.io.node.path.sep
+import kotlinx.io.node.fs
+import kotlinx.io.node.os
+import kotlinx.io.node.pathMod
 import kotlin.random.Random
 
 @OptIn(ExperimentalStdlibApi::class)
 actual fun tempFileName(): String {
     while (true) {
-        val tmpdir = tmpdir()
+        val tmpdir = os.tmpdir()
         val filename = Random.nextBytes(32).toHexString()
-        val fullpath = "$tmpdir$sep$filename"
+        val fullpath = "$tmpdir${pathMod.sep}$filename"
 
-        if (existsSync(fullpath)) {
+        if (fs.existsSync(fullpath)) {
             continue
         }
         return fullpath

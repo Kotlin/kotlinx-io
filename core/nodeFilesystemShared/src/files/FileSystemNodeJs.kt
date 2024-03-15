@@ -8,14 +8,13 @@ package kotlinx.io.files
 import kotlinx.io.IOException
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
-import kotlinx.io.node.fs.*
-import kotlinx.io.node.os.platform
-import kotlinx.io.node.os.tmpdir
+import kotlinx.io.node.fs
+import kotlinx.io.node.os
 import kotlinx.io.withCaughtException
 
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
-        return existsSync(path.path)
+        return fs.existsSync(path.path)
     }
 
     override fun delete(path: Path, mustExist: Boolean) {
@@ -26,11 +25,11 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             return
         }
         withCaughtException {
-            val stats = statSync(path.path) ?: throw FileNotFoundException("File does not exist: $path")
+            val stats = fs.statSync(path.path) ?: throw FileNotFoundException("File does not exist: $path")
             if (stats.isDirectory()) {
-                rmdirSync(path.path)
+                fs.rmdirSync(path.path)
             } else {
-                rmSync(path.path)
+                fs.rmSync(path.path)
             }
         }?.also {
             throw IOException("Delete failed for $path", it)
@@ -56,7 +55,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             p = p.parent
         }
         parts.asReversed().forEach {
-            mkdirSync(it)
+            fs.mkdirSync(it)
         }
     }
 
@@ -65,7 +64,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             throw FileNotFoundException("Source does not exist: ${source.path}")
         }
         withCaughtException {
-            renameSync(source.path, destination.path)
+            fs.renameSync(source.path, destination.path)
         }?.also {
             throw IOException("Move failed from $source to $destination", it)
         }
@@ -75,12 +74,12 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         if (!exists(path)) return null
         var metadata: FileMetadata? = null
         withCaughtException {
-            val stat = statSync(path.path) ?: return@withCaughtException
+            val stat = fs.statSync(path.path) ?: return@withCaughtException
             val mode = stat.mode
-            val isFile = (mode and constants.S_IFMT) == constants.S_IFREG
+            val isFile = (mode and fs.constants.S_IFMT) == fs.constants.S_IFREG
             metadata = FileMetadata(
                 isRegularFile = isFile,
-                isDirectory = (mode and constants.S_IFMT) == constants.S_IFDIR,
+                isDirectory = (mode and fs.constants.S_IFMT) == fs.constants.S_IFDIR,
                 if (isFile) stat.size.toLong() else -1L
             )
         }?.also {
@@ -99,17 +98,17 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 
     override fun resolve(path: Path): Path {
         if (!exists(path)) throw FileNotFoundException(path.path)
-        return Path(realpathSync.native(path.path))
+        return Path(fs.realpathSync.native(path.path))
     }
 }
 
 public actual val SystemTemporaryDirectory: Path
     get() {
-        return Path(tmpdir() ?: "")
+        return Path(os.tmpdir() ?: "")
     }
 
 public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
 
-internal actual val isWindows = platform() == "win32"
+internal actual val isWindows = os.platform() == "win32"
