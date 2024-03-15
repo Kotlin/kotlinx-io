@@ -3,23 +3,23 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
-@file:CommonJsModule("buffer")
-@file:CommonJsNonModule
+package kotlinx.io.node
 
-package kotlinx.io.node.buffer
+internal external interface BufferModule {
+    val Buffer: BufferObj
+}
 
-import kotlinx.io.CommonJsModule
-import kotlinx.io.CommonJsNonModule
+internal external object BufferObj {
+    fun allocUnsafe(bytes: Int): Buffer
+}
 
 /**
  * Partial declaration of a class mirroring [node:buffer.Buffer](https://nodejs.org/api/buffer.html#buffer).
  */
-internal open external class Buffer {
+internal external interface Buffer {
     val length: Int
     fun readInt8(offset: Int): Byte
     fun writeInt8(value: Byte, offset: Int)
-
-    companion object {
-        fun allocUnsafe(bytes: Int): Buffer
-    }
 }
+
+internal expect val buffer: BufferModule

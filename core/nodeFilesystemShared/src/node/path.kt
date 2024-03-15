@@ -3,16 +3,15 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
-@file:CommonJsModule("path")
-@file:CommonJsNonModule
+package kotlinx.io.node
 
-package kotlinx.io.node.path
+internal external interface Path {
 
-import kotlinx.io.CommonJsModule
-import kotlinx.io.CommonJsNonModule
+    fun isAbsolute(path: String): Boolean
+    fun dirname(path: String): String
+    fun basename(path: String): String
 
-internal external fun isAbsolute(path: String): Boolean
-internal external fun dirname(path: String): String
-internal external fun basename(path: String): String
+    val sep: String
+}
 
-internal external val sep: String
+internal expect val path: Path

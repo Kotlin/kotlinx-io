@@ -6,11 +6,9 @@
 package kotlinx.io.files
 
 import kotlinx.io.*
-import kotlinx.io.node.fs.*
-import kotlinx.io.node.path.basename
-import kotlinx.io.node.path.dirname
-import kotlinx.io.node.path.isAbsolute
-import kotlinx.io.node.path.sep
+import kotlinx.io.node.buffer
+import kotlinx.io.node.fs
+import kotlinx.io.node.path as nodeJsPath
 
 public actual class Path internal constructor(
     rawPath: String,
@@ -28,7 +26,7 @@ public actual class Path internal constructor(
             } else if (!path.contains(SystemPathSeparator)) {
                 return null
             }
-            val p = dirname(path)
+            val p = nodeJsPath.dirname(path)
             return when {
                 p.isEmpty() -> null
                 p == path -> null
@@ -38,7 +36,7 @@ public actual class Path internal constructor(
 
     public actual val isAbsolute: Boolean
         get() {
-            return isAbsolute(path)
+            return nodeJsPath.isAbsolute(path)
         }
 
     public actual val name: String
@@ -46,7 +44,7 @@ public actual class Path internal constructor(
             when {
                 path.isEmpty() -> return ""
             }
-            val p = basename(path)
+            val p = nodeJsPath.basename(path)
             return when {
                 p.isEmpty() -> ""
                 else -> p
@@ -68,7 +66,7 @@ public actual class Path internal constructor(
 }
 
 public actual val SystemPathSeparator: Char by lazy {
-    val sep = sep
+    val sep = nodeJsPath.sep
     check(sep.length == 1)
     sep[0]
 }
@@ -78,18 +76,18 @@ public actual fun Path(path: String): Path {
 }
 
 internal class FileSource(private val path: Path) : RawSource {
-    private var buffer: kotlinx.io.node.buffer.Buffer? = null
+    private var buffer: kotlinx.io.node.Buffer? = null
     private var closed = false
     private var offset = 0
     private val fd = open(path)
 
     private fun open(path: Path): Int {
-        if (!existsSync(path.path)) {
+        if (!fs.existsSync(path.path)) {
             throw FileNotFoundException("File does not exist: ${path.path}")
         }
         var fd: Int = -1
         withCaughtException {
-            fd = openSync(path.path, "r")
+            fd = fs.openSync(path.path, "r")
         }?.also {
             throw IOException("Failed to open a file ${path.path}.", it)
         }
@@ -104,7 +102,7 @@ internal class FileSource(private val path: Path) : RawSource {
         }
         if (buffer === null) {
             withCaughtException {
-                buffer = readFileSync(fd, null)
+                buffer = fs.readFileSync(fd, null)
             }?.also {
                 throw IOException("Failed to read data from ${path.path}", it)
             }
@@ -124,7 +122,7 @@ internal class FileSource(private val path: Path) : RawSource {
     override fun close() {
         if (!closed) {
             closed = true
-            closeSync(fd)
+            fs.closeSync(fd)
         }
     }
 }
@@ -137,7 +135,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
         val flags = if (append) "a" else "w"
         var fd = -1
         withCaughtException {
-            fd = openSync(path.path, flags)
+            fd = fs.openSync(path.path, flags)
         }?.also {
             throw IOException("Failed to open a file ${path.path}.", it)
         }
@@ -155,15 +153,14 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
         while (remainingBytes > 0) {
             val head = source.head!!
             val segmentBytes = head.limit - head.pos
-
-            val buf = kotlinx.io.node.buffer.Buffer.allocUnsafe(segmentBytes)
+            val buf = buffer.Buffer.allocUnsafe(segmentBytes)
             val data = head.data
             val pos = head.pos
             for (offset in 0 until segmentBytes) {
                 buf.writeInt8(data[pos + offset], offset)
             }
             withCaughtException {
-                writeFileSync(fd, buf)
+                fs.writeFileSync(fd, buf)
             }?.also {
                 throw IOException("Write failed", it)
             }
@@ -177,7 +174,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
     override fun close() {
         if (!closed) {
             closed = true
-            closeSync(fd)
+            fs.closeSync(fd)
         }
     }
 }
