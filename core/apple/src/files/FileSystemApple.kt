@@ -6,10 +6,7 @@
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.cstr
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.toKString
+import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.Foundation.*
 import platform.posix.*
@@ -54,6 +51,26 @@ internal actual fun realpathImpl(path: String): String {
     } finally {
         free(res)
     }
+}
+
+
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+internal actual class OpaqueDirEntry constructor(private val dir: CPointer<DIR>) : AutoCloseable {
+    actual fun readdir(): String? {
+        val entry = readdir(dir) ?: return null
+        return entry[0].d_name.toKString()
+    }
+
+    override fun close() {
+        closedir(dir)
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun opendir(path: String): OpaqueDirEntry {
+    val dirent = platform.posix.opendir(path)
+    if (dirent != null) return OpaqueDirEntry(dirent)
+    throw IOException("Can't open directory $path: ${strerror(errno)?.toKString() ?: "reason unknown"}")
 }
 
 internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {

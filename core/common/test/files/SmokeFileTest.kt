@@ -16,7 +16,7 @@ class SmokeFileTest {
         var lastException: Throwable? = null
         files.forEach {
             try {
-                SystemFileSystem.delete(it, false)
+                it.deleteRecursively()
             } catch (t: Throwable) {
                 lastException = t
             }
@@ -24,6 +24,14 @@ class SmokeFileTest {
         if (lastException != null) {
             throw lastException!!
         }
+    }
+
+    private fun Path.deleteRecursively() {
+        val md = SystemFileSystem.metadataOrNull(this) ?: return
+        if (md.isDirectory) {
+            SystemFileSystem.list(this).forEach { it.deleteRecursively() }
+        }
+        SystemFileSystem.delete(this)
     }
 
     private fun createTempPath(): Path {
@@ -441,6 +449,32 @@ class SmokeFileTest {
         val source = SystemFileSystem.source(path)
         source.close()
         source.close()  // there should be no error
+    }
+
+    @Test
+    fun listDirectory() {
+        assertFailsWith<FileNotFoundException> { SystemFileSystem.list(createTempPath()) }
+
+        val tmpFile = createTempPath().also {
+            SystemFileSystem.sink(it).close()
+        }
+        assertFailsWith<IOException> { SystemFileSystem.list(tmpFile) }
+
+        val dir = createTempPath().also {
+            SystemFileSystem.createDirectories(it)
+        }
+        assertEquals(emptyList(), SystemFileSystem.list(dir))
+
+        val subdir = Path(dir, "subdir").also {
+            SystemFileSystem.createDirectories(it)
+            SystemFileSystem.sink(Path(it, "file")).close()
+        }
+        assertEquals(listOf(subdir), SystemFileSystem.list(dir))
+
+        val file = Path(dir, "file").also {
+            SystemFileSystem.sink(it).close()
+        }
+        assertEquals(listOf(file, subdir), SystemFileSystem.list(dir))
     }
 
     private fun constructAbsolutePath(vararg parts: String): String {

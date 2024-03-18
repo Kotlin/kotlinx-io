@@ -96,6 +96,17 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         if (!path.file.exists()) throw FileNotFoundException(path.file.absolutePath)
         return Path(path.file.canonicalFile)
     }
+
+    override fun list(directory: Path): List<Path> {
+        val file = directory.file
+        if (!file.exists()) throw FileNotFoundException(file.absolutePath)
+        if (!file.isDirectory) throw IOException("Not a directory: ${file.absolutePath}")
+        return buildList {
+            file.list()?.forEach { childName ->
+                add(Path(directory, childName))
+            }
+        }
+    }
 }
 
 @JvmField

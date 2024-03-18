@@ -12,7 +12,7 @@ import kotlinx.io.RawSource
 import platform.posix.*
 import kotlin.experimental.ExperimentalNativeApi
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
         return access(path.path, F_OK) == 0
@@ -86,6 +86,22 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
         return FileSink(openFile)
     }
+
+    override fun list(directory: Path): List<Path> {
+        val metadata = metadataOrNull(directory) ?: throw FileNotFoundException(directory.path)
+        if (!metadata.isDirectory) throw IOException("Not a directory: ${directory.path}")
+        return buildList {
+            opendir(directory.path).use {
+                var child = it.readdir()
+                while (child != null) {
+                    if (child != "." && child != "..") {
+                        add(Path(directory, child))
+                    }
+                    child = it.readdir()
+                }
+            }
+        }
+    }
 }
 
 internal expect fun metadataOrNullImpl(path: Path): FileMetadata?
@@ -105,3 +121,10 @@ internal const val PermissionAllowAll: UShort = 511u
 
 @OptIn(ExperimentalNativeApi::class)
 internal actual val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS
+
+@OptIn(ExperimentalStdlibApi::class)
+internal expect class OpaqueDirEntry : AutoCloseable {
+    fun readdir(): String?
+}
+
+internal expect fun opendir(path: String): OpaqueDirEntry

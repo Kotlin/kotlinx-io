@@ -145,6 +145,20 @@ public sealed interface FileSystem {
      * @throws FileNotFoundException if there is no file or directory corresponding to the specified path.
      */
     public fun resolve(path: Path): Path
+
+    /**
+     * Returns a list of paths corresponding to [directory]'s immediate children.
+     *
+     * If path [directory] was an absolute path, a returned list will also contain absolute paths.
+     * If it was a relative path, a returned list will contain relative paths.
+     *
+     * @param directory a directory to list.
+     * @return a list of [directory]'s immediate children.
+     * @throws FileNotFoundException if [directory] does not exist.
+     * @throws IOException if [directory] points to something other than directory.
+     * @throws IOException if there was an underlying error preventing listing [directory] children.
+     */
+    public fun list(directory: Path): List<Path>
 }
 
 internal abstract class SystemFileSystemImpl : FileSystem

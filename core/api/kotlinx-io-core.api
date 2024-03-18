@@ -213,6 +213,7 @@ public abstract interface class kotlinx/io/files/FileSystem {
 	public abstract fun delete (Lkotlinx/io/files/Path;Z)V
 	public static synthetic fun delete$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;ZILjava/lang/Object;)V
 	public abstract fun exists (Lkotlinx/io/files/Path;)Z
+	public abstract fun list (Lkotlinx/io/files/Path;)Ljava/util/List;
 	public abstract fun metadataOrNull (Lkotlinx/io/files/Path;)Lkotlinx/io/files/FileMetadata;
 	public abstract fun resolve (Lkotlinx/io/files/Path;)Lkotlinx/io/files/Path;
 	public abstract fun sink (Lkotlinx/io/files/Path;Z)Lkotlinx/io/RawSink;
