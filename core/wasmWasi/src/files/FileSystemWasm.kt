@@ -301,7 +301,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
                     resultPtr = fdPtr.address.toInt()
                 )
             )
-            if (res != Errno.success) throw IOException("Can't read directory ${directory.path}: ${res.description}")
+            if (res != Errno.success) throw IOException("Can't open directory ${directory.path}: ${res.description}")
             fdPtr.loadInt()
         }
         try {
