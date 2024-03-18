@@ -56,6 +56,11 @@ internal external interface Fs {
      */
     fun writeFileSync(fd: Int, buffer: Buffer)
 
+    /**
+     * See https://nodejs.org/api/fs.html#fsopendirsyncpath-options
+     */
+    fun opendirSync(path: String): Dir?
+
     val realpathSync: realpathSync
 
     val constants: constants
@@ -84,6 +89,22 @@ internal external interface constants {
  */
 internal external interface realpathSync {
     fun native(path: String): String
+}
+
+/**
+ * See https://nodejs.org/api/fs.html#class-fsdir
+ */
+internal external interface Dir {
+    fun closeSync()
+
+    fun readSync(): Dirent?
+}
+
+/**
+ * See https://nodejs.org/api/fs.html#class-fsdirent
+ */
+internal external interface Dirent {
+    val name: String
 }
 
 internal expect val fs: Fs
