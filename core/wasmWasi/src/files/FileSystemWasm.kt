@@ -272,22 +272,6 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
     }
 }
 
-private fun Path.normalized(): Path {
-    require(isAbsolute)
-
-    val parts = path.split(UnixPathSeparator)
-    val constructedPath = mutableListOf<String>()
-    // parts[0] is always empty
-    for (idx in 1 until parts.size) {
-        when (val part = parts[idx]) {
-            "." -> continue
-            ".." -> constructedPath.removeLastOrNull()
-            else -> constructedPath.add(part)
-        }
-    }
-    return Path(UnixPathSeparator.toString(), *constructedPath.toTypedArray())
-}
-
 public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)

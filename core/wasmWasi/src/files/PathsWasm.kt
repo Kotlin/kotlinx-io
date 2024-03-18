@@ -48,6 +48,8 @@ public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED
         }
 
     public actual val isAbsolute: Boolean = path.startsWith(SystemPathSeparator)
+
+    public actual fun normalized(): Path = Path(path = normalizedInternal(false, SystemPathSeparator))
 }
 
 // The path separator is always '/'.

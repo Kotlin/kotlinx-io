@@ -41,6 +41,12 @@ public expect class Path {
     public val isAbsolute: Boolean
 
     /**
+     * Returns normalized version of this path where all `..` and `.` segments are resolved
+     * and all sequential path separators are collapsed.
+     */
+    public fun normalized(): Path
+
+    /**
      * Returns a string representation of this path.
      *
      * Note that the returned value will represent the same path as the value
@@ -173,4 +179,52 @@ private fun removeTrailingSeparatorsWindows(suffixLength: Int, path: String): St
         idx--
     }
     return path.substring(0, idx)
+}
+
+internal fun Path.normalizedInternal(preserveDrive: Boolean, vararg separators: Char): String {
+    var isAbs = isAbsolute
+    var stringRepresentation = toString()
+    var drive = ""
+    if (preserveDrive && stringRepresentation.length >= 2 && stringRepresentation[1] == ':') {
+        drive = stringRepresentation.substring(0, 2)
+        stringRepresentation = stringRepresentation.substring(2)
+        isAbs = stringRepresentation.isNotEmpty() && separators.contains(stringRepresentation.first())
+    }
+    val parts = stringRepresentation.split(*separators)
+    val constructedPath = mutableListOf<String>()
+    for (idx in parts.indices) {
+        when (val part = parts[idx]) {
+            "." -> continue
+            ".." -> if (isAbs) {
+                constructedPath.removeLastOrNull()
+            } else {
+                if (constructedPath.isEmpty() || constructedPath.last() == "..") {
+                    constructedPath.add("..")
+                } else {
+                    constructedPath.removeLast()
+                }
+            }
+
+            else -> {
+                if (part.isNotEmpty()) {
+                    constructedPath.add(part)
+                }
+            }
+        }
+    }
+    return buildString {
+        append(drive)
+        var skipFirstSeparator = true
+        if (isAbs) {
+            append(SystemPathSeparator)
+        }
+        for (segment in constructedPath) {
+            if (skipFirstSeparator) {
+                skipFirstSeparator = false
+            } else {
+                append(SystemPathSeparator)
+            }
+            append(segment)
+        }
+    }
 }
