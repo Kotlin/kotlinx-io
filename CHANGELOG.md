@@ -1,4 +1,12 @@
 # CHANGELOG
+
+## 0.3.2
+> Published 18 Mar 2024
+
+### Features
+- Implemented basic filesystem support for Wasm WASI target [#257](https://github.com/Kotlin/kotlinx-io/pull/257)
+- Enabled native benchmarks by default [#263](https://github.com/Kotlin/kotlinx-io/pull/263)
+
 ## 0.3.1
 > Published 2 Feb 2024
 
