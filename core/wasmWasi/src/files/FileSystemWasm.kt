@@ -311,6 +311,8 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
                 val bufferSize = metadata.filesize.toInt()
                 val buffer = allocator.allocate(bufferSize)
                 val resultSize: Int
+                // Unsuported on Windows and Android:
+                // https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19
                 val res = Errno(
                     fd_readdir(
                         fd = dir_fd,
