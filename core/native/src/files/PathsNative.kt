@@ -52,6 +52,12 @@ public actual class Path internal constructor(
             if (path.isEmpty() || path == SystemPathSeparator.toString()) return ""
             return basenameImpl(path)
         }
+
+    public actual fun normalized(): Path = Path(path = if (isWindows) {
+        normalizedInternal(true, WindowsPathSeparator, UnixPathSeparator)
+    } else {
+        normalizedInternal(false, UnixPathSeparator)
+    })
 }
 
 public actual val SystemPathSeparator: Char = UnixPathSeparator

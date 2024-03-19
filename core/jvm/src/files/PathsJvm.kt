@@ -19,6 +19,14 @@ public actual class Path internal constructor(internal val file: File) {
 
     public actual override fun toString(): String = file.toString()
 
+    // Don't use File.normalize here as it may work incorrectly for absolute paths:
+    // https://youtrack.jetbrains.com/issue/KT-48354
+    public actual fun normalized(): Path = Path(path = if (isWindows) {
+        normalizedInternal(true, WindowsPathSeparator, UnixPathSeparator)
+    } else {
+        normalizedInternal(false, UnixPathSeparator)
+    })
+
     actual override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Path) return false

@@ -52,4 +52,12 @@ class UtilsTest {
         assertEquals("C:\\", removeTrailingSeparatorsW("C:\\"))
         assertEquals("C:\\", removeTrailingSeparatorsW("C:\\/\\"))
     }
+
+    @Test
+    fun normalizePathWithDrive() {
+        assertEquals("C:$SystemPathSeparator",
+            Path("C:\\..\\..\\..\\").normalizedInternal(true, WindowsPathSeparator, UnixPathSeparator))
+        assertEquals("C:..$SystemPathSeparator..$SystemPathSeparator..",
+            Path("C:..\\..\\..\\").normalizedInternal(true, WindowsPathSeparator, UnixPathSeparator))
+    }
 }

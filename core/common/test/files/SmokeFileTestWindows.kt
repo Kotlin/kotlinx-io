@@ -42,4 +42,12 @@ class SmokeFileTestWindows {
         // this path could be transformed to use canonical separator on JVM
         assertEquals(Path("//").toString(), Path("//").toString())
     }
+
+    @Test
+    fun pathNormalize() {
+        if (!isWindows) return
+        assertEquals(Path("C:a", "b", "c", "d", "e"), Path("C:a/b\\\\\\//////c/d\\e").normalized())
+        assertEquals(Path("C:$SystemPathSeparator"), Path("C:\\..\\..\\..\\").normalized())
+        assertEquals(Path("C:..", "..", ".."), Path("C:..\\..\\..\\").normalized())
+    }
 }
