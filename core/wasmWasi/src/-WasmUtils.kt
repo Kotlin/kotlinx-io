@@ -109,3 +109,14 @@ internal fun Pointer.allocateString(value: String): Int {
  */
 @UnsafeWasmMemoryApi
 internal fun MemoryAllocator.allocateInt(): Pointer = allocate(Int.SIZE_BYTES)
+
+/**
+ * Decodes zero-terminated string from a sequence of bytes that should not exceed [maxLength] bytes in length.
+ */
+@UnsafeWasmMemoryApi
+internal fun Pointer.loadString(maxLength: Int): String {
+    val bytes = loadBytes(maxLength)
+    val firstZeroByte = bytes.indexOf(0)
+    val length = if (firstZeroByte == -1) maxLength else firstZeroByte
+    return bytes.decodeToString(0, length)
+}

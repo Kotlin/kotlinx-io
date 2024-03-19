@@ -219,4 +219,14 @@ class WasiFsTest {
             SystemFileSystem.delete(Path("/tmp/a"))
         }
     }
+
+    // https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19
+    @Test
+    fun readdirUnsupportedOnWindows() {
+        if (!isWindows) return
+
+        assertFailsWith<IOException> {
+            SystemFileSystem.list(PreOpens.roots.first())
+        }
+    }
 }

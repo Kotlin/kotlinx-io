@@ -23,9 +23,6 @@ internal external fun fd_read(fd: Fd, iovecPtr: Int, iovecLen: Int, resultPtr: I
 @WasmImport("wasi_snapshot_preview1", "fd_readdir")
 internal external fun fd_readdir(fd: Fd, bufPtr: Int, bufLen: Int, cookie: Long, resultPtr: Int): Int
 
-@WasmImport("wasi_snapshot_preview1", "fd_datasync")
-internal external fun fd_datasync(fd: Fd): Int
-
 @WasmImport("wasi_snapshot_preview1", "fd_sync")
 internal external fun fd_sync(fd: Fd): Int
 

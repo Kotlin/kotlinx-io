@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
@@ -10,25 +10,13 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.get
 import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
-import platform.posix.*
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun dirnameImpl(path: String): String {
-    if (!path.contains(SystemPathSeparator)) {
-        return ""
-    }
-    return dirname(path)?.toKString() ?: ""
-}
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun basenameImpl(path: String): String {
-    return __posix_basename(path)?.toKString() ?: ""
-}
-
-internal actual fun isAbsoluteImpl(path: String): Boolean = path.startsWith('/')
+import platform.posix.DIR
+import platform.posix.closedir
+import platform.posix.errno
+import platform.posix.strerror
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-internal actual class OpaqueDirEntry constructor(private val dir: CPointer<cnames.structs.DIR>) : AutoCloseable {
+internal actual class OpaqueDirEntry constructor(private val dir: CPointer<DIR>) : AutoCloseable {
     actual fun readdir(): String? {
         val entry = platform.posix.readdir(dir) ?: return null
         return entry[0].d_name.toKString()

@@ -443,6 +443,36 @@ class SmokeFileTest {
         source.close()  // there should be no error
     }
 
+    @Test
+    fun listDirectory() {
+        assertFailsWith<FileNotFoundException> { SystemFileSystem.list(createTempPath()) }
+
+        val tmpFile = createTempPath().also {
+            SystemFileSystem.sink(it).close()
+        }
+        assertFailsWith<IOException> { SystemFileSystem.list(tmpFile) }
+
+        val dir = createTempPath().also {
+            SystemFileSystem.createDirectories(it)
+        }
+        assertEquals(emptyList(), SystemFileSystem.list(dir))
+
+        val subdir = Path(dir, "subdir").also {
+            SystemFileSystem.createDirectories(it)
+            SystemFileSystem.sink(Path(it, "file")).close()
+        }
+        assertEquals(listOf(subdir), SystemFileSystem.list(dir))
+
+        val file = Path(dir, "file").also {
+            SystemFileSystem.sink(it).close()
+        }
+        assertEquals(setOf(file, subdir), SystemFileSystem.list(dir).toSet())
+
+        SystemFileSystem.delete(file)
+        SystemFileSystem.delete(Path(subdir, "file"))
+        SystemFileSystem.delete(subdir)
+    }
+
     private fun constructAbsolutePath(vararg parts: String): String {
         return SystemPathSeparator.toString() + parts.joinToString(SystemPathSeparator.toString())
     }
