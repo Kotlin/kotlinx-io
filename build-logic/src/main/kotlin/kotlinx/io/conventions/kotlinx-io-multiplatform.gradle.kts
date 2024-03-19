@@ -80,6 +80,12 @@ kotlin {
                         group("androidNative")
                     }
                 }
+
+                group("nonAndroid") {
+                    group("apple")
+                    group("mingw")
+                    group("linux")
+                }
             }
             group("nodeFilesystemShared") {
                 withJs()
