@@ -7,7 +7,7 @@ package kotlinx.io.node
 
 internal actual val path: Path by lazy {
     try {
-        js("require(\"path\")")
+        js("eval('require')('path')")
     } catch (e: Throwable) {
         throw UnsupportedOperationException("Module 'path' could not be imported", e)
     }
@@ -15,7 +15,7 @@ internal actual val path: Path by lazy {
 
 internal actual val fs: Fs by lazy {
     try {
-        js("require(\"fs\")")
+        js("eval('require')('fs')")
     } catch (e: Throwable) {
         throw UnsupportedOperationException("Module 'fs' could not be imported", e)
     }
@@ -23,7 +23,7 @@ internal actual val fs: Fs by lazy {
 
 internal actual val os: Os by lazy {
     try {
-        js("require(\"os\")")
+        js("eval('require')('os')")
     } catch (e: Throwable) {
         throw UnsupportedOperationException("Module 'os' could not be imported", e)
     }
@@ -31,7 +31,7 @@ internal actual val os: Os by lazy {
 
 internal actual val buffer: BufferModule by lazy {
     try {
-        js("require(\"buffer\")")
+        js("eval('require')('buffer')")
     } catch (e: Throwable) {
         throw UnsupportedOperationException("Module 'buffer' could not be imported", e)
     }
