@@ -18,4 +18,8 @@ internal external interface Os {
     fun platform(): String
 }
 
-internal expect val os: Os
+internal val os: Os by lazy {
+    loadModule("os", ::osInitializer)
+}
+
+private fun osInitializer(): Os? = js("eval('require')('os')")
