@@ -466,7 +466,7 @@ class SmokeFileTest {
         val file = Path(dir, "file").also {
             SystemFileSystem.sink(it).close()
         }
-        assertEquals(listOf(file, subdir), SystemFileSystem.list(dir))
+        assertEquals(setOf(file, subdir), SystemFileSystem.list(dir).toSet())
 
         SystemFileSystem.delete(file)
         SystemFileSystem.delete(Path(subdir, "file"))
