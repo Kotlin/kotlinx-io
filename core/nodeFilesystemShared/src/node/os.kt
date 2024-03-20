@@ -22,4 +22,4 @@ internal val os: Os by lazy {
     loadModule("os", ::osInitializer)
 }
 
-private fun osInitializer(): Os? = js("eval('require')('os')")
+internal expect fun osInitializer(): Os?
