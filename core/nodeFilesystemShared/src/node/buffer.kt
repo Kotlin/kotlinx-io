@@ -22,4 +22,8 @@ internal external interface Buffer {
     fun writeInt8(value: Byte, offset: Int)
 }
 
-internal expect val buffer: BufferModule
+internal val buffer: BufferModule by lazy {
+    loadModule("buffer", ::bufferInitializer)
+}
+
+internal expect fun bufferInitializer(): BufferModule?

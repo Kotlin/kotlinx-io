@@ -86,4 +86,8 @@ internal external interface realpathSync {
     fun native(path: String): String
 }
 
-internal expect val fs: Fs
+internal val fs: Fs by lazy {
+    loadModule("fs", ::fsInitializer)
+}
+
+internal expect fun fsInitializer(): Fs?
