@@ -90,4 +90,4 @@ internal val fs: Fs by lazy {
     loadModule("fs", ::fsInitializer)
 }
 
-private fun fsInitializer(): Fs? = js("eval('require')('fs')")
+internal expect fun fsInitializer(): Fs?

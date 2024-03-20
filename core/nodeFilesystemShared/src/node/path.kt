@@ -18,4 +18,4 @@ internal val path: Path by lazy {
     loadModule("path", ::pathInitializer)
 }
 
-private fun pathInitializer(): Path? = js("eval('require')('path')")
+internal expect fun pathInitializer(): Path?

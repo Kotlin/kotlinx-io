@@ -5,8 +5,6 @@
 
 package kotlinx.io.node
 
-import kotlinx.io.withCaughtException
-
 internal external interface BufferModule {
     val Buffer: BufferObj
 }
@@ -28,4 +26,4 @@ internal val buffer: BufferModule by lazy {
     loadModule("buffer", ::bufferInitializer)
 }
 
-private fun bufferInitializer(): BufferModule? = js("eval('require')('buffer')")
+internal expect fun bufferInitializer(): BufferModule?
