@@ -4,6 +4,7 @@
  */
 
 import kotlinx.kover.gradle.plugin.dsl.MetricType
+import kotlinx.validation.ExperimentalBCVApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
@@ -45,8 +46,10 @@ subprojects {
     }
 }
 
+@OptIn(ExperimentalBCVApi::class)
 apiValidation {
     ignoredProjects.add("kotlinx-io-benchmarks")
+    klib.enabled = true
 }
 
 dependencies {
