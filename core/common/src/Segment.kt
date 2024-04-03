@@ -66,6 +66,9 @@ public class Segment {
     internal val rawData: Any
         get() = data
 
+    @PublishedApi
+    internal fun dataAsByteArray(): ByteArray = data
+
     /** The next byte of application data byte to read in this segment. */
     @PublishedApi
     @JvmField

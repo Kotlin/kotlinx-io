@@ -99,6 +99,7 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 public final class kotlinx/io/Segment {
 	public field limit I
 	public field pos I
+	public final fun dataAsByteArray ()[B
 	public final fun getChecked (I)B
 	public final fun getRawData ()Ljava/lang/Object;
 	public final fun getRemainingCapacity ()I
@@ -305,5 +306,6 @@ public final class kotlinx/io/unsafe/UnsafeSegmentAccessors {
 	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IBBB)V
 	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IBBBB)V
 	public final fun tail (Lkotlinx/io/Buffer;)Lkotlinx/io/Segment;
+	public final fun withSegmentData (Lkotlinx/io/Segment;Lkotlin/jvm/functions/Function3;)Ljava/lang/Object;
 }
 
