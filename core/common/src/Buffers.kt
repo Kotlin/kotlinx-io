@@ -23,7 +23,7 @@ public fun Buffer.snapshot(): ByteString {
         do {
             check(curr != null) { "Current segment is null" }
             for (idx in 0 until curr.size) {
-                append(curr.getChecked(idx))
+                append(curr.getUnchecked(idx))
             }
             curr = curr.next
         } while (curr !== null)

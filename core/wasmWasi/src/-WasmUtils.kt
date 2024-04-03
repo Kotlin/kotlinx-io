@@ -61,12 +61,11 @@ internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
     var remaining = bytes
     var currentPtr = pointer
     while (remaining > 0) {
-        UnsafeBufferAccessors.writeUnbound(this, 1) {
-            val segment = it
+        UnsafeBufferAccessors.writeUnbound(this, 1) { ctx, seg ->
 
-            val cap = min(it.remainingCapacity, remaining)
+            val cap = min(seg.remainingCapacity, remaining)
             for (offset in 0 ..< cap) {
-                segment.setUnchecked(offset, currentPtr.loadByte(offset))
+                ctx.setUnchecked(seg, offset, currentPtr.loadByte(offset))
             }
             currentPtr += cap
             remaining -= cap

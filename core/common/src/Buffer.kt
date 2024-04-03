@@ -20,7 +20,6 @@
  */
 package kotlinx.io
 
-import kotlinx.io.unsafe.UnsafeSegmentAccessors
 import kotlin.jvm.JvmField
 
 /**
@@ -301,13 +300,12 @@ public class Buffer : Source, Sink {
      *
      * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.bufferGetByte
      */
-    @OptIn(UnsafeIoApi::class)
     public operator fun get(position: Long): Byte {
         if (position < 0 || position >= size) {
             throw IndexOutOfBoundsException("position ($position) is not within the range [0..size($size))")
         }
         seek(position) { s, offset ->
-            return UnsafeSegmentAccessors.getUnchecked(s!!, (position - offset).toInt())
+            return s!!.getUnchecked((position - offset).toInt())
         }
     }
 
@@ -641,7 +639,7 @@ public class Buffer : Source, Sink {
                 curr = curr.next ?: break
             }
 
-            val b = curr.getChecked(pos++).toInt()
+            val b = curr.getUnchecked(pos++).toInt()
             bytesWritten++
 
             builder.append(HEX_DIGIT_CHARS[(b shr 4) and 0xf])
@@ -687,12 +685,5 @@ internal inline fun <T> Buffer.seek(
             offset = nextOffset
         }
         return lambda(s, offset)
-    }
-}
-
-@PublishedApi
-internal object SegmentSetContextImpl : SegmentSetContext {
-    override fun Segment.setChecked(index: Int, value: Byte) {
-        setChecked(index, value)
     }
 }

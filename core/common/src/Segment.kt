@@ -23,26 +23,6 @@ package kotlinx.io
 import kotlin.jvm.JvmField
 
 /**
- * Context for writing data into [Segment].
- */
-public sealed interface SegmentSetContext {
-    /**
-     * Writes [value] to [index]-position within this segment.
-     * [index] value must be in range `[0, Segment.capacity)`.
-     *
-     * Unlike [Segment.writeByte] this function does not affect [Segment.size], i.e., the value is not available for
-     * reading immediately after calling this method.
-     * To publish or commit written data, this method should be used inside [Buffer.writeUnbound].
-     *
-     * @param value the value to be written.
-     * @param index the index of byte to read from the segment.
-     *
-     * @throws IllegalArgumentException if [index] is negative or greater or equal to [Segment.remainingCapacity].
-     */
-    public fun Segment.setChecked(index: Int, value: Byte)
-}
-
-/**
  * A segment of a buffer.
  *
  * Each segment in a buffer is a list node referencing the following and
@@ -340,31 +320,9 @@ public class Segment {
         limit += srcEndOffset - srcStartOffset
     }
 
-    /**
-     * Returns value at [index]-position within this segment.
-     * [index] value must be in range `[0, Segment.size)`.
-     *
-     * Unlike [Segment.readByte], this method does not affect [Segment.size], i.e., it does not consume value from
-     * the segment.
-     *
-     * @param index the index of byte to read from the segment.
-     *
-     * @throws IllegalArgumentException if [index] is negative or greater or equal to [Segment.size].
-     */
-    public fun getChecked(index: Int): Byte {
-        require(index in 0 until size)
-        return data[pos + index]
-    }
-
     internal fun getUnchecked(index: Int): Byte {
         return data[pos + index]
     }
-
-    internal fun setChecked(index: Int, value: Byte) {
-        require(index in 0 until remainingCapacity)
-        data[limit + index] = value
-    }
-
     @PublishedApi
     internal fun setUnchecked(index: Int, value: Byte) {
         data[limit + index] = value

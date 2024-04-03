@@ -7,7 +7,6 @@ package kotlinx.io.unsafe
 
 import kotlinx.io.Buffer
 import kotlinx.io.Segment
-import kotlinx.io.SegmentSetContext
 import kotlinx.io.UnsafeIoApi
 
 @UnsafeIoApi
@@ -34,27 +33,6 @@ public object UnsafeSegmentAccessors {
      * [index] value is relative to the beginning of the writable area (i.e.`limit`) and should not exceed
      * [Segment.remainingCapacity] (i.e. space between the `limit` and the end of the container).
      */
-    @Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
-    public inline fun setUnchecked(context: SegmentSetContext, segment: Segment, index: Int, value: Byte) {
-        segment.setUnchecked(index, value)
-    }
-
-    @Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
-    public inline fun setUnchecked(context: SegmentSetContext, segment: Segment, index: Int, b0: Byte, b1: Byte) {
-        segment.setUnchecked(index, b0, b1)
-    }
-
-    @Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
-    public inline fun setUnchecked(context: SegmentSetContext, segment: Segment, index: Int,
-                                   b0: Byte, b1: Byte, b2: Byte) {
-        segment.setUnchecked(index, b0, b1, b2)
-    }
-
-    @Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
-    public inline fun setUnchecked(context: SegmentSetContext, segment: Segment, index: Int,
-                                   b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
-        segment.setUnchecked(index, b0, b1, b2, b3)
-    }
 
     /**
      * Returns byte located at [index]-position within [segment].
@@ -63,9 +41,6 @@ public object UnsafeSegmentAccessors {
      *
      * Refer to [setUnchecked] documentation for details on offsets within [Segment].
      */
-    public fun getUnchecked(segment: Segment, index: Int) : Byte {
-        return segment.getUnchecked(index)
-    }
 
     /**
      * Returns first segment of the [buffer] or `null` if the [buffer] is empty.
@@ -99,3 +74,53 @@ public object UnsafeSegmentAccessors {
         return block(segment.dataAsByteArray(), segment.pos, segment.limit)
     }
 }
+
+/**
+ * Context for writing data into [Segment].
+ */
+public sealed interface SegmentWriteContext {
+    /**
+     * Writes [value] to [index]-position within this segment.
+     * [index] value must be in range `[0, Segment.capacity)`.
+     *
+     * Unlike [Segment.writeByte] this function does not affect [Segment.size], i.e., the value is not available for
+     * reading immediately after calling this method.
+     * To publish or commit written data, this method should be used inside [Buffer.writeUnbound].
+     *
+     * @param value the value to be written.
+     * @param index the index of byte to read from the segment.
+     *
+     * @throws IllegalArgumentException if [index] is negative or greater or equal to [Segment.remainingCapacity].
+     */
+    //public fun Segment.setChecked(index: Int, value: Byte)
+
+    public fun setUnchecked(segment: Segment, index: Int, value: Byte)
+
+    public fun setUnchecked(segment: Segment, index: Int, b0: Byte, b1: Byte)
+
+    public fun setUnchecked(segment: Segment, index: Int, b0: Byte, b1: Byte, b2: Byte)
+
+    public fun setUnchecked(segment: Segment, index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte)
+
+
+}
+
+@PublishedApi
+internal object SegmentWriteContextImpl : SegmentWriteContext {
+    override fun setUnchecked(segment: Segment, index: Int, value: Byte) {
+        segment.setUnchecked(index, value)
+    }
+
+    override fun setUnchecked(segment: Segment, index: Int, b0: Byte, b1: Byte) {
+        segment.setUnchecked(index, b0, b1)
+    }
+
+    override fun setUnchecked(segment: Segment, index: Int, b0: Byte, b1: Byte, b2: Byte) {
+        segment.setUnchecked(index, b0, b1, b2)
+    }
+
+    override fun setUnchecked(segment: Segment, index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
+        segment.setUnchecked(index, b0, b1, b2, b3)
+    }
+}
+

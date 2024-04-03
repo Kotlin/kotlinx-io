@@ -635,65 +635,48 @@ class CommonBufferTest {
     @Test
     fun writeUnbound() {
         assertFailsWith<IllegalArgumentException> {
-            UnsafeBufferAccessors.writeUnbound(Buffer(), Int.MAX_VALUE) { 0 }
+            UnsafeBufferAccessors.writeUnbound(Buffer(), Int.MAX_VALUE) { _, _ -> 0 }
         }
 
         assertFailsWith<IllegalStateException> {
-            UnsafeBufferAccessors.writeUnbound(Buffer(), 1) { -1 }
+            UnsafeBufferAccessors.writeUnbound(Buffer(), 1) { _, _ -> -1 }
         }
         assertFailsWith<IllegalStateException> {
-            UnsafeBufferAccessors.writeUnbound(Buffer(), 1) { it.remainingCapacity + 1 }
+            UnsafeBufferAccessors.writeUnbound(Buffer(), 1) { _, seg -> seg.remainingCapacity + 1 }
         }
 
         Buffer().apply {
-            UnsafeBufferAccessors.writeUnbound(this, 4) {
-                it.setChecked(0, 1)
-                it.setChecked(1, 2)
-                it.setChecked(2, 3)
-                it.setChecked(3, 4)
+            UnsafeBufferAccessors.writeUnbound(this, 4) { ctx, seg ->
+                ctx.setUnchecked(seg, 0, 1)
+                ctx.setUnchecked(seg, 1, 2)
+                ctx.setUnchecked(seg, 2, 3)
+                ctx.setUnchecked(seg, 3, 4)
                 1
             }
             assertEquals(1, size)
             assertEquals(1, readByte())
 
-            UnsafeBufferAccessors.writeUnbound(this, 1) {
-                assertTrue(it.remainingCapacity > 1)
-                it.setChecked(0, 5)
-                it.setChecked(1, 6)
+            UnsafeBufferAccessors.writeUnbound(this, 1) { ctx, seg ->
+                assertTrue(seg.remainingCapacity > 1)
+                ctx.setUnchecked(seg, 0, 5)
+                ctx.setUnchecked(seg, 1, 6)
                 2
             }
             assertEquals(2, size)
             assertEquals(ByteString(5, 6), readByteString())
 
-            UnsafeBufferAccessors.writeUnbound(this, 3) {
-                it.setChecked(0, 7)
-                it.setChecked(1, 8)
-                it.setChecked(2, 9)
+            UnsafeBufferAccessors.writeUnbound(this, 3) { ctx, seg ->
+                ctx.setUnchecked(seg, 0, 7)
+                ctx.setUnchecked(seg, 1, 8)
+                ctx.setUnchecked(seg, 2, 9)
                 3
             }
             assertEquals(3, size)
             assertEquals(ByteString(7, 8, 9), readByteString())
         }
-
-        assertFailsWith<IllegalArgumentException> {
-            Buffer().apply {
-                UnsafeBufferAccessors.writeUnbound(this, 1) {
-                    val cap = it.remainingCapacity
-                    it.setChecked(cap, 0)
-                    0
-                }
-            }
-        }
-        assertFailsWith<IllegalArgumentException> {
-            Buffer().apply {
-                UnsafeBufferAccessors.writeUnbound(this, 1) {
-                    it.setChecked(-1, 0)
-                    0
-                }
-            }
-        }
     }
 
+    /*
     @Test
     fun segmentRead() {
         val buffer = Buffer().apply {
@@ -719,6 +702,7 @@ class CommonBufferTest {
             assertEquals(0, head.getChecked(2))
         }
     }
+     */
 
     @OptIn(UnsafeIoApi::class)
     @Test

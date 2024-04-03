@@ -100,7 +100,6 @@ public final class kotlinx/io/Segment {
 	public field limit I
 	public field pos I
 	public final fun dataAsByteArray ()[B
-	public final fun getChecked (I)B
 	public final fun getRawData ()Ljava/lang/Object;
 	public final fun getRemainingCapacity ()I
 	public final fun getSize ()I
@@ -113,15 +112,6 @@ public final class kotlinx/io/Segment {
 
 public final class kotlinx/io/SegmentKt {
 	public static final fun isEmpty (Lkotlinx/io/Segment;)Z
-}
-
-public abstract interface class kotlinx/io/SegmentSetContext {
-	public abstract fun setChecked (Lkotlinx/io/Segment;IB)V
-}
-
-public final class kotlinx/io/SegmentSetContextImpl : kotlinx/io/SegmentSetContext {
-	public static final field INSTANCE Lkotlinx/io/SegmentSetContextImpl;
-	public fun setChecked (Lkotlinx/io/Segment;IB)V
 }
 
 public final class kotlinx/io/SegmentsJvmKt {
@@ -290,6 +280,23 @@ public final class kotlinx/io/files/PathsKt {
 	public static final fun sourceDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 }
 
+public abstract interface class kotlinx/io/unsafe/SegmentSetContext {
+	public abstract fun getUnchecked (Lkotlinx/io/Segment;I)B
+	public abstract fun setUnchecked (Lkotlinx/io/Segment;IB)V
+	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBB)V
+	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBBB)V
+	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBBBB)V
+}
+
+public final class kotlinx/io/unsafe/SegmentSetContextImpl : kotlinx/io/unsafe/SegmentSetContext {
+	public static final field INSTANCE Lkotlinx/io/unsafe/SegmentSetContextImpl;
+	public fun getUnchecked (Lkotlinx/io/Segment;I)B
+	public fun setUnchecked (Lkotlinx/io/Segment;IB)V
+	public fun setUnchecked (Lkotlinx/io/Segment;IBB)V
+	public fun setUnchecked (Lkotlinx/io/Segment;IBBB)V
+	public fun setUnchecked (Lkotlinx/io/Segment;IBBBB)V
+}
+
 public final class kotlinx/io/unsafe/UnsafeBufferAccessors {
 	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeBufferAccessors;
 	public final fun writeUnbound (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function2;)V
@@ -297,14 +304,9 @@ public final class kotlinx/io/unsafe/UnsafeBufferAccessors {
 
 public final class kotlinx/io/unsafe/UnsafeSegmentAccessors {
 	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeSegmentAccessors;
-	public final fun getUnchecked (Lkotlinx/io/Segment;I)B
 	public final fun head (Lkotlinx/io/Buffer;)Lkotlinx/io/Segment;
 	public final fun next (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
 	public final fun prev (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
-	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IB)V
-	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IBB)V
-	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IBBB)V
-	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IBBBB)V
 	public final fun tail (Lkotlinx/io/Buffer;)Lkotlinx/io/Segment;
 	public final fun withSegmentData (Lkotlinx/io/Segment;Lkotlin/jvm/functions/Function3;)Ljava/lang/Object;
 }

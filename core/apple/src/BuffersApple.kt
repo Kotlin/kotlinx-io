@@ -21,9 +21,9 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
 
     var currentOffset = 0
     while (currentOffset < maxLength) {
-        UnsafeBufferAccessors.writeUnbound(this , 1) {
-            val toCopy = minOf(maxLength - currentOffset, it.remainingCapacity)
-            it.withContainedData { data, _, limit ->
+        UnsafeBufferAccessors.writeUnbound(this , 1) { _, segment ->
+            val toCopy = minOf(maxLength - currentOffset, segment.remainingCapacity)
+            segment.withContainedData { data, _, limit ->
                 when (data) {
                     is ByteArray -> {
                         data.usePinned {
