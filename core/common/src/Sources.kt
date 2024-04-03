@@ -5,8 +5,6 @@
 
 package kotlinx.io
 
-import kotlinx.io.unsafe.UnsafeSegmentAccessors
-
 /**
  * Removes two bytes from this source and returns a short integer composed of it according to the little-endian order.
  *
@@ -60,7 +58,7 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDecimalLong
  */
-@OptIn(InternalIoApi::class, UnsafeIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readDecimalLong(): Long {
     require(1L)
 
@@ -91,7 +89,7 @@ public fun Source.readDecimalLong(): Long {
             var currIdx = (bufferOffset - offset).toInt()
             val size = seg.size
             while (currIdx < size) {
-                val b = UnsafeSegmentAccessors.getUnchecked(seg, currIdx)
+                val b = seg.getUnchecked(currIdx)
                 if (b in '0'.code..'9'.code) {
                     val digit = '0'.code - b
 
@@ -134,7 +132,7 @@ public fun Source.readDecimalLong(): Long {
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readHexLong
  */
-@OptIn(InternalIoApi::class, UnsafeIoApi::class)
+@OptIn(InternalIoApi::class)
 public fun Source.readHexadecimalUnsignedLong(): Long {
     require(1)
 
@@ -151,7 +149,7 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
             seg!!
             val startIndex = (bytesRead - offset).toInt()
             for (localOffset in startIndex until seg.size) {
-                val b = UnsafeSegmentAccessors.getUnchecked(seg, localOffset)
+                val b = seg.getUnchecked(localOffset)
                 val bDigit = when (b) {
                     in '0'.code..'9'.code -> b - '0'.code
                     in 'a'.code..'f'.code -> b - 'a'.code + 10

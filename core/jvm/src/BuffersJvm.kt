@@ -63,9 +63,9 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
     var remainingByteCount = byteCount
     var exchaused = false
     while (!exchaused && (remainingByteCount > 0L || forever)) {
-        UnsafeBufferAccessors.writeUnbound(this, 1) {
-            val maxToCopy = minOf(remainingByteCount, it.remainingCapacity).toInt()
-            it.withContainedData { data, _, limit ->
+        UnsafeBufferAccessors.writeUnbound(this, 1) { _, seg ->
+            val maxToCopy = minOf(remainingByteCount, seg.remainingCapacity).toInt()
+            seg.withContainedData { data, _, limit ->
                 when (data) {
                     is ByteArray -> {
                         val bytesRead = input.read(data, limit, maxToCopy)
@@ -245,10 +245,10 @@ public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
     var remaining = byteCount
     while (remaining > 0) {
-        UnsafeBufferAccessors.writeUnbound(this, 1) {
-            val toCopy = minOf(remaining, it.remainingCapacity)
+        UnsafeBufferAccessors.writeUnbound(this, 1) { _, seg ->
+            val toCopy = minOf(remaining, seg.remainingCapacity)
 
-            it.withContainedData { data, _, limit ->
+            seg.withContainedData { data, _, limit ->
                 when (data) {
                     is ByteArray -> {
                         source.get(data, limit, toCopy)

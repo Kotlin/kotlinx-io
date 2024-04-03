@@ -95,9 +95,9 @@ private open class NSInputStreamSource(
         checkByteCount(byteCount)
 
         var bytesRead = 0L
-        UnsafeBufferAccessors.writeUnbound(sink, 1) {
-            val maxToCopy = minOf(byteCount, it.remainingCapacity)
-            val read = it.withContainedData { data, _, limit ->
+        UnsafeBufferAccessors.writeUnbound(sink, 1) { _, segment ->
+            val maxToCopy = minOf(byteCount, segment.remainingCapacity)
+            val read = segment.withContainedData { data, _, limit ->
                 when (data) {
                     is ByteArray -> {
                         data.usePinned { ba ->

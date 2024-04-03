@@ -14,7 +14,7 @@ public object UnsafeBufferAccessors {
      * Actual number of bytes available for writing may exceed [minimumCapacity] and could be checked using
      * [Segment.remainingCapacity].
      *
-     * [block] can write into [Segment] using [SegmentSetContext.setChecked].
+     * [block] can write into [Segment] using [SegmentWriteContext.setChecked].
      * Data written into [Segment] will not be available for reading from the buffer until [block] returned.
      * A value returned from [block] represent the length of [Segment]'s prefix that should be appended to the buffer.
      * That value may be less or greater than [minimumCapacity], but it should be non-negative and should not exceed
@@ -33,9 +33,9 @@ public object UnsafeBufferAccessors {
      * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128
      * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128Array
      */
-    public inline fun writeUnbound(buffer: Buffer, minimumCapacity: Int, block: SegmentSetContext.(Segment) -> Int) {
+    public inline fun writeUnbound(buffer: Buffer, minimumCapacity: Int, block: (SegmentWriteContext, Segment) -> Int) {
         val segment = buffer.writableSegment(minimumCapacity)
-        val bytesWritten = block(SegmentSetContextImpl, segment)
+        val bytesWritten = block(SegmentWriteContextImpl, segment)
 
         // fast path
         if (bytesWritten == minimumCapacity) {

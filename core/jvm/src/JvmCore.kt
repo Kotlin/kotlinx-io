@@ -95,9 +95,9 @@ private open class InputStreamSource(
         checkByteCount(byteCount)
         try {
             var readTotal = 0L
-            UnsafeBufferAccessors.writeUnbound(sink, 1) {
-                val maxToCopy = minOf(byteCount, it.remainingCapacity).toInt()
-                it.withContainedData { data, _, limit ->
+            UnsafeBufferAccessors.writeUnbound(sink, 1) { _, seg ->
+                val maxToCopy = minOf(byteCount, seg.remainingCapacity).toInt()
+                seg.withContainedData { data, _, limit ->
                     when (data) {
                         is ByteArray -> {
                             readTotal = input.read(data, limit, maxToCopy).toLong()

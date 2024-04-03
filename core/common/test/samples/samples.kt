@@ -741,7 +741,7 @@ class KotlinxIoCoreCommonSamples {
         // https://en.wikipedia.org/wiki/LEB128
         fun Buffer.writeULEB128(value: UInt) {
             // update buffer's state after writing all bytes
-            UnsafeBufferAccessors.writeUnbound(this, 5 /* in the worst case, int will be encoded using 5 bytes */) {
+            UnsafeBufferAccessors.writeUnbound(this, 5 /* in the worst case, int will be encoded using 5 bytes */) { ctx, seg ->
                 var bytesWritten = 0
                 var remainingBits = value
                 do {
@@ -750,7 +750,7 @@ class KotlinxIoCoreCommonSamples {
                     if (remainingBits != 0u) {
                         b = 0x80u or b
                     }
-                    it.setChecked(bytesWritten++, b.toByte())
+                    ctx.setUnchecked(seg, bytesWritten++, b.toByte())
                 } while (remainingBits != 0u)
                 // return how many bytes were actually written
                 bytesWritten
@@ -765,7 +765,7 @@ class KotlinxIoCoreCommonSamples {
     @OptIn(UnsafeIoApi::class)
     private fun Buffer.writeULEB128(value: UInt) {
         // update buffer's state after writing all bytes
-        UnsafeBufferAccessors.writeUnbound(this, 5 /* in the worst case, int will be encoded using 5 bytes */) {
+        UnsafeBufferAccessors.writeUnbound(this, 5 /* in the worst case, int will be encoded using 5 bytes */) { ctx, seg ->
             var bytesWritten = 0
             var remainingBits = value
             do {
@@ -774,7 +774,7 @@ class KotlinxIoCoreCommonSamples {
                 if (remainingBits != 0u) {
                     b = 0x80u or b
                 }
-                it.setChecked(bytesWritten++, b.toByte())
+                ctx.setUnchecked(seg, bytesWritten++, b.toByte())
             } while (remainingBits != 0u)
             // return how many bytes were actually written
             bytesWritten
@@ -794,17 +794,17 @@ class KotlinxIoCoreCommonSamples {
                 // optimize small values encoding: anything below 127 will be encoded using a single byte anyway
                 if (value < 0x80u) {
                     // we need a space for a single byte, but if there's more - we'll try to fill it
-                    UnsafeBufferAccessors.writeUnbound(this, 1) {
+                    UnsafeBufferAccessors.writeUnbound(this, 1) { ctx, seg ->
                         var bytesWritten = 0
-                        it.setChecked(bytesWritten++, value.toByte())
+                        ctx.setUnchecked(seg, bytesWritten++, value.toByte())
 
                         // let's save as much succeeding small values as possible
                         val remainingDataLength = data.size - index
-                        val remainingCapacity = it.remainingCapacity - 1
+                        val remainingCapacity = seg.remainingCapacity - 1
                         for (i in 0 until min(remainingDataLength, remainingCapacity)) {
                             val b = data[index]
                             if (b >= 0x80u) break
-                            it.setChecked(bytesWritten++, b.toByte())
+                            ctx.setUnchecked(seg, bytesWritten++, b.toByte())
                             index++
                         }
                         bytesWritten
