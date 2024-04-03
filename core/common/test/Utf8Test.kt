@@ -325,6 +325,16 @@ class Utf8Test {
         assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(Segment.SIZE - 2))
+        buffer.write("f888808080".decodeHex())
+        buffer.skip(Segment.SIZE - 2L)
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertTrue(buffer.exhausted())
     }
 
     @Test
@@ -384,6 +394,44 @@ class Utf8Test {
         }
         assertEquals("Code point value is out of Unicode codespace 0..0x10ffff: 0xffffffff (-1)",
             ex.message)
+    }
+
+    @Test
+    fun readStringWithUnderflow() {
+        val buffer = Buffer()
+        // 3 byte-encoded, last byte missing
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "e183")
+        // 3 byte-encoded, last two bytes missing
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "e1")
+        // 2 byte-encoded, last byte missing
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "cf")
+        // 4 byte encoded, various underflows
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "f09383")
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "f093")
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "f0")
+    }
+
+    @Test
+    fun readStringWithoutContinuationByte() {
+        val buffer = Buffer()
+        // 2 byte-encoded, last byte corrupted
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}a", "cf61")
+        // 3 byte-encoded, last byte corrupted
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}a", "e18361")
+        // 3 byte-encoded, last two bytes corrupted
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}aa", "e16161")
+        // 4 byte-encoded, various bytes corrupterd
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}a", "f0938361")
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}aa", "f0936161")
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}aaa", "f0616161")
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun encodeUtf16SurrogatePair() {
+        val buffer = Buffer()
+        buffer.writeString("\uD852\uDF62")
+        println(buffer.readByteArray().toHexString())
     }
 
     @Test
