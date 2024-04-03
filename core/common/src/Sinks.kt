@@ -8,7 +8,9 @@ package kotlinx.io
 import kotlinx.io.unsafe.UnsafeBufferAccessors
 import kotlinx.io.unsafe.UnsafeSegmentAccessors
 
-private val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
+private val HEX_DIGIT_BYTES = ByteArray(16) {
+    ((if (it < 10) '0'.code else ('a'.code - 10)) + it).toByte()
+}
 internal val HEX_DIGIT_BYTES_LONG = ByteArray(256) {
     if (it < HEX_DIGIT_BYTES.size) HEX_DIGIT_BYTES[it]
     else -1

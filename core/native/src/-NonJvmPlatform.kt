@@ -20,10 +20,6 @@
  */
 package kotlinx.io
 
-import kotlinx.io.internal.commonAsUtf8ToByteArray
-
-internal actual fun String.asUtf8ToByteArray(): ByteArray = commonAsUtf8ToByteArray()
-
 public actual open class IOException : Exception {
     public actual constructor() : super()
 

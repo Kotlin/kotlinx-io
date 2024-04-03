@@ -21,8 +21,6 @@
 
 package kotlinx.io
 
-internal actual fun String.asUtf8ToByteArray(): ByteArray = toByteArray(Charsets.UTF_8)
-
 public actual typealias IOException = java.io.IOException
 
 public actual typealias EOFException = java.io.EOFException
