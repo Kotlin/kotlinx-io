@@ -105,6 +105,9 @@ public final class kotlinx/io/Segment {
 	public final fun getSize ()I
 	public final fun pop ()Lkotlinx/io/Segment;
 	public final fun setUnchecked (IB)V
+	public final fun setUnchecked (IBB)V
+	public final fun setUnchecked (IBBB)V
+	public final fun setUnchecked (IBBBB)V
 }
 
 public final class kotlinx/io/SegmentKt {
@@ -295,6 +298,9 @@ public final class kotlinx/io/unsafe/UnsafeSegmentAccessors {
 	public final fun next (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
 	public final fun prev (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
 	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IB)V
+	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IBB)V
+	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IBBB)V
+	public final fun setUnchecked (Lkotlinx/io/SegmentSetContext;Lkotlinx/io/Segment;IBBBB)V
 	public final fun tail (Lkotlinx/io/Buffer;)Lkotlinx/io/Segment;
 }
 
