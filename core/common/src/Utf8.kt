@@ -72,6 +72,7 @@ package kotlinx.io
 import kotlinx.io.internal.*
 import kotlinx.io.unsafe.UnsafeBufferAccessors
 import kotlinx.io.unsafe.UnsafeSegmentAccessors
+import kotlin.math.min
 
 /**
  * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeString].
@@ -622,6 +623,7 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
     }
 }
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.commonReadUtf8(byteCount: Long): String {
     require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
         "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
@@ -635,7 +637,9 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
         return readByteArray(byteCount.toInt()).commonToUtf8String()
     }
 
-    val result = s.commonToUtf8String(0, byteCount.toInt())
+    val result = UnsafeSegmentAccessors.withSegmentData(s) { data, pos, limit ->
+        data.commonToUtf8String(pos, min(limit, pos + byteCount.toInt()))
+    }
     skip(byteCount)
     return result
 }

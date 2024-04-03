@@ -94,4 +94,8 @@ public object UnsafeSegmentAccessors {
      * @param segment the segment whose predecessor should be returned.
      */
     public fun prev(segment: Segment): Segment? = segment.prev
+
+    public inline fun <T> withSegmentData(segment: Segment, block: (ByteArray, Int, Int) -> T): T {
+        return block(segment.dataAsByteArray(), segment.pos, segment.limit)
+    }
 }
