@@ -8,7 +8,7 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
-import kotlinx.io.unsafe.UnsafeBufferAccessors
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.Foundation.NSInputStream
 import platform.Foundation.NSOutputStream
 import platform.Foundation.NSStreamStatusClosed
@@ -38,21 +38,16 @@ private open class OutputStreamSink(
 
         checkOffsetAndCount(source.size, 0, byteCount)
         var remaining = byteCount
+        var bytesWritten = 0L
         while (remaining > 0) {
-            val head = source.head!!
-            val toCopy = minOf(remaining, head.size).toInt()
-            val bytesWritten = head.withContainedData { data, pos, _ ->
-                when (data) {
-                    is ByteArray -> {
-                        data.usePinned {
-                            val bytes = it.addressOf(pos).reinterpret<uint8_tVar>()
-                            out.write(bytes, toCopy.convert()).toLong()
-                        }
-                    }
-                    else -> TODO()
+            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+                val toCopy = minOf(remaining, limit - pos).toInt()
+                bytesWritten = data.usePinned {
+                    val bytes = it.addressOf(pos).reinterpret<uint8_tVar>()
+                    out.write(bytes, toCopy.convert()).toLong()
                 }
+                0
             }
-
             if (bytesWritten < 0L) throw IOException(out.streamError?.localizedDescription ?: "Unknown error")
             if (bytesWritten == 0L) throw IOException("NSOutputStream reached capacity")
 
@@ -95,18 +90,11 @@ private open class NSInputStreamSource(
         checkByteCount(byteCount)
 
         var bytesRead = 0L
-        UnsafeBufferAccessors.writeUnbound(sink, 1) { _, segment ->
-            val maxToCopy = minOf(byteCount, segment.remainingCapacity)
-            val read = segment.withContainedData { data, _, limit ->
-                when (data) {
-                    is ByteArray -> {
-                        data.usePinned { ba ->
-                            val bytes = ba.addressOf(limit).reinterpret<uint8_tVar>()
-                            input.read(bytes, maxToCopy.convert()).toLong()
-                        }
-                    }
-                    else -> TODO()
-                }
+        UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
+            val maxToCopy = minOf(byteCount, limit - pos)
+            val read = data.usePinned { ba ->
+                val bytes = ba.addressOf(pos).reinterpret<uint8_tVar>()
+                input.read(bytes, maxToCopy.convert()).toLong()
             }
             bytesRead = read
             maxOf(read.toInt(), 0)

@@ -76,12 +76,14 @@ public class Segment {
      * Next segment or `null` if this segment is the tail of a list.
      */
     @JvmField
+    @PublishedApi
     internal var next: Segment? = null
 
     /**
      * Previous segment or `null` if this segment is the head of a list.
      */
     @JvmField
+    @PublishedApi
     internal var prev: Segment? = null
 
     internal constructor() {

@@ -21,7 +21,7 @@
 
 package kotlinx.io
 
-import kotlinx.io.unsafe.UnsafeBufferAccessors
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -45,27 +45,12 @@ private open class OutputStreamSink(
         var remaining = byteCount
         while (remaining > 0) {
             // kotlinx.io TODO: detect Interruption.
-            val head = source.head!!
-            val toCopy = minOf(remaining, head.size).toInt()
-
-            head.withContainedData { data, pos, _ ->
-                when (data) {
-                    is ByteArray -> {
-                        out.write(data, pos, toCopy)
-                    }
-                    else -> {
-                        TODO()
-                        /*
-                        for (idx in 0 until toCopy) {
-                            out.write(head[idx].toInt())
-                        }
-                         */
-                    }
-                }
+            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+                val toCopy = minOf(remaining, limit - pos).toInt()
+                out.write(data, pos, toCopy)
+                remaining -= toCopy
+                toCopy
             }
-
-            remaining -= toCopy
-            source.skip(toCopy.toLong())
         }
     }
 
@@ -95,31 +80,13 @@ private open class InputStreamSource(
         checkByteCount(byteCount)
         try {
             var readTotal = 0L
-            UnsafeBufferAccessors.writeUnbound(sink, 1) { _, seg ->
-                val maxToCopy = minOf(byteCount, seg.remainingCapacity).toInt()
-                seg.withContainedData { data, _, limit ->
-                    when (data) {
-                        is ByteArray -> {
-                            readTotal = input.read(data, limit, maxToCopy).toLong()
-                            if (readTotal == -1L) {
-                                0
-                            } else {
-                                readTotal.toInt()
-                            }
-                        }
-                        else -> {
-                            TODO()
-                            /*
-                            while (readTotal < maxToCopy) {
-                                val b = input.read()
-                                if (b == -1) break
-                                it[readTotal.toInt()] = b.toByte()
-                                readTotal++
-                            }
-                            readTotal.toInt()
-                             */
-                        }
-                    }
+            UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
+                val maxToCopy = minOf(byteCount, limit - pos).toInt()
+                readTotal = input.read(data, pos, maxToCopy).toLong()
+                if (readTotal == -1L) {
+                    0
+                } else {
+                    readTotal.toInt()
                 }
             }
             return readTotal

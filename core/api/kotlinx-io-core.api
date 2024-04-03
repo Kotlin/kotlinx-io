@@ -39,6 +39,10 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun writeShort (S)V
 }
 
+public final class kotlinx/io/BufferKt {
+	public static final fun seek (Lkotlinx/io/Buffer;JLkotlin/jvm/functions/Function2;)Ljava/lang/Object;
+}
+
 public final class kotlinx/io/BuffersJvmKt {
 	public static final fun asByteChannel (Lkotlinx/io/Buffer;)Ljava/nio/channels/ByteChannel;
 	public static final fun copyTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJ)V
@@ -98,7 +102,9 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 
 public final class kotlinx/io/Segment {
 	public field limit I
+	public field next Lkotlinx/io/Segment;
 	public field pos I
+	public field prev Lkotlinx/io/Segment;
 	public final fun dataAsByteArray ()[B
 	public final fun getRawData ()Ljava/lang/Object;
 	public final fun getRemainingCapacity ()I
@@ -112,10 +118,6 @@ public final class kotlinx/io/Segment {
 
 public final class kotlinx/io/SegmentKt {
 	public static final fun isEmpty (Lkotlinx/io/Segment;)Z
-}
-
-public final class kotlinx/io/SegmentsJvmKt {
-	public static final fun withContainedData (Lkotlinx/io/Segment;Lkotlin/jvm/functions/Function3;)Ljava/lang/Object;
 }
 
 public abstract interface class kotlinx/io/Sink : kotlinx/io/RawSink {
@@ -280,34 +282,54 @@ public final class kotlinx/io/files/PathsKt {
 	public static final fun sourceDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 }
 
-public abstract interface class kotlinx/io/unsafe/SegmentSetContext {
+public abstract interface class kotlinx/io/unsafe/BufferIterationContext {
+	public abstract fun next (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
+	public abstract fun prev (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
+}
+
+public final class kotlinx/io/unsafe/BufferIterationContextImpl : kotlinx/io/unsafe/BufferIterationContext {
+	public static final field INSTANCE Lkotlinx/io/unsafe/BufferIterationContextImpl;
+	public fun next (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
+	public fun prev (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
+}
+
+public abstract interface class kotlinx/io/unsafe/SegmentReadContext {
 	public abstract fun getUnchecked (Lkotlinx/io/Segment;I)B
+}
+
+public final class kotlinx/io/unsafe/SegmentReadContextImpl : kotlinx/io/unsafe/SegmentReadContext {
+	public static final field INSTANCE Lkotlinx/io/unsafe/SegmentReadContextImpl;
+	public fun getUnchecked (Lkotlinx/io/Segment;I)B
+}
+
+public abstract interface class kotlinx/io/unsafe/SegmentWriteContext {
 	public abstract fun setUnchecked (Lkotlinx/io/Segment;IB)V
 	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBB)V
 	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBBB)V
 	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBBBB)V
 }
 
-public final class kotlinx/io/unsafe/SegmentSetContextImpl : kotlinx/io/unsafe/SegmentSetContext {
-	public static final field INSTANCE Lkotlinx/io/unsafe/SegmentSetContextImpl;
-	public fun getUnchecked (Lkotlinx/io/Segment;I)B
+public final class kotlinx/io/unsafe/SegmentWriteContextImpl : kotlinx/io/unsafe/SegmentWriteContext {
+	public static final field INSTANCE Lkotlinx/io/unsafe/SegmentWriteContextImpl;
 	public fun setUnchecked (Lkotlinx/io/Segment;IB)V
 	public fun setUnchecked (Lkotlinx/io/Segment;IBB)V
 	public fun setUnchecked (Lkotlinx/io/Segment;IBBB)V
 	public fun setUnchecked (Lkotlinx/io/Segment;IBBBB)V
 }
 
-public final class kotlinx/io/unsafe/UnsafeBufferAccessors {
-	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeBufferAccessors;
-	public final fun writeUnbound (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function2;)V
+public final class kotlinx/io/unsafe/UnsafeBufferAccessorsKt {
+	public static final fun read (Lkotlinx/io/unsafe/BufferIterationContext;Lkotlinx/io/Segment;Lkotlin/jvm/functions/Function2;)V
+	public static final fun withData (Lkotlinx/io/unsafe/SegmentReadContext;Lkotlinx/io/Segment;Lkotlin/jvm/functions/Function3;)V
 }
 
-public final class kotlinx/io/unsafe/UnsafeSegmentAccessors {
-	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeSegmentAccessors;
-	public final fun head (Lkotlinx/io/Buffer;)Lkotlinx/io/Segment;
-	public final fun next (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
-	public final fun prev (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
-	public final fun tail (Lkotlinx/io/Buffer;)Lkotlinx/io/Segment;
-	public final fun withSegmentData (Lkotlinx/io/Segment;Lkotlin/jvm/functions/Function3;)Ljava/lang/Object;
+public final class kotlinx/io/unsafe/UnsafeBufferOperations {
+	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeBufferOperations;
+	public final fun head (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V
+	public final fun readFromHead (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V
+	public final fun readFromHead (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function3;)V
+	public final fun seek (Lkotlinx/io/Buffer;JLkotlin/jvm/functions/Function3;)V
+	public final fun tail (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V
+	public final fun writeToTail (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function2;)V
+	public final fun writeToTail (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function3;)V
 }
 

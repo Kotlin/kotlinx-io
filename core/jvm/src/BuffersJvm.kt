@@ -20,7 +20,9 @@
  */
 package kotlinx.io
 
-import kotlinx.io.unsafe.UnsafeBufferAccessors
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.read
+import kotlinx.io.unsafe.withData
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -63,45 +65,20 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
     var remainingByteCount = byteCount
     var exchaused = false
     while (!exchaused && (remainingByteCount > 0L || forever)) {
-        UnsafeBufferAccessors.writeUnbound(this, 1) { _, seg ->
-            val maxToCopy = minOf(remainingByteCount, seg.remainingCapacity).toInt()
-            seg.withContainedData { data, _, limit ->
-                when (data) {
-                    is ByteArray -> {
-                        val bytesRead = input.read(data, limit, maxToCopy)
-                        if (bytesRead == -1) {
-                            if (!forever) {
-                                throw  EOFException("Stream exhausted before $byteCount bytes were read.")
-                            }
-                            exchaused = true
-                            0
-                        } else {
-                            remainingByteCount -= bytesRead
-                            bytesRead
-                        }
-                    }
-                    else -> {
-                        /*
-                        var bytesRead = 0
-                        while (bytesRead < maxToCopy) {
-                            val b = input.read()
-                            if (b == -1) {
-                                if (!forever) {
-                                    throw EOFException("Stream exhausted before $byteCount bytes were read.")
-                                }
-                                exchaused = true
-                                break
-                            }
-                            it[bytesRead++] = b.toByte()
-                        }
-                        bytesRead
-                         */
-                        TODO()
-                    }
+        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+            val maxToCopy = minOf(remainingByteCount, limit - pos).toInt()
+            val bytesRead = input.read(data, pos, maxToCopy)
+            if (bytesRead == -1) {
+                if (!forever) {
+                    throw  EOFException("Stream exhausted before $byteCount bytes were read.")
                 }
+                exchaused = true
+                0
+            } else {
+                remainingByteCount -= bytesRead
+                bytesRead
             }
         }
-
     }
 }
 
@@ -121,27 +98,12 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
     var remainingByteCount = byteCount
 
     while (remainingByteCount > 0L) {
-        val s = this.head
-        val toCopy = minOf(remainingByteCount, s!!.size).toInt()
-
-        s.withContainedData { data, pos, _ ->
-            when (data) {
-                is ByteArray -> {
-                    out.write(data, pos, toCopy)
-                }
-                else -> {
-                    TODO()
-                    /*
-                    for (idx in 0 until toCopy) {
-                        out.write(s[idx].toInt())
-                    }
-                     */
-                }
-            }
+        UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+            val toCopy = minOf(remainingByteCount, limit - pos).toInt()
+            out.write(data, pos, toCopy)
+            remainingByteCount -= toCopy
+            toCopy
         }
-        skip(toCopy.toLong())
-
-        remainingByteCount -= toCopy.toLong()
     }
 }
 
@@ -167,38 +129,22 @@ public fun Buffer.copyTo(
     checkBounds(size, startIndex, endIndex)
     if (startIndex == endIndex) return
 
-    var currentOffset = startIndex
     var remainingByteCount = endIndex - startIndex
 
-    // Skip segments that we aren't copying from.
-    var s = this.head ?: throw IllegalStateException()
-    while (currentOffset >= s.limit - s.pos) {
-        currentOffset -= (s.limit - s.pos).toLong()
-        s = s.next ?: break
-    }
-
-    // Copy from one segment at a time.
-    while (remainingByteCount > 0L) {
-        val pos = (s.pos + currentOffset).toInt()
-        val toCopy = minOf(s.limit - pos, remainingByteCount).toInt()
-        s.withContainedData { data, _, _ ->
-            when (data) {
-                is ByteArray -> {
-                    out.write(data, pos, toCopy)
-                }
-                else -> {
-                    TODO()
-                    /*
-                    for (idx in currentOffset until toCopy) {
-                        out.write(s[idx.toInt()].toInt())
-                    }
-                     */
+    UnsafeBufferOperations.seek(this, startIndex) { ctx, seg, segOffset ->
+        var curr = seg!!
+        var currentOffset = (startIndex - segOffset).toInt()
+        while (remainingByteCount > 0) {
+            ctx.read(curr) { rctx, rseg ->
+                rctx.withData(rseg) { data, pos, limit ->
+                    val toCopy = minOf(limit - pos - currentOffset, remainingByteCount).toInt()
+                    out.write(data, pos + currentOffset, toCopy)
+                    remainingByteCount -= toCopy
                 }
             }
+            curr = ctx.next(curr) ?: break
+            currentOffset = 0
         }
-        remainingByteCount -= toCopy.toLong()
-        currentOffset = 0L
-        s = s.next ?: break
     }
 }
 
@@ -212,26 +158,13 @@ public fun Buffer.copyTo(
  */
 @OptIn(UnsafeIoApi::class)
 public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
-    val s = this.head ?: return -1
-
-    val toCopy = minOf(sink.remaining(), s.size)
-    s.withContainedData { data, pos, _ ->
-        when (data) {
-            is ByteArray -> {
-                sink.put(data, pos, toCopy)
-            }
-            else -> {
-                TODO()
-                /*
-                for (idx in 0 until toCopy) {
-                    sink.put(s[idx])
-                }
-                 */
-            }
-        }
+    if (exhausted()) return -1
+    var toCopy = 0
+    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        toCopy = minOf(sink.remaining(), limit - pos)
+        sink.put(data, pos, toCopy)
+        toCopy
     }
-
-    skip(toCopy.toLong())
     return toCopy
 }
 
@@ -245,24 +178,9 @@ public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
     var remaining = byteCount
     while (remaining > 0) {
-        UnsafeBufferAccessors.writeUnbound(this, 1) { _, seg ->
-            val toCopy = minOf(remaining, seg.remainingCapacity)
-
-            seg.withContainedData { data, _, limit ->
-                when (data) {
-                    is ByteArray -> {
-                        source.get(data, limit, toCopy)
-                    }
-                    else -> {
-                        TODO()
-                        /*
-                        for (idx in 0 until toCopy) {
-                            it[idx] = source.get()
-                        }
-                         */
-                    }
-                }
-            }
+        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+            val toCopy = minOf(remaining, limit - pos)
+            source.get(data, pos, toCopy)
             remaining -= toCopy
             toCopy
         }

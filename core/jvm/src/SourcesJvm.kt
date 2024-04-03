@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.io.EOFException
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -36,41 +37,21 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
     }
     if (byteCount == 0L) return ""
 
-    val s = this.head!!
-    if (s.pos + byteCount > s.limit) {
-        // If the string spans multiple segments, delegate to readBytes().
-        return String(readByteArray(byteCount.toInt()), charset)
-    }
-
-    val result = s.withContainedData { data, pos, _ ->
-        when (data) {
-            is ByteArray -> {
-                String(data, pos, byteCount.toInt(), charset)
-            }
-            else -> {
-                TODO()
-                /*
-                val ba = ByteArray(byteCount.toInt())
-                for (idx in 0 until byteCount.toInt()) {
-                    ba[idx] = s[idx]
-                }
-                String(ba, pos, byteCount.toInt(), charset)
-                 */
-            }
+    var result: String? = null
+    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        val len = limit - pos
+        if (len >= byteCount) {
+            result = String(data, pos, byteCount.toInt(), charset)
+            byteCount.toInt()
+        } else {
+            0
         }
     }
-    s.pos += byteCount.toInt()
-    sizeField -= byteCount
-
-    if (s.pos == s.limit) {
-        this.head = s.pop()
-        if (this.head == null) {
-            tail = null
-        }
-        SegmentPool.recycle(s)
+    return if (result == null) {
+        String(readByteArray(byteCount.toInt()), charset)
+    } else {
+        result!!
     }
-
-    return result
 }
 
 /**
