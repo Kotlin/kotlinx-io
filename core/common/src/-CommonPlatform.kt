@@ -21,8 +21,6 @@
 
 package kotlinx.io
 
-internal expect fun String.asUtf8ToByteArray(): ByteArray
-
 /**
  * Signals about a general issue occurred during I/O operation.
  */

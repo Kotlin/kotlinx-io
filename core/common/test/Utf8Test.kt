@@ -21,8 +21,8 @@
 
 package kotlinx.io
 
+import kotlinx.io.internal.REPLACEMENT_CHARACTER
 import kotlinx.io.internal.REPLACEMENT_CODE_POINT
-import kotlinx.io.internal.commonAsUtf8ToByteArray
 import kotlinx.io.internal.processUtf8CodePoints
 import kotlin.test.*
 
@@ -144,52 +144,109 @@ class Utf8Test {
 
     @Test
     fun bufferWriteCodePoints() {
+        bufferWriteCodePointsCheck(0)
+    }
+
+    @Test
+    fun bufferWriteCodePointsCrossSegments() {
+        bufferWriteCodePointsCheck(Segment.SIZE - 1)
+    }
+
+    private fun bufferWriteCodePointsCheck(prefixLength: Int) {
         val buffer = Buffer()
-        buffer.assertCodePointEncoded("40", '@'.code)
-        buffer.assertCodePointEncoded("7f", '\u007f'.code)
-        buffer.assertCodePointEncoded("c280", '\u0080'.code)
-        buffer.assertCodePointEncoded("c2a9", '\u00a9'.code)
-        buffer.assertCodePointEncoded("c3bf", '\u00ff'.code)
-        buffer.assertCodePointEncoded("dfbf", '\u07ff'.code)
-        buffer.assertCodePointEncoded("e0a080", '\u0800'.code)
-        buffer.assertCodePointEncoded("e1839a", '\u10da'.code)
-        buffer.assertCodePointEncoded("efbfbf", '\uffff'.code)
-        buffer.assertCodePointEncoded("f0908080", 0x10000)
-        buffer.assertCodePointEncoded("f48087bf", 0x1001FF)
+        buffer.assertCodePointEncoded("40", '@'.code, prefixLength)
+        buffer.assertCodePointEncoded("7f", '\u007f'.code, prefixLength)
+        buffer.assertCodePointEncoded("c280", '\u0080'.code, prefixLength)
+        buffer.assertCodePointEncoded("c2a9", '\u00a9'.code, prefixLength)
+        buffer.assertCodePointEncoded("c3bf", '\u00ff'.code, prefixLength)
+        buffer.assertCodePointEncoded("dfbf", '\u07ff'.code, prefixLength)
+        buffer.assertCodePointEncoded("e0a080", '\u0800'.code, prefixLength)
+        buffer.assertCodePointEncoded("e1839a", '\u10da'.code, prefixLength)
+        buffer.assertCodePointEncoded("efbfbf", '\uffff'.code, prefixLength)
+        buffer.assertCodePointEncoded("f0908080", 0x10000, prefixLength)
+        buffer.assertCodePointEncoded("f48087bf", 0x1001FF, prefixLength)
     }
 
     @Test
     fun bufferReadCodePoints() {
+        bufferReadCodePointsCheck(0)
+    }
+
+    @Test
+    fun bufferReadCodePointsCrossSegments() {
+        bufferReadCodePointsCheck(Segment.SIZE - 1)
+    }
+
+    private fun bufferReadCodePointsCheck(prefixLength: Int) {
         val buffer = Buffer()
-        buffer.assertCodePointDecoded('@'.code, "40")
-        buffer.assertCodePointDecoded('\u007f'.code, "7f")
-        buffer.assertCodePointDecoded('\u0080'.code, "c280")
-        buffer.assertCodePointDecoded('\u00a9'.code, "c2a9")
-        buffer.assertCodePointDecoded('\u00ff'.code, "c3bf")
-        buffer.assertCodePointDecoded('\u07ff'.code, "dfbf")
-        buffer.assertCodePointDecoded('\u0800'.code, "e0a080")
-        buffer.assertCodePointDecoded('\u10da'.code, "e1839a")
-        buffer.assertCodePointDecoded('\uffff'.code, "efbfbf")
-        buffer.assertCodePointDecoded(0x10000, "f0908080")
-        buffer.assertCodePointDecoded(0x1001FF, "f48087bf")
+        buffer.assertCodePointDecoded('@'.code, "40", prefixLength)
+        buffer.assertCodePointDecoded('\u007f'.code, "7f", prefixLength)
+        buffer.assertCodePointDecoded('\u0080'.code, "c280", prefixLength)
+        buffer.assertCodePointDecoded('\u00a9'.code, "c2a9", prefixLength)
+        buffer.assertCodePointDecoded('\u00ff'.code, "c3bf", prefixLength)
+        buffer.assertCodePointDecoded('\u07ff'.code, "dfbf", prefixLength)
+        buffer.assertCodePointDecoded('\u0800'.code, "e0a080", prefixLength)
+        buffer.assertCodePointDecoded('\u10da'.code, "e1839a", prefixLength)
+        buffer.assertCodePointDecoded('\uffff'.code, "efbfbf", prefixLength)
+        buffer.assertCodePointDecoded(0x10000, "f0908080", prefixLength)
+        buffer.assertCodePointDecoded(0x1001FF, "f48087bf", prefixLength)
     }
 
     @Test
     fun bufferWriteUtf8String() {
+        bufferWriteUtf8StringCheck(0)
+    }
+
+    @Test
+    fun bufferWriteUtf8StringCrossSegments() {
+        bufferWriteUtf8StringCheck(Segment.SIZE - 1)
+    }
+
+    private fun bufferWriteUtf8StringCheck(prefixLength: Int) {
         val buffer = Buffer()
-        buffer.assertUtf8StringEncoded("68656c6c6f", "hello")
-        buffer.assertUtf8StringEncoded("cf87ceb5cf81ceb5cf84ceb9cf83cebccf8ccf82", "χερετισμός")
+        buffer.assertUtf8StringEncoded("68656c6c6f", "hello", prefixLength)
+        buffer.assertUtf8StringEncoded("cf87ceb5cf81ceb5cf84ceb9cf83cebccf8ccf82", "χερετισμός",
+            prefixLength)
         buffer.assertUtf8StringEncoded(
             "e18392e18390e1839be18390e183a0e183afe1839de18391e18390",
-            "გამარჯობა"
+            "გამარჯობა",
+            prefixLength
         )
         buffer.assertUtf8StringEncoded(
             "f093878bf0938bb4f09380a5",
-            "\uD80C\uDDCB\uD80C\uDEF4\uD80C\uDC25" /* 𓇋𓋴𓀥, to hail, AN EGYPTIAN HIEROGLYPHIC DICTIONARY, p. 79b */
+            "\uD80C\uDDCB\uD80C\uDEF4\uD80C\uDC25",/* 𓇋𓋴𓀥, to hail, AN EGYPTIAN HIEROGLYPHIC DICTIONARY, p. 79b */
+            prefixLength
         )
 
         // two consecutive high surrogates, replace with '?'
-        buffer.assertUtf8StringEncoded("3f3f", "\ud801\uD801")
+        buffer.assertUtf8StringEncoded("3f3f", "\ud801\uD801", prefixLength)
+    }
+
+    @Test
+    fun bufferReadUtf8String() {
+        bufferReadUtf8StringCheck(0)
+    }
+
+    @Test
+    fun bufferReadUtf8StringCrossSegments() {
+        bufferReadUtf8StringCheck(Segment.SIZE - 1)
+    }
+
+    private fun bufferReadUtf8StringCheck(prefixLength: Int) {
+        val buffer = Buffer()
+        buffer.assertUtf8StringDecoded("hello","68656c6c6f",  prefixLength)
+        buffer.assertUtf8StringDecoded("χερετισμός", "cf87ceb5cf81ceb5cf84ceb9cf83cebccf8ccf82",
+            prefixLength)
+        buffer.assertUtf8StringDecoded(
+            "გამარჯობა",
+            "e18392e18390e1839be18390e183a0e183afe1839de18391e18390",
+            prefixLength
+        )
+        buffer.assertUtf8StringDecoded(
+            "\uD80C\uDDCB\uD80C\uDEF4\uD80C\uDC25",/* 𓇋𓋴𓀥, to hail, AN EGYPTIAN HIEROGLYPHIC DICTIONARY, p. 79b */
+            "f093878bf0938bb4f09380a5",
+            prefixLength
+        )
     }
 
     @Test
@@ -258,6 +315,16 @@ class Utf8Test {
         assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
         assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
         assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(Segment.SIZE - 2))
+        buffer.write("f888808080".decodeHex())
+        buffer.skip(Segment.SIZE - 2L)
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertTrue(buffer.exhausted())
     }
 
     @Test
@@ -307,6 +374,44 @@ class Utf8Test {
         }
     }
 
+    @Test
+    fun readStringWithUnderflow() {
+        val buffer = Buffer()
+        // 3 byte-encoded, last byte missing
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "e183")
+        // 3 byte-encoded, last two bytes missing
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "e1")
+        // 2 byte-encoded, last byte missing
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "cf")
+        // 4 byte encoded, various underflows
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "f09383")
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "f093")
+        buffer.assertUtf8StringDecoded(REPLACEMENT_CHARACTER.toString(), "f0")
+    }
+
+    @Test
+    fun readStringWithoutContinuationByte() {
+        val buffer = Buffer()
+        // 2 byte-encoded, last byte corrupted
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}a", "cf61")
+        // 3 byte-encoded, last byte corrupted
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}a", "e18361")
+        // 3 byte-encoded, last two bytes corrupted
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}aa", "e16161")
+        // 4 byte-encoded, various bytes corrupterd
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}a", "f0938361")
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}aa", "f0936161")
+        buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}aaa", "f0616161")
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun encodeUtf16SurrogatePair() {
+        val buffer = Buffer()
+        buffer.writeString("\uD852\uDF62")
+        println(buffer.readByteArray().toHexString())
+    }
+
     private fun assertEncoded(hex: String, vararg codePoints: Int) {
         assertCodePointDecoded(hex, *codePoints)
     }
@@ -321,19 +426,32 @@ class Utf8Test {
         assertEquals(i, codePoints.size) // Checked them all
     }
 
-    private fun Buffer.assertCodePointEncoded(expectedHex: String, codePoint: Int) {
+    private fun Buffer.assertCodePointEncoded(expectedHex: String, codePoint: Int, prefixLength: Int = 0) {
+        write(ByteArray(prefixLength))
         writeUtf8CodePoint(codePoint)
+        skip(prefixLength.toLong())
         assertArrayEquals(expectedHex.decodeHex(), readByteArray())
     }
 
-    private fun Buffer.assertCodePointDecoded(expectedCodePoint: Int, hex: String) {
+    private fun Buffer.assertCodePointDecoded(expectedCodePoint: Int, hex: String, prefixLength: Int = 0) {
+        write(ByteArray(prefixLength))
         write(hex.decodeHex())
+        skip(prefixLength.toLong())
         assertEquals(expectedCodePoint, readUtf8CodePoint())
     }
 
-    private fun Buffer.assertUtf8StringEncoded(expectedHex: String, string: String) {
+    private fun Buffer.assertUtf8StringEncoded(expectedHex: String, string: String, prefixLength: Int = 0) {
+        write(ByteArray(prefixLength))
         writeString(string)
+        skip(prefixLength.toLong())
         assertArrayEquals(expectedHex.decodeHex(), readByteArray())
+    }
+
+    private fun Buffer.assertUtf8StringDecoded(expectedString: String, hex: String, prefixLength: Int = 0) {
+        write(ByteArray(prefixLength))
+        write(hex.decodeHex())
+        skip(prefixLength.toLong())
+        assertEquals(expectedString, readString())
     }
 
     private fun assertStringEncoded(hex: String, string: String) {

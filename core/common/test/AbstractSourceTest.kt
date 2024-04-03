@@ -615,7 +615,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         val string = "abcd" + "e".repeat(Segment.SIZE)
         sink.writeString(string)
         sink.emit()
-        assertArrayEquals(string.asUtf8ToByteArray(), source.readByteArray())
+        assertArrayEquals(string.commonAsUtf8ToByteArray(), source.readByteArray())
     }
 
     @Test
