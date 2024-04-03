@@ -8,7 +8,9 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
-import kotlinx.io.unsafe.UnsafeBufferAccessors
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.read
+import kotlinx.io.unsafe.withData
 import platform.Foundation.NSData
 import platform.Foundation.create
 import platform.Foundation.data
@@ -21,19 +23,10 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
 
     var currentOffset = 0
     while (currentOffset < maxLength) {
-        UnsafeBufferAccessors.writeUnbound(this , 1) { _, segment ->
-            val toCopy = minOf(maxLength - currentOffset, segment.remainingCapacity)
-            segment.withContainedData { data, _, limit ->
-                when (data) {
-                    is ByteArray -> {
-                        data.usePinned {
-                            memcpy(it.addressOf(limit), source + currentOffset, toCopy.convert())
-                        }
-                    }
-                    else -> {
-                        TODO()
-                    }
-                }
+        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+            val toCopy = minOf(maxLength - currentOffset, limit - pos)
+            data.usePinned {
+                memcpy(it.addressOf(pos), source + currentOffset, toCopy.convert())
             }
             currentOffset += toCopy
             toCopy
@@ -45,20 +38,14 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
 internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): Int {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
-    val s = this.head ?: return 0
-    val toCopy = minOf(maxLength, s.size)
-    s.withContainedData { data, pos, _ ->
-        when (data) {
-            is ByteArray -> {
-                data.usePinned {
-                    memcpy(sink, it.addressOf(pos), toCopy.convert())
-                }
-            }
-            else -> TODO()
+    var toCopy = 0
+    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        toCopy = minOf(maxLength, limit - pos)
+        data.usePinned {
+            memcpy(sink, it.addressOf(pos), toCopy.convert())
         }
+        toCopy
     }
-    skip(toCopy.toLong())
-
     return toCopy
 }
 
@@ -70,23 +57,23 @@ internal fun Buffer.snapshotAsNSData(): NSData {
 
     val bytes = malloc(size.convert())?.reinterpret<uint8_tVar>()
         ?: throw Error("malloc failed: ${strerror(errno)?.toKString()}")
-    var curr = this.head
-    var index = 0
-    do {
-        check(curr != null) { "Current segment is null" }
-        curr.withContainedData { data, pos, limit ->
-            val length = limit - pos
-            when (data) {
-                is ByteArray -> {
+
+    UnsafeBufferOperations.head(this) { ctx, head ->
+        var curr: Segment? = head
+        var index = 0
+        while (curr != null) {
+            val segment: Segment = curr
+            ctx.read(segment) { rctx, seg ->
+                rctx.withData(seg) { data, pos, limit ->
+                    val length = limit - pos
                     data.usePinned {
                         memcpy(bytes + index, it.addressOf(pos), length.convert())
                     }
+                    index += length
                 }
-                else -> TODO()
             }
-            index += length
+            curr = ctx.next(segment)
         }
-        curr = curr.next
-    } while (curr !== null)
+    }
     return NSData.create(bytesNoCopy = bytes, length = size.convert())
 }

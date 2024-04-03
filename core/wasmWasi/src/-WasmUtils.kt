@@ -6,8 +6,7 @@
 
 package kotlinx.io
 
-import kotlinx.io.unsafe.UnsafeBufferAccessors
-import kotlinx.io.unsafe.UnsafeSegmentAccessors
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlin.math.min
 import kotlin.wasm.unsafe.MemoryAllocator
 import kotlin.wasm.unsafe.Pointer
@@ -40,18 +39,18 @@ internal fun Pointer.storeBytes(bytes: ByteArray) {
 @OptIn(UnsafeWasmMemoryApi::class, UnsafeIoApi::class)
 internal fun Buffer.readToLinearMemory(pointer: Pointer, bytes: Int) {
     checkBounds(size, 0L, bytes.toLong())
-    var current: Segment? = UnsafeSegmentAccessors.head(this)
     var remaining = bytes
     var currentPtr = pointer
-    while (current != null && remaining > 0) {
-        val read = minOf(remaining, current.size)
-        for (offset in 0 ..< read) {
-            currentPtr.storeByte(offset, current.getUnchecked(offset))
+    while (remaining > 0 && !exhausted()) {
+        UnsafeBufferOperations.readFromHead(this) { ctx, seg ->
+            val read = minOf(remaining, seg.size)
+            for (offset in 0 ..< read) {
+                currentPtr.storeByte(offset, ctx.getUnchecked(seg, offset))
+            }
+            remaining -= read
+            currentPtr += read
+            read
         }
-        currentPtr += read
-        remaining -= read
-        skip(read.toLong())
-        current = UnsafeSegmentAccessors.head(this)
     }
 }
 
@@ -61,7 +60,7 @@ internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
     var remaining = bytes
     var currentPtr = pointer
     while (remaining > 0) {
-        UnsafeBufferAccessors.writeUnbound(this, 1) { ctx, seg ->
+        UnsafeBufferOperations.writeToTail(this, 1) { ctx, seg ->
 
             val cap = min(seg.remainingCapacity, remaining)
             for (offset in 0 ..< cap) {
