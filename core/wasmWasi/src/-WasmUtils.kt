@@ -6,6 +6,9 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferAccessors
+import kotlinx.io.unsafe.UnsafeSegmentAccessors
+import kotlin.math.min
 import kotlin.wasm.unsafe.MemoryAllocator
 import kotlin.wasm.unsafe.Pointer
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
@@ -34,47 +37,41 @@ internal fun Pointer.storeBytes(bytes: ByteArray) {
     }
 }
 
-@OptIn(UnsafeWasmMemoryApi::class)
+@OptIn(UnsafeWasmMemoryApi::class, UnsafeIoApi::class)
 internal fun Buffer.readToLinearMemory(pointer: Pointer, bytes: Int) {
     checkBounds(size, 0L, bytes.toLong())
-    var current: Segment? = head
+    var current: Segment? = UnsafeSegmentAccessors.head(this)
     var remaining = bytes
     var currentPtr = pointer
-    do {
-        current!!
-        val data = current.data
-        val pos = current.pos
-        val limit = current.limit
-        val read = minOf(remaining, limit - pos)
-        for (offset in 0 until read) {
-            currentPtr.storeByte(offset, data[pos + offset])
+    while (current != null && remaining > 0) {
+        val read = minOf(remaining, current.size)
+        for (offset in 0 ..< read) {
+            currentPtr.storeByte(offset, current.getUnchecked(offset))
         }
         currentPtr += read
         remaining -= read
-        current = current.next
-    } while (current != head && remaining > 0)
-    check(remaining == 0)
-    skip(bytes.toLong())
+        skip(read.toLong())
+        current = UnsafeSegmentAccessors.head(this)
+    }
 }
 
 
+@OptIn(UnsafeIoApi::class, UnsafeWasmMemoryApi::class)
 internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
     var remaining = bytes
     var currentPtr = pointer
     while (remaining > 0) {
-        val segment = writableSegment(1)
-        val limit = segment.limit
-        val data = segment.data
-        val toWrite = minOf(data.size - limit, remaining)
+        UnsafeBufferAccessors.writeUnbound(this, 1) {
+            val segment = it
 
-        for (offset in 0 until toWrite) {
-            data[limit + offset] = currentPtr.loadByte(offset)
+            val cap = min(it.remainingCapacity, remaining)
+            for (offset in 0 ..< cap) {
+                segment.setUnchecked(offset, currentPtr.loadByte(offset))
+            }
+            currentPtr += cap
+            remaining -= cap
+            cap
         }
-
-        currentPtr += toWrite
-        remaining -= toWrite
-        segment.limit += toWrite
-        size += toWrite
     }
 }
 
