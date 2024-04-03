@@ -3,6 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
  */
 
+import kotlinx.kover.gradle.plugin.dsl.MetricType
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
@@ -56,11 +57,10 @@ dependencies {
 koverReport {
     verify {
         rule {
-            // TODO: rollback to 95
-            // minBound(94, MetricType.LINE)
+            minBound(95, MetricType.LINE)
 
             // we allow lower branch coverage, because not all checks in the internal code lead to errors
-            // minBound(80, MetricType.BRANCH)
+            minBound(80, MetricType.BRANCH)
         }
     }
 }
