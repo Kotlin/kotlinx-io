@@ -2,7 +2,7 @@
 kotlin = "1.9.22"
 java = "8"
 dokka = "1.9.20"
-kover = "0.7.5"
+kover = "0.8.0-Beta2"
 bcv = "0.13.2"
 benchmark = "0.4.10"
 jmh = "1.37"
