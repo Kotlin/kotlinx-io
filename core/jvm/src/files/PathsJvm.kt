@@ -41,6 +41,10 @@ public actual val SystemPathSeparator: Char = File.separatorChar
 
 public actual fun Path(path: String): Path = Path(File(path))
 
+public fun Path.toFile(): File = file
+
+public fun Path.toNioPath(): java.nio.file.Path = file.toPath()
+
 // Function only exists to provide binary compatibility with the earlier releases
 @JvmName("source")
 @PublishedApi

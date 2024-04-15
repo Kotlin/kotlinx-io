@@ -35,6 +35,9 @@ import java.nio.file.StandardOpenOption
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 import kotlin.test.*
+import kotlinx.io.files.Path
+import kotlinx.io.files.toFile
+import kotlinx.io.files.toNioPath
 
 class JvmPlatformTest {
     @TempDir
@@ -199,5 +202,19 @@ class JvmPlatformTest {
         val buffer = Buffer()
         source.readAtMostTo(buffer, 1L)
         assertEquals(buffer.readString(), "a")
+    }
+
+    @Test
+    fun kotlinxPathToJavaIoFile() {
+        val file = File(tempDir, "new")
+        val kotlinxPath = Path(file.toString())
+        assertEquals(file, kotlinxPath.toFile())
+    }
+
+    @Test
+    fun kotlinxPathToJavaNioPath() {
+        val file = File(tempDir, "new")
+        val kotlinxPath = Path(file.toString())
+        assertEquals(file.toPath(), kotlinxPath.toNioPath())
     }
 }
