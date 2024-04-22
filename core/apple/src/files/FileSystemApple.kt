@@ -11,7 +11,7 @@ import kotlinx.cinterop.cstr
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
-import platform.Foundation.NSTemporaryDirectory
+import platform.Foundation.*
 import platform.posix.*
 
 
@@ -54,4 +54,16 @@ internal actual fun realpathImpl(path: String): String {
     } finally {
         free(res)
     }
+}
+
+internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
+    val attributes = NSFileManager.defaultManager().fileAttributesAtPath(path.path, traverseLink = true) ?: return null
+    val fileType = attributes[NSFileType] as String
+    val isFile = fileType == NSFileTypeRegular
+    val isDir = fileType == NSFileTypeDirectory
+    return FileMetadata(
+        isRegularFile = isFile,
+        isDirectory = isDir,
+        size = if (isFile) attributes[NSFileSize] as Long else -1
+    )
 }
