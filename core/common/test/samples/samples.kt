@@ -737,11 +737,62 @@ class KotlinxIoCoreCommonSamples {
 
     @OptIn(UnsafeIoApi::class)
     @Test
+    fun readUleb128() {
+        // Decode unsigned integer encoded using unsigned LEB128 format:
+        // https://en.wikipedia.org/wiki/LEB128#Unsigned_LEB128
+        fun Buffer.readULEB128UInt(): UInt {
+            var result = 0u
+            var shift = 0
+            var finished = false
+            while (!finished) { // Read until a number is fully fetched
+                if (exhausted()) throw EOFException()
+                // Pick the first segment and read from it either until the segment exhausted,
+                // or the number if finished.
+                UnsafeBufferOperations.readFromHead(this) { readCtx, segment ->
+                    // Iterate over every byte contained in the segment
+                    for (offset in 0..< segment.size) {
+                        if (shift > 28) throw NumberFormatException("Overflow")
+                        // Read the byte at the offset
+                        val b = readCtx.getUnchecked(segment, offset)
+                        val lsb = b.toUInt() and 0x7fu
+                        result = result or (lsb shl shift)
+                        shift += 7
+                        if (b >= 0) {
+                            finished = true
+                            // We're done, return how many bytes were consumed from the segment
+                            return@readFromHead offset + 1
+                        }
+                    }
+                    // We read all the data from segment, but not finished yet.
+                    // Return segment.size to indicate that the head segment was consumed in full.
+                    segment.size
+                }
+            }
+            return result
+        }
+
+        val buffer = Buffer().also { it.write(ByteString(0xe5.toByte(), 0x8e.toByte(), 0x26)) }
+        assertEquals(624485u, buffer.readULEB128UInt())
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(8191))
+        buffer.write(ByteString(0xe5.toByte(), 0x8e.toByte(), 0x26))
+        buffer.skip(8191)
+        assertEquals(624485u, buffer.readULEB128UInt())
+        assertTrue(buffer.exhausted())
+    }
+
+    @OptIn(UnsafeIoApi::class)
+    @Test
     fun writeUleb128() {
-        // https://en.wikipedia.org/wiki/LEB128
+        // Encode an unsigned integer using unsigned LEB128 format:
+        // https://en.wikipedia.org/wiki/LEB128#Unsigned_LEB128
         fun Buffer.writeULEB128(value: UInt) {
-            // update buffer's state after writing all bytes
-            UnsafeBufferOperations.writeToTail(this, 5 /* in the worst case, int will be encoded using 5 bytes */) { ctx, seg ->
+            // In the worst case, int will be encoded using 5 bytes
+            val minCapacity = 5
+            // Acquire a segment that can fit at least 5 bytes
+            UnsafeBufferOperations.writeToTail(this, minCapacity) { ctx, segment ->
+                // Count how many bytes were actually written
                 var bytesWritten = 0
                 var remainingBits = value
                 do {
@@ -750,9 +801,10 @@ class KotlinxIoCoreCommonSamples {
                     if (remainingBits != 0u) {
                         b = 0x80u or b
                     }
-                    ctx.setUnchecked(seg, bytesWritten++, b.toByte())
+                    // Append a byte to the segment
+                    ctx.setUnchecked(segment, bytesWritten++, b.toByte())
                 } while (remainingBits != 0u)
-                // return how many bytes were actually written
+                // Return how many bytes were actually written
                 bytesWritten
             }
         }
@@ -784,8 +836,10 @@ class KotlinxIoCoreCommonSamples {
     @OptIn(ExperimentalUnsignedTypes::class, UnsafeIoApi::class)
     @Test
     fun writeUleb128Array() {
+        // Encode multiple unsigned integers using unsigned LEB128 format:
+        // https://en.wikipedia.org/wiki/LEB128#Unsigned_LEB128
         fun Buffer.writeULEB128(data: UIntArray) {
-            // encode array length
+            // Encode array length
             writeULEB128(data.size.toUInt())
 
             var index = 0
