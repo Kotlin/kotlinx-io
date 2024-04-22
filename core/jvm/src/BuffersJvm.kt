@@ -21,7 +21,6 @@
 package kotlinx.io
 
 import kotlinx.io.unsafe.UnsafeBufferOperations
-import kotlinx.io.unsafe.read
 import kotlinx.io.unsafe.withData
 import java.io.EOFException
 import java.io.IOException
@@ -135,13 +134,13 @@ public fun Buffer.copyTo(
         var curr = seg!!
         var currentOffset = (startIndex - segOffset).toInt()
         while (remainingByteCount > 0) {
-            ctx.read(curr) { rctx, rseg ->
-                rctx.withData(rseg) { data, pos, limit ->
+            //ctx.read(curr) { rctx, rseg ->
+                ctx.withData(curr) { data, pos, limit ->
                     val toCopy = minOf(limit - pos - currentOffset, remainingByteCount).toInt()
                     out.write(data, pos + currentOffset, toCopy)
                     remainingByteCount -= toCopy
                 }
-            }
+            //}
             curr = ctx.next(curr) ?: break
             currentOffset = 0
         }

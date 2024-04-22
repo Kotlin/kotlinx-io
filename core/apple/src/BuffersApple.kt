@@ -9,7 +9,6 @@ package kotlinx.io
 
 import kotlinx.cinterop.*
 import kotlinx.io.unsafe.UnsafeBufferOperations
-import kotlinx.io.unsafe.read
 import kotlinx.io.unsafe.withData
 import platform.Foundation.NSData
 import platform.Foundation.create
@@ -63,15 +62,15 @@ internal fun Buffer.snapshotAsNSData(): NSData {
         var index = 0
         while (curr != null) {
             val segment: Segment = curr
-            ctx.read(segment) { rctx, seg ->
-                rctx.withData(seg) { data, pos, limit ->
+            //ctx.read(segment) { rctx, seg ->
+                ctx.withData(segment) { data, pos, limit ->
                     val length = limit - pos
                     data.usePinned {
                         memcpy(bytes + index, it.addressOf(pos), length.convert())
                     }
                     index += length
                 }
-            }
+            //}
             curr = ctx.next(segment)
         }
     }

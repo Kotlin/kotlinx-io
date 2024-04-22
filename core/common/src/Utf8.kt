@@ -71,7 +71,7 @@ package kotlinx.io
 
 import kotlinx.io.internal.*
 import kotlinx.io.unsafe.UnsafeBufferOperations
-import kotlinx.io.unsafe.read
+//import kotlinx.io.unsafe.read
 import kotlinx.io.unsafe.withData
 import kotlin.math.min
 
@@ -586,11 +586,11 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
         head!!
         if (head.size >= byteCount) {
             var result = ""
-            ctx.read(head) { rctx, seg ->
-                rctx.withData(seg) { data, pos, limit ->
+            //ctx.read(head) { rctx, seg ->
+                ctx.withData(head) { data, pos, limit ->
                     result = data.commonToUtf8String(pos, min(limit, pos + byteCount.toInt()))
                 }
-            }
+            //}
             skip(byteCount)
             return result
         }
