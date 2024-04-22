@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.3.3
+> Published 22 Apr 2024
+
+### Features
+- Reimplemented file metadata gathering without required reasoning APIs on Apple targets [#297](https://github.com/Kotlin/kotlinx-io/pull/297)
+
+### Bugfixes
+- For JS target, Webpack should no longer report missing nodejs modules during compilation [#285](https://github.com/Kotlin/kotlinx-io/pull/285)
+
 ## 0.3.2
 > Published 18 Mar 2024
 
