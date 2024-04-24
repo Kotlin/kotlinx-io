@@ -32,7 +32,6 @@ package kotlinx.io
  *
  * Implementors should abstain from throwing exceptions other than those that are documented for RawSource methods.
  *
- * @sample kotlinx.io.samples.RC4DecryptingSource
  * @sample kotlinx.io.samples.RC4SourceSample.rc4
  */
 @OptIn(ExperimentalStdlibApi::class)
