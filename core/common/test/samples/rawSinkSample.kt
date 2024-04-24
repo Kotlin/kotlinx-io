@@ -9,24 +9,6 @@ import kotlinx.io.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-@OptIn(ExperimentalUnsignedTypes::class)
-private fun generateCrc32Table(): UIntArray {
-    val table = UIntArray(256)
-
-    for (idx in table.indices) {
-        table[idx] = idx.toUInt()
-        for (bit in 8 downTo 1) {
-            table[idx] = if (table[idx] % 2U == 0U) {
-                table[idx].shr(1)
-            } else {
-                table[idx].shr(1).xor(0xEDB88320U)
-            }
-        }
-    }
-
-    return table
-}
-
 class Crc32Sample {
     @OptIn(ExperimentalStdlibApi::class, ExperimentalUnsignedTypes::class)
     @Test
@@ -62,6 +44,23 @@ class Crc32Sample {
             override fun flush() = upstream.flush()
 
             override fun close() = upstream.close()
+
+            private fun generateCrc32Table(): UIntArray {
+                val table = UIntArray(256)
+
+                for (idx in table.indices) {
+                    table[idx] = idx.toUInt()
+                    for (bit in 8 downTo 1) {
+                        table[idx] = if (table[idx] % 2U == 0U) {
+                            table[idx].shr(1)
+                        } else {
+                            table[idx].shr(1).xor(0xEDB88320U)
+                        }
+                    }
+                }
+
+                return table
+            }
         }
 
         val crc32Sink = CRC32Sink(discardingSink())
