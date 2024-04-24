@@ -1,0 +1,8 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+
+module:kotlinx-io-bytestring
+kotlinx.io.bytestring
+module:kotlinx-io-core
+kotlinx.io
+kotlinx.io.files

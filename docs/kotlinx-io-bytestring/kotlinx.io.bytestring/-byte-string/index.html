@@ -1,0 +1,415 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ByteString</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            kotlinx-io
+                    </a>            </div>
+            <div class="library-version">0.3.3
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">common</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":kotlinx-io-bytestring:dokkaHtmlPartial/jvmMain">jvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="kotlinx-io-bytestring::kotlinx.io.bytestring/ByteString///PointingToDeclaration//-1711087493">
+  <div class="breadcrumbs"><a href="../../index.html">kotlinx-io-bytestring</a><span class="delimiter">/</span><a href="../index.html">kotlinx.io.bytestring</a><span class="delimiter">/</span><span class="current">ByteString</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Byte</span><wbr><span><span>String</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">ByteString</a> : <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-comparable/index.html">Comparable</a><span class="token operator">&lt;</span><a href="index.html">ByteString</a><span class="token operator">&gt; </span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/bytestring/common/src/ByteString.kt#L53">source</a>)</span></span></div><p class="paragraph">An immutable wrapper around a byte sequence providing <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a> like functionality.</p><p class="paragraph">ByteString allows treating binary data as a value and passing it to other functions without worrying about data modification. The class facilitates various operations on binary data, like comparison or testing for subsequence inclusion.</p><p class="paragraph">ByteString is a good fit for untyped binary data that could not be represented as <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>, like hashes, payload of network packets, encrypted data, etc.</p><p class="paragraph">ByteString copies data on creation as well as on conversion back to <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a>, thus guaranteeing that subsequent modification of source data or data returned from <a href="to-byte-array.html">toByteArray</a> won't mutate the string itself.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-125580945%2FConstructors%2F-1711087493" anchor-label="ByteString" id="-125580945%2FConstructors%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-byte-string.html"><span>Byte</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-125580945%2FConstructors%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">data<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a><span class="token punctuation">, </span></span><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">endIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>data.size</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Wraps a copy of <a href="../../../kotlinx-io-bytestring/kotlinx.io.bytestring/-byte-string/[60]init[62].html">data</a> subarray starting at <a href="../../../kotlinx-io-bytestring/kotlinx.io.bytestring/-byte-string/[60]init[62].html">startIndex</a> and ending at <a href="../../../kotlinx-io-bytestring/kotlinx.io.bytestring/-byte-string/[60]init[62].html">endIndex</a> into a byte string.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-609782539%2FClasslikes%2F-1711087493" anchor-label="Companion" id="-609782539%2FClasslikes%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-609782539%2FClasslikes%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="6133277%2FProperties%2F-1711087493" anchor-label="indices" id="6133277%2FProperties%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_PROPERTY" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../indices.html"><span><span>indices</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="6133277%2FProperties%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../indices.html">indices</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.ranges/-int-range/index.html">IntRange</a></div><div class="brief "><p class="paragraph">Returns the range of valid byte indices for this byte string.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1890704309%2FProperties%2F-1711087493" anchor-label="size" id="-1890704309%2FProperties%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="size.html"><span><span>size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1890704309%2FProperties%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="size.html">size</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns size of this ByteString.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-592113711%2FFunctions%2F-1711087493" anchor-label="compareTo" id="-592113711%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="compare-to.html"><span>compare</span><wbr><span><span>To</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-592113711%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="compare-to.html"><span class="token function">compareTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">ByteString</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Compares a byte sequence wrapped by this byte string to a byte sequence wrapped by <a href="compare-to.html">other</a> in lexicographical order. Byte values are compared as unsigned integers.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1044368920%2FFunctions%2F-1711087493" anchor-label="contentEquals" id="-1044368920%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../content-equals.html"><span>content</span><wbr><span><span>Equals</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1044368920%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../content-equals.html"><span class="token function">contentEquals</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">array<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns <code class="lang-kotlin">true</code> if the content of this byte string equals to the <a href="../content-equals.html">array</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-936283670%2FFunctions%2F-1711087493" anchor-label="copyInto" id="-936283670%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="copy-into.html"><span>copy</span><wbr><span><span>Into</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-936283670%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="copy-into.html"><span class="token function">copyInto</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">destination<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a><span class="token punctuation">, </span></span><span class="parameter ">destinationOffset<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">endIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>size</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Copies a subsequence starting at <a href="copy-into.html">startIndex</a> and ending at <a href="copy-into.html">endIndex</a> of a byte sequence wrapped by this byte string and writes it into <a href="copy-into.html">destination</a> array starting at <a href="copy-into.html">destinationOffset</a> offset.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-478744004%2FFunctions%2F-312603124" anchor-label="decodeToString" id="-478744004%2FFunctions%2F-312603124" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain,:kotlinx-io-bytestring:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain,:kotlinx-io-bytestring:dokkaHtmlPartial/jvmMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain,:kotlinx-io-bytestring:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../decode-to-string.html"><span>decode</span><wbr><span>To</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-478744004%2FFunctions%2F-312603124"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-active="" data-toggle=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/jvmMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/jvmMain" data-toggle=":kotlinx-io-bytestring:dokkaHtmlPartial/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../decode-to-string.html"><span class="token function">decodeToString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Decodes content of a byte string into a string using UTF-8 encoding.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../decode-to-string.html"><span class="token function">decodeToString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">charset<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/nio/charset/Charset.html">Charset</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Decodes the content of a byte string to a string using given <a href="../decode-to-string.html">charset</a>.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-51050537%2FFunctions%2F-1711087493" anchor-label="endsWith" id="-51050537%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../ends-with.html"><span>ends</span><wbr><span><span>With</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-51050537%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../ends-with.html"><span class="token function">endsWith</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteArray<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if this byte string ends with the suffix specified by the <a href="../ends-with.html">byteArray</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../ends-with.html"><span class="token function">endsWith</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteString<span class="token operator">: </span><a href="index.html">ByteString</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if this byte string ends with the suffix specified by the <a href="../ends-with.html">byteString</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-217896107%2FFunctions%2F-1711087493" anchor-label="equals" id="-217896107%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="equals.html"><span><span>equals</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-217896107%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="equals.html"><span class="token function">equals</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns <code class="lang-kotlin">true</code> if <a href="equals.html">other</a> is a byte string containing exactly the same byte sequence.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="805205366%2FFunctions%2F-1711087493" anchor-label="get" id="805205366%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get.html"><span><span>get</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="805205366%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte/index.html">Byte</a></div><div class="brief "><p class="paragraph">Returns a byte at the given index in this byte string.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="380893681%2FFunctions%2F-1711087493" anchor-label="hashCode" id="380893681%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="hash-code.html"><span>hash</span><wbr><span><span>Code</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="380893681%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="hash-code.html"><span class="token function">hashCode</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns a hash code based on the content of this byte string.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-925725160%2FFunctions%2F-1711087493" anchor-label="indexOf" id="-925725160%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../index-of.html"><span>index</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-925725160%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../index-of.html"><span class="token function">indexOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byte<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte/index.html">Byte</a><span class="token punctuation">, </span></span><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the index within this byte string of the first occurrence of the specified <a href="../index-of.html">byte</a>, starting from the specified <a href="../index-of.html">startIndex</a>. If the <a href="../index-of.html">byte</a> not found, <code class="lang-kotlin">-1</code> is returned.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../index-of.html"><span class="token function">indexOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteArray<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a><span class="token punctuation">, </span></span><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the index within this byte string of the first occurrence of the specified <a href="../index-of.html">byteArray</a>, starting from the specified <a href="../index-of.html">startIndex</a>. If the <a href="../index-of.html">byteArray</a> not found, <code class="lang-kotlin">-1</code> is returned.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../index-of.html"><span class="token function">indexOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteString<span class="token operator">: </span><a href="index.html">ByteString</a><span class="token punctuation">, </span></span><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the index within this byte string of the first occurrence of the specified <a href="../index-of.html">byteString</a>, starting from the specified <a href="../index-of.html">startIndex</a>. If the <a href="../index-of.html">byteString</a> not found, <code class="lang-kotlin">-1</code> is returned.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1322845953%2FFunctions%2F-1711087493" anchor-label="isEmpty" id="1322845953%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../is-empty.html"><span>is</span><wbr><span><span>Empty</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1322845953%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../is-empty.html"><span class="token function">isEmpty</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns <code class="lang-kotlin">true</code> if this byte string is empty.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1488417204%2FFunctions%2F-1711087493" anchor-label="isNotEmpty" id="-1488417204%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../is-not-empty.html"><span>is</span><wbr><span>Not</span><wbr><span><span>Empty</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1488417204%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../is-not-empty.html"><span class="token function">isNotEmpty</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns <code class="lang-kotlin">true</code> if this byte string is not empty.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="517902946%2FFunctions%2F-1711087493" anchor-label="lastIndexOf" id="517902946%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../last-index-of.html"><span>last</span><wbr><span>Index</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="517902946%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../last-index-of.html"><span class="token function">lastIndexOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byte<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte/index.html">Byte</a><span class="token punctuation">, </span></span><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the index within this char sequence of the last occurrence of the specified <a href="../last-index-of.html">byte</a>, starting from the specified <a href="../last-index-of.html">startIndex</a>. If the <a href="../last-index-of.html">byte</a> not found, <code class="lang-kotlin">-1</code> is returned.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../last-index-of.html"><span class="token function">lastIndexOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteArray<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a><span class="token punctuation">, </span></span><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the index within this char sequence of the last occurrence of the specified <a href="../last-index-of.html">byteArray</a>, starting from the specified <a href="../last-index-of.html">startIndex</a>. If the <a href="../last-index-of.html">byteArray</a> not found, <code class="lang-kotlin">-1</code> is returned.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../last-index-of.html"><span class="token function">lastIndexOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteString<span class="token operator">: </span><a href="index.html">ByteString</a><span class="token punctuation">, </span></span><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the index within this char sequence of the last occurrence of the specified <a href="../last-index-of.html">byteString</a>, starting from the specified <a href="../last-index-of.html">startIndex</a>. If the <a href="../last-index-of.html">byteString</a> not found, <code class="lang-kotlin">-1</code> is returned.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-858965915%2FFunctions%2F-1711087493" anchor-label="startsWith" id="-858965915%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../starts-with.html"><span>starts</span><wbr><span><span>With</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-858965915%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../starts-with.html"><span class="token function">startsWith</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteArray<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if this byte string starts with the prefix specified by the <a href="../starts-with.html">byteArray</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../starts-with.html"><span class="token function">startsWith</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteString<span class="token operator">: </span><a href="index.html">ByteString</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if this byte string starts with the prefix specified by the <a href="../starts-with.html">byteString</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1097321822%2FFunctions%2F-1711087493" anchor-label="substring" id="-1097321822%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="substring.html"><span><span>substring</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1097321822%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="substring.html"><span class="token function">substring</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">endIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>size</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ByteString</a></div><div class="brief "><p class="paragraph">Returns a new byte string wrapping a subsequence of bytes wrapped by this byte string starting from <a href="substring.html">startIndex</a> and ending at <a href="substring.html">endIndex</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1085697479%2FFunctions%2F-1711087493" anchor-label="toByteArray" id="1085697479%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-byte-array.html"><span>to</span><wbr><span>Byte</span><wbr><span><span>Array</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1085697479%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-byte-array.html"><span class="token function">toByteArray</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">endIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>size</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a></div><div class="brief "><p class="paragraph">Returns a copy of subsequence starting at <a href="to-byte-array.html">startIndex</a> and ending at <a href="to-byte-array.html">endIndex</a> of a byte sequence wrapped by this byte string.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-925038794%2FFunctions%2F-1711087493" anchor-label="toHexString" id="-925038794%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../to-hex-string.html"><span>to</span><wbr><span>Hex</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-925038794%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-experimental-stdlib-api/index.html"><span class="token annotation builtin">ExperimentalStdlibApi</span></a></div></div><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../to-hex-string.html"><span class="token function">toHexString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">format<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-hex-format/index.html">HexFormat</a><span class="token operator"> = </span>HexFormat.Default</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Formats bytes in this byte string using the specified <a href="../to-hex-string.html">format</a>.</p></div><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-experimental-stdlib-api/index.html"><span class="token annotation builtin">ExperimentalStdlibApi</span></a></div></div><span class="token keyword">fun </span><a href="index.html">ByteString</a><span class="token punctuation">.</span><a href="../to-hex-string.html"><span class="token function">toHexString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">startIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">endIndex<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>size<span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-hex-format/index.html">HexFormat</a><span class="token operator"> = </span>HexFormat.Default</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Formats bytes in this byte string using the specified <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-hex-format/index.html">HexFormat</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="202727616%2FFunctions%2F-1711087493" anchor-label="toString" id="202727616%2FFunctions%2F-1711087493" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-string.html"><span>to</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="202727616%2FFunctions%2F-1711087493"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="to-string.html"><span class="token function">toString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Returns a string representation of this byte string. A string representation consists of <a href="size.html">size</a> and a hexadecimal-encoded string of a byte sequence wrapped by this byte string.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
