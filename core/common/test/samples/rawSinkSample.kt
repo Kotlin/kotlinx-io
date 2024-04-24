@@ -36,7 +36,7 @@ private fun generateCrc32Table(): UIntArray {
  * See https://en.wikipedia.org/wiki/Cyclic_redundancy_check for more information about CRC-32.
  */
 @OptIn(ExperimentalUnsignedTypes::class)
-class CRC32Sink(private val upstream: RawSink): RawSink {
+class CRC32Sink(private val upstream: RawSink) : RawSink {
     private val tempBuffer = Buffer()
     private val crc32Table = generateCrc32Table()
     private var crc32: UInt = 0xffffffffU
@@ -69,19 +69,15 @@ private val crc32Table = generateCrc32Table()
 @OptIn(UnsafeIoApi::class, ExperimentalUnsignedTypes::class)
 fun Buffer.crc32UsingGetUnchecked(): UInt {
     var crc32 = 0xffffffffU
-    // get a head reference
-    UnsafeBufferOperations.head(this) { ctx, head ->
+    // iterate over all segments
+    UnsafeBufferOperations.iterate(this) { ctx, head ->
         var currentSegment = head
-        // iterate over all segments
         while (currentSegment != null) {
-            // acquire read context
-            //ctx.read(currentSegment) { readCtx, seg ->
-                // and get data from a segment
-                for (offset in 0 ..< currentSegment.size) {
-                    val index = ctx.getUnchecked(currentSegment, offset).xor(crc32.toByte()).toUByte()
-                    crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
-                }
-            //}
+            // Get data from a segment
+            for (offset in 0..<currentSegment.size) {
+                val index = ctx.getUnchecked(currentSegment, offset).xor(crc32.toByte()).toUByte()
+                crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
+            }
             currentSegment = ctx.next(currentSegment)
         }
     }
@@ -103,24 +99,24 @@ class CRC32Source(private val underlyingSource: RawSource) : RawSource {
 
         val bytesRead = underlyingSource.readAtMostTo(sink, byteCount)
         // If there is no new data, we're done here.
-        if (bytesRead <= 0) { return bytesRead }
+        if (bytesRead <= 0) {
+            return bytesRead
+        }
 
         // Let's iterate over data that we just read into the sink.
         // For that, we need to find the segment containing data at the offset equal to originalSize.
-        UnsafeBufferOperations.seek(sink, originalSize) { ctx, segment, offset ->
+        UnsafeBufferOperations.iterate(sink, originalSize) { ctx, segment, offset ->
             // The offset value corresponds to the offset at the beginning of the segment,
             // we need to subtract originalSize to find the relative offset inside the first segment.
             var initialOffset = (originalSize - offset).toInt()
             var currentSegment = segment
             // Now, we can iterate over all data we just read and update the crc32 with it.
             while (currentSegment != null) {
-                //ctx.read(currentSegment) { readCtx, seg ->
-                    for (segmentOffset in initialOffset until currentSegment.size) {
-                        // Read the byte at segmentOffset
-                        val index = ctx.getUnchecked(currentSegment, segmentOffset).xor(crc32.toByte()).toUByte()
-                        crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
-                    }
-                //}
+                for (segmentOffset in initialOffset until currentSegment.size) {
+                    // Read the byte at segmentOffset
+                    val index = ctx.getUnchecked(currentSegment, segmentOffset).xor(crc32.toByte()).toUByte()
+                    crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
+                }
                 // All later segments should be scanned fully, meaning that the initial offset is always 0.
                 initialOffset = 0
                 // Advance to the next segment.
@@ -130,7 +126,9 @@ class CRC32Source(private val underlyingSource: RawSource) : RawSource {
         return bytesRead
     }
 
-    override fun close() { underlyingSource.close() }
+    override fun close() {
+        underlyingSource.close()
+    }
 }
 
 class Crc32Sample {
@@ -170,22 +168,18 @@ class Crc32Sample {
         fun Buffer.crc32(): UInt {
             var crc32 = 0xffffffffU
             // Iterate over segments starting from buffer's head
-            UnsafeBufferOperations.head(this) { ctx, head ->
+            UnsafeBufferOperations.iterate(this) { ctx, head ->
                 var currentSegment = head
                 // If a current segment is null, it means we ran out of segments.
                 while (currentSegment != null) {
-                    // acquire read context
-                    //ctx.read(currentSegment) { readCtx, seg ->
-                    // and get data from a segment
                     // Get data from a segment
                     ctx.withData(currentSegment) { data, startIndex, endIndex ->
-                        for (idx in startIndex ..< endIndex) {
+                        for (idx in startIndex..<endIndex) {
                             // Update crc32
                             val index = data[idx].xor(crc32.toByte()).toUByte()
                             crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
                         }
                     }
-                    //}
                     // Advance to the next segment
                     currentSegment = ctx.next(currentSegment)
                 }

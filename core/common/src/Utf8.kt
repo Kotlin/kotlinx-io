@@ -564,7 +564,7 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
     require(byteCount)
     if (byteCount == 0L) return ""
 
-    UnsafeBufferOperations.head(this) { ctx, head ->
+    UnsafeBufferOperations.iterate(this) { ctx, head ->
         head!!
         if (head.size >= byteCount) {
             var result = ""

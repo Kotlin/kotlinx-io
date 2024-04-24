@@ -29,6 +29,8 @@ import java.nio.ByteBuffer
  * @param readAction an action that will be invoked on a [ByteBuffer] containing data from [buffer]'s head
  *
  * @throws IllegalArgumentException when the [buffer] is empty.
+ *
+ * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.writeToByteChannel
  */
 @Suppress("UNUSED_PARAMETER")
 @UnsafeIoApi
@@ -59,6 +61,8 @@ public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction
  * the call
  *
  * @throws IllegalStateException when [minimumCapacity] is too large and could not be fulfilled.
+ *
+ * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.readFromByteChannel
  */
 @Suppress("UNUSED_PARAMETER")
 @UnsafeIoApi
@@ -91,21 +95,21 @@ public inline fun UnsafeBufferOperations.writeToTail(buffer: Buffer,
  * and the copy will be created if it could not be omitted.
  *
  * @param buffer a buffer to read from
- * @param minimumCapacity the minimum amount of writable space
  * @param iovec a temporary array to store [ByteBuffer]s with data from [buffer]'s prefix
  * @param readAction an action that will be invoked on an array filled with [ByteBuffer]s holding data from [buffer]'s
  * prefix
  *
- * @throws IllegalStateException when [minimumCapacity] is too large and could not be fulfilled.
  * @throws IllegalArgumentException when the [buffer] is empty.
  * @throws IllegalArgumentException when the [iovec] is empty.
+ *
+ * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.gatheringWrite
+ *
  */
 @Suppress("UNUSED_PARAMETER")
 @UnsafeIoApi
 public inline fun UnsafeBufferOperations.readBulk(buffer: Buffer,
-                                                  minimumCapacity: Int,
                                                   iovec: Array<ByteBuffer?>,
-                                                  readAction: (Array<ByteArray?>, Int) -> Long): Unit = Unit
+                                                  readAction: (Array<ByteBuffer?>, Int) -> Long): Unit = Unit
 
 //@UnsafeIoApi
 //public inline fun UnsafeBufferOperations.writeBulk(buffer: Buffer,

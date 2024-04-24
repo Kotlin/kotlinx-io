@@ -130,7 +130,7 @@ public fun Buffer.copyTo(
 
     var remainingByteCount = endIndex - startIndex
 
-    UnsafeBufferOperations.seek(this, startIndex) { ctx, seg, segOffset ->
+    UnsafeBufferOperations.iterate(this, startIndex) { ctx, seg, segOffset ->
         var curr = seg!!
         var currentOffset = (startIndex - segOffset).toInt()
         while (remainingByteCount > 0) {
