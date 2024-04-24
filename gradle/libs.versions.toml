@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.9.24"
 java = "8"
-dokka = "1.9.20"
+dokka = "1.9.10"
 kover = "0.8.0-Beta2"
 bcv = "0.15.0-Beta.2"
 benchmark = "0.4.10"

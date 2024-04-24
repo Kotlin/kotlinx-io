@@ -240,7 +240,7 @@ public object UnsafeBufferOperations {
      *
      * @sample kotlinx.io.samples.Crc32Sample.crc32Unsafe
      */
-    public inline fun head(buffer: Buffer, block: (BufferIterationContext, Segment?) -> Unit) {
+    public inline fun iterate(buffer: Buffer, block: (BufferIterationContext, Segment?) -> Unit) {
         block(BufferIterationContextImpl, buffer.head)
     }
     /**
@@ -274,7 +274,7 @@ public object UnsafeBufferOperations {
      *
      * @sample kotlinx.io.samples.CRC32Source
      */
-    public inline fun seek(buffer: Buffer, offset: Long, block: (BufferIterationContext, Segment?, Long) -> Unit) {
+    public inline fun iterate(buffer: Buffer, offset: Long, block: (BufferIterationContext, Segment?, Long) -> Unit) {
         buffer.seek(offset) { s, o ->
             block(BufferIterationContextImpl, s, o)
         }
@@ -346,7 +346,6 @@ public interface SegmentWriteContext {
      * @param value a value to be written
      *
      * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128
-     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128Array
      */
     public fun setUnchecked(segment: Segment, offset: Int, value: Byte)
     /**
@@ -424,7 +423,7 @@ public interface BufferIterationContext : SegmentReadContext {
      *
      * @param segment a segment for which a predecessor needs to be found
      */
-    public fun prev(segment: Segment): Segment?
+    // public fun prev(segment: Segment): Segment?
 }
 
 /**
@@ -471,7 +470,7 @@ internal object SegmentWriteContextImpl : SegmentWriteContext {
 internal object BufferIterationContextImpl : BufferIterationContext {
     override fun next(segment: Segment): Segment? = segment.next
 
-    override fun prev(segment: Segment): Segment? = segment.prev
+    // override fun prev(segment: Segment): Segment? = segment.prev
     override fun getUnchecked(segment: Segment, offset: Int): Byte = SegmentReadContextImpl.getUnchecked(segment, offset)
 }
 
