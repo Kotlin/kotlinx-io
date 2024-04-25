@@ -146,6 +146,8 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
 
     linuxX64()
     linuxArm64()
+    @Suppress("DEPRECATION") // https://github.com/Kotlin/kotlinx-io/issues/303
+    linuxArm32Hfp()
 
     macosX64()
     macosArm64()
