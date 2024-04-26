@@ -63,6 +63,12 @@ public actual class Path internal constructor(
     actual override fun hashCode(): Int {
         return path.hashCode()
     }
+
+    public actual fun normalized(): Path = Path(path = if (isWindows) {
+        normalizedInternal(true, WindowsPathSeparator, UnixPathSeparator)
+    } else {
+        normalizedInternal(false, UnixPathSeparator)
+    })
 }
 
 public actual val SystemPathSeparator: Char by lazy {

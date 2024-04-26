@@ -231,6 +231,7 @@ public final class kotlinx/io/files/Path {
 	public final fun getParent ()Lkotlinx/io/files/Path;
 	public fun hashCode ()I
 	public final fun isAbsolute ()Z
+	public final fun normalized ()Lkotlinx/io/files/Path;
 	public fun toString ()Ljava/lang/String;
 }
 

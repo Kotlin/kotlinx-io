@@ -443,6 +443,19 @@ class SmokeFileTest {
         source.close()  // there should be no error
     }
 
+    @Test
+    fun pathNormalize() {
+        assertEquals(Path(""), Path("").normalized())
+        assertEquals(Path("${SystemPathSeparator}a"), Path("/////////////a/").normalized())
+        assertEquals(Path("..", "..", "e"), Path("a/b/../c/../d/../../../../e").normalized())
+        assertEquals(Path("a"), Path("a/././././").normalized())
+
+        if (!isWindows) {
+            // On Windows, this path is usually considered relative
+            assertEquals(Path("${SystemPathSeparator}e"), Path("/a/b/../c/../d/../../../e").normalized())
+        }
+    }
+
     private fun constructAbsolutePath(vararg parts: String): String {
         return SystemPathSeparator.toString() + parts.joinToString(SystemPathSeparator.toString())
     }
