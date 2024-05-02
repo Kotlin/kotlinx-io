@@ -149,6 +149,10 @@ internal fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
 public fun Sink.writeString(string: String, startIndex: Int = 0, endIndex: Int = string.length): Unit =
     writeToInternalBuffer { it.commonWriteUtf8(string, startIndex, endIndex) }
 
+@OptIn(DelicateIoApi::class)
+public fun Sink.writeString(string: CharSequence, startIndex: Int = 0, endIndex: Int = string.length): Unit =
+    writeToInternalBuffer { it.commonWriteUtf8(string, startIndex, endIndex) }
+
 /**
  * Removes all bytes from this source, decodes them as UTF-8, and returns the string.
  *
@@ -415,7 +419,7 @@ private fun Buffer.commonReadUtf8CodePoint(): Int {
     }
 }
 
-private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int) {
+private fun Buffer.commonWriteUtf8(string: CharSequence, beginIndex: Int, endIndex: Int) {
     checkBounds(string.length, beginIndex, endIndex)
 
     // Transcode a UTF-16 Java String to UTF-8 bytes.
