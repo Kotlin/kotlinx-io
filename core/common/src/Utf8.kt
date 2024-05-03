@@ -122,14 +122,23 @@ internal fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long 
 /**
  * Encodes [codePoint] in UTF-8 and writes it to this sink.
  *
+ * Note that in general, a value retrieved from [Char.code] could not be written directly
+ * as it may be a part of a [surrogate pair](https://www.unicode.org/faq/utf_bom.html#utf16-2) (that could be
+ * detected using [Char.isSurrogate], or [Char.isHighSurrogate] and [Char.isLowSurrogate]).
+ * Such a pair of characters needs to be manually converted back to a single code point
+ * which then could be written to a [Sink].
+ * Without such a conversion, data written to a [Sink] will no
+ * longer be converted back to a string from which a surrogate pair was retrieved.
+ *
  * @param codePoint the codePoint to be written.
  *
  * @throws IllegalStateException when the sink is closed.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.utf8CodePointSample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUtf8CodePointSample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeSurrogatePair
  */
 @OptIn(DelicateIoApi::class)
-internal fun Sink.writeUtf8CodePoint(codePoint: Int): Unit =
+public fun Sink.writeCodePointValue(codePoint: Int): Unit =
     writeToInternalBuffer { it.commonWriteUtf8CodePoint(codePoint) }
 
 /**
@@ -196,24 +205,29 @@ public fun Source.readString(byteCount: Long): String {
 }
 
 /**
- * Removes and returns a single UTF-8 code point, reading between 1 and 4 bytes as necessary.
+ * Decodes a single code point value from UTF-8 code units, reading between 1 and 4 bytes as necessary.
  *
  * If this source is exhausted before a complete code point can be read, this throws an
  * [EOFException] and consumes no input.
  *
- * If this source doesn't start with a properly-encoded UTF-8 code point, this method will remove
+ * If this source doesn't start with a properly encoded UTF-8 code point, this method will remove
  * 1 or more non-UTF-8 bytes and return the replacement character (`U+fffd`). This covers encoding
- * problems (the input is not properly-encoded UTF-8), characters out of range (beyond the
+ * problems (the input is not properly encoded UTF-8), characters out of range (beyond the
  * `0x10ffff` limit of Unicode), code points for UTF-16 surrogates (`U+d800`..`U+dfff`) and overlong
  * encodings (such as `0xc080` for the NUL character in modified UTF-8).
+ *
+ * Note that in general, returned value may not be directly converted to [Char] as it may be out
+ * of [Char]'s values range and should be manually converted to a
+ * [surrogate pair](https://www.unicode.org/faq/utf_bom.html#utf16-2).
  *
  * @throws EOFException when the source is exhausted before a complete code point can be read.
  * @throws IllegalStateException when the source is closed.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUtf8CodePointSample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.surrogatePairs
  */
 @OptIn(InternalIoApi::class)
-internal fun Source.readUtf8CodePoint(): Int {
+public fun Source.readCodePointValue(): Int {
     require(1)
 
     val b0 = buffer[0].toInt()
@@ -224,13 +238,6 @@ internal fun Source.readUtf8CodePoint(): Int {
     }
 
     return buffer.commonReadUtf8CodePoint()
-}
-
-/**
- * @see Source.readUtf8CodePoint
- */
-internal fun Buffer.readUtf8CodePoint(): Int {
-    return this.commonReadUtf8CodePoint()
 }
 
 /**

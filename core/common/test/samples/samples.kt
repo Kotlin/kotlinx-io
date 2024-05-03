@@ -100,11 +100,50 @@ class KotlinxIoCoreCommonSamples {
     fun writeUtf8CodePointSample() {
         val buffer = Buffer()
 
-        buffer.writeInt('Δ'.code) // writes integer value as is
-        assertContentEquals(byteArrayOf(0, 0, 0x3, 0x94.toByte()), buffer.readByteArray())
+        // Basic Latin (a.k.a. ASCII) characters are encoded with a single byte
+        buffer.writeCodePointValue('Y'.code)
+        assertContentEquals(byteArrayOf(0x59), buffer.readByteArray())
 
-        buffer.writeUtf8CodePoint('Δ'.code) // encodes code point using UTF-8 encoding
+        // wider characters are encoded into multiple UTF-8 code units
+        buffer.writeCodePointValue('Δ'.code)
         assertContentEquals(byteArrayOf(0xce.toByte(), 0x94.toByte()), buffer.readByteArray())
+
+        // note the difference: writeInt won't encode the code point, like writeCodePointValue did
+        buffer.writeInt('Δ'.code)
+        assertContentEquals(byteArrayOf(0, 0, 0x3, 0x94.toByte()), buffer.readByteArray())
+    }
+
+    @Test
+    fun writeSurrogatePair() {
+        val buffer = Buffer()
+
+        // U+1F31E (a.k.a. "sun with face") is too wide to fit in a single UTF-16 character,
+        // so it's represented using a surrogate pair.
+        val chars = "🌞".toCharArray()
+        assertEquals(2, chars.size)
+
+        // such a pair has to be manually converted to a single code point
+        assertTrue(chars[0].isHighSurrogate())
+        assertTrue(chars[1].isLowSurrogate())
+
+        val highSurrogate = chars[0].code
+        val lowSurrogate = chars[1].code
+
+        // see https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF for details
+        val codePoint = 0x10000 + (highSurrogate - 0xD800).shl(10).or(lowSurrogate - 0xDC00)
+        assertEquals(0x1F31E, codePoint)
+
+        // now we can write the code point
+        buffer.writeCodePointValue(codePoint)
+        // and read the correct string back
+        assertEquals("🌞", buffer.readString())
+
+        // we won't achieve that by writing surrogates as it is
+        buffer.apply {
+            writeCodePointValue(highSurrogate)
+            writeCodePointValue(lowSurrogate)
+        }
+        assertNotEquals("🌞", buffer.readString())
     }
 
     @Test
@@ -112,7 +151,33 @@ class KotlinxIoCoreCommonSamples {
         val buffer = Buffer()
 
         buffer.writeUShort(0xce94U)
-        assertEquals(0x394, buffer.readUtf8CodePoint()) // decodes single UTF-8 encoded code point
+        assertEquals(0x394, buffer.readCodePointValue()) // decodes a single UTF-8 encoded code point
+    }
+
+    @Test
+    fun surrogatePairs() {
+        val buffer = Buffer()
+
+        // that's a U+1F31A, a.k.a. "new moon with face"
+        buffer.writeString("🌚")
+        // it should be encoded with 4 code units
+        assertEquals(4, buffer.size)
+
+        // let's read it back as a single code point
+        val moonCodePoint = buffer.readCodePointValue()
+        // all code units were consumed
+        assertEquals(0, buffer.size)
+
+        // the moon is too wide to fit in a single UTF-16 character!
+        assertNotEquals(moonCodePoint, moonCodePoint.toChar().code)
+        // "too wide" means in the [U+010000, U+10FFFF] range
+        assertTrue(moonCodePoint in 0x10000..0x10FFFF)
+
+        // See https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF for details
+        val highSurrogate = (0xD800 + (moonCodePoint - 0x10000).ushr(10)).toChar()
+        val lowSurrogate = (0xDC00 + (moonCodePoint - 0x10000).and(0x3FF)).toChar()
+
+        assertContentEquals(charArrayOf(highSurrogate, lowSurrogate), "🌚".toCharArray())
     }
 
     @Test

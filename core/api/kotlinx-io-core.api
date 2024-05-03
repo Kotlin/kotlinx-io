@@ -187,12 +187,14 @@ public final class kotlinx/io/SourcesKt {
 }
 
 public final class kotlinx/io/Utf8Kt {
+	public static final fun readCodePointValue (Lkotlinx/io/Source;)I
 	public static final fun readLine (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun readLineStrict (Lkotlinx/io/Source;J)Ljava/lang/String;
 	public static synthetic fun readLineStrict$default (Lkotlinx/io/Source;JILjava/lang/Object;)Ljava/lang/String;
 	public static final fun readString (Lkotlinx/io/Buffer;)Ljava/lang/String;
 	public static final fun readString (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun readString (Lkotlinx/io/Source;J)Ljava/lang/String;
+	public static final fun writeCodePointValue (Lkotlinx/io/Sink;I)V
 	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;II)V
 	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
 }
