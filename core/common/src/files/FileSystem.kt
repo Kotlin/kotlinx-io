@@ -152,6 +152,10 @@ public sealed interface FileSystem {
      * If path [directory] was an absolute path, a returned list will also contain absolute paths.
      * If it was a relative path, a returned list will contain relative paths.
      *
+     * *For `wasmWasi` target, function does not work with NodeJS runtime on Windows,
+     * as `fd_readdir` function is [not implemented there](https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19).*
+     *
+     *
      * @param directory a directory to list.
      * @return a list of [directory]'s immediate children.
      * @throws FileNotFoundException if [directory] does not exist.
