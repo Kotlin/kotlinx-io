@@ -127,8 +127,8 @@ internal fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long 
  * detected using [Char.isSurrogate], or [Char.isHighSurrogate] and [Char.isLowSurrogate]).
  * Such a pair of characters needs to be manually converted back to a single code point
  * which then could be written to a [Sink].
- * Without such a conversion, data written to a [Sink] will no
- * longer be converted back to a string from which a surrogate pair was retrieved.
+ * Without such a conversion, data written to a [Sink] can not be converted back
+ * to a string from which a surrogate pair was retrieved.
  *
  * @param codePoint the codePoint to be written.
  *
@@ -210,11 +210,13 @@ public fun Source.readString(byteCount: Long): String {
  * If this source is exhausted before a complete code point can be read, this throws an
  * [EOFException] and consumes no input.
  *
- * If this source doesn't start with a properly encoded UTF-8 code point, this method will remove
- * 1 or more non-UTF-8 bytes and return the replacement character (`U+fffd`). This covers encoding
- * problems (the input is not properly encoded UTF-8), characters out of range (beyond the
- * `0x10ffff` limit of Unicode), code points for UTF-16 surrogates (`U+d800`..`U+dfff`) and overlong
- * encodings (such as `0xc080` for the NUL character in modified UTF-8).
+ * If this source starts with an ill-formed UTF-8 code units sequence, this method will remove
+ * 1 or more non-UTF-8 bytes and return the replacement character (`U+fffd`).
+ *
+ * The replacement character (`U+fffd`) will be also returned if the source starts with a well-formed
+ * code units sequences, but a decoded value does not pass further validation, such as
+ * the value is of range (beyond the `0x10ffff` limit of Unicode), maps to UTF-16 surrogates (`U+d800`..`U+dfff`),
+ * or an overlong encoding is detected (such as `0xc080` for the NUL character in modified UTF-8).
  *
  * Note that in general, returned value may not be directly converted to [Char] as it may be out
  * of [Char]'s values range and should be manually converted to a
