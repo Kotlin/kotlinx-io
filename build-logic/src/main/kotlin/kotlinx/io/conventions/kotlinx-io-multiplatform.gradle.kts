@@ -73,7 +73,7 @@ kotlin {
     applyDefaultHierarchyTemplate {
         common {
             group("native") {
-                group("nonApple") {
+                group("nativeNonApple") {
                     group("mingw")
                     group("unix") {
                         group("linux")
@@ -81,7 +81,7 @@ kotlin {
                     }
                 }
 
-                group("nonAndroid") {
+                group("nativeNonAndroid") {
                     group("apple")
                     group("mingw")
                     group("linux")
