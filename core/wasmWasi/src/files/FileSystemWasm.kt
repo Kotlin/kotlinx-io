@@ -277,7 +277,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
         }
     }
 
-    override fun list(directory: Path): List<Path> {
+    override fun list(directory: Path): Collection<Path> {
         val preOpen = PreOpens.findPreopen(directory)
 
         val metadata = metadataOrNullInternal(preOpen.fd, directory, true)

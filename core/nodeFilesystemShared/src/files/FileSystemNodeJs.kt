@@ -101,7 +101,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         return Path(fs.realpathSync.native(path.path))
     }
 
-    override fun list(directory: Path): List<Path> {
+    override fun list(directory: Path): Collection<Path> {
         val metadata = metadataOrNull(directory) ?: throw FileNotFoundException(directory.path)
         if (!metadata.isDirectory) throw IOException("Not a directory: ${directory.path}")
         val dir = fs.opendirSync(directory.path) ?: throw IOException("Unable to read directory: ${directory.path}")

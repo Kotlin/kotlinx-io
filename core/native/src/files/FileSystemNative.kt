@@ -87,7 +87,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         return FileSink(openFile)
     }
 
-    override fun list(directory: Path): List<Path> {
+    override fun list(directory: Path): Collection<Path> {
         val metadata = metadataOrNull(directory) ?: throw FileNotFoundException(directory.path)
         if (!metadata.isDirectory) throw IOException("Not a directory: ${directory.path}")
         return buildList {
