@@ -215,7 +215,7 @@ public fun Source.readString(byteCount: Long): String {
  *
  * The replacement character (`U+fffd`) will be also returned if the source starts with a well-formed
  * code units sequences, but a decoded value does not pass further validation, such as
- * the value is of range (beyond the `0x10ffff` limit of Unicode), maps to UTF-16 surrogates (`U+d800`..`U+dfff`),
+ * the value is out of range (beyond the `0x10ffff` limit of Unicode), maps to UTF-16 surrogates (`U+d800`..`U+dfff`),
  * or an overlong encoding is detected (such as `0xc080` for the NUL character in modified UTF-8).
  *
  * Note that in general, returned value may not be directly converted to [Char] as it may be out
