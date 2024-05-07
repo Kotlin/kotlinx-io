@@ -100,6 +100,23 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         if (!exists(path)) throw FileNotFoundException(path.path)
         return Path(fs.realpathSync.native(path.path))
     }
+
+    override fun list(directory: Path): Collection<Path> {
+        val metadata = metadataOrNull(directory) ?: throw FileNotFoundException(directory.path)
+        if (!metadata.isDirectory) throw IOException("Not a directory: ${directory.path}")
+        val dir = fs.opendirSync(directory.path) ?: throw IOException("Unable to read directory: ${directory.path}")
+        try {
+            return buildList {
+                var child = dir.readSync()
+                while (child != null) {
+                    add(Path(directory, child.name))
+                    child = dir.readSync()
+                }
+            }
+        } finally {
+            dir.closeSync()
+        }
+    }
 }
 
 public actual val SystemTemporaryDirectory: Path

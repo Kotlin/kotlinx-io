@@ -164,6 +164,7 @@ sealed interface kotlinx.io.files/FileSystem { // kotlinx.io.files/FileSystem|nu
     abstract fun createDirectories(kotlinx.io.files/Path, kotlin/Boolean =...) // kotlinx.io.files/FileSystem.createDirectories|createDirectories(kotlinx.io.files.Path;kotlin.Boolean){}[0]
     abstract fun delete(kotlinx.io.files/Path, kotlin/Boolean =...) // kotlinx.io.files/FileSystem.delete|delete(kotlinx.io.files.Path;kotlin.Boolean){}[0]
     abstract fun exists(kotlinx.io.files/Path): kotlin/Boolean // kotlinx.io.files/FileSystem.exists|exists(kotlinx.io.files.Path){}[0]
+    abstract fun list(kotlinx.io.files/Path): kotlin.collections/Collection<kotlinx.io.files/Path> // kotlinx.io.files/FileSystem.list|list(kotlinx.io.files.Path){}[0]
     abstract fun metadataOrNull(kotlinx.io.files/Path): kotlinx.io.files/FileMetadata? // kotlinx.io.files/FileSystem.metadataOrNull|metadataOrNull(kotlinx.io.files.Path){}[0]
     abstract fun resolve(kotlinx.io.files/Path): kotlinx.io.files/Path // kotlinx.io.files/FileSystem.resolve|resolve(kotlinx.io.files.Path){}[0]
     abstract fun sink(kotlinx.io.files/Path, kotlin/Boolean =...): kotlinx.io/RawSink // kotlinx.io.files/FileSystem.sink|sink(kotlinx.io.files.Path;kotlin.Boolean){}[0]

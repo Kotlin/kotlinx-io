@@ -93,8 +93,10 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
                 if (res == Errno.success) {
                     created = true
                 } else if (res != Errno.exist) {
-                    throw IOException("Can't create directory $path. " +
-                            "Creation of an intermediate directory $segment failed: ${res.description}")
+                    throw IOException(
+                        "Can't create directory $path. " +
+                                "Creation of an intermediate directory $segment failed: ${res.description}"
+                    )
                 }
             }
             if (mustCreate && !created) throw IOException("Directory already exists: $path")
@@ -120,8 +122,12 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
             val res = Errno(
                 path_rename(
-                    oldFd = sourcePreOpen.fd, oldPathPtr = sourceBuffer.address.toInt(), oldPathLen = sourceBufferLength,
-                    newFd = destPreOpen.fd, newPathPtr = destBuffer.address.toInt(), newPathLen = destBufferLength
+                    oldFd = sourcePreOpen.fd,
+                    oldPathPtr = sourceBuffer.address.toInt(),
+                    oldPathLen = sourceBufferLength,
+                    newFd = destPreOpen.fd,
+                    newPathPtr = destBuffer.address.toInt(),
+                    newPathLen = destBufferLength
                 )
             )
             when (res) {
@@ -270,6 +276,77 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             throw IOException("Can't create symbolic link $target pointing to $linked: ${res.description}")
         }
     }
+
+    override fun list(directory: Path): Collection<Path> {
+        val preOpen = PreOpens.findPreopen(directory)
+
+        val metadata = metadataOrNullInternal(preOpen.fd, directory, true)
+            ?: throw FileNotFoundException(directory.path)
+        if (metadata.filetype != FileType.directory) throw IOException("Not a directory: ${directory.path}")
+
+        val children = mutableListOf<Path>()
+        val dir_fd = withScopedMemoryAllocator { allocator ->
+            val fdPtr = allocator.allocateInt()
+            val (stringBuffer, stringBufferLength) = allocator.storeString(directory.path)
+
+            val res = Errno(
+                path_open(
+                    fd = preOpen.fd,
+                    dirflags = listOf(LookupFlags.symlink_follow).toBitset(),
+                    pathPtr = stringBuffer.address.toInt(), pathLen = stringBufferLength,
+                    oflags = setOf(OpenFlags.directory).toBitset(),
+                    fsRightsBase = listOf(Rights.fd_readdir, Rights.fd_read).toBitset(),
+                    fsRightsInheriting = 0,
+                    fdFlags = 0,
+                    resultPtr = fdPtr.address.toInt()
+                )
+            )
+            if (res != Errno.success) throw IOException("Can't open directory ${directory.path}: ${res.description}")
+            fdPtr.loadInt()
+        }
+        try {
+            withScopedMemoryAllocator { allocator ->
+                val resultSizePtr = allocator.allocateInt()
+                // directory's filesize expected to be larger than the actual buffer size required to fit all entries
+                val bufferSize = metadata.filesize.toInt()
+                val buffer = allocator.allocate(bufferSize)
+                val resultSize: Int
+                // Unsuported on Windows and Android:
+                // https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19
+                val res = Errno(
+                    fd_readdir(
+                        fd = dir_fd,
+                        bufPtr = buffer.address.toInt(),
+                        bufLen = bufferSize,
+                        cookie = 0L,
+                        resultPtr = resultSizePtr.address.toInt()
+                    )
+                )
+                if (res != Errno.success) {
+                    throw IOException("Can't read directory ${directory.path}: ${res.description}")
+                }
+                resultSize = resultSizePtr.loadInt()
+                check(resultSize <= bufferSize) { "Result size: $resultSize, buffer size: $bufferSize" }
+                var entryPtr = buffer
+                val endPtr = entryPtr + resultSize
+                while (entryPtr.address < endPtr.address) {
+                    // read dirent: https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md#-dirent-record
+                    // Each entry is 24-byte-wide dirent with filename length at offset 16, followed by
+                    // filename length bytes of data.
+                    val entryLen = entryPtr.loadInt(16)
+                    entryPtr += 24
+                    val name = entryPtr.loadString(entryLen)
+                    entryPtr += entryLen
+                    if (name != "." && name != "..") {
+                        children.add(Path(directory, name))
+                    }
+                }
+            }
+            return children
+        } finally {
+            fd_close(dir_fd)
+        }
+    }
 }
 
 private fun Path.normalized(): Path {
@@ -332,7 +409,8 @@ internal object PreOpens {
     }
 
     internal fun findPreopen(path: Path): PreOpen {
-        return findPreopenOrNull(path) ?: throw IOException("Path does not belong to any preopened directory: $path")
+        return findPreopenOrNull(path)
+            ?: throw IOException("Path does not belong to any preopened directory: $path")
     }
 
     @OptIn(UnsafeWasmMemoryApi::class)

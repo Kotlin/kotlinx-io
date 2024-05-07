@@ -73,12 +73,18 @@ kotlin {
     applyDefaultHierarchyTemplate {
         common {
             group("native") {
-                group("nonApple") {
+                group("nativeNonApple") {
                     group("mingw")
                     group("unix") {
                         group("linux")
                         group("androidNative")
                     }
+                }
+
+                group("nativeNonAndroid") {
+                    group("apple")
+                    group("mingw")
+                    group("linux")
                 }
             }
             group("nodeFilesystemShared") {
