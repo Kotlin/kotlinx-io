@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.gradle.targets.js.KotlinWasmTargetType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
-import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -162,10 +161,5 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
 }
 
 rootProject.the<NodeJsRootExtension>().apply {
-    nodeVersion = "21.0.0-v8-canary202310177990572111"
-    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
-}
-
-rootProject.tasks.withType<KotlinNpmInstallTask>().configureEach {
-    args.add("--ignore-engines")
+    nodeVersion = "22.1.0"
 }
