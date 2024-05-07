@@ -369,9 +369,21 @@ class Utf8Test {
     @Test
     fun writeCodePointBeyondUnicodeMaximum() {
         val buffer = Buffer()
-        assertFailsWith<IllegalArgumentException>("Unexpected code point: 0x110000") {
+        val ex = assertFailsWith<IllegalArgumentException> {
             buffer.writeCodePointValue(0x110000)
         }
+        assertEquals("Code point value is out of Unicode codespace [0, 0x10ffff]: 0x110000 (1114112)",
+            ex.message)
+    }
+
+    @Test
+    fun writeCodePointBelowUnicodeMinimum() {
+        val buffer = Buffer()
+        val ex = assertFailsWith<IllegalArgumentException> {
+            buffer.writeCodePointValue(-1)
+        }
+        assertEquals("Code point value is out of Unicode codespace [0, 0x10ffff]: 0xffffffff (-1)",
+            ex.message)
     }
 
     @Test
