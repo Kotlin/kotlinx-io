@@ -319,11 +319,11 @@ class Utf8Test {
         buffer.write(ByteArray(Segment.SIZE - 2))
         buffer.write("f888808080".decodeHex())
         buffer.skip(Segment.SIZE - 2L)
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
     }
 
