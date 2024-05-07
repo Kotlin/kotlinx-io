@@ -130,6 +130,9 @@ internal fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long 
  * Without such a conversion, data written to a [Sink] can not be converted back
  * to a string from which a surrogate pair was retrieved.
  *
+ * More specifically, all code points mapping to UTF-16 surrogates (`U+d800`..`U+dfff`)
+ * will be written as `?` characters (`U+0063`).
+ *
  * @param codePoint the codePoint to be written.
  *
  * @throws IllegalStateException when the sink is closed.
