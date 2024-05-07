@@ -285,14 +285,14 @@ class Utf8Test {
     @Test
     fun readCodePointFromEmptyBufferThrowsEofException() {
         val buffer = Buffer()
-        assertFailsWith<EOFException> { buffer.readUtf8CodePoint() }
+        assertFailsWith<EOFException> { buffer.readCodePointValue() }
     }
 
     @Test
     fun readLeadingContinuationByteReturnsReplacementCharacter() {
         val buffer = Buffer()
         buffer.writeByte(0xbf.toByte())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
     }
 
@@ -300,7 +300,7 @@ class Utf8Test {
     fun readMissingContinuationBytesThrowsEofException() {
         val buffer = Buffer()
         buffer.writeByte(0xdf.toByte())
-        assertFailsWith<EOFException> { buffer.readUtf8CodePoint() }
+        assertFailsWith<EOFException> { buffer.readCodePointValue() }
         assertFalse(buffer.exhausted()) // Prefix byte wasn't consumed.
     }
 
@@ -309,21 +309,21 @@ class Utf8Test {
         // 5-byte and 6-byte code points are not supported.
         val buffer = Buffer()
         buffer.write("f888808080".decodeHex())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
 
         buffer.write(ByteArray(Segment.SIZE - 2))
         buffer.write("f888808080".decodeHex())
         buffer.skip(Segment.SIZE - 2L)
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
     }
 
@@ -332,8 +332,8 @@ class Utf8Test {
         // Use a non-continuation byte where a continuation byte is expected.
         val buffer = Buffer()
         buffer.write("df20".decodeHex())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
-        assertEquals(0x20, buffer.readUtf8CodePoint()) // Non-continuation character not consumed.
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
+        assertEquals(0x20, buffer.readCodePointValue()) // Non-continuation character not consumed.
         assertTrue(buffer.exhausted())
     }
 
@@ -342,7 +342,7 @@ class Utf8Test {
         // A 4-byte encoding with data above the U+10ffff Unicode maximum.
         val buffer = Buffer()
         buffer.write("f4908080".decodeHex())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
     }
 
@@ -350,10 +350,10 @@ class Utf8Test {
     fun readSurrogateCodePoint() {
         val buffer = Buffer()
         buffer.write("eda080".decodeHex())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
         buffer.write("edbfbf".decodeHex())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
     }
 
@@ -362,7 +362,7 @@ class Utf8Test {
         // Use 2 bytes to encode data that only needs 1 byte.
         val buffer = Buffer()
         buffer.write("c080".decodeHex())
-        assertEquals(REPLACEMENT_CODE_POINT, buffer.readUtf8CodePoint())
+        assertEquals(REPLACEMENT_CODE_POINT, buffer.readCodePointValue())
         assertTrue(buffer.exhausted())
     }
 
@@ -370,7 +370,7 @@ class Utf8Test {
     fun writeCodePointBeyondUnicodeMaximum() {
         val buffer = Buffer()
         assertFailsWith<IllegalArgumentException>("Unexpected code point: 0x110000") {
-            buffer.writeUtf8CodePoint(0x110000)
+            buffer.writeCodePointValue(0x110000)
         }
     }
 
@@ -428,7 +428,7 @@ class Utf8Test {
 
     private fun Buffer.assertCodePointEncoded(expectedHex: String, codePoint: Int, prefixLength: Int = 0) {
         write(ByteArray(prefixLength))
-        writeUtf8CodePoint(codePoint)
+        writeCodePointValue(codePoint)
         skip(prefixLength.toLong())
         assertArrayEquals(expectedHex.decodeHex(), readByteArray())
     }
@@ -437,7 +437,7 @@ class Utf8Test {
         write(ByteArray(prefixLength))
         write(hex.decodeHex())
         skip(prefixLength.toLong())
-        assertEquals(expectedCodePoint, readUtf8CodePoint())
+        assertEquals(expectedCodePoint, readCodePointValue())
     }
 
     private fun Buffer.assertUtf8StringEncoded(expectedHex: String, string: String, prefixLength: Int = 0) {
@@ -469,7 +469,7 @@ class Utf8Test {
         val bufferUtf8 = Buffer()
         for (charIdx in string.indices) {
             val c = string[charIdx]
-            bufferUtf8.writeUtf8CodePoint(c.code)
+            bufferUtf8.writeCodePointValue(c.code)
         }
         assertArrayEquals(expectedUtf8, bufferUtf8.readByteArray())
 
