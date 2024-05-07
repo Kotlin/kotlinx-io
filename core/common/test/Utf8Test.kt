@@ -372,7 +372,7 @@ class Utf8Test {
         val ex = assertFailsWith<IllegalArgumentException> {
             buffer.writeCodePointValue(0x110000)
         }
-        assertEquals("Code point value is out of Unicode codespace [0, 0x10ffff]: 0x110000 (1114112)",
+        assertEquals("Code point value is out of Unicode codespace 0..0x10ffff: 0x110000 (1114112)",
             ex.message)
     }
 
@@ -382,7 +382,7 @@ class Utf8Test {
         val ex = assertFailsWith<IllegalArgumentException> {
             buffer.writeCodePointValue(-1)
         }
-        assertEquals("Code point value is out of Unicode codespace [0, 0x10ffff]: 0xffffffff (-1)",
+        assertEquals("Code point value is out of Unicode codespace 0..0x10ffff: 0xffffffff (-1)",
             ex.message)
     }
 

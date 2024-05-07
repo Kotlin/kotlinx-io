@@ -516,7 +516,7 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
     when {
         codePoint < 0 || codePoint > 0x10ffff -> {
             throw IllegalArgumentException(
-                "Code point value is out of Unicode codespace [0, 0x10ffff]: 0x${codePoint.toHexString()} ($codePoint)"
+                "Code point value is out of Unicode codespace 0..0x10ffff: 0x${codePoint.toHexString()} ($codePoint)"
             )
         }
 
