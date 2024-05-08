@@ -202,24 +202,40 @@ class Utf8Test {
         bufferWriteUtf8StringCheck(Segment.SIZE - 1)
     }
 
-    private fun bufferWriteUtf8StringCheck(prefixLength: Int) {
+    @Test
+    fun bufferWriteUtf8CharSequence() {
+        bufferWriteUtf8StringCheck(0) { buffer, string ->  buffer.writeString(StringBuilder(string)) }
+    }
+
+    @Test
+    fun bufferWriteUtf8CharSequenceCrossSegments() {
+        bufferWriteUtf8StringCheck(Segment.SIZE - 1) { buffer, string ->
+            buffer.writeString(StringBuilder(string))
+        }
+    }
+
+    private inline fun bufferWriteUtf8StringCheck(
+        prefixLength: Int,
+        writeAction: (Buffer, String) -> Unit = { b, s -> b.writeString(s) }
+    ) {
         val buffer = Buffer()
-        buffer.assertUtf8StringEncoded("68656c6c6f", "hello", prefixLength)
+        buffer.assertUtf8StringEncoded("68656c6c6f", "hello", prefixLength, writeAction)
         buffer.assertUtf8StringEncoded("cf87ceb5cf81ceb5cf84ceb9cf83cebccf8ccf82", "χερετισμός",
-            prefixLength)
+            prefixLength, writeAction)
         buffer.assertUtf8StringEncoded(
             "e18392e18390e1839be18390e183a0e183afe1839de18391e18390",
             "გამარჯობა",
-            prefixLength
+            prefixLength,
+            writeAction
         )
         buffer.assertUtf8StringEncoded(
             "f093878bf0938bb4f09380a5",
             "\uD80C\uDDCB\uD80C\uDEF4\uD80C\uDC25",/* 𓇋𓋴𓀥, to hail, AN EGYPTIAN HIEROGLYPHIC DICTIONARY, p. 79b */
-            prefixLength
+            prefixLength, writeAction
         )
 
         // two consecutive high surrogates, replace with '?'
-        buffer.assertUtf8StringEncoded("3f3f", "\ud801\uD801", prefixLength)
+        buffer.assertUtf8StringEncoded("3f3f", "\ud801\uD801", prefixLength, writeAction)
     }
 
     @Test
@@ -452,9 +468,10 @@ class Utf8Test {
         assertEquals(expectedCodePoint, readCodePointValue())
     }
 
-    private fun Buffer.assertUtf8StringEncoded(expectedHex: String, string: String, prefixLength: Int = 0) {
+    private inline fun Buffer.assertUtf8StringEncoded(expectedHex: String, string: String, prefixLength: Int = 0,
+                                               writeAction: (Buffer, String) -> Unit) {
         write(ByteArray(prefixLength))
-        writeString(string)
+        writeAction(this, string)
         skip(prefixLength.toLong())
         assertArrayEquals(expectedHex.decodeHex(), readByteArray())
     }

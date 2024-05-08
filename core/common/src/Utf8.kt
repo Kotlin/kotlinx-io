@@ -162,8 +162,31 @@ public fun Sink.writeCodePointValue(codePoint: Int): Unit =
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUtf8Sample
  */
 @OptIn(DelicateIoApi::class)
-public fun Sink.writeString(string: String, startIndex: Int = 0, endIndex: Int = string.length): Unit =
-    writeToInternalBuffer { it.commonWriteUtf8(string, startIndex, endIndex) }
+public fun Sink.writeString(string: String, startIndex: Int = 0, endIndex: Int = string.length) {
+    checkBounds(string.length, startIndex, endIndex)
+
+    writeToInternalBuffer { it.commonWriteUtf8(startIndex, endIndex, string::get) }
+}
+
+/**
+ * Encodes the characters at [startIndex] up to [endIndex] from [chars] in UTF-8 and writes it to this sink.
+ *
+ * @param chars the string to be encoded.
+ * @param startIndex the index (inclusive) of the first character to encode, 0 by default.
+ * @param endIndex the index (exclusive) of a character past to a last character to encode, `string.length` by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [chars] indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUtf8SeqSample
+ */
+@OptIn(DelicateIoApi::class)
+public fun Sink.writeString(chars: CharSequence, startIndex: Int = 0, endIndex: Int = chars.length) {
+    checkBounds(chars.length, startIndex, endIndex)
+
+    writeToInternalBuffer { it.commonWriteUtf8(startIndex, endIndex, chars::get) }
+}
 
 /**
  * Removes all bytes from this source, decodes them as UTF-8, and returns the string.
@@ -431,13 +454,11 @@ private fun Buffer.commonReadUtf8CodePoint(): Int {
     }
 }
 
-private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: Int) {
-    checkBounds(string.length, beginIndex, endIndex)
-
-    // Transcode a UTF-16 Java String to UTF-8 bytes.
+private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt: (Int) -> Char) {
+    // Transcode a UTF-16 chars to UTF-8 bytes.
     var i = beginIndex
     while (i < endIndex) {
-        var c = string[i].code
+        var c = charAt(i).code
 
         when {
             c < 0x80 -> {
@@ -452,7 +473,7 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
                 // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
                 // improvement over independent calls to writeByte().
                 while (i < runLimit) {
-                    c = string[i].code
+                    c = charAt(i).code
                     if (c >= 0x80) break
                     data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
                 }
@@ -487,7 +508,7 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
                 // c is a surrogate. Make sure it is a high surrogate & that its successor is a low
                 // surrogate. If not, the UTF-16 is invalid, in which case we emit a replacement
                 // character.
-                val low = (if (i + 1 < endIndex) string[i + 1].code else 0)
+                val low = (if (i + 1 < endIndex) charAt(i + 1).code else 0)
                 if (c > 0xdbff || low !in 0xdc00..0xdfff) {
                     writeByte('?'.code.toByte())
                     i++

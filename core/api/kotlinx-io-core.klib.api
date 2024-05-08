@@ -92,6 +92,7 @@ final fun (kotlinx.io/Sink).kotlinx.io/writeHexadecimalUnsignedLong(kotlin/Long)
 final fun (kotlinx.io/Sink).kotlinx.io/writeIntLe(kotlin/Int) // kotlinx.io/writeIntLe|writeIntLe@kotlinx.io.Sink(kotlin.Int){}[0]
 final fun (kotlinx.io/Sink).kotlinx.io/writeLongLe(kotlin/Long) // kotlinx.io/writeLongLe|writeLongLe@kotlinx.io.Sink(kotlin.Long){}[0]
 final fun (kotlinx.io/Sink).kotlinx.io/writeShortLe(kotlin/Short) // kotlinx.io/writeShortLe|writeShortLe@kotlinx.io.Sink(kotlin.Short){}[0]
+final fun (kotlinx.io/Sink).kotlinx.io/writeString(kotlin/CharSequence, kotlin/Int =..., kotlin/Int =...) // kotlinx.io/writeString|writeString@kotlinx.io.Sink(kotlin.CharSequence;kotlin.Int;kotlin.Int){}[0]
 final fun (kotlinx.io/Sink).kotlinx.io/writeString(kotlin/String, kotlin/Int =..., kotlin/Int =...) // kotlinx.io/writeString|writeString@kotlinx.io.Sink(kotlin.String;kotlin.Int;kotlin.Int){}[0]
 final fun (kotlinx.io/Sink).kotlinx.io/writeUByte(kotlin/UByte) // kotlinx.io/writeUByte|writeUByte@kotlinx.io.Sink(kotlin.UByte){}[0]
 final fun (kotlinx.io/Sink).kotlinx.io/writeUInt(kotlin/UInt) // kotlinx.io/writeUInt|writeUInt@kotlinx.io.Sink(kotlin.UInt){}[0]
