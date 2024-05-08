@@ -29,11 +29,15 @@ public object UnsafeBufferOperations {
      * @param startIndex an index of the first byte readable from the array, `0` by default.
      * @param endIndex an index of the byte past the last readable array byte, `bytes.size` byte default.
      *
-     * @throws IllegalArgumentException when [startIndex] or [endIndex] are not within [bytes] bounds
+     * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] are not within [bytes] bounds
      * @throws IllegalArgumentException when `startIndex > endIndex`
      */
     public fun moveToTail(buffer: Buffer, bytes: ByteArray, startIndex: Int = 0, endIndex: Int = bytes.size) {
-        val segment = Segment(bytes, startIndex, endIndex, shared = true /* to prevent recycling */, owner = true)
+        checkBounds(bytes.size, startIndex, endIndex)
+        val segment = Segment(
+            bytes, startIndex, endIndex, shared = true /* to prevent recycling */,
+            owner = false /* can't append to it */
+        )
         if (buffer.tail == null) {
             buffer.head = segment
             buffer.tail = segment
@@ -60,6 +64,8 @@ public object UnsafeBufferOperations {
      * and data from the consumed prefix will be no longer available for read.
      * If the operation does not consume anything, the action should return `0`.
      * It's considered an error to return a negative value or a value exceeding the size of a readable range.
+     *
+     * If [readAction] ends execution by throwing an exception, no data will be consumed from the buffer.
      *
      * If the buffer is empty, [IllegalArgumentException] will be thrown.
      *
@@ -94,6 +100,8 @@ public object UnsafeBufferOperations {
      * and data from the consumed prefix will be no longer available for read.
      * If the operation does not consume anything, the action should return `0`.
      * It's considered an error to return a negative value or a value exceeding the [Segment.size].
+     *
+     * If [readAction] ends execution by throwing an exception, no data will be consumed from the buffer.
      *
      * If the buffer is empty, [IllegalArgumentException] will be thrown.
      *
@@ -131,6 +139,8 @@ public object UnsafeBufferOperations {
      * If no data was written, `0` should be returned.
      * It's an error to return a negative value or a value exceeding the size of the provided writeable range.
      *
+     * If [writeAction] ends execution by throwing an exception, no data will be written to the buffer.
+     *
      * The data array is passed to the [writeAction] directly from the buffer's internal storage without copying
      * on the best-effort basis, meaning that there are no strong zero-copy guarantees
      * and the copy will be created if it could not be omitted.
@@ -141,33 +151,35 @@ public object UnsafeBufferOperations {
      */
     public inline fun writeToTail(buffer: Buffer, minimumCapacity: Int, writeAction: (ByteArray, Int, Int) -> Int) {
         val tail = buffer.writableSegment(minimumCapacity)
-        val bytesWritten = writeAction(tail.dataAsByteArray(), tail.limit, tail.dataAsByteArray().size)
+        try {
+            val bytesWritten = writeAction(tail.dataAsByteArray(), tail.limit, tail.dataAsByteArray().size)
 
-        // fast path
-        if (bytesWritten == minimumCapacity) {
-            tail.limit += bytesWritten
-            buffer.sizeField += bytesWritten
-            return
-        }
-
-        check(bytesWritten in 0 .. tail.remainingCapacity)
-        if (bytesWritten != 0) {
-            tail.limit += bytesWritten
-            buffer.sizeField += bytesWritten
-            return
-        }
-
-        if (tail.isEmpty()) {
-            val newTail = tail.prev
-            if (newTail != null) {
-                buffer.tail = newTail
-                newTail.next = null
-            } else {
-                buffer.head = null
-                buffer.tail = null
+            // fast path
+            if (bytesWritten == minimumCapacity) {
+                tail.limit += bytesWritten
+                buffer.sizeField += bytesWritten
+                return
             }
-            // TODO
-            // SegmentPool.recycle(tail)
+
+            check(bytesWritten in 0..tail.remainingCapacity)
+            if (bytesWritten != 0) {
+                tail.limit += bytesWritten
+                buffer.sizeField += bytesWritten
+                return
+            }
+        } finally {
+            if (tail.isEmpty()) {
+                val newTail = tail.prev
+                if (newTail != null) {
+                    buffer.tail = newTail
+                    newTail.next = null
+                } else {
+                    buffer.head = null
+                    buffer.tail = null
+                }
+                // TODO
+                // SegmentPool.recycle(tail)
+            }
         }
     }
 
@@ -188,41 +200,49 @@ public object UnsafeBufferOperations {
      * If no data was written, `0` should be returned.
      * It's an error to return a negative value or a value exceeding the [Segment.remainingCapacity].
      *
+     * If [writeAction] ends execution by throwing an exception, no data will be written to the buffer.
+     *
      * @throws IllegalStateException when [minimumCapacity] is too large and could not be fulfilled.
      * @throws IllegalStateException when [writeAction] returns a negative value or a value exceeding
      * the [Segment.remainingCapacity] value for the provided segment.
      *
      * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128
      */
-    public inline fun writeToTail(buffer: Buffer, minimumCapacity: Int, writeAction: (SegmentWriteContext, Segment) -> Int) {
+    public inline fun writeToTail(
+        buffer: Buffer,
+        minimumCapacity: Int,
+        writeAction: (SegmentWriteContext, Segment) -> Int
+    ) {
         val tail = buffer.writableSegment(minimumCapacity)
-        val bytesWritten = writeAction(SegmentWriteContextImpl, tail)
+        try {
+            val bytesWritten = writeAction(SegmentWriteContextImpl, tail)
 
-        // fast path
-        if (bytesWritten == minimumCapacity) {
-            tail.limit += bytesWritten
-            buffer.sizeField += bytesWritten
-            return
-        }
-
-        check(bytesWritten in 0 .. tail.remainingCapacity)
-        if (bytesWritten != 0) {
-            tail.limit += bytesWritten
-            buffer.sizeField += bytesWritten
-            return
-        }
-
-        if (tail.isEmpty()) {
-            val newTail = tail.prev
-            if (newTail != null) {
-                buffer.tail = newTail
-                newTail.next = null
-            } else {
-                buffer.head = null
-                buffer.tail = null
+            // fast path
+            if (bytesWritten == minimumCapacity) {
+                tail.limit += bytesWritten
+                buffer.sizeField += bytesWritten
+                return
             }
-            // TODO
-            // SegmentPool.recycle(tail)
+
+            check(bytesWritten in 0..tail.remainingCapacity)
+            if (bytesWritten != 0) {
+                tail.limit += bytesWritten
+                buffer.sizeField += bytesWritten
+                return
+            }
+        } finally {
+            if (tail.isEmpty()) {
+                val newTail = tail.prev
+                if (newTail != null) {
+                    buffer.tail = newTail
+                    newTail.next = null
+                } else {
+                    buffer.head = null
+                    buffer.tail = null
+                }
+                // TODO
+                // SegmentPool.recycle(tail)
+            }
         }
     }
 
@@ -243,21 +263,7 @@ public object UnsafeBufferOperations {
     public inline fun iterate(buffer: Buffer, block: (BufferIterationContext, Segment?) -> Unit) {
         block(BufferIterationContextImpl, buffer.head)
     }
-    /**
-     * Provides access to [buffer] segments starting from the tail.
-     *
-     * [block] is invoked with a reference to [buffer]'s tail segment, which could be null in case of an empty buffer,
-     * and an instance of [BufferIterationContext] allowing to iterate over [buffer]'s segments.
-     *
-     * It's considered an error to use a [BufferIterationContext] or a [Segment] instances outside the scope of
-     * the [block].
-     *
-     * @param buffer a buffer to iterate over
-     * @param block a callback to invoke with the head reference and an iteration context instance
-     */
-    //public inline fun tail(buffer: Buffer, block: (BufferIterationContext, Segment?) -> Unit) {
-    //    block(BufferIterationContextImpl, buffer.tail)
-    //}
+
     /**
      * Provides access to [buffer] segments starting from a segment spanning over a specified [offset].
      *
@@ -273,18 +279,21 @@ public object UnsafeBufferOperations {
      * and an iteration context instance
      *
      * @sample kotlinx.io.samples.CRC32Source
+     *
+     * @throws IllegalArgumentException when [offset] is negative
+     * @throws IndexOutOfBoundsException when [offset] is greater or equal to [Buffer.size]
      */
     public inline fun iterate(buffer: Buffer, offset: Long, block: (BufferIterationContext, Segment?, Long) -> Unit) {
+        require(offset >= 0) { "Offset must be non-negative: $offset" }
+        if (offset >= buffer.size) {
+            throw IndexOutOfBoundsException("Offset should be less than buffer's size (${buffer.size}): $offset")
+        }
+
         buffer.seek(offset) { s, o ->
             block(BufferIterationContextImpl, s, o)
         }
     }
 }
-
-//public fun UnsafeBufferOperations.readFromHead(buffer: Buffer, block: (ByteBuffer) -> Unit): Unit
-//public fun UnsafeBufferOperations.writeToTail(buffer: Buffer, block: (ByteBuffer) -> Unit): Unit
-//public fun UnsafeBufferOperations.readBulk(buffer: Buffer, iovec: Array<ByteArray?>? = null, block: (Array<ByteArray?>, Int) -> Long): Unit
-//public fun UnsafeBufferOperations.writeBulk(buffer: Buffer, minCapacity: Long, iovec: Array<ByteArray?>? = null, block: (Array<ByteArray?>, Int) -> Long): Unit
 
 /**
  * Provides read access to [Segment]'s data.
@@ -348,6 +357,7 @@ public interface SegmentWriteContext {
      * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128
      */
     public fun setUnchecked(segment: Segment, offset: Int, value: Byte)
+
     /**
      * Writes two bytes, [b0] and [b1] to an uncommitted portion of the [segment] starting at [offset].
      *
@@ -364,6 +374,7 @@ public interface SegmentWriteContext {
      * @param b1 a second byte to be written
      */
     public fun setUnchecked(segment: Segment, offset: Int, b0: Byte, b1: Byte)
+
     /**
      * Writes three bytes, [b0], [b1] and [b2] to an uncommitted portion of the [segment] starting at [offset].
      *
@@ -381,6 +392,7 @@ public interface SegmentWriteContext {
      * @param b2 a third byte to be written
      */
     public fun setUnchecked(segment: Segment, offset: Int, b0: Byte, b1: Byte, b2: Byte)
+
     /**
      * Writes three bytes, [b0], [b1], [b2] and [b3] to an uncommitted portion of the [segment] starting at [offset].
      *
@@ -417,27 +429,7 @@ public interface BufferIterationContext : SegmentReadContext {
      * @sample kotlinx.io.samples.Crc32Sample.crc32Unsafe
      */
     public fun next(segment: Segment): Segment?
-    /**
-     * Return a segment preceding [segment] in the buffer, or `null, if there is no such segment (meaning that the
-     * [segment] is [Buffer]'s head).
-     *
-     * @param segment a segment for which a predecessor needs to be found
-     */
-    // public fun prev(segment: Segment): Segment?
 }
-
-/**
- * Allows reading data from the [segment] by invoking a [readAction] with an instance of [SegmentReadContext].
- *
- * @param segment a segment to read from
- * @param readAction an action supplied with a segment and the [SegmentReadContext] instance.
- *
- * @sample kotlinx.io.samples.crc32
- */
-//@UnsafeIoApi
-//public inline fun BufferIterationContext.read(segment: Segment, readAction: (SegmentReadContext, Segment) -> Unit) {
-//    readAction(SegmentReadContextImpl, segment)
-//}
 
 @UnsafeIoApi
 @PublishedApi
@@ -449,7 +441,7 @@ internal object SegmentReadContextImpl : SegmentReadContext {
 @PublishedApi
 internal object SegmentWriteContextImpl : SegmentWriteContext {
     override fun setUnchecked(segment: Segment, offset: Int, value: Byte) {
-        segment.setUnchecked(offset ,value)
+        segment.setUnchecked(offset, value)
     }
 
     override fun setUnchecked(segment: Segment, offset: Int, b0: Byte, b1: Byte) {
@@ -470,61 +462,6 @@ internal object SegmentWriteContextImpl : SegmentWriteContext {
 internal object BufferIterationContextImpl : BufferIterationContext {
     override fun next(segment: Segment): Segment? = segment.next
 
-    // override fun prev(segment: Segment): Segment? = segment.prev
-    override fun getUnchecked(segment: Segment, offset: Int): Byte = SegmentReadContextImpl.getUnchecked(segment, offset)
+    override fun getUnchecked(segment: Segment, offset: Int): Byte =
+        SegmentReadContextImpl.getUnchecked(segment, offset)
 }
-
-//@UnsafeIoApi
-//public object UnsafeBufferAccessors {
-    /**
-     * Allocates at least [minimumCapacity] bytes of space for writing and supplies it to [block] in form of [Segment].
-     * Actual number of bytes available for writing may exceed [minimumCapacity] and could be checked using
-     * [Segment.remainingCapacity].
-     *
-     * [block] can write into [Segment] using [SegmentWriteContext.setChecked].
-     * Data written into [Segment] will not be available for reading from the buffer until [block] returned.
-     * A value returned from [block] represent the length of [Segment]'s prefix that should be appended to the buffer.
-     * That value may be less or greater than [minimumCapacity], but it should be non-negative and should not exceed
-     * [Segment.remainingCapacity].
-     *
-     * @param buffer the buffer to write into.
-     * @param minimumCapacity the minimum number of bytes that could be written into a segment
-     * that will be supplied into [block].
-     * @param block the block writing data into provided [Segment], should return the number of consecutive bytes
-     * that will be appended to the buffer.
-     *
-     * @throws IllegalArgumentException when [minimumCapacity] is negative or exceeds the maximum size of a segment.
-     * @throws IllegalStateException when [block] returns negative value or a value that exceeds capacity of a segment
-     * that was supplied to the [block].
-     *
-     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128
-     * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUleb128Array
-     */
-    /*
-    public inline fun writeUnbound(buffer: Buffer, minimumCapacity: Int, block: (SegmentWriteContext, Segment) -> Int) {
-        val segment = buffer.writableSegment(minimumCapacity)
-        val bytesWritten = block(SegmentWriteContextImpl, segment)
-
-        // fast path
-        if (bytesWritten == minimumCapacity) {
-            segment.limit += bytesWritten
-            buffer.sizeField += bytesWritten
-            return
-        }
-
-        check(bytesWritten in 0 .. segment.remainingCapacity)
-        if (bytesWritten != 0) {
-            segment.limit += bytesWritten
-            buffer.sizeField += bytesWritten
-            return
-        }
-
-        if (segment.isEmpty()) {
-            val res = segment.pop()
-            if (res == null) {
-                buffer.head = null
-            }
-        }
-    }
-}
-*/

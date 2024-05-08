@@ -334,7 +334,7 @@ public final class kotlinx/io/unsafe/UnsafeBufferOperations {
 }
 
 public final class kotlinx/io/unsafe/UnsafeBufferOperationsJvmKt {
-	public static final fun readBulk (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;I[Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function2;)V
+	public static final fun readBulk (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;[Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function2;)V
 	public static final fun readFromHead (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function1;)V
 	public static final fun writeToTail (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function1;)V
 }

@@ -6,6 +6,7 @@
 package kotlinx.io.unsafe
 
 import kotlinx.io.Buffer
+import kotlinx.io.Segment
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations.maxSafeWriteCapacity
 import java.nio.ByteBuffer
@@ -18,6 +19,8 @@ import java.nio.ByteBuffer
  *
  * After exiting the [readAction], all data consumed from the [ByteBuffer] will be also consumed from the [buffer].
  * Consumed bytes determined as a difference between [ByteBuffer.capacity] and [ByteBuffer.remaining].
+ *
+ * If [readAction] ends execution by throwing an exception, no data will be consumed from the buffer.
  *
  * If the [buffer] is empty, [IllegalArgumentException] will be thrown.
  *
@@ -34,7 +37,14 @@ import java.nio.ByteBuffer
  */
 @Suppress("UNUSED_PARAMETER")
 @UnsafeIoApi
-public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction: (ByteBuffer) -> Unit): Unit = Unit
+public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction: (ByteBuffer) -> Unit) {
+    UnsafeBufferOperations.readFromHead(buffer) { rawData, pos, limit ->
+        // TODO: hide this operation
+        val bb = ByteBuffer.wrap(rawData, pos, limit - pos).slice().asReadOnlyBuffer()
+        readAction(bb)
+        bb.position()
+    }
+}
 
 /**
  * Provides write access to the buffer, allowing to write data
@@ -51,6 +61,8 @@ public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction
  * After exiting [writeAction], bytes written to the [ByteBuffer] will be committed to the buffer.
  * The number of bytes written is determined as a difference between [ByteBuffer.capacity] and [ByteBuffer.remaining].
  *
+ * If [writeAction] ends execution by throwing an exception, no data will be written to the buffer.
+ *
  * The data array is passed to the [writeAction] directly from the buffer's internal storage without copying
  * on the best-effort basis, meaning that there are no strong zero-copy guarantees
  * and the copy will be created if it could not be omitted.
@@ -66,9 +78,18 @@ public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction
  */
 @Suppress("UNUSED_PARAMETER")
 @UnsafeIoApi
-public inline fun UnsafeBufferOperations.writeToTail(buffer: Buffer,
-                                                     minimumCapacity: Int,
-                                                     writeAction: (ByteBuffer) -> Unit): Unit = Unit
+public inline fun UnsafeBufferOperations.writeToTail(
+    buffer: Buffer,
+    minimumCapacity: Int,
+    writeAction: (ByteBuffer) -> Unit
+) {
+    UnsafeBufferOperations.writeToTail(buffer, minimumCapacity) { rawData, pos, limit ->
+        // TODO: hide this operation
+        val bb = ByteBuffer.wrap(rawData, pos, limit - pos).slice()
+        writeAction(bb)
+        bb.position()
+    }
+}
 
 /**
  * Provides read-only access to [buffer]'s data by filling provided [iovec] array with [ByteBuffer]'s representing
@@ -85,6 +106,8 @@ public inline fun UnsafeBufferOperations.writeToTail(buffer: Buffer,
  * The size of the buffer will be reduced by that value,
  * and the corresponding number of bytes from buffer's prefix will be no longer available for read.
  * If data was not consumed, the [readAction] should return `0`.
+ *
+ * If [readAction] ends execution by throwing an exception, no data will be consumed from the buffer.
  *
  * If the [iovec] contains any references, it will be overridden during the call.
  *
@@ -107,11 +130,35 @@ public inline fun UnsafeBufferOperations.writeToTail(buffer: Buffer,
  */
 @Suppress("UNUSED_PARAMETER")
 @UnsafeIoApi
-public inline fun UnsafeBufferOperations.readBulk(buffer: Buffer,
-                                                  iovec: Array<ByteBuffer?>,
-                                                  readAction: (Array<ByteBuffer?>, Int) -> Long): Unit = Unit
+public inline fun UnsafeBufferOperations.readBulk(
+    buffer: Buffer,
+    iovec: Array<ByteBuffer?>,
+    readAction: (Array<ByteBuffer?>, Int) -> Long
+) {
+    val head = buffer.head ?: throw IllegalArgumentException("buffer is empty.")
+    if (iovec.isEmpty()) throw IllegalArgumentException("iovec is empty.")
 
-//@UnsafeIoApi
-//public inline fun UnsafeBufferOperations.writeBulk(buffer: Buffer,
-//                                                  iovec: Array<ByteBuffer?>? = null,
-//                                                  readAction: (Array<ByteArray?>, Int) -> Long): Unit = Unit
+    var currentSegment: Segment = head
+    var idx = 0
+    var capacity = 0L
+    do {
+        val pos = currentSegment.pos
+        val limit = currentSegment.limit
+        val len = limit - pos
+        // TODO hide this operation
+        iovec[idx++] = ByteBuffer.wrap(currentSegment.dataAsByteArray(), pos, len)
+            .slice()
+            .asReadOnlyBuffer()
+        capacity += len
+        currentSegment = currentSegment.next ?: break
+    } while (idx < iovec.size)
+
+    val bytesRead = readAction(iovec, idx)
+    if (bytesRead == 0L) return
+    if (bytesRead < 0 || bytesRead > capacity) {
+        throw IllegalStateException(
+            "readAction should return a value in range [0, $capacity], but returned: $bytesRead"
+        )
+    }
+    buffer.skip(bytesRead)
+}
