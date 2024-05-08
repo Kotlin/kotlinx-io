@@ -1,0 +1,76 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>list</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            kotlinx-io
+                    </a>            </div>
+            <div class="library-version">0.3.4
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":kotlinx-io-core:dokkaHtmlPartial/commonMain">common</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="member" id="content" pageids="kotlinx-io-core::kotlinx.io.files/FileSystem/list/#kotlinx.io.files.Path/PointingToDeclaration//-15943755">
+  <div class="breadcrumbs"><a href="../../index.html">kotlinx-io-core</a><span class="delimiter">/</span><a href="../index.html">kotlinx.io.files</a><span class="delimiter">/</span><a href="index.html">FileSystem</a><span class="delimiter">/</span><span class="current">list</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>list</span></span></h1>
+  </div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-core:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="list.html"><span class="token function">list</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">directory<span class="token operator">: </span><a href="../-path/index.html">Path</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-collection/index.html">Collection</a><span class="token operator">&lt;</span><a href="../-path/index.html">Path</a><span class="token operator">&gt;</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/core/common/src/files/FileSystem.kt#L166">source</a>)</span></span></div><p class="paragraph">Returns paths corresponding to <a href="list.html">directory</a>'s immediate children.</p><p class="paragraph">There are no guarantees on children paths order within a returned collection.</p><p class="paragraph">If path <a href="list.html">directory</a> was an absolute path, a returned collection will also contain absolute paths. If it was a relative path, a returned collection will contain relative paths.</p><p class="paragraph"><i>For </i><code class="italic lang-kotlin"><i>wasmWasi</i></code><i> target, function does not work with NodeJS runtime on Windows, as </i><code class="italic lang-kotlin"><i>fd_readdir</i></code><i> function is </i><a href="https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19"><i>not implemented there</i></a><i>.</i></p><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">a collection of <a href="list.html">directory</a>'s immediate children.</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":kotlinx-io-core:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-core:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>directory</span></span></u></div></span></div><div><div class="title"><p class="paragraph">a directory to list.</p></div></div></div></div></div><h4 class="">Throws</h4><div class="table"><div class="table-row" data-filterable-current=":kotlinx-io-core:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-core:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-file-not-found-exception/index.html"><span>File</span><wbr><span>Not</span><wbr><span>Found</span><wbr><span><span>Exception</span></span></a></div></span></div><div><div class="title"><p class="paragraph">if <a href="list.html">directory</a> does not exist.</p></div></div></div></div><div class="table-row" data-filterable-current=":kotlinx-io-core:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-core:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../kotlinx.io/-i-o-exception/index.html"><span><span>IOException</span></span></a></div></span></div><div><div class="title"><p class="paragraph">if there was an underlying error preventing listing <a href="list.html">directory</a> children.</p></div></div></div></div></div></div></div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
