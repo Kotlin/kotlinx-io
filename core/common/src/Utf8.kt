@@ -122,6 +122,9 @@ internal fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long 
 /**
  * Encodes [codePoint] in UTF-8 and writes it to this sink.
  *
+ * [codePoint] should represent valid Unicode code point, meaning that its value should be within the Unicode codespace
+ * (`U+000000` .. `U+10ffff`), otherwise [IllegalArgumentException] will be thrown.
+ *
  * Note that in general, a value retrieved from [Char.code] could not be written directly
  * as it may be a part of a [surrogate pair](https://www.unicode.org/faq/utf_bom.html#utf16-2) (that could be
  * detected using [Char.isSurrogate], or [Char.isHighSurrogate] and [Char.isLowSurrogate]).
@@ -136,6 +139,7 @@ internal fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long 
  * @param codePoint the codePoint to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IllegalArgumentException when [codePoint] value is negative, or greater than `U+10ffff`.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUtf8CodePointSample
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeSurrogatePair
@@ -510,6 +514,12 @@ private fun Buffer.commonWriteUtf8(string: String, beginIndex: Int, endIndex: In
 
 private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
     when {
+        codePoint < 0 || codePoint > 0x10ffff -> {
+            throw IllegalArgumentException(
+                "Code point value is out of Unicode codespace 0..0x10ffff: 0x${codePoint.toHexString()} ($codePoint)"
+            )
+        }
+
         codePoint < 0x80 -> {
             // Emit a 7-bit code point with 1 byte.
             writeByte(codePoint.toByte())
@@ -539,7 +549,7 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
             size += 3L
         }
 
-        codePoint <= 0x10ffff -> {
+        else -> { // [0x10000, 0x10ffff]
             // Emit a 21-bit code point with 4 bytes.
             val tail = writableSegment(4)
             tail.data[tail.limit] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
@@ -548,10 +558,6 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
             tail.data[tail.limit + 3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
             tail.limit += 4
             size += 4L
-        }
-
-        else -> {
-            throw IllegalArgumentException("Unexpected code point: 0x${codePoint.toHexString()}")
         }
     }
 }
