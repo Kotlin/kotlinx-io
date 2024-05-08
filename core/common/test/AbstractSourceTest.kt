@@ -615,7 +615,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         val string = "abcd" + "e".repeat(Segment.SIZE)
         sink.writeString(string)
         sink.emit()
-        assertArrayEquals(string.asUtf8ToByteArray(), source.readByteArray())
+        assertArrayEquals(string.commonAsUtf8ToByteArray(), source.readByteArray())
     }
 
     @Test
@@ -1099,25 +1099,25 @@ abstract class AbstractBufferedSourceTest internal constructor(
         with(sink) {
             writeByte(0x7f)
             emit()
-            assertEquals(0x7f, source.readUtf8CodePoint().toLong())
+            assertEquals(0x7f, source.readCodePointValue().toLong())
 
             writeByte(0xdf.toByte())
             writeByte(0xbf.toByte())
             emit()
-            assertEquals(0x07ff, source.readUtf8CodePoint().toLong())
+            assertEquals(0x07ff, source.readCodePointValue().toLong())
 
             writeByte(0xef.toByte())
             writeByte(0xbf.toByte())
             writeByte(0xbf.toByte())
             emit()
-            assertEquals(0xffff, source.readUtf8CodePoint().toLong())
+            assertEquals(0xffff, source.readCodePointValue().toLong())
 
             writeByte(0xf4.toByte())
             writeByte(0x8f.toByte())
             writeByte(0xbf.toByte())
             writeByte(0xbf.toByte())
             emit()
-            assertEquals(0x10ffff, source.readUtf8CodePoint().toLong())
+            assertEquals(0x10ffff, source.readCodePointValue().toLong())
         }
     }
 
@@ -1126,20 +1126,20 @@ abstract class AbstractBufferedSourceTest internal constructor(
         with(sink) {
             writeByte(0xdf.toByte()) // a second byte is missing
             emit()
-            assertFailsWith<EOFException> { source.readUtf8CodePoint() }
+            assertFailsWith<EOFException> { source.readCodePointValue() }
             assertEquals(1, source.readByteArray().size)
 
             writeByte(0xe2.toByte())
             writeByte(0x98.toByte()) // a third byte is missing
             emit()
-            assertFailsWith<EOFException> { source.readUtf8CodePoint() }
+            assertFailsWith<EOFException> { source.readCodePointValue() }
             assertEquals(2, source.readByteArray().size)
 
             writeByte(0xf0.toByte())
             writeByte(0x9f.toByte())
             writeByte(0x92.toByte()) // a forth byte is missing
             emit()
-            assertFailsWith<EOFException> { source.readUtf8CodePoint() }
+            assertFailsWith<EOFException> { source.readCodePointValue() }
             assertEquals(3, source.readByteArray().size)
         }
     }

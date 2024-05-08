@@ -6,10 +6,7 @@
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.cstr
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.toKString
+import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.Foundation.*
 import platform.posix.*

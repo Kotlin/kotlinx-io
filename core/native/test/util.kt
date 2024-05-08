@@ -25,3 +25,5 @@ actual fun tempFileName(): String {
     }
     throw IOException("Failed to generate temp file name")
 }
+
+internal actual fun String.asUtf8ToByteArray(): ByteArray = commonAsUtf8ToByteArray()

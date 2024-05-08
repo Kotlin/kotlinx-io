@@ -6,7 +6,7 @@
 [![Download](https://img.shields.io/maven-central/v/org.jetbrains.kotlinx/kotlinx-io-core)](https://central.sonatype.com/artifact/org.jetbrains.kotlinx/kotlinx-io-core/)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.22-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![TeamCity build](https://img.shields.io/teamcity/build/s/KotlinTools_KotlinxIo_BuildAggregated.svg?server=http%3A%2F%2Fteamcity.jetbrains.com)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_KotlinxIo_BuildAggregated&guest=1)
-[![KDoc link](https://img.shields.io/badge/API_reference-KDoc-blue)](https://fzhinkin.github.io/kotlinx-io-dokka-docs-preview/)
+[![KDoc link](https://img.shields.io/badge/API_reference-KDoc-blue)](https://kotlin.github.io/kotlinx-io/)
 
 A multiplatform Kotlin library providing basic IO primitives. `kotlinx-io` is based on [Okio](https://github.com/square/okio) but does not preserve backward compatibility with it.
 
@@ -48,7 +48,7 @@ repositories {
 Add the library to dependencies:
 ```kotlin
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.3.4")
 }
 ```
 
@@ -58,7 +58,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.3.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.3.4")
             }
         }
     }
@@ -72,7 +72,7 @@ Add the library to dependencies:
 <dependency>
     <groupId>org.jetbrains.kotlinx</groupId>
     <artifactId>kotlinx-io-core-jvm</artifactId>
-    <version>0.3.3</version>
+    <version>0.3.4</version>
 </dependency>
 ```
 

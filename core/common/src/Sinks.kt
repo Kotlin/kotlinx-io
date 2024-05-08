@@ -5,7 +5,9 @@
 
 package kotlinx.io
 
-internal val HEX_DIGIT_BYTES = "0123456789abcdef".asUtf8ToByteArray()
+private val HEX_DIGIT_BYTES = ByteArray(16) {
+    ((if (it < 10) '0'.code else ('a'.code - 10)) + it).toByte()
+}
 
 /**
  * Writes two bytes containing [short], in the little-endian order, to this sink.

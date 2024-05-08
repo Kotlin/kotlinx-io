@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.3.4
+> Published 8 May 2024
+
+### Features
+- Kotlin updated to 1.9.24 [#315](https://github.com/Kotlin/kotlinx-io/pull/315)
+- Supported `linuxArm32Hfp` target [#303](https://github.com/Kotlin/kotlinx-io/issues/303)
+- Enabled KLib ABI validation
+- Provided extension functions to read (`Source.readCodePointValue`) and write (`Sink.writeCodePointValue`)
+  Unicode code point values [#307](https://github.com/Kotlin/kotlinx-io/issues/307)
+- Provided function to list directories (`FileSystem.list`) [#222](https://github.com/Kotlin/kotlinx-io/issues/222)
+
 ## 0.3.3
 > Published 22 Apr 2024
 
