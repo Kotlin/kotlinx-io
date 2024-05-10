@@ -361,6 +361,10 @@ public fun Source.readULongLe(): ULong = readLongLe().toULong()
  *
  * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
  *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloat] and then reading it back using [Source.readFloat] may not be equal to the original value.
+ * Please refer to [Float.Companion.fromBits] documentation for details.
+ *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
  *
@@ -386,6 +390,10 @@ public fun Source.readDouble(): Double = Double.fromBits(readLong())
  * according to the little-endian order.
  *
  * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloatLe] and then reading it back using [Source.readFloatLe] may not be equal to the original value.
+ * Please refer to [Float.Companion.fromBits] documentation for details.
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
