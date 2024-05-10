@@ -251,6 +251,7 @@ open class Utf8Benchmark(val length: Int, val encoding: String) : BufferRWBenchm
     )
 
     private var string: String = ""
+    private var stringBytes: ByteArray = ByteArray(0)
 
     public companion object {
         @JvmStatic
@@ -296,6 +297,7 @@ open class Utf8Benchmark(val length: Int, val encoding: String) : BufferRWBenchm
     @Before
     fun setupString() {
         string = constructString()
+        stringBytes = Buffer().also { it.writeString(string) }.readByteArray()
     }
 
     @Test
@@ -305,6 +307,20 @@ open class Utf8Benchmark(val length: Int, val encoding: String) : BufferRWBenchm
             buffer.writeString(string)
             buffer.readString(buffer.size - s)
         }
+    }
+
+    @Test
+    fun readOnly(): Unit {
+        val s = buffer.size
+        buffer.write(stringBytes)
+        buffer.readString(buffer.size - s)
+    }
+
+    @Test
+    fun writeOnly() {
+        val s = buffer.size
+        buffer.writeString(string)
+        buffer.skip(buffer.size - s)
     }
 }
 
