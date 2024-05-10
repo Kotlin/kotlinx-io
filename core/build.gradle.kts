@@ -4,7 +4,6 @@
  */
 
 import org.gradle.internal.os.OperatingSystem
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 plugins {
     id("kotlinx-io-multiplatform")
@@ -50,20 +49,6 @@ kotlin {
         appleTest.dependencies {
             implementation(libs.kotlinx.coroutines.core)
         }
-    }
-}
-
-tasks.withType<DokkaTaskPartial>().configureEach {
-    dokkaSourceSets.configureEach {
-        samples.from(
-            "common/test/samples/rawSinkSample.kt",
-            "common/test/samples/rawSourceSample.kt",
-            "common/test/samples/moduleDescriptionSample.kt",
-            "common/test/samples/samples.kt",
-            "common/test/samples/byteStringSample.kt",
-            "jvm/test/samples/samplesJvm.kt",
-            "apple/test/samples/samplesApple.kt"
-        )
     }
 }
 
