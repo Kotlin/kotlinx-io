@@ -173,7 +173,7 @@ public fun Sink.writeString(string: String, startIndex: Int = 0, endIndex: Int =
  *
  * @param chars the string to be encoded.
  * @param startIndex the index (inclusive) of the first character to encode, 0 by default.
- * @param endIndex the index (exclusive) of a character past to a last character to encode, `string.length` by default.
+ * @param endIndex the index (exclusive) of a character past to a last character to encode, `chars.length` by default.
  *
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [chars] indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
