@@ -285,6 +285,10 @@ public fun Sink.writeULongLe(long: ULong) {
  *
  * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Float.NaN] may vary depending on a platform.
  *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloat] and then reading it back using [Source.readFloat] may not be equal to the original value.
+ * Please refer to [Float.toBits] documentation for details.
+ *
  * @param float the floating point number to be written.
  *
  * @throws IllegalStateException when the sink is closed.
@@ -320,6 +324,10 @@ public fun Sink.writeDouble(double: Double) {
  * To obtain a bit representation, the [Float.toBits] function is used.
  *
  * Should be used with care when working with special values (like `NaN`) as bit patterns obtained for [Float.NaN] may vary depending on a platform.
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloatLe] and then reading it back using [Source.readFloatLe] may not be equal to the original value.
+ * Please refer to [Float.toBits] documentation for details.
  *
  * @param float the floating point number to be written.
  *
