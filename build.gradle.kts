@@ -24,28 +24,6 @@ allprojects {
     }
 }
 
-subprojects {
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            allWarningsAsErrors = true
-            freeCompilerArgs += "-Xjvm-default=all"
-            freeCompilerArgs += "-Xexpect-actual-classes"
-        }
-    }
-    tasks.withType<KotlinNativeCompile>().configureEach {
-        kotlinOptions {
-            allWarningsAsErrors = true
-            freeCompilerArgs += "-Xexpect-actual-classes"
-        }
-    }
-    tasks.withType<KotlinJsCompile>().configureEach {
-        kotlinOptions {
-            allWarningsAsErrors = true
-            freeCompilerArgs += "-Xexpect-actual-classes"
-        }
-    }
-}
-
 @OptIn(ExperimentalBCVApi::class)
 apiValidation {
     ignoredProjects.add("kotlinx-io-benchmarks")
