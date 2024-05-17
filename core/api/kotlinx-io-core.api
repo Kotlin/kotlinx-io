@@ -195,7 +195,9 @@ public final class kotlinx/io/Utf8Kt {
 	public static final fun readString (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun readString (Lkotlinx/io/Source;J)Ljava/lang/String;
 	public static final fun writeCodePointValue (Lkotlinx/io/Sink;I)V
+	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/CharSequence;II)V
 	public static final fun writeString (Lkotlinx/io/Sink;Ljava/lang/String;II)V
+	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/CharSequence;IIILjava/lang/Object;)V
 	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
 }
 

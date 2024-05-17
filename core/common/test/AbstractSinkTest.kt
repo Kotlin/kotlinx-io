@@ -401,6 +401,27 @@ abstract class AbstractSinkTest internal constructor(
     }
 
     @Test
+    fun writeCharSequenceFromIndex() {
+        sink.writeString(StringBuilder("12345"), 3)
+        sink.emit()
+        assertEquals("45", data.readString())
+    }
+
+    @Test
+    fun writeCharSequenceFromRange() {
+        sink.writeString(StringBuilder("0123456789"), 4, 7)
+        sink.emit()
+        assertEquals("456", data.readString())
+    }
+
+    @Test
+    fun writeCharSequenceWithInvalidIndexes() {
+        assertFailsWith<IndexOutOfBoundsException> { sink.writeString(StringBuilder("hello"), startIndex = -1) }
+        assertFailsWith<IndexOutOfBoundsException> { sink.writeString(StringBuilder("hello"), startIndex = 0, endIndex = 6) }
+        assertFailsWith<IllegalArgumentException> { sink.writeString(StringBuilder("hello"), startIndex = 6) }
+    }
+
+    @Test
     fun writeUByte() {
         sink.writeUByte(0xffu)
         sink.flush()

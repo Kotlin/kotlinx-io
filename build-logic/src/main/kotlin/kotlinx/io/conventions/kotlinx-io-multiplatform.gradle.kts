@@ -20,6 +20,11 @@ plugins {
 }
 
 kotlin {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        allWarningsAsErrors.set(true)
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
 
     val versionCatalog: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
     jvmToolchain {
@@ -32,6 +37,14 @@ kotlin {
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
+        }
+        // can be replaced with just `compilerOptions { }` in Kotlin 2.0
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xjvm-default=all")
+                }
+            }
         }
     }
 

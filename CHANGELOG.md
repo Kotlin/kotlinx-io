@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.3.5
+> Published 17 May 2024
+
+### Features
+- Provided an extension function to write `CharSequence`s (`Sink.writeString`) [#318](https://github.com/Kotlin/kotlinx-io/pull/318)
+- Various minor improvements in build scripts and docs
+
 ## 0.3.4
 > Published 8 May 2024
 

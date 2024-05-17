@@ -338,6 +338,23 @@ class KotlinxIoCoreCommonSamples {
     }
 
     @Test
+    fun writeUtf8SeqSample() {
+        val buffer = Buffer()
+
+        buffer.writeString(StringBuilder("hello"), startIndex = 1, endIndex = 4)
+        assertContentEquals(
+            byteArrayOf(
+                'e'.code.toByte(),
+                'l'.code.toByte(),
+                'l'.code.toByte()
+            ), buffer.readByteArray()
+        )
+
+        buffer.writeString(StringBuilder("Δ"))
+        assertContentEquals(byteArrayOf(0xce.toByte(), 0x94.toByte()), buffer.readByteArray())
+    }
+
+    @Test
     fun readUtf8() {
         val buffer = Buffer()
 

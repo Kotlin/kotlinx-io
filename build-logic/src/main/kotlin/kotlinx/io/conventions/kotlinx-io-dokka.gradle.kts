@@ -19,5 +19,18 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             remoteUrl.set(URL("https://github.com/kotlin/kotlinx-io/tree/master"))
             remoteLineSuffix.set("#L")
         }
+
+        // we don't want to advertise `unsafe` APIs in documentation
+        perPackageOption {
+            suppress.set(true)
+            matchingRegex.set(".*unsafe.*")
+        }
+
+        // as in kotlinx-io-multiplatform.gradle.kts:configureSourceSet
+        val platform = name.dropLast(4)
+        samples.from(
+            "common/test/samples",
+            "$platform/test/samples"
+        )
     }
 }

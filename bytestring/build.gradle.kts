@@ -1,5 +1,3 @@
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
-
 plugins {
     id("kotlinx-io-multiplatform")
     id("kotlinx-io-publish")
@@ -24,17 +22,5 @@ kotlin {
                 }
             }
         }
-    }
-}
-
-
-tasks.withType<DokkaTaskPartial>().configureEach {
-    dokkaSourceSets.configureEach {
-        perPackageOption {
-            suppress.set(true)
-            matchingRegex.set(".*unsafe.*")
-        }
-
-        samples.from("common/test/samples/samples.kt")
     }
 }
