@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -7,7 +7,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -46,9 +45,9 @@ kotlin {
 
     js {
         browser {
-            testTask(Action {
+            testTask {
                 filter.setExcludePatterns("*SmokeFileTest*")
-            })
+            }
         }
     }
 
@@ -150,8 +149,4 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
     macosArm64()
 
     mingwX64()
-}
-
-rootProject.the<NodeJsRootExtension>().apply {
-    version = "22.1.0"
 }

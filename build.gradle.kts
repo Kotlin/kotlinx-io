@@ -5,10 +5,6 @@
 
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 import kotlinx.validation.ExperimentalBCVApi
-import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
     id("kotlinx-io-publish") apply false
