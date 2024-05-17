@@ -311,16 +311,20 @@ open class Utf8Benchmark(val length: Int, val encoding: String) : BufferRWBenchm
 
     @Test
     fun readOnly(): Unit {
-        val s = buffer.size
-        buffer.write(stringBytes)
-        buffer.readString(buffer.size - s)
+        benchmarkRule.measureRepeated {
+            val s = buffer.size
+            buffer.write(stringBytes)
+            buffer.readString(buffer.size - s)
+        }
     }
 
     @Test
     fun writeOnly() {
-        val s = buffer.size
-        buffer.writeString(string)
-        buffer.skip(buffer.size - s)
+        benchmarkRule.measureRepeated {
+            val s = buffer.size
+            buffer.writeString(string)
+            buffer.skip(buffer.size - s)
+        }
     }
 }
 
