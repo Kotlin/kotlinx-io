@@ -15,7 +15,7 @@ repositories {
 
 android {
     namespace = "kotlinx.io.benchmark.android"
-    compileSdk = 33
+    compileSdk = 34
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
