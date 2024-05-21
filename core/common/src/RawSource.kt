@@ -34,7 +34,7 @@ package kotlinx.io
  *
  * @sample kotlinx.io.samples.RC4SourceSample.rc4
  */
-public interface RawSource : AutoCloseableAlias {
+public interface RawSource : AutoCloseable {
     /**
      * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
      * Returns the number of bytes read, or -1 if this source is exhausted.
