@@ -15,8 +15,8 @@ import platform.posix.closedir
 import platform.posix.errno
 import platform.posix.strerror
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-internal actual class OpaqueDirEntry constructor(private val dir: CPointer<DIR>) : AutoCloseable {
+@OptIn(ExperimentalForeignApi::class)
+internal actual class OpaqueDirEntry(private val dir: CPointer<DIR>) : AutoCloseable {
     actual fun readdir(): String? {
         val entry = platform.posix.readdir(dir) ?: return null
         return entry[0].d_name.toKString()

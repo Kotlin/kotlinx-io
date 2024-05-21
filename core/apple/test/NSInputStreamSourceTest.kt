@@ -23,7 +23,6 @@ class NSInputStreamSourceTest {
         assertEquals("a", buffer.readString())
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun nsInputStreamSourceFromFile() {
         val file = tempFileName()

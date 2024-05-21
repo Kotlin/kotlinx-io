@@ -44,5 +44,4 @@ public expect open class EOFException : IOException {
 // but on JVM we have to explicitly implement by RawSink and the compiler does not allow that.
 // This is a workaround that should be removed as soon as stdlib will support AutoCloseable
 // actual typealias on JVM.
-@OptIn(ExperimentalStdlibApi::class)
 internal typealias AutoCloseableAlias = AutoCloseable

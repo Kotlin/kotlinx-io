@@ -14,7 +14,7 @@ import kotlinx.io.RawSource
 import platform.posix.*
 import kotlin.experimental.ExperimentalNativeApi
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalForeignApi::class)
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
         return access(path.path, F_OK) == 0
@@ -124,7 +124,6 @@ internal const val PermissionAllowAll: UShort = 511u
 @OptIn(ExperimentalNativeApi::class)
 internal actual val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS
 
-@OptIn(ExperimentalStdlibApi::class)
 internal expect class OpaqueDirEntry : AutoCloseable {
     fun readdir(): String?
     override fun close()

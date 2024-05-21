@@ -34,7 +34,6 @@ package kotlinx.io
  *
  * @sample kotlinx.io.samples.RC4SourceSample.rc4
  */
-@OptIn(ExperimentalStdlibApi::class)
 public interface RawSource : AutoCloseableAlias {
     /**
      * Removes at least 1, and up to [byteCount] bytes from this source and appends them to [sink].
