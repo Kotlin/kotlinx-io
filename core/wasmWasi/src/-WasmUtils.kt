@@ -74,7 +74,7 @@ internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
         currentPtr += toWrite
         remaining -= toWrite
         segment.limit += toWrite
-        size += toWrite
+        sizeMut += toWrite
     }
 }
 

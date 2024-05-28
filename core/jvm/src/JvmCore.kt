@@ -49,7 +49,7 @@ private open class OutputStreamSink(
 
             head.pos += toCopy
             remaining -= toCopy
-            source.size -= toCopy
+            source.sizeMut -= toCopy
 
             if (head.pos == head.limit) {
                 source.recycleHead()
@@ -92,7 +92,7 @@ private open class InputStreamSource(
                 return -1
             }
             tail.limit += bytesRead
-            sink.size += bytesRead
+            sink.sizeMut += bytesRead
             return bytesRead.toLong()
         } catch (e: AssertionError) {
             if (e.isAndroidGetsocknameError) throw IOException(e)

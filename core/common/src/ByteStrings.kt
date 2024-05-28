@@ -39,14 +39,14 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
             byteString.copyInto(tail.data, tail.limit, offset, offset + bytesToWrite)
             offset += bytesToWrite
             tail.limit += bytesToWrite
-            buffer.size += bytesToWrite
+            buffer.sizeMut += bytesToWrite
         }
         while (offset < endIndex) {
             val bytesToWrite = min(endIndex - offset, Segment.SIZE)
             val seg = buffer.writableSegment(bytesToWrite)
             byteString.copyInto(seg.data, seg.limit, offset, offset + bytesToWrite)
             seg.limit += bytesToWrite
-            buffer.size += bytesToWrite
+            buffer.sizeMut += bytesToWrite
             offset += bytesToWrite
         }
     }
