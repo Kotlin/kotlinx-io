@@ -20,7 +20,7 @@
  */
 package kotlinx.io
 
-import kotlin.jvm.JvmField
+import kotlin.jvm.JvmName
 
 /**
  * A collection of bytes in memory.
@@ -39,17 +39,26 @@ import kotlin.jvm.JvmField
  * does not affect buffer's state and [exhausted] only indicates that a buffer is empty.
  */
 public class Buffer : Source, Sink {
-    @JvmField
+    @PublishedApi
+    @get:JvmName("#int#getHead")
+    @set:JvmName("#int#setHead")
     internal var head: Segment? = null
 
-    @JvmField
+    @PublishedApi
+    @get:JvmName("#int#getTail")
+    @set:JvmName("#int#setTail")
     internal var tail: Segment? = null
 
     /**
      * The number of bytes accessible for read from this buffer.
      */
-    public var size: Long = 0L
-        internal set
+    public val size: Long
+        get() = sizeMut
+
+    @PublishedApi
+    @get:JvmName("#int#getSize")
+    @set:JvmName("#int#setSize")
+    internal var sizeMut: Long = 0L
 
     /**
      * Returns the buffer itself.
@@ -77,7 +86,7 @@ public class Buffer : Source, Sink {
         val limit = segment.limit
         val data = segment.data
         val b = data[pos++]
-        size -= 1L
+        sizeMut -= 1L
         if (pos == limit) {
             recycleHead()
         } else {
@@ -101,7 +110,7 @@ public class Buffer : Source, Sink {
 
         val data = segment.data
         val s = data[pos++] and 0xff shl 8 or (data[pos++] and 0xff)
-        size -= 2L
+        sizeMut -= 2L
 
         if (pos == limit) {
             recycleHead()
@@ -136,7 +145,7 @@ public class Buffer : Source, Sink {
                         or (data[pos++] and 0xff shl 8)
                         or (data[pos++] and 0xff)
                 )
-        size -= 4L
+        sizeMut -= 4L
 
         if (pos == limit) {
             recycleHead()
@@ -173,7 +182,7 @@ public class Buffer : Source, Sink {
                         or (data[pos++] and 0xffL shl 8)
                         or (data[pos++] and 0xffL)
                 )
-        size -= 8L
+        this.sizeMut -= 8L
 
         if (pos == limit) {
             recycleHead()
@@ -226,7 +235,7 @@ public class Buffer : Source, Sink {
         var currentOffset = startIndex
         var remainingByteCount = endIndex - startIndex
 
-        out.size += remainingByteCount
+        out.sizeMut += remainingByteCount
 
         // Skip segments that we aren't copying from.
         var s = head
@@ -310,7 +319,7 @@ public class Buffer : Source, Sink {
             val head = head ?: throw EOFException("Buffer exhausted before skipping $byteCount bytes.")
 
             val toSkip = minOf(remainingByteCount, head.limit - head.pos).toInt()
-            size -= toSkip.toLong()
+            sizeMut -= toSkip.toLong()
             remainingByteCount -= toSkip.toLong()
             head.pos += toSkip
 
@@ -330,7 +339,7 @@ public class Buffer : Source, Sink {
         )
 
         s.pos += toCopy
-        size -= toCopy.toLong()
+        sizeMut -= toCopy.toLong()
 
         if (s.pos == s.limit) {
             recycleHead()
@@ -370,6 +379,8 @@ public class Buffer : Source, Sink {
      * Returns a tail segment that we can write at least `minimumCapacity`
      * bytes to, creating it if necessary.
      */
+    @PublishedApi
+    @JvmName("#int#writableSegment")
     internal fun writableSegment(minimumCapacity: Int): Segment {
         require(minimumCapacity >= 1 && minimumCapacity <= Segment.SIZE) { "unexpected capacity" }
 
@@ -406,7 +417,7 @@ public class Buffer : Source, Sink {
             currentOffset += toCopy
             tail.limit += toCopy
         }
-        size += endIndex - startIndex
+        sizeMut += endIndex - startIndex
     }
 
     override fun write(source: RawSource, byteCount: Long) {
@@ -476,7 +487,7 @@ public class Buffer : Source, Sink {
         // yielding sink [51%, 91%, 30%] and source [62%, 82%].
 
         require(source !== this) { "source == this" }
-        checkOffsetAndCount(source.size, 0, byteCount)
+        checkOffsetAndCount(source.sizeMut, 0, byteCount)
 
         var remainingByteCount = byteCount
 
@@ -489,8 +500,8 @@ public class Buffer : Source, Sink {
                 ) {
                     // Our existing segments are sufficient. Move bytes from source's head to our tail.
                     source.head!!.writeTo(tail, remainingByteCount.toInt())
-                    source.size -= remainingByteCount
-                    size += remainingByteCount
+                    source.sizeMut -= remainingByteCount
+                    sizeMut += remainingByteCount
                     return
                 } else {
                     // We're going to need another segment. Split the source's head
@@ -522,8 +533,8 @@ public class Buffer : Source, Sink {
                     this.head = newTail
                 }
             }
-            source.size -= movedByteCount
-            size += movedByteCount
+            source.sizeMut -= movedByteCount
+            sizeMut += movedByteCount
             remainingByteCount -= movedByteCount
         }
     }
@@ -541,7 +552,7 @@ public class Buffer : Source, Sink {
     override fun writeByte(byte: Byte) {
         val tail = writableSegment(1)
         tail.data[tail.limit++] = byte
-        size += 1L
+        sizeMut += 1L
     }
 
     override fun writeShort(short: Short) {
@@ -551,7 +562,7 @@ public class Buffer : Source, Sink {
         data[limit++] = (short.toInt() ushr 8 and 0xff).toByte()
         data[limit++] = (short.toInt() and 0xff).toByte()
         tail.limit = limit
-        size += 2L
+        sizeMut += 2L
     }
 
     override fun writeInt(int: Int) {
@@ -563,7 +574,7 @@ public class Buffer : Source, Sink {
         data[limit++] = (int ushr 8 and 0xff).toByte()
         data[limit++] = (int and 0xff).toByte()
         tail.limit = limit
-        size += 4L
+        sizeMut += 4L
     }
 
     override fun writeLong(long: Long) {
@@ -579,7 +590,7 @@ public class Buffer : Source, Sink {
         data[limit++] = (long ushr 8 and 0xffL).toByte()
         data[limit++] = (long and 0xffL).toByte()
         tail.limit = limit
-        size += 8L
+        sizeMut += 8L
     }
 
     /**
@@ -601,7 +612,7 @@ public class Buffer : Source, Sink {
             s = s.next
         }
 
-        result.size = size
+        result.sizeMut = size
         return result
     }
 
@@ -678,6 +689,8 @@ public class Buffer : Source, Sink {
      *
      * It's up to a caller to ensure that the tail exists.
      */
+    @PublishedApi
+    @JvmName("#int#recycleTail")
     internal fun recycleTail() {
         val oldTail = tail!!
         val newTail = oldTail.prev

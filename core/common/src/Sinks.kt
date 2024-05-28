@@ -125,7 +125,7 @@ public fun Sink.writeDecimalLong(long: Long) {
         }
 
         tail.limit += width
-        buffer.size += width.toLong()
+        buffer.sizeMut += width.toLong()
     }
 }
 
@@ -182,7 +182,7 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
             pos--
         }
         tail.limit += width
-        buffer.size += width.toLong()
+        buffer.sizeMut += width.toLong()
     }
 }
 

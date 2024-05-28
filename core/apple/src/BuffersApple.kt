@@ -30,7 +30,7 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
         currentOffset += toCopy
         tail.limit += toCopy
     }
-    size += maxLength
+    this.sizeMut += maxLength
 }
 
 internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): Int {
@@ -43,7 +43,7 @@ internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): In
     }
 
     s.pos += toCopy
-    size -= toCopy.toLong()
+    this.sizeMut -= toCopy.toLong()
 
     if (s.pos == s.limit) {
         recycleHead()

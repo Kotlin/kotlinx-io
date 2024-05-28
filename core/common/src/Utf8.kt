@@ -480,7 +480,7 @@ private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt
 
                 val runSize = i + segmentOffset - tail.limit // Equivalent to i - (previous i).
                 tail.limit += runSize
-                size += runSize.toLong()
+                sizeMut += runSize.toLong()
             }
 
             c < 0x800 -> {
@@ -489,7 +489,7 @@ private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt
                 tail.data[tail.limit] = (c shr 6 or 0xc0).toByte() // 110xxxxx
                 tail.data[tail.limit + 1] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
                 tail.limit += 2
-                size += 2L
+                sizeMut += 2L
                 i++
             }
 
@@ -500,7 +500,7 @@ private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt
                 tail.data[tail.limit + 1] = (c shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
                 tail.data[tail.limit + 2] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
                 tail.limit += 3
-                size += 3L
+                sizeMut += 3L
                 i++
             }
 
@@ -525,7 +525,7 @@ private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt
                     tail.data[tail.limit + 2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
                     tail.data[tail.limit + 3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
                     tail.limit += 4
-                    size += 4L
+                    sizeMut += 4L
                     i += 2
                 }
             }
@@ -552,7 +552,7 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
             tail.data[tail.limit] = (codePoint shr 6 or 0xc0).toByte() // 110xxxxx
             tail.data[tail.limit + 1] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
             tail.limit += 2
-            size += 2L
+            sizeMut += 2L
         }
 
         codePoint in 0xd800..0xdfff -> {
@@ -567,7 +567,7 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
             tail.data[tail.limit + 1] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
             tail.data[tail.limit + 2] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
             tail.limit += 3
-            size += 3L
+            sizeMut += 3L
         }
 
         else -> { // [0x10000, 0x10ffff]
@@ -578,7 +578,7 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
             tail.data[tail.limit + 2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
             tail.data[tail.limit + 3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
             tail.limit += 4
-            size += 4L
+            sizeMut += 4L
         }
     }
 }
@@ -599,7 +599,7 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
 
     val result = s.data.commonToUtf8String(s.pos, s.pos + byteCount.toInt())
     s.pos += byteCount.toInt()
-    size -= byteCount
+    sizeMut -= byteCount
 
     if (s.pos == s.limit) {
         recycleHead()
