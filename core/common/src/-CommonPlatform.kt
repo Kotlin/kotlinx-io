@@ -39,6 +39,11 @@ public expect open class EOFException : IOException {
     public constructor(message: String?)
 }
 
+public expect open class UnknownServiceException : IOException {
+    public constructor()
+    public constructor(message: String?)
+}
+
 
 // There is no actual AutoCloseable on JVM (https://youtrack.jetbrains.com/issue/KT-55777),
 // but on JVM we have to explicitly implement by RawSink and the compiler does not allow that.

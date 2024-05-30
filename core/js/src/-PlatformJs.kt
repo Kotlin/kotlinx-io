@@ -21,6 +21,12 @@ public actual open class EOFException : IOException {
     public actual constructor(message: String?) : super(message)
 }
 
+public actual open class UnknownServiceException : IOException {
+    public actual constructor() : super()
+
+    public actual constructor(message: String?) : super(message)
+}
+
 internal actual fun withCaughtException(block: () -> Unit): Throwable? {
     try {
         block()
