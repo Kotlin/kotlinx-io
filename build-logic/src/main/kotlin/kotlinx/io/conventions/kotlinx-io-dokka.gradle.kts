@@ -3,8 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-import org.jetbrains.dokka.gradle.*
-import java.net.*
+import org.jetbrains.dokka.gradle.DokkaTaskPartial
+import java.net.URL
 
 plugins {
     id("org.jetbrains.dokka")
@@ -21,10 +21,12 @@ tasks.withType<DokkaTaskPartial>().configureEach {
         }
 
         // we don't want to advertise `unsafe` APIs in documentation
+        /*
         perPackageOption {
             suppress.set(true)
             matchingRegex.set(".*unsafe.*")
         }
+         */
 
         // as in kotlinx-io-multiplatform.gradle.kts:configureSourceSet
         val platform = name.dropLast(4)
