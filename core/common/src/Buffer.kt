@@ -20,7 +20,7 @@
  */
 package kotlinx.io
 
-import kotlin.jvm.JvmName
+import kotlin.jvm.JvmSynthetic
 
 /**
  * A collection of bytes in memory.
@@ -40,13 +40,13 @@ import kotlin.jvm.JvmName
  */
 public class Buffer : Source, Sink {
     @PublishedApi
-    @get:JvmName("#int#getHead")
-    @set:JvmName("#int#setHead")
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var head: Segment? = null
 
     @PublishedApi
-    @get:JvmName("#int#getTail")
-    @set:JvmName("#int#setTail")
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var tail: Segment? = null
 
     /**
@@ -56,8 +56,8 @@ public class Buffer : Source, Sink {
         get() = sizeMut
 
     @PublishedApi
-    @get:JvmName("#int#getSize")
-    @set:JvmName("#int#setSize")
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var sizeMut: Long = 0L
 
     /**
@@ -375,7 +375,7 @@ public class Buffer : Source, Sink {
      * bytes to, creating it if necessary.
      */
     @PublishedApi
-    @JvmName("#int#writableSegment")
+    @JvmSynthetic
     internal fun writableSegment(minimumCapacity: Int): Segment {
         require(minimumCapacity >= 1 && minimumCapacity <= Segment.SIZE) { "unexpected capacity" }
 
@@ -674,7 +674,7 @@ public class Buffer : Source, Sink {
      * It's up to a caller to ensure that the tail exists.
      */
     @PublishedApi
-    @JvmName("#int#recycleTail")
+    @JvmSynthetic
     internal fun recycleTail() {
         val oldTail = tail!!
         val newTail = oldTail.prev

@@ -21,7 +21,7 @@
 package kotlinx.io
 
 import kotlin.jvm.JvmField
-import kotlin.jvm.JvmName
+import kotlin.jvm.JvmSynthetic
 
 /**
  * A segment of a buffer.
@@ -43,8 +43,8 @@ public class Segment {
 
     /** The next byte of application data byte to read in this segment. */
     @PublishedApi
-    @get:JvmName("#int#getPos")
-    @set:JvmName("#int#setPos")
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var pos: Int = 0
 
     /**
@@ -54,8 +54,8 @@ public class Segment {
      * byte count of this and next segments.
      */
     @PublishedApi
-    @get:JvmName("#int#getLimit")
-    @set:JvmName("#int#setLimit")
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var limit: Int = 0
 
     /** True if other segments or byte strings use the same byte array. */
@@ -68,8 +68,8 @@ public class Segment {
 
     /** Next segment in a list, or null. */
     @PublishedApi
-    @get:JvmName("#int#getNext")
-    @set:JvmName("#int#setNext")
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var next: Segment? = null
 
     /** Previous segment in the list, or null. */
@@ -204,12 +204,12 @@ public class Segment {
     }
 
     @PublishedApi
-    @get:JvmName("#int#size")
+    @get:JvmSynthetic
     internal val size: Int
         get() = limit - pos
 
     @PublishedApi
-    @get:JvmName("#int#remainingCapacity")
+    @get:JvmSynthetic
     internal val remainingCapacity: Int
         get() = data.size - limit
 
@@ -224,7 +224,7 @@ public class Segment {
      * container eventually changes from ByteArray to something else.
      */
     @PublishedApi
-    @JvmName("#int#dataAsByteArray")
+    @JvmSynthetic
     @Suppress("UNUSED_PARAMETER")
     internal fun dataAsByteArray(readOnly: Boolean): ByteArray = data
 
@@ -235,7 +235,7 @@ public class Segment {
      * container eventually changes from ByteArray to something else.
      */
     @PublishedApi
-    @JvmName("#int#dataWriteBack")
+    @JvmSynthetic
     @Suppress("UNUSED_PARAMETER")
     internal fun writeBackData(data: ByteArray, bytesToCommit: Int): Unit = Unit
 
@@ -246,10 +246,10 @@ public class Segment {
         /** Segments will be shared when doing so avoids `arraycopy()` of this many bytes.  */
         internal const val SHARE_MINIMUM = 1024
 
-        @JvmName("#int#newSegment")
+        @JvmSynthetic
         internal fun new(): Segment = Segment()
 
-        @JvmName("#int#newSegment")
+        @JvmSynthetic
         internal fun new(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean): Segment
             = Segment(data, pos, limit, shared, owner)
     }

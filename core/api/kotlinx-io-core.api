@@ -1,12 +1,4 @@
 public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
-	public final fun #int#getHead ()Lkotlinx/io/Segment;
-	public final fun #int#getSize ()J
-	public final fun #int#getTail ()Lkotlinx/io/Segment;
-	public final fun #int#recycleTail ()V
-	public final fun #int#setHead (Lkotlinx/io/Segment;)V
-	public final fun #int#setSize (J)V
-	public final fun #int#setTail (Lkotlinx/io/Segment;)V
-	public final fun #int#writableSegment (I)Lkotlinx/io/Segment;
 	public fun <init> ()V
 	public final fun clear ()V
 	public fun close ()V
@@ -18,7 +10,10 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun flush ()V
 	public final fun get (J)B
 	public fun getBuffer ()Lkotlinx/io/Buffer;
+	public final synthetic fun getHead ()Lkotlinx/io/Segment;
 	public final fun getSize ()J
+	public final synthetic fun getSizeMut ()J
+	public final synthetic fun getTail ()Lkotlinx/io/Segment;
 	public fun hintEmit ()V
 	public fun peek ()Lkotlinx/io/Source;
 	public fun readAtMostTo (Lkotlinx/io/Buffer;J)J
@@ -28,12 +23,17 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun readLong ()J
 	public fun readShort ()S
 	public fun readTo (Lkotlinx/io/RawSink;J)V
+	public final synthetic fun recycleTail ()V
 	public fun request (J)Z
 	public fun require (J)V
+	public final synthetic fun setHead (Lkotlinx/io/Segment;)V
+	public final synthetic fun setSizeMut (J)V
+	public final synthetic fun setTail (Lkotlinx/io/Segment;)V
 	public fun skip (J)V
 	public fun toString ()Ljava/lang/String;
 	public fun transferFrom (Lkotlinx/io/RawSource;)J
 	public fun transferTo (Lkotlinx/io/RawSink;)J
+	public final synthetic fun writableSegment (I)Lkotlinx/io/Segment;
 	public fun write (Lkotlinx/io/Buffer;J)V
 	public fun write (Lkotlinx/io/RawSource;J)V
 	public fun write ([BII)V
@@ -101,17 +101,17 @@ public abstract interface class kotlinx/io/RawSource : java/lang/AutoCloseable {
 }
 
 public final class kotlinx/io/Segment {
-	public final fun #int#dataAsByteArray (Z)[B
-	public final fun #int#dataWriteBack ([BI)V
-	public final fun #int#getLimit ()I
-	public final fun #int#getNext ()Lkotlinx/io/Segment;
-	public final fun #int#getPos ()I
-	public final fun #int#remainingCapacity ()I
-	public final fun #int#setLimit (I)V
-	public final fun #int#setNext (Lkotlinx/io/Segment;)V
-	public final fun #int#setPos (I)V
-	public final fun #int#size ()I
 	public synthetic fun <init> ([BIIZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final synthetic fun dataAsByteArray (Z)[B
+	public final synthetic fun getLimit ()I
+	public final synthetic fun getNext ()Lkotlinx/io/Segment;
+	public final synthetic fun getPos ()I
+	public final synthetic fun getRemainingCapacity ()I
+	public final synthetic fun getSize ()I
+	public final synthetic fun setLimit (I)V
+	public final synthetic fun setNext (Lkotlinx/io/Segment;)V
+	public final synthetic fun setPos (I)V
+	public final synthetic fun writeBackData ([BI)V
 }
 
 public final class kotlinx/io/SegmentKt {
