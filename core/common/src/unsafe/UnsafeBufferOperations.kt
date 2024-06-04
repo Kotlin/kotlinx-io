@@ -43,7 +43,7 @@ public object UnsafeBufferOperations {
         val tail = buffer.tail
         if (tail == null) {
             buffer.head = segment
-            buffer.tail = tail
+            buffer.tail = segment
         } else {
             buffer.tail = tail.push(segment)
         }

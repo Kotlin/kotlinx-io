@@ -76,4 +76,16 @@ class UnsafeBufferOperationsMoveTest {
             UnsafeBufferOperations.moveToTail(Buffer(), ByteArray(10), 11, 12)
         }
     }
+
+    @Test
+    fun moveMultipleSegments() {
+        val buffer = Buffer()
+        val segmentsCount = 10
+        for (i in 0 ..< segmentsCount) {
+            UnsafeBufferOperations.moveToTail(buffer, byteArrayOf(i.toByte()))
+        }
+        assertEquals(10, buffer.size)
+        assertEquals(listOf(1, 1, 1, 1, 1, 1, 1, 1, 1, 1), segmentSizes(buffer))
+        assertContentEquals(ByteArray(segmentsCount) { it.toByte() }, buffer.readByteArray())
+    }
 }
