@@ -7,16 +7,18 @@ package kotlinx.io.samples.unsafe
 
 import kotlinx.io.Buffer
 import kotlinx.io.UnsafeIoApi
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.toHexString
+import kotlinx.io.bytestring.unsafe.UnsafeByteStringApi
+import kotlinx.io.bytestring.unsafe.UnsafeByteStringOperations
 import kotlinx.io.readString
-import kotlinx.io.unsafe.UnsafeBufferOperations
-import kotlinx.io.unsafe.readBulk
-import kotlinx.io.unsafe.readFromHead
-import kotlinx.io.unsafe.writeToTail
+import kotlinx.io.unsafe.*
 import kotlinx.io.writeString
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
+import java.security.MessageDigest
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -98,5 +100,30 @@ class UnsafeReadWriteSamplesJvm {
             }
             assertEquals(64 * 1024, channel.size())
         }
+    }
+
+    @OptIn(UnsafeByteStringApi::class, ExperimentalStdlibApi::class)
+    @Test
+    fun messageDigest() {
+        fun Buffer.digest(algorithm: String): ByteString {
+            val md = MessageDigest.getInstance(algorithm)
+            // iterate over all segment and update data
+            UnsafeBufferOperations.iterate(this) { ctx, head ->
+                var segment = head
+                // when segment is null, we reached the end of a buffer
+                while (segment != null) {
+                    // access segment data without copying it
+                    ctx.withData(segment) { data, startIndex, endIndex ->
+                        md.update(data, startIndex, endIndex - startIndex)
+                    }
+                    // advance to the next segment
+                    segment = ctx.next(segment)
+                }
+            }
+            return UnsafeByteStringOperations.wrapUnsafe(md.digest())
+        }
+
+        val buffer = Buffer().also { it.writeString("hello world") }
+        assertEquals("5eb63bbbe01eeed093cb22bb8f5acdc3", buffer.digest("MD5").toHexString())
     }
 }

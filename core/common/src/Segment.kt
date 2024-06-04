@@ -73,7 +73,9 @@ public class Segment {
     internal var next: Segment? = null
 
     /** Previous segment in the list, or null. */
-    @JvmField
+    @PublishedApi
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var prev: Segment? = null
 
     private constructor() {
@@ -238,6 +240,38 @@ public class Segment {
     @JvmSynthetic
     @Suppress("UNUSED_PARAMETER")
     internal fun writeBackData(data: ByteArray, bytesToCommit: Int): Unit = Unit
+
+    internal fun getUnchecked(index: Int): Byte {
+        return data[pos + index]
+    }
+
+    internal fun setUnchecked(index: Int, value: Byte) {
+        data[limit + index] = value
+    }
+
+    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte) {
+        val d = data
+        val l = limit
+        d[l + index] = b0
+        d[l + index + 1] = b1
+    }
+
+    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte) {
+        val d = data
+        val l = limit
+        d[l + index] = b0
+        d[l + index + 1] = b1
+        d[l + index + 2] = b2
+    }
+
+    internal fun setUnchecked(index: Int, b0: Byte, b1: Byte, b2: Byte, b3: Byte) {
+        val d = data
+        val l = limit
+        d[l + index] = b0
+        d[l + index + 1] = b1
+        d[l + index + 2] = b2
+        d[l + index + 3] = b3
+    }
 
     internal companion object {
         /** The size of all segments in bytes.  */

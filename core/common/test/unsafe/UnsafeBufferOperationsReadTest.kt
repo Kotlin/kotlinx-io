@@ -53,6 +53,10 @@ class UnsafeBufferOperationsReadTest {
         val buffer = Buffer().apply { writeInt(42) }
         UnsafeBufferOperations.readFromHead(buffer) { _, _, _ -> 0 }
         assertEquals(42, buffer.readInt())
+
+        buffer.writeInt(42)
+        UnsafeBufferOperations.readFromHead(buffer) { _, _ -> 0 }
+        assertEquals(42, buffer.readInt())
     }
 
     @Test
@@ -62,6 +66,10 @@ class UnsafeBufferOperationsReadTest {
             endIndex - startIndex
         }
         assertTrue(buffer.exhausted())
+
+        buffer.writeString("hello world")
+        UnsafeBufferOperations.readFromHead(buffer) { _, seg -> seg.size }
+        assertTrue(buffer.exhausted())
     }
 
     @Test
@@ -69,6 +77,10 @@ class UnsafeBufferOperationsReadTest {
         val buffer = Buffer()
         assertFailsWith<IllegalArgumentException> {
             UnsafeBufferOperations.readFromHead(buffer) { _, _, _ -> 0 }
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            UnsafeBufferOperations.readFromHead(buffer) { _, _ -> 0 }
         }
     }
 
@@ -91,6 +103,20 @@ class UnsafeBufferOperationsReadTest {
         assertEquals(extraBytesCount, buffer.size.toInt())
     }
 
+    @Test
+    fun readFromTheSegmentEndUsingCtx() {
+        val buffer = Buffer().apply { write(ByteArray(9000) { 0xff.toByte() }) }
+        buffer.skip(8190)
+        val head = buffer.head!!
+        assertEquals(8190, head.pos)
+
+        UnsafeBufferOperations.readFromHead(buffer) { _, seg ->
+            assertEquals(2, seg.size)
+            2
+        }
+
+        assertEquals(9000 - 8192, buffer.size.toInt())
+    }
 
     @Test
     fun returnIllegalReadCount() {
@@ -102,7 +128,17 @@ class UnsafeBufferOperationsReadTest {
         assertEquals(4L, buffer.size)
 
         assertFailsWith<IllegalStateException> {
+            UnsafeBufferOperations.readFromHead(buffer) { _, _ -> -1 }
+        }
+        assertEquals(4L, buffer.size)
+
+        assertFailsWith<IllegalStateException> {
             UnsafeBufferOperations.readFromHead(buffer) { _, f, t -> (t - f + 1) }
+        }
+        assertEquals(4L, buffer.size)
+
+        assertFailsWith<IllegalStateException> {
+            UnsafeBufferOperations.readFromHead(buffer) { _, seg -> seg.remainingCapacity + 1 }
         }
         assertEquals(4L, buffer.size)
     }
@@ -114,6 +150,13 @@ class UnsafeBufferOperationsReadTest {
         val sizeBeforeRead = buffer.size
         assertFailsWith<TestException> {
             UnsafeBufferOperations.readFromHead(buffer) { _, _, _ ->
+                throw TestException()
+            }
+        }
+        assertEquals(buffer.size, sizeBeforeRead)
+
+        assertFailsWith<TestException> {
+            UnsafeBufferOperations.readFromHead(buffer) { _, _ ->
                 throw TestException()
             }
         }

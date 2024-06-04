@@ -7,6 +7,18 @@
 // - Show declarations: true
 
 // Library unique name: <org.jetbrains.kotlinx:kotlinx-io-core>
+abstract interface kotlinx.io.unsafe/BufferIterationContext : kotlinx.io.unsafe/SegmentReadContext { // kotlinx.io.unsafe/BufferIterationContext|null[0]
+    abstract fun next(kotlinx.io/Segment): kotlinx.io/Segment? // kotlinx.io.unsafe/BufferIterationContext.next|next(kotlinx.io.Segment){}[0]
+}
+abstract interface kotlinx.io.unsafe/SegmentReadContext { // kotlinx.io.unsafe/SegmentReadContext|null[0]
+    abstract fun getUnchecked(kotlinx.io/Segment, kotlin/Int): kotlin/Byte // kotlinx.io.unsafe/SegmentReadContext.getUnchecked|getUnchecked(kotlinx.io.Segment;kotlin.Int){}[0]
+}
+abstract interface kotlinx.io.unsafe/SegmentWriteContext { // kotlinx.io.unsafe/SegmentWriteContext|null[0]
+    abstract fun setUnchecked(kotlinx.io/Segment, kotlin/Int, kotlin/Byte) // kotlinx.io.unsafe/SegmentWriteContext.setUnchecked|setUnchecked(kotlinx.io.Segment;kotlin.Int;kotlin.Byte){}[0]
+    abstract fun setUnchecked(kotlinx.io/Segment, kotlin/Int, kotlin/Byte, kotlin/Byte) // kotlinx.io.unsafe/SegmentWriteContext.setUnchecked|setUnchecked(kotlinx.io.Segment;kotlin.Int;kotlin.Byte;kotlin.Byte){}[0]
+    abstract fun setUnchecked(kotlinx.io/Segment, kotlin/Int, kotlin/Byte, kotlin/Byte, kotlin/Byte) // kotlinx.io.unsafe/SegmentWriteContext.setUnchecked|setUnchecked(kotlinx.io.Segment;kotlin.Int;kotlin.Byte;kotlin.Byte;kotlin.Byte){}[0]
+    abstract fun setUnchecked(kotlinx.io/Segment, kotlin/Int, kotlin/Byte, kotlin/Byte, kotlin/Byte, kotlin/Byte) // kotlinx.io.unsafe/SegmentWriteContext.setUnchecked|setUnchecked(kotlinx.io.Segment;kotlin.Int;kotlin.Byte;kotlin.Byte;kotlin.Byte;kotlin.Byte){}[0]
+}
 abstract interface kotlinx.io/RawSink : kotlin/AutoCloseable { // kotlinx.io/RawSink|null[0]
     abstract fun close() // kotlinx.io/RawSink.close|close(){}[0]
     abstract fun flush() // kotlinx.io/RawSink.flush|flush(){}[0]
@@ -100,6 +112,9 @@ final class kotlinx.io/Segment { // kotlinx.io/Segment|null[0]
     final var pos // kotlinx.io/Segment.pos|{}pos[0]
         final fun <get-pos>(): kotlin/Int // kotlinx.io/Segment.pos.<get-pos>|<get-pos>(){}[0]
         final fun <set-pos>(kotlin/Int) // kotlinx.io/Segment.pos.<set-pos>|<set-pos>(kotlin.Int){}[0]
+    final var prev // kotlinx.io/Segment.prev|{}prev[0]
+        final fun <get-prev>(): kotlinx.io/Segment? // kotlinx.io/Segment.prev.<get-prev>|<get-prev>(){}[0]
+        final fun <set-prev>(kotlinx.io/Segment?) // kotlinx.io/Segment.prev.<set-prev>|<set-prev>(kotlinx.io.Segment?){}[0]
 }
 final fun (kotlinx.io.files/Path).kotlinx.io.files/sink(): kotlinx.io/Sink // kotlinx.io.files/sink|sink@kotlinx.io.files.Path(){}[0]
 final fun (kotlinx.io.files/Path).kotlinx.io.files/source(): kotlinx.io/Source // kotlinx.io.files/source|source@kotlinx.io.files.Path(){}[0]
@@ -163,10 +178,16 @@ final fun kotlinx.io.files/Path(kotlin/String): kotlinx.io.files/Path // kotlinx
 final fun kotlinx.io.files/Path(kotlin/String, kotlin/Array<out kotlin/String>...): kotlinx.io.files/Path // kotlinx.io.files/Path|Path(kotlin.String;kotlin.Array<out|kotlin.String>...){}[0]
 final fun kotlinx.io.files/Path(kotlinx.io.files/Path, kotlin/Array<out kotlin/String>...): kotlinx.io.files/Path // kotlinx.io.files/Path|Path(kotlinx.io.files.Path;kotlin.Array<out|kotlin.String>...){}[0]
 final fun kotlinx.io/discardingSink(): kotlinx.io/RawSink // kotlinx.io/discardingSink|discardingSink(){}[0]
+final inline fun (kotlinx.io.unsafe/SegmentReadContext).kotlinx.io.unsafe/withData(kotlinx.io/Segment, kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Unit>) // kotlinx.io.unsafe/withData|withData@kotlinx.io.unsafe.SegmentReadContext(kotlinx.io.Segment;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Unit>){}[0]
 final inline fun (kotlinx.io/Sink).kotlinx.io/writeToInternalBuffer(kotlin/Function1<kotlinx.io/Buffer, kotlin/Unit>) // kotlinx.io/writeToInternalBuffer|writeToInternalBuffer@kotlinx.io.Sink(kotlin.Function1<kotlinx.io.Buffer,kotlin.Unit>){}[0]
+final inline fun <#A: kotlin/Any?> (kotlinx.io/Buffer).kotlinx.io/seek(kotlin/Long, kotlin/Function2<kotlinx.io/Segment?, kotlin/Long, #A>): #A // kotlinx.io/seek|seek@kotlinx.io.Buffer(kotlin.Long;kotlin.Function2<kotlinx.io.Segment?,kotlin.Long,0:0>){0§<kotlin.Any?>}[0]
 final object kotlinx.io.unsafe/UnsafeBufferOperations { // kotlinx.io.unsafe/UnsafeBufferOperations|null[0]
     final fun moveToTail(kotlinx.io/Buffer, kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ...) // kotlinx.io.unsafe/UnsafeBufferOperations.moveToTail|moveToTail(kotlinx.io.Buffer;kotlin.ByteArray;kotlin.Int;kotlin.Int){}[0]
+    final inline fun iterate(kotlinx.io/Buffer, kotlin/Function2<kotlinx.io.unsafe/BufferIterationContext, kotlinx.io/Segment?, kotlin/Unit>) // kotlinx.io.unsafe/UnsafeBufferOperations.iterate|iterate(kotlinx.io.Buffer;kotlin.Function2<kotlinx.io.unsafe.BufferIterationContext,kotlinx.io.Segment?,kotlin.Unit>){}[0]
+    final inline fun iterate(kotlinx.io/Buffer, kotlin/Long, kotlin/Function3<kotlinx.io.unsafe/BufferIterationContext, kotlinx.io/Segment?, kotlin/Long, kotlin/Unit>) // kotlinx.io.unsafe/UnsafeBufferOperations.iterate|iterate(kotlinx.io.Buffer;kotlin.Long;kotlin.Function3<kotlinx.io.unsafe.BufferIterationContext,kotlinx.io.Segment?,kotlin.Long,kotlin.Unit>){}[0]
+    final inline fun readFromHead(kotlinx.io/Buffer, kotlin/Function2<kotlinx.io.unsafe/SegmentReadContext, kotlinx.io/Segment, kotlin/Int>) // kotlinx.io.unsafe/UnsafeBufferOperations.readFromHead|readFromHead(kotlinx.io.Buffer;kotlin.Function2<kotlinx.io.unsafe.SegmentReadContext,kotlinx.io.Segment,kotlin.Int>){}[0]
     final inline fun readFromHead(kotlinx.io/Buffer, kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Int>) // kotlinx.io.unsafe/UnsafeBufferOperations.readFromHead|readFromHead(kotlinx.io.Buffer;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Int>){}[0]
+    final inline fun writeToTail(kotlinx.io/Buffer, kotlin/Int, kotlin/Function2<kotlinx.io.unsafe/SegmentWriteContext, kotlinx.io/Segment, kotlin/Int>) // kotlinx.io.unsafe/UnsafeBufferOperations.writeToTail|writeToTail(kotlinx.io.Buffer;kotlin.Int;kotlin.Function2<kotlinx.io.unsafe.SegmentWriteContext,kotlinx.io.Segment,kotlin.Int>){}[0]
     final inline fun writeToTail(kotlinx.io/Buffer, kotlin/Int, kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Int>) // kotlinx.io.unsafe/UnsafeBufferOperations.writeToTail|writeToTail(kotlinx.io.Buffer;kotlin.Int;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Int>){}[0]
     final val maxSafeWriteCapacity // kotlinx.io.unsafe/UnsafeBufferOperations.maxSafeWriteCapacity|{}maxSafeWriteCapacity[0]
         final fun <get-maxSafeWriteCapacity>(): kotlin/Int // kotlinx.io.unsafe/UnsafeBufferOperations.maxSafeWriteCapacity.<get-maxSafeWriteCapacity>|<get-maxSafeWriteCapacity>(){}[0]
@@ -177,6 +198,12 @@ final val kotlinx.io.files/SystemPathSeparator // kotlinx.io.files/SystemPathSep
     final fun <get-SystemPathSeparator>(): kotlin/Char // kotlinx.io.files/SystemPathSeparator.<get-SystemPathSeparator>|<get-SystemPathSeparator>(){}[0]
 final val kotlinx.io.files/SystemTemporaryDirectory // kotlinx.io.files/SystemTemporaryDirectory|{}SystemTemporaryDirectory[0]
     final fun <get-SystemTemporaryDirectory>(): kotlinx.io.files/Path // kotlinx.io.files/SystemTemporaryDirectory.<get-SystemTemporaryDirectory>|<get-SystemTemporaryDirectory>(){}[0]
+final val kotlinx.io.unsafe/BufferIterationContextImpl // kotlinx.io.unsafe/BufferIterationContextImpl|<get-BufferIterationContextImpl>(){}[0]
+    final fun <get-BufferIterationContextImpl>(): kotlinx.io.unsafe/BufferIterationContext // kotlinx.io.unsafe/BufferIterationContextImpl.<get-BufferIterationContextImpl>|<get-BufferIterationContextImpl>(){}[0]
+final val kotlinx.io.unsafe/SegmentReadContextImpl // kotlinx.io.unsafe/SegmentReadContextImpl|<get-SegmentReadContextImpl>(){}[0]
+    final fun <get-SegmentReadContextImpl>(): kotlinx.io.unsafe/SegmentReadContext // kotlinx.io.unsafe/SegmentReadContextImpl.<get-SegmentReadContextImpl>|<get-SegmentReadContextImpl>(){}[0]
+final val kotlinx.io.unsafe/SegmentWriteContextImpl // kotlinx.io.unsafe/SegmentWriteContextImpl|<get-SegmentWriteContextImpl>(){}[0]
+    final fun <get-SegmentWriteContextImpl>(): kotlinx.io.unsafe/SegmentWriteContext // kotlinx.io.unsafe/SegmentWriteContextImpl.<get-SegmentWriteContextImpl>|<get-SegmentWriteContextImpl>(){}[0]
 open annotation class kotlinx.io/DelicateIoApi : kotlin/Annotation { // kotlinx.io/DelicateIoApi|null[0]
     constructor <init>() // kotlinx.io/DelicateIoApi.<init>|<init>(){}[0]
 }
