@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.9.24"
+kotlin = "2.0.0"
 java = "8"
 dokka = "1.9.20"
 kover = "0.8.0-Beta2"

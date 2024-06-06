@@ -10,7 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class Crc32Sample {
-    @OptIn(ExperimentalStdlibApi::class, ExperimentalUnsignedTypes::class)
+    @OptIn(ExperimentalUnsignedTypes::class)
     @Test
     fun crc32() {
         /**

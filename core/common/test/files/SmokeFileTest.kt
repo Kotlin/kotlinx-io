@@ -36,7 +36,6 @@ class SmokeFileTest {
         files.add(path)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun readWriteFile() {
         val path = createTempPath()
@@ -50,7 +49,6 @@ class SmokeFileTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun writeFlush() {
         val path = createTempPath()
@@ -66,7 +64,6 @@ class SmokeFileTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun readNotExistingFile() {
         assertFailsWith<FileNotFoundException> {
@@ -74,7 +71,6 @@ class SmokeFileTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun readWriteMultipleSegments() {
         val path = createTempPath()
@@ -90,7 +86,6 @@ class SmokeFileTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun basicFileSystemOps() {
         val path = createTempPath()
@@ -108,7 +103,6 @@ class SmokeFileTest {
         assertTrue(SystemFileSystem.exists(SystemTemporaryDirectory))
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun atomicMove() {
         val src = createTempPath()
@@ -125,7 +119,6 @@ class SmokeFileTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun atomicMoveDir() {
         val src = createTempPath()
@@ -154,7 +147,6 @@ class SmokeFileTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun createDirectories() {
         val p = Path(createTempPath(), "a", "b", "c")
@@ -265,7 +257,6 @@ class SmokeFileTest {
         assertTrue(Path(rootPath, "lib", "..", "usr", "lib").isAbsolute)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun fileMetadata() {
         val path = createTempPath()
@@ -293,7 +284,6 @@ class SmokeFileTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun fileSize() {
         val path = createTempPath()
@@ -354,7 +344,6 @@ class SmokeFileTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun appendToFile() {
         val path = createTempPath()

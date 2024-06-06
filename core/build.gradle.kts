@@ -4,6 +4,7 @@
  */
 
 import org.gradle.internal.os.OperatingSystem
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     id("kotlinx-io-multiplatform")
@@ -30,6 +31,7 @@ kotlin {
             }
         }
     }
+    @OptIn(ExperimentalWasmDsl::class)
     wasmWasi {
         nodejs {
             testTask {

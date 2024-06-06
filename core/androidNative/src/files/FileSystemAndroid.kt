@@ -27,14 +27,14 @@ internal actual fun basenameImpl(path: String): String {
 
 internal actual fun isAbsoluteImpl(path: String): Boolean = path.startsWith('/')
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
-internal actual class OpaqueDirEntry constructor(private val dir: CPointer<cnames.structs.DIR>) : AutoCloseable {
+@OptIn(ExperimentalForeignApi::class)
+internal actual class OpaqueDirEntry(private val dir: CPointer<cnames.structs.DIR>) : AutoCloseable {
     actual fun readdir(): String? {
         val entry = platform.posix.readdir(dir) ?: return null
         return entry[0].d_name.toKString()
     }
 
-    override fun close() {
+    actual override fun close() {
         closedir(dir)
     }
 }
