@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.4.0
+> Published 6 June 2024
+
+### Features
+- Updated Kotlin to 2.0 [#327](https://github.com/Kotlin/kotlinx-io/pull/327)
+
 ## 0.3.5
 > Published 17 May 2024
 
