@@ -34,8 +34,7 @@ package kotlinx.io
  *
  * @sample kotlinx.io.samples.Crc32Sample.crc32
  */
-@OptIn(ExperimentalStdlibApi::class)
-public expect interface RawSink : AutoCloseableAlias {
+public expect interface RawSink : AutoCloseable {
     /**
      * Removes [byteCount] bytes from [source] and appends them to this sink.
      *

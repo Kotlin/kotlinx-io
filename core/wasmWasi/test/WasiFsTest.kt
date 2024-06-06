@@ -98,7 +98,6 @@ class WasiFsTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun symlinks() {
         val src = Path("/tmp/src")

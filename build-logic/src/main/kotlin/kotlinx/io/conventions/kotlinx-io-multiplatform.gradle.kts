@@ -1,17 +1,12 @@
 /*
- * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.targets.js.KotlinWasmTargetType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -50,9 +45,9 @@ kotlin {
 
     js {
         browser {
-            testTask(Action {
+            testTask {
                 filter.setExcludePatterns("*SmokeFileTest*")
-            })
+            }
         }
     }
 
@@ -111,23 +106,6 @@ kotlin {
     }
 }
 
-// will be available in KGP 2.0
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
-fun KotlinHierarchyBuilder.withWasmJs(): Unit = withCompilations {
-    val target = it.target
-    target.platformType == KotlinPlatformType.wasm &&
-            target is KotlinJsIrTarget &&
-            target.wasmTargetType == KotlinWasmTargetType.JS
-}
-
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
-fun KotlinHierarchyBuilder.withWasmWasi(): Unit = withCompilations {
-    val target = it.target
-    target.platformType == KotlinPlatformType.wasm &&
-            target is KotlinJsIrTarget &&
-            target.wasmTargetType == KotlinWasmTargetType.WASI
-}
-
 fun KotlinSourceSet.configureSourceSet() {
     val srcDir = if (name.endsWith("Main")) "src" else "test"
     val platform = name.dropLast(4)
@@ -171,8 +149,4 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
     macosArm64()
 
     mingwX64()
-}
-
-rootProject.the<NodeJsRootExtension>().apply {
-    nodeVersion = "22.1.0"
 }
