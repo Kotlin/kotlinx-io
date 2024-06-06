@@ -77,7 +77,7 @@ final class kotlinx.io/Buffer : kotlinx.io/Sink, kotlinx.io/Source { // kotlinx.
     final var head // kotlinx.io/Buffer.head|{}head[0]
         final fun <get-head>(): kotlinx.io/Segment? // kotlinx.io/Buffer.head.<get-head>|<get-head>(){}[0]
         final fun <set-head>(kotlinx.io/Segment?) // kotlinx.io/Buffer.head.<set-head>|<set-head>(kotlinx.io.Segment?){}[0]
-    final var sizeMut // kotlinx.io/Buffer.sizeMut|<get-sizeMut>(){}[0]
+    final var sizeMut // kotlinx.io/Buffer.sizeMut|{}sizeMut[0]
         final fun <get-sizeMut>(): kotlin/Long // kotlinx.io/Buffer.sizeMut.<get-sizeMut>|<get-sizeMut>(){}[0]
         final fun <set-sizeMut>(kotlin/Long) // kotlinx.io/Buffer.sizeMut.<set-sizeMut>|<set-sizeMut>(kotlin.Long){}[0]
     final var tail // kotlinx.io/Buffer.tail|{}tail[0]
@@ -167,7 +167,7 @@ final inline fun (kotlinx.io/Sink).kotlinx.io/writeToInternalBuffer(kotlin/Funct
 final object kotlinx.io.unsafe/UnsafeBufferOperations { // kotlinx.io.unsafe/UnsafeBufferOperations|null[0]
     final const val maxSafeWriteCapacity // kotlinx.io.unsafe/UnsafeBufferOperations.maxSafeWriteCapacity|{}maxSafeWriteCapacity[0]
         final fun <get-maxSafeWriteCapacity>(): kotlin/Int // kotlinx.io.unsafe/UnsafeBufferOperations.maxSafeWriteCapacity.<get-maxSafeWriteCapacity>|<get-maxSafeWriteCapacity>(){}[0]
-    final fun moveToTail(kotlinx.io/Buffer, kotlin/ByteArray, kotlin/Int =..., kotlin/Int =...) // kotlinx.io.unsafe/UnsafeBufferOperations.moveToTail|moveToTail(kotlinx.io.Buffer;kotlin.ByteArray;kotlin.Int;kotlin.Int){}[0]
+    final fun moveToTail(kotlinx.io/Buffer, kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ...) // kotlinx.io.unsafe/UnsafeBufferOperations.moveToTail|moveToTail(kotlinx.io.Buffer;kotlin.ByteArray;kotlin.Int;kotlin.Int){}[0]
     final inline fun readFromHead(kotlinx.io/Buffer, kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Int>) // kotlinx.io.unsafe/UnsafeBufferOperations.readFromHead|readFromHead(kotlinx.io.Buffer;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Int>){}[0]
     final inline fun writeToTail(kotlinx.io/Buffer, kotlin/Int, kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Int>) // kotlinx.io.unsafe/UnsafeBufferOperations.writeToTail|writeToTail(kotlinx.io.Buffer;kotlin.Int;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Int>){}[0]
 }
