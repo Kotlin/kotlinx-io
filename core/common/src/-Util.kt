@@ -171,3 +171,10 @@ internal fun Long.toHexString(): String {
 
     return result.concatToString(i, result.size)
 }
+
+// v needs to be non zero!
+internal inline fun hexNumberLength(v: Long): Int {
+    val exactWidth = (64 - v.countLeadingZeroBits())
+    // Round up to the nearest full byte
+    return ((exactWidth + 3) / 4)
+}
