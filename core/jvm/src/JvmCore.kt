@@ -21,6 +21,7 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -38,21 +39,17 @@ private open class OutputStreamSink(
     private val out: OutputStream,
 ) : RawSink {
 
+    @OptIn(UnsafeIoApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         checkOffsetAndCount(source.size, 0, byteCount)
         var remaining = byteCount
         while (remaining > 0) {
             // kotlinx.io TODO: detect Interruption.
-            val head = source.head!!
-            val toCopy = minOf(remaining, head.limit - head.pos).toInt()
-            out.write(head.data, head.pos, toCopy)
-
-            head.pos += toCopy
-            remaining -= toCopy
-            source.sizeMut -= toCopy
-
-            if (head.pos == head.limit) {
-                source.recycleHead()
+            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+                val toCopy = minOf(remaining, limit - pos).toInt()
+                out.write(data, pos, toCopy)
+                remaining -= toCopy
+                toCopy
             }
         }
     }
@@ -77,23 +74,22 @@ private open class InputStreamSource(
     private val input: InputStream,
 ) : RawSource {
 
+    @OptIn(UnsafeIoApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
         try {
-            val tail = sink.writableSegment(1)
-            val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit).toInt()
-            val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
-            if (bytesRead == -1) {
-                if (tail.pos == tail.limit) {
-                    // We allocated a tail segment, but didn't end up needing it. Recycle!
-                    sink.recycleTail()
+            var readTotal = 0L
+            UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
+                val maxToCopy = minOf(byteCount, limit - pos).toInt()
+                readTotal = input.read(data, pos, maxToCopy).toLong()
+                if (readTotal == -1L) {
+                    0
+                } else {
+                    readTotal.toInt()
                 }
-                return -1
             }
-            tail.limit += bytesRead
-            sink.sizeMut += bytesRead
-            return bytesRead.toLong()
+            return readTotal
         } catch (e: AssertionError) {
             if (e.isAndroidGetsocknameError) throw IOException(e)
             throw e

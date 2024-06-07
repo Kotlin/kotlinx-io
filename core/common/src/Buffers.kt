@@ -22,7 +22,9 @@ public fun Buffer.snapshot(): ByteString {
         var curr = head
         do {
             check(curr != null) { "Current segment is null" }
-            append(curr.data, curr.pos, curr.limit)
+            for (idx in 0 until curr.size) {
+                append(curr.getUnchecked(idx))
+            }
             curr = curr.next
         } while (curr != null)
     }
