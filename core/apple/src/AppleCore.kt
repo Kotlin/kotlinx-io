@@ -8,6 +8,7 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.Foundation.NSInputStream
 import platform.Foundation.NSOutputStream
 import platform.Foundation.NSStreamStatusClosed
@@ -31,29 +32,28 @@ private open class OutputStreamSink(
         if (out.streamStatus == NSStreamStatusNotOpen) out.open()
     }
 
+    @OptIn(UnsafeIoApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         if (out.streamStatus == NSStreamStatusClosed) throw IOException("Stream Closed")
 
         checkOffsetAndCount(source.size, 0, byteCount)
         var remaining = byteCount
+        var bytesWritten = 0L
         while (remaining > 0) {
-            val head = source.head!!
-            val toCopy = minOf(remaining, head.limit - head.pos).toInt()
-            val bytesWritten = head.data.usePinned {
-                val bytes = it.addressOf(head.pos).reinterpret<uint8_tVar>()
-                out.write(bytes, toCopy.convert()).toLong()
+            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+                val toCopy = minOf(remaining, limit - pos).toInt()
+                bytesWritten = data.usePinned {
+                    val bytes = it.addressOf(pos).reinterpret<uint8_tVar>()
+                    out.write(bytes, toCopy.convert()).toLong()
+                }
+                0
             }
 
             if (bytesWritten < 0L) throw IOException(out.streamError?.localizedDescription ?: "Unknown error")
             if (bytesWritten == 0L) throw IOException("NSOutputStream reached capacity")
 
-            head.pos += bytesWritten.toInt()
+            source.skip(bytesWritten)
             remaining -= bytesWritten
-            source.sizeMut -= bytesWritten
-
-            if (head.pos == head.limit) {
-                source.recycleHead()
-            }
         }
     }
 
@@ -83,29 +83,26 @@ private open class NSInputStreamSource(
         if (input.streamStatus == NSStreamStatusNotOpen) input.open()
     }
 
+    @OptIn(UnsafeIoApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         if (input.streamStatus == NSStreamStatusClosed) throw IOException("Stream Closed")
 
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
 
-        val tail = sink.writableSegment(1)
-        val maxToCopy = minOf(byteCount, Segment.SIZE - tail.limit)
-        val bytesRead = tail.data.usePinned {
-            val bytes = it.addressOf(tail.limit).reinterpret<uint8_tVar>()
-            input.read(bytes, maxToCopy.convert()).toLong()
+        var bytesRead = 0L
+        UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
+            val maxToCopy = minOf(byteCount, limit - pos)
+            val read = data.usePinned { ba ->
+                val bytes = ba.addressOf(pos).reinterpret<uint8_tVar>()
+                input.read(bytes, maxToCopy.convert()).toLong()
+            }
+            bytesRead = read
+            maxOf(read.toInt(), 0)
         }
 
         if (bytesRead < 0L) throw IOException(input.streamError?.localizedDescription ?: "Unknown error")
-        if (bytesRead == 0L) {
-            if (tail.pos == tail.limit) {
-                // We allocated a tail segment, but didn't end up needing it. Recycle!
-                sink.recycleTail()
-            }
-            return -1
-        }
-        tail.limit += bytesRead.toInt()
-        sink.sizeMut += bytesRead
+        if (bytesRead == 0L) return -1
         return bytesRead
     }
 
