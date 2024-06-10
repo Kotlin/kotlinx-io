@@ -240,12 +240,7 @@ public class Buffer : Source, Sink {
             val copy = s!!.sharedCopy()
             copy.pos += currentOffset.toInt()
             copy.limit = minOf(copy.pos + remainingByteCount.toInt(), copy.limit)
-            if (out.head == null) {
-                out.head = copy
-                out.tail = copy
-            } else {
-                out.tail = out.tail!!.push(copy)
-            }
+            out.pushSegment(copy)
             remainingByteCount -= (copy.limit - copy.pos).toLong()
             currentOffset = 0L
             s = s.next
@@ -510,18 +505,7 @@ public class Buffer : Source, Sink {
             if (source.head == null) {
                 source.tail = null
             }
-            if (head == null) {
-                head = segmentToMove
-                tail = segmentToMove
-                segmentToMove.prev = null
-                segmentToMove.next = null
-            } else {
-                val newTail = tail!!.push(segmentToMove).compact()
-                tail = newTail
-                if (newTail.prev == null) {
-                    this.head = newTail
-                }
-            }
+            pushSegment(segmentToMove, true)
             source.size -= movedByteCount
             size += movedByteCount
             remainingByteCount -= movedByteCount
@@ -689,6 +673,21 @@ public class Buffer : Source, Sink {
         }
         oldTail.prev = null
         SegmentPool.recycle(oldTail)
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun pushSegment(newTail: Segment, tryCompact: Boolean = false) {
+        if (head == null) {
+            head = newTail
+            tail = newTail
+        } else if (tryCompact) {
+            tail = tail!!.push(newTail).compact()
+            if (tail!!.prev == null) {
+                head = tail
+            }
+        } else {
+            tail = tail!!.push(newTail)
+        }
     }
 }
 
