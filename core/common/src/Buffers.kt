@@ -24,7 +24,7 @@ public fun Buffer.snapshot(): ByteString {
             check(curr != null) { "Current segment is null" }
             append(curr.data, curr.pos, curr.limit)
             curr = curr.next
-        } while (curr !== null)
+        } while (curr != null)
     }
 }
 
@@ -73,7 +73,7 @@ public fun Buffer.indexOf(byte: Byte, startIndex: Long = 0, endIndex: Long = siz
             }
             offset += segment.size
             segment = segment.next
-        } while (segment !== null && offset < endOffset)
+        } while (segment != null && offset < endOffset)
         return -1L
     }
 }

@@ -157,7 +157,7 @@ public fun Buffer.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
                 // We scanned the whole segment, so let's go to the next one
                 offset += segment.size
                 segment = segment.next
-            } while (segment !== null && offset + byteString.size <= size)
+            } while (segment != null && offset + byteString.size <= size)
             return -1L
         }
     }

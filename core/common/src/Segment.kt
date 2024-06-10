@@ -163,7 +163,7 @@ internal class Segment {
      * data so that segments can be recycled.
      */
     fun compact(): Segment {
-        check(this.prev !== null) { "cannot compact" }
+        check(this.prev != null) { "cannot compact" }
         if (!this.prev!!.owner) return this // Cannot compact: prev isn't writable.
         val byteCount = limit - pos
         val availableByteCount = SIZE - this.prev!!.limit + if (this.prev!!.shared) 0 else this.prev!!.pos
@@ -171,7 +171,7 @@ internal class Segment {
         val predecessor = this.prev
         writeTo(predecessor!!, byteCount)
         val successor = pop()
-        check(successor === null)
+        check(successor == null)
         SegmentPool.recycle(this)
         return predecessor
     }
@@ -277,8 +277,7 @@ internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int): I
             // We ran out of bytes in this segment,
             // so let's take the next one and continue the scan there.
             if (scanOffset == seg.size) {
-                val next = seg.next
-                if (next === null) return -1
+                val next = seg.next ?: return -1
                 seg = next
                 scanOffset = 0 // we're scanning the next segment right from the beginning
             }

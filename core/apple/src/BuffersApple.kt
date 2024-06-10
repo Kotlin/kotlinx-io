@@ -71,6 +71,6 @@ internal fun Buffer.snapshotAsNSData(): NSData {
         }
         curr = curr.next
         index += length
-    } while (curr !== null)
+    } while (curr != null)
     return NSData.create(bytesNoCopy = bytes, length = size.convert())
 }
