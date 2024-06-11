@@ -32,7 +32,7 @@ class UtilsTest {
             0x3fL to 2,
             0x7fL to 2,
             0xffL to 2,
-            0L to 0 // although, it's not how it should work
+            0L to 1
         )
 
         num2length.forEach { (num, length) ->

@@ -172,9 +172,14 @@ internal fun Long.toHexString(): String {
     return result.concatToString(i, result.size)
 }
 
-// v needs to be non zero!
+/**
+ * Returns the number of characters required to encode [v]
+ * as a hexadecimal number without leading zeros (with `v == 0L` being the only exception,
+ * `hexNumberLength(0) == 1`).
+ */
 internal inline fun hexNumberLength(v: Long): Int {
-    val exactWidth = (64 - v.countLeadingZeroBits())
-    // Round up to the nearest full byte
+    if (v == 0L) return 1
+    val exactWidth = (Long.SIZE_BITS - v.countLeadingZeroBits())
+    // Round up to the nearest full nibble
     return ((exactWidth + 3) / 4)
 }
