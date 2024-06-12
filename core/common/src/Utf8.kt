@@ -260,6 +260,9 @@ public fun Source.readString(byteCount: Long): String {
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readCodePointValue(): Int {
+    if (this is Buffer) {
+        return commonReadUtf8CodePoint()
+    }
     require(1)
 
     val b0 = buffer[0].toInt()
