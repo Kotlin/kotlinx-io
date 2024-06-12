@@ -8,6 +8,7 @@ package kotlinx.io.benchmarks
 import kotlinx.benchmark.*
 import kotlinx.io.*
 import kotlinx.io.bytestring.ByteString
+import kotlin.random.Random
 
 @State(Scope.Benchmark)
 abstract class BufferRWBenchmarkBase {
@@ -414,4 +415,68 @@ open class IndexOfByteString {
 
     @Benchmark
     fun benchmark() = buffer.indexOf(byteString)
+}
+
+@State(Scope.Benchmark)
+open class Utf8CodePointsBenchmark : BufferRWBenchmarkBase() {
+    private val codePointsCount = 128
+
+    // Encoding names follow naming from Utf8StringBenchmark
+    @Param("ascii", "utf8", "sparse", "2bytes", "3bytes", "4bytes", "bad")
+    var encoding: String = "ascii"
+
+    override fun padding(): ByteArray {
+        return ByteArray(minGap) { '.'.code.toByte() }
+    }
+
+    private val codePoints = IntArray(codePointsCount)
+    private var codePointIdx = 0
+
+    @Setup
+    fun fillCodePointsArray() {
+        fun IntArray.fill(generator: () -> Int) {
+            for (idx in this.indices) {
+                this[idx] = generator()
+            }
+        }
+
+        when (encoding) {
+            "ascii" -> codePoints.fill { Random.nextInt(' '.code, '~'.code) }
+            "utf8" -> codePoints.fill {
+                var cp: Int
+                do {
+                    cp = Random.nextInt(0, 0x10ffff)
+                } while (cp in 0xd800 .. 0xdfff)
+                cp
+            }
+            "sparse" -> {
+                codePoints.fill { Random.nextInt(' '.code, '~'.code) }
+                codePoints[42] = '⌛'.code
+            }
+            "2bytes" -> codePoints.fill { Random.nextInt(0x80, 0x800) }
+            "3bytes" -> codePoints.fill {
+                var cp: Int
+                do {
+                    cp = Random.nextInt(0x800, 0x10000)
+                } while (cp in 0xd800 .. 0xdfff)
+                cp
+            }
+            "4bytes" -> codePoints.fill { Random.nextInt(0x10000, 0x10ffff) }
+            "bad" -> codePoints.fill { Random.nextInt(0xd800, 0xdfff) }
+        }
+    }
+
+
+    private fun nextCodePoint(): Int {
+        val idx = codePointIdx
+        val cp = codePoints[idx]
+        codePointIdx = (idx + 1) % codePointsCount
+        return cp
+    }
+
+    @Benchmark
+    fun benchmark(): Int {
+        buffer.writeCodePointValue(nextCodePoint())
+        return buffer.readCodePointValue()
+    }
 }
