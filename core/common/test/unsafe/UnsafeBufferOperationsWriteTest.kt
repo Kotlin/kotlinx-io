@@ -19,7 +19,7 @@ class UnsafeBufferOperationsWriteTest {
         UnsafeBufferOperations.writeToTail(buffer, 1) { data, startIndex, endIndex ->
             // Unsafe check, head is not committed yet
             assertSame(buffer.head!!.data, data)
-            assertEquals(buffer.head!!.data.size, (endIndex - startIndex))
+
             assertEquals(0, startIndex)
             assertEquals(buffer.head!!.data.size, endIndex)
             0
@@ -127,5 +127,17 @@ class UnsafeBufferOperationsWriteTest {
         }
 
         assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun returnLessBytesThanItWasActuallyWritten() {
+        val buffer = Buffer()
+
+        UnsafeBufferOperations.writeToTail(buffer, 42) { data, pos, limit ->
+            data.fill(0xab.toByte(), pos, limit)
+            4
+        }
+        assertEquals(4, buffer.size)
+        assertEquals(0xababababu, buffer.readUInt())
     }
 }

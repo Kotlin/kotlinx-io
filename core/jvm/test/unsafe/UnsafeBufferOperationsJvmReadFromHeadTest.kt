@@ -84,17 +84,21 @@ class UnsafeBufferOperationsJvmReadFromHeadTest {
 
     @Test
     fun readFromTheSegmentEnd() {
-        val buffer = Buffer().apply { write(ByteArray(9000) { 0xff.toByte() }) }
-        buffer.skip(8190)
+        val segmentSize = UnsafeBufferOperations.maxSafeWriteCapacity
+        val extraBytesCount = 128
+        val bytesToSkip = segmentSize - 2
+
+        val buffer = Buffer().apply { write(ByteArray(segmentSize + extraBytesCount) { 0xff.toByte() }) }
+        buffer.skip(bytesToSkip.toLong())
         val head = buffer.head!!
-        assertEquals(8190, head.pos)
+        assertEquals(bytesToSkip, head.pos)
 
         UnsafeBufferOperations.readFromHead(buffer) { bb ->
-            assertEquals(2, bb.remaining())
+            assertEquals(segmentSize - bytesToSkip, bb.remaining())
             bb.getShort()
         }
 
-        assertEquals(9000 - 8192, buffer.size.toInt())
+        assertEquals(extraBytesCount, buffer.size.toInt())
     }
 
     @Test

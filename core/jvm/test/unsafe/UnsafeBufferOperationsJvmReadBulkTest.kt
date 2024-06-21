@@ -90,9 +90,20 @@ class UnsafeBufferOperationsJvmReadBulkTest {
             assertEquals(4, iovecLen)
 
             assertEquals(Segment.SIZE, array[0]!!.remaining())
+            val tmpBuffer = ByteArray(Segment.SIZE)
+            array[0]!!.get(tmpBuffer)
+            assertContentEquals(ByteArray(Segment.SIZE) { 1 }, tmpBuffer)
+
             assertEquals(Segment.SIZE, array[1]!!.remaining())
+            array[1]!!.get(tmpBuffer)
+            assertContentEquals(ByteArray(Segment.SIZE) { 2 }, tmpBuffer)
+
             assertEquals(Segment.SIZE, array[2]!!.remaining())
+            array[2]!!.get(tmpBuffer)
+            assertContentEquals(ByteArray(Segment.SIZE) { 3 }, tmpBuffer)
+
             assertEquals(1, array[3]!!.remaining())
+            assertEquals(3, array[3]!!.get())
 
             buffer.size
         }
@@ -112,9 +123,20 @@ class UnsafeBufferOperationsJvmReadBulkTest {
             assertEquals(4, iovecLen)
 
             assertEquals(Segment.SIZE, array[0]!!.remaining())
+            val tmpBuffer = ByteArray(Segment.SIZE)
+            array[0]!!.get(tmpBuffer)
+            assertContentEquals(ByteArray(Segment.SIZE) { 1 }, tmpBuffer)
+
             assertEquals(Segment.SIZE, array[1]!!.remaining())
+            array[1]!!.get(tmpBuffer)
+            assertContentEquals(ByteArray(Segment.SIZE) { 2 }, tmpBuffer)
+
             assertEquals(Segment.SIZE, array[2]!!.remaining())
+            array[2]!!.get(tmpBuffer)
+            assertContentEquals(ByteArray(Segment.SIZE) { 3 }, tmpBuffer)
+
             assertEquals(1, array[3]!!.remaining())
+            assertEquals(3, array[3]!!.get())
 
             0
         }

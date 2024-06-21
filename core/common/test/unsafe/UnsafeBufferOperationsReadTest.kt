@@ -25,7 +25,6 @@ class UnsafeBufferOperationsReadTest {
         val head = buffer.head!!
         UnsafeBufferOperations.readFromHead(buffer) { data, startIndex, endIndex ->
             assertTrue(endIndex <= data.size)
-            assertEquals(head.size, endIndex - startIndex)
             assertEquals(0, startIndex)
             assertEquals(head.size, endIndex)
             0
@@ -75,17 +74,21 @@ class UnsafeBufferOperationsReadTest {
 
     @Test
     fun readFromTheSegmentEnd() {
-        val buffer = Buffer().apply { write(ByteArray(9000) { 0xff.toByte() }) }
-        buffer.skip(8190)
+        val segmentSize = UnsafeBufferOperations.maxSafeWriteCapacity
+        val extraBytesCount = 128
+        val bytesToSkip = segmentSize - 2
+
+        val buffer = Buffer().apply { write(ByteArray(segmentSize + extraBytesCount) { 0xff.toByte() }) }
+        buffer.skip(bytesToSkip.toLong())
         val head = buffer.head!!
-        assertEquals(8190, head.pos)
+        assertEquals(bytesToSkip, head.pos)
 
         UnsafeBufferOperations.readFromHead(buffer) { _, startIndex, endIndex ->
             assertEquals(2, endIndex - startIndex)
             2
         }
 
-        assertEquals(9000 - 8192, buffer.size.toInt())
+        assertEquals(extraBytesCount, buffer.size.toInt())
     }
 
 
