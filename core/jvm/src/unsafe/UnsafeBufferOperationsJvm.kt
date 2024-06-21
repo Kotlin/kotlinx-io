@@ -128,7 +128,7 @@ public inline fun UnsafeBufferOperations.writeToTail(
 public inline fun UnsafeBufferOperations.readBulk(
     buffer: Buffer,
     iovec: Array<ByteBuffer?>,
-    readAction: (Array<ByteBuffer?>, Int) -> Long
+    readAction: (iovec: Array<ByteBuffer?>, iovecSize: Int) -> Long
 ) {
     val head = buffer.head ?: throw IllegalArgumentException("buffer is empty.")
     if (iovec.isEmpty()) throw IllegalArgumentException("iovec is empty.")

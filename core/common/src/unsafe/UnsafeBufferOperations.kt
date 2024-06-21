@@ -12,7 +12,7 @@ public object UnsafeBufferOperations {
     /**
      * Maximum value that is safe to pass to [writeToTail].
      */
-    public const val maxSafeWriteCapacity: Int = Segment.SIZE
+    public val maxSafeWriteCapacity: Int = Segment.SIZE
 
     /**
      * Moves [bytes] to the end of the [buffer].
@@ -74,12 +74,15 @@ public object UnsafeBufferOperations {
      * and the copy will be created if it could not be omitted.
      *
      * @throws IllegalStateException when [readAction] returns negative value or a values exceeding
-     * the `endIndex - startIndex` value.
+     * the `endIndexExclusive - startIndexInclusive` value.
      * @throws IllegalArgumentException when the [buffer] is empty.
      *
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.readByteArrayFromHead
      */
-    public inline fun readFromHead(buffer: Buffer, readAction: (ByteArray, Int, Int) -> Int) {
+    public inline fun readFromHead(
+        buffer: Buffer,
+        readAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Int
+    ) {
         require(!buffer.exhausted()) { "Buffer is empty" }
         val head = buffer.head!!
         val bytesRead = readAction(head.dataAsByteArray(true), head.pos, head.limit)
@@ -115,11 +118,14 @@ public object UnsafeBufferOperations {
      *
      * @throws IllegalStateException when [minimumCapacity] is too large and could not be fulfilled.
      * @throws IllegalStateException when [writeAction] returns a negative value or a value exceeding
-     * the `endIndex - startIndex` value.
+     * the `endIndexExclusive - startIndexInclusive` value.
      *
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.writeByteArrayToTail
      */
-    public inline fun writeToTail(buffer: Buffer, minimumCapacity: Int, writeAction: (ByteArray, Int, Int) -> Int) {
+    public inline fun writeToTail(
+        buffer: Buffer, minimumCapacity: Int,
+        writeAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Int
+    ) {
         val tail = buffer.writableSegment(minimumCapacity)
 
         val data = tail.dataAsByteArray(false)

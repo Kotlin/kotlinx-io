@@ -165,11 +165,11 @@ final fun kotlinx.io.files/Path(kotlinx.io.files/Path, kotlin/Array<out kotlin/S
 final fun kotlinx.io/discardingSink(): kotlinx.io/RawSink // kotlinx.io/discardingSink|discardingSink(){}[0]
 final inline fun (kotlinx.io/Sink).kotlinx.io/writeToInternalBuffer(kotlin/Function1<kotlinx.io/Buffer, kotlin/Unit>) // kotlinx.io/writeToInternalBuffer|writeToInternalBuffer@kotlinx.io.Sink(kotlin.Function1<kotlinx.io.Buffer,kotlin.Unit>){}[0]
 final object kotlinx.io.unsafe/UnsafeBufferOperations { // kotlinx.io.unsafe/UnsafeBufferOperations|null[0]
-    final const val maxSafeWriteCapacity // kotlinx.io.unsafe/UnsafeBufferOperations.maxSafeWriteCapacity|{}maxSafeWriteCapacity[0]
-        final fun <get-maxSafeWriteCapacity>(): kotlin/Int // kotlinx.io.unsafe/UnsafeBufferOperations.maxSafeWriteCapacity.<get-maxSafeWriteCapacity>|<get-maxSafeWriteCapacity>(){}[0]
     final fun moveToTail(kotlinx.io/Buffer, kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ...) // kotlinx.io.unsafe/UnsafeBufferOperations.moveToTail|moveToTail(kotlinx.io.Buffer;kotlin.ByteArray;kotlin.Int;kotlin.Int){}[0]
     final inline fun readFromHead(kotlinx.io/Buffer, kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Int>) // kotlinx.io.unsafe/UnsafeBufferOperations.readFromHead|readFromHead(kotlinx.io.Buffer;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Int>){}[0]
     final inline fun writeToTail(kotlinx.io/Buffer, kotlin/Int, kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Int>) // kotlinx.io.unsafe/UnsafeBufferOperations.writeToTail|writeToTail(kotlinx.io.Buffer;kotlin.Int;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Int>){}[0]
+    final val maxSafeWriteCapacity // kotlinx.io.unsafe/UnsafeBufferOperations.maxSafeWriteCapacity|{}maxSafeWriteCapacity[0]
+        final fun <get-maxSafeWriteCapacity>(): kotlin/Int // kotlinx.io.unsafe/UnsafeBufferOperations.maxSafeWriteCapacity.<get-maxSafeWriteCapacity>|<get-maxSafeWriteCapacity>(){}[0]
 }
 final val kotlinx.io.files/SystemFileSystem // kotlinx.io.files/SystemFileSystem|{}SystemFileSystem[0]
     final fun <get-SystemFileSystem>(): kotlinx.io.files/FileSystem // kotlinx.io.files/SystemFileSystem.<get-SystemFileSystem>|<get-SystemFileSystem>(){}[0]
