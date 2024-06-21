@@ -605,8 +605,7 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
     size -= byteCount
 
     if (s.pos == s.limit) {
-        head = s.pop()
-        SegmentPool.recycle(s)
+        recycleHead()
     }
 
     return result

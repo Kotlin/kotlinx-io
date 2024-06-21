@@ -52,8 +52,7 @@ private open class OutputStreamSink(
             source.size -= bytesWritten
 
             if (head.pos == head.limit) {
-                source.head = head.pop()
-                SegmentPool.recycle(head)
+                source.recycleHead()
             }
         }
     }
@@ -101,8 +100,7 @@ private open class NSInputStreamSource(
         if (bytesRead == 0L) {
             if (tail.pos == tail.limit) {
                 // We allocated a tail segment, but didn't end up needing it. Recycle!
-                sink.head = tail.pop()
-                SegmentPool.recycle(tail)
+                sink.recycleTail()
             }
             return -1
         }

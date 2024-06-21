@@ -25,7 +25,7 @@ import kotlin.jvm.JvmField
 /**
  * A segment of a buffer.
  *
- * Each segment in a buffer is a circularly-linked list node referencing the following and
+ * Each segment in a buffer is a doubly-linked list node referencing the following and
  * preceding segments in the buffer.
  *
  * Each segment in the pool is a singly-linked list node referencing the rest of segments in the pool.
@@ -61,11 +61,11 @@ internal class Segment {
     @JvmField
     var owner: Boolean = false
 
-    /** Next segment in a linked or circularly-linked list. */
+    /** Next segment in a list, or null. */
     @JvmField
     var next: Segment? = null
 
-    /** Previous segment in a circularly-linked list. */
+    /** Previous segment in the list, or null. */
     @JvmField
     var prev: Segment? = null
 
@@ -93,40 +93,43 @@ internal class Segment {
         return Segment(data, pos, limit, true, false)
     }
 
-    /** Returns a new segment that its own private copy of the underlying byte array.  */
-    fun unsharedCopy() = Segment(data.copyOf(), pos, limit, false, true)
-
     /**
-     * Removes this segment of a circularly-linked list and returns its successor.
+     * Removes this segment of a list and returns its successor.
      * Returns null if the list is now empty.
      */
     fun pop(): Segment? {
-        val result = if (next !== this) next else null
-        prev!!.next = next
-        next!!.prev = prev
-        next = null
-        prev = null
+        val result = this.next
+        if (this.prev != null) {
+            this.prev!!.next = this.next
+        }
+        if (this.next != null) {
+            this.next!!.prev = this.prev
+        }
+        this.next = null
+        this.prev = null
         return result
     }
 
     /**
-     * Appends `segment` after this segment in the circularly-linked list. Returns the pushed segment.
+     * Appends `segment` after this segment in the list. Returns the pushed segment.
      */
     fun push(segment: Segment): Segment {
         segment.prev = this
-        segment.next = next
-        next!!.prev = segment
-        next = segment
+        segment.next = this.next
+        if (this.next != null) {
+            this.next!!.prev = segment
+        }
+        this.next = segment
         return segment
     }
 
     /**
-     * Splits this head of a circularly-linked list into two segments. The first segment contains the
+     * Splits this head of a list into two segments. The first segment contains the
      * data in `[pos..pos+byteCount)`. The second segment contains the data in
      * `[pos+byteCount..limit)`. This can be useful when moving partial segments from one buffer to
      * another.
      *
-     * Returns the new head of the circularly-linked list.
+     * Returns the new head of the list.
      */
     fun split(byteCount: Int): Segment {
         require(byteCount > 0 && byteCount <= limit - pos) { "byteCount out of range" }
@@ -146,7 +149,12 @@ internal class Segment {
 
         prefix.limit = prefix.pos + byteCount
         pos += byteCount
-        prev!!.push(prefix)
+        if (this.prev != null) {
+            this.prev!!.push(prefix)
+        } else {
+            prefix.next = this
+            this.prev = prefix
+        }
         return prefix
     }
 
@@ -154,15 +162,18 @@ internal class Segment {
      * Call this when the tail and its predecessor may both be less than half full. This will copy
      * data so that segments can be recycled.
      */
-    fun compact() {
-        check(prev !== this) { "cannot compact" }
-        if (!prev!!.owner) return // Cannot compact: prev isn't writable.
+    fun compact(): Segment {
+        check(this.prev != null) { "cannot compact" }
+        if (!this.prev!!.owner) return this // Cannot compact: prev isn't writable.
         val byteCount = limit - pos
-        val availableByteCount = SIZE - prev!!.limit + if (prev!!.shared) 0 else prev!!.pos
-        if (byteCount > availableByteCount) return // Cannot compact: not enough writable space.
-        writeTo(prev!!, byteCount)
-        pop()
+        val availableByteCount = SIZE - this.prev!!.limit + if (this.prev!!.shared) 0 else this.prev!!.pos
+        if (byteCount > availableByteCount) return this // Cannot compact: not enough writable space.
+        val predecessor = this.prev
+        writeTo(predecessor!!, byteCount)
+        val successor = pop()
+        check(successor == null)
         SegmentPool.recycle(this)
+        return predecessor
     }
 
     /** Moves `byteCount` bytes from this segment to `sink`.  */
@@ -248,7 +259,7 @@ internal fun Segment.indexOfBytesInbound(bytes: ByteArray, startOffset: Int): In
  * and continued in the following segments.
  * `startOffset` is relative and should be within `[0, size)`.
  */
-internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int, head: Segment?): Int {
+internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int): Int {
     var offset = startOffset
     val firstByte = bytes[0]
 
@@ -266,9 +277,8 @@ internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int, he
             // We ran out of bytes in this segment,
             // so let's take the next one and continue the scan there.
             if (scanOffset == seg.size) {
-                val next = seg.next
-                if (next === head) return -1
-                seg = next!!
+                val next = seg.next ?: return -1
+                seg = next
                 scanOffset = 0 // we're scanning the next segment right from the beginning
             }
             if (element != seg.data[seg.pos + scanOffset]) {
