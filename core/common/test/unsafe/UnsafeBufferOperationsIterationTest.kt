@@ -62,6 +62,8 @@ class UnsafeBufferOperationsIterationTest {
     fun acquireDataDuringIteration() {
         val buffer = Buffer().also { it.writeString("hello buffer") }
 
+        val expectedSize = buffer.size
+
         UnsafeBufferOperations.iterate(buffer) { ctx, head ->
             assertNotNull(head)
 
@@ -69,6 +71,8 @@ class UnsafeBufferOperationsIterationTest {
                 assertEquals("hello buffer", data.decodeToString(startIndex, endIndex))
             }
         }
+
+        assertEquals(expectedSize, buffer.size)
     }
 
     @Test

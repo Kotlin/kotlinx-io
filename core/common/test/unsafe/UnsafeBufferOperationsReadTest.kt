@@ -105,17 +105,21 @@ class UnsafeBufferOperationsReadTest {
 
     @Test
     fun readFromTheSegmentEndUsingCtx() {
-        val buffer = Buffer().apply { write(ByteArray(9000) { 0xff.toByte() }) }
-        buffer.skip(8190)
+        val segmentSize = UnsafeBufferOperations.maxSafeWriteCapacity
+        val extraBytesCount = 128
+        val bytesToSkip = segmentSize - 2
+
+        val buffer = Buffer().apply { write(ByteArray(segmentSize + extraBytesCount) { 0xff.toByte() }) }
+        buffer.skip(bytesToSkip.toLong())
         val head = buffer.head!!
-        assertEquals(8190, head.pos)
+        assertEquals(bytesToSkip, head.pos)
 
         UnsafeBufferOperations.readFromHead(buffer) { _, seg ->
             assertEquals(2, seg.size)
             2
         }
 
-        assertEquals(9000 - 8192, buffer.size.toInt())
+        assertEquals(extraBytesCount, buffer.size.toInt())
     }
 
     @Test
