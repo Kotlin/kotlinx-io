@@ -43,7 +43,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
 
     val result = String(s.data, s.pos, byteCount.toInt(), charset)
     s.pos += byteCount.toInt()
-    size -= byteCount
+    sizeMut -= byteCount
 
     if (s.pos == s.limit) {
         recycleHead()

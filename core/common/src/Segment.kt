@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -21,6 +21,7 @@
 package kotlinx.io
 
 import kotlin.jvm.JvmField
+import kotlin.jvm.JvmSynthetic
 
 /**
  * A segment of a buffer.
@@ -36,13 +37,15 @@ import kotlin.jvm.JvmField
  * `limit` and beyond. There is a single owning segment for each byte array. Positions,
  * limits, prev, and next references are not shared.
  */
-internal class Segment {
+public class Segment {
     @JvmField
-    val data: ByteArray
+    internal val data: ByteArray
 
     /** The next byte of application data byte to read in this segment. */
-    @JvmField
-    var pos: Int = 0
+    @PublishedApi
+    @get:JvmSynthetic
+    @set:JvmSynthetic
+    internal var pos: Int = 0
 
     /**
      * The first byte of available data ready to be written to.
@@ -50,32 +53,36 @@ internal class Segment {
      * If the segment is free and linked in the segment pool, the field contains total
      * byte count of this and next segments.
      */
-    @JvmField
-    var limit: Int = 0
+    @PublishedApi
+    @get:JvmSynthetic
+    @set:JvmSynthetic
+    internal var limit: Int = 0
 
     /** True if other segments or byte strings use the same byte array. */
     @JvmField
-    var shared: Boolean = false
+    internal var shared: Boolean = false
 
     /** True if this segment owns the byte array and can append to it, extending `limit`. */
     @JvmField
-    var owner: Boolean = false
+    internal var owner: Boolean = false
 
     /** Next segment in a list, or null. */
-    @JvmField
-    var next: Segment? = null
+    @PublishedApi
+    @get:JvmSynthetic
+    @set:JvmSynthetic
+    internal var next: Segment? = null
 
     /** Previous segment in the list, or null. */
     @JvmField
-    var prev: Segment? = null
+    internal var prev: Segment? = null
 
-    constructor() {
+    private constructor() {
         this.data = ByteArray(SIZE)
         this.owner = true
         this.shared = false
     }
 
-    constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
+    private constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
         this.data = data
         this.pos = pos
         this.limit = limit
@@ -88,7 +95,7 @@ internal class Segment {
      * are safe but writes are forbidden. This also marks the current segment as shared, which
      * prevents it from being pooled.
      */
-    fun sharedCopy(): Segment {
+    internal fun sharedCopy(): Segment {
         shared = true
         return Segment(data, pos, limit, true, false)
     }
@@ -97,7 +104,7 @@ internal class Segment {
      * Removes this segment of a list and returns its successor.
      * Returns null if the list is now empty.
      */
-    fun pop(): Segment? {
+    internal fun pop(): Segment? {
         val result = this.next
         if (this.prev != null) {
             this.prev!!.next = this.next
@@ -113,7 +120,7 @@ internal class Segment {
     /**
      * Appends `segment` after this segment in the list. Returns the pushed segment.
      */
-    fun push(segment: Segment): Segment {
+    internal fun push(segment: Segment): Segment {
         segment.prev = this
         segment.next = this.next
         if (this.next != null) {
@@ -131,7 +138,7 @@ internal class Segment {
      *
      * Returns the new head of the list.
      */
-    fun split(byteCount: Int): Segment {
+    internal fun split(byteCount: Int): Segment {
         require(byteCount > 0 && byteCount <= limit - pos) { "byteCount out of range" }
         val prefix: Segment
 
@@ -162,7 +169,7 @@ internal class Segment {
      * Call this when the tail and its predecessor may both be less than half full. This will copy
      * data so that segments can be recycled.
      */
-    fun compact(): Segment {
+    internal fun compact(): Segment {
         check(this.prev != null) { "cannot compact" }
         if (!this.prev!!.owner) return this // Cannot compact: prev isn't writable.
         val byteCount = limit - pos
@@ -177,7 +184,7 @@ internal class Segment {
     }
 
     /** Moves `byteCount` bytes from this segment to `sink`.  */
-    fun writeTo(sink: Segment, byteCount: Int) {
+    internal fun writeTo(sink: Segment, byteCount: Int) {
         check(sink.owner) { "only owner can write" }
         if (sink.limit + byteCount > SIZE) {
             // We can't fit byteCount bytes at the sink's current position. Shift sink first.
@@ -196,15 +203,55 @@ internal class Segment {
         pos += byteCount
     }
 
-    val size: Int
+    @PublishedApi
+    @get:JvmSynthetic
+    internal val size: Int
         get() = limit - pos
 
-    companion object {
+    @PublishedApi
+    @get:JvmSynthetic
+    internal val remainingCapacity: Int
+        get() = data.size - limit
+
+    /**
+     * Return a byte-array view over internal data.
+     *
+     * Returned array contains data layed out so that a readable slice starts at
+     * [Segment.pos] and ends at [Segment.limit], writable slice starts at [Segment.limit]
+     * and spans over [Segment.remainingCapacity] bytes.
+     *
+     * This method exists only to preserve binary compatibility if a segment's internal
+     * container eventually changes from ByteArray to something else.
+     */
+    @PublishedApi
+    @JvmSynthetic
+    @Suppress("UNUSED_PARAMETER")
+    internal fun dataAsByteArray(readOnly: Boolean): ByteArray = data
+
+    /**
+     * Write back all modifications that were made to a view returned from [dataAsByteArray].
+     *
+     * This method exists only to preserve binary compatibility if a segment's internal
+     * container eventually changes from ByteArray to something else.
+     */
+    @PublishedApi
+    @JvmSynthetic
+    @Suppress("UNUSED_PARAMETER")
+    internal fun writeBackData(data: ByteArray, bytesToCommit: Int): Unit = Unit
+
+    internal companion object {
         /** The size of all segments in bytes.  */
-        const val SIZE = 8192
+        internal const val SIZE = 8192
 
         /** Segments will be shared when doing so avoids `arraycopy()` of this many bytes.  */
-        const val SHARE_MINIMUM = 1024
+        internal const val SHARE_MINIMUM = 1024
+
+        @JvmSynthetic
+        internal fun new(): Segment = Segment()
+
+        @JvmSynthetic
+        internal fun new(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean): Segment
+            = Segment(data, pos, limit, shared, owner)
     }
 }
 
@@ -229,7 +276,6 @@ internal fun Segment.indexOf(byte: Byte, startOffset: Int, endOffset: Int): Int 
  * `startOffset` is relative and should be within `[0, size)`.
  */
 internal fun Segment.indexOfBytesInbound(bytes: ByteArray, startOffset: Int): Int {
-    // require(startOffset in 0 until size)
     var offset = startOffset
     val limit = size - bytes.size + 1
     val firstByte = bytes[0]
@@ -294,3 +340,6 @@ internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int): I
     }
     return -1
 }
+
+@PublishedApi
+internal fun Segment.isEmpty(): Boolean = size == 0

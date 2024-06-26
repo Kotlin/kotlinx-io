@@ -49,7 +49,7 @@ private open class OutputStreamSink(
 
             head.pos += bytesWritten.toInt()
             remaining -= bytesWritten
-            source.size -= bytesWritten
+            source.sizeMut -= bytesWritten
 
             if (head.pos == head.limit) {
                 source.recycleHead()
@@ -105,7 +105,7 @@ private open class NSInputStreamSource(
             return -1
         }
         tail.limit += bytesRead.toInt()
-        sink.size += bytesRead
+        sink.sizeMut += bytesRead
         return bytesRead
     }
 
