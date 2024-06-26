@@ -43,6 +43,10 @@ public final class kotlinx/io/Buffer : kotlinx/io/Sink, kotlinx/io/Source {
 	public fun writeShort (S)V
 }
 
+public final class kotlinx/io/BufferKt {
+	public static final synthetic fun seek (Lkotlinx/io/Buffer;JLkotlin/jvm/functions/Function2;)Ljava/lang/Object;
+}
+
 public final class kotlinx/io/BuffersJvmKt {
 	public static final fun asByteChannel (Lkotlinx/io/Buffer;)Ljava/nio/channels/ByteChannel;
 	public static final fun copyTo (Lkotlinx/io/Buffer;Ljava/io/OutputStream;JJ)V
@@ -106,11 +110,13 @@ public final class kotlinx/io/Segment {
 	public final synthetic fun getLimit ()I
 	public final synthetic fun getNext ()Lkotlinx/io/Segment;
 	public final synthetic fun getPos ()I
+	public final synthetic fun getPrev ()Lkotlinx/io/Segment;
 	public final synthetic fun getRemainingCapacity ()I
 	public final synthetic fun getSize ()I
 	public final synthetic fun setLimit (I)V
 	public final synthetic fun setNext (Lkotlinx/io/Segment;)V
 	public final synthetic fun setPos (I)V
+	public final synthetic fun setPrev (Lkotlinx/io/Segment;)V
 	public final synthetic fun writeBackData ([BI)V
 }
 
@@ -282,12 +288,31 @@ public final class kotlinx/io/files/PathsKt {
 	public static final fun sourceDeprecated (Lkotlinx/io/files/Path;)Lkotlinx/io/Source;
 }
 
+public abstract interface class kotlinx/io/unsafe/BufferIterationContext : kotlinx/io/unsafe/SegmentReadContext {
+	public abstract fun next (Lkotlinx/io/Segment;)Lkotlinx/io/Segment;
+}
+
+public abstract interface class kotlinx/io/unsafe/SegmentReadContext {
+	public abstract fun getUnchecked (Lkotlinx/io/Segment;I)B
+}
+
+public abstract interface class kotlinx/io/unsafe/SegmentWriteContext {
+	public abstract fun setUnchecked (Lkotlinx/io/Segment;IB)V
+	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBB)V
+	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBBB)V
+	public abstract fun setUnchecked (Lkotlinx/io/Segment;IBBBB)V
+}
+
 public final class kotlinx/io/unsafe/UnsafeBufferOperations {
 	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeBufferOperations;
 	public final fun getMaxSafeWriteCapacity ()I
+	public final fun iterate (Lkotlinx/io/Buffer;JLkotlin/jvm/functions/Function3;)V
+	public final fun iterate (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V
 	public final fun moveToTail (Lkotlinx/io/Buffer;[BII)V
 	public static synthetic fun moveToTail$default (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;[BIIILjava/lang/Object;)V
+	public final fun readFromHead (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V
 	public final fun readFromHead (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function3;)V
+	public final fun writeToTail (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function2;)V
 	public final fun writeToTail (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function3;)V
 }
 
@@ -295,5 +320,12 @@ public final class kotlinx/io/unsafe/UnsafeBufferOperationsJvmKt {
 	public static final fun readBulk (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;[Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function2;)V
 	public static final fun readFromHead (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function1;)V
 	public static final fun writeToTail (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function1;)V
+}
+
+public final class kotlinx/io/unsafe/UnsafeBufferOperationsKt {
+	public static final synthetic fun getBufferIterationContextImpl ()Lkotlinx/io/unsafe/BufferIterationContext;
+	public static final synthetic fun getSegmentReadContextImpl ()Lkotlinx/io/unsafe/SegmentReadContext;
+	public static final synthetic fun getSegmentWriteContextImpl ()Lkotlinx/io/unsafe/SegmentWriteContext;
+	public static final synthetic fun withData (Lkotlinx/io/unsafe/SegmentReadContext;Lkotlinx/io/Segment;Lkotlin/jvm/functions/Function3;)V
 }
 
