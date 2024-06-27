@@ -37,7 +37,8 @@ public object UnsafeBufferOperations {
     public fun moveToTail(buffer: Buffer, bytes: ByteArray, startIndex: Int = 0, endIndex: Int = bytes.size) {
         checkBounds(bytes.size, startIndex, endIndex)
         val segment = Segment.new(
-            bytes, startIndex, endIndex, shared = true /* to prevent recycling */,
+            bytes, startIndex, endIndex,
+            SimpleCopyTracker().also { it.addCopy() } /* to prevent recycling */,
             owner = false /* can't append to it */
         )
         val tail = buffer.tail

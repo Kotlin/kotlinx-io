@@ -25,7 +25,45 @@ import kotlinx.io.SegmentPool.LOCK
 import kotlinx.io.SegmentPool.MAX_SIZE
 import kotlinx.io.SegmentPool.recycle
 import kotlinx.io.SegmentPool.take
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater
 import java.util.concurrent.atomic.AtomicReference
+
+/**
+ * Precise [SegmentCopyTracker] implementation tracking a number of shared segment copies.
+ * Every [addCopy] call increments the counter, every [removeCopyIfShared] decrements it.
+ *
+ * After calling [removeCopyIfShared] the same number of time [addCopy] was called, tracker returns to the unshared state.
+ *
+ * The class is internal for testing only.
+ */
+internal class RefCountingCopyTracker : SegmentCopyTracker() {
+    companion object {
+        @JvmStatic
+        private val fieldUpdater = AtomicIntegerFieldUpdater.newUpdater(RefCountingCopyTracker::class.java, "refs")
+    }
+
+    @Volatile
+    private var refs: Int = 0
+
+    override fun addCopy() {
+        fieldUpdater.incrementAndGet(this)
+    }
+
+    override fun removeCopyIfShared(): Boolean {
+        while (true) {
+            val value = refs
+            check(value >= 0) { "Shared copies count is negative: $value" }
+            if (fieldUpdater.compareAndSet(this, value, (value - 1).coerceAtLeast(0))) {
+                return value > 0
+            }
+        }
+    }
+
+    override val shared: Boolean
+        get() {
+            return refs > 0
+        }
+}
 
 /**
  * This class pools segments in a lock-free singly-linked stack. Though this code is lock-free it
@@ -52,7 +90,8 @@ internal actual object SegmentPool {
     actual val MAX_SIZE = 64 * 1024 // 64 KiB.
 
     /** A sentinel segment to indicate that the linked list is currently being modified. */
-    private val LOCK = Segment.new(ByteArray(0), pos = 0, limit = 0, shared = false, owner = false)
+    private val LOCK =
+        Segment.new(ByteArray(0), pos = 0, limit = 0, copyTracker = RefCountingCopyTracker(), owner = false)
 
     /**
      * The number of hash buckets. This number needs to balance keeping the pool small and contention
@@ -87,13 +126,13 @@ internal actual object SegmentPool {
         when {
             first === LOCK -> {
                 // We didn't acquire the lock. Don't take a pooled segment.
-                return Segment.new()
+                return Segment.new(RefCountingCopyTracker())
             }
 
             first == null -> {
                 // We acquired the lock but the pool was empty. Unlock and return a new segment.
                 firstRef.set(null)
-                return Segment.new()
+                return Segment.new(RefCountingCopyTracker())
             }
 
             else -> {
@@ -101,6 +140,7 @@ internal actual object SegmentPool {
                 firstRef.set(first.next)
                 first.next = null
                 first.limit = 0
+                check(!first.shared)
                 return first
             }
         }
@@ -109,7 +149,7 @@ internal actual object SegmentPool {
     @JvmStatic
     actual fun recycle(segment: Segment) {
         require(segment.next == null && segment.prev == null)
-        if (segment.shared) return // This segment cannot be recycled.
+        if (segment.copyTracker.removeCopyIfShared()) return // This segment cannot be recycled.
 
         val firstRef = firstRef()
 
@@ -120,6 +160,7 @@ internal actual object SegmentPool {
 
         segment.next = first
         segment.pos = 0
+        segment.owner = true
         segment.limit = firstLimit + Segment.SIZE
 
         // If we lost a race with another operation, don't recycle this segment.
