@@ -53,7 +53,7 @@ public fun Buffer.indexOf(byte: Byte, startIndex: Long = 0, endIndex: Long = siz
         if (o == -1L) {
             return -1L
         }
-        var segment: Segment? = seg!!
+        var segment: Segment? = seg
         var offset = o
         do {
             check(endOffset > offset)
