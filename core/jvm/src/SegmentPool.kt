@@ -87,7 +87,7 @@ internal class RefCountingCopyTracker : SegmentCopyTracker() {
 internal actual object SegmentPool {
     /** The maximum number of bytes to pool per hash bucket. */
     // TODO: Is 64 KiB a good maximum size? Do we ever have that many idle segments?
-    actual val MAX_SIZE = 64 * 1024 // 64 KiB.
+    actual val MAX_SIZE = System.getProperty("kotlinx.io.pool.size.bytes", "65536").toInt() // 64 KiB.
 
     /** A sentinel segment to indicate that the linked list is currently being modified. */
     private val LOCK =
