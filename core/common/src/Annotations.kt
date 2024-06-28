@@ -53,3 +53,14 @@ public annotation class InternalIoApi
             "Make sure you fully understand documentation of the declaration marked as UnsafeIoApi"
 )
 public annotation class UnsafeIoApi
+
+
+/**
+ * Marks an experimental API available only in snapshot builds.
+ * There are no guarantees regarding the stability of such an API,
+ * and it is a subject of change or removal without notice.
+ */
+@SnapshotApi
+@Retention(AnnotationRetention.BINARY)
+@RequiresOptIn(message = "This is a snapshot API, it may not be available in regular library release.")
+public annotation class SnapshotApi

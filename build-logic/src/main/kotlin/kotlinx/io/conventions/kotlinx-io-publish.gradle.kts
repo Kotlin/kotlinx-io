@@ -74,7 +74,10 @@ fun MavenPublication.mavenCentralArtifacts(project: Project, sources: SourceDire
 }
 
 
-fun mavenRepositoryUri(): URI {
+fun mavenRepositoryUri(snapshot: Boolean = false): URI {
+    if (snapshot) {
+        return URI("https://maven.pkg.jetbrains.space/kotlin/p/kotlinx/dev")
+    }
     val repositoryId: String? = System.getenv("libs.repository.id")
     return if (repositoryId == null) {
         URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
@@ -83,12 +86,22 @@ fun mavenRepositoryUri(): URI {
     }
 }
 
-fun RepositoryHandler.configureMavenPublication( project: Project) {
+private fun Project.isSnapshotRelease(): Boolean {
+    return version.toString().endsWith("-SNAPSHOT")
+}
+
+fun RepositoryHandler.configureMavenPublication(project: Project) {
+    val isSnapshot = project.isSnapshotRelease()
     maven {
-        url = mavenRepositoryUri()
+        url = mavenRepositoryUri(isSnapshot)
         credentials {
-            username = project.getSensitiveProperty("libs.sonatype.user")
-            password = project.getSensitiveProperty("libs.sonatype.password")
+            if (isSnapshot) {
+                username = project.getSensitiveProperty("libs.space.user")
+                password = project.getSensitiveProperty("libs.space.password")
+            } else {
+                username = project.getSensitiveProperty("libs.sonatype.user")
+                password = project.getSensitiveProperty("libs.sonatype.password")
+            }
         }
     }
 

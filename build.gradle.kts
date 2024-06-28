@@ -24,6 +24,12 @@ allprojects {
 @OptIn(ExperimentalBCVApi::class)
 apiValidation {
     ignoredProjects.add("kotlinx-io-benchmarks")
+    nonPublicMarkers.addAll(
+        listOf(
+            "kotlinx.io.bytestring.SnapshotByteStringApi",
+            "kotlinx.io.SnapshotApi"
+        )
+    )
     klib.enabled = true
 }
 
