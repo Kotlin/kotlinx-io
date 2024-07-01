@@ -254,12 +254,11 @@ public object UnsafeBufferOperations {
     public inline fun writeToTail(
         buffer: Buffer,
         minimumCapacity: Int,
-        writeAction: (SegmentWriteContext, Segment) -> Int
+        writeAction: (context: SegmentWriteContext, tail: Segment) -> Int
     ): Int {
         contract {
             callsInPlace(writeAction, EXACTLY_ONCE)
         }
-
         val tail = buffer.writableSegment(minimumCapacity)
         val bytesWritten = writeAction(SegmentWriteContextImpl, tail)
 
@@ -304,7 +303,10 @@ public object UnsafeBufferOperations {
      * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.messageDigest
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.crc32Unsafe
      */
-    public inline fun iterate(buffer: Buffer, iterationAction: (BufferIterationContext, Segment?) -> Unit) {
+    public inline fun iterate(
+        buffer: Buffer,
+        iterationAction: (context: BufferIterationContext, head: Segment?) -> Unit
+    ) {
         contract {
             callsInPlace(iterationAction, EXACTLY_ONCE)
         }
@@ -335,7 +337,7 @@ public object UnsafeBufferOperations {
      */
     public inline fun iterate(
         buffer: Buffer, offset: Long,
-        iterationAction: (BufferIterationContext, Segment?, Long) -> Unit
+        iterationAction: (context: BufferIterationContext, segment: Segment?, startOfTheSegmentOffset: Long) -> Unit
     ) {
         contract {
             callsInPlace(iterationAction, EXACTLY_ONCE)
@@ -393,7 +395,10 @@ public interface SegmentReadContext {
 @UnsafeIoApi
 @JvmSynthetic
 @OptIn(ExperimentalContracts::class)
-public inline fun SegmentReadContext.withData(segment: Segment, readAction: (ByteArray, Int, Int) -> Unit) {
+public inline fun SegmentReadContext.withData(
+    segment: Segment,
+    readAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Unit
+) {
     contract {
         callsInPlace(readAction, EXACTLY_ONCE)
     }
