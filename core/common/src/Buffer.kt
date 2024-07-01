@@ -84,11 +84,7 @@ public class Buffer : Source, Sink {
     }
 
     override fun readByte(): Byte {
-        val segment = head
-        if (segment == null) {
-            throwEof(1)
-            return 0 // unreachable
-        }
+        val segment = head ?: throwEof(1)
         val segmentSize = segment.size
         if (segmentSize == 0) {
             recycleHead()
@@ -103,11 +99,7 @@ public class Buffer : Source, Sink {
     }
 
     override fun readShort(): Short {
-        val segment = head
-        if (segment == null) {
-            throwEof(2)
-            return 0 // unreachable
-        }
+        val segment = head ?: throwEof(2)
         val segmentSize = segment.size
         if (segmentSize < 2) {
             // If the short is split across multiple segments, delegate to readByte().
@@ -127,11 +119,7 @@ public class Buffer : Source, Sink {
     }
 
     override fun readInt(): Int {
-        val segment = head
-        if (segment == null) {
-            throwEof(4)
-            return 0 // unreachable
-        }
+        val segment = head ?: throwEof(4)
         val segmentSize = segment.size
         if (segmentSize < 4) {
             // If the short is split across multiple segments, delegate to readShort().
@@ -151,11 +139,7 @@ public class Buffer : Source, Sink {
     }
 
     override fun readLong(): Long {
-        val segment = head
-        if (segment == null) {
-            throwEof(8)
-            return 0 // unreachable
-        }
+        val segment = head ?: throwEof(8)
         val segmentSize = segment.size
         if (segmentSize < 8) {
             // If the short is split across multiple segments, delegate to readInt().
@@ -174,7 +158,7 @@ public class Buffer : Source, Sink {
         return v
     }
 
-    private fun throwEof(byteCount: Long) {
+    private fun throwEof(byteCount: Long): Nothing {
         throw EOFException("Buffer doesn't contain required number of bytes (size: $size, required: $byteCount)")
     }
 
