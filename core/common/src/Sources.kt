@@ -10,6 +10,7 @@ package kotlinx.io
  *
  * @throws EOFException when there are not enough data to read a short value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortLe
  */
@@ -22,6 +23,7 @@ public fun Source.readShortLe(): Short {
  *
  * @throws EOFException when there are not enough data to read an int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntLe
  */
@@ -34,6 +36,7 @@ public fun Source.readIntLe(): Int {
  *
  * @throws EOFException when there are not enough data to read a long value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongLe
  */
@@ -55,6 +58,7 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  * number was not present.
  * @throws EOFException if the source is exhausted before a call of this method.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDecimalLong
  */
@@ -126,6 +130,7 @@ public fun Source.readDecimalLong(): Long {
  * hexadecimal was not found.
  * @throws EOFException if the source is exhausted before a call of this method.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readHexLong
  */
@@ -178,6 +183,7 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
  *
  * @throws IllegalStateException when the source is closed.
  * @throws IllegalArgumentException when `startIndex > endIndex` or either of indices is negative.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.indexOfByteSample
  */
@@ -207,6 +213,7 @@ public fun Source.indexOf(byte: Byte, startIndex: Long = 0L, endIndex: Long = Lo
  * Removes all bytes from this source and returns them as a byte array.
  *
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToArraySample
  */
@@ -222,6 +229,7 @@ public fun Source.readByteArray(): ByteArray {
  * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToArraySample
  */
@@ -261,6 +269,7 @@ private fun Source.readByteArrayImpl(size: Int): ByteArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToArraySample
  */
@@ -284,6 +293,7 @@ public fun Source.readTo(sink: ByteArray, startIndex: Int = 0, endIndex: Int = s
  *
  * @throws EOFException when there are no more bytes to read.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUByte
  */
@@ -295,6 +305,7 @@ public fun Source.readUByte(): UByte = readByte().toUByte()
  *
  * @throws EOFException when there are not enough data to read an unsigned short value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUShort
  */
@@ -306,6 +317,7 @@ public fun Source.readUShort(): UShort = readShort().toUShort()
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUInt
  */
@@ -317,6 +329,7 @@ public fun Source.readUInt(): UInt = readInt().toUInt()
  *
  * @throws EOFException when there are not enough data to read an unsigned long value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readULong
  */
@@ -328,6 +341,7 @@ public fun Source.readULong(): ULong = readLong().toULong()
  *
  * @throws EOFException when there are not enough data to read an unsigned short value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUShortLe
  */
@@ -339,6 +353,7 @@ public fun Source.readUShortLe(): UShort = readShortLe().toUShort()
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUIntLe
  */
@@ -350,6 +365,7 @@ public fun Source.readUIntLe(): UInt = readIntLe().toUInt()
  *
  * @throws EOFException when there are not enough data to read an unsigned long value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readULongLe
  */
@@ -367,6 +383,7 @@ public fun Source.readULongLe(): ULong = readLongLe().toULong()
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloat
  */
@@ -380,6 +397,7 @@ public fun Source.readFloat(): Float = Float.fromBits(readInt())
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDouble
  */
@@ -397,6 +415,7 @@ public fun Source.readDouble(): Double = Double.fromBits(readLong())
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatLe
  */
@@ -410,6 +429,7 @@ public fun Source.readFloatLe(): Float = Float.fromBits(readIntLe())
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleLe
  */
@@ -422,6 +442,7 @@ public fun Source.readDoubleLe(): Double = Double.fromBits(readLongLe())
  * If there is no buffered data, this call will result in a fetch from the underlying source.
  *
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.startsWithSample
  */

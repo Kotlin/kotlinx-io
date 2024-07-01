@@ -140,6 +140,7 @@ internal fun String.utf8Size(startIndex: Int = 0, endIndex: Int = length): Long 
  *
  * @throws IllegalStateException when the sink is closed.
  * @throws IllegalArgumentException when [codePoint] value is negative, or greater than `U+10ffff`.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUtf8CodePointSample
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeSurrogatePair
@@ -158,6 +159,7 @@ public fun Sink.writeCodePointValue(codePoint: Int): Unit =
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [string] indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUtf8Sample
  */
@@ -178,6 +180,7 @@ public fun Sink.writeString(string: String, startIndex: Int = 0, endIndex: Int =
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [chars] indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUtf8SeqSample
  */
@@ -194,6 +197,7 @@ public fun Sink.writeString(chars: CharSequence, startIndex: Int = 0, endIndex: 
  * Returns the empty string if this source is empty.
  *
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUtf8
  */
@@ -225,6 +229,7 @@ public fun Buffer.readString(): String {
  * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUtf8
  */
@@ -254,6 +259,7 @@ public fun Source.readString(byteCount: Long): String {
  *
  * @throws EOFException when the source is exhausted before a complete code point can be read.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUtf8CodePointSample
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.surrogatePairs
@@ -283,6 +289,7 @@ public fun Source.readCodePointValue(): Int {
  * an implicit line break is assumed. Null is returned once the source is exhausted.
  *
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLinesSample
  */
@@ -328,6 +335,7 @@ public fun Source.readLine(): String? {
  * line break characters.
  * @throws IllegalStateException when the source is closed.
  * @throws IllegalArgumentException when [limit] is negative.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLinesSample
  */
