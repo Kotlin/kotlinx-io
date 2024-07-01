@@ -501,11 +501,7 @@ public class Buffer : Source, Sink {
                 } else {
                     // We're going to need another segment. Split the source's head
                     // segment in two, then move the first of those two to this buffer.
-                    val newHead = source.head!!.split(remainingByteCount.toInt())
-                    if (source.head == source.tail) {
-                        source.tail = newHead
-                    }
-                    source.head = newHead
+                    source.head = source.head!!.split(remainingByteCount.toInt())
                 }
             }
 
