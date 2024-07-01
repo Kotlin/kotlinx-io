@@ -601,4 +601,21 @@ class CommonBufferTest {
         buffer.clear()
         assertEquals(ByteString(), buffer.snapshot())
     }
+
+    @Test
+    fun splitHead() {
+        val dst = Buffer()
+        val src = Buffer().also { it.write(ByteArray(SEGMENT_SIZE)) }
+
+        dst.write(src, src.size / 2)
+        assertEquals(src.size, dst.size)
+
+        assertEquals(src.head, src.tail)
+        assertEquals(null, src.head?.prev)
+        assertEquals(null, src.tail?.next)
+
+        assertEquals(dst.head, dst.tail)
+        assertEquals(null, dst.head?.prev)
+        assertEquals(null, dst.tail?.next)
+    }
 }
