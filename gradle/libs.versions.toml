@@ -11,7 +11,7 @@ animalsniffer = "1.7.1"
 
 agp = "8.3.+"
 # Don't update to 1.2.* as it requires SDK version upgrade to 34
-androidx-benchmark = "1.1.1"
+androidx-benchmark = "1.2.4"
 androidx-test-runner = "1.5.2"
 androidx-test-junit = "1.1.5"
 junit4 = "4.13.2"
