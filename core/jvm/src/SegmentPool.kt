@@ -126,13 +126,13 @@ internal actual object SegmentPool {
         when {
             first === LOCK -> {
                 // We didn't acquire the lock. Don't take a pooled segment.
-                return Segment.new(RefCountingCopyTracker())
+                return Segment.new()
             }
 
             first == null -> {
                 // We acquired the lock but the pool was empty. Unlock and return a new segment.
                 firstRef.set(null)
-                return Segment.new(RefCountingCopyTracker())
+                return Segment.new()
             }
 
             else -> {
@@ -149,7 +149,7 @@ internal actual object SegmentPool {
     @JvmStatic
     actual fun recycle(segment: Segment) {
         require(segment.next == null && segment.prev == null)
-        if (segment.copyTracker.removeCopyIfShared()) return // This segment cannot be recycled.
+        if (segment.copyTracker?.removeCopyIfShared() == true) return // This segment cannot be recycled.
 
         val firstRef = firstRef()
 
@@ -168,6 +168,9 @@ internal actual object SegmentPool {
             segment.next = null // Don't leak a reference in the pool either!
         }
     }
+
+    @JvmStatic
+    actual fun tracker(): SegmentCopyTracker = RefCountingCopyTracker()
 
     private fun firstRef(): AtomicReference<Segment?> {
         // Get a value in [0..HASH_BUCKET_COUNT) based on the current thread.

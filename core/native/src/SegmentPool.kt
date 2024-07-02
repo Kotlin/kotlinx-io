@@ -25,8 +25,10 @@ internal actual object SegmentPool {
 
     actual val byteCount: Int = 0
 
-    actual fun take(): Segment = Segment.new(SimpleCopyTracker())
+    actual fun take(): Segment = Segment.new()
 
     actual fun recycle(segment: Segment) {
     }
+
+    actual fun tracker(): SegmentCopyTracker = SimpleCopyTracker()
 }
