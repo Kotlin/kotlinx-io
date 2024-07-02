@@ -54,6 +54,10 @@ kotlin {
     }
 }
 
+tasks.jvmTest {
+    systemProperty("kotlinx.io.l2.pool.size.bytes", "8388608") // 8Mb
+}
+
 tasks.named("wasmWasiNodeTest") {
     // TODO: remove once https://youtrack.jetbrains.com/issue/KT-65179 solved
     doFirst {

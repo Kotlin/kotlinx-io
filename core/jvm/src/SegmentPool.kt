@@ -83,15 +83,20 @@ internal class RefCountingCopyTracker : SegmentCopyTracker() {
  * This tracks the number of bytes in each linked list in its [Segment.limit] property. Each element
  * has a limit that's one segment size greater than its successor element. The maximum size of the
  * pool is a product of [MAX_SIZE] and [HASH_BUCKET_COUNT].
+ *
+ * TODO: update kdoc with info about L2 pool
  */
 internal actual object SegmentPool {
     /** The maximum number of bytes to pool per hash bucket. */
     // TODO: Is 64 KiB a good maximum size? Do we ever have that many idle segments?
     actual val MAX_SIZE = 64 * 1024 // 64 KiB.
 
+    private val SECOND_LEVEL_POOL_SIZE =
+        System.getProperty("kotlinx.io.l2.pool.size.bytes", "0").toInt().coerceAtLeast(0)
+
     /** A sentinel segment to indicate that the linked list is currently being modified. */
     private val LOCK =
-        Segment.new(ByteArray(0), pos = 0, limit = 0, copyTracker = RefCountingCopyTracker(), owner = false)
+        Segment.new(ByteArray(0), pos = 0, limit = 0, copyTracker = SimpleCopyTracker(), owner = false)
 
     /**
      * The number of hash buckets. This number needs to balance keeping the pool small and contention
@@ -111,6 +116,8 @@ internal actual object SegmentPool {
     private val hashBuckets: Array<AtomicReference<Segment?>> = Array(HASH_BUCKET_COUNT) {
         AtomicReference<Segment?>() // null value implies an empty bucket
     }
+
+    private val secondLevelPoolRoot: AtomicReference<Segment?> = AtomicReference()
 
     actual val byteCount: Int
         get() {
@@ -132,6 +139,11 @@ internal actual object SegmentPool {
             first == null -> {
                 // We acquired the lock but the pool was empty. Unlock and return a new segment.
                 firstRef.set(null)
+
+                if (SECOND_LEVEL_POOL_SIZE > 0) {
+                    return takeL2()
+                }
+
                 return Segment.new()
             }
 
@@ -147,6 +159,33 @@ internal actual object SegmentPool {
     }
 
     @JvmStatic
+    private fun takeL2(): Segment {
+        while (true) {
+            when (val first = secondLevelPoolRoot.getAndSet(LOCK)) {
+                LOCK -> {
+                    // We didn't acquire the lock, retry
+                    continue
+                }
+
+                null -> {
+                    // We acquired the lock but the pool was empty. Unlock and return a new segment.
+                    secondLevelPoolRoot.set(null)
+                    return Segment.new()
+                }
+
+                else -> {
+                    // We acquired the lock and the pool was not empty. Pop the first element and return it.
+                    secondLevelPoolRoot.set(first.next)
+                    first.next = null
+                    first.limit = 0
+                    check(!first.shared)
+                    return first
+                }
+            }
+        }
+    }
+
+    @JvmStatic
     actual fun recycle(segment: Segment) {
         require(segment.next == null && segment.prev == null)
         if (segment.copyTracker?.removeCopyIfShared() == true) return // This segment cannot be recycled.
@@ -156,7 +195,13 @@ internal actual object SegmentPool {
         val first = firstRef.get()
         if (first === LOCK) return // A take() is currently in progress.
         val firstLimit = first?.limit ?: 0
-        if (firstLimit >= MAX_SIZE) return // Pool is full.
+        if (firstLimit >= MAX_SIZE) {
+            // L1 pool is full.
+            if (SECOND_LEVEL_POOL_SIZE > 0) {
+                recycleL2(segment)
+            }
+            return
+        }
 
         segment.next = first
         segment.pos = 0
@@ -166,6 +211,29 @@ internal actual object SegmentPool {
         // If we lost a race with another operation, don't recycle this segment.
         if (!firstRef.compareAndSet(first, segment)) {
             segment.next = null // Don't leak a reference in the pool either!
+        }
+    }
+
+    @JvmStatic
+    private fun recycleL2(segment: Segment) {
+        segment.pos = 0
+        segment.owner = true
+
+        while (true) {
+            val first = secondLevelPoolRoot.get()
+            if (first === LOCK) continue // A take() is currently in progress.
+            val firstLimit = first?.limit ?: 0
+            if (firstLimit >= SECOND_LEVEL_POOL_SIZE) {
+                // L2 pool is full.
+                return
+            }
+
+            segment.next = first
+            segment.limit = firstLimit + Segment.SIZE
+
+            if (secondLevelPoolRoot.compareAndSet(first, segment)) {
+                return
+            }
         }
     }
 
