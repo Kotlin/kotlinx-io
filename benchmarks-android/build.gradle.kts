@@ -31,6 +31,7 @@ android {
 
         testInstrumentationRunner = "androidx.benchmark.junit4.AndroidBenchmarkRunner"
         testInstrumentationRunnerArguments["androidx.benchmark.output.enable"] = "true"
+        // testInstrumentationRunnerArguments["androidx.benchmark.profiling.mode"]= "StackSampling"
     }
 
     testBuildType = "release"
@@ -46,7 +47,7 @@ android {
             isMinifyEnabled = true
             testProguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "benchmark-proguard-rules.pro")
             androidTest {
-                enableMinification = false
+                enableMinification = true
             }
         }
     }
