@@ -112,11 +112,18 @@ public class Segment {
     /** True if other segments or byte strings use the same byte array. */
     internal val shared: Boolean
         get() {
-            return copyTracker.shared
+            val t = copyTracker
+            return t != null && t.shared
         }
 
-    /** Tracks number shared copies */
-    internal val copyTracker: SegmentCopyTracker
+    /**
+     * Tracks number shared copies
+     *
+     * Note that this reference is not `@Volatile` as segments are not thread-safe and it's an error
+     * to modify the same segment concurrently.
+     * At the same time, an object [copyTracker] refers to could be modified concurrently.
+     */
+    internal var copyTracker: SegmentCopyTracker? = null
 
     /** True if this segment owns the byte array and can append to it, extending `limit`. */
     @JvmField
@@ -134,13 +141,13 @@ public class Segment {
     @set:JvmSynthetic
     internal var prev: Segment? = null
 
-    private constructor(shareToken: SegmentCopyTracker) {
+    private constructor() {
         this.data = ByteArray(SIZE)
         this.owner = true
-        this.copyTracker = shareToken
+        this.copyTracker = null
     }
 
-    private constructor(data: ByteArray, pos: Int, limit: Int, shareToken: SegmentCopyTracker, owner: Boolean) {
+    private constructor(data: ByteArray, pos: Int, limit: Int, shareToken: SegmentCopyTracker?, owner: Boolean) {
         this.data = data
         this.pos = pos
         this.limit = limit
@@ -154,7 +161,10 @@ public class Segment {
      * prevents it from being pooled.
      */
     internal fun sharedCopy(): Segment {
-        return Segment(data, pos, limit, copyTracker.also { it.addCopy() }, false)
+        val t = copyTracker ?: SegmentPool.tracker().also {
+            copyTracker = it
+        }
+        return Segment(data, pos, limit, t.also { it.addCopy() }, false)
     }
 
     /**
@@ -336,11 +346,16 @@ public class Segment {
         internal const val SHARE_MINIMUM = 1024
 
         @JvmSynthetic
-        internal fun new(copyTracker: SegmentCopyTracker): Segment = Segment(copyTracker)
+        internal fun new(): Segment = Segment()
 
         @JvmSynthetic
-        internal fun new(data: ByteArray, pos: Int, limit: Int, copyTracker: SegmentCopyTracker, owner: Boolean): Segment
-            = Segment(data, pos, limit, copyTracker, owner)
+        internal fun new(
+            data: ByteArray,
+            pos: Int,
+            limit: Int,
+            copyTracker: SegmentCopyTracker?,
+            owner: Boolean
+        ): Segment = Segment(data, pos, limit, copyTracker, owner)
     }
 }
 

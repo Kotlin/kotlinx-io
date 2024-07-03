@@ -83,15 +83,20 @@ internal class RefCountingCopyTracker : SegmentCopyTracker() {
  * This tracks the number of bytes in each linked list in its [Segment.limit] property. Each element
  * has a limit that's one segment size greater than its successor element. The maximum size of the
  * pool is a product of [MAX_SIZE] and [HASH_BUCKET_COUNT].
+ *
+ * TODO: update kdoc with info about L2 pool
  */
 internal actual object SegmentPool {
     /** The maximum number of bytes to pool per hash bucket. */
     // TODO: Is 64 KiB a good maximum size? Do we ever have that many idle segments?
-    actual val MAX_SIZE = System.getProperty("kotlinx.io.pool.size.bytes", "65536").toInt() // 64 KiB.
+    actual val MAX_SIZE = 64 * 1024 // 64 KiB.
+
+    private val SECOND_LEVEL_POOL_SIZE =
+        System.getProperty("kotlinx.io.pool.size.bytes", "0").toInt().coerceAtLeast(0)
 
     /** A sentinel segment to indicate that the linked list is currently being modified. */
     private val LOCK =
-        Segment.new(ByteArray(0), pos = 0, limit = 0, copyTracker = RefCountingCopyTracker(), owner = false)
+        Segment.new(ByteArray(0), pos = 0, limit = 0, copyTracker = SimpleCopyTracker(), owner = false)
 
     /**
      * The number of hash buckets. This number needs to balance keeping the pool small and contention
@@ -112,6 +117,8 @@ internal actual object SegmentPool {
         AtomicReference<Segment?>() // null value implies an empty bucket
     }
 
+    private val secondLevelPoolRoot: AtomicReference<Segment?> = AtomicReference()
+
     actual val byteCount: Int
         get() {
             val first = firstRef().get() ?: return 0
@@ -123,20 +130,52 @@ internal actual object SegmentPool {
         val firstRef = firstRef()
 
         while (true) {
-            val first = firstRef.getAndSet(LOCK)
-            when {
-                // We didn't acquire the lock, let's retry
-                first === LOCK -> continue
+            when (val first = firstRef.getAndSet(LOCK)) {
+                LOCK -> {
+                    // We didn't acquire the lock. Let's try again
+                    continue
+                }
 
-                first == null -> {
+                 null -> {
                     // We acquired the lock but the pool was empty. Unlock and return a new segment.
                     firstRef.set(null)
-                    return Segment.new(RefCountingCopyTracker())
+                    if (SECOND_LEVEL_POOL_SIZE > 0) {
+                        return takeL2()
+                    }
+
+                    return Segment.new()
                 }
 
                 else -> {
                     // We acquired the lock and the pool was not empty. Pop the first element and return it.
                     firstRef.set(first.next)
+                    first.next = null
+                    first.limit = 0
+                    // check(!first.shared)
+                    return first
+                }
+            }
+        }
+    }
+
+    @JvmStatic
+    private fun takeL2(): Segment {
+        while (true) {
+            when (val first = secondLevelPoolRoot.getAndSet(LOCK)) {
+                LOCK -> {
+                    // We didn't acquire the lock, retry
+                    continue
+                }
+
+                null -> {
+                    // We acquired the lock but the pool was empty. Unlock and return a new segment.
+                    secondLevelPoolRoot.set(null)
+                    return Segment.new()
+                }
+
+                else -> {
+                    // We acquired the lock and the pool was not empty. Pop the first element and return it.
+                    secondLevelPoolRoot.set(first.next)
                     first.next = null
                     first.limit = 0
                     check(!first.shared)
@@ -149,7 +188,7 @@ internal actual object SegmentPool {
     @JvmStatic
     actual fun recycle(segment: Segment) {
         require(segment.next == null && segment.prev == null)
-        if (segment.copyTracker.removeCopyIfShared()) return // This segment cannot be recycled.
+        if (segment.copyTracker?.removeCopyIfShared() == true) return // This segment cannot be recycled.
 
         segment.pos = 0
         segment.owner = true
@@ -159,17 +198,48 @@ internal actual object SegmentPool {
             val first = firstRef.get()
             if (first === LOCK) continue // A take() is currently in progress.
             val firstLimit = first?.limit ?: 0
-            if (firstLimit >= MAX_SIZE) return // Pool is full.
+            if (firstLimit >= MAX_SIZE) {
+                // L1 pool is full.
+                if (SECOND_LEVEL_POOL_SIZE > 0) {
+                    recycleL2(segment)
+                }
+                return
+            }
 
             segment.next = first
             segment.limit = firstLimit + Segment.SIZE
 
             if (firstRef.compareAndSet(first, segment)) {
-                return // We successfully put the segment into a pool.
+                return
             }
-            // If we lost a race with another operation, let's try once more!
         }
     }
+
+    @JvmStatic
+    private fun recycleL2(segment: Segment) {
+        segment.pos = 0
+        segment.owner = true
+
+        while (true) {
+            val first = secondLevelPoolRoot.get()
+            if (first === LOCK) continue // A take() is currently in progress.
+            val firstLimit = first?.limit ?: 0
+            if (firstLimit >= SECOND_LEVEL_POOL_SIZE) {
+                // L2 pool is full.
+                return
+            }
+
+            segment.next = first
+            segment.limit = firstLimit + Segment.SIZE
+
+            if (secondLevelPoolRoot.compareAndSet(first, segment)) {
+                return
+            }
+        }
+    }
+
+    @JvmStatic
+    actual fun tracker(): SegmentCopyTracker = RefCountingCopyTracker()
 
     private fun firstRef(): AtomicReference<Segment?> {
         // Get a value in [0..HASH_BUCKET_COUNT) based on the current thread.

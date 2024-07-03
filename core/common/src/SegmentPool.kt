@@ -38,4 +38,6 @@ internal expect object SegmentPool {
 
     /** Recycle a segment that the caller no longer needs. */
     fun recycle(segment: Segment)
+
+    fun tracker(): SegmentCopyTracker
 }
