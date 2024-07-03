@@ -55,7 +55,7 @@ kotlin {
 }
 
 tasks.jvmTest {
-    systemProperty("kotlinx.io.l2.pool.size.bytes", "8388608") // 8Mb
+    systemProperty("kotlinx.io.pool.size.bytes", "8388608") // 8Mb
 }
 
 tasks.named("wasmWasiNodeTest") {
