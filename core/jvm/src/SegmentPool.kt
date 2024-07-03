@@ -129,31 +129,32 @@ internal actual object SegmentPool {
     actual fun take(): Segment {
         val firstRef = firstRef()
 
-        val first = firstRef.getAndSet(LOCK)
-        when {
-            first === LOCK -> {
-                // We didn't acquire the lock. Don't take a pooled segment.
-                return Segment.new()
-            }
-
-            first == null -> {
-                // We acquired the lock but the pool was empty. Unlock and return a new segment.
-                firstRef.set(null)
-
-                if (SECOND_LEVEL_POOL_SIZE > 0) {
-                    return takeL2()
+        while (true) {
+            when (val first = firstRef.getAndSet(LOCK)) {
+                LOCK -> {
+                    // We didn't acquire the lock. Let's try again
+                    continue
                 }
 
-                return Segment.new()
-            }
+                null -> {
+                    // We acquired the lock but the pool was empty. Unlock and return a new segment.
+                    firstRef.set(null)
 
-            else -> {
-                // We acquired the lock and the pool was not empty. Pop the first element and return it.
-                firstRef.set(first.next)
-                first.next = null
-                first.limit = 0
-                check(!first.shared)
-                return first
+                    if (SECOND_LEVEL_POOL_SIZE > 0) {
+                        return takeL2()
+                    }
+
+                    return Segment.new()
+                }
+
+                else -> {
+                    // We acquired the lock and the pool was not empty. Pop the first element and return it.
+                    firstRef.set(first.next)
+                    first.next = null
+                    first.limit = 0
+                    // check(!first.shared)
+                    return first
+                }
             }
         }
     }
@@ -190,27 +191,29 @@ internal actual object SegmentPool {
         require(segment.next == null && segment.prev == null)
         if (segment.copyTracker?.removeCopyIfShared() == true) return // This segment cannot be recycled.
 
-        val firstRef = firstRef()
 
-        val first = firstRef.get()
-        if (first === LOCK) return // A take() is currently in progress.
-        val firstLimit = first?.limit ?: 0
-        if (firstLimit >= MAX_SIZE) {
-            // L1 pool is full.
-            if (SECOND_LEVEL_POOL_SIZE > 0) {
-                recycleL2(segment)
-            }
-            return
-        }
-
-        segment.next = first
         segment.pos = 0
         segment.owner = true
-        segment.limit = firstLimit + Segment.SIZE
+        while (true) {
+            val firstRef = firstRef()
 
-        // If we lost a race with another operation, don't recycle this segment.
-        if (!firstRef.compareAndSet(first, segment)) {
-            segment.next = null // Don't leak a reference in the pool either!
+            val first = firstRef.get()
+            if (first === LOCK) continue // A take() is currently in progress.
+            val firstLimit = first?.limit ?: 0
+            if (firstLimit >= MAX_SIZE) {
+                // L1 pool is full.
+                if (SECOND_LEVEL_POOL_SIZE > 0) {
+                    recycleL2(segment)
+                }
+                return
+            }
+
+            segment.next = first
+            segment.limit = firstLimit + Segment.SIZE
+
+            if (firstRef.compareAndSet(first, segment)) {
+                return
+            }
         }
     }
 
