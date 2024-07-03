@@ -92,7 +92,7 @@ internal actual object SegmentPool {
     actual val MAX_SIZE = 64 * 1024 // 64 KiB.
 
     private val SECOND_LEVEL_POOL_SIZE =
-        System.getProperty("kotlinx.io.l2.pool.size.bytes", "0").toInt().coerceAtLeast(0)
+        System.getProperty("kotlinx.io.pool.size.bytes", "0").toInt().coerceAtLeast(0)
 
     /** A sentinel segment to indicate that the linked list is currently being modified. */
     private val LOCK =
