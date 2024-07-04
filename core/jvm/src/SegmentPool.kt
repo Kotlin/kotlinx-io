@@ -109,13 +109,13 @@ internal actual object SegmentPool {
     private val HASH_BUCKET_COUNT =
         Integer.highestOneBit(Runtime.getRuntime().availableProcessors() * 2 - 1)
 
-    private val HASH_BUCKET_COUNT_L2 =
-        Integer.highestOneBit(Runtime.getRuntime().availableProcessors())
+    private val HASH_BUCKET_COUNT_L2 = (HASH_BUCKET_COUNT / 2).coerceAtLeast(1)
 
-    private val SECOND_LEVEL_POOL_SIZE =
+    private val SECOND_LEVEL_POOL_TOTAL_SIZE =
         System.getProperty("kotlinx.io.pool.size.bytes", "0").toInt().coerceAtLeast(0)
 
-    private val SECOND_LEVEL_POOL_SIZE_NORM = (SECOND_LEVEL_POOL_SIZE / HASH_BUCKET_COUNT).coerceAtLeast(Segment.SIZE)
+    private val SECOND_LEVEL_POOL_BUCKET_SIZE =
+        (SECOND_LEVEL_POOL_TOTAL_SIZE / HASH_BUCKET_COUNT).coerceAtLeast(Segment.SIZE)
 
     /**
      * Hash buckets each contain a singly-linked list of segments. The index/key is a hash function of
@@ -153,7 +153,7 @@ internal actual object SegmentPool {
                     // We acquired the lock but the pool was empty. Unlock and return a new segment.
                     firstRef.set(null)
 
-                    if (SECOND_LEVEL_POOL_SIZE > 0) {
+                    if (SECOND_LEVEL_POOL_TOTAL_SIZE > 0) {
                         return takeL2()
                     }
 
@@ -173,7 +173,7 @@ internal actual object SegmentPool {
 
     @JvmStatic
     private fun takeL2(): Segment {
-        var bucket = bucketId()
+        var bucket = l2BucketId()
         var attempts = 0
         var firstRef = hashBucketsL2[bucket]
         while (true) {
@@ -223,7 +223,7 @@ internal actual object SegmentPool {
             val firstLimit = first?.limit ?: 0
             if (firstLimit >= MAX_SIZE) {
                 // L1 pool is full.
-                if (SECOND_LEVEL_POOL_SIZE > 0) {
+                if (SECOND_LEVEL_POOL_TOTAL_SIZE > 0) {
                     recycleL2(segment)
                 }
                 return
@@ -243,7 +243,7 @@ internal actual object SegmentPool {
         segment.pos = 0
         segment.owner = true
 
-        var bucket = bucketId()
+        var bucket = l2BucketId()
         var attempts = 0
         var firstRef = hashBucketsL2[bucket]
 
@@ -251,7 +251,7 @@ internal actual object SegmentPool {
             val first = firstRef.get()
             if (first === LOCK) continue // A take() is currently in progress.
             val firstLimit = first?.limit ?: 0
-            if (firstLimit >= SECOND_LEVEL_POOL_SIZE_NORM) {
+            if (firstLimit >= SECOND_LEVEL_POOL_BUCKET_SIZE) {
                 if (attempts < HASH_BUCKET_COUNT_L2) {
                     attempts++
                     bucket = (bucket + 1) and (HASH_BUCKET_COUNT_L2 - 1)
@@ -275,12 +275,15 @@ internal actual object SegmentPool {
     actual fun tracker(): SegmentCopyTracker = RefCountingCopyTracker()
 
     private fun firstRef(): AtomicReference<Segment?> {
-        return hashBuckets[bucketId()]
-    }
-
-    private fun bucketId(): Int {
         // Get a value in [0..HASH_BUCKET_COUNT) based on the current thread.
         @Suppress("DEPRECATION") // TODO: switch to threadId after JDK19
-        return (Thread.currentThread().id and (HASH_BUCKET_COUNT - 1L)).toInt()
+        val bucket = (Thread.currentThread().id and (HASH_BUCKET_COUNT - 1L)).toInt()
+        return hashBuckets[bucket]
+    }
+
+    private fun l2BucketId(): Int {
+        // Get a value in [0..HASH_BUCKET_COUNT_L2) based on the current thread.
+        @Suppress("DEPRECATION") // TODO: switch to threadId after JDK19
+        return (Thread.currentThread().id and (HASH_BUCKET_COUNT_L2 - 1L)).toInt()
     }
 }
