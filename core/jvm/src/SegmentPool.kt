@@ -67,24 +67,28 @@ internal class RefCountingCopyTracker : SegmentCopyTracker() {
 
 /**
  * This class pools segments in a lock-free singly-linked stack. Though this code is lock-free it
- * does use a sentinel [LOCK] value to defend against races. Conflicted operations are not retried,
- * so there is no chance of blocking despite the term "lock".
+ * does use a sentinel [LOCK] value to defend against races. To reduce the contention, the pool consists
+ * of several buckets (see [HASH_BUCKET_COUNT]), each holding a reference to its own segments stack.
+ * Every [take] or [recycle] choose one of the buckets depending on a [Thread.currentThread]'s [Thread.getId].
  *
  * On [take], a caller swaps the stack's next pointer with the [LOCK] sentinel. If the stack was
  * not already locked, the caller replaces the head node with its successor.
  *
  * On [recycle], a caller swaps the head with a new node whose successor is the replaced head.
  *
- * On conflict, operations succeed, but segments are not pushed into the stack. For example, a
- * [take] that loses a race allocates a new segment regardless of the pool size. A [recycle] call
- * that loses a race will not increase the size of the pool. Under significant contention, this pool
- * will have fewer hits and the VM will do more GC and zero filling of arrays.
+ * On conflict, operations are retried until they succeed.
  *
  * This tracks the number of bytes in each linked list in its [Segment.limit] property. Each element
  * has a limit that's one segment size greater than its successor element. The maximum size of the
  * pool is a product of [MAX_SIZE] and [HASH_BUCKET_COUNT].
  *
- * TODO: update kdoc with info about L2 pool
+ * [MAX_SIZE] is kept relatively small to avoid excessive memory consumption in case of a large [HASH_BUCKET_COUNT].
+ * For better handling of scenarios with high segments demand, an optional second-level pool could be enabled
+ * by setting up a value of `kotlinx.io.pool.size.bytes` system property.
+ *
+ * The second-level pool, unlike the pool described above, is not sharded and has a single entry point shared
+ * across all application threads. That pool is used as a backup in case when [take] or [recycle] failed due to
+ * an empty or exhausted segments chain in a corresponding bucket (one of [HASH_BUCKET_COUNT] buckets).
  */
 internal actual object SegmentPool {
     /** The maximum number of bytes to pool per hash bucket. */
@@ -117,6 +121,9 @@ internal actual object SegmentPool {
         AtomicReference<Segment?>() // null value implies an empty bucket
     }
 
+    /**
+     * Entry point for a second-level segments pool.
+     */
     private val secondLevelPoolRoot: AtomicReference<Segment?> = AtomicReference()
 
     actual val byteCount: Int
