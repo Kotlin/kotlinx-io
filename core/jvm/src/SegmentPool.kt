@@ -155,7 +155,9 @@ internal actual object SegmentPool {
                 }
 
                 null -> {
-                    // We acquired the lock but the pool was empty. Unlock and return a new segment.
+                    // We acquired the lock but the pool was empty.
+                    // Unlock the bucket and either try to acquire a segment from the second level cache,
+                    // or, if the second level cache is disabled, allocate a brand-new segment.
                     buckets.set(bucketId, null)
 
                     if (SECOND_LEVEL_POOL_TOTAL_SIZE > 0) {
@@ -189,7 +191,9 @@ internal actual object SegmentPool {
                 }
 
                 null -> {
-                    // We acquired the lock but the pool was empty. Unlock and return a new segment.
+                    // We acquired the lock but the pool was empty.
+                    // Unlock the current bucket and select a new one.
+                    // If all buckets were already scanned, allocate a new segment.
                     buckets.set(bucket, null)
 
                     if (attempts < HASH_BUCKET_COUNT_L2) {
@@ -258,6 +262,7 @@ internal actual object SegmentPool {
             if (first === LOCK) continue // A take() is currently in progress.
             val firstLimit = first?.limit ?: 0
             if (firstLimit >= SECOND_LEVEL_POOL_BUCKET_SIZE) {
+                // The current bucket is full, try to find another one and return the segment there.
                 if (attempts < HASH_BUCKET_COUNT_L2) {
                     attempts++
                     bucket = (bucket + 1) and (HASH_BUCKET_COUNT_L2 - 1)
