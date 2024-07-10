@@ -488,7 +488,7 @@ public class Buffer : Source, Sink {
 
         while (remainingByteCount > 0L) {
             // Is a prefix of the source's head segment all that we need to move?
-            if (remainingByteCount < source.head!!.limit - source.head!!.pos) {
+            if (remainingByteCount < source.head!!.size) {
                 val tail = tail
                 if (tail != null && tail.owner &&
                     remainingByteCount + tail.limit - (if (tail.shared) 0 else tail.pos) <= Segment.SIZE
@@ -501,17 +501,13 @@ public class Buffer : Source, Sink {
                 } else {
                     // We're going to need another segment. Split the source's head
                     // segment in two, then move the first of those two to this buffer.
-                    val newHead = source.head!!.split(remainingByteCount.toInt())
-                    if (source.head == source.tail) {
-                        source.tail = newHead
-                    }
-                    source.head = newHead
+                    source.head = source.head!!.split(remainingByteCount.toInt())
                 }
             }
 
             // Remove the source's head segment and append it to our tail.
-            val segmentToMove = source.head
-            val movedByteCount = (segmentToMove!!.limit - segmentToMove.pos).toLong()
+            val segmentToMove = source.head!!
+            val movedByteCount = segmentToMove.size.toLong()
             source.head = segmentToMove.pop()
             if (source.head == null) {
                 source.tail = null
