@@ -45,6 +45,11 @@ internal class RefCountingCopyTracker : SegmentCopyTracker() {
     @Volatile
     private var refs: Int = 0
 
+    override val shared: Boolean
+        get() {
+            return refs > 0
+        }
+
     override fun addCopy() {
         fieldUpdater.incrementAndGet(this)
     }
@@ -58,11 +63,6 @@ internal class RefCountingCopyTracker : SegmentCopyTracker() {
             }
         }
     }
-
-    override val shared: Boolean
-        get() {
-            return refs > 0
-        }
 }
 
 /**
@@ -99,7 +99,7 @@ internal actual object SegmentPool {
 
     /** A sentinel segment to indicate that the linked list is currently being modified. */
     private val LOCK =
-        Segment.new(ByteArray(0), pos = 0, limit = 0, copyTracker = SimpleCopyTracker(), owner = false)
+        Segment.new(ByteArray(0), pos = 0, limit = 0, copyTracker = null, owner = false)
 
     /**
      * The number of hash buckets. This number needs to balance keeping the pool small and contention

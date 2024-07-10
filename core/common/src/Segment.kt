@@ -38,22 +38,22 @@ import kotlin.jvm.JvmSynthetic
  */
 internal abstract class SegmentCopyTracker {
     /**
+     * `true` if a tracker shared by multiple segment copies.
+     */
+    abstract val shared: Boolean
+
+    /**
      * Track a new copy created by sharing an associated segment.
      */
     abstract fun addCopy()
 
     /**
-     * Record reclamation of a shared segment copy associated with this tracker.
+     * Records reclamation of a shared segment copy associated with this tracker.
      * If a tracker was in unshared state, this call should not affect an internal state.
      *
      * @return `true` if the segment was not shared *before* this called.
      */
     abstract fun removeCopyIfShared(): Boolean
-
-    /**
-     * `true` if a tracker shared by multiple segment copies.
-     */
-    abstract val shared: Boolean
 }
 
 /**
@@ -62,16 +62,16 @@ internal abstract class SegmentCopyTracker {
  */
 internal class SimpleCopyTracker : SegmentCopyTracker() {
     @Volatile
-    private var shared_: Boolean = false
+    private var _shared: Boolean = false
+
+    override val shared: Boolean
+        get() = _shared
 
     override fun addCopy() {
-        shared_ = true
+        _shared = true
     }
 
     override fun removeCopyIfShared(): Boolean = shared
-
-    override val shared: Boolean
-        get() = shared_
 }
 
 /**
@@ -111,10 +111,7 @@ public class Segment {
 
     /** True if other segments or byte strings use the same byte array. */
     internal val shared: Boolean
-        get() {
-            val t = copyTracker
-            return t != null && t.shared
-        }
+        get() = copyTracker?.shared ?: false
 
     /**
      * Tracks number shared copies
