@@ -266,7 +266,7 @@ internal actual object SegmentPool {
             val first = buckets[bucket]
             if (first === LOCK) continue // A take() is currently in progress.
             val firstLimit = first?.limit ?: 0
-            if (firstLimit >= SECOND_LEVEL_POOL_BUCKET_SIZE) {
+            if (firstLimit + Segment.SIZE > SECOND_LEVEL_POOL_BUCKET_SIZE) {
                 // The current bucket is full, try to find another one and return the segment there.
                 if (attempts < HASH_BUCKET_COUNT_L2) {
                     attempts++
