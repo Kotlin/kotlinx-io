@@ -38,7 +38,7 @@ public object UnsafeBufferOperations {
         checkBounds(bytes.size, startIndex, endIndex)
         val segment = Segment.new(
             bytes, startIndex, endIndex,
-            SimpleCopyTracker().also { it.addCopy() } /* to prevent recycling */,
+            AlwaysSharedCopyTracker, /* to prevent recycling */
             owner = false /* can't append to it */
         )
         val tail = buffer.tail

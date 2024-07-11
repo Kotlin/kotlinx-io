@@ -6,17 +6,16 @@
 package kotlinx.io
 
 import kotlin.test.Test
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class SimpleCopyTrackerTest {
+class AlwaysSharedCopyTrackerTest {
     @Test
     fun stateTransition() {
-        val tracker = SimpleCopyTracker()
-        assertFalse(tracker.shared)
+        val tracker = AlwaysSharedCopyTracker
+        assertTrue(tracker.shared)
 
-        assertFalse(tracker.removeCopy())
-        assertFalse(tracker.shared)
+        assertTrue(tracker.removeCopy())
+        assertTrue(tracker.shared)
 
         tracker.addCopy()
         assertTrue(tracker.shared)

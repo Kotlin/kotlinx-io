@@ -30,5 +30,5 @@ internal actual object SegmentPool {
     actual fun recycle(segment: Segment) {
     }
 
-    actual fun tracker(): SegmentCopyTracker = SimpleCopyTracker()
+    actual fun tracker(): SegmentCopyTracker = AlwaysSharedCopyTracker
 }

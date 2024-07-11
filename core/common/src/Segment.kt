@@ -20,7 +20,6 @@
  */
 package kotlinx.io
 
-import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmSynthetic
 
@@ -57,21 +56,12 @@ internal abstract class SegmentCopyTracker {
 }
 
 /**
- * Simple [SegmentCopyTracker] transitioning from unshared to shared state only.
- * [removeCopy] calls do not affect [shared] value.
+ * Simple [SegmentCopyTracker] that always reports shared state.
  */
-internal class SimpleCopyTracker : SegmentCopyTracker() {
-    @Volatile
-    private var _shared: Boolean = false
-
-    override val shared: Boolean
-        get() = _shared
-
-    override fun addCopy() {
-        _shared = true
-    }
-
-    override fun removeCopy(): Boolean = shared
+internal object AlwaysSharedCopyTracker : SegmentCopyTracker() {
+    override val shared: Boolean = true
+    override fun addCopy() = Unit
+    override fun removeCopy(): Boolean = true
 }
 
 /**
