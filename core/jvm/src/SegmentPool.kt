@@ -30,38 +30,44 @@ import java.util.concurrent.atomic.AtomicReferenceArray
 
 /**
  * Precise [SegmentCopyTracker] implementation tracking a number of shared segment copies.
- * Every [addCopy] call increments the counter, every [removeCopyIfShared] decrements it.
+ * Every [addCopy] call increments the counter, every [removeCopy] decrements it.
  *
- * After calling [removeCopyIfShared] the same number of time [addCopy] was called, tracker returns to the unshared state.
+ * After calling [removeCopy] the same number of time [addCopy] was called, tracker returns to the unshared state.
  *
  * The class is internal for testing only.
  */
 internal class RefCountingCopyTracker : SegmentCopyTracker() {
     companion object {
         @JvmStatic
-        private val fieldUpdater = AtomicIntegerFieldUpdater.newUpdater(RefCountingCopyTracker::class.java, "refs")
+        private val fieldUpdater = AtomicIntegerFieldUpdater.newUpdater(RefCountingCopyTracker::class.java, "copyCount")
     }
 
     @Volatile
-    private var refs: Int = 0
+    private var copyCount: Int = 0
 
     override val shared: Boolean
         get() {
-            return refs > 0
+            return copyCount > 0
         }
 
     override fun addCopy() {
         fieldUpdater.incrementAndGet(this)
     }
 
-    override fun removeCopyIfShared(): Boolean {
-        while (true) {
-            val value = refs
-            check(value >= 0) { "Shared copies count is negative: $value" }
-            if (fieldUpdater.compareAndSet(this, value, (value - 1).coerceAtLeast(0))) {
-                return value > 0
-            }
-        }
+    override fun removeCopy(): Boolean {
+        // The value could not be incremented from `0` under the race,
+        // so once it zero, it remains zero in the scope of this call.
+        if (copyCount == 0) return false
+
+        val updatedValue = fieldUpdater.decrementAndGet(this)
+        // If there are several copies, the last decrement will update copyCount from 0 to -1.
+        // That would be the last standing copy, and we can recycle it.
+        // If, however, the decremented value falls below -1, it's an error as there were more
+        // `removeCopy` than `addCopy` calls.
+        if (updatedValue >= 0) return true
+        check(updatedValue == -1) { "Shared copies count is negative: ${updatedValue + 1}" }
+        copyCount = 0
+        return false
     }
 }
 
@@ -219,7 +225,7 @@ internal actual object SegmentPool {
     @JvmStatic
     actual fun recycle(segment: Segment) {
         require(segment.next == null && segment.prev == null)
-        if (segment.copyTracker?.removeCopyIfShared() == true) return // This segment cannot be recycled.
+        if (segment.copyTracker?.removeCopy() == true) return // This segment cannot be recycled.
 
         val buckets = hashBuckets
         val bucketId = l1BucketId()

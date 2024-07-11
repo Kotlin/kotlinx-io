@@ -15,21 +15,21 @@ class RefCounteringCopyTrackerTest {
         val tracker = RefCountingCopyTracker()
         assertFalse(tracker.shared)
 
-        assertFalse(tracker.removeCopyIfShared())
+        assertFalse(tracker.removeCopy())
         assertFalse(tracker.shared)
 
         tracker.addCopy()
         assertTrue(tracker.shared)
-        assertTrue(tracker.removeCopyIfShared())
+        assertTrue(tracker.removeCopy())
         assertFalse(tracker.shared)
 
         tracker.addCopy()
         assertTrue(tracker.shared)
         tracker.addCopy()
         assertTrue(tracker.shared)
-        assertTrue(tracker.removeCopyIfShared())
+        assertTrue(tracker.removeCopy())
         assertTrue(tracker.shared)
-        assertTrue(tracker.removeCopyIfShared())
+        assertTrue(tracker.removeCopy())
         assertFalse(tracker.shared)
     }
 }

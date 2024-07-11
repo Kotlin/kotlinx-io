@@ -29,8 +29,8 @@ import kotlin.jvm.JvmSynthetic
  *
  * A new [SegmentCopyTracker] instance should be not shared by default (i.e. `shared == false`).
  * Any further [addCopy] calls should move the tracker to a shared state (i.e. `shared == true`).
- * Once a shared segment copy is recycled, [removeCopyIfShared] should be called.
- * Depending on implementation, calling [removeCopyIfShared] the same number of times as [addCopy] may
+ * Once a shared segment copy is recycled, [removeCopy] should be called.
+ * Depending on implementation, calling [removeCopy] the same number of times as [addCopy] may
  * or may not transition the tracked back to unshared stated.
  *
  * The class is not intended for public use and currently designed to fit the only use case - within JVM SegmentPool
@@ -53,12 +53,12 @@ internal abstract class SegmentCopyTracker {
      *
      * @return `true` if the segment was not shared *before* this called.
      */
-    abstract fun removeCopyIfShared(): Boolean
+    abstract fun removeCopy(): Boolean
 }
 
 /**
  * Simple [SegmentCopyTracker] transitioning from unshared to shared state only.
- * [removeCopyIfShared] calls do not affect [shared] value.
+ * [removeCopy] calls do not affect [shared] value.
  */
 internal class SimpleCopyTracker : SegmentCopyTracker() {
     @Volatile
@@ -71,7 +71,7 @@ internal class SimpleCopyTracker : SegmentCopyTracker() {
         _shared = true
     }
 
-    override fun removeCopyIfShared(): Boolean = shared
+    override fun removeCopy(): Boolean = shared
 }
 
 /**
