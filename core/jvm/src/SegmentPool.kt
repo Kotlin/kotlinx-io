@@ -126,8 +126,7 @@ internal actual object SegmentPool {
 
     private val SECOND_LEVEL_POOL_TOTAL_SIZE =
         System.getProperty("kotlinx.io.pool.size.bytes", DEFAULT_SECOND_LEVEL_POOL_TOTAL_SIZE)
-            .toInt()
-            .coerceAtLeast(0)
+            .toIntOrNull()?.coerceAtLeast(0) ?: 0
 
     private val SECOND_LEVEL_POOL_BUCKET_SIZE =
         (SECOND_LEVEL_POOL_TOTAL_SIZE / HASH_BUCKET_COUNT).coerceAtLeast(Segment.SIZE)
