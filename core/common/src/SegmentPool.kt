@@ -38,4 +38,11 @@ internal expect object SegmentPool {
 
     /** Recycle a segment that the caller no longer needs. */
     fun recycle(segment: Segment)
+
+    /**
+     * Allocates a new copy tracker that'll be associated with a segment from this pool.
+     * For performance reasons, there's no tracker attached to a segment initially.
+     * Instead, it's allocated lazily on the first sharing attempt.
+     */
+    fun tracker(): SegmentCopyTracker
 }

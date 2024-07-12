@@ -24,6 +24,47 @@ import kotlin.jvm.JvmField
 import kotlin.jvm.JvmSynthetic
 
 /**
+ * Tracks shared segment copies.
+ *
+ * A new [SegmentCopyTracker] instance should be not shared by default (i.e. `shared == false`).
+ * Any further [addCopy] calls should move the tracker to a shared state (i.e. `shared == true`).
+ * Once a shared segment copy is recycled, [removeCopy] should be called.
+ * Depending on implementation, calling [removeCopy] the same number of times as [addCopy] may
+ * or may not transition the tracked back to unshared stated.
+ *
+ * The class is not intended for public use and currently designed to fit the only use case - within JVM SegmentPool
+ * implementation.
+ */
+internal abstract class SegmentCopyTracker {
+    /**
+     * `true` if a tracker shared by multiple segment copies.
+     */
+    abstract val shared: Boolean
+
+    /**
+     * Track a new copy created by sharing an associated segment.
+     */
+    abstract fun addCopy()
+
+    /**
+     * Records reclamation of a shared segment copy associated with this tracker.
+     * If a tracker was in unshared state, this call should not affect an internal state.
+     *
+     * @return `true` if the segment was not shared *before* this called.
+     */
+    abstract fun removeCopy(): Boolean
+}
+
+/**
+ * Simple [SegmentCopyTracker] that always reports shared state.
+ */
+internal object AlwaysSharedCopyTracker : SegmentCopyTracker() {
+    override val shared: Boolean = true
+    override fun addCopy() = Unit
+    override fun removeCopy(): Boolean = true
+}
+
+/**
  * A segment of a buffer.
  *
  * Each segment in a buffer is a doubly-linked list node referencing the following and
@@ -59,8 +100,17 @@ public class Segment {
     internal var limit: Int = 0
 
     /** True if other segments or byte strings use the same byte array. */
-    @JvmField
-    internal var shared: Boolean = false
+    internal val shared: Boolean
+        get() = copyTracker?.shared ?: false
+
+    /**
+     * Tracks number shared copies
+     *
+     * Note that this reference is not `@Volatile` as segments are not thread-safe and it's an error
+     * to modify the same segment concurrently.
+     * At the same time, an object [copyTracker] refers to could be modified concurrently.
+     */
+    internal var copyTracker: SegmentCopyTracker? = null
 
     /** True if this segment owns the byte array and can append to it, extending `limit`. */
     @JvmField
@@ -81,14 +131,14 @@ public class Segment {
     private constructor() {
         this.data = ByteArray(SIZE)
         this.owner = true
-        this.shared = false
+        this.copyTracker = null
     }
 
-    private constructor(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean) {
+    private constructor(data: ByteArray, pos: Int, limit: Int, shareToken: SegmentCopyTracker?, owner: Boolean) {
         this.data = data
         this.pos = pos
         this.limit = limit
-        this.shared = shared
+        this.copyTracker = shareToken
         this.owner = owner
     }
 
@@ -98,8 +148,10 @@ public class Segment {
      * prevents it from being pooled.
      */
     internal fun sharedCopy(): Segment {
-        shared = true
-        return Segment(data, pos, limit, true, false)
+        val t = copyTracker ?: SegmentPool.tracker().also {
+            copyTracker = it
+        }
+        return Segment(data, pos, limit, t.also { it.addCopy() }, false)
     }
 
     /**
@@ -284,8 +336,13 @@ public class Segment {
         internal fun new(): Segment = Segment()
 
         @JvmSynthetic
-        internal fun new(data: ByteArray, pos: Int, limit: Int, shared: Boolean, owner: Boolean): Segment
-            = Segment(data, pos, limit, shared, owner)
+        internal fun new(
+            data: ByteArray,
+            pos: Int,
+            limit: Int,
+            copyTracker: SegmentCopyTracker?,
+            owner: Boolean
+        ): Segment = Segment(data, pos, limit, copyTracker, owner)
     }
 }
 
