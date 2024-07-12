@@ -49,11 +49,10 @@ private open class OutputStreamSink(
 
             head.pos += toCopy
             remaining -= toCopy
-            source.size -= toCopy
+            source.sizeMut -= toCopy
 
             if (head.pos == head.limit) {
-                source.head = head.pop()
-                SegmentPool.recycle(head)
+                source.recycleHead()
             }
         }
     }
@@ -88,13 +87,12 @@ private open class InputStreamSource(
             if (bytesRead == -1) {
                 if (tail.pos == tail.limit) {
                     // We allocated a tail segment, but didn't end up needing it. Recycle!
-                    sink.head = tail.pop()
-                    SegmentPool.recycle(tail)
+                    sink.recycleTail()
                 }
                 return -1
             }
             tail.limit += bytesRead
-            sink.size += bytesRead
+            sink.sizeMut += bytesRead
             return bytesRead.toLong()
         } catch (e: AssertionError) {
             if (e.isAndroidGetsocknameError) throw IOException(e)

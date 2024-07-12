@@ -125,7 +125,7 @@ public fun Sink.writeDecimalLong(long: Long) {
         }
 
         tail.limit += width
-        buffer.size += width.toLong()
+        buffer.sizeMut += width.toLong()
     }
 }
 
@@ -149,27 +149,7 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
         return
     }
 
-    // Mask every bit below the most significant bit to a 1
-    // http://aggregate.org/MAGIC/#Most%20Significant%201%20Bit
-    var x = v
-    x = x or (x ushr 1)
-    x = x or (x ushr 2)
-    x = x or (x ushr 4)
-    x = x or (x ushr 8)
-    x = x or (x ushr 16)
-    x = x or (x ushr 32)
-
-    // Count the number of 1s
-    // http://aggregate.org/MAGIC/#Population%20Count%20(Ones%20Count)
-    x -= x ushr 1 and 0x5555555555555555
-    x = (x ushr 2 and 0x3333333333333333) + (x and 0x3333333333333333)
-    x = (x ushr 4) + x and 0x0f0f0f0f0f0f0f0f
-    x += x ushr 8
-    x += x ushr 16
-    x = (x and 0x3f) + ((x ushr 32) and 0x3f)
-
-    // Round up to the nearest full byte
-    val width = ((x + 3) / 4).toInt()
+    val width = hexNumberLength(v)
 
     writeToInternalBuffer { buffer ->
         val tail = buffer.writableSegment(width)
@@ -182,7 +162,7 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
             pos--
         }
         tail.limit += width
-        buffer.size += width.toLong()
+        buffer.sizeMut += width.toLong()
     }
 }
 

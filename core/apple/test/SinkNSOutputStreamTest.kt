@@ -80,6 +80,7 @@ class SinkNSOutputStreamTest {
                     assertContentEquals(byteArray, data.toByteArray())
                     assertContentEquals(byteArray, sink.buffer.readByteArray())
                 }
+
                 is RealSink -> assertContentEquals(byteArray, (sink.sink as Buffer).readByteArray())
             }
         }
@@ -128,9 +129,11 @@ class SinkNSOutputStreamTest {
                                 source.usePinned {
                                     assertEquals(
                                         data.length.convert(),
-                                        out.write(it.addressOf(written.value).reinterpret(), data.length.convert())
+                                        out.write(
+                                            it.addressOf(written.getAndAdd(data.length)).reinterpret(),
+                                            data.length.convert()
+                                        )
                                     )
-                                    written.value += data.length
                                 }
                             }
                             val writtenData = out.propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as NSData
@@ -138,6 +141,7 @@ class SinkNSOutputStreamTest {
                             out.close()
                             completed.unlock()
                         }
+
                         else -> fail("unexpected event ${handleEvent.asString()}")
                     }
                 }

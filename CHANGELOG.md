@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 0.5.0
+> Published 12 July 2024
+
+### Features
+- Provided an API allowing direct access to Buffer and Segment internals [#135](https://github.com/Kotlin/kotlinx-io/issues/135), [#166](https://github.com/Kotlin/kotlinx-io/issues/166)
+
+  The API is unsafe, delisted from public docs and requires explicit opt-in. It's recommended to
+  avoid this API unless you're working on integration with other APIs (like, `java.nio` or
+  `io_uring`, for example).
+
+- Improved the way segment pooling is working on JVM [#352](https://github.com/Kotlin/kotlinx-io/pull/352)
+
+  Now sharing a segment won't make an original segment and all its copies recyclable.
+  Instead, the last remaining copy will be placed back into the pool when recycled.
+  Segments are no longer allocated or lost when taking or recycling a segment from pool
+  under a high contention due to concurrent requests.
+  Size of the segment pool on the JVM could now be statically configured by setting a system property
+  `kotlinx.io.pool.size.bytes`.
+
 ## 0.4.0
 > Published 6 June 2024
 

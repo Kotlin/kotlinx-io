@@ -83,11 +83,17 @@ class SourceNSInputStreamTest {
 
             byteArray.fill(-5)
             assertEquals(Segment.SIZE.convert(), input.read(cPtr, lengthPlusOne.convert()))
-            assertEquals("[97${", 98".repeat(Segment.SIZE - 1)}${", -5".repeat(Segment.SIZE + 3)}]", byteArray.contentToString())
+            assertEquals(
+                "[97${", 98".repeat(Segment.SIZE - 1)}${", -5".repeat(Segment.SIZE + 3)}]",
+                byteArray.contentToString()
+            )
 
             byteArray.fill(-6)
             assertEquals(Segment.SIZE.convert(), input.read(cPtr, lengthPlusOne.convert()))
-            assertEquals("[98${", 98".repeat(Segment.SIZE - 1)}${", -6".repeat(Segment.SIZE + 3)}]", byteArray.contentToString())
+            assertEquals(
+                "[98${", 98".repeat(Segment.SIZE - 1)}${", -6".repeat(Segment.SIZE + 3)}]",
+                byteArray.contentToString()
+            )
 
             byteArray.fill(-7)
             assertEquals(2, input.read(cPtr, lengthPlusOne.convert()))
@@ -140,15 +146,16 @@ class SourceNSInputStreamTest {
                         NSStreamEventOpenCompleted -> opened.unlock()
                         NSStreamEventHasBytesAvailable -> {
                             sink.usePinned {
-                                assertEquals(1, input.read(it.addressOf(read.value).reinterpret(), 1U))
-                                read.value++
+                                assertEquals(1, input.read(it.addressOf(read.getAndIncrement()).reinterpret(), 1U))
                             }
                         }
+
                         NSStreamEventEndEncountered -> {
                             assertEquals(data, sink.decodeToString())
                             input.close()
                             completed.unlock()
                         }
+
                         else -> fail("unexpected event ${handleEvent.asString()}")
                     }
                 }
@@ -211,6 +218,7 @@ class SourceNSInputStreamTest {
                                     completed.unlock()
                                 }
                             }
+
                             NSStreamEventEndEncountered -> fail("$data shouldn't be subscribed")
                             else -> fail("unexpected event ${handleEvent.asString()}")
                         }
@@ -248,12 +256,16 @@ class SourceNSInputStreamTest {
                         NSStreamEventHasBytesAvailable -> {
                             val sink = ByteArray(data.length)
                             sink.usePinned {
-                                assertEquals(data.length.convert(), input.read(it.addressOf(0).reinterpret(), data.length.convert()))
+                                assertEquals(
+                                    data.length.convert(),
+                                    input.read(it.addressOf(0).reinterpret(), data.length.convert())
+                                )
                             }
                             assertEquals(data, sink.decodeToString())
                             input.close()
                             available.unlock()
                         }
+
                         else -> fail("unexpected event ${handleEvent.asString()}")
                     }
                 }

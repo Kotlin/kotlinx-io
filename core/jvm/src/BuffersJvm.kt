@@ -66,14 +66,13 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
         if (bytesRead == -1) {
             if (tail.pos == tail.limit) {
                 // We allocated a tail segment, but didn't end up needing it. Recycle!
-                head = tail.pop()
-                SegmentPool.recycle(tail)
+                recycleTail()
             }
             if (forever) return
             throw EOFException("Stream exhausted before $byteCount bytes were read.")
         }
         tail.limit += bytesRead
-        size += bytesRead.toLong()
+        sizeMut += bytesRead.toLong()
         remainingByteCount -= bytesRead.toLong()
     }
 }
@@ -98,14 +97,12 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
         out.write(s.data, s.pos, toCopy)
 
         s.pos += toCopy
-        size -= toCopy.toLong()
+        sizeMut -= toCopy.toLong()
         remainingByteCount -= toCopy.toLong()
 
         if (s.pos == s.limit) {
-            val toRecycle = s
-            s = toRecycle.pop()
-            head = s
-            SegmentPool.recycle(toRecycle)
+            recycleHead()
+            s = head
         }
     }
 }
@@ -167,11 +164,10 @@ public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
     sink.put(s.data, s.pos, toCopy)
 
     s.pos += toCopy
-    size -= toCopy.toLong()
+    sizeMut -= toCopy.toLong()
 
     if (s.pos == s.limit) {
-        head = s.pop()
-        SegmentPool.recycle(s)
+        recycleHead()
     }
 
     return toCopy
@@ -195,7 +191,7 @@ public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
         tail.limit += toCopy
     }
 
-    size += byteCount.toLong()
+    sizeMut += byteCount.toLong()
     return this
 }
 

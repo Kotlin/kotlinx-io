@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
@@ -39,3 +39,17 @@ public annotation class DelicateIoApi
             "is marked as an internal API."
 )
 public annotation class InternalIoApi
+
+/**
+ * Marks API that may cause data corruption or loss or behave unpredictable when used with invalid argument values.
+ *
+ * Consider using other APIs instead when possible.
+ * Otherwise, make sure to read documentation describing an unsafe API.
+ */
+@Retention(AnnotationRetention.BINARY)
+@RequiresOptIn(
+    level = RequiresOptIn.Level.WARNING,
+    message = "This is an unsafe API and its use requires care. " +
+            "Make sure you fully understand documentation of the declaration marked as UnsafeIoApi"
+)
+public annotation class UnsafeIoApi

@@ -24,7 +24,7 @@ public fun Buffer.snapshot(): ByteString {
             check(curr != null) { "Current segment is null" }
             append(curr.data, curr.pos, curr.limit)
             curr = curr.next
-        } while (curr !== head)
+        } while (curr != null)
     }
 }
 
@@ -53,10 +53,11 @@ public fun Buffer.indexOf(byte: Byte, startIndex: Long = 0, endIndex: Long = siz
         if (o == -1L) {
             return -1L
         }
-        var segment = seg!!
+        var segment: Segment? = seg
         var offset = o
         do {
             check(endOffset > offset)
+            segment!!
             val idx = segment.indexOf(
                 byte,
                 // If start index within this segment, the diff will be positive and
@@ -71,8 +72,8 @@ public fun Buffer.indexOf(byte: Byte, startIndex: Long = 0, endIndex: Long = siz
                 return offset + idx.toLong()
             }
             offset += segment.size
-            segment = segment.next!!
-        } while (segment !== head && offset < endOffset)
+            segment = segment.next
+        } while (segment != null && offset < endOffset)
         return -1L
     }
 }
