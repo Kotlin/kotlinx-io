@@ -6,6 +6,7 @@
 package kotlinx.io
 
 import kotlin.test.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class PoolingTest {
@@ -39,5 +40,24 @@ class PoolingTest {
         otherBuffer.write(buffer, buffer.size)
         otherBuffer.clear()
         assertTrue(poolSize < SegmentPool.byteCount)
+    }
+
+    @Test
+    fun secondLevelPoolCapacityTest() {
+        val segments = mutableSetOf<Segment>()
+
+        val maxPoolSize = (SegmentPool.MAX_SIZE + SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE) / Segment.SIZE
+        repeat(maxPoolSize) {
+            assertTrue(segments.add(SegmentPool.take()))
+        }
+
+        segments.forEach { SegmentPool.recycle(it) }
+        repeat(maxPoolSize) {
+            assertFalse(segments.add(SegmentPool.take()))
+        }
+        assertTrue(segments.add(SegmentPool.take()))
+
+        segments.forEach { SegmentPool.recycle(it) }
+        segments.clear()
     }
 }
