@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.5.1
+> Published 15 July 2024
+
+### Bugfixes
+- Fixed a bug in segment pool implementation affecting a second level pool uses.
+
 ## 0.5.0
 > Published 12 July 2024
 

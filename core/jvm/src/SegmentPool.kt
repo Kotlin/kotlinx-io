@@ -129,7 +129,7 @@ internal actual object SegmentPool {
             .toIntOrNull()?.coerceAtLeast(0) ?: 0
 
     private val SECOND_LEVEL_POOL_BUCKET_SIZE =
-        (SECOND_LEVEL_POOL_TOTAL_SIZE / HASH_BUCKET_COUNT).coerceAtLeast(Segment.SIZE)
+        (SECOND_LEVEL_POOL_TOTAL_SIZE / HASH_BUCKET_COUNT_L2).coerceAtLeast(Segment.SIZE)
 
     /**
      * Hash buckets each contain a singly-linked list of segments. The index/key is a hash function of
@@ -185,7 +185,7 @@ internal actual object SegmentPool {
 
     @JvmStatic
     private fun takeL2(): Segment {
-        val buckets = hashBuckets
+        val buckets = hashBucketsL2
         var bucket = l2BucketId()
         var attempts = 0
         while (true) {
