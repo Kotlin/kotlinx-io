@@ -111,8 +111,10 @@ internal actual object SegmentPool {
      * The number of hash buckets. This number needs to balance keeping the pool small and contention
      * low. We use the number of processors rounded up to the nearest power of two. For example a
      * machine with 6 cores will have 8 hash buckets.
+     *
+     * Internal for testing
      */
-    private val HASH_BUCKET_COUNT =
+    internal val HASH_BUCKET_COUNT =
         Integer.highestOneBit(Runtime.getRuntime().availableProcessors() * 2 - 1)
 
     private val HASH_BUCKET_COUNT_L2 = (HASH_BUCKET_COUNT / 2).coerceAtLeast(1)

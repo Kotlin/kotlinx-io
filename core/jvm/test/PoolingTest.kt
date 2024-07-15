@@ -5,8 +5,11 @@
 
 package kotlinx.io
 
+import org.junit.jupiter.api.Assertions.assertFalse
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import kotlin.random.Random
 import kotlin.test.Test
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class PoolingTest {
@@ -59,5 +62,74 @@ class PoolingTest {
 
         segments.forEach { SegmentPool.recycle(it) }
         segments.clear()
+    }
+
+    @Test
+    fun contendedUseTest() {
+        val threadsCount = Runtime.getRuntime().availableProcessors()
+        val segmentsPerThread = SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE / Segment.SIZE / threadsCount
+        val observedSegments = ConcurrentHashMap<Segment, Any>()
+
+        val pool = Executors.newFixedThreadPool(threadsCount)
+        repeat(threadsCount) {
+            pool.submit {
+                repeat(10000) {
+                    val segments = mutableListOf<Segment>()
+                    repeat(segmentsPerThread) {
+                        val seg = SegmentPool.take()
+                        segments.add(seg)
+                        observedSegments[seg] = seg
+                    }
+                    segments.forEach { SegmentPool.recycle(it) }
+                }
+            }
+        }
+
+        val maxPoolSize =
+            (SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE + SegmentPool.MAX_SIZE * SegmentPool.HASH_BUCKET_COUNT) / Segment.SIZE
+        assertTrue(observedSegments.size <= maxPoolSize)
+    }
+
+    @Test
+    fun contendedUseWithMixedOperationsTest() {
+        val threadsCount = Runtime.getRuntime().availableProcessors()
+        val segmentsPerThread = SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE / Segment.SIZE / threadsCount
+        val observedSegments = ConcurrentHashMap<Segment, Any>()
+
+        val pool = Executors.newFixedThreadPool(threadsCount)
+        repeat(threadsCount) {
+            pool.submit {
+                repeat(10000) {
+                    val segments = mutableListOf<Segment>()
+                    repeat(segmentsPerThread * 2) {
+                        when (segments.size) {
+                            0 -> {
+                                val seg = SegmentPool.take()
+                                segments.add(seg)
+                                observedSegments[seg] = seg
+                            }
+                            segmentsPerThread -> SegmentPool.recycle(segments.removeLast())
+                            else -> {
+                                val rnd = Random.nextDouble()
+                                // More segments we have, higher the probability to return one of them back
+                                if (rnd > segments.size.toDouble() / segmentsPerThread) {
+                                    SegmentPool.recycle(segments.removeLast())
+                                } else {
+                                    val seg = SegmentPool.take()
+                                    segments.add(seg)
+                                    observedSegments[seg] = seg
+                                }
+                            }
+                        }
+
+                    }
+                    segments.forEach { SegmentPool.recycle(it) }
+                }
+            }
+        }
+
+        val maxPoolSize =
+            (SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE + SegmentPool.MAX_SIZE * SegmentPool.HASH_BUCKET_COUNT) / Segment.SIZE
+        assertTrue(observedSegments.size <= maxPoolSize)
     }
 }
