@@ -70,6 +70,9 @@
 package kotlinx.io
 
 import kotlinx.io.internal.*
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.withData
+import kotlin.math.min
 
 /**
  * Returns the number of bytes used to encode the slice of `string` as UTF-8 when using [Sink.writeString].
@@ -457,6 +460,7 @@ private fun Buffer.commonReadUtf8CodePoint(): Int {
     }
 }
 
+@OptIn(UnsafeIoApi::class)
 private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt: (Int) -> Char) {
     // Transcode a UTF-16 chars to UTF-8 bytes.
     var i = beginIndex
@@ -465,45 +469,49 @@ private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt
 
         when {
             c < 0x80 -> {
-                val tail = writableSegment(1)
-                val data = tail.data
-                val segmentOffset = tail.limit - i
-                val runLimit = minOf(endIndex, Segment.SIZE - segmentOffset)
+                UnsafeBufferOperations.writeToTail(this, 1) { ctx, segment ->
+                    val segmentOffset = -i
+                    val runLimit = minOf(endIndex, i + segment.remainingCapacity)
 
-                // Emit a 7-bit character with 1 byte.
-                data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+                    // Emit a 7-bit character with 1 byte.
+                    ctx.setUnchecked(segment, segmentOffset + i++, c.toByte()) // 0xxxxxxx
 
-                // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
-                // improvement over independent calls to writeByte().
-                while (i < runLimit) {
-                    c = charAt(i).code
-                    if (c >= 0x80) break
-                    data[segmentOffset + i++] = c.toByte() // 0xxxxxxx
+                    // Fast-path contiguous runs of ASCII characters. This is ugly, but yields a ~4x performance
+                    // improvement over independent calls to writeByte().
+                    while (i < runLimit) {
+                        c = charAt(i).code
+                        if (c >= 0x80) break
+                        ctx.setUnchecked(segment, segmentOffset + i++, c.toByte()) // 0xxxxxxx
+                    }
+
+                    i + segmentOffset // Equivalent to i - (previous i).
                 }
-
-                val runSize = i + segmentOffset - tail.limit // Equivalent to i - (previous i).
-                tail.limit += runSize
-                sizeMut += runSize.toLong()
             }
 
             c < 0x800 -> {
                 // Emit a 11-bit character with 2 bytes.
-                val tail = writableSegment(2)
-                tail.data[tail.limit] = (c shr 6 or 0xc0).toByte() // 110xxxxx
-                tail.data[tail.limit + 1] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
-                tail.limit += 2
-                sizeMut += 2L
+                UnsafeBufferOperations.writeToTail(this, 2) { ctx, segment ->
+                    ctx.setUnchecked(
+                        segment, 0,
+                        (c shr 6 or 0xc0).toByte(), // 110xxxxx
+                        (c and 0x3f or 0x80).toByte() // 10xxxxxx
+                    )
+                    2
+                }
                 i++
             }
 
             c < 0xd800 || c > 0xdfff -> {
                 // Emit a 16-bit character with 3 bytes.
-                val tail = writableSegment(3)
-                tail.data[tail.limit] = (c shr 12 or 0xe0).toByte() // 1110xxxx
-                tail.data[tail.limit + 1] = (c shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
-                tail.data[tail.limit + 2] = (c and 0x3f or 0x80).toByte() // 10xxxxxx
-                tail.limit += 3
-                sizeMut += 3L
+                UnsafeBufferOperations.writeToTail(this, 3) { ctx, segment ->
+                    ctx.setUnchecked(
+                        segment, 0,
+                        (c shr 12 or 0xe0).toByte(), // 1110xxxx
+                        (c shr 6 and 0x3f or 0x80).toByte(), // 10xxxxxx
+                        (c and 0x3f or 0x80).toByte() // 10xxxxxx
+                    )
+                    3
+                }
                 i++
             }
 
@@ -522,13 +530,15 @@ private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt
                     val codePoint = 0x010000 + (c and 0x03ff shl 10 or (low and 0x03ff))
 
                     // Emit a 21-bit character with 4 bytes.
-                    val tail = writableSegment(4)
-                    tail.data[tail.limit] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
-                    tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
-                    tail.data[tail.limit + 2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
-                    tail.data[tail.limit + 3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
-                    tail.limit += 4
-                    sizeMut += 4L
+                    UnsafeBufferOperations.writeToTail(this, 4) { ctx, segment ->
+                        ctx.setUnchecked(segment, 0,
+                            (codePoint shr 18 or 0xf0).toByte(), // 11110xxx
+                            (codePoint shr 12 and 0x3f or 0x80).toByte(), // 10xxxxxx
+                            (codePoint shr 6 and 0x3f or 0x80).toByte(), // 10xxyyyy
+                            (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
+                        )
+                        4
+                    }
                     i += 2
                 }
             }
@@ -536,6 +546,7 @@ private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt
     }
 }
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
     when {
         codePoint < 0 || codePoint > 0x10ffff -> {
@@ -551,11 +562,11 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 
         codePoint < 0x800 -> {
             // Emit a 11-bit code point with 2 bytes.
-            val tail = writableSegment(2)
-            tail.data[tail.limit] = (codePoint shr 6 or 0xc0).toByte() // 110xxxxx
-            tail.data[tail.limit + 1] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
-            tail.limit += 2
-            sizeMut += 2L
+            UnsafeBufferOperations.writeToTail(this, 2) { ctx, segment ->
+                ctx.setUnchecked(segment, 0, (codePoint shr 6 or 0xc0).toByte()) // 110xxxxx
+                ctx.setUnchecked(segment, 1, (codePoint and 0x3f or 0x80).toByte()) // 10xxxxxx
+                2
+            }
         }
 
         codePoint in 0xd800..0xdfff -> {
@@ -565,27 +576,28 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 
         codePoint < 0x10000 -> {
             // Emit a 16-bit code point with 3 bytes.
-            val tail = writableSegment(3)
-            tail.data[tail.limit] = (codePoint shr 12 or 0xe0).toByte() // 1110xxxx
-            tail.data[tail.limit + 1] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxxxxx
-            tail.data[tail.limit + 2] = (codePoint and 0x3f or 0x80).toByte() // 10xxxxxx
-            tail.limit += 3
-            sizeMut += 3L
+            UnsafeBufferOperations.writeToTail(this, 3) { ctx, segment ->
+                ctx.setUnchecked(segment, 0, (codePoint shr 12 or 0xe0).toByte()) // 1110xxxx
+                ctx.setUnchecked(segment, 1, (codePoint shr 6 and 0x3f or 0x80).toByte()) // 10xxxxxx
+                ctx.setUnchecked(segment, 2, (codePoint and 0x3f or 0x80).toByte()) // 10xxxxxx
+                3
+            }
         }
 
         else -> { // [0x10000, 0x10ffff]
             // Emit a 21-bit code point with 4 bytes.
-            val tail = writableSegment(4)
-            tail.data[tail.limit] = (codePoint shr 18 or 0xf0).toByte() // 11110xxx
-            tail.data[tail.limit + 1] = (codePoint shr 12 and 0x3f or 0x80).toByte() // 10xxxxxx
-            tail.data[tail.limit + 2] = (codePoint shr 6 and 0x3f or 0x80).toByte() // 10xxyyyy
-            tail.data[tail.limit + 3] = (codePoint and 0x3f or 0x80).toByte() // 10yyyyyy
-            tail.limit += 4
-            sizeMut += 4L
+            UnsafeBufferOperations.writeToTail(this, 4) { ctx, segment ->
+                ctx.setUnchecked(segment,0, (codePoint shr 18 or 0xf0).toByte()) // 11110xxx
+                ctx.setUnchecked(segment,1, (codePoint shr 12 and 0x3f or 0x80).toByte()) // 10xxxxxx
+                ctx.setUnchecked(segment,2, (codePoint shr 6 and 0x3f or 0x80).toByte()) // 10xxyyyy
+                ctx.setUnchecked(segment,3, (codePoint and 0x3f or 0x80).toByte()) // 10yyyyyy
+                4
+            }
         }
     }
 }
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.commonReadUtf8(byteCount: Long): String {
     require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
         "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
@@ -593,20 +605,18 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
     require(byteCount)
     if (byteCount == 0L) return ""
 
-    val s = head!!
-    if (s.pos + byteCount > s.limit) {
-        // If the string spans multiple segments, delegate to readBytes().
-
-        return readByteArray(byteCount.toInt()).commonToUtf8String()
+    UnsafeBufferOperations.iterate(this) { ctx, head ->
+        head!!
+        if (head.size >= byteCount) {
+            var result = ""
+            ctx.withData(head) { data, pos, limit ->
+                result = data.commonToUtf8String(pos, min(limit, pos + byteCount.toInt()))
+                skip(byteCount)
+                return result
+            }
+        }
     }
 
-    val result = s.data.commonToUtf8String(s.pos, s.pos + byteCount.toInt())
-    s.pos += byteCount.toInt()
-    sizeMut -= byteCount
-
-    if (s.pos == s.limit) {
-        recycleHead()
-    }
-
-    return result
+    // If the string spans multiple segments, delegate to readBytes().
+    return readByteArray(byteCount.toInt()).commonToUtf8String()
 }

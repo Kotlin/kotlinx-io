@@ -20,12 +20,14 @@
  */
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.io.EOFException
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
     require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
         "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
@@ -35,21 +37,21 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
     }
     if (byteCount == 0L) return ""
 
-    val s = head!!
-    if (s.pos + byteCount > s.limit) {
-        // If the string spans multiple segments, delegate to readBytes().
-        return String(readByteArray(byteCount.toInt()), charset)
+    var result: String? = null
+    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        val len = limit - pos
+        if (len >= byteCount) {
+            result = String(data, pos, byteCount.toInt(), charset)
+            byteCount.toInt()
+        } else {
+            0
+        }
     }
-
-    val result = String(s.data, s.pos, byteCount.toInt(), charset)
-    s.pos += byteCount.toInt()
-    sizeMut -= byteCount
-
-    if (s.pos == s.limit) {
-        recycleHead()
+    return if (result == null) {
+        String(readByteArray(byteCount.toInt()), charset)
+    } else {
+        result!!
     }
-
-    return result
 }
 
 /**
