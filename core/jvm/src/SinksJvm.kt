@@ -38,6 +38,7 @@ import java.nio.charset.Charset
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [string] indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteStrings
  */
@@ -92,6 +93,7 @@ public fun Sink.asOutputStream(): OutputStream {
  * @param source the source to read from.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteByteBuffer
  */

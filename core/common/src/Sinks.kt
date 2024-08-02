@@ -15,6 +15,7 @@ private val HEX_DIGIT_BYTES = ByteArray(16) {
  * @param short the short integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeShortLe
  */
@@ -28,6 +29,7 @@ public fun Sink.writeShortLe(short: Short) {
  * @param int the integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeIntLe
  */
@@ -41,6 +43,7 @@ public fun Sink.writeIntLe(int: Int) {
  * @param long the long integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeLongLe
  */
@@ -56,6 +59,7 @@ public fun Sink.writeLongLe(long: Long) {
  * @param long the long to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDecimalLong
  */
@@ -137,6 +141,7 @@ public fun Sink.writeDecimalLong(long: Long) {
  * @param long the long to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeHexLong
  */
@@ -172,6 +177,7 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
  * @param byte the byte to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUByte
  */
@@ -185,6 +191,7 @@ public fun Sink.writeUByte(byte: UByte) {
  * @param short the unsigned short integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUShort
  */
@@ -198,6 +205,7 @@ public fun Sink.writeUShort(short: UShort) {
  * @param int the unsigned integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUInt
  */
@@ -211,6 +219,7 @@ public fun Sink.writeUInt(int: UInt) {
  * @param long the unsigned long integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeULong
  */
@@ -224,6 +233,7 @@ public fun Sink.writeULong(long: ULong) {
  * @param short the unsigned short integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUShortLe
  */
@@ -237,6 +247,7 @@ public fun Sink.writeUShortLe(short: UShort) {
  * @param int the unsigned integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeUIntLe
  */
@@ -250,6 +261,7 @@ public fun Sink.writeUIntLe(int: UInt) {
  * @param long the unsigned long integer to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeULongLe
  */
@@ -272,6 +284,7 @@ public fun Sink.writeULongLe(long: ULong) {
  * @param float the floating point number to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeFloat
  */
@@ -290,6 +303,7 @@ public fun Sink.writeFloat(float: Float) {
  * @param double the floating point number to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDouble
  */
@@ -312,6 +326,7 @@ public fun Sink.writeDouble(double: Double) {
  * @param float the floating point number to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeFloatLe
  */
@@ -330,6 +345,7 @@ public fun Sink.writeFloatLe(float: Float) {
  * @param double the floating point number to be written.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDoubleLe
  */
@@ -349,6 +365,7 @@ public fun Sink.writeDoubleLe(double: Double) {
  * @param lambda the callback accessing internal buffer.
  *
  * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
  */
 @DelicateIoApi
 @OptIn(InternalIoApi::class)

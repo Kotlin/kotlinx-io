@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -43,6 +43,7 @@ public expect interface RawSink : AutoCloseable {
      *
      * @throws IllegalArgumentException when the [source]'s size is below [byteCount] or [byteCount] is negative.
      * @throws IllegalStateException when the sink is closed.
+     * @throws IOException when some I/O error occurs.
      */
     public fun write(source: Buffer, byteCount: Long)
 
@@ -50,12 +51,15 @@ public expect interface RawSink : AutoCloseable {
      * Pushes all buffered bytes to their final destination.
      *
      * @throws IllegalStateException when the sink is closed.
+     * @throws IOException when some I/O error occurs.
      */
     public fun flush()
 
     /**
      * Pushes all buffered bytes to their final destination and releases the resources held by this
      * sink. It is an error to write a closed sink. It is safe to close a sink more than once.
+     *
+     * @throws IOException when some I/O error occurs.
      */
     override fun close()
 }
