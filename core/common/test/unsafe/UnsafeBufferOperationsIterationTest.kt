@@ -15,6 +15,35 @@ import kotlin.test.*
 
 class UnsafeBufferOperationsIterationTest {
     @Test
+    fun callsInPlaceContract() {
+        val buffer = Buffer().also { it.writeString("hello buffer") }
+
+        val called: Boolean
+        UnsafeBufferOperations.iterate(buffer) { ctx, segment ->
+            called = true
+
+            val withDataCalled: Boolean
+            ctx.withData(segment!!) { _, _, _ ->
+                withDataCalled = true
+            }
+            assertTrue(withDataCalled)
+        }
+        assertTrue(called)
+
+        val offsetCalled: Boolean
+        UnsafeBufferOperations.iterate(buffer, 1) { ctx, segment, _ ->
+            offsetCalled = true
+
+            val withDataCalled: Boolean
+            ctx.withData(segment!!) { _, _, _ ->
+                withDataCalled = true
+            }
+            assertTrue(withDataCalled)
+        }
+        assertTrue(offsetCalled)
+    }
+
+    @Test
     fun emptyBuffer() {
         UnsafeBufferOperations.iterate(Buffer()) { _, head ->
             assertNull(head)

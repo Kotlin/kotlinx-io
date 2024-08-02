@@ -20,6 +20,9 @@
  */
 package kotlinx.io
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlin.jvm.JvmSynthetic
 
 /**
@@ -706,11 +709,18 @@ public class Buffer : Source, Sink {
  */
 @PublishedApi
 @JvmSynthetic
+@OptIn(ExperimentalContracts::class)
 internal inline fun <T> Buffer.seek(
     fromIndex: Long,
     lambda: (Segment?, Long) -> T
 ): T {
-    if (this.head == null) lambda(null, -1L)
+    contract {
+        callsInPlace(lambda, EXACTLY_ONCE)
+    }
+
+    if (this.head == null) {
+        return lambda(null, -1L)
+    }
 
     if (size - fromIndex < fromIndex) {
         var s = tail

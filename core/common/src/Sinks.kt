@@ -5,6 +5,10 @@
 
 package kotlinx.io
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
+
 private val HEX_DIGIT_BYTES = ByteArray(16) {
     ((if (it < 10) '0'.code else ('a'.code - 10)) + it).toByte()
 }
@@ -351,8 +355,11 @@ public fun Sink.writeDoubleLe(double: Double) {
  * @throws IllegalStateException when the sink is closed.
  */
 @DelicateIoApi
-@OptIn(InternalIoApi::class)
+@OptIn(InternalIoApi::class, ExperimentalContracts::class)
 public inline fun Sink.writeToInternalBuffer(lambda: (Buffer) -> Unit) {
+    contract {
+        callsInPlace(lambda, EXACTLY_ONCE)
+    }
     lambda(this.buffer)
     this.hintEmit()
 }

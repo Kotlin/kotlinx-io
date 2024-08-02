@@ -7,9 +7,21 @@ package kotlinx.io
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(DelicateIoApi::class)
 class DelicateApiTest {
+    @Test
+    fun callsInPlaceContract() {
+        val sink: Sink = Buffer()
+
+        val called: Boolean
+        sink.writeToInternalBuffer {
+            called = true
+        }
+        assertTrue(called)
+    }
+
     @Test
     @OptIn(InternalIoApi::class)
     fun testWriteIntoBuffer() {
