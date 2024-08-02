@@ -14,6 +14,19 @@ class UnsafeBufferOperationsJvmReadBulkTest {
     private class TestException : RuntimeException()
 
     @Test
+    fun callsInPlaceContract() {
+        val buffer = Buffer().apply { writeString("hello world") }
+        val array = Array<ByteBuffer?>(16) { null }
+
+        val called: Boolean
+        UnsafeBufferOperations.readBulk(buffer, array) { _, _ ->
+            called = true
+            0
+        }
+        assertTrue(called)
+    }
+
+    @Test
     fun readAllFromEmptyBuffer() {
         assertFailsWith<IllegalArgumentException> {
             UnsafeBufferOperations.readBulk(Buffer(), Array(1) { null }) { _, _ -> fail() }

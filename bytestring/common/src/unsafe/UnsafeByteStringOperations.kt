@@ -5,6 +5,9 @@
 
 package kotlinx.io.bytestring.unsafe
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlinx.io.bytestring.ByteString
 
 /**
@@ -16,6 +19,7 @@ import kotlinx.io.bytestring.ByteString
  * consequences in the code using the byte string and should be avoided at all costs.
  */
 @UnsafeByteStringApi
+@OptIn(ExperimentalContracts::class)
 public object UnsafeByteStringOperations {
     /**
      * Creates a new byte string by wrapping [array] without copying it.
@@ -32,6 +36,9 @@ public object UnsafeByteStringOperations {
      * Consider using [ByteString.toByteArray] if it's impossible to guarantee that the array won't be modified.
      */
     public inline fun withByteArrayUnsafe(byteString: ByteString, block: (ByteArray) -> Unit) {
+        contract {
+            callsInPlace(block, EXACTLY_ONCE)
+        }
         block(byteString.getBackingArrayReference())
     }
 }
