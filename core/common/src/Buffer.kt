@@ -64,7 +64,7 @@ public class Buffer : Source, Sink {
      * Returns the buffer itself.
      */
     @InternalIoApi
-    override val buffer: Buffer = this
+    override val buffer: Buffer get() = this
     override fun exhausted(): Boolean = size == 0L
 
     override fun require(byteCount: Long) {
