@@ -6,6 +6,8 @@ bin
 *.swp
 .project
 
+.kotlin
+
 kotlinx-io-native/repo/
 
 !.idea/vcs.xml
