@@ -310,10 +310,10 @@ public final class kotlinx/io/unsafe/UnsafeBufferOperations {
 	public final fun iterate (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V
 	public final fun moveToTail (Lkotlinx/io/Buffer;[BII)V
 	public static synthetic fun moveToTail$default (Lkotlinx/io/unsafe/UnsafeBufferOperations;Lkotlinx/io/Buffer;[BIIILjava/lang/Object;)V
-	public final fun readFromHead (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V
-	public final fun readFromHead (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function3;)V
-	public final fun writeToTail (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function2;)V
-	public final fun writeToTail (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function3;)V
+	public final fun readFromHead (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)I
+	public final fun readFromHead (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function3;)I
+	public final fun writeToTail (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function2;)I
+	public final fun writeToTail (Lkotlinx/io/Buffer;ILkotlin/jvm/functions/Function3;)I
 }
 
 public final class kotlinx/io/unsafe/UnsafeBufferOperationsJvmKt {
