@@ -57,12 +57,8 @@ tasks {
         args = listOf("-DKOTLIN_VERSION=$kotlinVersion", "-DKOTLINX_IO_VERSION=$kotlinxIoVersion", "clean")
     }
 
-    create("smokeTest") {
-        dependsOn(verifyMavenProjects)
-        dependsOn(test)
-    }
-
-    test.configure {
+    val verifyGradleProject = create("verifyGradleProject", Test::class) {
+        useJUnit()
         if (useLocalBuild) {
             dependsOn(project(":kotlinx-io-core").tasks.named("publishToMavenLocal"))
             dependsOn(project(":kotlinx-io-bytestring").tasks.named("publishToMavenLocal"))
@@ -74,11 +70,19 @@ tasks {
         systemProperty("kotlinVersion", kotlinVersion)
     }
 
+    create("smokeTest") {
+        dependsOn(verifyMavenProjects)
+        dependsOn(verifyGradleProject)
+    }
+
     named("clean").configure {
         dependsOn(cleanMavenProjects)
     }
 
     check.configure {
+        enabled = false
+    }
+    test.configure {
         enabled = false
     }
 }
