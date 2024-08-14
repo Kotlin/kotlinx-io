@@ -23,7 +23,14 @@ allprojects {
 
 @OptIn(ExperimentalBCVApi::class)
 apiValidation {
-    ignoredProjects.add("kotlinx-io-benchmarks")
+    ignoredProjects.addAll(listOf(
+        "kotlinx-io-benchmarks",
+        "kotlinx-io-smoke-tests",
+        "gradle-core-jvm",
+        "gradle-bytestring-jvm",
+        "gradle-core-multiplatform",
+        "gradle-bytestring-multiplatform",
+    ))
     klib.enabled = true
 }
 
