@@ -66,6 +66,7 @@ public object UnsafeBufferOperations {
      * and data from the consumed prefix will be no longer available for read.
      * If the operation does not consume anything, the action should return `0`.
      * It's considered an error to return a negative value or a value exceeding the size of a readable range.
+     * This value will also be propagated as the function return value.
      *
      * If [readAction] ends execution by throwing an exception, no data will be consumed from the buffer.
      *
@@ -74,6 +75,8 @@ public object UnsafeBufferOperations {
      * The data is passed to the [readAction] directly from the buffer's internal storage without copying on
      * the best effort basis, meaning that there are no strong zero-copy guarantees
      * and the copy will be created if it could not be omitted.
+     *
+     * @return Number of bytes consumed as returned by [readAction].
      *
      * @throws IllegalStateException when [readAction] returns negative value or a values exceeding
      * the `endIndexExclusive - startIndexInclusive` value.
@@ -84,14 +87,16 @@ public object UnsafeBufferOperations {
     public inline fun readFromHead(
         buffer: Buffer,
         readAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Int
-    ) {
+    ): Int {
         require(!buffer.exhausted()) { "Buffer is empty" }
         val head = buffer.head!!
         val bytesRead = readAction(head.dataAsByteArray(true), head.pos, head.limit)
-        if (bytesRead < 0) throw IllegalStateException("Returned negative read bytes count")
-        if (bytesRead == 0) return
-        if (bytesRead > head.size) throw IllegalStateException("Returned too many bytes")
-        buffer.skip(bytesRead.toLong())
+        if (bytesRead != 0) {
+            if (bytesRead < 0) throw IllegalStateException("Returned negative read bytes count")
+            if (bytesRead > head.size) throw IllegalStateException("Returned too many bytes")
+            buffer.skip(bytesRead.toLong())
+        }
+        return bytesRead
     }
 
     /**
@@ -107,11 +112,14 @@ public object UnsafeBufferOperations {
      * and data from the consumed prefix will be no longer available for read.
      * If the operation does not consume anything, the action should return `0`.
      * It's considered an error to return a negative value or a value exceeding the [Segment.size].
+     * This value will also be propagated as the function return value.
      *
      * Both [readAction] arguments are valid only within [readAction] scope,
      * it's an error to store and reuse it later.
      *
      * If the buffer is empty, [IllegalArgumentException] will be thrown.
+     *
+     * @return Number of bytes consumed as returned by [readAction].
      *
      * @throws IllegalStateException when [readAction] returns negative value or a values exceeding
      * the [Segment.size] value.
@@ -119,14 +127,16 @@ public object UnsafeBufferOperations {
      *
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.readUleb128
      */
-    public inline fun readFromHead(buffer: Buffer, readAction: (SegmentReadContext, Segment) -> Int) {
+    public inline fun readFromHead(buffer: Buffer, readAction: (SegmentReadContext, Segment) -> Int): Int {
         require(!buffer.exhausted()) { "Buffer is empty" }
         val head = buffer.head!!
         val bytesRead = readAction(SegmentReadContextImpl, head)
-        if (bytesRead < 0) throw IllegalStateException("Returned negative read bytes count")
-        if (bytesRead == 0) return
-        if (bytesRead > head.size) throw IllegalStateException("Returned too many bytes")
-        buffer.skip(bytesRead.toLong())
+        if (bytesRead != 0) {
+            if (bytesRead < 0) throw IllegalStateException("Returned negative read bytes count")
+            if (bytesRead > head.size) throw IllegalStateException("Returned too many bytes")
+            buffer.skip(bytesRead.toLong())
+        }
+        return bytesRead
     }
 
     /**
@@ -146,12 +156,15 @@ public object UnsafeBufferOperations {
      * The value returned by the [writeAction] denotes the number of bytes successfully written to the buffer.
      * If no data was written, `0` should be returned.
      * It's an error to return a negative value or a value exceeding the size of the provided writeable range.
+     * This value will also be propagated as the function return value.
      *
      * If [writeAction] ends execution by throwing an exception, no data will be written to the buffer.
      *
      * The data array is passed to the [writeAction] directly from the buffer's internal storage without copying
      * on the best-effort basis, meaning that there are no strong zero-copy guarantees
      * and the copy will be created if it could not be omitted.
+     *
+     * @return Number of bytes written as returned by [writeAction].
      *
      * @throws IllegalStateException when [minimumCapacity] is too large and could not be fulfilled.
      * @throws IllegalStateException when [writeAction] returns a negative value or a value exceeding
@@ -162,7 +175,7 @@ public object UnsafeBufferOperations {
     public inline fun writeToTail(
         buffer: Buffer, minimumCapacity: Int,
         writeAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Int
-    ) {
+    ): Int {
         val tail = buffer.writableSegment(minimumCapacity)
 
         val data = tail.dataAsByteArray(false)
@@ -175,7 +188,7 @@ public object UnsafeBufferOperations {
             tail.writeBackData(data, bytesWritten)
             tail.limit += bytesWritten
             buffer.sizeMut += bytesWritten
-            return
+            return bytesWritten
         }
 
         check(bytesWritten in 0..tail.remainingCapacity) {
@@ -185,11 +198,12 @@ public object UnsafeBufferOperations {
             tail.writeBackData(data, bytesWritten)
             tail.limit += bytesWritten
             buffer.sizeMut += bytesWritten
-            return
+            return bytesWritten
         }
         if (tail.isEmpty()) {
             buffer.recycleTail()
         }
+        return bytesWritten
     }
 
     /**
@@ -208,9 +222,12 @@ public object UnsafeBufferOperations {
      * The value returned by the [writeAction] denotes the number of bytes successfully written to the buffer.
      * If no data was written, `0` should be returned.
      * It's an error to return a negative value or a value exceeding the [Segment.remainingCapacity].
+     * This value will also be propagated as the function return value.
      *
      * Both [writeAction] arguments are valid only within [writeAction] scope,
      * it's an error to store and reuse it later.
+     *
+     * @return Number of bytes written as returned by [writeAction].
      *
      * @throws IllegalStateException when [minimumCapacity] is too large and could not be fulfilled.
      * @throws IllegalStateException when [writeAction] returns a negative value or a value exceeding
@@ -222,7 +239,7 @@ public object UnsafeBufferOperations {
         buffer: Buffer,
         minimumCapacity: Int,
         writeAction: (SegmentWriteContext, Segment) -> Int
-    ) {
+    ): Int {
         val tail = buffer.writableSegment(minimumCapacity)
         val bytesWritten = writeAction(SegmentWriteContextImpl, tail)
 
@@ -230,7 +247,7 @@ public object UnsafeBufferOperations {
         if (bytesWritten == minimumCapacity) {
             tail.limit += bytesWritten
             buffer.sizeMut += bytesWritten
-            return
+            return bytesWritten
         }
 
         check(bytesWritten in 0..tail.remainingCapacity) {
@@ -239,12 +256,13 @@ public object UnsafeBufferOperations {
         if (bytesWritten != 0) {
             tail.limit += bytesWritten
             buffer.sizeMut += bytesWritten
-            return
+            return bytesWritten
         }
 
         if (tail.isEmpty()) {
             buffer.recycleTail()
         }
+        return bytesWritten
     }
 
     /**
