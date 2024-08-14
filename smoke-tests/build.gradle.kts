@@ -1,6 +1,8 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
-apply(plugin = "kotlin")
+plugins {
+    kotlin("jvm")
+}
 
 val stagingRepositoryIdRawValue = project.findProperty("smokeTest.stagingRepository")?.toString()
 
@@ -27,31 +29,13 @@ val kotlinxIoVersion: String = if (kotlinxIoVersionRawValue != null) {
 
 repositories {
     mavenCentral()
-    if (stagingRepository.isNotBlank()) {
-        maven(stagingRepository)
-    }
-    if (useLocalBuild) {
-        mavenLocal()
-    }
-}
-
-subprojects {
-    repositories {
-        mavenCentral()
-        if (stagingRepository.isNotBlank()) {
-            maven(stagingRepository)
-        }
-        if (useLocalBuild) {
-            mavenLocal()
-        }
-    }
 }
 
 tasks {
     val kotlinVersion: String = libs.versions.kotlin.get()
 
     val verifyMavenProjects by registering(Exec::class) {
-        workingDir = File(projectDir, "maven-projects")
+        workingDir = projectDir.resolve("src").resolve("test").resolve("resources").resolve("maven-projects")
         executable = workingDir.resolve(getMavenWrapperName()).absolutePath
         args = buildList {
             add("-DKOTLIN_VERSION=$kotlinVersion")
@@ -62,27 +46,46 @@ tasks {
             }
             add("verify")
         }
+        if (useLocalBuild) {
+            dependsOn(project(":kotlinx-io-core").tasks.named("publishToMavenLocal"))
+            dependsOn(project(":kotlinx-io-bytestring").tasks.named("publishToMavenLocal"))
+        }
     }
     val cleanMavenProjects by registering(Exec::class) {
-        workingDir = File(projectDir, "maven-projects")
+        workingDir = projectDir.resolve("src").resolve("test").resolve("resources").resolve("maven-projects")
         executable = workingDir.resolve(getMavenWrapperName()).absolutePath
         args = listOf("-DKOTLIN_VERSION=$kotlinVersion", "-DKOTLINX_IO_VERSION=$kotlinxIoVersion", "clean")
     }
-    val smokeTest = create("smokeTest") {
+
+    create("smokeTest") {
         dependsOn(verifyMavenProjects)
+        dependsOn(test)
     }
 
-    subprojects {
-        afterEvaluate {
-            tasks.named("smokeTest").configure {
-                smokeTest.dependsOn(this)
-            }
+    test.configure {
+        if (useLocalBuild) {
+            dependsOn(project(":kotlinx-io-core").tasks.named("publishToMavenLocal"))
+            dependsOn(project(":kotlinx-io-bytestring").tasks.named("publishToMavenLocal"))
         }
+
+        systemProperty("kotlinxIoVersion", kotlinxIoVersion)
+        systemProperty("stagingRepository", stagingRepository)
+        systemProperty("useLocalBuild", useLocalBuild)
+        systemProperty("kotlinVersion", kotlinVersion)
     }
 
     named("clean").configure {
         dependsOn(cleanMavenProjects)
     }
+
+    check.configure {
+        enabled = false
+    }
+}
+
+dependencies {
+    testImplementation(kotlin("test"))
+    testImplementation(gradleTestKit())
 }
 
 fun getMavenWrapperName(): String =

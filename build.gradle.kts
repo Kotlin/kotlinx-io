@@ -25,11 +25,7 @@ allprojects {
 apiValidation {
     ignoredProjects.addAll(listOf(
         "kotlinx-io-benchmarks",
-        "kotlinx-io-smoke-tests",
-        "gradle-core-jvm",
-        "gradle-bytestring-jvm",
-        "gradle-core-multiplatform",
-        "gradle-bytestring-multiplatform",
+        "kotlinx-io-smoke-tests"
     ))
     klib.enabled = true
 }
