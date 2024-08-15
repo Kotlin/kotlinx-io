@@ -5,10 +5,14 @@
 
 package kotlinx.io.unsafe
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlinx.io.*
 import kotlin.jvm.JvmSynthetic
 
 @UnsafeIoApi
+@OptIn(ExperimentalContracts::class)
 public object UnsafeBufferOperations {
     /**
      * Maximum value that is safe to pass to [writeToTail].
@@ -88,6 +92,10 @@ public object UnsafeBufferOperations {
         buffer: Buffer,
         readAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Int
     ): Int {
+        contract {
+            callsInPlace(readAction, EXACTLY_ONCE)
+        }
+
         require(!buffer.exhausted()) { "Buffer is empty" }
         val head = buffer.head!!
         val bytesRead = readAction(head.dataAsByteArray(true), head.pos, head.limit)
@@ -128,6 +136,10 @@ public object UnsafeBufferOperations {
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.readUleb128
      */
     public inline fun readFromHead(buffer: Buffer, readAction: (SegmentReadContext, Segment) -> Int): Int {
+        contract {
+            callsInPlace(readAction, EXACTLY_ONCE)
+        }
+
         require(!buffer.exhausted()) { "Buffer is empty" }
         val head = buffer.head!!
         val bytesRead = readAction(SegmentReadContextImpl, head)
@@ -176,6 +188,10 @@ public object UnsafeBufferOperations {
         buffer: Buffer, minimumCapacity: Int,
         writeAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Int
     ): Int {
+        contract {
+            callsInPlace(writeAction, EXACTLY_ONCE)
+        }
+
         val tail = buffer.writableSegment(minimumCapacity)
 
         val data = tail.dataAsByteArray(false)
@@ -240,6 +256,10 @@ public object UnsafeBufferOperations {
         minimumCapacity: Int,
         writeAction: (SegmentWriteContext, Segment) -> Int
     ): Int {
+        contract {
+            callsInPlace(writeAction, EXACTLY_ONCE)
+        }
+
         val tail = buffer.writableSegment(minimumCapacity)
         val bytesWritten = writeAction(SegmentWriteContextImpl, tail)
 
@@ -285,6 +305,9 @@ public object UnsafeBufferOperations {
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.crc32Unsafe
      */
     public inline fun iterate(buffer: Buffer, iterationAction: (BufferIterationContext, Segment?) -> Unit) {
+        contract {
+            callsInPlace(iterationAction, EXACTLY_ONCE)
+        }
         iterationAction(BufferIterationContextImpl, buffer.head)
     }
 
@@ -314,6 +337,10 @@ public object UnsafeBufferOperations {
         buffer: Buffer, offset: Long,
         iterationAction: (BufferIterationContext, Segment?, Long) -> Unit
     ) {
+        contract {
+            callsInPlace(iterationAction, EXACTLY_ONCE)
+        }
+
         require(offset >= 0) { "Offset must be non-negative: $offset" }
         if (offset >= buffer.size) {
             throw IndexOutOfBoundsException("Offset should be less than buffer's size (${buffer.size}): $offset")
@@ -365,7 +392,11 @@ public interface SegmentReadContext {
  */
 @UnsafeIoApi
 @JvmSynthetic
+@OptIn(ExperimentalContracts::class)
 public inline fun SegmentReadContext.withData(segment: Segment, readAction: (ByteArray, Int, Int) -> Unit) {
+    contract {
+        callsInPlace(readAction, EXACTLY_ONCE)
+    }
     readAction(segment.dataAsByteArray(true), segment.pos, segment.limit)
 }
 

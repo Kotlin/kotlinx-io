@@ -20,6 +20,25 @@ class UnsafeBufferOperationsReadTest {
     private class TestException : RuntimeException()
 
     @Test
+    fun callsInPlaceContract() {
+        val buffer = Buffer().apply { writeString("hello world") }
+
+        val bytesCalled: Boolean
+        UnsafeBufferOperations.readFromHead(buffer) { _, _, _ ->
+            bytesCalled = true
+            0
+        }
+        assertTrue(bytesCalled)
+
+        val segmentsCalled: Boolean
+        UnsafeBufferOperations.readFromHead(buffer) { _, _ ->
+            segmentsCalled = true
+            0
+        }
+        assertTrue(segmentsCalled)
+    }
+
+    @Test
     fun bufferCapacity() {
         val buffer = Buffer().apply { writeString("hello world") }
 

@@ -5,6 +5,9 @@
 
 package kotlinx.io.unsafe
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlinx.io.Buffer
 import kotlinx.io.Segment
 import kotlinx.io.UnsafeIoApi
@@ -39,7 +42,11 @@ import java.nio.ByteBuffer
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.writeToByteChannel
  */
 @UnsafeIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction: (ByteBuffer) -> Unit): Int {
+    contract {
+        callsInPlace(readAction, EXACTLY_ONCE)
+    }
     return readFromHead(buffer) { rawData, pos, limit ->
         val bb = ByteBuffer.wrap(rawData, pos, limit - pos).slice().asReadOnlyBuffer()
         readAction(bb)
@@ -81,11 +88,15 @@ public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.readFromByteChannel
  */
 @UnsafeIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun UnsafeBufferOperations.writeToTail(
     buffer: Buffer,
     minimumCapacity: Int,
     writeAction: (ByteBuffer) -> Unit
 ): Int {
+    contract {
+        callsInPlace(writeAction, EXACTLY_ONCE)
+    }
     return writeToTail(buffer, minimumCapacity) { rawData, pos, limit ->
         val bb = ByteBuffer.wrap(rawData, pos, limit - pos).slice()
         writeAction(bb)
@@ -134,11 +145,16 @@ public inline fun UnsafeBufferOperations.writeToTail(
  *
  */
 @UnsafeIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun UnsafeBufferOperations.readBulk(
     buffer: Buffer,
     iovec: Array<ByteBuffer?>,
     readAction: (iovec: Array<ByteBuffer?>, iovecSize: Int) -> Long
 ): Long {
+    contract {
+        callsInPlace(readAction, EXACTLY_ONCE)
+    }
+
     val head = buffer.head ?: throw IllegalArgumentException("buffer is empty.")
     if (iovec.isEmpty()) throw IllegalArgumentException("iovec is empty.")
 

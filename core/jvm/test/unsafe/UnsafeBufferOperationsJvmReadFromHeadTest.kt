@@ -21,6 +21,17 @@ class UnsafeBufferOperationsJvmReadFromHeadTest {
     private class TestException : RuntimeException()
 
     @Test
+    fun callsInPlaceContract() {
+        val buffer = Buffer().apply { writeString("hello world") }
+
+        val called: Boolean
+        UnsafeBufferOperations.readFromHead(buffer) { _ ->
+            called = true
+        }
+        assertTrue(called)
+    }
+
+    @Test
     fun bufferCapacity() {
         val buffer = Buffer().apply { writeString("hello world") }
 

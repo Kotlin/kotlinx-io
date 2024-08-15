@@ -13,6 +13,23 @@ class UnsafeBufferOperationsWriteTest {
     private class TestException : RuntimeException()
 
     @Test
+    fun callsInPlaceContract() {
+        val bytesCalled: Boolean
+        UnsafeBufferOperations.writeToTail(Buffer(), 1) { _, _, _ ->
+            bytesCalled = true
+            0
+        }
+        assertTrue(bytesCalled)
+
+        val segmentsCalled: Boolean
+        UnsafeBufferOperations.writeToTail(Buffer(), 1) { _, _ ->
+            segmentsCalled = true
+            0
+        }
+        assertTrue(segmentsCalled)
+    }
+
+    @Test
     fun bufferCapacity() {
         val buffer = Buffer()
 

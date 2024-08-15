@@ -17,6 +17,17 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
     private class TestException : RuntimeException()
 
     @Test
+    fun callsInPlaceContract() {
+        val buffer = Buffer().apply { writeString("hello world") }
+
+        val called: Boolean
+        UnsafeBufferOperations.writeToTail(buffer, 1) { _ ->
+            called = true
+        }
+        assertTrue(called)
+    }
+
+    @Test
     fun bufferCapacity() {
         val buffer = Buffer()
 
