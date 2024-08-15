@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 0.5.2
+> Published 15 August 2024
+ 
+### Features
+- Unsafe API method signatures were updated to return number of written/read bytes [#360](https://github.com/Kotlin/kotlinx-io/issues/360)
+
+  Note that it's a breaking change as return type is a part of method signature.
+  However, updated methods are all inline, so in general, 
+  projects depending on libraries that were compiled against the previous version
+  should not experience binary incompatibility issues after adding a dependency on a never `kotlinx-io` version.
+  
+- Added call-in-place contracts to Unsafe API methods [#361](https://github.com/Kotlin/kotlinx-io/issues/361) 
+- Updated Gradle and some dependencies [#353](https://github.com/Kotlin/kotlinx-io/pull/353)
+- Improved build scripts [#371](https://github.com/Kotlin/kotlinx-io/pull/371)
+- Removed the `Buffer.buffer` backing field [#366](https://github.com/Kotlin/kotlinx-io/pull/366)
+
 ## 0.5.1
 > Published 15 July 2024
 
