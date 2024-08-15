@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>core-jvm</artifactId>
-    <version>${parent.version}</version>
+    <version>${project.parent.version}</version>
 
     <name>core-jvm</name>
 
