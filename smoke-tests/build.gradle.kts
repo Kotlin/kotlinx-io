@@ -18,13 +18,13 @@ val stagingRepository: String = "https://oss.sonatype.org/content/repositories/$
 val kotlinxIoVersionRawValue = project.findProperty("smokeTest.kotlinxIoVersion")?.toString()
 var useLocalBuild = false
 
-val kotlinxIoVersion: String = if (kotlinxIoVersionRawValue != null) {
-    kotlinxIoVersionRawValue
-} else {
+val kotlinxIoVersion: String = if (kotlinxIoVersionRawValue.isNullOrBlank()) {
     useLocalBuild = true
     val v = version.toString()
     logger.warn("smokeTest.kotlinxIoVersion was not specified, using $v instead.")
     v
+} else {
+    kotlinxIoVersionRawValue
 }
 
 repositories {
