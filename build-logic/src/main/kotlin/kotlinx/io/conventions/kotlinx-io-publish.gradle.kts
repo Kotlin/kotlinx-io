@@ -109,6 +109,12 @@ fun signPublicationIfKeyPresent(project: Project, publication: MavenPublication)
         project.extensions.configure<SigningExtension>("signing") {
             useInMemoryPgpKeys(keyId, signingKey, signingKeyPassphrase)
             sign(publication)
+
+
+            tasks.withType<AbstractPublishToMaven>().configureEach {
+                val signingTasks = tasks.withType<Sign>()
+                mustRunAfter(signingTasks)
+            }
         }
     }
 }
