@@ -41,7 +41,7 @@
 <a class="library-name--link" href="../../../index.html">
                             kotlinx-io
                     </a>            </div>
-            <div class="library-version">0.5.1
+            <div class="library-version">0.5.2
             </div>
         </div>
         <div class="filter-section" id="filter-section">
@@ -63,7 +63,7 @@
   <div class="cover ">
     <h1 class="cover"><span>to</span><wbr><span><span>String</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-core:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="to-string.html"><span class="token function">toString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/core/common/src/Buffer.kt#L612">source</a>)</span></span></div><p class="paragraph">Returns a human-readable string that describes the contents of this buffer. For buffers containing few bytes, this is a string like <code class="lang-kotlin">Buffer(size=4 hex=0000ffff)</code>. However, if the buffer is too large, a string will contain its size and only a prefix of data, like <code class="lang-kotlin">Buffer(size=1024 hex=01234…)</code>. Thus, the string could not be used to compare buffers or verify buffer's content.</p><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.*
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-core:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="to-string.html"><span class="token function">toString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/core/common/src/Buffer.kt#L615">source</a>)</span></span></div><p class="paragraph">Returns a human-readable string that describes the contents of this buffer. For buffers containing few bytes, this is a string like <code class="lang-kotlin">Buffer(size=4 hex=0000ffff)</code>. However, if the buffer is too large, a string will contain its size and only a prefix of data, like <code class="lang-kotlin">Buffer(size=1024 hex=01234…)</code>. Thus, the string could not be used to compare buffers or verify buffer's content.</p><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.*
 import kotlin.test.*
 
 fun main() { 
