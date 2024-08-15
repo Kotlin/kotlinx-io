@@ -110,7 +110,7 @@ fun signPublicationIfKeyPresent(project: Project, publication: MavenPublication)
             useInMemoryPgpKeys(keyId, signingKey, signingKeyPassphrase)
             sign(publication)
 
-
+            // Temporary workaround, see https://github.com/gradle/gradle/issues/26091#issuecomment-1722947958
             tasks.withType<AbstractPublishToMaven>().configureEach {
                 val signingTasks = tasks.withType<Sign>()
                 mustRunAfter(signingTasks)

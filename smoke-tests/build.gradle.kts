@@ -57,7 +57,7 @@ tasks {
         args = listOf("-DKOTLIN_VERSION=$kotlinVersion", "-DKOTLINX_IO_VERSION=$kotlinxIoVersion", "clean")
     }
 
-    val verifyGradleProject = create("verifyGradleProject", Test::class) {
+    val verifyGradleProjects = create("verifyGradleProjects", Test::class) {
         useJUnit()
         if (useLocalBuild) {
             dependsOn(project(":kotlinx-io-core").tasks.named("publishToMavenLocal"))
@@ -72,7 +72,7 @@ tasks {
 
     create("smokeTest") {
         dependsOn(verifyMavenProjects)
-        dependsOn(verifyGradleProject)
+        dependsOn(verifyGradleProjects)
     }
 
     named("clean").configure {
