@@ -17,7 +17,7 @@ import kotlin.test.assertEquals
 private const val buildScriptFilename = "build.gradle.kts"
 private const val settingsFilename = "settings.gradle.kts"
 
-public class SmokeTests {
+public class GradleProjectsTest {
     @JvmField
     @Rule
     public val projectDir = TemporaryFolder()
@@ -31,7 +31,7 @@ public class SmokeTests {
 
     private fun generateBuildScript(multiplatform: Boolean, dependencyName: String) {
         val templateFile = (if (multiplatform) "kmp" else "jvm") + "." + buildScriptFilename
-        var template = SmokeTests::class.java.getResourceAsStream(
+        var template = GradleProjectsTest::class.java.getResourceAsStream(
             "/templates/$templateFile")!!.reader().readText()
 
         template = template.replace("%DEPENDENCY%", dependencyName)
@@ -47,7 +47,7 @@ public class SmokeTests {
         copySrcFile(testCase, multiplatform)
 
         projectDir.newFile(settingsFilename).outputStream().use {
-            SmokeTests::class.java.getResourceAsStream("/templates/$settingsFilename")!!.copyTo(it)
+            GradleProjectsTest::class.java.getResourceAsStream("/templates/$settingsFilename")!!.copyTo(it)
         }
 
         generateBuildScript(multiplatform, dependencyName)
@@ -56,7 +56,7 @@ public class SmokeTests {
     private fun copySrcFile(testCase: String, multiplatform: Boolean) {
         val testSubdir = if (multiplatform) "commonTest" else "test"
         val srcDir = projectDir.newFolder("src", testSubdir, "kotlin")
-        val resource = SmokeTests::class.java.getResourceAsStream("/gradle-projects/$testCase/SmokeTest.kt")!!
+        val resource = GradleProjectsTest::class.java.getResourceAsStream("/gradle-projects/$testCase/SmokeTest.kt")!!
         val outFile = srcDir.toPath().resolve("SmokeTest.kt")
         outFile.outputStream().use {
             resource.copyTo(it)
