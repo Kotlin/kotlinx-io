@@ -13,10 +13,30 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 @OptIn(UnsafeIoApi::class)
 class UnsafeBufferOperationsReadTest {
     private class TestException : RuntimeException()
+
+    @Test
+    fun callsInPlaceContract() {
+        val buffer = Buffer().apply { writeString("hello world") }
+
+        val bytesCalled: Boolean
+        UnsafeBufferOperations.readFromHead(buffer) { _, _, _ ->
+            bytesCalled = true
+            0
+        }
+        assertTrue(bytesCalled)
+
+        val segmentsCalled: Boolean
+        UnsafeBufferOperations.readFromHead(buffer) { _, _ ->
+            segmentsCalled = true
+            0
+        }
+        assertTrue(segmentsCalled)
+    }
 
     @Test
     fun bufferCapacity() {
@@ -38,10 +58,11 @@ class UnsafeBufferOperationsReadTest {
 
         val buffer = Buffer().apply { write(expectedData) }
         for (idx in actualData.indices) {
-            UnsafeBufferOperations.readFromHead(buffer) { data, startIndex, _ ->
+            val read = UnsafeBufferOperations.readFromHead(buffer) { data, startIndex, _ ->
                 actualData[idx] = data[startIndex]
                 1
             }
+            assertEquals(1, read)
             assertEquals(actualData.size - idx - 1, buffer.size.toInt())
         }
         assertTrue(buffer.exhausted())
@@ -51,24 +72,28 @@ class UnsafeBufferOperationsReadTest {
     @Test
     fun readNothing() {
         val buffer = Buffer().apply { writeInt(42) }
-        UnsafeBufferOperations.readFromHead(buffer) { _, _, _ -> 0 }
+        val read1 = UnsafeBufferOperations.readFromHead(buffer) { _, _, _ -> 0 }
+        assertEquals(0, read1)
         assertEquals(42, buffer.readInt())
 
         buffer.writeInt(42)
-        UnsafeBufferOperations.readFromHead(buffer) { _, _ -> 0 }
+        val read2 = UnsafeBufferOperations.readFromHead(buffer) { _, _ -> 0 }
+        assertEquals(0, read2)
         assertEquals(42, buffer.readInt())
     }
 
     @Test
     fun readEverything() {
         val buffer = Buffer().apply { writeString("hello world") }
-        UnsafeBufferOperations.readFromHead(buffer) { _, startIndex, endIndex ->
+        val read1 = UnsafeBufferOperations.readFromHead(buffer) { _, startIndex, endIndex ->
             endIndex - startIndex
         }
+        assertEquals(11, read1)
         assertTrue(buffer.exhausted())
 
         buffer.writeString("hello world")
-        UnsafeBufferOperations.readFromHead(buffer) { _, seg -> seg.size }
+        val read2 = UnsafeBufferOperations.readFromHead(buffer) { _, seg -> seg.size }
+        assertEquals(11, read2)
         assertTrue(buffer.exhausted())
     }
 
@@ -76,11 +101,11 @@ class UnsafeBufferOperationsReadTest {
     fun readFromEmptyBuffer() {
         val buffer = Buffer()
         assertFailsWith<IllegalArgumentException> {
-            UnsafeBufferOperations.readFromHead(buffer) { _, _, _ -> 0 }
+            UnsafeBufferOperations.readFromHead(buffer) { _, _, _ -> fail() }
         }
 
         assertFailsWith<IllegalArgumentException> {
-            UnsafeBufferOperations.readFromHead(buffer) { _, _ -> 0 }
+            UnsafeBufferOperations.readFromHead(buffer) { _, _ -> fail() }
         }
     }
 

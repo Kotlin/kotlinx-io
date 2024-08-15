@@ -28,45 +28,40 @@ publishing {
     }
 }
 
-// Pom configuration
-infix fun <T> Property<T>.by(value: T) {
-    set(value)
-}
-
 fun MavenPom.configureMavenCentralMetadata(project: Project) {
-    name by project.name
-    description by "IO support for Kotlin"
-    url by "https://github.com/Kotlin/kotlinx-io"
+    name = project.name
+    description = "IO support for Kotlin"
+    url = "https://github.com/Kotlin/kotlinx-io"
 
     licenses {
         license {
-            name by "The Apache Software License, Version 2.0"
-            url by "https://www.apache.org/licenses/LICENSE-2.0.txt"
-            distribution by "repo"
+            name = "The Apache Software License, Version 2.0"
+            url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution = "repo"
         }
     }
 
     developers {
         developer {
-            id by "JetBrains"
-            name by "JetBrains Team"
-            organization by "JetBrains"
-            organizationUrl by "https://www.jetbrains.com"
+            id = "JetBrains"
+            name = "JetBrains Team"
+            organization = "JetBrains"
+            organizationUrl = "https://www.jetbrains.com"
         }
     }
 
     scm {
-        url by "https://github.com/Kotlin/kotlinx-io"
+        url = "https://github.com/Kotlin/kotlinx-io"
     }
 }
 
 fun MavenPublication.mavenCentralArtifacts(project: Project, sources: SourceDirectorySet) {
     val sourcesJar by project.tasks.creating(Jar::class) {
-        archiveClassifier.set("sources")
+        archiveClassifier = "sources"
         from(sources)
     }
     val javadocJar by project.tasks.creating(Jar::class) {
-        archiveClassifier.set("javadoc")
+        archiveClassifier = "javadoc"
         // contents are deliberately left empty
     }
     artifact(sourcesJar)
@@ -100,7 +95,7 @@ fun RepositoryHandler.configureMavenPublication( project: Project) {
 
 fun Project.configureEmptyJavadocArtifact(): Jar {
     val javadocJar by project.tasks.creating(Jar::class) {
-        archiveClassifier.set("javadoc")
+        archiveClassifier = "javadoc"
         // contents are deliberately left empty
     }
     return javadocJar

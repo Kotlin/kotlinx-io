@@ -13,6 +13,23 @@ class UnsafeBufferOperationsWriteTest {
     private class TestException : RuntimeException()
 
     @Test
+    fun callsInPlaceContract() {
+        val bytesCalled: Boolean
+        UnsafeBufferOperations.writeToTail(Buffer(), 1) { _, _, _ ->
+            bytesCalled = true
+            0
+        }
+        assertTrue(bytesCalled)
+
+        val segmentsCalled: Boolean
+        UnsafeBufferOperations.writeToTail(Buffer(), 1) { _, _ ->
+            segmentsCalled = true
+            0
+        }
+        assertTrue(segmentsCalled)
+    }
+
+    @Test
     fun bufferCapacity() {
         val buffer = Buffer()
 
@@ -38,10 +55,11 @@ class UnsafeBufferOperationsWriteTest {
         val data = "hello world".encodeToByteArray()
 
         for (idx in data.indices) {
-            UnsafeBufferOperations.writeToTail(buffer, 1) { writeable, pos, _ ->
+            val written = UnsafeBufferOperations.writeToTail(buffer, 1) { writeable, pos, _ ->
                 writeable[pos] = data[idx]
                 1
             }
+            assertEquals(1, written)
             assertEquals(idx + 1, buffer.size.toInt())
         }
         assertEquals("hello world", buffer.readString())
@@ -51,10 +69,12 @@ class UnsafeBufferOperationsWriteTest {
     fun writeNothing() {
         val buffer = Buffer()
 
-        UnsafeBufferOperations.writeToTail(buffer, 1) { _, _, _ -> 0 }
+        val write1 = UnsafeBufferOperations.writeToTail(buffer, 1) { _, _, _ -> 0 }
+        assertEquals(0, write1)
         assertTrue(buffer.exhausted())
 
-        UnsafeBufferOperations.writeToTail(buffer, 1) { _, _ -> 0 }
+        val write2 = UnsafeBufferOperations.writeToTail(buffer, 1) { _, _ -> 0 }
+        assertEquals(0, write2)
         assertTrue(buffer.exhausted())
 
         buffer.writeInt(42)
@@ -75,12 +95,13 @@ class UnsafeBufferOperationsWriteTest {
     @Test
     fun writeWholeBuffer() {
         val buffer = Buffer()
-        UnsafeBufferOperations.writeToTail(buffer, 1) { data, from, to ->
+        val written = UnsafeBufferOperations.writeToTail(buffer, 1) { data, from, to ->
             for (idx in from..<to) {
                 data[idx] = 42
             }
             to - from
         }
+        assertEquals(Segment.SIZE, written)
         assertEquals(Segment.SIZE, buffer.size.toInt())
         assertArrayEquals(ByteArray(Segment.SIZE) { 42 }, buffer.readByteArray())
     }
@@ -89,12 +110,13 @@ class UnsafeBufferOperationsWriteTest {
     fun writeWithCtx() {
         val buffer = Buffer()
 
-        UnsafeBufferOperations.writeToTail(buffer, 1) { ctx, segment ->
+        val written = UnsafeBufferOperations.writeToTail(buffer, 1) { ctx, segment ->
             ctx.setUnchecked(segment, 0, 1)
             ctx.setUnchecked(segment, 1, 2)
             2
         }
 
+        assertEquals(2, written)
         assertArrayEquals(byteArrayOf(1, 2), buffer.readByteArray())
     }
 
@@ -102,12 +124,12 @@ class UnsafeBufferOperationsWriteTest {
     fun requireToManyBytes() {
         val buffer = Buffer()
         assertFailsWith<IllegalArgumentException> {
-            UnsafeBufferOperations.writeToTail(buffer, 100500) { _, _, _ -> 0 }
+            UnsafeBufferOperations.writeToTail(buffer, 100500) { _, _, _ -> fail() }
         }
         assertTrue(buffer.exhausted())
 
         assertFailsWith<IllegalArgumentException> {
-            UnsafeBufferOperations.writeToTail(buffer, 100500) { _, _ -> 0 }
+            UnsafeBufferOperations.writeToTail(buffer, 100500) { _, _ -> fail() }
         }
         assertTrue(buffer.exhausted())
     }

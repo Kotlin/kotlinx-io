@@ -17,7 +17,7 @@ plugins {
 kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
-        allWarningsAsErrors.set(true)
+        allWarningsAsErrors = true
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
@@ -25,7 +25,7 @@ kotlin {
     jvmToolchain {
         val javaVersion = versionCatalog.findVersion("java").getOrNull()?.requiredVersion
             ?: throw GradleException("Version 'java' is not specified in the version catalog")
-        languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        languageVersion = JavaLanguageVersion.of(javaVersion)
     }
 
     jvm {

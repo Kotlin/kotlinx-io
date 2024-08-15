@@ -10,10 +10,22 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 @OptIn(UnsafeIoApi::class)
 class UnsafeBufferOperationsJvmWriteToTailTest {
     private class TestException : RuntimeException()
+
+    @Test
+    fun callsInPlaceContract() {
+        val buffer = Buffer().apply { writeString("hello world") }
+
+        val called: Boolean
+        UnsafeBufferOperations.writeToTail(buffer, 1) { _ ->
+            called = true
+        }
+        assertTrue(called)
+    }
 
     @Test
     fun bufferCapacity() {
@@ -33,9 +45,10 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
         val data = "hello world".encodeToByteArray()
 
         for (idx in data.indices) {
-            UnsafeBufferOperations.writeToTail(buffer, 1) { bb ->
+            val written = UnsafeBufferOperations.writeToTail(buffer, 1) { bb ->
                 bb.put(data[idx])
             }
+            assertEquals(1, written)
             assertEquals(idx + 1, buffer.size.toInt())
         }
         assertEquals("hello world", buffer.readString())
@@ -44,16 +57,18 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
     @Test
     fun writeNothing() {
         val buffer = Buffer()
-        UnsafeBufferOperations.writeToTail(buffer, 1) { _ -> }
+        val written = UnsafeBufferOperations.writeToTail(buffer, 1) { _ -> }
+        assertEquals(0, written)
         assertTrue(buffer.exhausted())
     }
 
     @Test
     fun writeWholeBuffer() {
         val buffer = Buffer()
-        UnsafeBufferOperations.writeToTail(buffer, 1) { bb ->
+        val written = UnsafeBufferOperations.writeToTail(buffer, 1) { bb ->
             bb.position(bb.limit())
         }
+        assertEquals(Segment.SIZE, written)
         assertEquals(Segment.SIZE, buffer.size.toInt())
     }
 
@@ -61,7 +76,7 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
     fun requireToManyBytes() {
         val buffer = Buffer()
         assertFailsWith<IllegalArgumentException> {
-            UnsafeBufferOperations.writeToTail(buffer, 100500) { _ -> }
+            UnsafeBufferOperations.writeToTail(buffer, 100500) { _ -> fail() }
         }
         assertTrue(buffer.exhausted())
     }
@@ -87,12 +102,12 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
     fun changeLimit() {
         val buffer = Buffer()
 
-        UnsafeBufferOperations.writeToTail(buffer, 8) { bb ->
+        val written = UnsafeBufferOperations.writeToTail(buffer, 8) { bb ->
             // only two bytes written
             bb.position(2)
             bb.limit(4)
         }
-
+        assertEquals(2, written)
         assertEquals(2, buffer.size)
     }
 

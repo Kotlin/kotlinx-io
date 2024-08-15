@@ -15,15 +15,15 @@ tasks.withType<DokkaTaskPartial>().configureEach {
         includes.from("Module.md")
 
         sourceLink {
-            localDirectory.set(rootDir)
-            remoteUrl.set(URL("https://github.com/kotlin/kotlinx-io/tree/master"))
-            remoteLineSuffix.set("#L")
+            localDirectory = rootDir
+            remoteUrl = URL("https://github.com/kotlin/kotlinx-io/tree/master")
+            remoteLineSuffix = "#L"
         }
 
         // we don't want to advertise `unsafe` APIs in documentation
         perPackageOption {
-            suppress.set(true)
-            matchingRegex.set(".*unsafe.*")
+            suppress = true
+            matchingRegex = ".*unsafe.*"
         }
 
         // as in kotlinx-io-multiplatform.gradle.kts:configureSourceSet

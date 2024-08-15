@@ -14,9 +14,22 @@ class UnsafeBufferOperationsJvmReadBulkTest {
     private class TestException : RuntimeException()
 
     @Test
+    fun callsInPlaceContract() {
+        val buffer = Buffer().apply { writeString("hello world") }
+        val array = Array<ByteBuffer?>(16) { null }
+
+        val called: Boolean
+        UnsafeBufferOperations.readBulk(buffer, array) { _, _ ->
+            called = true
+            0
+        }
+        assertTrue(called)
+    }
+
+    @Test
     fun readAllFromEmptyBuffer() {
         assertFailsWith<IllegalArgumentException> {
-            UnsafeBufferOperations.readBulk(Buffer(), Array(1) { null }) { _, _ -> 0L }
+            UnsafeBufferOperations.readBulk(Buffer(), Array(1) { null }) { _, _ -> fail() }
         }
     }
 
@@ -25,7 +38,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
         assertFailsWith<IllegalArgumentException> {
             UnsafeBufferOperations.readBulk(
                 Buffer().apply { writeByte(0) },
-                Array(0) { null }) { _, _ -> 0L }
+                Array(0) { null }) { _, _ -> fail() }
         }
     }
 
@@ -34,7 +47,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
         val buffer = Buffer().apply { writeString("hello world") }
         val array = Array<ByteBuffer?>(16) { null }
 
-        UnsafeBufferOperations.readBulk(buffer, array) { arrayArg, iovecLen ->
+        val read = UnsafeBufferOperations.readBulk(buffer, array) { arrayArg, iovecLen ->
             assertSame(array, arrayArg)
             assertEquals(1, iovecLen)
 
@@ -50,6 +63,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
 
             11
         }
+        assertEquals(11L, read)
         assertTrue(buffer.exhausted())
     }
 
@@ -58,7 +72,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
         val buffer = Buffer().apply { writeString("hello world") }
         val array = Array<ByteBuffer?>(16) { null }
 
-        UnsafeBufferOperations.readBulk(buffer, array) { arrayArg, iovecLen ->
+        val read = UnsafeBufferOperations.readBulk(buffer, array) { arrayArg, iovecLen ->
             assertSame(array, arrayArg)
             assertEquals(1, iovecLen)
 
@@ -74,6 +88,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
 
             0
         }
+        assertEquals(0L, read)
         assertEquals("hello world", buffer.readString())
     }
 

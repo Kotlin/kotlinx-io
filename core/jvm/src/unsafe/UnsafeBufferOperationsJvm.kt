@@ -5,6 +5,9 @@
 
 package kotlinx.io.unsafe
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlinx.io.Buffer
 import kotlinx.io.Segment
 import kotlinx.io.UnsafeIoApi
@@ -19,6 +22,7 @@ import java.nio.ByteBuffer
  *
  * After exiting the [readAction], all data consumed from the [ByteBuffer] will be also consumed from the [buffer].
  * Consumed bytes determined as a difference between [ByteBuffer.capacity] and [ByteBuffer.remaining].
+ * This value will also be propagated as the function return value.
  *
  * If [readAction] ends execution by throwing an exception, no data will be consumed from the buffer.
  *
@@ -31,13 +35,19 @@ import java.nio.ByteBuffer
  * @param buffer a buffer to read from
  * @param readAction an action that will be invoked on a [ByteBuffer] containing data from [buffer]'s head
  *
+ * @return Number of bytes read by [readAction].
+ *
  * @throws IllegalArgumentException when the [buffer] is empty.
  *
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.writeToByteChannel
  */
 @UnsafeIoApi
-public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction: (ByteBuffer) -> Unit) {
-    readFromHead(buffer) { rawData, pos, limit ->
+@OptIn(ExperimentalContracts::class)
+public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction: (ByteBuffer) -> Unit): Int {
+    contract {
+        callsInPlace(readAction, EXACTLY_ONCE)
+    }
+    return readFromHead(buffer) { rawData, pos, limit ->
         val bb = ByteBuffer.wrap(rawData, pos, limit - pos).slice().asReadOnlyBuffer()
         readAction(bb)
         bb.position()
@@ -58,6 +68,7 @@ public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction
  *
  * After exiting [writeAction], bytes written to the [ByteBuffer] will be committed to the buffer.
  * The number of bytes written is determined as a difference between [ByteBuffer.capacity] and [ByteBuffer.remaining].
+ * This value will also be propagated as the function return value.
  *
  * If [writeAction] ends execution by throwing an exception, no data will be written to the buffer.
  *
@@ -70,17 +81,23 @@ public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction
  * @param writeAction an action that will be invoked on a [ByteBuffer] that will be added to a [buffer] by the end of
  * the call
  *
+ * @return Number of bytes written by [writeAction].
+ *
  * @throws IllegalStateException when [minimumCapacity] is too large and could not be fulfilled.
  *
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.readFromByteChannel
  */
 @UnsafeIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun UnsafeBufferOperations.writeToTail(
     buffer: Buffer,
     minimumCapacity: Int,
     writeAction: (ByteBuffer) -> Unit
-) {
-    writeToTail(buffer, minimumCapacity) { rawData, pos, limit ->
+): Int {
+    contract {
+        callsInPlace(writeAction, EXACTLY_ONCE)
+    }
+    return writeToTail(buffer, minimumCapacity) { rawData, pos, limit ->
         val bb = ByteBuffer.wrap(rawData, pos, limit - pos).slice()
         writeAction(bb)
         bb.position()
@@ -102,6 +119,7 @@ public inline fun UnsafeBufferOperations.writeToTail(
  * The size of the buffer will be reduced by that value,
  * and the corresponding number of bytes from buffer's prefix will be no longer available for read.
  * If data was not consumed, the [readAction] should return `0`.
+ * This value will also be propagated as the function return value.
  *
  * If [readAction] ends execution by throwing an exception, no data will be consumed from the buffer.
  *
@@ -118,6 +136,8 @@ public inline fun UnsafeBufferOperations.writeToTail(
  * @param readAction an action that will be invoked on an array filled with [ByteBuffer]s holding data from [buffer]'s
  * prefix
  *
+ * @return Number of bytes read as returned by [readAction].
+ *
  * @throws IllegalArgumentException when the [buffer] is empty.
  * @throws IllegalArgumentException when the [iovec] is empty.
  *
@@ -125,11 +145,16 @@ public inline fun UnsafeBufferOperations.writeToTail(
  *
  */
 @UnsafeIoApi
+@OptIn(ExperimentalContracts::class)
 public inline fun UnsafeBufferOperations.readBulk(
     buffer: Buffer,
     iovec: Array<ByteBuffer?>,
     readAction: (iovec: Array<ByteBuffer?>, iovecSize: Int) -> Long
-) {
+): Long {
+    contract {
+        callsInPlace(readAction, EXACTLY_ONCE)
+    }
+
     val head = buffer.head ?: throw IllegalArgumentException("buffer is empty.")
     if (iovec.isEmpty()) throw IllegalArgumentException("iovec is empty.")
 
@@ -148,11 +173,13 @@ public inline fun UnsafeBufferOperations.readBulk(
     } while (idx < iovec.size)
 
     val bytesRead = readAction(iovec, idx)
-    if (bytesRead == 0L) return
-    if (bytesRead < 0 || bytesRead > capacity) {
-        throw IllegalStateException(
-            "readAction should return a value in range [0, $capacity], but returned: $bytesRead"
-        )
+    if (bytesRead != 0L) {
+        if (bytesRead < 0 || bytesRead > capacity) {
+            throw IllegalStateException(
+                "readAction should return a value in range [0, $capacity], but returned: $bytesRead"
+            )
+        }
+        buffer.skip(bytesRead)
     }
-    buffer.skip(bytesRead)
+    return bytesRead
 }
