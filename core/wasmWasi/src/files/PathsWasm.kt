@@ -52,6 +52,6 @@ public actual class Path internal constructor(rawPath: String, @Suppress("UNUSED
 
 // The path separator is always '/'.
 // https://github.com/WebAssembly/wasi-filesystem/blob/e79b05803e9ffd3b0cfdc0a8af20ac743abbe36a/wit/types.wit#L13C4-L13C71
-public actual val SystemPathSeparator: Char = UnixPathSeparator
+public actual val SystemPathSeparator: Char get() = UnixPathSeparator
 
 public actual fun Path(path: String): Path = Path(path, null as Any?)

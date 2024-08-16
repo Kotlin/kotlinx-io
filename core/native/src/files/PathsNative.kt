@@ -54,7 +54,7 @@ public actual class Path internal constructor(
         }
 }
 
-public actual val SystemPathSeparator: Char = UnixPathSeparator
+public actual val SystemPathSeparator: Char get() = UnixPathSeparator
 
 internal expect fun dirnameImpl(path: String): String
 
