@@ -17,7 +17,7 @@ public object UnsafeBufferOperations {
     /**
      * Maximum value that is safe to pass to [writeToTail].
      */
-    public val maxSafeWriteCapacity: Int = Segment.SIZE
+    public val maxSafeWriteCapacity: Int get() = Segment.SIZE
 
     /**
      * Moves [bytes] to the end of the [buffer].

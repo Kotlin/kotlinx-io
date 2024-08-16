@@ -59,7 +59,7 @@ internal abstract class SegmentCopyTracker {
  * Simple [SegmentCopyTracker] that always reports shared state.
  */
 internal object AlwaysSharedCopyTracker : SegmentCopyTracker() {
-    override val shared: Boolean = true
+    override val shared: Boolean get() = true
     override fun addCopy() = Unit
     override fun removeCopy(): Boolean = true
 }

@@ -31,7 +31,7 @@ public actual val SystemTemporaryDirectory: Path = Path("/tmp")
  * For example, if following directories were pre-opened: `/work`, `/tmp`, `/persistent`, then
  * the path `a/b/c/d` will be resolved to `/work/a/b/c/d` as `/work` is the first pre-opened directory.
  */
-public actual val SystemFileSystem: FileSystem = WasiFileSystem
+public actual val SystemFileSystem: FileSystem get() = WasiFileSystem
 
 @OptIn(UnsafeWasmMemoryApi::class)
 internal object WasiFileSystem : SystemFileSystemImpl() {
@@ -370,7 +370,7 @@ public actual open class FileNotFoundException actual constructor(
 ) : IOException(message)
 
 // The property affects only paths processing and in Wasi paths are always '/'-delimited.
-internal actual val isWindows: Boolean = false
+internal actual val isWindows: Boolean get() = false
 
 internal object PreOpens {
     data class PreOpen(val path: Path, val fd: Int)
