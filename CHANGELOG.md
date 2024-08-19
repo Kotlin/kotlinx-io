@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.5.3
+> Published 19 August 2024
+
+### Features
+- Updated JS `braces` library to `3.0.3` 
+- More unnecessary backing fields were eliminated [#374](https://github.com/Kotlin/kotlinx-io/pull/374)
+
 ## 0.5.2
 > Published 15 August 2024
  
