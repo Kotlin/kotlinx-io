@@ -75,25 +75,10 @@ public actual fun Path(path: String): Path {
     return Path(path, null)
 }
 
-internal class FileSource(private val path: Path) : RawSource {
+internal class FileSource(private val fd: Int) : RawSource {
     private var buffer: kotlinx.io.node.Buffer? = null
     private var closed = false
     private var offset = 0
-    private val fd = open(path)
-
-    private fun open(path: Path): Int {
-        if (!fs.existsSync(path.path)) {
-            throw FileNotFoundException("File does not exist: ${path.path}")
-        }
-        var fd: Int = -1
-        withCaughtException {
-            fd = fs.openSync(path.path, "r")
-        }?.also {
-            throw IOException("Failed to open a file ${path.path}.", it)
-        }
-        if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
-        return fd
-    }
 
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         check(!closed) { "Source is closed." }
@@ -104,7 +89,7 @@ internal class FileSource(private val path: Path) : RawSource {
             withCaughtException {
                 buffer = fs.readFileSync(fd, null)
             }?.also {
-                throw IOException("Failed to read data from ${path.path}", it)
+                throw IOException("Failed to read data from TODO", it)
             }
         }
         val len: Int = buffer!!.length
@@ -127,21 +112,8 @@ internal class FileSource(private val path: Path) : RawSource {
     }
 }
 
-internal class FileSink(path: Path, append: Boolean) : RawSink {
+internal class FileSink(private val fd: Int) : RawSink {
     private var closed = false
-    private val fd = open(path, append)
-
-    private fun open(path: Path, append: Boolean): Int {
-        val flags = if (append) "a" else "w"
-        var fd = -1
-        withCaughtException {
-            fd = fs.openSync(path.path, flags)
-        }?.also {
-            throw IOException("Failed to open a file ${path.path}.", it)
-        }
-        if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
-        return fd
-    }
 
     override fun write(source: Buffer, byteCount: Long) {
         check(!closed) { "Sink is closed." }

@@ -43,3 +43,7 @@ private class DiscardingSink : RawSink {
   override fun flush() {}
   override fun close() {}
 }
+
+public expect fun stdinSource(): RawSource
+public expect fun stdoutSink(): RawSink
+public expect fun stderrSink(): RawSink

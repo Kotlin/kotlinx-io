@@ -113,3 +113,7 @@ internal val AssertionError.isAndroidGetsocknameError: Boolean
     get() {
         return cause != null && message?.contains("getsockname failed") ?: false
     }
+
+public actual fun stdinSource(): RawSource = System.`in`.asSource()
+public actual fun stdoutSink(): RawSink = System.out.asSink()
+public actual fun stderrSink(): RawSink = System.err.asSink()

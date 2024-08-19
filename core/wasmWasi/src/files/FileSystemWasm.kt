@@ -208,7 +208,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             }
             fdPtr.loadInt()
         }
-        return FileSink(fd)
+        return FileSink(fd, true)
     }
 
     override fun metadataOrNull(path: Path): FileMetadata? {
@@ -444,7 +444,7 @@ internal object PreOpens {
 
 private const val TEMP_CIOVEC_BUFFER_LEN = 8192
 
-private class FileSink(private val fd: Fd) : RawSink {
+internal class FileSink(private val fd: Fd, private val flushable: Boolean) : RawSink {
     private var closed: Boolean = false
 
     @OptIn(UnsafeWasmMemoryApi::class)
@@ -479,6 +479,7 @@ private class FileSink(private val fd: Fd) : RawSink {
     }
 
     override fun flush() {
+        if (!flushable) return
         val res = Errno(fd_sync(fd))
         if (res != Errno.success) {
             throw IOException("fd_sync failed: ${res.description}")
@@ -493,7 +494,7 @@ private class FileSink(private val fd: Fd) : RawSink {
     }
 }
 
-private class FileSource(private val fd: Fd) : RawSource {
+internal class FileSource(private val fd: Fd) : RawSource {
     private var closed: Boolean = false
 
     @OptIn(UnsafeWasmMemoryApi::class)

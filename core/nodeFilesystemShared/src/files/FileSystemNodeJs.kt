@@ -89,11 +89,37 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
     }
 
     override fun source(path: Path): RawSource {
-        return FileSource(path)
+        return FileSource(open(path))
+    }
+
+    private fun open(path: Path): Int {
+        if (!fs.existsSync(path.path)) {
+            throw FileNotFoundException("File does not exist: ${path.path}")
+        }
+        var fd: Int = -1
+        withCaughtException {
+            fd = fs.openSync(path.path, "r")
+        }?.also {
+            throw IOException("Failed to open a file ${path.path}.", it)
+        }
+        if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
+        return fd
     }
 
     override fun sink(path: Path, append: Boolean): RawSink {
-        return FileSink(path, append)
+        return FileSink(open(path, append))
+    }
+
+    private fun open(path: Path, append: Boolean): Int {
+        val flags = if (append) "a" else "w"
+        var fd = -1
+        withCaughtException {
+            fd = fs.openSync(path.path, flags)
+        }?.also {
+            throw IOException("Failed to open a file ${path.path}.", it)
+        }
+        if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
+        return fd
     }
 
     override fun resolve(path: Path): Path {
