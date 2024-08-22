@@ -47,3 +47,6 @@ kover {
         }
     }
 }
+tasks.dokkaHtmlMultiModule {
+    pluginsMapConfiguration.set(mapOf("org.jetbrains.dokka.base.DokkaBase" to """{ "templatesDir" : "${projectDir.toString().replace('\\', '/')}/dokka-templates" }"""))
+}
