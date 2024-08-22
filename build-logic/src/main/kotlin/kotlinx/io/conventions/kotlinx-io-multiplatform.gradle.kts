@@ -43,28 +43,6 @@ kotlin {
         }
     }
 
-    js {
-        browser {
-            testTask {
-                filter.setExcludePatterns("*SmokeFileTest*")
-            }
-        }
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        nodejs()
-        //  Disabled because we can't exclude some tests: https://youtrack.jetbrains.com/issue/KT-58291
-        // browser()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmWasi {
-        nodejs()
-    }
-
-    nativeTargets()
-
     sourceSets {
         commonTest.dependencies {
             implementation(kotlin("test"))
