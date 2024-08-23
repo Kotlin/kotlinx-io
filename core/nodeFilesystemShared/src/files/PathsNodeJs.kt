@@ -8,6 +8,7 @@ package kotlinx.io.files
 import kotlinx.io.*
 import kotlinx.io.node.buffer
 import kotlinx.io.node.fs
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlinx.io.node.path as nodeJsPath
 
 public actual class Path internal constructor(
@@ -143,6 +144,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
         return fd
     }
 
+    @OptIn(UnsafeIoApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         check(!closed) { "Sink is closed." }
         if (byteCount == 0L) {
@@ -151,20 +153,20 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
 
         var remainingBytes = minOf(byteCount, source.size)
         while (remainingBytes > 0) {
-            val head = source.head!!
-            val segmentBytes = head.limit - head.pos
-            val buf = buffer.Buffer.allocUnsafe(segmentBytes)
-            val data = head.data
-            val pos = head.pos
-            for (offset in 0 until segmentBytes) {
-                buf.writeInt8(data[pos + offset], offset)
+            var segmentBytes = 0
+            UnsafeBufferOperations.readFromHead(source) { headData, headPos, headLimit ->
+                segmentBytes = headLimit - headPos
+                val buf = buffer.Buffer.allocUnsafe(segmentBytes)
+                for (offset in 0 until segmentBytes) {
+                    buf.writeInt8(headData[headPos + offset], offset)
+                }
+                withCaughtException {
+                    fs.writeFileSync(fd, buf)
+                }?.also {
+                    throw IOException("Write failed", it)
+                }
+                segmentBytes
             }
-            withCaughtException {
-                fs.writeFileSync(fd, buf)
-            }?.also {
-                throw IOException("Write failed", it)
-            }
-            source.skip(segmentBytes.toLong())
             remainingBytes -= segmentBytes
         }
     }

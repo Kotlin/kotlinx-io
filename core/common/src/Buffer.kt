@@ -291,6 +291,9 @@ public class Buffer : Source, Sink {
         if (position < 0 || position >= size) {
             throw IndexOutOfBoundsException("position ($position) is not within the range [0..size($size))")
         }
+        if (position == 0L) {
+            return head!!.getUnchecked(0)
+        }
         seek(position) { s, offset ->
             return s!!.data[(s.pos + position - offset).toInt()]
         }

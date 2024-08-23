@@ -7,24 +7,28 @@ package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.buildByteString
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.withData
 
 /**
  * Creates a byte string containing a copy of all the data from this buffer.
  *
  * This call doesn't consume data from the buffer, but instead copies it.
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.snapshot(): ByteString {
     if (size == 0L) return ByteString()
 
     check(size <= Int.MAX_VALUE) { "Buffer is too long ($size) to be converted into a byte string." }
 
     return buildByteString(size.toInt()) {
-        var curr = head
-        do {
-            check(curr != null) { "Current segment is null" }
-            append(curr.data, curr.pos, curr.limit)
-            curr = curr.next
-        } while (curr != null)
+        UnsafeBufferOperations.iterate(this@snapshot) { ctx, head ->
+            var curr = head
+            while (curr != null) {
+                ctx.withData(curr, this::append)
+                curr = ctx.next(curr)
+            }
+        }
     }
 }
 
