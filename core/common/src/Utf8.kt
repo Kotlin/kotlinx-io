@@ -206,10 +206,7 @@ public fun Sink.writeString(chars: CharSequence, startIndex: Int = 0, endIndex: 
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readString(): String {
-    var req: Long = Segment.SIZE.toLong()
-    while (request(req)) {
-        req *= 2
-    }
+    request(Long.MAX_VALUE) // Request all data
     return buffer.commonReadUtf8(buffer.size)
 }
 
@@ -607,10 +604,7 @@ private fun Buffer.commonWriteUtf8CodePoint(codePoint: Int) {
 
 @OptIn(UnsafeIoApi::class)
 private fun Buffer.commonReadUtf8(byteCount: Long): String {
-    require(byteCount >= 0 && byteCount <= Int.MAX_VALUE) {
-        "byteCount ($byteCount) is not within the range [0..${Int.MAX_VALUE})"
-    }
-    require(byteCount)
+    // Invariant: byteCount was request()'ed into this buffer beforehand
     if (byteCount == 0L) return ""
 
     UnsafeBufferOperations.iterate(this) { ctx, head ->
@@ -624,7 +618,6 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
             }
         }
     }
-
-    // If the string spans multiple segments, delegate to readBytes().
-    return readByteArray(byteCount.toInt()).commonToUtf8String()
-}
+        // If the string spans multiple segments, delegate to readBytes()
+        return readByteArray(byteCount.toInt()).commonToUtf8String()
+    }
