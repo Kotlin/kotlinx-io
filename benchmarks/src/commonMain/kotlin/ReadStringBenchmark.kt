@@ -17,7 +17,7 @@ import kotlin.random.Random
 @State(Scope.Benchmark)
 open class ReadStringBenchmark() {
 
-    @Param("16", "64", "512")
+    @Param("16", "64", "512") // Fits into a single segment, so the benchmark does not measure segment boundaries crossing
     var size: Int = 0
 
     val buffer: Buffer = Buffer()
