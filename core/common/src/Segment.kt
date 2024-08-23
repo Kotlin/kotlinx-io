@@ -79,8 +79,7 @@ internal object AlwaysSharedCopyTracker : SegmentCopyTracker() {
  * limits, prev, and next references are not shared.
  */
 public class Segment {
-    @JvmField
-    internal val data: ByteArray
+    private val data: ByteArray
 
     /** The next byte of application data byte to read in this segment. */
     @PublishedApi
@@ -237,6 +236,84 @@ public class Segment {
         return predecessor
     }
 
+    internal fun writeByte(byte: Byte) {
+        data[limit++] = byte
+    }
+
+    internal fun writeShort(short: Short) {
+        val data = data
+        var limit = limit
+        data[limit++] = (short.toInt() ushr 8 and 0xff).toByte()
+        data[limit++] = (short.toInt() and 0xff).toByte()
+        this.limit = limit
+    }
+
+    internal fun writeInt(int: Int) {
+        val data = data
+        var limit = limit
+        data[limit++] = (int ushr 24 and 0xff).toByte()
+        data[limit++] = (int ushr 16 and 0xff).toByte()
+        data[limit++] = (int ushr 8 and 0xff).toByte()
+        data[limit++] = (int and 0xff).toByte()
+        this.limit = limit
+    }
+
+    internal fun writeLong(long: Long) {
+        val data = data
+        var limit = limit
+        data[limit++] = (long ushr 56 and 0xffL).toByte()
+        data[limit++] = (long ushr 48 and 0xffL).toByte()
+        data[limit++] = (long ushr 40 and 0xffL).toByte()
+        data[limit++] = (long ushr 32 and 0xffL).toByte()
+        data[limit++] = (long ushr 24 and 0xffL).toByte()
+        data[limit++] = (long ushr 16 and 0xffL).toByte()
+        data[limit++] = (long ushr 8 and 0xffL).toByte()
+        data[limit++] = (long and 0xffL).toByte()
+        this.limit = limit
+    }
+
+    internal fun readByte(): Byte {
+        return data[pos++]
+    }
+
+    internal fun readShort(): Short {
+        val data = data
+        var pos = pos
+        val s = (data[pos++] and 0xff shl 8 or (data[pos++] and 0xff)).toShort()
+        this.pos = pos
+        return s
+    }
+
+    internal fun readInt(): Int {
+        val data = data
+        var pos = pos
+        val i = (
+                data[pos++] and 0xff shl 24
+                        or (data[pos++] and 0xff shl 16)
+                        or (data[pos++] and 0xff shl 8)
+                        or (data[pos++] and 0xff)
+                )
+        this.pos = pos
+        return i
+    }
+
+    internal fun readLong(): Long {
+        val data = data
+        var pos = pos
+        val v = (
+                data[pos++] and 0xffL shl 56
+                        or (data[pos++] and 0xffL shl 48)
+                        or (data[pos++] and 0xffL shl 40)
+                        or (data[pos++] and 0xffL shl 32)
+                        or (data[pos++] and 0xffL shl 24)
+                        or (data[pos++] and 0xffL shl 16)
+                        or (data[pos++] and 0xffL shl 8)
+                        or (data[pos++] and 0xffL)
+                )
+        this.pos = pos
+        return v
+    }
+
     /** Moves `byteCount` bytes from this segment to `sink`.  */
     internal fun writeTo(sink: Segment, byteCount: Int) {
         check(sink.owner) { "only owner can write" }
@@ -255,6 +332,17 @@ public class Segment {
         )
         sink.limit += byteCount
         pos += byteCount
+    }
+
+    internal fun readTo(dst: ByteArray, dstStartOffset: Int, dstEndOffset: Int) {
+        val len = dstEndOffset - dstStartOffset
+        data.copyInto(dst, dstStartOffset, pos, pos + len)
+        pos += len
+    }
+
+    internal fun write(src: ByteArray, srcStartOffset: Int, srcEndOffset: Int) {
+        src.copyInto(data, limit, srcStartOffset, srcEndOffset)
+        limit += srcEndOffset - srcStartOffset
     }
 
     @PublishedApi
@@ -354,6 +442,7 @@ internal fun Segment.indexOf(byte: Byte, startOffset: Int, endOffset: Int): Int 
         "$endOffset"
     }
     val p = pos
+    val data = dataAsByteArray(true)
     for (idx in startOffset until endOffset) {
         if (data[p + idx] == byte) {
             return idx
@@ -370,6 +459,7 @@ internal fun Segment.indexOfBytesInbound(bytes: ByteArray, startOffset: Int): In
     var offset = startOffset
     val limit = size - bytes.size + 1
     val firstByte = bytes[0]
+    val data = dataAsByteArray(true)
     while (offset < limit) {
         val idx = indexOf(firstByte, offset, limit)
         if (idx < 0) {
@@ -407,6 +497,7 @@ internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int): I
         }
         // The pattern should start in this segment
         var seg = this
+        var data = seg.dataAsByteArray(true)
         var scanOffset = offset
 
         var found = true
@@ -416,9 +507,10 @@ internal fun Segment.indexOfBytesOutbound(bytes: ByteArray, startOffset: Int): I
             if (scanOffset == seg.size) {
                 val next = seg.next ?: return -1
                 seg = next
+                data = seg.dataAsByteArray(true)
                 scanOffset = 0 // we're scanning the next segment right from the beginning
             }
-            if (element != seg.data[seg.pos + scanOffset]) {
+            if (element != data[seg.pos + scanOffset]) {
                 found = false
                 break
             }
