@@ -23,7 +23,10 @@ allprojects {
 
 @OptIn(ExperimentalBCVApi::class)
 apiValidation {
-    ignoredProjects.add("kotlinx-io-benchmarks")
+    ignoredProjects.addAll(listOf(
+        "kotlinx-io-benchmarks",
+        "kotlinx-io-smoke-tests"
+    ))
     klib.enabled = true
 }
 
