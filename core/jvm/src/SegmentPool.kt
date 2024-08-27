@@ -124,7 +124,8 @@ internal actual object SegmentPool {
         else -> "4194304" // 4MB
     }
 
-    private val SECOND_LEVEL_POOL_TOTAL_SIZE =
+    // visible for testing
+    internal val SECOND_LEVEL_POOL_TOTAL_SIZE =
         System.getProperty("kotlinx.io.pool.size.bytes", DEFAULT_SECOND_LEVEL_POOL_TOTAL_SIZE)
             .toIntOrNull()?.coerceAtLeast(0) ?: 0
 

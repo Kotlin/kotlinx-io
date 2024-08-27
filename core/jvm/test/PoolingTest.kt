@@ -6,6 +6,7 @@
 package kotlinx.io
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class PoolingTest {
@@ -39,5 +40,34 @@ class PoolingTest {
         otherBuffer.write(buffer, buffer.size)
         otherBuffer.clear()
         assertTrue(poolSize < SegmentPool.byteCount)
+    }
+
+    @Test
+    fun segmentAcquisitionAndRelease() {
+        val secondTierSize = SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE
+        val firstTierSize = SegmentPool.MAX_SIZE
+
+        // fill the pool by requiring max possible segments count and then
+        // releasing them all
+        val segments = mutableSetOf<Segment>()
+        var size = 0
+        while (size < secondTierSize + firstTierSize) {
+            val segment = SegmentPool.take()
+            size += segment.remainingCapacity
+            segments.add(segment)
+        }
+        segments.forEach(SegmentPool::recycle)
+
+        // take the same number of segments again and check that nothing new was allocated
+        val segments2 = mutableSetOf<Segment>()
+        size = 0
+        while (size < secondTierSize + firstTierSize) {
+            val segment = SegmentPool.take()
+            size += segment.remainingCapacity
+            segments2.add(segment)
+        }
+        segments2.forEach(SegmentPool::recycle)
+
+        assertEquals(segments, segments2)
     }
 }
