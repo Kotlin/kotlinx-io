@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmSynthetic
 
