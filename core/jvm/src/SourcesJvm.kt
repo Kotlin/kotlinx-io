@@ -21,6 +21,7 @@
 package kotlinx.io
 
 import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.readFromHead
 import java.io.EOFException
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -173,4 +174,21 @@ public fun Source.asByteChannel(): ReadableByteChannel {
 
         override fun read(sink: ByteBuffer): Int = this@asByteChannel.readAtMostTo(sink)
     }
+}
+
+@OptIn(InternalIoApi::class, UnsafeIoApi::class)
+public fun Source.readStringJvm(length: Long): String {
+    request(length) // Request all data
+
+    var result: String? = null
+    UnsafeBufferOperations.readFromHead(buffer) { data, from, to ->
+        val segmentLen = to - from
+        if (segmentLen.toLong() >= length) {
+            result = String(data, from, length.toInt())
+            segmentLen
+        } else {
+            0
+        }
+    }
+    return result ?: readString()
 }

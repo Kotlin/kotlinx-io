@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -128,5 +129,14 @@ public fun Sink.asByteChannel(): WritableByteChannel {
             check(!isClosed()) { "Underlying sink is closed." }
             return this@asByteChannel.write(source)
         }
+    }
+}
+
+@OptIn(DelicateIoApi::class, UnsafeIoApi::class)
+public fun Sink.writeStringJvm(string: String, startIndex: Int = 0, endIndex: Int = string.length) {
+    checkBounds(string.length, startIndex, endIndex)
+    val data = string.toByteArray(Charsets.UTF_8)
+    writeToInternalBuffer {
+        UnsafeBufferOperations.moveToTail(it, data, startIndex, endIndex)
     }
 }
