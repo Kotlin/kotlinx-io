@@ -140,3 +140,19 @@ public fun Sink.writeStringJvm(string: String, startIndex: Int = 0, endIndex: In
         UnsafeBufferOperations.moveToTail(it, data, startIndex, endIndex)
     }
 }
+
+private val charArrayCache = ThreadLocal.withInitial { CharArray(256) }
+
+@OptIn(DelicateIoApi::class)
+public fun Sink.writeStringJvm2(string: String, startIndex: Int = 0, endIndex: Int = string.length) {
+    if (endIndex - startIndex > 256) {
+        writeString(string, startIndex, endIndex)
+        return
+    }
+    checkBounds(string.length, startIndex, endIndex)
+
+    val array = charArrayCache.get()
+    string.toCharArray(array, 0, startIndex, endIndex)
+
+    writeToInternalBuffer { it.commonWriteUtf8(0, endIndex - startIndex, array::get) }
+}

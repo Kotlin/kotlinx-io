@@ -466,7 +466,7 @@ private fun Buffer.commonReadUtf8CodePoint(): Int {
 }
 
 @OptIn(UnsafeIoApi::class)
-private inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt: (Int) -> Char) {
+internal inline fun Buffer.commonWriteUtf8(beginIndex: Int, endIndex: Int, charAt: (Int) -> Char) {
     // Transcode a UTF-16 chars to UTF-8 bytes.
     var i = beginIndex
     while (i < endIndex) {

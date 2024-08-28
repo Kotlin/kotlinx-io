@@ -6,10 +6,7 @@
 package kotlinx.io.benchmarks
 
 import kotlinx.benchmark.*
-import kotlinx.io.readString
-import kotlinx.io.readStringJvm
-import kotlinx.io.writeString
-import kotlinx.io.writeStringJvm
+import kotlinx.io.*
 
 @State(Scope.Benchmark)
 open class Utf8StringWriteonlyBenchmark : BufferRWBenchmarkBase() {
@@ -43,10 +40,10 @@ open class Utf8StringWriteonlyBenchmark : BufferRWBenchmarkBase() {
         "bad" to "\ud800\u0061\udc00\u0061"
     )
 
-    @Param("20", "2000")//, "200000")
+    @Param("20", "100", "2000")//, "200000")
     var length = 0
 
-    @Param("ascii", "utf8", "sparse")//, "2bytes", "3bytes", "4bytes", "bad")
+    @Param("ascii", "utf8", "sparse", "2bytes", "3bytes", "4bytes")//, "bad")
     var encoding: String = "ascii"
 
     private var string: String = ""
@@ -90,6 +87,13 @@ open class Utf8StringWriteonlyBenchmark : BufferRWBenchmarkBase() {
     fun opt() {
         val s = buffer.size
         buffer.writeStringJvm(string)
+        buffer.skip(buffer.size - s)
+    }
+
+    @Benchmark
+    fun optCA() {
+        val s = buffer.size
+        buffer.writeStringJvm2(string)
         buffer.skip(buffer.size - s)
     }
 }
