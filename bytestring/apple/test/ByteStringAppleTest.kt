@@ -13,10 +13,7 @@ import platform.Foundation.create
 import platform.posix.memset
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 @OptIn(UnsafeNumber::class)
 class ByteStringAppleTest {
@@ -62,7 +59,10 @@ class ByteStringAppleTest {
         val data = allocArray<ByteVar>(length)
         memset(data, 0, length.convert())
 
-        val cursedData = NSData.create(bytesNoCopy = data, length = length.convert())
+        val cursedData = NSData.create(
+            bytesNoCopy = data, length = length.convert(),
+            freeWhenDone = false
+        )
 
         val byteString = cursedData.toByteString()
         memset(data, 42, length.convert())
