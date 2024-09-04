@@ -313,6 +313,73 @@ public object UnsafeBufferOperations {
         iterationAction(BufferIterationContextImpl, buffer.head)
     }
 
+
+    /**
+     * Iterates over [buffer] segments starting from the head.
+     *
+     * [action] is invoked with an instance of [SegmentReadContext]
+     * allowing to read and write in an unchecked manner from [buffer]'s segments
+     *
+     * It is considered an error to use a [SegmentReadContext] or a [Segment] instances outside the scope of
+     * the [action].
+     *
+     * Both [action] arguments are valid only within [action] scope, it is an error to store and reuse it later.
+     * The action might never be invoked if the given [buffer] is empty.
+     *
+     * @param buffer a buffer to iterate over
+     * @param action a callback to invoke with the head reference and an iteration context instance
+     * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.messageDigest2
+     * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.crc32Unsafe2
+     */
+    public inline fun forEachSegment(
+        buffer: Buffer,
+        action: (context: SegmentReadContext, segment: Segment) -> Unit
+    ) {
+        var curr: Segment? = buffer.head
+        while (curr != null) {
+            action(SegmentReadContextImpl, curr)
+            curr = curr.next
+        }
+    }
+
+    /**
+     * Iterates over [buffer] segments starting from a segment spanning over a specified [offset].
+     *
+     * [action] is invoked with an instance of [SegmentReadContext]
+     * allowing to read and write in an unchecked manner from [buffer]'s segments
+     *
+     * It is considered an error to use a [SegmentReadContext] or a [Segment] instances outside the scope of
+     * the [action].
+     *
+     * Both [action] arguments are valid only within [action] scope, it is an error to store and reuse it later.
+     * The action might never be invoked if the given [buffer] is empty.
+     *
+     * To locate [buffer]'s [offset]'th byte within the supplied segment, one has to subtract [offset] from the supplied
+     * offset value for the first segment.
+     *
+     * @param buffer a buffer to iterate over
+     * @param action a callback to invoke with the head reference and an iteration context instance
+     * @throws IllegalArgumentException when [offset] is negative
+     * @throws IndexOutOfBoundsException when [offset] is greater or equal to [Buffer.size]
+     */
+    public inline fun forEachSegment(
+        buffer: Buffer, offset: Long,
+        action: (context: SegmentReadContext, segment: Segment, startOfTheSegmentOffset: Long) -> Unit
+    ) {
+        require(offset >= 0) { "Offset must be non-negative: $offset" }
+        if (offset >= buffer.size) {
+            throw IndexOutOfBoundsException("Offset should be less than buffer's size (${buffer.size}): $offset")
+        }
+
+        buffer.seek(offset) { segment, o ->
+            var curr: Segment? = segment
+            while (curr != null) {
+                action(SegmentReadContextImpl, curr, if (curr === segment) o else 0L)
+                curr = curr.next
+            }
+        }
+    }
+
     /**
      * Provides access to [buffer] segments starting from a segment spanning over a specified [offset].
      *

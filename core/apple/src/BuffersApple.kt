@@ -58,19 +58,14 @@ internal fun Buffer.snapshotAsNSData(): NSData {
     val bytes = malloc(size.convert())?.reinterpret<uint8_tVar>()
         ?: throw Error("malloc failed: ${strerror(errno)?.toKString()}")
 
-    UnsafeBufferOperations.iterate(this) { ctx, head ->
-        var curr: Segment? = head
-        var index = 0
-        while (curr != null) {
-            val segment: Segment = curr
-            ctx.withData(segment) { data, pos, limit ->
-                val length = limit - pos
-                data.usePinned {
-                    memcpy(bytes + index, it.addressOf(pos), length.convert())
-                }
-                index += length
+    var index = 0
+    UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
+        ctx.withData(segment) { data, pos, limit ->
+            val length = limit - pos
+            data.usePinned {
+                memcpy(bytes + index, it.addressOf(pos), length.convert())
             }
-            curr = ctx.next(segment)
+            index += length
         }
     }
     return NSData.create(bytesNoCopy = bytes, length = size.convert())

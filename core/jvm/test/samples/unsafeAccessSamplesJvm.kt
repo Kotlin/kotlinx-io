@@ -126,4 +126,23 @@ class UnsafeReadWriteSamplesJvm {
         val buffer = Buffer().also { it.writeString("hello world") }
         assertEquals("5eb63bbbe01eeed093cb22bb8f5acdc3", buffer.digest("MD5").toHexString())
     }
+
+    @Test
+    @OptIn(UnsafeByteStringApi::class, ExperimentalStdlibApi::class)
+    fun messageDigest2() {
+        fun Buffer.digest(algorithm: String): ByteString {
+            val md = MessageDigest.getInstance(algorithm)
+            // iterate over all segment and update data
+            UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
+                ctx.withData(segment) { data, startIndex, endIndex ->
+                    md.update(data, startIndex, endIndex - startIndex)
+                }
+            }
+
+            return UnsafeByteStringOperations.wrapUnsafe(md.digest())
+        }
+
+        val buffer = Buffer().also { it.writeString("hello world") }
+        assertEquals("5eb63bbbe01eeed093cb22bb8f5acdc3", buffer.digest("MD5").toHexString())
+    }
 }

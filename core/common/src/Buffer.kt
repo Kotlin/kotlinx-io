@@ -553,21 +553,16 @@ public class Buffer : Source, Sink {
         val len = minOf(maxPrintableBytes, size).toInt()
 
         val builder = StringBuilder(len * 2 + if (size > maxPrintableBytes) 1 else 0)
-
-        UnsafeBufferOperations.iterate(this) { ctx, head ->
-            var bytesWritten = 0
-            var seg: Segment? = head
-            do {
-                seg!!
-                var idx = 0
-                while (bytesWritten < len && idx < seg.size) {
-                    val b = ctx.getUnchecked(seg, idx++)
-                    bytesWritten++
-                    builder.append(HEX_DIGIT_CHARS[(b shr 4) and 0xf])
-                        .append(HEX_DIGIT_CHARS[b and 0xf])
-                }
-                seg = ctx.next(seg)
-            } while (seg != null)
+        var bytesWritten = 0
+        UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
+            var idx = 0
+            while (bytesWritten < len && idx < segment.size) {
+                val b = ctx.getUnchecked(segment, idx++)
+                bytesWritten++
+                builder
+                    .append(HEX_DIGIT_CHARS[(b shr 4) and 0xf])
+                    .append(HEX_DIGIT_CHARS[b and 0xf])
+            }
         }
 
         if (size > maxPrintableBytes) {

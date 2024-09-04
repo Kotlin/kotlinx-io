@@ -305,6 +305,8 @@ public abstract interface class kotlinx/io/unsafe/SegmentWriteContext {
 
 public final class kotlinx/io/unsafe/UnsafeBufferOperations {
 	public static final field INSTANCE Lkotlinx/io/unsafe/UnsafeBufferOperations;
+	public final fun forEachSegment (Lkotlinx/io/Buffer;JLkotlin/jvm/functions/Function3;)V
+	public final fun forEachSegment (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V
 	public final fun getMaxSafeWriteCapacity ()I
 	public final fun iterate (Lkotlinx/io/Buffer;JLkotlin/jvm/functions/Function3;)V
 	public final fun iterate (Lkotlinx/io/Buffer;Lkotlin/jvm/functions/Function2;)V

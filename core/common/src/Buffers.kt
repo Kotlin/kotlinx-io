@@ -22,12 +22,8 @@ public fun Buffer.snapshot(): ByteString {
     check(size <= Int.MAX_VALUE) { "Buffer is too long ($size) to be converted into a byte string." }
 
     return buildByteString(size.toInt()) {
-        UnsafeBufferOperations.iterate(this@snapshot) { ctx, head ->
-            var curr = head
-            while (curr != null) {
-                ctx.withData(curr, this::append)
-                curr = ctx.next(curr)
-            }
+        UnsafeBufferOperations.forEachSegment(this@snapshot) { ctx, segment ->
+            ctx.withData(segment, this::append)
         }
     }
 }

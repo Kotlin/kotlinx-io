@@ -331,4 +331,42 @@ class UnsafeBufferOperationsSamples {
 
         assertEquals(0x9896d398U, buffer.crc32UsingGetUnchecked())
     }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    @Test
+    fun crc32GetUnchecked2() {
+        fun generateCrc32Table(): UIntArray {
+            val table = UIntArray(256)
+            for (idx in table.indices) {
+                table[idx] = idx.toUInt()
+                for (bit in 8 downTo 1) {
+                    table[idx] = if (table[idx] % 2U == 0U) {
+                        table[idx].shr(1)
+                    } else {
+                        table[idx].shr(1).xor(0xEDB88320U)
+                    }
+                }
+            }
+            return table
+        }
+        val crc32Table = generateCrc32Table()
+
+        @OptIn(UnsafeIoApi::class)
+        fun Buffer.crc32UsingGetUnchecked(): UInt {
+            var crc32 = 0xffffffffU
+            // iterate over all segments
+            UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
+                // Get data from a segment
+                for (offset in 0..<segment.size) {
+                    val index = ctx.getUnchecked(segment, offset).xor(crc32.toByte()).toUByte()
+                    crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
+                }
+            }
+            return crc32.xor(0xffffffffU)
+        }
+
+        val buffer = Buffer().also { it.writeString("hello crc32") }
+
+        assertEquals(0x9896d398U, buffer.crc32UsingGetUnchecked())
+    }
 }
