@@ -69,6 +69,7 @@ public class Buffer : Source, Sink {
      */
     @InternalIoApi
     override val buffer: Buffer get() = this
+
     override fun exhausted(): Boolean = size == 0L
 
     override fun require(byteCount: Long) {
@@ -179,7 +180,7 @@ public class Buffer : Source, Sink {
     override fun flush(): Unit = Unit
 
     /**
-     * Copy bytes from this buffer's subrange starting at [startIndex] and ending at [endIndex], to [out] buffer.
+     * Copies bytes from this buffer's subrange starting at [startIndex] and ending at [endIndex], to [out] buffer.
      * This method does not consume data from the buffer.
      *
      * @param out the destination buffer to copy data into.

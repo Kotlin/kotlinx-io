@@ -21,6 +21,7 @@
 package kotlinx.io
 
 import java.io.Flushable
+
 public actual interface RawSink : AutoCloseable, Flushable {
     public actual fun write(source: Buffer, byteCount: Long)
 
