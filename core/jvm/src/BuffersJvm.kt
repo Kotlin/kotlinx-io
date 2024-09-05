@@ -30,7 +30,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
 
 /**
- * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
+ * Reads and exhausts bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
  *
  * @param input the stream to read data from.
  *
@@ -42,7 +42,7 @@ public fun Buffer.transferFrom(input: InputStream): Buffer {
 }
 
 /**
- * Read [byteCount] bytes from [input] into this buffer. Throws an exception when [input] is
+ * Reads [byteCount] bytes from [input] into this buffer. Throws an exception when [input] is
  * exhausted before reading [byteCount] bytes.
  *
  * @param input the stream to read data from.
@@ -107,7 +107,7 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
 }
 
 /**
- * Copy bytes from this buffer's subrange, starting at [startIndex] and ending at [endIndex], to [out]. This method
+ * Copies bytes from this buffer's subrange, starting at [startIndex] and ending at [endIndex], to [out]. This method
  * does not consume data from the buffer.
  *
  * @param out the destination to copy data into.
