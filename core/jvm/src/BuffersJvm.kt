@@ -130,21 +130,18 @@ public fun Buffer.copyTo(
 
     var remainingByteCount = endIndex - startIndex
 
-    var firstSegmentHandled = false
-    UnsafeBufferOperations.forEachSegment(this, startIndex) { ctx, segment, offset ->
-        val currentOffset = if (firstSegmentHandled) {
-            0
-        } else {
-            firstSegmentHandled = true
-            (startIndex - offset).toInt()
+    UnsafeBufferOperations.iterate(this, startIndex) { ctx, seg, segOffset ->
+        var curr = seg!!
+        var currentOffset = (startIndex - segOffset).toInt()
+        while (remainingByteCount > 0) {
+            ctx.withData(curr) { data, pos, limit ->
+                val toCopy = minOf(limit - pos - currentOffset, remainingByteCount).toInt()
+                out.write(data, pos + currentOffset, toCopy)
+                remainingByteCount -= toCopy
+            }
+            curr = ctx.next(curr) ?: break
+            currentOffset = 0
         }
-        ctx.withData(segment) { data, pos, limit ->
-            val toCopy = minOf(limit - pos - currentOffset, remainingByteCount).toInt()
-            out.write(data, pos + currentOffset, toCopy)
-            remainingByteCount -= toCopy
-        }
-        // TODO this if is untested
-        if (remainingByteCount <= 0) return
     }
 }
 

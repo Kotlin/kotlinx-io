@@ -108,17 +108,13 @@ class UnsafeReadWriteSamplesJvm {
         fun Buffer.digest(algorithm: String): ByteString {
             val md = MessageDigest.getInstance(algorithm)
             // iterate over all segment and update data
-            UnsafeBufferOperations.iterate(this) { ctx, head ->
-                var segment = head
+            UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
                 // when segment is null, we reached the end of a buffer
-                while (segment != null) {
-                    // access segment data without copying it
-                    ctx.withData(segment) { data, startIndex, endIndex ->
-                        md.update(data, startIndex, endIndex - startIndex)
-                    }
-                    // advance to the next segment
-                    segment = ctx.next(segment)
+                // access segment data without copying it
+                ctx.withData(segment) { data, startIndex, endIndex ->
+                    md.update(data, startIndex, endIndex - startIndex)
                 }
+                // advance to the next segment
             }
             return UnsafeByteStringOperations.wrapUnsafe(md.digest())
         }
