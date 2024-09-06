@@ -106,7 +106,7 @@ public fun ByteBuffer.putByteString(string: ByteString) {
  */
 public fun ByteBuffer.putByteString(at: Int, string: ByteString) {
     checkIndexAndCapacity(at, string.size)
-    // Absolute get(byte[]) was added only in JDK 13
+    // Absolute put(byte[]) was added only in JDK 16
     for (idx in string.indices) {
         put(at + idx, string[idx])
     }
