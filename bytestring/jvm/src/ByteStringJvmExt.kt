@@ -27,6 +27,8 @@ public fun String.encodeToByteString(charset: Charset): ByteString = ByteString.
 
 /**
  * Returns a new read-only heap [ByteBuffer] wrapping [this] ByteString's content.
+ *
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamplesJvm.toReadOnlyByteBuffer
  */
 @OptIn(UnsafeByteStringApi::class)
 public fun ByteString.asReadOnlyByteBuffer(): ByteBuffer {
@@ -46,6 +48,8 @@ public fun ByteString.asReadOnlyByteBuffer(): ByteBuffer {
  * Upon successful execution, current position will advance by [length].
  *
  * @throws IndexOutOfBoundsException when [length] has negative value or its value exceeds [ByteBuffer.remaining]
+ *
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamplesJvm.getByteStringFromBuffer
  */
 @OptIn(UnsafeByteStringApi::class)
 public fun ByteBuffer.getByteString(length: Int = remaining()): ByteString {
@@ -68,6 +72,8 @@ public fun ByteBuffer.getByteString(length: Int = remaining()): ByteString {
  *
  * @throws IndexOutOfBoundsException when [at] is negative, greater or equal to [ByteBuffer.limit]
  * or [at] + [length] exceeds [ByteBuffer.limit].
+ *
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamplesJvm.getByteStringFromBufferAbsolute
  */
 @OptIn(UnsafeByteStringApi::class)
 public fun ByteBuffer.getByteString(at: Int, length: Int): ByteString {
@@ -87,6 +93,8 @@ public fun ByteBuffer.getByteString(at: Int, length: Int): ByteString {
  *
  * @throws java.nio.ReadOnlyBufferException when [this] buffer is read-only
  * @throws java.nio.BufferOverflowException when [string] can't fit into remaining space of this buffer
+ *
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamplesJvm.putByteStringToBuffer
  */
 @OptIn(UnsafeByteStringApi::class)
 public fun ByteBuffer.putByteString(string: ByteString) {
@@ -103,6 +111,8 @@ public fun ByteBuffer.putByteString(string: ByteString) {
  * @throws java.nio.ReadOnlyBufferException when [this] buffer is read-only
  * @throws IndexOutOfBoundsException when [at] is negative, exceeds [ByteBuffer.limit], or
  * [at] + [ByteString.size] exceeds [ByteBuffer.limit]
+ *
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamplesJvm.putByteStringToBufferAbsolute
  */
 public fun ByteBuffer.putByteString(at: Int, string: ByteString) {
     checkIndexAndCapacity(at, string.size)

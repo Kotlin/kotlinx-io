@@ -14,7 +14,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-public class ByteStringByteBufferExtensions {
+public class ByteStringByteBufferExtensionsTest {
     @Test
     fun asReadOnlyByteBuffer() {
         val buffer = ByteString(1, 2, 3, 4).asReadOnlyByteBuffer()
