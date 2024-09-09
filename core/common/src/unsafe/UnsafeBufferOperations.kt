@@ -295,13 +295,14 @@ public object UnsafeBufferOperations {
      * the [iterationAction].
      *
      * Both [iterationAction] arguments are valid only within [iterationAction] scope,
-     * it's an error to store and reuse it later.
+     * it is an error to store and reuse it later.
+     *
+     * For a full iteration over buffer's segments, see [forEachSegment].
      *
      * @param buffer a buffer to iterate over
      * @param iterationAction a callback to invoke with the head reference and an iteration context instance
      *
-     * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.messageDigest
-     * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.crc32Unsafe
+     * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.crc32GetUnchecked
      */
     public inline fun iterate(
         buffer: Buffer,
@@ -350,6 +351,34 @@ public object UnsafeBufferOperations {
 
         buffer.seek(offset) { s, o ->
             iterationAction(BufferIterationContextImpl, s, o)
+        }
+    }
+
+    /**
+     * Iterates over [buffer] segments starting from the head.
+     *
+     * [action] is invoked with an instance of [SegmentReadContext]
+     * allowing to read and write in an unchecked manner from [buffer]'s segments
+     *
+     * It is considered an error to use a [SegmentReadContext] or a [Segment] instances outside the scope of
+     * the [action].
+     *
+     * Both [action] arguments are valid only within [action] scope, it is an error to store and reuse it later.
+     * The action might never be invoked if the given [buffer] is empty.
+     *
+     * @param buffer a buffer to iterate over
+     * @param action a callback to invoke with the head reference and an iteration context instance
+     * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.messageDigest
+     * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.crc32Unsafe
+     */
+    public inline fun forEachSegment(
+        buffer: Buffer,
+        action: (context: SegmentReadContext, segment: Segment) -> Unit
+    ) {
+        var curr: Segment? = buffer.head
+        while (curr != null) {
+            action(SegmentReadContextImpl, curr)
+            curr = curr.next
         }
     }
 }
@@ -494,8 +523,7 @@ public interface BufferIterationContext : SegmentReadContext {
      *
      * @param segment a segment for which a successor needs to be found
      *
-     * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.messageDigest
-     * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.crc32Unsafe
+     * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.crc32GetUnchecked
      */
     public fun next(segment: Segment): Segment?
 }

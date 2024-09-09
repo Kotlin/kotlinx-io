@@ -607,17 +607,17 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
     // Invariant: byteCount was request()'ed into this buffer beforehand
     if (byteCount == 0L) return ""
 
-    UnsafeBufferOperations.iterate(this) { ctx, head ->
-        head!!
-        if (head.size >= byteCount) {
+    UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
+        if (segment.size >= byteCount) {
             var result = ""
-            ctx.withData(head) { data, pos, limit ->
+            ctx.withData(segment) { data, pos, limit ->
                 result = data.commonToUtf8String(pos, min(limit, pos + byteCount.toInt()))
                 skip(byteCount)
                 return result
             }
         }
-    }
         // If the string spans multiple segments, delegate to readBytes()
         return readByteArray(byteCount.toInt()).commonToUtf8String()
     }
+    error("Unreacheable")
+}

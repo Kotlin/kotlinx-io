@@ -267,20 +267,15 @@ class UnsafeBufferOperationsSamples {
         fun Buffer.crc32(): UInt {
             var crc32 = 0xffffffffU
             // Iterate over segments starting from buffer's head
-            UnsafeBufferOperations.iterate(this) { ctx, head ->
-                var currentSegment = head
-                // If a current segment is null, it means we ran out of segments.
-                while (currentSegment != null) {
-                    // Get data from a segment
-                    ctx.withData(currentSegment) { data, startIndex, endIndex ->
-                        for (idx in startIndex..<endIndex) {
-                            // Update crc32
-                            val index = data[idx].xor(crc32.toByte()).toUByte()
-                            crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
-                        }
+            UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
+                var currentSegment = segment
+                // Get data from a segment
+                ctx.withData(currentSegment) { data, startIndex, endIndex ->
+                    for (idx in startIndex..<endIndex) {
+                        // Update crc32
+                        val index = data[idx].toUInt().xor(crc32).toUByte()
+                        crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
                     }
-                    // Advance to the next segment
-                    currentSegment = ctx.next(currentSegment)
                 }
             }
             return crc32.xor(0xffffffffU)
