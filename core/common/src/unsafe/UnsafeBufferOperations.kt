@@ -295,7 +295,9 @@ public object UnsafeBufferOperations {
      * the [iterationAction].
      *
      * Both [iterationAction] arguments are valid only within [iterationAction] scope,
-     * it's an error to store and reuse it later.
+     * it is an error to store and reuse it later.
+     *
+     * For a full iteration over buffer's segments, see [forEachSegment].
      *
      * @param buffer a buffer to iterate over
      * @param iterationAction a callback to invoke with the head reference and an iteration context instance
