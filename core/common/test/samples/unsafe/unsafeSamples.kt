@@ -273,7 +273,7 @@ class UnsafeBufferOperationsSamples {
                 ctx.withData(currentSegment) { data, startIndex, endIndex ->
                     for (idx in startIndex..<endIndex) {
                         // Update crc32
-                        val index = data[idx].xor(crc32.toByte()).toUByte()
+                        val index = data[idx].toUInt().xor(crc32).toUByte()
                         crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
                     }
                 }
