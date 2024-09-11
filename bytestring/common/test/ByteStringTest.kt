@@ -410,4 +410,14 @@ class ByteStringTest {
         assertFalse(ByteString(1, 2, 3, 4, 5).contentEquals(byteArrayOf(1, 2, 3, 4, 5, 6)))
         assertFalse(ByteString(1, 2, 3, 4, 5, 6).contentEquals(byteArrayOf(1, 2, 3, 4, 5)))
     }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    @Test
+    fun fromUBytes() {
+        val str = ByteString(0xDEu, 0xADu, 0xC0u, 0xDEu)
+        assertContentEquals(
+            byteArrayOf(0xDE.toByte(), 0xAD.toByte(), 0xC0u.toByte(), 0xDEu.toByte()),
+            str.toByteArray()
+        )
+    }
 }

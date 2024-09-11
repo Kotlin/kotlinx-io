@@ -199,6 +199,14 @@ class ByteStringSamples {
         assertEquals(3, byteStringFromBytes.size)
     }
 
+    @OptIn(ExperimentalUnsignedTypes::class)
+    @Test
+    fun constructionFromUBytesSample() {
+        val byteStringFromBytes = ByteString(0xCAu, 0xFEu)
+        assertFalse(byteStringFromBytes.isEmpty())
+        assertEquals(2, byteStringFromBytes.size)
+    }
+
     @Test
     fun encodeAndDecodeUtf8String() {
         val helloAsByteString = "hello".encodeToByteString()
