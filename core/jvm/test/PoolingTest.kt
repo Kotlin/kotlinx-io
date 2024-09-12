@@ -78,7 +78,9 @@ class PoolingTest {
 
     @Test
     fun contendedUseTest() {
-        val threadsCount = Runtime.getRuntime().availableProcessors()
+        val threadsCount = Runtime.getRuntime().availableProcessors() * 3
+        assertTrue(threadsCount >= SegmentPool.HASH_BUCKET_COUNT)
+
         val segmentsPerThread = SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE / Segment.SIZE / threadsCount
         val observedSegments = ConcurrentHashMap<Segment, Any>()
 
@@ -106,7 +108,9 @@ class PoolingTest {
 
     @Test
     fun contendedUseWithMixedOperationsTest() {
-        val threadsCount = Runtime.getRuntime().availableProcessors()
+        val threadsCount = Runtime.getRuntime().availableProcessors() * 3
+        assertTrue(threadsCount >= SegmentPool.HASH_BUCKET_COUNT)
+
         val segmentsPerThread = SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE / Segment.SIZE / threadsCount
         val observedSegments = ConcurrentHashMap<Segment, Any>()
 
