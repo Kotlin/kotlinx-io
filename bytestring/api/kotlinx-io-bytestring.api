@@ -64,8 +64,14 @@ public final class kotlinx/io/bytestring/ByteStringBuilderKt {
 }
 
 public final class kotlinx/io/bytestring/ByteStringJvmExtKt {
+	public static final fun asReadOnlyByteBuffer (Lkotlinx/io/bytestring/ByteString;)Ljava/nio/ByteBuffer;
 	public static final fun decodeToString (Lkotlinx/io/bytestring/ByteString;Ljava/nio/charset/Charset;)Ljava/lang/String;
 	public static final fun encodeToByteString (Ljava/lang/String;Ljava/nio/charset/Charset;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun getByteString (Ljava/nio/ByteBuffer;I)Lkotlinx/io/bytestring/ByteString;
+	public static final fun getByteString (Ljava/nio/ByteBuffer;II)Lkotlinx/io/bytestring/ByteString;
+	public static synthetic fun getByteString$default (Ljava/nio/ByteBuffer;IILjava/lang/Object;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun putByteString (Ljava/nio/ByteBuffer;ILkotlinx/io/bytestring/ByteString;)V
+	public static final fun putByteString (Ljava/nio/ByteBuffer;Lkotlinx/io/bytestring/ByteString;)V
 }
 
 public final class kotlinx/io/bytestring/ByteStringKt {
