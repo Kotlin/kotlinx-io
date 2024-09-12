@@ -8,9 +8,7 @@ package kotlinx.io.samples
 import kotlinx.io.*
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class ByteStringSamples {
     @Test
