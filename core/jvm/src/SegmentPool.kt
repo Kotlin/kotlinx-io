@@ -111,8 +111,10 @@ internal actual object SegmentPool {
      * The number of hash buckets. This number needs to balance keeping the pool small and contention
      * low. We use the number of processors rounded up to the nearest power of two. For example a
      * machine with 6 cores will have 8 hash buckets.
+     *
+     * Visible for testing only.
      */
-    private val HASH_BUCKET_COUNT =
+    internal val HASH_BUCKET_COUNT =
         Integer.highestOneBit(Runtime.getRuntime().availableProcessors() * 2 - 1)
 
     private val HASH_BUCKET_COUNT_L2 = (HASH_BUCKET_COUNT / 2).coerceAtLeast(1)
@@ -124,7 +126,8 @@ internal actual object SegmentPool {
         else -> "4194304" // 4MB
     }
 
-    private val SECOND_LEVEL_POOL_TOTAL_SIZE =
+    // visible for testing
+    internal val SECOND_LEVEL_POOL_TOTAL_SIZE =
         System.getProperty("kotlinx.io.pool.size.bytes", DEFAULT_SECOND_LEVEL_POOL_TOTAL_SIZE)
             .toIntOrNull()?.coerceAtLeast(0) ?: 0
 
