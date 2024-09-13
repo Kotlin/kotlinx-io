@@ -41,6 +41,9 @@ public fun ByteString(vararg bytes: Byte): ByteString = if (bytes.isEmpty()) {
 /**
  * Wraps given [bytes] into a byte string.
  *
+ * Internally, [bytes] will be stored as [ByteArray], and accesses to individual
+ * [ByteString]'s bytes will return a signed [Byte] as if someone call `bytes[i].toByte()`.
+ *
  * @param bytes a sequence of bytes to be wrapped.
  *
  * @sample kotlinx.io.bytestring.samples.ByteStringSamples.constructionFromUBytesSample
