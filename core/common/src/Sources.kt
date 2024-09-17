@@ -10,6 +10,7 @@ package kotlinx.io
  *
  * @throws EOFException when there are not enough data to read a short value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortLe
  */
@@ -22,6 +23,7 @@ public fun Source.readShortLe(): Short {
  *
  * @throws EOFException when there are not enough data to read an int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntLe
  */
@@ -34,6 +36,7 @@ public fun Source.readIntLe(): Int {
  *
  * @throws EOFException when there are not enough data to read a long value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongLe
  */
@@ -55,6 +58,7 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
  * number was not present.
  * @throws EOFException if the source is exhausted before a call of this method.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDecimalLong
  */
@@ -62,20 +66,22 @@ internal const val OVERFLOW_DIGIT_START = Long.MIN_VALUE % 10L + 1
 public fun Source.readDecimalLong(): Long {
     require(1L)
 
-    var currIdx = 0L
     var negative = false
     var value = 0L
-    var seen = 0
     var overflowDigit = OVERFLOW_DIGIT_START
-    when (val b = buffer[currIdx++]) {
+
+    when (val b = buffer[0]) {
         '-'.code.toByte() -> {
             negative = true
             overflowDigit--
+            require(2)
+            if (buffer[1] !in '0'.code .. '9'.code) {
+                throw NumberFormatException("Expected a digit but was 0x${buffer[1].toHexString()}")
+            }
         }
 
         in '0'.code..'9'.code -> {
             value = ('0'.code - b).toLong()
-            seen = 1
         }
 
         else -> {
@@ -83,35 +89,39 @@ public fun Source.readDecimalLong(): Long {
         }
     }
 
-    while (request(currIdx + 1L)) {
-        val b = buffer[currIdx++]
-        if (b in '0'.code..'9'.code) {
-            val digit = '0'.code - b
+    var bufferOffset = 1L
+    while (request(bufferOffset + 1)) {
+        val finished = buffer.seek(bufferOffset) { seg, offset ->
+            seg!!
+            var currIdx = (bufferOffset - offset).toInt()
+            val size = seg.size
+            while (currIdx < size) {
+                val b = seg.getUnchecked(currIdx)
+                if (b in '0'.code..'9'.code) {
+                    val digit = '0'.code - b
 
-            // Detect when the digit would cause an overflow.
-            if (value < OVERFLOW_ZONE || value == OVERFLOW_ZONE && digit < overflowDigit) {
-                with(Buffer()) {
-                    writeDecimalLong(value)
-                    writeByte(b)
+                    // Detect when the digit would cause an overflow.
+                    if (value < OVERFLOW_ZONE || value == OVERFLOW_ZONE && digit < overflowDigit) {
+                        with(Buffer()) {
+                            writeDecimalLong(value)
+                            writeByte(b)
 
-                    if (!negative) readByte() // Skip negative sign.
-                    throw NumberFormatException("Number too large: ${readString()}")
+                            if (!negative) readByte() // Skip negative sign.
+                            throw NumberFormatException("Number too large: ${readString()}")
+                        }
+                    }
+                    value = value * 10L + digit
+                    currIdx++
+                    bufferOffset++
+                } else {
+                    return@seek true
                 }
             }
-            value = value * 10L + digit
-            seen++
-        } else {
-            break
+            false
         }
+        if (finished) break
     }
-
-    if (seen < 1) {
-        require(2)
-        val expected = if (negative) "Expected a digit" else "Expected a digit or '-'"
-        throw NumberFormatException("$expected but was 0x${buffer[1].toHexString()}")
-    }
-
-    skip(currIdx.toLong() - 1)
+    skip(bufferOffset)
 
     return if (negative) value else -value
 }
@@ -126,6 +136,7 @@ public fun Source.readDecimalLong(): Long {
  * hexadecimal was not found.
  * @throws EOFException if the source is exhausted before a call of this method.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readHexLong
  */
@@ -142,22 +153,30 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
     var bytesRead = 1L
 
     while (request(bytesRead + 1L)) {
-        val b = buffer[bytesRead]
-        val bDigit = when (b) {
-            in '0'.code..'9'.code -> b - '0'.code
-            in 'a'.code..'f'.code -> b - 'a'.code + 10
-            in 'A'.code..'F'.code -> b - 'A'.code + 10
-            else -> break
-        }
-        if (result and -0x1000000000000000L != 0L) {
-            with(Buffer()) {
-                writeHexadecimalUnsignedLong(result)
-                writeByte(b)
-                throw NumberFormatException("Number too large: " + readString())
+        val stop = buffer.seek(bytesRead) { seg, offset ->
+            seg!!
+            val startIndex = (bytesRead - offset).toInt()
+            for (localOffset in startIndex until seg.size) {
+                val b = seg.getUnchecked(localOffset)
+                val bDigit = when (b) {
+                    in '0'.code..'9'.code -> b - '0'.code
+                    in 'a'.code..'f'.code -> b - 'a'.code + 10
+                    in 'A'.code..'F'.code -> b - 'A'.code + 10
+                    else -> return@seek true
+                }
+                if (result and -0x1000000000000000L != 0L) {
+                    with(Buffer()) {
+                        writeHexadecimalUnsignedLong(result)
+                        writeByte(b)
+                        throw NumberFormatException("Number too large: " + readString())
+                    }
+                }
+                result = result.shl(4) + bDigit
+                bytesRead++
             }
+            false
         }
-        result = result.shl(4) + bDigit
-        bytesRead++
+        if (stop) break
     }
     skip(bytesRead)
     return result
@@ -178,6 +197,7 @@ public fun Source.readHexadecimalUnsignedLong(): Long {
  *
  * @throws IllegalStateException when the source is closed.
  * @throws IllegalArgumentException when `startIndex > endIndex` or either of indices is negative.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.indexOfByteSample
  */
@@ -207,6 +227,7 @@ public fun Source.indexOf(byte: Byte, startIndex: Long = 0L, endIndex: Long = Lo
  * Removes all bytes from this source and returns them as a byte array.
  *
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToArraySample
  */
@@ -222,6 +243,7 @@ public fun Source.readByteArray(): ByteArray {
  * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws EOFException when the underlying source is exhausted before [byteCount] bytes of data could be read.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToArraySample
  */
@@ -261,6 +283,7 @@ private fun Source.readByteArrayImpl(size: Int): ByteArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToArraySample
  */
@@ -284,6 +307,7 @@ public fun Source.readTo(sink: ByteArray, startIndex: Int = 0, endIndex: Int = s
  *
  * @throws EOFException when there are no more bytes to read.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUByte
  */
@@ -295,6 +319,7 @@ public fun Source.readUByte(): UByte = readByte().toUByte()
  *
  * @throws EOFException when there are not enough data to read an unsigned short value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUShort
  */
@@ -306,6 +331,7 @@ public fun Source.readUShort(): UShort = readShort().toUShort()
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUInt
  */
@@ -317,6 +343,7 @@ public fun Source.readUInt(): UInt = readInt().toUInt()
  *
  * @throws EOFException when there are not enough data to read an unsigned long value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readULong
  */
@@ -328,6 +355,7 @@ public fun Source.readULong(): ULong = readLong().toULong()
  *
  * @throws EOFException when there are not enough data to read an unsigned short value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUShortLe
  */
@@ -339,6 +367,7 @@ public fun Source.readUShortLe(): UShort = readShortLe().toUShort()
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readUIntLe
  */
@@ -350,6 +379,7 @@ public fun Source.readUIntLe(): UInt = readIntLe().toUInt()
  *
  * @throws EOFException when there are not enough data to read an unsigned long value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readULongLe
  */
@@ -367,6 +397,7 @@ public fun Source.readULongLe(): ULong = readLongLe().toULong()
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloat
  */
@@ -380,6 +411,7 @@ public fun Source.readFloat(): Float = Float.fromBits(readInt())
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDouble
  */
@@ -397,6 +429,7 @@ public fun Source.readDouble(): Double = Double.fromBits(readLong())
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatLe
  */
@@ -410,6 +443,7 @@ public fun Source.readFloatLe(): Float = Float.fromBits(readIntLe())
  *
  * @throws EOFException when there are not enough data to read an unsigned int value.
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleLe
  */
@@ -422,6 +456,7 @@ public fun Source.readDoubleLe(): Double = Double.fromBits(readLongLe())
  * If there is no buffered data, this call will result in a fetch from the underlying source.
  *
  * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.startsWithSample
  */

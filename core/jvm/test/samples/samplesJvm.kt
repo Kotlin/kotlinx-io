@@ -11,10 +11,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class KotlinxIoSamplesJvm {
     @Test

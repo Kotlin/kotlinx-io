@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.5.4
+> Published 17 September 2024
+
+### Features
+- Extended Unsafe API with a function allowing to iterate over all Buffer's segments [#383](https://github.com/Kotlin/kotlinx-io/pull/383)
+- Implemented `ByteString` conversion to/from `NSData` on Apple platforms [#384](https://github.com/Kotlin/kotlinx-io/pull/384)
+- Implemented extensions to read/write `ByteString` from to/from `ByteBuffer`, as well as representing
+  `ByteString` as a read-only `ByteBuffer` on JVM [#387](https://github.com/Kotlin/kotlinx-io/pull/387)
+- Implemented `ByteString` factory accepting unsigned bytes [#390](https://github.com/Kotlin/kotlinx-io/pull/390)
+- Reimplemented various functions using Unsafe API [#337](https://github.com/Kotlin/kotlinx-io/pull/337)
+- Minor documentation improvements
+
 ## 0.5.3
 > Published 19 August 2024
 

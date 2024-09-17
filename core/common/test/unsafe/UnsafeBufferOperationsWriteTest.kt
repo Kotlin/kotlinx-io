@@ -35,10 +35,9 @@ class UnsafeBufferOperationsWriteTest {
 
         UnsafeBufferOperations.writeToTail(buffer, 1) { data, startIndex, endIndex ->
             // Unsafe check, head is not committed yet
-            assertSame(buffer.head!!.data, data)
-
+            assertSame(buffer.head!!.dataAsByteArray(true), data)
             assertEquals(0, startIndex)
-            assertEquals(buffer.head!!.data.size, endIndex)
+            assertEquals(buffer.head!!.remainingCapacity, endIndex)
             0
         }
 

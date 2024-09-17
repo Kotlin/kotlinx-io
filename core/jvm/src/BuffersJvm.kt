@@ -20,6 +20,8 @@
  */
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.withData
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -28,7 +30,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
 
 /**
- * Read and exhaust bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
+ * Reads and exhausts bytes from [input] into this buffer. Stops reading data on [input] exhaustion.
  *
  * @param input the stream to read data from.
  *
@@ -40,7 +42,7 @@ public fun Buffer.transferFrom(input: InputStream): Buffer {
 }
 
 /**
- * Read [byteCount] bytes from [input] into this buffer. Throws an exception when [input] is
+ * Reads [byteCount] bytes from [input] into this buffer. Throws an exception when [input] is
  * exhausted before reading [byteCount] bytes.
  *
  * @param input the stream to read data from.
@@ -57,23 +59,25 @@ public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
     return this
 }
 
+@OptIn(UnsafeIoApi::class)
 private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) {
     var remainingByteCount = byteCount
-    while (remainingByteCount > 0L || forever) {
-        val tail = writableSegment(1)
-        val maxToCopy = minOf(remainingByteCount, Segment.SIZE - tail.limit).toInt()
-        val bytesRead = input.read(tail.data, tail.limit, maxToCopy)
-        if (bytesRead == -1) {
-            if (tail.pos == tail.limit) {
-                // We allocated a tail segment, but didn't end up needing it. Recycle!
-                recycleTail()
+    var exchaused = false
+    while (!exchaused && (remainingByteCount > 0L || forever)) {
+        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+            val maxToCopy = minOf(remainingByteCount, limit - pos).toInt()
+            val bytesRead = input.read(data, pos, maxToCopy)
+            if (bytesRead == -1) {
+                if (!forever) {
+                    throw EOFException("Stream exhausted before $byteCount bytes were read.")
+                }
+                exchaused = true
+                0
+            } else {
+                remainingByteCount -= bytesRead
+                bytesRead
             }
-            if (forever) return
-            throw EOFException("Stream exhausted before $byteCount bytes were read.")
         }
-        tail.limit += bytesRead
-        sizeMut += bytesRead.toLong()
-        remainingByteCount -= bytesRead.toLong()
     }
 }
 
@@ -87,28 +91,23 @@ private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) 
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.bufferTransferToStream
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
     checkOffsetAndCount(size, 0, byteCount)
     var remainingByteCount = byteCount
 
-    var s = head
     while (remainingByteCount > 0L) {
-        val toCopy = minOf(remainingByteCount, s!!.limit - s.pos).toInt()
-        out.write(s.data, s.pos, toCopy)
-
-        s.pos += toCopy
-        sizeMut -= toCopy.toLong()
-        remainingByteCount -= toCopy.toLong()
-
-        if (s.pos == s.limit) {
-            recycleHead()
-            s = head
+        UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+            val toCopy = minOf(remainingByteCount, limit - pos).toInt()
+            out.write(data, pos, toCopy)
+            remainingByteCount -= toCopy
+            toCopy
         }
     }
 }
 
 /**
- * Copy bytes from this buffer's subrange, starting at [startIndex] and ending at [endIndex], to [out]. This method
+ * Copies bytes from this buffer's subrange, starting at [startIndex] and ending at [endIndex], to [out]. This method
  * does not consume data from the buffer.
  *
  * @param out the destination to copy data into.
@@ -120,6 +119,7 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.copyBufferToOutputStream
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.copyTo(
     out: OutputStream,
     startIndex: Long = 0L,
@@ -128,24 +128,20 @@ public fun Buffer.copyTo(
     checkBounds(size, startIndex, endIndex)
     if (startIndex == endIndex) return
 
-    var currentOffset = startIndex
     var remainingByteCount = endIndex - startIndex
 
-    // Skip segments that we aren't copying from.
-    var s = head
-    while (currentOffset >= s!!.limit - s.pos) {
-        currentOffset -= (s.limit - s.pos).toLong()
-        s = s.next
-    }
-
-    // Copy from one segment at a time.
-    while (remainingByteCount > 0L) {
-        val pos = (s!!.pos + currentOffset).toInt()
-        val toCopy = minOf(s.limit - pos, remainingByteCount).toInt()
-        out.write(s.data, pos, toCopy)
-        remainingByteCount -= toCopy.toLong()
-        currentOffset = 0L
-        s = s.next
+    UnsafeBufferOperations.iterate(this, startIndex) { ctx, seg, segOffset ->
+        var curr = seg!!
+        var currentOffset = (startIndex - segOffset).toInt()
+        while (remainingByteCount > 0) {
+            ctx.withData(curr) { data, pos, limit ->
+                val toCopy = minOf(limit - pos - currentOffset, remainingByteCount).toInt()
+                out.write(data, pos + currentOffset, toCopy)
+                remainingByteCount -= toCopy
+            }
+            curr = ctx.next(curr) ?: break
+            currentOffset = 0
+        }
     }
 }
 
@@ -157,17 +153,14 @@ public fun Buffer.copyTo(
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.readWriteByteBuffer
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
-    val s = head ?: return -1
-
-    val toCopy = minOf(sink.remaining(), s.limit - s.pos)
-    sink.put(s.data, s.pos, toCopy)
-
-    s.pos += toCopy
-    sizeMut -= toCopy.toLong()
-
-    if (s.pos == s.limit) {
-        recycleHead()
+    if (exhausted()) return -1
+    var toCopy = 0
+    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        toCopy = minOf(sink.remaining(), limit - pos)
+        sink.put(data, pos, toCopy)
+        toCopy
     }
 
     return toCopy
@@ -178,20 +171,20 @@ public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.transferBufferFromByteBuffer
  */
+@OptIn(UnsafeIoApi::class)
 public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
     var remaining = byteCount
+
     while (remaining > 0) {
-        val tail = writableSegment(1)
-
-        val toCopy = minOf(remaining, Segment.SIZE - tail.limit)
-        source.get(tail.data, tail.limit, toCopy)
-
-        remaining -= toCopy
-        tail.limit += toCopy
+        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+            val toCopy = minOf(remaining, limit - pos)
+            source.get(data, pos, toCopy)
+            remaining -= toCopy
+            toCopy
+        }
     }
 
-    sizeMut += byteCount.toLong()
     return this
 }
 

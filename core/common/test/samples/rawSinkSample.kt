@@ -6,8 +6,7 @@
 package kotlinx.io.samples
 
 import kotlinx.io.*
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 class Crc32Sample {
     @OptIn(ExperimentalUnsignedTypes::class)
@@ -25,7 +24,7 @@ class Crc32Sample {
             private var crc32: UInt = 0xffffffffU
 
             private fun update(value: Byte) {
-                val index = value.xor(crc32.toByte()).toUByte()
+                val index = value.toUInt().xor(crc32).toUByte()
                 crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
             }
 

@@ -2,6 +2,7 @@
  * Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
+@file:OptIn(UnsafeIoApi::class)
 
 package kotlinx.io.unsafe
 
@@ -10,8 +11,6 @@ import kotlinx.io.UnsafeIoApi
 import kotlinx.io.assertArrayEquals
 import kotlinx.io.writeString
 import kotlin.test.*
-
-@OptIn(UnsafeIoApi::class)
 
 class UnsafeBufferOperationsIterationTest {
     @Test

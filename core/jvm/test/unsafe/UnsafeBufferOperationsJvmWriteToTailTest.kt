@@ -33,9 +33,9 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
 
         UnsafeBufferOperations.writeToTail(buffer, 1) { bb ->
             // Unsafe check, head is not committed yet
-            assertEquals(buffer.head!!.data.size, bb.remaining())
+            assertEquals(buffer.head!!.remainingCapacity, bb.remaining())
             assertEquals(0, bb.position())
-            assertEquals(buffer.head!!.data.size, bb.limit())
+            assertEquals(buffer.head!!.remainingCapacity, bb.limit())
         }
     }
 

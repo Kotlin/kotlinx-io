@@ -77,6 +77,7 @@ public sealed interface Source : RawSource {
    * The call of this method will block until there are bytes to read or the source is definitely exhausted.
    *
    * @throws IllegalStateException when the source is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.exhausted
    */
@@ -94,6 +95,7 @@ public sealed interface Source : RawSource {
    * @throws EOFException when the source is exhausted before the required bytes count could be read.
    * @throws IllegalStateException when the source is closed.
    * @throws IllegalArgumentException when [byteCount] is negative.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.require
    */
@@ -110,6 +112,7 @@ public sealed interface Source : RawSource {
    *
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws IllegalStateException when the source is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.request
    */
@@ -120,6 +123,7 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when there are no more bytes to read.
    * @throws IllegalStateException when the source is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readByte
    */
@@ -130,6 +134,7 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when there are not enough data to read a short value.
    * @throws IllegalStateException when the source is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShort
    */
@@ -140,6 +145,7 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when there are not enough data to read an int value.
    * @throws IllegalStateException when the source is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readInt
    */
@@ -150,6 +156,7 @@ public sealed interface Source : RawSource {
    *
    * @throws EOFException when there are not enough data to read a long value.
    * @throws IllegalStateException when the source is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLong
    */
@@ -163,6 +170,7 @@ public sealed interface Source : RawSource {
    * @throws EOFException when the source is exhausted before the requested number of bytes can be skipped.
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws IllegalStateException when the source is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.skip
    */
@@ -179,6 +187,7 @@ public sealed interface Source : RawSource {
    * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
    * @throws IllegalArgumentException when `startIndex > endIndex`.
    * @throws IllegalStateException when the source is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readAtMostToByteArray
    */
@@ -193,6 +202,7 @@ public sealed interface Source : RawSource {
    * @throws IllegalArgumentException when [byteCount] is negative.
    * @throws EOFException when the requested number of bytes cannot be read.
    * @throws IllegalStateException when the source or [sink] is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readSourceToSink
    */
@@ -207,6 +217,7 @@ public sealed interface Source : RawSource {
    * @param sink the sink to which data will be written from this source.
    *
    * @throws IllegalStateException when the source or [sink] is closed.
+   * @throws IOException when some I/O error occurs.
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.transferTo
    */

@@ -6,8 +6,7 @@
 package kotlinx.io.samples
 
 import kotlinx.io.*
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 class RC4SourceSample {
     @Test

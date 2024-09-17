@@ -8,51 +8,48 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.withData
 import platform.Foundation.NSData
 import platform.Foundation.create
 import platform.Foundation.data
 import platform.darwin.NSUIntegerMax
 import platform.posix.*
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class)
 internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
     var currentOffset = 0
     while (currentOffset < maxLength) {
-        val tail = writableSegment(1)
-
-        val toCopy = minOf(maxLength - currentOffset, Segment.SIZE - tail.limit)
-        tail.data.usePinned {
-            memcpy(it.addressOf(tail.limit), source + currentOffset, toCopy.convert())
+        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+            val toCopy = minOf(maxLength - currentOffset, limit - pos)
+            data.usePinned {
+                memcpy(it.addressOf(pos), source + currentOffset, toCopy.convert())
+            }
+            currentOffset += toCopy
+            toCopy
         }
-
-        currentOffset += toCopy
-        tail.limit += toCopy
     }
-    this.sizeMut += maxLength
 }
 
+@OptIn(UnsafeIoApi::class)
 internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): Int {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
-    val s = head ?: return 0
-    val toCopy = minOf(maxLength, s.limit - s.pos)
-    s.data.usePinned {
-        memcpy(sink, it.addressOf(s.pos), toCopy.convert())
-    }
-
-    s.pos += toCopy
-    this.sizeMut -= toCopy.toLong()
-
-    if (s.pos == s.limit) {
-        recycleHead()
+    var toCopy = 0
+    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        toCopy = minOf(maxLength, limit - pos)
+        data.usePinned {
+            memcpy(sink, it.addressOf(pos), toCopy.convert())
+        }
+        toCopy
     }
 
     return toCopy
 }
 
-@OptIn(BetaInteropApi::class)
+@OptIn(BetaInteropApi::class, UnsafeIoApi::class)
 internal fun Buffer.snapshotAsNSData(): NSData {
     if (size == 0L) return NSData.data()
 
@@ -60,17 +57,16 @@ internal fun Buffer.snapshotAsNSData(): NSData {
 
     val bytes = malloc(size.convert())?.reinterpret<uint8_tVar>()
         ?: throw Error("malloc failed: ${strerror(errno)?.toKString()}")
-    var curr = head
+
     var index = 0
-    do {
-        check(curr != null) { "Current segment is null" }
-        val pos = curr.pos
-        val length = curr.limit - pos
-        curr.data.usePinned {
-            memcpy(bytes + index, it.addressOf(pos), length.convert())
+    UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
+        ctx.withData(segment) { data, pos, limit ->
+            val length = limit - pos
+            data.usePinned {
+                memcpy(bytes + index, it.addressOf(pos), length.convert())
+            }
+            index += length
         }
-        curr = curr.next
-        index += length
-    } while (curr != null)
+    }
     return NSData.create(bytesNoCopy = bytes, length = size.convert())
 }

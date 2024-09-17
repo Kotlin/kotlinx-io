@@ -9,6 +9,7 @@ import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.isEmpty
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringApi
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringOperations
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlin.math.min
 
 /**
@@ -21,10 +22,11 @@ import kotlin.math.min
  * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [byteString] indices.
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalStateException if the sink is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.ByteStringSamples.writeByteString
  */
-@OptIn(DelicateIoApi::class)
+@OptIn(DelicateIoApi::class, UnsafeByteStringApi::class, UnsafeIoApi::class)
 public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int = byteString.size) {
     checkBounds(byteString.size, startIndex, endIndex)
     if (endIndex == startIndex) {
@@ -33,21 +35,17 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
 
     writeToInternalBuffer { buffer ->
         var offset = startIndex
-        val tail = buffer.head?.prev
-        if (tail != null) {
-            val bytesToWrite = min(tail.data.size - tail.limit, endIndex - offset)
-            byteString.copyInto(tail.data, tail.limit, offset, offset + bytesToWrite)
-            offset += bytesToWrite
-            tail.limit += bytesToWrite
-            buffer.sizeMut += bytesToWrite
-        }
-        while (offset < endIndex) {
-            val bytesToWrite = min(endIndex - offset, Segment.SIZE)
-            val seg = buffer.writableSegment(bytesToWrite)
-            byteString.copyInto(seg.data, seg.limit, offset, offset + bytesToWrite)
-            seg.limit += bytesToWrite
-            buffer.sizeMut += bytesToWrite
-            offset += bytesToWrite
+
+        UnsafeByteStringOperations.withByteArrayUnsafe(byteString) { data ->
+            while (offset < endIndex) {
+                var written = 0
+                UnsafeBufferOperations.writeToTail(buffer, 1) { segData, pos, limit ->
+                    written = min(endIndex - offset, limit - pos)
+                    data.copyInto(segData, pos, offset, offset + written)
+                    written
+                }
+                offset += written
+            }
         }
     }
 }
@@ -56,6 +54,7 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
  * Consumes all bytes from this source and wraps it into a byte string.
  *
  * @throws IllegalStateException if the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.ByteStringSamples.readByteString
  */
@@ -72,6 +71,7 @@ public fun Source.readByteString(): ByteString {
  * @throws EOFException when the source is exhausted before reading [byteCount] bytes from it.
  * @throws IllegalArgumentException when [byteCount] is negative.
  * @throws IllegalStateException if the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.ByteStringSamples.readByteString
  */
@@ -90,6 +90,7 @@ public fun Source.readByteString(byteCount: Int): ByteString {
  *
  * @throws IllegalArgumentException if [startIndex] is negative.
  * @throws IllegalStateException if the source is closed.
+ * @throws IOException when some I/O error occurs.
  *
  * @sample kotlinx.io.samples.ByteStringSamples.indexOfByteString
  */
