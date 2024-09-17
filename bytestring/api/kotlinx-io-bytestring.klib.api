@@ -84,3 +84,15 @@ final fun kotlinx.io.bytestring/ByteString(): kotlinx.io.bytestring/ByteString /
 final fun kotlinx.io.bytestring/ByteString(kotlin/ByteArray...): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/ByteString|ByteString(kotlin.ByteArray...){}[0]
 final fun kotlinx.io.bytestring/ByteString(kotlin/UByteArray...): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/ByteString|ByteString(kotlin.UByteArray...){}[0]
 final inline fun kotlinx.io.bytestring/buildByteString(kotlin/Int = ..., kotlin/Function1<kotlinx.io.bytestring/ByteStringBuilder, kotlin/Unit>): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/buildByteString|buildByteString(kotlin.Int;kotlin.Function1<kotlinx.io.bytestring.ByteStringBuilder,kotlin.Unit>){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlinx.io.bytestring/ByteString).kotlinx.io.bytestring/toArrayBuffer(): org.khronos.webgl/ArrayBuffer // kotlinx.io.bytestring/toArrayBuffer|toArrayBuffer@kotlinx.io.bytestring.ByteString(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlinx.io.bytestring/ByteString).kotlinx.io.bytestring/toInt8Array(): org.khronos.webgl/Int8Array // kotlinx.io.bytestring/toInt8Array|toInt8Array@kotlinx.io.bytestring.ByteString(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (org.khronos.webgl/ArrayBuffer).kotlinx.io.bytestring/toByteString(): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/toByteString|toByteString@org.khronos.webgl.ArrayBuffer(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (org.khronos.webgl/Int8Array).kotlinx.io.bytestring/toByteString(): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/toByteString|toByteString@org.khronos.webgl.Int8Array(){}[0]
