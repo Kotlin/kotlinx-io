@@ -21,6 +21,7 @@
 
 package kotlinx.io.bytestring
 
+import kotlin.js.JsName
 import kotlin.math.max
 import kotlin.math.min
 
@@ -36,6 +37,26 @@ public fun ByteString(vararg bytes: Byte): ByteString = if (bytes.isEmpty()) {
 } else {
     ByteString.wrap(bytes)
 }
+
+/**
+ * Wraps given [bytes] into a byte string.
+ *
+ * Internally, [bytes] will be stored as [ByteArray], and accesses to individual
+ * [ByteString]'s bytes will return a signed [Byte] as if someone call `bytes[i].toByte()`.
+ *
+ * @param bytes a sequence of bytes to be wrapped.
+ *
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamples.constructionFromUBytesSample
+ */
+@OptIn(ExperimentalUnsignedTypes::class)
+public fun ByteString(vararg bytes: UByte): ByteString = if (bytes.isEmpty()) {
+    ByteString.EMPTY
+} else {
+    ByteString.wrap(bytes.asByteArray())
+}
+
+@JsName("EmptyByteString")
+public fun ByteString(): ByteString = ByteString.EMPTY
 
 /**
  * An immutable wrapper around a byte sequence providing [String] like functionality.

@@ -75,7 +75,9 @@ public final class kotlinx/io/bytestring/ByteStringJvmExtKt {
 }
 
 public final class kotlinx/io/bytestring/ByteStringKt {
+	public static final fun ByteString ()Lkotlinx/io/bytestring/ByteString;
 	public static final fun ByteString ([B)Lkotlinx/io/bytestring/ByteString;
+	public static final fun ByteString-GBYM_sE ([B)Lkotlinx/io/bytestring/ByteString;
 	public static final fun contentEquals (Lkotlinx/io/bytestring/ByteString;[B)Z
 	public static final fun decodeToString (Lkotlinx/io/bytestring/ByteString;)Ljava/lang/String;
 	public static final fun encodeToByteString (Ljava/lang/String;)Lkotlinx/io/bytestring/ByteString;
