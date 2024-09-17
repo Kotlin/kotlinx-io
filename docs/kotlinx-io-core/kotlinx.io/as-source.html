@@ -41,7 +41,7 @@
 <a class="library-name--link" href="../../index.html">
                             kotlinx-io
                     </a>            </div>
-            <div class="library-version">0.5.3
+            <div class="library-version">0.5.4
             </div>
         </div>
         <div class="filter-section" id="filter-section">
@@ -80,16 +80,13 @@ val inputStream = NSInputStream(data = data.toNSData())
 val receivedData = inputStream.asSource().buffered().readByteArray()
 assertContentEquals(data, receivedData) 
    //sampleEnd
-}</code></pre></div></div><div class="content sourceset-dependent-content" data-togglable=":kotlinx-io-core:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html">InputStream</a><span class="token punctuation">.</span><a href="as-source.html"><span class="token function">asSource</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-raw-source/index.html">RawSource</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/core/jvm/src/JvmCore.kt#L74">source</a>)</span></span></div><p class="paragraph">Returns <a href="-raw-source/index.html">RawSource</a> that reads from an input stream.</p><p class="paragraph">Use <a href="buffered.html">RawSource.buffered</a> to create a buffered source from it.</p><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.*
+}</code></pre></div></div><div class="content sourceset-dependent-content" data-togglable=":kotlinx-io-core:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html">InputStream</a><span class="token punctuation">.</span><a href="as-source.html"><span class="token function">asSource</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-raw-source/index.html">RawSource</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/core/jvm/src/JvmCore.kt#L71">source</a>)</span></span></div><p class="paragraph">Returns <a href="-raw-source/index.html">RawSource</a> that reads from an input stream.</p><p class="paragraph">Use <a href="buffered.html">RawSource.buffered</a> to create a buffered source from it.</p><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.*
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 fun main() { 
    //sampleStart 

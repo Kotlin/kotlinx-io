@@ -41,7 +41,7 @@
 <a class="library-name--link" href="../../index.html">
                             kotlinx-io
                     </a>            </div>
-            <div class="library-version">0.5.3
+            <div class="library-version">0.5.4
             </div>
         </div>
         <div class="filter-section" id="filter-section">
@@ -65,16 +65,13 @@
   </div>
   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
     <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotlinx-io-core:dokkaHtmlPartial/jvmMain" data-filterable-set=":kotlinx-io-core:dokkaHtmlPartial/jvmMain" data-active="" data-toggle=":kotlinx-io-core:dokkaHtmlPartial/jvmMain">jvm</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-core:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="-sink/index.html">Sink</a><span class="token punctuation">.</span><a href="as-output-stream.html"><span class="token function">asOutputStream</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/io/OutputStream.html">OutputStream</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/core/jvm/src/SinksJvm.kt#L57">source</a>)</span></span></div><p class="paragraph">Returns an output stream that writes to this sink. Closing the stream will also close this sink.</p><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.*
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-core:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="-sink/index.html">Sink</a><span class="token punctuation">.</span><a href="as-output-stream.html"><span class="token function">asOutputStream</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/io/OutputStream.html">OutputStream</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/core/jvm/src/SinksJvm.kt#L58">source</a>)</span></span></div><p class="paragraph">Returns an output stream that writes to this sink. Closing the stream will also close this sink.</p><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.*
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 fun main() { 
    //sampleStart 

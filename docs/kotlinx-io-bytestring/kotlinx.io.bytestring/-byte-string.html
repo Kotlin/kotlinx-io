@@ -41,7 +41,7 @@
 <a class="library-name--link" href="../../index.html">
                             kotlinx-io
                     </a>            </div>
-            <div class="library-version">0.5.3
+            <div class="library-version">0.5.4
             </div>
         </div>
         <div class="filter-section" id="filter-section">
@@ -63,7 +63,7 @@
   <div class="cover ">
     <h1 class="cover"><span>Byte</span><wbr><span><span>String</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="-byte-string.html"><span class="token function">ByteString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>bytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte/index.html">Byte</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-byte-string/index.html">ByteString</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/bytestring/common/src/ByteString.kt#L34">source</a>)</span></span></div><p class="paragraph">Wraps given <a href="-byte-string.html">bytes</a> into a byte string.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>bytes</span></span></u></div></span></div><div><div class="title"><p class="paragraph">a sequence of bytes to be wrapped.</p></div></div></div></div></div><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.bytestring.*
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="-byte-string.html"><span class="token function">ByteString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>bytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte/index.html">Byte</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-byte-string/index.html">ByteString</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/bytestring/common/src/ByteString.kt#L35">source</a>)</span></span></div><p class="paragraph">Wraps given <a href="-byte-string.html">bytes</a> into a byte string.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>bytes</span></span></u></div></span></div><div><div class="title"><p class="paragraph">a sequence of bytes to be wrapped.</p></div></div></div></div></div><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.bytestring.*
 import kotlin.test.*
 
 fun main() { 
@@ -76,7 +76,16 @@ val byteStringFromBytes = ByteString(1, 2, 3)
 assertFalse(byteStringFromBytes.isEmpty())
 assertEquals(3, byteStringFromBytes.size) 
    //sampleEnd
-}</code></pre></div></div></div>
+}</code></pre></div><hr><div class="symbol monospace"><span class="token keyword">fun </span><a href="-byte-string.html"><span class="token function">ByteString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>bytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-byte/index.html">UByte</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-byte-string/index.html">ByteString</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/bytestring/common/src/ByteString.kt#L52">source</a>)</span></span></div><p class="paragraph">Wraps given <a href="-byte-string.html">bytes</a> into a byte string.</p><p class="paragraph">Internally, <a href="-byte-string.html">bytes</a> will be stored as <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a>, and accesses to individual <a href="-byte-string/index.html">ByteString</a>'s bytes will return a signed <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte/index.html">Byte</a> as if someone call <code class="lang-kotlin">bytes[i].toByte()</code>.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain" data-filterable-set=":kotlinx-io-bytestring:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>bytes</span></span></u></div></span></div><div><div class="title"><p class="paragraph">a sequence of bytes to be wrapped.</p></div></div></div></div></div><h4 class="">Samples</h4><div class="sample-container"><pre><code class="runnablesample monospace block lang-kotlin" theme="idea">import kotlinx.io.bytestring.*
+import kotlin.test.*
+
+fun main() { 
+   //sampleStart 
+   val byteStringFromBytes = ByteString(0xCAu, 0xFEu)
+assertFalse(byteStringFromBytes.isEmpty())
+assertEquals(2, byteStringFromBytes.size) 
+   //sampleEnd
+}</code></pre></div><hr><div class="symbol monospace"><span class="token keyword">fun </span><a href="-byte-string.html"><span class="token function">ByteString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-byte-string/index.html">ByteString</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/kotlin/kotlinx-io/tree/master/bytestring/common/src/ByteString.kt#L59">source</a>)</span></span></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
