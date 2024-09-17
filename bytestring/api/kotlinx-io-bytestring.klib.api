@@ -1,5 +1,6 @@
 // Klib ABI Dump
 // Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm32Hfp, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, wasmWasi, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Alias: apple => [iosArm64, iosSimulatorArm64, iosX64, macosArm64, macosX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -84,3 +85,9 @@ final fun kotlinx.io.bytestring/ByteString(): kotlinx.io.bytestring/ByteString /
 final fun kotlinx.io.bytestring/ByteString(kotlin/ByteArray...): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/ByteString|ByteString(kotlin.ByteArray...){}[0]
 final fun kotlinx.io.bytestring/ByteString(kotlin/UByteArray...): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/ByteString|ByteString(kotlin.UByteArray...){}[0]
 final inline fun kotlinx.io.bytestring/buildByteString(kotlin/Int = ..., kotlin/Function1<kotlinx.io.bytestring/ByteStringBuilder, kotlin/Unit>): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/buildByteString|buildByteString(kotlin.Int;kotlin.Function1<kotlinx.io.bytestring.ByteStringBuilder,kotlin.Unit>){}[0]
+
+// Targets: [apple]
+final fun (kotlinx.io.bytestring/ByteString).kotlinx.io.bytestring/toNSData(): platform.Foundation/NSData // kotlinx.io.bytestring/toNSData|toNSData@kotlinx.io.bytestring.ByteString(){}[0]
+
+// Targets: [apple]
+final fun (platform.Foundation/NSData).kotlinx.io.bytestring/toByteString(): kotlinx.io.bytestring/ByteString // kotlinx.io.bytestring/toByteString|toByteString@platform.Foundation.NSData(){}[0]
