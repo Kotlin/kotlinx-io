@@ -48,7 +48,7 @@ repositories {
 Add the library to dependencies:
 ```kotlin
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.5.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.5.4")
 }
 ```
 
@@ -58,7 +58,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.5.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.5.4")
             }
         }
     }
@@ -72,7 +72,7 @@ Add the library to dependencies:
 <dependency>
     <groupId>org.jetbrains.kotlinx</groupId>
     <artifactId>kotlinx-io-core-jvm</artifactId>
-    <version>0.5.3</version>
+    <version>0.5.4</version>
 </dependency>
 ```
 
