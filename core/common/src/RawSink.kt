@@ -35,7 +35,7 @@ package kotlinx.io
  * ### Thread-safety guarantees
  *
  * [RawSink] implementations are not required to be thread safe.
- * However, if an implementation provides some thread safety guarantees, it's recommended to explicitly document them.
+ * However, if an implementation provides some thread safety guarantees, it is recommended to explicitly document them.
  *
  * @sample kotlinx.io.samples.Crc32Sample.crc32
  */
