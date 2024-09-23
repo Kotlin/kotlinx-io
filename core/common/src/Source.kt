@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -58,6 +58,11 @@ package kotlinx.io
  * Methods moving all data from a source to some other sink are named `transferTo`, like [transferTo].
  *
  * It is recommended to follow the same naming convention for Source extensions.
+ *
+ * ### Thread-safety guarantees
+ *
+ * Until stated otherwise, [Source] implementations are not thread safe.
+ * If a [Source] needs to be accessed from multiple threads, an additional synchronization is required.
  */
 public sealed interface Source : RawSource {
   /**
@@ -228,6 +233,12 @@ public sealed interface Source : RawSource {
    * The returned source becomes invalid once this source is next read or closed.
    *
    * Peek could be used to lookahead and read the same data multiple times.
+   *
+   * If peek source needs to access more data that this [Source] has in its buffer,
+   * more data will be requested from the underlying source and on success,
+   * it'll be added to the buffer of this [Source].
+   * If the underlying source was exhausted or some error occurred on attempt to fill the buffer,
+   * a corresponding exception will be thrown.
    *
    * @throws IllegalStateException when the source is closed.
    *

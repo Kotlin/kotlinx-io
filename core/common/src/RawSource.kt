@@ -32,6 +32,11 @@ package kotlinx.io
  *
  * Implementors should abstain from throwing exceptions other than those that are documented for RawSource methods.
  *
+ * ### Thread-safety guarantees
+ *
+ * [RawSource] implementations are not required to be thread safe.
+ * However, if an implementation provides some thread safety guarantees, it's recommended to explicitly document them.
+ *
  * @sample kotlinx.io.samples.RC4SourceSample.rc4
  */
 public interface RawSource : AutoCloseable {
