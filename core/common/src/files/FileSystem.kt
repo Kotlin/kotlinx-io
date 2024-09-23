@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
@@ -21,6 +21,11 @@ import kotlinx.io.RawSource
  * access to some network resources and allow working with them as with regular files, for example.
  *
  * **This API is unstable and subject to change.**
+ *
+ * ### Thread-safety guarantees
+ *
+ * Until stated otherwise, [FileSystem] implementation are not thread safe.
+ * If a [FileSystem] needs to be accessed from multiple threads, an additional synchronization is required.
  */
 public sealed interface FileSystem {
     /**
@@ -170,6 +175,9 @@ internal abstract class SystemFileSystemImpl : FileSystem
 
 /**
  * An instance of [FileSystem] representing a default system-wide filesystem.
+ *
+ * *For `js` target, `SystemFileSystem` is only supported in `nodeJs` environment. Attempts to use it in `browser`
+ * environment will result in runtime exception being thrown.*
  */
 public expect val SystemFileSystem: FileSystem
 

@@ -32,6 +32,11 @@ package kotlinx.io
  *
  * Implementors should abstain from throwing exceptions other than those that are documented for RawSink methods.
  *
+ * ### Thread-safety guarantees
+ *
+ * [RawSink] implementations are not required to be thread safe.
+ * However, if an implementation provides some thread safety guarantees, it is recommended to explicitly document them.
+ *
  * @sample kotlinx.io.samples.Crc32Sample.crc32
  */
 public expect interface RawSink : AutoCloseable {

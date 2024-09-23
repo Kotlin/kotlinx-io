@@ -41,6 +41,12 @@ import kotlin.jvm.JvmSynthetic
  * [Buffer] implements both [Source] and [Sink] and could be used as a source or a sink,
  * but unlike regular sinks and sources its [close], [flush], [emit], [hintEmit]
  * does not affect buffer's state and [exhausted] only indicates that a buffer is empty.
+ *
+ * ### Thread-safety guarantees
+ *
+ * [Buffer] does not provide any thread-safety guarantees.
+ * If a [Buffer] needs to be accessed from multiple threads, an additional synchronization is required.
+ * Failure to do so will result in possible data corruption, loss, and runtime errors.
  */
 public class Buffer : Source, Sink {
     @PublishedApi

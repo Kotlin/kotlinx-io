@@ -83,6 +83,10 @@ Core IO primitives.
 
 Basic API for working with files.
 
+#### Thread-safety guarantees
+
+Until stated otherwise, types and functions provided by the library are not thread safe.
+
 #### Known issues
 
 - [#312](https://github.com/Kotlin/kotlinx-io/issues/312) For `wasmWasi` target, directory listing ([kotlinx.io.files.FileSystem.list]) does not work with NodeJS runtime on Windows,
