@@ -55,6 +55,11 @@ public fun ByteString(vararg bytes: UByte): ByteString = if (bytes.isEmpty()) {
     ByteString.wrap(bytes.asByteArray())
 }
 
+/**
+ * Returns an empty [ByteString].
+ *
+ * @sample kotlinx.io.bytestring.samples.ByteStringSamples.constructEmpty
+ */
 @JsName("EmptyByteString")
 public fun ByteString(): ByteString = ByteString.EMPTY
 
