@@ -247,4 +247,11 @@ class ByteStringSamples {
 
         assertEquals(ByteString(3, 4, 5, 6), byteString)
     }
+
+    @Test
+    fun constructEmpty() {
+        val byteString = ByteString()
+        assertTrue(byteString.isEmpty())
+        assertContentEquals(ByteArray(0), byteString.toByteArray())
+    }
 }
