@@ -3,6 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
+import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import java.net.URL
 
@@ -11,6 +12,14 @@ plugins {
 }
 
 tasks.withType<DokkaTaskPartial>().configureEach {
+    pluginsMapConfiguration.set(
+        mapOf(
+            "org.jetbrains.dokka.base.DokkaBase" to """{ "templatesDir" : "${
+                projectDir.resolveSibling("dokka-templates")
+            }"""
+        )
+    )
+
     dokkaSourceSets.configureEach {
         includes.from("Module.md")
 
@@ -33,4 +42,16 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             "$platform/test/samples"
         )
     }
+}
+
+tasks.withType(DokkaMultiModuleTask::class.java) {
+    pluginsMapConfiguration.set(
+        mapOf(
+            "org.jetbrains.dokka.base.DokkaBase" to """{ "templatesDir" : "${
+                projectDir.resolve(
+                    "dokka-templates"
+                )
+            }" }"""
+        )
+    )
 }
