@@ -15,8 +15,8 @@ tasks.withType<DokkaTaskPartial>().configureEach {
     pluginsMapConfiguration.set(
         mapOf(
             "org.jetbrains.dokka.base.DokkaBase" to """{ "templatesDir" : "${
-                projectDir.toString().replace('\\', '/')
-            }/../dokka-templates" }"""
+                projectDir.resolveSibling("dokka-templates")
+            }"""
         )
     )
 
