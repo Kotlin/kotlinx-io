@@ -8,10 +8,10 @@ import kotlinx.validation.ExperimentalBCVApi
 
 plugins {
     id("kotlinx-io-publish") apply false
+    id("kotlinx-io-dokka")
 
     alias(libs.plugins.kover)
     alias(libs.plugins.bcv)
-    alias(libs.plugins.dokka)
 }
 
 allprojects {
