@@ -16,7 +16,7 @@ tasks.withType<AbstractDokkaTask>().configureEach {
         mapOf(
             "org.jetbrains.dokka.base.DokkaBase" to """{ "templatesDir" : "${
                 rootDir.resolve("dokka-templates")
-            }"""
+            }" }"""
         )
     )
 }
