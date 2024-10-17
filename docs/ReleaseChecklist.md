@@ -33,7 +33,7 @@ with this pre-release version;
   necessary;
   - release names are usually starts with `v`, like `v0.9.10`, but there's no `v` in a git tag, like `0.9.10`.
 - Deploy the release version, close the repo, run smoke tests with it and if tests passed, release the repository.
-- Update version in `KOTLINX_IO_RELEASE_TAG` for [JetBrains/kotlin-web-site](https://github.com/JetBrains/kotlin-web-site/blob/master/.teamcity/BuildParams.kt#L7]
+- Update version in `KOTLINX_IO_RELEASE_TAG` for [JetBrains/kotlin-web-site](https://github.com/JetBrains/kotlin-web-site/blob/master/.teamcity/BuildParams.kt#L7)
 - Set previously created draft in [kotlinx-io/releases](https://github.com/Kotlin/kotlinx-io/releases)
 as the latest version;
 - That's all, folks!
