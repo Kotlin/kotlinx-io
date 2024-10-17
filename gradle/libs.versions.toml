@@ -1,6 +1,7 @@
 [versions]
 kotlin = "2.0.0"
 java = "8"
+multi-release-toolchain = "17"
 dokka = "1.9.20"
 kover = "0.8.2"
 bcv = "0.16.3"
