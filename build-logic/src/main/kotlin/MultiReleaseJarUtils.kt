@@ -27,19 +27,14 @@ private val Project.javaToolchains: JavaToolchainService
 
 
 /**
- * Setup tasks to compile Kotlin and Java sources from a source set
- * with name [sourceSetName] using Java toolchain with version [toolchainVersion].
- * Compiled bytecode will have source compatibility level and target set to [target].
- *
- * If source set contains `module-info.java` file, [moduleName] will be used with
- * `--patch-module` option.
- *
+ * Setup tasks to compile `module-info.java` file for a module named [moduleName]
+ * from a source set with name [sourceSetName] using Java toolchain with version [toolchainVersion].
+
  * It is assumed that source set with [sourceSetName] only extends main JVM source set.
  * [parentCompilation] represent a compilation corresponding to such a main source set.
  */
-public fun Project.configureMultiReleaseJvmCompilation(
+public fun Project.configureJava9ModuleInfoCompilation(
     sourceSetName: String,
-    target: JvmTarget,
     toolchainVersion: JavaLanguageVersion,
     parentCompilation: KotlinJvmCompilation,
     moduleName: String
@@ -50,27 +45,11 @@ public fun Project.configureMultiReleaseJvmCompilation(
     val javaCompileClasspath = configurations["${sourceSetName}CompileClasspath"]
     javaCompileClasspath.extendsFrom(compileClasspathConfiguration)
 
-    val kotlinCompileTaskNames =
-        setOf("compile${sourceSetNameCapitalized}Kotlin", "compile${sourceSetNameCapitalized}KotlinJvm")
-
-    tasks.withType<KotlinJvmCompile>().configureEach {
-        if (name in kotlinCompileTaskNames) {
-            kotlinJavaToolchain.toolchain.use(
-                javaToolchains.launcherFor {
-                    languageVersion.set(toolchainVersion)
-                }
-            )
-
-            compilerOptions.jvmTarget.set(target)
-            compilerOptions.freeCompilerArgs.add("-Xjdk-release=${target.target}")
-        }
-    }
-
     tasks.named("compile${sourceSetNameCapitalized}Java", JavaCompile::class.java) {
         dependsOn(moduleOutputs)
 
-        targetCompatibility = target.target
-        sourceCompatibility = target.target
+        targetCompatibility = "9"
+        sourceCompatibility = "9"
 
         javaCompiler.set(
             javaToolchains.compilerFor {
@@ -79,7 +58,10 @@ public fun Project.configureMultiReleaseJvmCompilation(
         )
 
         val javaSourceSet = sourceSets[sourceSetName].java
-        destinationDirectory.set(javaSourceSet.destinationDirectory.asFile.get())
+        destinationDirectory.set(
+            javaSourceSet.destinationDirectory.asFile.get()
+                .resolve("META-INF/versions/9")
+        )
         options.sourcepath = files(javaSourceSet.srcDirs)
         val moduleFiles = objects.fileCollection().from(moduleOutputs)
         val modulePath = javaCompileClasspath.filter { it !in moduleFiles.files }
@@ -87,7 +69,6 @@ public fun Project.configureMultiReleaseJvmCompilation(
         classpath = objects.fileCollection().from()
         options.compilerArgumentProviders.add(
             JigsawArgumentsProvider(
-                target,
                 moduleName,
                 moduleFiles,
                 modulePath
@@ -97,7 +78,6 @@ public fun Project.configureMultiReleaseJvmCompilation(
 }
 
 private class JigsawArgumentsProvider(
-    private val target: JvmTarget,
     private val moduleName: String,
     private val moduleFiles: FileCollection,
     private val modulePath: FileCollection
@@ -105,6 +85,6 @@ private class JigsawArgumentsProvider(
     override fun asArguments(): Iterable<String> = listOf(
         "--module-path", modulePath.asPath,
         "--patch-module", "$moduleName=${moduleFiles.asPath}",
-        "--release", target.target
+        "--release", "9"
     )
 }

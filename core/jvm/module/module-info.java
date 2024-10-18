@@ -1,6 +1,7 @@
 module kotlinx.io.core {
-    requires kotlin.stdlib;
-    requires kotlinx.io.bytestring;
+    requires transitive kotlin.stdlib;
+    requires transitive kotlinx.io.bytestring;
+
     exports kotlinx.io;
     exports kotlinx.io.files;
     exports kotlinx.io.unsafe;

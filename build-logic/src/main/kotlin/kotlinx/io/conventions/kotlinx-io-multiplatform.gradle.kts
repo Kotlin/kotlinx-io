@@ -3,9 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-import kotlinx.io.build.configureMultiReleaseJvmCompilation
+import kotlinx.io.build.configureJava9ModuleInfoCompilation
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
@@ -44,18 +43,17 @@ kotlin {
             }
         }
 
-        val main by compilations.getting
-        val java9SourceSet = project.sourceSets.create("jvmJava9") {
-            java.srcDir("jvm/src9")
-        }
         val mrjToolchain = versionCatalog.findVersion("multi.release.toolchain").getOrNull()?.requiredVersion
-            ?: throw GradleException("Version 'java.mrj' is not specified in the version catalog")
+            ?: throw GradleException("Version 'multi.release.toolchain' is not specified in the version catalog")
 
-        configureMultiReleaseJvmCompilation(
-            sourceSetName = java9SourceSet.name,
-            parentCompilation = main,
+        // N.B.: it seems like modules don't work well with "regular" multi-release compilation,
+        // so if we need to compile some Kotlin classes for a specific JDK release, a separate compilation is needed.
+        configureJava9ModuleInfoCompilation(
+            sourceSetName = project.sourceSets.create("java9ModuleInfo") {
+                java.srcDir("jvm/module")
+            }.name,
+            parentCompilation = compilations.getByName("main"),
             moduleName = project.name.replace("-", "."),
-            target = JvmTarget.JVM_9,
             toolchainVersion = JavaLanguageVersion.of(mrjToolchain)
         )
     }
@@ -127,9 +125,7 @@ kotlin {
             manifest {
                 attributes("Multi-Release" to true)
             }
-            from(project.sourceSets["jvmJava9"].output) {
-                into("META-INF/versions/9")
-            }
+            from(project.sourceSets["java9ModuleInfo"].output)
         }
     }
 }
