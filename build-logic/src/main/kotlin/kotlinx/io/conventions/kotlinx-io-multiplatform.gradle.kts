@@ -3,6 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
+import kotlinx.io.build.configureJava9ModuleInfoCompilation
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
@@ -41,6 +42,20 @@ kotlin {
                 }
             }
         }
+
+        val mrjToolchain = versionCatalog.findVersion("multi.release.toolchain").getOrNull()?.requiredVersion
+            ?: throw GradleException("Version 'multi.release.toolchain' is not specified in the version catalog")
+
+        // N.B.: it seems like modules don't work well with "regular" multi-release compilation,
+        // so if we need to compile some Kotlin classes for a specific JDK release, a separate compilation is needed.
+        configureJava9ModuleInfoCompilation(
+            sourceSetName = project.sourceSets.create("java9ModuleInfo") {
+                java.srcDir("jvm/module")
+            }.name,
+            parentCompilation = compilations.getByName("main"),
+            moduleName = project.name.replace("-", "."),
+            toolchainVersion = JavaLanguageVersion.of(mrjToolchain)
+        )
     }
 
     js {
@@ -102,6 +117,15 @@ kotlin {
                 withWasmJs()
                 withWasmWasi()
             }
+        }
+    }
+
+    tasks {
+        val jvmJar by existing(Jar::class) {
+            manifest {
+                attributes("Multi-Release" to true)
+            }
+            from(project.sourceSets["java9ModuleInfo"].output)
         }
     }
 }
