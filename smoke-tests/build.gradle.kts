@@ -49,6 +49,7 @@ tasks {
         if (useLocalBuild) {
             dependsOn(project(":kotlinx-io-core").tasks.named("publishToMavenLocal"))
             dependsOn(project(":kotlinx-io-bytestring").tasks.named("publishToMavenLocal"))
+            dependsOn(project(":kotlinx-io-filesystem").tasks.named("publishToMavenLocal"))
             dependsOn(project(":kotlinx-io-okio").tasks.named("publishToMavenLocal"))
 
         }
@@ -64,6 +65,7 @@ tasks {
         if (useLocalBuild) {
             dependsOn(project(":kotlinx-io-core").tasks.named("publishToMavenLocal"))
             dependsOn(project(":kotlinx-io-bytestring").tasks.named("publishToMavenLocal"))
+            dependsOn(project(":kotlinx-io-filesystem").tasks.named("publishToMavenLocal"))
             dependsOn(project(":kotlinx-io-okio").tasks.named("publishToMavenLocal"))
 
         }

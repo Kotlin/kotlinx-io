@@ -28,6 +28,8 @@ public class GradleProjectsTest {
     private val stagingRepository: String = System.getProperty("stagingRepository")!!
     private val bytestringDependency: String = "org.jetbrains.kotlinx:kotlinx-io-bytestring:$kotlinxIoVersion"
     private val coreDependency: String = "org.jetbrains.kotlinx:kotlinx-io-core:$kotlinxIoVersion"
+    private val fsDependency: String = "org.jetbrains.kotlinx:kotlinx-io-filesystem:$kotlinxIoVersion"
+
     private val okioAdapterDependency: String = "org.jetbrains.kotlinx:kotlinx-io-okio:$kotlinxIoVersion"
 
     private fun generateBuildScript(multiplatform: Boolean, dependencyName: String, isOkio: Boolean = false) {
@@ -103,6 +105,17 @@ public class GradleProjectsTest {
     }
 
     @Test
+    fun filesystemJvm() {
+        setupTest("filesystem-jvm", false, fsDependency)
+        val results = GradleRunner.create()
+            .withProjectDir(projectDir.root)
+            .withArguments(":test")
+            .run()
+
+        assertTestPassed(results)
+    }
+
+    @Test
     fun bytestringMultiplatform() {
         setupTest("bytestring-multiplatform", true, bytestringDependency)
         val results = GradleRunner.create()
@@ -116,6 +129,17 @@ public class GradleProjectsTest {
     @Test
     fun coreMultiplatform() {
         setupTest("core-multiplatform", true, coreDependency)
+        val results = GradleRunner.create()
+            .withProjectDir(projectDir.root)
+            .withArguments(":allTests")
+            .run()
+
+        assertTestPassed(results, ":allTests")
+    }
+
+    @Test
+    fun filesystemMultiplatform() {
+        setupTest("filesystem-multiplatform", true, fsDependency)
         val results = GradleRunner.create()
             .withProjectDir(projectDir.root)
             .withArguments(":allTests")

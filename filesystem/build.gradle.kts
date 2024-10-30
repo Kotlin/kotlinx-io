@@ -23,6 +23,13 @@ kotlin {
                 }
             }
         }
+        browser {
+            testTask {
+                useMocha {
+                    timeout = "300s"
+                }
+            }
+        }
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmWasi {

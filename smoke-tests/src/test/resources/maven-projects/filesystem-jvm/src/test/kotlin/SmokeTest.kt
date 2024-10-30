@@ -10,6 +10,7 @@ import kotlinx.io.bytestring.ByteString
 import kotlinx.io.readByteArray
 import kotlinx.io.readByteString
 import kotlinx.io.write
+import java.lang.RuntimeException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -29,5 +30,14 @@ class SmokeTest {
         buffer.write(byteString)
 
         assertEquals(ByteString(0x42), buffer.readByteString())
+    }
+
+    @Test
+    fun testUseFiles() {
+        try {
+            SystemFileSystem.exists(Path("."))
+        } catch (t: Exception) {
+            // that's fine
+        }
     }
 }
