@@ -3,9 +3,6 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-import org.gradle.internal.os.OperatingSystem
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-
 plugins {
     id("kotlinx-io-multiplatform")
     id("kotlinx-io-publish")
@@ -27,18 +24,6 @@ kotlin {
             testTask {
                 useMocha {
                     timeout = "300s"
-                }
-            }
-        }
-    }
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmWasi {
-        nodejs {
-            testTask {
-                // fd_readdir is unsupported on Windows:
-                // https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19
-                if (OperatingSystem.current().isWindows) {
-                    filter.setExcludePatterns("*SmokeFileTest.listDirectory")
                 }
             }
         }

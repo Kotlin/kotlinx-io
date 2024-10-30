@@ -49,6 +49,7 @@ tasks {
         if (useLocalBuild) {
             dependsOn(project(":kotlinx-io-core").tasks.named("publishToMavenLocal"))
             dependsOn(project(":kotlinx-io-bytestring").tasks.named("publishToMavenLocal"))
+            dependsOn(project(":kotlinx-io-filesystem").tasks.named("publishToMavenLocal"))
         }
     }
     val cleanMavenProjects by registering(Exec::class) {
@@ -62,6 +63,7 @@ tasks {
         if (useLocalBuild) {
             dependsOn(project(":kotlinx-io-core").tasks.named("publishToMavenLocal"))
             dependsOn(project(":kotlinx-io-bytestring").tasks.named("publishToMavenLocal"))
+            dependsOn(project(":kotlinx-io-filesystem").tasks.named("publishToMavenLocal"))
         }
 
         systemProperty("kotlinxIoVersion", kotlinxIoVersion)
