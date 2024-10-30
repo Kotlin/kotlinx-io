@@ -33,6 +33,7 @@ apiValidation {
 dependencies {
     kover(project(":kotlinx-io-core"))
     kover(project(":kotlinx-io-bytestring"))
+    kover(project(":kotlinx-io-filesystem"))
     kover(project(":kotlinx-io-okio"))
 }
 
