@@ -345,14 +345,20 @@ public class Segment {
         limit += srcEndOffset - srcStartOffset
     }
 
-    @PublishedApi
-    @get:JvmSynthetic
-    internal val size: Int
+    /**
+     * The number of readable bytes contained in this segment.
+     *
+     * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.readUleb128
+     */
+    public val size: Int
         get() = limit - pos
 
-    @PublishedApi
-    @get:JvmSynthetic
-    internal val remainingCapacity: Int
+    /**
+     * The number of bytes that could be written into this segment.
+     *
+     * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.writeUleb128Array
+     */
+    public val remainingCapacity: Int
         get() = data.size - limit
 
     /**

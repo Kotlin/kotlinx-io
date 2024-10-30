@@ -111,8 +111,8 @@ public final class kotlinx/io/Segment {
 	public final synthetic fun getNext ()Lkotlinx/io/Segment;
 	public final synthetic fun getPos ()I
 	public final synthetic fun getPrev ()Lkotlinx/io/Segment;
-	public final synthetic fun getRemainingCapacity ()I
-	public final synthetic fun getSize ()I
+	public final fun getRemainingCapacity ()I
+	public final fun getSize ()I
 	public final synthetic fun setLimit (I)V
 	public final synthetic fun setNext (Lkotlinx/io/Segment;)V
 	public final synthetic fun setPos (I)V
