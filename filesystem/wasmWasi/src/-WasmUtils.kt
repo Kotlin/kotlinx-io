@@ -54,6 +54,17 @@ internal fun Buffer.readToLinearMemory(pointer: Pointer, bytes: Int) {
     }
 }
 
+internal fun checkBounds(size: Long, startIndex: Long, endIndex: Long) {
+    if (startIndex < 0 || endIndex > size) {
+        throw IndexOutOfBoundsException(
+            "startIndex ($startIndex) and endIndex ($endIndex) are not within the range [0..size($size))"
+        )
+    }
+    if (startIndex > endIndex) {
+        throw IllegalArgumentException("startIndex ($startIndex) > endIndex ($endIndex)")
+    }
+}
+
 @OptIn(UnsafeIoApi::class, UnsafeWasmMemoryApi::class)
 internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
     var remaining = bytes

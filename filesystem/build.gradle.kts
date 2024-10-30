@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2010-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -23,13 +23,6 @@ kotlin {
                 }
             }
         }
-        browser {
-            testTask {
-                useMocha {
-                    timeout = "300s"
-                }
-            }
-        }
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmWasi {
@@ -46,11 +39,37 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":kotlinx-io-bytestring"))
+            api(project(":kotlinx-io-core"))
         }
         appleTest.dependencies {
             implementation(libs.kotlinx.coroutines.core)
         }
+    }
+}
+
+tasks.named("wasmWasiNodeTest") {
+    // TODO: remove once https://youtrack.jetbrains.com/issue/KT-65179 solved
+    doFirst {
+        val layout = project.layout
+        val templateFile = layout.projectDirectory.file("wasmWasi/test/test-driver.mjs.template").asFile
+
+        val driverFile = layout.buildDirectory.file(
+            "compileSync/wasmWasi/test/testDevelopmentExecutable/kotlin/kotlinx-io-kotlinx-io-filesystem-wasm-wasi-test.mjs"
+        )
+
+        fun File.mkdirsAndEscape(): String {
+            mkdirs()
+            return absolutePath.replace("\\", "\\\\")
+        }
+
+        val tmpDir = temporaryDir.resolve("kotlinx-io-core-wasi-test").mkdirsAndEscape()
+        val tmpDir2 = temporaryDir.resolve("kotlinx-io-core-wasi-test-2").mkdirsAndEscape()
+
+        val newDriver = templateFile.readText()
+            .replace("<SYSTEM_TEMP_DIR>", tmpDir, false)
+            .replace("<SYSTEM_TEMP_DIR2>", tmpDir2, false)
+
+        driverFile.get().asFile.writeText(newDriver)
     }
 }
 
