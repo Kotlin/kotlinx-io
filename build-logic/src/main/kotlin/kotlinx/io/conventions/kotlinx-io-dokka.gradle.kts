@@ -3,22 +3,12 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
+import org.gradle.kotlin.dsl.execution.templateIdFor
 import org.jetbrains.dokka.gradle.*
 import java.net.URI
 
 plugins {
     id("org.jetbrains.dokka")
-}
-
-// shared configuration for all dokka tasks (both partial and multi-module)
-tasks.withType<AbstractDokkaTask>().configureEach {
-    pluginsMapConfiguration.set(
-        mapOf(
-            "org.jetbrains.dokka.base.DokkaBase" to """{ "templatesDir" : "${
-                rootDir.resolve("dokka-templates")
-            }" }"""
-        )
-    )
 }
 
 dokka {
@@ -43,5 +33,9 @@ dokka {
             "common/test/samples",
             "$platform/test/samples"
         )
+
+        pluginsConfiguration.html {
+            templatesDir = rootDir.resolve("dokka-templates")
+        }
     }
 }
