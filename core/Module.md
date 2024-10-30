@@ -75,10 +75,10 @@ fun Message.Companion.fromBson(source: Source): Message {
 }
 ```
 
-# Package kotlinx.io
-
-Core IO primitives.
-
 #### Thread-safety guarantees
 
 Until stated otherwise, types and functions provided by the library are not thread safe.
+
+# Package kotlinx.io
+
+Core IO primitives.
