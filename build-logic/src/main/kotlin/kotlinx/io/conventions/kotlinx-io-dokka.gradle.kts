@@ -4,7 +4,7 @@
  */
 
 import org.jetbrains.dokka.gradle.*
-import java.net.URL
+import java.net.URI
 
 plugins {
     id("org.jetbrains.dokka")
@@ -21,13 +21,13 @@ tasks.withType<AbstractDokkaTask>().configureEach {
     )
 }
 
-tasks.withType<DokkaTaskPartial>().configureEach {
+dokka {
     dokkaSourceSets.configureEach {
         includes.from("Module.md")
 
         sourceLink {
             localDirectory = rootDir
-            remoteUrl = URL("https://github.com/kotlin/kotlinx-io/tree/master")
+            remoteUrl("https://github.com/kotlin/kotlinx-io/tree/master")
             remoteLineSuffix = "#L"
         }
 
