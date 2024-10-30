@@ -6,6 +6,8 @@
 package kotlinx.io.files
 
 import kotlinx.io.*
+import kotlinx.io.files.SystemPathSeparator
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlin.test.*
 
 class SmokeFileTest {
@@ -71,18 +73,19 @@ class SmokeFileTest {
         }
     }
 
+    @OptIn(UnsafeIoApi::class)
     @Test
     fun readWriteMultipleSegments() {
         val path = createTempPath()
 
-        val data = ByteArray((Segment.SIZE * 2.5).toInt()) { it.toByte() }
+        val data = ByteArray((UnsafeBufferOperations.maxSafeWriteCapacity * 2.5).toInt()) { it.toByte() }
 
         SystemFileSystem.sink(path).buffered().use {
             it.write(data)
         }
 
         SystemFileSystem.source(path).buffered().use {
-            assertArrayEquals(data, it.readByteArray())
+            assertContentEquals(data, it.readByteArray())
         }
     }
 
@@ -247,7 +250,7 @@ class SmokeFileTest {
     @Test
     fun isAbsolute() {
         // to make it work on both Windows and Unix, just repeat the separator twice
-        val rootPath = SystemPathSeparator.repeat(2)
+        val rootPath = "${SystemPathSeparator}${SystemPathSeparator}"
         assertTrue(Path(rootPath).isAbsolute)
         assertFalse(Path("").isAbsolute)
         assertFalse(Path("..").isAbsolute)
