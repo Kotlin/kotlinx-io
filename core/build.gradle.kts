@@ -4,7 +4,11 @@
  */
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.sourceSets
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJvmCompilation
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     id("kotlinx-io-multiplatform")
@@ -82,4 +86,95 @@ tasks.named("wasmWasiNodeTest") {
 
 animalsniffer {
     annotation = "kotlinx.io.files.AnimalSnifferIgnore"
+}
+
+val mrjToolchain = libs.versions.multi.release.toolchain.getOrNull()
+    ?: throw GradleException("Version 'multi.release.toolchain' is not specified in the version catalog")
+
+private fun KotlinJvmCompilation.setupJava9CompileTasks() {
+    compileTaskProvider.configure {
+        this as KotlinJvmCompile
+
+        kotlinJavaToolchain.toolchain.use(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(mrjToolchain))
+        })
+
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_9)
+            // TODO: don't use -Xjdk-release as it cause miscompilation, see KT-72880
+            //freeCompilerArgs.add("-Xjdk-release=9")
+        }
+    }
+
+    compileJavaTaskProvider?.configure {
+        targetCompatibility = "9"
+        sourceCompatibility = "9"
+    }
+}
+
+kotlin {
+    jvm {
+        compilations {
+            // it has to be <something>Main, see KotlinSourceSet.configureSourceSet
+            val jvm9Main by creating {
+                associateWith(getByName("main"))
+
+                defaultSourceSet {
+                    kotlin.srcDir("jvm/src9")
+                }
+
+                setupJava9CompileTasks()
+            }
+
+            create("jvm9Test") {
+                associateWith(jvm9Main)
+                associateWith(getByName("test"))
+
+                defaultSourceSet {
+                    kotlin.srcDir("jvm/test9")
+
+                    dependencies {
+                        implementation(kotlin("test-junit5"))
+                    }
+
+                }
+
+                setupJava9CompileTasks()
+
+                val jvm9TestTask = tasks.register<Test>("jvm9Test") {
+                    group = "verification"
+
+                    classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
+                    testClassesDirs = output.classesDirs
+
+                    javaLauncher.set(javaToolchains.launcherFor {
+                        languageVersion.set(JavaLanguageVersion.of(mrjToolchain))
+                    })
+
+                    useJUnitPlatform()
+                }
+                tasks.named("allTests").configure {
+                    dependsOn(jvm9TestTask)
+                }
+            }
+
+            tasks.withType(Jar::class.java).configureEach {
+                from(jvm9Main.output) {
+                    into("META-INF/versions/9")
+                }
+            }
+        }
+    }
+}
+
+kover {
+    currentProject {
+        instrumentation {
+            // TODO: collect coverage for all tasks and remove jvm9Main from excluded srcsets
+            disabledForTestTasks.add("jvm9Test")
+        }
+        sources {
+            excludedSourceSets.addAll("jvm9Main", "jvm9Test")
+        }
+    }
 }

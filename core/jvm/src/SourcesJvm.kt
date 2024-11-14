@@ -174,3 +174,43 @@ public fun Source.asByteChannel(): ReadableByteChannel {
         override fun read(sink: ByteBuffer): Int = this@asByteChannel.readAtMostTo(sink)
     }
 }
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadShortAt(offset: Int): Short =
+    SourceIntrinsics.uncheckedLoadShortAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadShortLeAt(offset: Int): Short =
+    SourceIntrinsics.uncheckedLoadShortLeAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadIntAt(offset: Int): Int =
+    SourceIntrinsics.uncheckedLoadIntAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadIntLeAt(offset: Int): Int =
+    SourceIntrinsics.uncheckedLoadIntLeAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadLongAt(offset: Int): Long =
+    SourceIntrinsics.uncheckedLoadLongAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadLongLeAt(offset: Int): Long =
+    SourceIntrinsics.uncheckedLoadLongLeAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadFloatAt(offset: Int): Float =
+    SourceIntrinsics.uncheckedLoadFloatAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadFloatLeAt(offset: Int): Float =
+    SourceIntrinsics.uncheckedLoadFloatLeAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadDoubleAt(offset: Int): Double =
+    SourceIntrinsics.uncheckedLoadDoubleAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadDoubleLeAt(offset: Int): Double =
+    SourceIntrinsics.uncheckedLoadDoubleLeAt(this, offset)
