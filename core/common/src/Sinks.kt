@@ -9,6 +9,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlin.math.min
 
 private val HEX_DIGIT_BYTES = ByteArray(16) {
     ((if (it < 10) '0'.code else ('a'.code - 10)) + it).toByte()
@@ -373,4 +374,175 @@ public inline fun Sink.writeToInternalBuffer(lambda: (Buffer) -> Unit) {
     }
     lambda(this.buffer)
     this.hintEmit()
+}
+
+public fun Sink.write(source: ShortArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex)
+}
+
+public fun Sink.write(source: IntArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex)
+}
+
+public fun Sink.write(source: LongArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex)
+}
+
+public fun Sink.write(source: FloatArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex)
+}
+
+public fun Sink.write(source: DoubleArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex)
+}
+
+public fun Sink.writeLe(source: ShortArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, false)
+}
+
+public fun Sink.writeLe(source: IntArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, false)
+}
+
+public fun Sink.writeLe(source: LongArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, false)
+}
+
+public fun Sink.writeLe(source: FloatArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, false)
+}
+
+public fun Sink.writeLe(source: DoubleArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, false)
+}
+
+internal inline expect fun Sink.writeArrayImpl(source: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+internal inline expect fun Sink.writeArrayImpl(source: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+internal inline expect fun Sink.writeArrayImpl(source: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+internal inline expect fun Sink.writeArrayImpl(source: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+internal inline expect fun Sink.writeArrayImpl(source: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+
+@OptIn(InternalIoApi::class, UnsafeIoApi::class)
+internal inline fun <ArrayT, T> Sink.writeArrayImpl(
+    source: ArrayT, startIndex: Int, endIndex: Int, typeSizeInBytes: Int,
+    getter: ArrayT.(Int) -> T, setter: ByteArray.(Int, T) -> Unit
+) {
+    var idx = startIndex
+    while (idx < endIndex) {
+        UnsafeBufferOperations.writeToTail(buffer, typeSizeInBytes) { arr, from, to ->
+            val cap = min(to - from, (endIndex - idx) * typeSizeInBytes)
+            val len = cap and (typeSizeInBytes - 1).inv()
+            for (i in from until from + len step typeSizeInBytes) {
+                setter(arr, i, getter(source, idx++))
+            }
+            len
+        }
+    }
+}
+
+internal inline fun Sink.writeArrayImpl(
+    source: ShortArray,
+    startIndex: Int,
+    endIndex: Int,
+    setter: ByteArray.(Int, Short) -> Unit
+) {
+    writeArrayImpl(source, startIndex, endIndex, Short.SIZE_BYTES, ShortArray::get, setter)
+}
+
+internal inline fun Sink.writeArrayImpl(
+    source: IntArray,
+    startIndex: Int,
+    endIndex: Int,
+    setter: ByteArray.(Int, Int) -> Unit
+) {
+    writeArrayImpl(source, startIndex, endIndex, Int.SIZE_BYTES, IntArray::get, setter)
+}
+
+internal inline fun Sink.writeArrayImpl(
+    source: LongArray,
+    startIndex: Int,
+    endIndex: Int,
+    setter: ByteArray.(Int, Long) -> Unit
+) {
+    writeArrayImpl(source, startIndex, endIndex, Long.SIZE_BYTES, LongArray::get, setter)
+}
+
+internal inline fun Sink.writeArrayImpl(
+    source: FloatArray,
+    startIndex: Int,
+    endIndex: Int,
+    setter: ByteArray.(Int, Float) -> Unit
+) {
+    writeArrayImpl(source, startIndex, endIndex, Float.SIZE_BYTES, FloatArray::get, setter)
+}
+
+internal inline fun Sink.writeArrayImpl(
+    source: DoubleArray,
+    startIndex: Int,
+    endIndex: Int,
+    setter: ByteArray.(Int, Double) -> Unit
+) {
+    writeArrayImpl(source, startIndex, endIndex, Double.SIZE_BYTES, DoubleArray::get, setter)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.writeShortAt_(idx: Int, value: Short) {
+    this[idx] = (value.toInt() ushr 8 and 0xff).toByte()
+    this[idx + 1] = (value.toInt() and 0xff).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.writeShortLeAt_(idx: Int, value: Short) {
+    this[idx] = (value.toInt() and 0xff).toByte()
+    this[idx + 1] = (value.toInt() ushr 8 and 0xff).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.writeIntAt_(idx: Int, value: Int) {
+    this[idx] = (value ushr 24 and 0xff).toByte()
+    this[idx + 1] = (value ushr 16 and 0xff).toByte()
+    this[idx + 2] = (value ushr 8 and 0xff).toByte()
+    this[idx + 3] = (value and 0xff).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.writeIntLeAt_(idx: Int, value: Int) {
+    this[idx] = (value and 0xff).toByte()
+    this[idx + 1] = (value ushr 8 and 0xff).toByte()
+    this[idx + 2] = (value ushr 16 and 0xff).toByte()
+    this[idx + 3] = (value ushr 24 and 0xff).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.writeLongAt_(idx: Int, value: Long) {
+    this[idx] = (value ushr 56 and 0xffL).toByte()
+    this[idx + 1] = (value ushr 48 and 0xffL).toByte()
+    this[idx + 2] = (value ushr 40 and 0xffL).toByte()
+    this[idx + 3] = (value ushr 32 and 0xffL).toByte()
+    this[idx + 4] = (value ushr 24 and 0xffL).toByte()
+    this[idx + 5] = (value ushr 16 and 0xffL).toByte()
+    this[idx + 6] = (value ushr 8 and 0xffL).toByte()
+    this[idx + 7] = (value and 0xffL).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.writeLongLeAt_(idx: Int, value: Long) {
+    this[idx] = (value and 0xffL).toByte()
+    this[idx + 1] = (value ushr 8 and 0xffL).toByte()
+    this[idx + 2] = (value ushr 16 and 0xffL).toByte()
+    this[idx + 3] = (value ushr 24 and 0xffL).toByte()
+    this[idx + 4] = (value ushr 32 and 0xffL).toByte()
+    this[idx + 5] = (value ushr 40 and 0xffL).toByte()
+    this[idx + 6] = (value ushr 48 and 0xffL).toByte()
+    this[idx + 7] = (value ushr 56 and 0xffL).toByte()
 }

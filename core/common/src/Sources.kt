@@ -5,6 +5,9 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlin.math.min
+
 /**
  * Removes two bytes from this source and returns a short integer composed of it according to the little-endian order.
  *
@@ -462,3 +465,398 @@ public fun Source.readDoubleLe(): Double = Double.fromBits(readLongLe())
  */
 @OptIn(InternalIoApi::class)
 public fun Source.startsWith(byte: Byte): Boolean = request(1) && buffer[0] == byte
+
+public fun Source.readTo(sink: ShortArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex)
+}
+
+public fun Source.readTo(sink: IntArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex)
+}
+
+public fun Source.readTo(sink: LongArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex)
+}
+
+public fun Source.readTo(sink: FloatArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex)
+}
+
+public fun Source.readTo(sink: DoubleArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex)
+}
+
+public fun Source.readLeTo(sink: ShortArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex, false)
+}
+
+public fun Source.readLeTo(sink: IntArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex, false)
+}
+
+public fun Source.readLeTo(sink: LongArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex, false)
+}
+
+public fun Source.readLeTo(sink: FloatArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex, false)
+}
+
+public fun Source.readLeTo(sink: DoubleArray, startIndex: Int = 0, endIndex: Int = sink.size) {
+    checkBounds(sink.size, startIndex, endIndex)
+    readArrayImpl(sink, startIndex, endIndex, false)
+}
+
+public fun Source.readShortArray(size: Int): ShortArray {
+    checkSize(size)
+    val array = ShortArray(prefetchArrayData(size, Short.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readShortArray(): ShortArray {
+    val array = ShortArray(prefetchArrayData(-1, Short.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readIntArray(size: Int): IntArray {
+    checkSize(size)
+    val array = IntArray(prefetchArrayData(size, Int.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readIntArray(): IntArray {
+    val array = IntArray(prefetchArrayData(-1, Int.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readLongArray(): LongArray {
+    val array = LongArray(prefetchArrayData(-1, Long.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readLongArray(size: Int): LongArray {
+    checkSize(size)
+    val array = LongArray(prefetchArrayData(size, Long.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readFloatArray(): FloatArray {
+    val array = FloatArray(prefetchArrayData(-1, Float.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readFloatArray(size: Int): FloatArray {
+    checkSize(size)
+    val array = FloatArray(prefetchArrayData(size, Float.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readDoubleArray(): DoubleArray {
+    val array = DoubleArray(prefetchArrayData(-1, Double.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readDoubleArray(size: Int): DoubleArray {
+    checkSize(size)
+    val array = DoubleArray(prefetchArrayData(size, Double.SIZE_BYTES))
+    readTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readShortLeArray(size: Int): ShortArray {
+    checkSize(size)
+    val array = ShortArray(prefetchArrayData(size, Short.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readShortLeArray(): ShortArray {
+    val array = ShortArray(prefetchArrayData(-1, Short.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readIntLeArray(size: Int): IntArray {
+    checkSize(size)
+    val array = IntArray(prefetchArrayData(size, Int.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readIntLeArray(): IntArray {
+    val array = IntArray(prefetchArrayData(-1, Int.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readLongLeArray(): LongArray {
+    val array = LongArray(prefetchArrayData(-1, Long.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readLongLeArray(size: Int): LongArray {
+    checkSize(size)
+    val array = LongArray(prefetchArrayData(size, Long.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readFloatLeArray(): FloatArray {
+    val array = FloatArray(prefetchArrayData(-1, Float.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readFloatLeArray(size: Int): FloatArray {
+    checkSize(size)
+    val array = FloatArray(prefetchArrayData(size, Float.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readDoubleLeArray(): DoubleArray {
+    val array = DoubleArray(prefetchArrayData(-1, Double.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+public fun Source.readDoubleLeArray(size: Int): DoubleArray {
+    checkSize(size)
+    val array = DoubleArray(prefetchArrayData(size, Double.SIZE_BYTES))
+    readLeTo(array, 0, array.size)
+    return array
+}
+
+@OptIn(InternalIoApi::class)
+private fun Source.prefetchArrayData(arraySize: Int, elementSize: Int): Int {
+    if (arraySize >= 0) {
+        require(arraySize * elementSize.toLong())
+        return arraySize
+    }
+
+    val maxFetchSize = Int.MAX_VALUE.toLong() * elementSize
+    var fetchSize = maxFetchSize
+    while (buffer.size < maxFetchSize && request(fetchSize)) {
+        fetchSize = fetchSize * 2
+    }
+    check(buffer.size < maxFetchSize) { "Can't create an array of size ${buffer.size / elementSize}" }
+    check(buffer.size % elementSize == 0L) {
+        "Can't read the source in full as the number of available bytes (${buffer.size}) is not a multiple of an" +
+                "array element type ($elementSize)"
+    }
+    return (buffer.size / elementSize).toInt()
+}
+
+internal expect fun Source.readArrayImpl(sink: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+internal expect fun Source.readArrayImpl(sink: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+internal expect fun Source.readArrayImpl(sink: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+internal expect fun Source.readArrayImpl(sink: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+internal expect fun Source.readArrayImpl(sink: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
+
+
+@OptIn(InternalIoApi::class, UnsafeIoApi::class)
+internal inline fun <Type, ArrayType> Source.readArrayImpl(
+    sink: ArrayType,
+    startIndex: Int,
+    endIndex: Int,
+    typeSizeInBytes: Int,
+    setter: ArrayType.(Int, Type) -> Unit,
+    reader: ByteArray.(Int) -> Type,
+    partialReader: Buffer.() -> Type
+) {
+    var idx = startIndex
+    while (idx < endIndex) {
+        // The source has to contain at least a single element.
+        if (!request(typeSizeInBytes.toLong())) {
+            // According to `readTo` contract, the input will be consumed on error
+            buffer.clear()
+            throw EOFException(
+                "Source exhausted before reading ${endIndex - startIndex} bytes. " +
+                        "Only ${idx - startIndex} bytes were read."
+            )
+        }
+        var hasValueSplitAmongSegments = false
+        UnsafeBufferOperations.readFromHead(buffer) { arr, from, to ->
+            val remaining = endIndex - idx
+            val cap = min(remaining * typeSizeInBytes, to - from)
+            val len = cap and (typeSizeInBytes - 1).inv()
+
+            for (i in from until from + len step typeSizeInBytes) {
+                setter(sink, idx++, reader(arr, i))
+            }
+
+            hasValueSplitAmongSegments = len != cap && idx < endIndex
+
+            len
+        }
+        // hasValueSplitAmongSegments == true if a segment had less than typeSizeInBytes.
+        // partialReader should perform all capacity checks on its own.
+        if (hasValueSplitAmongSegments && request(typeSizeInBytes.toLong())) {
+            setter(sink, idx++, partialReader(buffer))
+        }
+    }
+}
+
+internal inline fun Source.readArrayImpl(
+    sink: IntArray,
+    startIndex: Int,
+    endIndex: Int,
+    bufferReader: Buffer.() -> Int,
+    reader: ByteArray.(Int) -> Int
+) {
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Int.SIZE_BYTES,
+        IntArray::set,
+        reader,
+        bufferReader
+    )
+}
+
+internal inline fun Source.readArrayImpl(
+    sink: ShortArray,
+    startIndex: Int,
+    endIndex: Int,
+    bufferReader: Buffer.() -> Short,
+    reader: ByteArray.(Int) -> Short
+) {
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Short.SIZE_BYTES,
+        ShortArray::set,
+        reader,
+        bufferReader
+    )
+}
+
+internal inline fun Source.readArrayImpl(
+    sink: LongArray,
+    startIndex: Int,
+    endIndex: Int,
+    bufferReader: Buffer.() -> Long,
+    reader: ByteArray.(Int) -> Long
+) {
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Long.SIZE_BYTES,
+        LongArray::set,
+        reader,
+        bufferReader
+    )
+}
+
+internal inline fun Source.readArrayImpl(
+    sink: FloatArray,
+    startIndex: Int,
+    endIndex: Int,
+    bufferReader: Buffer.() -> Float,
+    reader: ByteArray.(Int) -> Float
+) {
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Float.SIZE_BYTES,
+        FloatArray::set,
+        reader,
+        bufferReader
+    )
+}
+
+internal inline fun Source.readArrayImpl(
+    sink: DoubleArray,
+    startIndex: Int,
+    endIndex: Int,
+    bufferReader: Buffer.() -> Double,
+    reader: ByteArray.(Int) -> Double
+) {
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Double.SIZE_BYTES,
+        DoubleArray::set,
+        reader,
+        bufferReader
+    )
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.readShortAt_(offset: Int): Short {
+    return ((this[offset] and 0xff shl 8).or(this[offset + 1] and 0xff)).toShort()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.readShortLeAt_(offset: Int): Short {
+    return ((this[offset] and 0xff).or(this[offset + 1] and 0xff shl 8)).toShort()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.readIntAt_(offset: Int): Int {
+    return (this[offset] and 0xff shl 24)
+        .or(this[offset + 1] and 0xff shl 16)
+        .or(this[offset + 2] and 0xff shl 8)
+        .or(this[offset + 3] and 0xff)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.readIntLeAt_(offset: Int): Int {
+    return (this[offset] and 0xff)
+        .or(this[offset + 1] and 0xff shl 8)
+        .or(this[offset + 2] and 0xff shl 16)
+        .or(this[offset + 3] and 0xff shl 24)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.readLongAt_(offset: Int): Long {
+    return (this[offset] and 0xffL shl 56)
+        .or(this[offset + 1] and 0xffL shl 48)
+        .or(this[offset + 2] and 0xffL shl 40)
+        .or(this[offset + 3] and 0xffL shl 32)
+        .or(this[offset + 4] and 0xffL shl 24)
+        .or(this[offset + 5] and 0xffL shl 16)
+        .or(this[offset + 6] and 0xffL shl 8)
+        .or(this[offset + 7] and 0xffL)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.readLongLeAt_(offset: Int): Long {
+    return (this[offset] and 0xffL)
+        .or(this[offset + 1] and 0xffL shl 8)
+        .or(this[offset + 2] and 0xffL shl 16)
+        .or(this[offset + 3] and 0xffL shl 24)
+        .or(this[offset + 4] and 0xffL shl 32)
+        .or(this[offset + 5] and 0xffL shl 40)
+        .or(this[offset + 6] and 0xffL shl 48)
+        .or(this[offset + 7] and 0xffL shl 56)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun checkSize(size: Int) {
+    require(size >= 0) { "size ($size) < 0" }
+}

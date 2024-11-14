@@ -130,3 +130,48 @@ public fun Sink.asByteChannel(): WritableByteChannel {
         }
     }
 }
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun Sink.writeArrayImpl(source: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SinkIntrinsics.write(this, source, startIndex, endIndex)
+    } else {
+        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
+    }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun Sink.writeArrayImpl(source: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SinkIntrinsics.write(this, source, startIndex, endIndex)
+    } else {
+        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
+    }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun Sink.writeArrayImpl(source: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SinkIntrinsics.write(this, source, startIndex, endIndex)
+    } else {
+        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
+    }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun Sink.writeArrayImpl(source: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SinkIntrinsics.write(this, source, startIndex, endIndex)
+    } else {
+        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
+    }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun Sink.writeArrayImpl(source: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SinkIntrinsics.write(this, source, startIndex, endIndex)
+    } else {
+        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
+    }
+}

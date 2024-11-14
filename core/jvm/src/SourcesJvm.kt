@@ -174,3 +174,43 @@ public fun Source.asByteChannel(): ReadableByteChannel {
         override fun read(sink: ByteBuffer): Int = this@asByteChannel.readAtMostTo(sink)
     }
 }
+
+internal actual fun Source.readArrayImpl(sink: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SourceIntrinsics.read(this, sink, startIndex, endIndex)
+    } else {
+        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
+    }
+}
+
+internal actual fun Source.readArrayImpl(sink: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SourceIntrinsics.read(this, sink, startIndex, endIndex)
+    } else {
+        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
+    }
+}
+
+internal actual fun Source.readArrayImpl(sink: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SourceIntrinsics.read(this, sink, startIndex, endIndex)
+    } else {
+        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
+    }
+}
+
+internal actual fun Source.readArrayImpl(sink: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SourceIntrinsics.read(this, sink, startIndex, endIndex)
+    } else {
+        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
+    }
+}
+
+internal actual fun Source.readArrayImpl(sink: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
+    if (bigEndian) {
+        SourceIntrinsics.read(this, sink, startIndex, endIndex)
+    } else {
+        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
+    }
+}
