@@ -5,10 +5,11 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
-import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlin.math.min
 
 private val HEX_DIGIT_BYTES = ByteArray(16) {
     ((if (it < 10) '0'.code else ('a'.code - 10)) + it).toByte()
@@ -374,3 +375,327 @@ public inline fun Sink.writeToInternalBuffer(lambda: (Buffer) -> Unit) {
     lambda(this.buffer)
     this.hintEmit()
 }
+
+/**
+ * Writes [Short] values from [source] array or its subrange to this sink.
+ * Each short value is written in big-endian byte order, the same way [Sink.writeShort] writes it.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeShortArrayToSink
+ */
+public fun Sink.write(source: ShortArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Short.SIZE_BYTES, ShortArray::get, ByteArray::uncheckedStoreShortAt)
+}
+
+/**
+ * Writes [Int] values from [source] array or its subrange to this sink.
+ * Each int value is written in big-endian byte order, the same way [Sink.writeInt] writes it.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeIntArrayToSink
+ */
+public fun Sink.write(source: IntArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Int.SIZE_BYTES, IntArray::get, ByteArray::uncheckedStoreIntAt)
+}
+
+/**
+ * Writes [Long] values from [source] array or its subrange to this sink.
+ * Each long value is written in big-endian byte order, the same way [Sink.writeLong] writes it.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeLongArrayToSink
+ */
+public fun Sink.write(source: LongArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Long.SIZE_BYTES, LongArray::get, ByteArray::uncheckedStoreLongAt)
+}
+
+/**
+ * Writes [Float] values from [source] array or its subrange to this sink.
+ * Each float value is written in big-endian byte order, the same way [Sink.writeFloat] writes it.
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloat] and then reading it back using [Source.readFloat] may not be equal to the original value.
+ * The same limitation applies to this function.
+ * Please refer to [Float.toBits] documentation for details.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeFloatArrayToSink
+ */
+public fun Sink.write(source: FloatArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Float.SIZE_BYTES, FloatArray::get, ByteArray::uncheckedStoreFloatAt)
+}
+
+/**
+ * Writes [Double] values from [source] array or its subrange to this sink.
+ * Each double value is written in big-endian byte order, the same way [Sink.writeDouble] writes it.
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Double] value to a [Sink] using
+ * [Sink.writeDouble] and then reading it back using [Source.readDouble] may not be equal to the original value.
+ * The same limitation applies to this function.
+ * Please refer to [Double.toBits] documentation for details.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDoubleArrayToSink
+ */
+public fun Sink.write(source: DoubleArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Double.SIZE_BYTES, DoubleArray::get, ByteArray::uncheckedStoreDoubleAt)
+}
+
+/**
+ * Writes [Short] values from [source] array or its subrange to this sink.
+ * Each short value is written in little-endian byte order, the same way [Sink.writeShortLe] writes it.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeShortArrayToSink
+ */
+public fun Sink.writeLe(source: ShortArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Short.SIZE_BYTES, ShortArray::get, ByteArray::uncheckedStoreShortLeAt)
+}
+
+/**
+ * Writes [Int] values from [source] array or its subrange to this sink.
+ * Each int value is written in little-endian byte order, the same way [Sink.writeIntLe] writes it.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeIntArrayToSink
+ */
+public fun Sink.writeLe(source: IntArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Int.SIZE_BYTES, IntArray::get, ByteArray::uncheckedStoreIntLeAt)
+}
+
+/**
+ * Writes [Long] values from [source] array or its subrange to this sink.
+ * Each long value is written in little-endian byte order, the same way [Sink.writeLongLe] writes it.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeLongArrayToSink
+ */
+public fun Sink.writeLe(source: LongArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Long.SIZE_BYTES, LongArray::get, ByteArray::uncheckedStoreLongLeAt)
+}
+
+/**
+ * Writes [Float] values from [source] array or its subrange to this sink.
+ * Each float value is written in little-endian byte order, the same way [Sink.writeFloatLe] writes it.
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloatLe] and then reading it back using [Source.readFloatLe] may not be equal to the original value.
+ * The same limitation applies to this function.
+ * Please refer to [Float.toBits] documentation for details.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeFloatArrayToSink
+ */
+public fun Sink.writeLe(source: FloatArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(source, startIndex, endIndex, Float.SIZE_BYTES, FloatArray::get, ByteArray::uncheckedStoreFloatLeAt)
+}
+
+/**
+ * Writes [Double] values from [source] array or its subrange to this sink.
+ * Each double value is written in little-endian byte order, the same way [Sink.writeDoubleLe] writes it.
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Double] value to a [Sink] using
+ * [Sink.writeDoubleLe] and then reading it back using [Source.readDoubleLe] may not be equal to the original value.
+ * The same limitation applies to this function.
+ * Please refer to [Double.toBits] documentation for details.
+ *
+ * @param source the array from which value will be written into this sink.
+ * @param startIndex the start index (inclusive) of the [source] subrange to be written, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [source] subrange to be written, size of the [source] by default.
+ *
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [source] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IllegalStateException when the sink is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDoubleArrayToSink
+ */
+public fun Sink.writeLe(source: DoubleArray, startIndex: Int = 0, endIndex: Int = source.size) {
+    checkBounds(source.size, startIndex, endIndex)
+    writeArrayImpl(
+        source,
+        startIndex,
+        endIndex,
+        Double.SIZE_BYTES,
+        DoubleArray::get,
+        ByteArray::uncheckedStoreDoubleLeAt
+    )
+}
+
+@OptIn(InternalIoApi::class, UnsafeIoApi::class)
+internal inline fun <ArrayT, T> Sink.writeArrayImpl(
+    source: ArrayT, startIndex: Int, endIndex: Int, typeSizeInBytes: Int,
+    getter: ArrayT.(Int) -> T, setter: ByteArray.(Int, T) -> Unit
+) {
+    var idx = startIndex
+    while (idx < endIndex) {
+        UnsafeBufferOperations.writeToTail(buffer, typeSizeInBytes) { arr, from, to ->
+            val cap = min(to - from, (endIndex - idx) * typeSizeInBytes)
+            val len = cap and (typeSizeInBytes - 1).inv()
+            for (i in from until from + len step typeSizeInBytes) {
+                setter(arr, i, getter(source, idx++))
+            }
+            len
+        }
+    }
+}
+
+internal expect inline fun ByteArray.uncheckedStoreShortAt(idx: Int, value: Short)
+internal expect inline fun ByteArray.uncheckedStoreShortLeAt(idx: Int, value: Short)
+internal expect inline fun ByteArray.uncheckedStoreIntAt(idx: Int, value: Int)
+internal expect inline fun ByteArray.uncheckedStoreIntLeAt(idx: Int, value: Int)
+internal expect inline fun ByteArray.uncheckedStoreLongAt(idx: Int, value: Long)
+internal expect inline fun ByteArray.uncheckedStoreLongLeAt(idx: Int, value: Long)
+internal expect inline fun ByteArray.uncheckedStoreFloatAt(idx: Int, value: Float)
+internal expect inline fun ByteArray.uncheckedStoreFloatLeAt(idx: Int, value: Float)
+internal expect inline fun ByteArray.uncheckedStoreDoubleAt(idx: Int, value: Double)
+internal expect inline fun ByteArray.uncheckedStoreDoubleLeAt(idx: Int, value: Double)
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreShortAtCommon(idx: Int, value: Short) {
+    this[idx] = (value.toInt() ushr 8 and 0xff).toByte()
+    this[idx + 1] = (value.toInt() and 0xff).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreShortLeAtCommon(idx: Int, value: Short) {
+    this[idx] = (value.toInt() and 0xff).toByte()
+    this[idx + 1] = (value.toInt() ushr 8 and 0xff).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreIntAtCommon(idx: Int, value: Int) {
+    this[idx] = (value ushr 24 and 0xff).toByte()
+    this[idx + 1] = (value ushr 16 and 0xff).toByte()
+    this[idx + 2] = (value ushr 8 and 0xff).toByte()
+    this[idx + 3] = (value and 0xff).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreIntLeAtCommon(idx: Int, value: Int) {
+    this[idx] = (value and 0xff).toByte()
+    this[idx + 1] = (value ushr 8 and 0xff).toByte()
+    this[idx + 2] = (value ushr 16 and 0xff).toByte()
+    this[idx + 3] = (value ushr 24 and 0xff).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreLongAtCommon(idx: Int, value: Long) {
+    this[idx] = (value ushr 56 and 0xffL).toByte()
+    this[idx + 1] = (value ushr 48 and 0xffL).toByte()
+    this[idx + 2] = (value ushr 40 and 0xffL).toByte()
+    this[idx + 3] = (value ushr 32 and 0xffL).toByte()
+    this[idx + 4] = (value ushr 24 and 0xffL).toByte()
+    this[idx + 5] = (value ushr 16 and 0xffL).toByte()
+    this[idx + 6] = (value ushr 8 and 0xffL).toByte()
+    this[idx + 7] = (value and 0xffL).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreLongLeAtCommon(idx: Int, value: Long) {
+    this[idx] = (value and 0xffL).toByte()
+    this[idx + 1] = (value ushr 8 and 0xffL).toByte()
+    this[idx + 2] = (value ushr 16 and 0xffL).toByte()
+    this[idx + 3] = (value ushr 24 and 0xffL).toByte()
+    this[idx + 4] = (value ushr 32 and 0xffL).toByte()
+    this[idx + 5] = (value ushr 40 and 0xffL).toByte()
+    this[idx + 6] = (value ushr 48 and 0xffL).toByte()
+    this[idx + 7] = (value ushr 56 and 0xffL).toByte()
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreFloatAtCommon(idx: Int, value: Float) =
+    uncheckedStoreIntAt(idx, value.toBits())
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreFloatLeAtCommon(idx: Int, value: Float) =
+    uncheckedStoreIntLeAt(idx, value.toBits())
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreDoubleAtCommon(idx: Int, value: Double) =
+    uncheckedStoreLongAt(idx, value.toBits())
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedStoreDoubleLeAtCommon(idx: Int, value: Double) =
+    uncheckedStoreLongLeAt(idx, value.toBits())

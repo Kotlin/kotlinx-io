@@ -148,6 +148,16 @@ public final class kotlinx/io/SinksJvmKt {
 }
 
 public final class kotlinx/io/SinksKt {
+	public static final fun write (Lkotlinx/io/Sink;[DII)V
+	public static final fun write (Lkotlinx/io/Sink;[FII)V
+	public static final fun write (Lkotlinx/io/Sink;[III)V
+	public static final fun write (Lkotlinx/io/Sink;[JII)V
+	public static final fun write (Lkotlinx/io/Sink;[SII)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;[DIIILjava/lang/Object;)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;[FIIILjava/lang/Object;)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;[IIIILjava/lang/Object;)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;[JIIILjava/lang/Object;)V
+	public static synthetic fun write$default (Lkotlinx/io/Sink;[SIIILjava/lang/Object;)V
 	public static final fun writeDecimalLong (Lkotlinx/io/Sink;J)V
 	public static final fun writeDouble (Lkotlinx/io/Sink;D)V
 	public static final fun writeDoubleLe (Lkotlinx/io/Sink;D)V
@@ -155,6 +165,16 @@ public final class kotlinx/io/SinksKt {
 	public static final fun writeFloatLe (Lkotlinx/io/Sink;F)V
 	public static final fun writeHexadecimalUnsignedLong (Lkotlinx/io/Sink;J)V
 	public static final fun writeIntLe (Lkotlinx/io/Sink;I)V
+	public static final fun writeLe (Lkotlinx/io/Sink;[DII)V
+	public static final fun writeLe (Lkotlinx/io/Sink;[FII)V
+	public static final fun writeLe (Lkotlinx/io/Sink;[III)V
+	public static final fun writeLe (Lkotlinx/io/Sink;[JII)V
+	public static final fun writeLe (Lkotlinx/io/Sink;[SII)V
+	public static synthetic fun writeLe$default (Lkotlinx/io/Sink;[DIIILjava/lang/Object;)V
+	public static synthetic fun writeLe$default (Lkotlinx/io/Sink;[FIIILjava/lang/Object;)V
+	public static synthetic fun writeLe$default (Lkotlinx/io/Sink;[IIIILjava/lang/Object;)V
+	public static synthetic fun writeLe$default (Lkotlinx/io/Sink;[JIIILjava/lang/Object;)V
+	public static synthetic fun writeLe$default (Lkotlinx/io/Sink;[SIIILjava/lang/Object;)V
 	public static final fun writeLongLe (Lkotlinx/io/Sink;J)V
 	public static final fun writeShortLe (Lkotlinx/io/Sink;S)V
 	public static final fun writeToInternalBuffer (Lkotlinx/io/Sink;Lkotlin/jvm/functions/Function1;)V
@@ -199,15 +219,55 @@ public final class kotlinx/io/SourcesKt {
 	public static final fun readByteArray (Lkotlinx/io/Source;I)[B
 	public static final fun readDecimalLong (Lkotlinx/io/Source;)J
 	public static final fun readDouble (Lkotlinx/io/Source;)D
+	public static final fun readDoubleArray (Lkotlinx/io/Source;)[D
+	public static final fun readDoubleArray (Lkotlinx/io/Source;I)[D
 	public static final fun readDoubleLe (Lkotlinx/io/Source;)D
+	public static final fun readDoubleLeArray (Lkotlinx/io/Source;)[D
+	public static final fun readDoubleLeArray (Lkotlinx/io/Source;I)[D
 	public static final fun readFloat (Lkotlinx/io/Source;)F
+	public static final fun readFloatArray (Lkotlinx/io/Source;)[F
+	public static final fun readFloatArray (Lkotlinx/io/Source;I)[F
 	public static final fun readFloatLe (Lkotlinx/io/Source;)F
+	public static final fun readFloatLeArray (Lkotlinx/io/Source;)[F
+	public static final fun readFloatLeArray (Lkotlinx/io/Source;I)[F
 	public static final fun readHexadecimalUnsignedLong (Lkotlinx/io/Source;)J
+	public static final fun readIntArray (Lkotlinx/io/Source;)[I
+	public static final fun readIntArray (Lkotlinx/io/Source;I)[I
 	public static final fun readIntLe (Lkotlinx/io/Source;)I
+	public static final fun readIntLeArray (Lkotlinx/io/Source;)[I
+	public static final fun readIntLeArray (Lkotlinx/io/Source;I)[I
+	public static final fun readLeTo (Lkotlinx/io/Source;[DII)V
+	public static final fun readLeTo (Lkotlinx/io/Source;[FII)V
+	public static final fun readLeTo (Lkotlinx/io/Source;[III)V
+	public static final fun readLeTo (Lkotlinx/io/Source;[JII)V
+	public static final fun readLeTo (Lkotlinx/io/Source;[SII)V
+	public static synthetic fun readLeTo$default (Lkotlinx/io/Source;[DIIILjava/lang/Object;)V
+	public static synthetic fun readLeTo$default (Lkotlinx/io/Source;[FIIILjava/lang/Object;)V
+	public static synthetic fun readLeTo$default (Lkotlinx/io/Source;[IIIILjava/lang/Object;)V
+	public static synthetic fun readLeTo$default (Lkotlinx/io/Source;[JIIILjava/lang/Object;)V
+	public static synthetic fun readLeTo$default (Lkotlinx/io/Source;[SIIILjava/lang/Object;)V
+	public static final fun readLongArray (Lkotlinx/io/Source;)[J
+	public static final fun readLongArray (Lkotlinx/io/Source;I)[J
 	public static final fun readLongLe (Lkotlinx/io/Source;)J
+	public static final fun readLongLeArray (Lkotlinx/io/Source;)[J
+	public static final fun readLongLeArray (Lkotlinx/io/Source;I)[J
+	public static final fun readShortArray (Lkotlinx/io/Source;)[S
+	public static final fun readShortArray (Lkotlinx/io/Source;I)[S
 	public static final fun readShortLe (Lkotlinx/io/Source;)S
+	public static final fun readShortLeArray (Lkotlinx/io/Source;)[S
+	public static final fun readShortLeArray (Lkotlinx/io/Source;I)[S
 	public static final fun readTo (Lkotlinx/io/Source;[BII)V
+	public static final fun readTo (Lkotlinx/io/Source;[DII)V
+	public static final fun readTo (Lkotlinx/io/Source;[FII)V
+	public static final fun readTo (Lkotlinx/io/Source;[III)V
+	public static final fun readTo (Lkotlinx/io/Source;[JII)V
+	public static final fun readTo (Lkotlinx/io/Source;[SII)V
 	public static synthetic fun readTo$default (Lkotlinx/io/Source;[BIIILjava/lang/Object;)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Source;[DIIILjava/lang/Object;)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Source;[FIIILjava/lang/Object;)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Source;[IIIILjava/lang/Object;)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Source;[JIIILjava/lang/Object;)V
+	public static synthetic fun readTo$default (Lkotlinx/io/Source;[SIIILjava/lang/Object;)V
 	public static final fun readUByte (Lkotlinx/io/Source;)B
 	public static final fun readUInt (Lkotlinx/io/Source;)I
 	public static final fun readUIntLe (Lkotlinx/io/Source;)I
