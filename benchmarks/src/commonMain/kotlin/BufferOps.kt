@@ -480,3 +480,404 @@ open class Utf8CodePointsBenchmark : BufferRWBenchmarkBase() {
         return buffer.readCodePointValue()
     }
 }
+
+@State(Scope.Benchmark)
+open class ReadToShortArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = ShortArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Short.SIZE_BYTES * size)
+        destination = ShortArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class ReadToIntArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = IntArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Int.SIZE_BYTES * size)
+        destination = IntArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class ReadToLongArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = LongArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Long.SIZE_BYTES * size)
+        destination = LongArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class ReadToFloatArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = FloatArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Float.SIZE_BYTES * size)
+        destination = FloatArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class ReadToDoubleArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = DoubleArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Double.SIZE_BYTES * size)
+        destination = DoubleArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteShortArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ShortArray(0)
+
+    @Setup
+    fun setup() {
+        source = ShortArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.skip(size * Short.SIZE_BYTES.toLong())
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteIntArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = IntArray(0)
+
+    @Setup
+    fun setup() {
+        source = IntArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.skip(size * Int.SIZE_BYTES.toLong())
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteLongArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = LongArray(0)
+
+    @Setup
+    fun setup() {
+        source = LongArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.skip(size * Long.SIZE_BYTES.toLong())
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteFloatArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = FloatArray(0)
+
+    @Setup
+    fun setup() {
+        source = FloatArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.skip(size * Float.SIZE_BYTES.toLong())
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteDoubleArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = DoubleArray(0)
+
+    @Setup
+    fun setup() {
+        source = DoubleArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.skip(size * Double.SIZE_BYTES.toLong())
+    }
+}
+
+// Little-endian
+@State(Scope.Benchmark)
+open class ReadToShortLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = ShortArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Short.SIZE_BYTES * size)
+        destination = ShortArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readLeTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class ReadToIntLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = IntArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Int.SIZE_BYTES * size)
+        destination = IntArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readLeTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class ReadToLongLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = LongArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Long.SIZE_BYTES * size)
+        destination = LongArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readLeTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class ReadToFloatLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = FloatArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Float.SIZE_BYTES * size)
+        destination = FloatArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readLeTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class ReadToDoubleLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ByteArray(0)
+    private var destination = DoubleArray(0)
+
+    @Setup
+    fun setup() {
+        source = ByteArray(Double.SIZE_BYTES * size)
+        destination = DoubleArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.write(source)
+        buffer.readLeTo(destination)
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteShortLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = ShortArray(0)
+
+    @Setup
+    fun setup() {
+        source = ShortArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.writeLe(source)
+        buffer.skip(size * Short.SIZE_BYTES.toLong())
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteIntLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = IntArray(0)
+
+    @Setup
+    fun setup() {
+        source = IntArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.writeLe(source)
+        buffer.skip(size * Int.SIZE_BYTES.toLong())
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteLongLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = LongArray(0)
+
+    @Setup
+    fun setup() {
+        source = LongArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.writeLe(source)
+        buffer.skip(size * Long.SIZE_BYTES.toLong())
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteFloatLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = FloatArray(0)
+
+    @Setup
+    fun setup() {
+        source = FloatArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.writeLe(source)
+        buffer.skip(size * Float.SIZE_BYTES.toLong())
+    }
+}
+
+@State(Scope.Benchmark)
+open class WriteDoubleLeArrayBenchmark : BufferRWBenchmarkBase() {
+    @Param("10", "100", "1000")
+    var size: Int = 0
+
+    private var source = DoubleArray(0)
+
+    @Setup
+    fun setup() {
+        source = DoubleArray(size)
+    }
+
+    @Benchmark
+    fun benchmark() {
+        buffer.writeLe(source)
+        buffer.skip(size * Double.SIZE_BYTES.toLong())
+    }
+}

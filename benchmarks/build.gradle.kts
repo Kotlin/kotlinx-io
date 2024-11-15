@@ -63,3 +63,14 @@ benchmark {
         }
     }
 }
+
+afterEvaluate {
+    if (properties["multiRelease"].toString().toBoolean() == true) {
+        tasks.named("jvmBenchmarkJar").configure {
+            this as org.gradle.jvm.tasks.Jar
+            manifest {
+                attributes("Multi-Release" to true)
+            }
+        }
+    }
+}
