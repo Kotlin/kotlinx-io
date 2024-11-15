@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -52,21 +52,27 @@ internal inline fun checkByteCount(byteCount: Long) {
     require(byteCount >= 0) { "byteCount ($byteCount) < 0" }
 }
 
-internal fun Short.reverseBytes(): Short {
+internal expect fun Short.reverseBytes(): Short
+
+internal inline fun Short.reverseBytesCommon(): Short {
     val i = toInt() and 0xffff
     val reversed = (i and 0xff00 ushr 8) or
             (i and 0x00ff shl 8)
     return reversed.toShort()
 }
 
-internal fun Int.reverseBytes(): Int {
+internal expect fun Int.reverseBytes(): Int
+
+internal inline fun Int.reverseBytesCommon(): Int {
     return (this and -0x1000000 ushr 24) or
             (this and 0x00ff0000 ushr 8) or
             (this and 0x0000ff00 shl 8) or
             (this and 0x000000ff shl 24)
 }
 
-internal fun Long.reverseBytes(): Long {
+internal expect fun Long.reverseBytes(): Long
+
+internal inline fun Long.reverseBytesCommon(): Long {
     return (this and -0x100000000000000L ushr 56) or
             (this and 0x00ff000000000000L ushr 40) or
             (this and 0x0000ff0000000000L ushr 24) or
@@ -78,14 +84,6 @@ internal fun Long.reverseBytes(): Long {
 }
 
 /* ktlint-enable no-multi-spaces indent */
-
-internal inline infix fun Int.leftRotate(bitCount: Int): Int {
-    return (this shl bitCount) or (this ushr (32 - bitCount))
-}
-
-internal inline infix fun Long.rightRotate(bitCount: Int): Long {
-    return (this ushr bitCount) or (this shl (64 - bitCount))
-}
 
 // Syntactic sugar.
 internal inline infix fun Byte.shr(other: Int): Int = toInt() shr other
