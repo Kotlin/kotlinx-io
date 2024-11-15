@@ -6,51 +6,33 @@
 package kotlinx.io
 
 internal object SinkIntrinsics {
-    fun write(target: Sink, source: ShortArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex, ByteArray::writeShortAt_)
-    }
+    fun uncheckedStoreShortAt(array: ByteArray, idx: Int, value: Short) =
+        array.uncheckedStoreShortAtCommon(idx, value)
 
-    fun write(target: Sink, source: IntArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex, ByteArray::writeIntAt_)
-    }
+    fun uncheckedStoreShortLeAt(array: ByteArray, idx: Int, value: Short) =
+        array.uncheckedStoreShortLeAtCommon(idx, value)
 
-    fun write(target: Sink, source: LongArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex, ByteArray::writeLongAt_)
-    }
+    fun uncheckedStoreIntAt(array: ByteArray, idx: Int, value: Int) =
+        array.uncheckedStoreIntAtCommon(idx, value)
 
-    fun write(target: Sink, source: FloatArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            writeIntAt_(idx, value.toBits())
-        }
-    }
+    fun uncheckedStoreIntLeAt(array: ByteArray, idx: Int, value: Int) =
+        array.uncheckedStoreIntLeAtCommon(idx, value)
 
-    fun write(target: Sink, source: DoubleArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            writeLongAt_(idx, value.toBits())
-        }
-    }
+    fun uncheckedStoreLongAt(array: ByteArray, idx: Int, value: Long) =
+        array.uncheckedStoreLongAtCommon(idx, value)
 
-    fun writeLe(target: Sink, source: ShortArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex, ByteArray::writeShortLeAt_)
-    }
+    fun uncheckedStoreLongLeAt(array: ByteArray, idx: Int, value: Long) =
+        array.uncheckedStoreLongLeAtCommon(idx, value)
 
-    fun writeLe(target: Sink, source: IntArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex, ByteArray::writeIntLeAt_)
-    }
+    fun uncheckedStoreFloatAt(array: ByteArray, idx: Int, value: Float) =
+        array.uncheckedStoreFloatAtCommon(idx, value)
 
-    fun writeLe(target: Sink, source: LongArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex, ByteArray::writeLongLeAt_)
-    }
+    fun uncheckedStoreFloatLeAt(array: ByteArray, idx: Int, value: Float) =
+        array.uncheckedStoreFloatLeAtCommon(idx, value)
 
-    fun writeLe(target: Sink, source: FloatArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            writeIntLeAt_(idx, value.toBits())
-        }
-    }
+    fun uncheckedStoreDoubleAt(array: ByteArray, idx: Int, value: Double) =
+        array.uncheckedStoreDoubleAtCommon(idx, value)
 
-    fun writeLe(target: Sink, source: DoubleArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            writeLongLeAt_(idx, value.toBits())
-        }
-    }
+    fun uncheckedStoreDoubleLeAt(array: ByteArray, idx: Int, value: Double) =
+        array.uncheckedStoreDoubleLeAtCommon(idx, value)
 }

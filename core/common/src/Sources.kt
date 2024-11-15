@@ -78,7 +78,7 @@ public fun Source.readDecimalLong(): Long {
             negative = true
             overflowDigit--
             require(2)
-            if (buffer[1] !in '0'.code .. '9'.code) {
+            if (buffer[1] !in '0'.code..'9'.code) {
                 throw NumberFormatException("Expected a digit but was 0x${buffer[1].toHexString()}")
             }
         }
@@ -466,56 +466,347 @@ public fun Source.readDoubleLe(): Double = Double.fromBits(readLongLe())
 @OptIn(InternalIoApi::class)
 public fun Source.startsWith(byte: Byte): Boolean = request(1) && buffer[0] == byte
 
+/**
+ * Removes exactly `endIndex - startIndex` [Short] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each short value is read in big-endian byte order, the same way [Source.readShort] reads values.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToShortArraySample
+ */
 public fun Source.readTo(sink: ShortArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Short.SIZE_BYTES,
+        ShortArray::set,
+        ByteArray::uncheckedLoadShortAt,
+        Buffer::readShort
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Int] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each int value is read in big-endian byte order, the same way [Source.readInt] reads values.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToIntArraySample
+ */
 public fun Source.readTo(sink: IntArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Int.SIZE_BYTES,
+        IntArray::set,
+        ByteArray::uncheckedLoadIntAt,
+        Buffer::readInt
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Long] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each long value is read in big-endian byte order, the same way [Source.readLong] reads values.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToLongArraySample
+ */
 public fun Source.readTo(sink: LongArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Long.SIZE_BYTES,
+        LongArray::set,
+        ByteArray::uncheckedLoadLongAt,
+        Buffer::readLong
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Float] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each float value is read in big-endian byte order, the same way [Source.readFloat] reads values.
+ *
+ * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloat] and then reading it back using [Source.readFloat] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Float.Companion.fromBits] documentation for details.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToFloatArraySample
+ */
 public fun Source.readTo(sink: FloatArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Float.SIZE_BYTES,
+        FloatArray::set,
+        ByteArray::uncheckedLoadFloatAt,
+        Buffer::readFloat
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Double] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each double value is read in big-endian byte order, the same way [Source.readDouble] reads values.
+ *
+ * The [Double.Companion.fromBits] function is used for decoding bytes into [Double].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Double] value to a [Sink] using
+ * [Sink.writeDouble] and then reading it back using [Source.readDouble] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Double.Companion.fromBits] documentation for details.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToDoubleArraySample
+ */
 public fun Source.readTo(sink: DoubleArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Double.SIZE_BYTES,
+        DoubleArray::set,
+        ByteArray::uncheckedLoadDoubleAt,
+        Buffer::readDouble
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Short] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each short value is read in little-endian byte order, the same way [Source.readShortLe] reads values.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToShortArraySample
+ */
 public fun Source.readLeTo(sink: ShortArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex, false)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Short.SIZE_BYTES,
+        ShortArray::set,
+        ByteArray::uncheckedLoadShortLeAt,
+        Buffer::readShortLe
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Int] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each int value is read in little-endian byte order, the same way [Source.readIntLe] reads values.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToIntArraySample
+ */
 public fun Source.readLeTo(sink: IntArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex, false)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Int.SIZE_BYTES,
+        IntArray::set,
+        ByteArray::uncheckedLoadIntLeAt,
+        Buffer::readIntLe
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Long] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each long value is read in little-endian byte order, the same way [Source.readLongLe] reads values.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToLongArraySample
+ */
 public fun Source.readLeTo(sink: LongArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex, false)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Long.SIZE_BYTES,
+        LongArray::set,
+        ByteArray::uncheckedLoadLongLeAt,
+        Buffer::readLongLe
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Float] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each float value is read in little-endian byte order, the same way [Source.readFloatLe] reads values.
+ *
+ * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloatLe] and then reading it back using [Source.readFloatLe] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Float.Companion.fromBits] documentation for details.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToFloatArraySample
+ */
 public fun Source.readLeTo(sink: FloatArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex, false)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Float.SIZE_BYTES,
+        FloatArray::set,
+        ByteArray::uncheckedLoadFloatLeAt,
+        Buffer::readFloatLe
+    )
 }
 
+/**
+ * Removes exactly `endIndex - startIndex` [Double] values from this source
+ * and copies them into [sink] subrange starting at [startIndex] and ending at [endIndex].
+ * Each double value is read in little-endian byte order, the same way [Source.readDoubleLe] reads values.
+ *
+ * The [Double.Companion.fromBits] function is used for decoding bytes into [Double].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Double] value to a [Sink] using
+ * [Sink.writeDoubleLe] and then reading it back using [Source.readDoubleLe] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Double.Companion.fromBits] documentation for details.
+ *
+ * @param sink the array to write data to
+ * @param startIndex the startIndex (inclusive) of the [sink] subrange to read data into, 0 by default.
+ * @param endIndex the endIndex (exclusive) of the [sink] subrange to read data into, `sink.size` by default.
+ *
+ * @throws EOFException when the requested number of bytes cannot be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IndexOutOfBoundsException when [startIndex] or [endIndex] is out of range of [sink] array indices.
+ * @throws IllegalArgumentException when `startIndex > endIndex`.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToDoubleArraySample
+ */
 public fun Source.readLeTo(sink: DoubleArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
-    readArrayImpl(sink, startIndex, endIndex, false)
+    readArrayImpl(
+        sink,
+        startIndex,
+        endIndex,
+        Double.SIZE_BYTES,
+        DoubleArray::set,
+        ByteArray::uncheckedLoadDoubleLeAt,
+        Buffer::readDoubleLe
+    )
 }
 
+/**
+ * Reads [size] [Short] values from this source and returns them as a new array.
+ * Each short value is read in big-endian byte order, the same way [Source.readShort] reads values.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySample
+ */
 public fun Source.readShortArray(size: Int): ShortArray {
     checkSize(size)
     val array = ShortArray(prefetchArrayData(size, Short.SIZE_BYTES))
@@ -523,12 +814,37 @@ public fun Source.readShortArray(size: Int): ShortArray {
     return array
 }
 
+/**
+ * Reads [Short] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each short value is read in big-endian byte order, the same way [Source.readShort] reads values.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Short.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySample
+ */
 public fun Source.readShortArray(): ShortArray {
     val array = ShortArray(prefetchArrayData(-1, Short.SIZE_BYTES))
     readTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [size] [Int] values from this source and returns them as a new array.
+ * Each int value is read in big-endian byte order, the same way [Source.readInt] reads values.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySample
+ */
 public fun Source.readIntArray(size: Int): IntArray {
     checkSize(size)
     val array = IntArray(prefetchArrayData(size, Int.SIZE_BYTES))
@@ -536,18 +852,55 @@ public fun Source.readIntArray(size: Int): IntArray {
     return array
 }
 
+/**
+ * Reads [Int] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each int value is read in big-endian byte order, the same way [Source.readInt] reads values.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Int.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySample
+ */
 public fun Source.readIntArray(): IntArray {
     val array = IntArray(prefetchArrayData(-1, Int.SIZE_BYTES))
     readTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [Long] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each long value is read in big-endian byte order, the same way [Source.readLong] reads values.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Long.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySample
+ */
 public fun Source.readLongArray(): LongArray {
     val array = LongArray(prefetchArrayData(-1, Long.SIZE_BYTES))
     readTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [size] [Long] values from this source and returns them as a new array.
+ * Each long value is read in big-endian byte order, the same way [Source.readLong] reads values.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySample
+ */
 public fun Source.readLongArray(size: Int): LongArray {
     checkSize(size)
     val array = LongArray(prefetchArrayData(size, Long.SIZE_BYTES))
@@ -555,12 +908,51 @@ public fun Source.readLongArray(size: Int): LongArray {
     return array
 }
 
+/**
+ * Reads [Float] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each float value is read in big-endian byte order, the same way [Source.readFloat] reads values.
+ *
+ * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloat] and then reading it back using [Source.readFloat] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Float.Companion.fromBits] documentation for details.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Float.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySample
+ */
 public fun Source.readFloatArray(): FloatArray {
     val array = FloatArray(prefetchArrayData(-1, Float.SIZE_BYTES))
     readTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [size] [Float] values from this source and returns them as a new array.
+ * Each float value is read in big-endian byte order, the same way [Source.readFloat] reads values.
+ *
+ * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloat] and then reading it back using [Source.readFloat] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Float.Companion.fromBits] documentation for details.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySample
+ */
 public fun Source.readFloatArray(size: Int): FloatArray {
     checkSize(size)
     val array = FloatArray(prefetchArrayData(size, Float.SIZE_BYTES))
@@ -568,12 +960,51 @@ public fun Source.readFloatArray(size: Int): FloatArray {
     return array
 }
 
+/**
+ * Reads [Double] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each double value is read in big-endian byte order, the same way [Source.readDouble] reads values.
+ *
+ * The [Double.Companion.fromBits] function is used for decoding bytes into [Double].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Double] value to a [Sink] using
+ * [Sink.writeDouble] and then reading it back using [Source.readDouble] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Double.Companion.fromBits] documentation for details.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Double.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySample
+ */
 public fun Source.readDoubleArray(): DoubleArray {
     val array = DoubleArray(prefetchArrayData(-1, Double.SIZE_BYTES))
     readTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [size] [Double] values from this source and returns them as a new array.
+ * Each double value is read in big-endian byte order, the same way [Source.readDouble] reads values.
+ *
+ * The [Double.Companion.fromBits] function is used for decoding bytes into [Double].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Double] value to a [Sink] using
+ * [Sink.writeDouble] and then reading it back using [Source.readDouble] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Double.Companion.fromBits] documentation for details.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySample
+ */
 public fun Source.readDoubleArray(size: Int): DoubleArray {
     checkSize(size)
     val array = DoubleArray(prefetchArrayData(size, Double.SIZE_BYTES))
@@ -581,6 +1012,18 @@ public fun Source.readDoubleArray(size: Int): DoubleArray {
     return array
 }
 
+/**
+ * Reads [Short] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each short value is read in little-endian byte order, the same way [Source.readShortLe] reads values.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Short.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySample
+ */
 public fun Source.readShortLeArray(size: Int): ShortArray {
     checkSize(size)
     val array = ShortArray(prefetchArrayData(size, Short.SIZE_BYTES))
@@ -588,12 +1031,38 @@ public fun Source.readShortLeArray(size: Int): ShortArray {
     return array
 }
 
+/**
+ * Reads [size] [Short] values from this source and returns them as a new array.
+ * Each short value is read in little-endian byte order, the same way [Source.readShortLe] reads values.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySample
+ */
 public fun Source.readShortLeArray(): ShortArray {
     val array = ShortArray(prefetchArrayData(-1, Short.SIZE_BYTES))
     readLeTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [size] [Int] values from this source and returns them as a new array.
+ * Each int value is read in little-endian byte order, the same way [Source.readIntLe] reads values.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySample
+ */
 public fun Source.readIntLeArray(size: Int): IntArray {
     checkSize(size)
     val array = IntArray(prefetchArrayData(size, Int.SIZE_BYTES))
@@ -601,18 +1070,55 @@ public fun Source.readIntLeArray(size: Int): IntArray {
     return array
 }
 
+/**
+ * Reads [Int] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each int value is read in little-endian byte order, the same way [Source.readIntLe] reads values.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Int.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySample
+ */
 public fun Source.readIntLeArray(): IntArray {
     val array = IntArray(prefetchArrayData(-1, Int.SIZE_BYTES))
     readLeTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [Long] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each long value is read in little-endian byte order, the same way [Source.readLongLe] reads values.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Long.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySample
+ */
 public fun Source.readLongLeArray(): LongArray {
     val array = LongArray(prefetchArrayData(-1, Long.SIZE_BYTES))
     readLeTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [size] [Long] values from this source and returns them as a new array.
+ * Each long value is read in little-endian byte order, the same way [Source.readLongLe] reads values.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySample
+ */
 public fun Source.readLongLeArray(size: Int): LongArray {
     checkSize(size)
     val array = LongArray(prefetchArrayData(size, Long.SIZE_BYTES))
@@ -620,12 +1126,51 @@ public fun Source.readLongLeArray(size: Int): LongArray {
     return array
 }
 
+/**
+ * Reads [Float] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each float value is read in little-endian byte order, the same way [Source.readFloatLe] reads values.
+ *
+ * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloatLe] and then reading it back using [Source.readFloatLe] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Float.Companion.fromBits] documentation for details.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Float.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySample
+ */
 public fun Source.readFloatLeArray(): FloatArray {
     val array = FloatArray(prefetchArrayData(-1, Float.SIZE_BYTES))
     readLeTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [size] [Float] values from this source and returns them as a new array.
+ * Each float value is read in little-endian byte order, the same way [Source.readFloatLe] reads values.
+ *
+ * The [Float.Companion.fromBits] function is used for decoding bytes into [Float].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Float] value to a [Sink] using
+ * [Sink.writeFloatLe] and then reading it back using [Source.readFloatLe] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Float.Companion.fromBits] documentation for details.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySample
+ */
 public fun Source.readFloatLeArray(size: Int): FloatArray {
     checkSize(size)
     val array = FloatArray(prefetchArrayData(size, Float.SIZE_BYTES))
@@ -633,12 +1178,51 @@ public fun Source.readFloatLeArray(size: Int): FloatArray {
     return array
 }
 
+/**
+ * Reads [Double] values from this source until the source is exhausted and returns them as a new array.
+ *
+ * Each double value is read in little-endian byte order, the same way [Source.readDoubleLe] reads values.
+ *
+ * The [Double.Companion.fromBits] function is used for decoding bytes into [Double].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Double] value to a [Sink] using
+ * [Sink.writeDoubleLe] and then reading it back using [Source.readDoubleLe] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Double.Companion.fromBits] documentation for details.
+ *
+ * @throws IllegalStateException when the source is closed.
+ * @throws IllegalStateException when the source contains more than [Int.MAX_VALUE] values.
+ * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Double.SIZE_BYTES].
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySample
+ */
 public fun Source.readDoubleLeArray(): DoubleArray {
     val array = DoubleArray(prefetchArrayData(-1, Double.SIZE_BYTES))
     readLeTo(array, 0, array.size)
     return array
 }
 
+/**
+ * Reads [size] [Double] values from this source and returns them as a new array.
+ * Each double value is read in little-endian byte order, the same way [Source.readDoubleLe] reads values.
+ *
+ * The [Double.Companion.fromBits] function is used for decoding bytes into [Double].
+ *
+ * Note that in Kotlin/JS a value obtained by writing an original [Double] value to a [Sink] using
+ * [Sink.writeDoubleLe] and then reading it back using [Source.readDoubleLe] may not be equal to the original value.
+ * The same limitation is applicable to this function.
+ * Please refer to [Double.Companion.fromBits] documentation for details.
+ *
+ * @param size the number of values that should be read from the source.
+ *
+ * @throws IllegalArgumentException when [size] is negative.
+ * @throws EOFException when the underlying source is exhausted before [size] values could be read.
+ * @throws IllegalStateException when the source is closed.
+ * @throws IOException when some I/O error occurs.
+ *
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySample
+ */
 public fun Source.readDoubleLeArray(size: Int): DoubleArray {
     checkSize(size)
     val array = DoubleArray(prefetchArrayData(size, Double.SIZE_BYTES))
@@ -665,13 +1249,6 @@ private fun Source.prefetchArrayData(arraySize: Int, elementSize: Int): Int {
     }
     return (buffer.size / elementSize).toInt()
 }
-
-internal expect fun Source.readArrayImpl(sink: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
-internal expect fun Source.readArrayImpl(sink: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
-internal expect fun Source.readArrayImpl(sink: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
-internal expect fun Source.readArrayImpl(sink: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
-internal expect fun Source.readArrayImpl(sink: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean = true)
-
 
 @OptIn(InternalIoApi::class, UnsafeIoApi::class)
 internal inline fun <Type, ArrayType> Source.readArrayImpl(
@@ -716,108 +1293,29 @@ internal inline fun <Type, ArrayType> Source.readArrayImpl(
     }
 }
 
-internal inline fun Source.readArrayImpl(
-    sink: IntArray,
-    startIndex: Int,
-    endIndex: Int,
-    bufferReader: Buffer.() -> Int,
-    reader: ByteArray.(Int) -> Int
-) {
-    readArrayImpl(
-        sink,
-        startIndex,
-        endIndex,
-        Int.SIZE_BYTES,
-        IntArray::set,
-        reader,
-        bufferReader
-    )
-}
-
-internal inline fun Source.readArrayImpl(
-    sink: ShortArray,
-    startIndex: Int,
-    endIndex: Int,
-    bufferReader: Buffer.() -> Short,
-    reader: ByteArray.(Int) -> Short
-) {
-    readArrayImpl(
-        sink,
-        startIndex,
-        endIndex,
-        Short.SIZE_BYTES,
-        ShortArray::set,
-        reader,
-        bufferReader
-    )
-}
-
-internal inline fun Source.readArrayImpl(
-    sink: LongArray,
-    startIndex: Int,
-    endIndex: Int,
-    bufferReader: Buffer.() -> Long,
-    reader: ByteArray.(Int) -> Long
-) {
-    readArrayImpl(
-        sink,
-        startIndex,
-        endIndex,
-        Long.SIZE_BYTES,
-        LongArray::set,
-        reader,
-        bufferReader
-    )
-}
-
-internal inline fun Source.readArrayImpl(
-    sink: FloatArray,
-    startIndex: Int,
-    endIndex: Int,
-    bufferReader: Buffer.() -> Float,
-    reader: ByteArray.(Int) -> Float
-) {
-    readArrayImpl(
-        sink,
-        startIndex,
-        endIndex,
-        Float.SIZE_BYTES,
-        FloatArray::set,
-        reader,
-        bufferReader
-    )
-}
-
-internal inline fun Source.readArrayImpl(
-    sink: DoubleArray,
-    startIndex: Int,
-    endIndex: Int,
-    bufferReader: Buffer.() -> Double,
-    reader: ByteArray.(Int) -> Double
-) {
-    readArrayImpl(
-        sink,
-        startIndex,
-        endIndex,
-        Double.SIZE_BYTES,
-        DoubleArray::set,
-        reader,
-        bufferReader
-    )
-}
+internal expect inline fun ByteArray.uncheckedLoadShortAt(offset: Int): Short
+internal expect inline fun ByteArray.uncheckedLoadShortLeAt(offset: Int): Short
+internal expect inline fun ByteArray.uncheckedLoadIntAt(offset: Int): Int
+internal expect inline fun ByteArray.uncheckedLoadIntLeAt(offset: Int): Int
+internal expect inline fun ByteArray.uncheckedLoadLongAt(offset: Int): Long
+internal expect inline fun ByteArray.uncheckedLoadLongLeAt(offset: Int): Long
+internal expect inline fun ByteArray.uncheckedLoadFloatAt(offset: Int): Float
+internal expect inline fun ByteArray.uncheckedLoadFloatLeAt(offset: Int): Float
+internal expect inline fun ByteArray.uncheckedLoadDoubleAt(offset: Int): Double
+internal expect inline fun ByteArray.uncheckedLoadDoubleLeAt(offset: Int): Double
 
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.readShortAt_(offset: Int): Short {
+internal inline fun ByteArray.uncheckedLoadShortAtCommon(offset: Int): Short {
     return ((this[offset] and 0xff shl 8).or(this[offset + 1] and 0xff)).toShort()
 }
 
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.readShortLeAt_(offset: Int): Short {
+internal inline fun ByteArray.uncheckedLoadShortLeAtCommon(offset: Int): Short {
     return ((this[offset] and 0xff).or(this[offset + 1] and 0xff shl 8)).toShort()
 }
 
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.readIntAt_(offset: Int): Int {
+internal inline fun ByteArray.uncheckedLoadIntAtCommon(offset: Int): Int {
     return (this[offset] and 0xff shl 24)
         .or(this[offset + 1] and 0xff shl 16)
         .or(this[offset + 2] and 0xff shl 8)
@@ -825,7 +1323,7 @@ internal inline fun ByteArray.readIntAt_(offset: Int): Int {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.readIntLeAt_(offset: Int): Int {
+internal inline fun ByteArray.uncheckedLoadIntLeAtCommon(offset: Int): Int {
     return (this[offset] and 0xff)
         .or(this[offset + 1] and 0xff shl 8)
         .or(this[offset + 2] and 0xff shl 16)
@@ -833,7 +1331,7 @@ internal inline fun ByteArray.readIntLeAt_(offset: Int): Int {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.readLongAt_(offset: Int): Long {
+internal inline fun ByteArray.uncheckedLoadLongAtCommon(offset: Int): Long {
     return (this[offset] and 0xffL shl 56)
         .or(this[offset + 1] and 0xffL shl 48)
         .or(this[offset + 2] and 0xffL shl 40)
@@ -845,7 +1343,7 @@ internal inline fun ByteArray.readLongAt_(offset: Int): Long {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.readLongLeAt_(offset: Int): Long {
+internal inline fun ByteArray.uncheckedLoadLongLeAtCommon(offset: Int): Long {
     return (this[offset] and 0xffL)
         .or(this[offset + 1] and 0xffL shl 8)
         .or(this[offset + 2] and 0xffL shl 16)
@@ -855,6 +1353,22 @@ internal inline fun ByteArray.readLongLeAt_(offset: Int): Long {
         .or(this[offset + 6] and 0xffL shl 48)
         .or(this[offset + 7] and 0xffL shl 56)
 }
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedLoadFloatAtCommon(offset: Int): Float =
+    Float.fromBits(uncheckedLoadIntAt(offset))
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedLoadFloatLeAtCommon(offset: Int): Float =
+    Float.fromBits(uncheckedLoadIntLeAt(offset))
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedLoadDoubleAtCommon(offset: Int): Double =
+    Double.fromBits(uncheckedLoadLongAt(offset))
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.uncheckedLoadDoubleLeAtCommon(offset: Int): Double =
+    Double.fromBits(uncheckedLoadLongLeAt(offset))
 
 @Suppress("NOTHING_TO_INLINE")
 internal inline fun checkSize(size: Int) {

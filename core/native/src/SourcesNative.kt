@@ -8,46 +8,43 @@ package kotlinx.io
 import kotlin.experimental.ExperimentalNativeApi
 
 @OptIn(ExperimentalNativeApi::class)
-internal actual fun Source.readArrayImpl(sink: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readShort) { getShortAt(it).reverseBytes() }
-    } else {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readShortLe, ByteArray::getShortAt)
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadShortAt(offset: Int): Short = getShortAt(offset).reverseBytes()
 
 @OptIn(ExperimentalNativeApi::class)
-internal actual fun Source.readArrayImpl(sink: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readInt) { getIntAt(it).reverseBytes() }
-    } else {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readIntLe, ByteArray::getIntAt)
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadShortLeAt(offset: Int): Short = getShortAt(offset)
 
 @OptIn(ExperimentalNativeApi::class)
-internal actual fun Source.readArrayImpl(sink: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readLong) { getLongAt(it).reverseBytes() }
-    } else {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readLongLe, ByteArray::getLongAt)
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadIntAt(offset: Int): Int = getIntAt(offset).reverseBytes()
 
 @OptIn(ExperimentalNativeApi::class)
-internal actual fun Source.readArrayImpl(sink: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readFloat) { Float.fromBits(getIntAt(it).reverseBytes()) }
-    } else {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readFloatLe) { Float.fromBits(getIntAt(it)) }
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadIntLeAt(offset: Int): Int = getIntAt(offset)
 
 @OptIn(ExperimentalNativeApi::class)
-internal actual fun Source.readArrayImpl(sink: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readDouble) { Double.fromBits(getLongAt(it).reverseBytes()) }
-    } else {
-        readArrayImpl(sink, startIndex, endIndex, Buffer::readDoubleLe) { Double.fromBits(getLongAt(it)) }
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadLongAt(offset: Int): Long = getLongAt(offset).reverseBytes()
+
+@OptIn(ExperimentalNativeApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadLongLeAt(offset: Int): Long = getLongAt(offset)
+
+@OptIn(ExperimentalNativeApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadFloatAt(offset: Int): Float =
+    Float.fromBits(getIntAt(offset).reverseBytes())
+
+@OptIn(ExperimentalNativeApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadFloatLeAt(offset: Int): Float = getFloatAt(offset)
+
+@OptIn(ExperimentalNativeApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadDoubleAt(offset: Int): Double =
+    Double.fromBits(getLongAt(offset).reverseBytes())
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadDoubleLeAt(offset: Int): Double =
+    uncheckedLoadDoubleLeAtCommon(offset)

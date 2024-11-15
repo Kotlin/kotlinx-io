@@ -132,46 +132,41 @@ public fun Sink.asByteChannel(): WritableByteChannel {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SinkIntrinsics.write(this, source, startIndex, endIndex)
-    } else {
-        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreShortAt(idx: Int, value: Short) =
+    SinkIntrinsics.uncheckedStoreShortAt(this, idx, value)
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SinkIntrinsics.write(this, source, startIndex, endIndex)
-    } else {
-        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreShortLeAt(idx: Int, value: Short) =
+    SinkIntrinsics.uncheckedStoreShortLeAt(this, idx, value)
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SinkIntrinsics.write(this, source, startIndex, endIndex)
-    } else {
-        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreIntAt(idx: Int, value: Int) =
+    SinkIntrinsics.uncheckedStoreIntAt(this, idx, value)
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SinkIntrinsics.write(this, source, startIndex, endIndex)
-    } else {
-        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreIntLeAt(idx: Int, value: Int) =
+    SinkIntrinsics.uncheckedStoreIntLeAt(this, idx, value)
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SinkIntrinsics.write(this, source, startIndex, endIndex)
-    } else {
-        SinkIntrinsics.writeLe(this, source, startIndex, endIndex)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreLongAt(idx: Int, value: Long) =
+    SinkIntrinsics.uncheckedStoreLongAt(this, idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreLongLeAt(idx: Int, value: Long) =
+    SinkIntrinsics.uncheckedStoreLongLeAt(this, idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreFloatAt(idx: Int, value: Float) =
+    SinkIntrinsics.uncheckedStoreFloatAt(this, idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreFloatLeAt(idx: Int, value: Float) =
+    SinkIntrinsics.uncheckedStoreFloatLeAt(this, idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreDoubleAt(idx: Int, value: Double) =
+    SinkIntrinsics.uncheckedStoreDoubleAt(this, idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreDoubleLeAt(idx: Int, value: Double) =
+    SinkIntrinsics.uncheckedStoreDoubleLeAt(this, idx, value)

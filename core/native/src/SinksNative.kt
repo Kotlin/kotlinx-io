@@ -9,58 +9,50 @@ import kotlin.experimental.ExperimentalNativeApi
 
 @OptIn(ExperimentalNativeApi::class)
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value -> setShortAt(idx, value.reverseBytes()) }
-    } else {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::setShortAt)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreShortAt(idx: Int, value: Short) =
+    setShortAt(idx, value.reverseBytes())
 
 @OptIn(ExperimentalNativeApi::class)
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value -> setIntAt(idx, value.reverseBytes()) }
-    } else {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::setIntAt)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreShortLeAt(idx: Int, value: Short) =
+    setShortAt(idx, value)
 
 @OptIn(ExperimentalNativeApi::class)
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value -> setLongAt(idx, value.reverseBytes()) }
-    } else {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::setLongAt)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreIntAt(idx: Int, value: Int) =
+    setIntAt(idx, value.reverseBytes())
 
 @OptIn(ExperimentalNativeApi::class)
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            setIntAt(idx, value.toBits().reverseBytes())
-        }
-    } else {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            setIntAt(idx, value.toBits())
-        }
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreIntLeAt(idx: Int, value: Int) =
+    setIntAt(idx, value)
 
 @OptIn(ExperimentalNativeApi::class)
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            setLongAt(idx, value.toBits().reverseBytes())
-        }
-    } else {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            setLongAt(idx, value.toBits())
-        }
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreLongAt(idx: Int, value: Long) =
+    setLongAt(idx, value.reverseBytes())
+
+@OptIn(ExperimentalNativeApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreLongLeAt(idx: Int, value: Long) =
+    setLongAt(idx, value)
+
+@OptIn(ExperimentalNativeApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreFloatAt(idx: Int, value: Float) =
+    setIntAt(idx, value.toBits().reverseBytes())
+
+@OptIn(ExperimentalNativeApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreFloatLeAt(idx: Int, value: Float) =
+   setFloatAt(idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+@OptIn(ExperimentalNativeApi::class)
+internal actual inline fun ByteArray.uncheckedStoreDoubleAt(idx: Int, value: Double) =
+    setLongAt(idx, value.toBits().reverseBytes())
+
+@OptIn(ExperimentalNativeApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreDoubleLeAt(idx: Int, value: Double) =
+    setDoubleAt(idx, value)

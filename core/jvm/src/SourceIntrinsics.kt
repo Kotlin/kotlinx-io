@@ -7,51 +7,18 @@ package kotlinx.io
 
 
 internal object SourceIntrinsics {
-    fun read(source: Source, target: ShortArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readShort, ByteArray::readShortAt_)
-    }
+    fun uncheckedLoadShortAt(array: ByteArray, offset: Int): Short = array.uncheckedLoadShortAtCommon(offset)
+    fun uncheckedLoadShortLeAt(array: ByteArray, offset: Int): Short = array.uncheckedLoadShortLeAtCommon(offset)
 
-    fun read(source: Source, target: IntArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readInt, ByteArray::readIntAt_)
-    }
+    fun uncheckedLoadIntAt(array: ByteArray, offset: Int): Int = array.uncheckedLoadIntAtCommon(offset)
+    fun uncheckedLoadIntLeAt(array: ByteArray, offset: Int): Int = array.uncheckedLoadIntLeAtCommon(offset)
 
-    fun read(source: Source, target: LongArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readLong, ByteArray::readLongAt_)
-    }
+    fun uncheckedLoadLongAt(array: ByteArray, offset: Int): Long = array.uncheckedLoadLongAtCommon(offset)
+    fun uncheckedLoadLongLeAt(array: ByteArray, offset: Int): Long = array.uncheckedLoadLongLeAtCommon(offset)
 
-    fun read(source: Source, target: FloatArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readFloat) {
-            Float.fromBits(readIntAt_(it))
-        }
-    }
+    fun uncheckedLoadFloatAt(array: ByteArray, offset: Int): Float = array.uncheckedLoadFloatAtCommon(offset)
+    fun uncheckedLoadFloatLeAt(array: ByteArray, offset: Int): Float = array.uncheckedLoadFloatLeAtCommon(offset)
 
-    fun read(source: Source, target: DoubleArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readDouble) {
-            Double.fromBits(readLongAt_(it))
-        }
-    }
-
-    fun readLe(source: Source, target: ShortArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readShortLe, ByteArray::readShortLeAt_)
-    }
-
-    fun readLe(source: Source, target: IntArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readIntLe, ByteArray::readIntLeAt_)
-    }
-
-    fun readLe(source: Source, target: LongArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readLongLe, ByteArray::readLongLeAt_)
-    }
-
-    fun readLe(source: Source, target: FloatArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readFloatLe) {
-            Float.fromBits(readIntLeAt_(it))
-        }
-    }
-
-    fun readLe(source: Source, target: DoubleArray, startIndex: Int, endIndex: Int) {
-        source.readArrayImpl(target, startIndex, endIndex, Buffer::readDoubleLe) {
-            Double.fromBits(readLongLeAt_(it))
-        }
-    }
+    fun uncheckedLoadDoubleAt(array: ByteArray, offset: Int): Double = array.uncheckedLoadDoubleAtCommon(offset)
+    fun uncheckedLoadDoubleLeAt(array: ByteArray, offset: Int): Double = array.uncheckedLoadDoubleLeAtCommon(offset)
 }

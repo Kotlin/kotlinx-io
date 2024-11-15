@@ -175,42 +175,42 @@ public fun Source.asByteChannel(): ReadableByteChannel {
     }
 }
 
-internal actual fun Source.readArrayImpl(sink: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SourceIntrinsics.read(this, sink, startIndex, endIndex)
-    } else {
-        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadShortAt(offset: Int): Short =
+    SourceIntrinsics.uncheckedLoadShortAt(this, offset)
 
-internal actual fun Source.readArrayImpl(sink: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SourceIntrinsics.read(this, sink, startIndex, endIndex)
-    } else {
-        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadShortLeAt(offset: Int): Short =
+    SourceIntrinsics.uncheckedLoadShortLeAt(this, offset)
 
-internal actual fun Source.readArrayImpl(sink: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SourceIntrinsics.read(this, sink, startIndex, endIndex)
-    } else {
-        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadIntAt(offset: Int): Int =
+    SourceIntrinsics.uncheckedLoadIntAt(this, offset)
 
-internal actual fun Source.readArrayImpl(sink: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SourceIntrinsics.read(this, sink, startIndex, endIndex)
-    } else {
-        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadIntLeAt(offset: Int): Int =
+    SourceIntrinsics.uncheckedLoadIntLeAt(this, offset)
 
-internal actual fun Source.readArrayImpl(sink: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        SourceIntrinsics.read(this, sink, startIndex, endIndex)
-    } else {
-        SourceIntrinsics.readLe(this, sink, startIndex, endIndex)
-    }
-}
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadLongAt(offset: Int): Long =
+    SourceIntrinsics.uncheckedLoadLongAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadLongLeAt(offset: Int): Long =
+    SourceIntrinsics.uncheckedLoadLongLeAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadFloatAt(offset: Int): Float =
+    SourceIntrinsics.uncheckedLoadFloatAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadFloatLeAt(offset: Int): Float =
+    SourceIntrinsics.uncheckedLoadFloatLeAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadDoubleAt(offset: Int): Double =
+    SourceIntrinsics.uncheckedLoadDoubleAt(this, offset)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedLoadDoubleLeAt(offset: Int): Double =
+    SourceIntrinsics.uncheckedLoadDoubleLeAt(this, offset)

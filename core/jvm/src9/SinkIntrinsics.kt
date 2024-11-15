@@ -6,63 +6,33 @@
 package kotlinx.io
 
 internal object SinkIntrinsics {
-    fun write(target: Sink, source: ShortArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.shortHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreShortAt(array: ByteArray, idx: Int, value: Short) =
+        ArrayHandles.shortHandle.set(array, idx, value)
 
-    fun write(target: Sink, source: IntArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.intHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreShortLeAt(array: ByteArray, idx: Int, value: Short) =
+        ArrayHandles.shortLeHandle.set(array, idx, value)
 
-    fun write(target: Sink, source: LongArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.longHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreIntAt(array: ByteArray, idx: Int, value: Int) =
+        ArrayHandles.intHandle.set(array, idx, value)
 
-    fun write(target: Sink, source: FloatArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.floatHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreIntLeAt(array: ByteArray, idx: Int, value: Int) =
+        ArrayHandles.intLeHandle.set(array, idx, value)
 
-    fun write(target: Sink, source: DoubleArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.doubleHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreLongAt(array: ByteArray, idx: Int, value: Long) =
+        ArrayHandles.longHandle.set(array, idx, value)
 
-    fun writeLe(target: Sink, source: ShortArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.shortLeHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreLongLeAt(array: ByteArray, idx: Int, value: Long) =
+        ArrayHandles.longLeHandle.set(array, idx, value)
 
-    fun writeLe(target: Sink, source: IntArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.intLeHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreFloatAt(array: ByteArray, idx: Int, value: Float) =
+        ArrayHandles.floatHandle.set(array, idx, value)
 
-    fun writeLe(target: Sink, source: LongArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.longLeHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreFloatLeAt(array: ByteArray, idx: Int, value: Float) =
+        ArrayHandles.floatLeHandle.set(array, idx, value)
 
-    fun writeLe(target: Sink, source: FloatArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.floatLeHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreDoubleAt(array: ByteArray, idx: Int, value: Double) =
+        ArrayHandles.doubleHandle.set(array, idx, value)
 
-    fun writeLe(target: Sink, source: DoubleArray, startIndex: Int, endIndex: Int) {
-        target.writeArrayImpl(source, startIndex, endIndex) { idx, value ->
-            ArrayHandles.doubleLeHandle.set(this, idx, value)
-        }
-    }
+    fun uncheckedStoreDoubleLeAt(array: ByteArray, idx: Int, value: Double) =
+        ArrayHandles.doubleLeHandle.set(array, idx, value)
 }

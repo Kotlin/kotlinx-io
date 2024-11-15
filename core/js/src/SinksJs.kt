@@ -6,46 +6,41 @@
 package kotlinx.io
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: ShortArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::writeShortAt_)
-    } else {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::writeShortLeAt_)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreShortAt(idx: Int, value: Short) =
+    uncheckedStoreShortAtCommon(idx, value)
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: IntArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::writeIntAt_)
-    } else {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::writeIntLeAt_)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreShortLeAt(idx: Int, value: Short) =
+    uncheckedStoreShortLeAtCommon(idx, value)
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: LongArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::writeLongAt_)
-    } else {
-        writeArrayImpl(source, startIndex, endIndex, ByteArray::writeLongLeAt_)
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreIntAt(idx: Int, value: Int) =
+    uncheckedStoreIntAtCommon(idx, value)
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: FloatArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value -> writeIntAt_(idx, value.toBits()) }
-    } else {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value -> writeIntLeAt_(idx, value.toBits()) }
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreIntLeAt(idx: Int, value: Int) =
+    uncheckedStoreIntLeAtCommon(idx, value)
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun Sink.writeArrayImpl(source: DoubleArray, startIndex: Int, endIndex: Int, bigEndian: Boolean) {
-    if (bigEndian) {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value -> writeLongAt_(idx, value.toBits()) }
-    } else {
-        writeArrayImpl(source, startIndex, endIndex) { idx, value -> writeLongLeAt_(idx, value.toBits()) }
-    }
-}
+internal actual inline fun ByteArray.uncheckedStoreLongAt(idx: Int, value: Long) =
+    uncheckedStoreLongAtCommon(idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreLongLeAt(idx: Int, value: Long) =
+    uncheckedStoreLongLeAtCommon(idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreFloatAt(idx: Int, value: Float) =
+    uncheckedStoreFloatAtCommon(idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreFloatLeAt(idx: Int, value: Float) =
+    uncheckedStoreFloatLeAtCommon(idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreDoubleAt(idx: Int, value: Double) =
+    uncheckedStoreDoubleAtCommon(idx, value)
+
+@Suppress("NOTHING_TO_INLINE")
+internal actual inline fun ByteArray.uncheckedStoreDoubleLeAt(idx: Int, value: Double) =
+    uncheckedStoreDoubleLeAtCommon(idx, value)
