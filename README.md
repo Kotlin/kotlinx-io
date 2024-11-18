@@ -76,6 +76,15 @@ Add the library to dependencies:
 </dependency>
 ```
 
+### JPMS support
+
+On JVM, `kotlinx-io` supports Java Modules:
+- `kotlinx-io-bytestring` library provides `kotlinx.io.bytestring` module; 
+- `kotlinx-io-core` library provides `kotlinx.io.core` module.
+
+Read [this](https://kotlinlang.org/docs/gradle-configure-project.html#configure-with-java-modules-jpms-enabled) article 
+for details on how to configure a Gradle project to utilize JPMS.
+
 ### Android
 
 `kotlinx-io` is not tested on Android on a regular basis,
