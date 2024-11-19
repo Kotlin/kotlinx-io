@@ -24,3 +24,7 @@ dependencies {
     implementation("%DEPENDENCY%")
     testImplementation(kotlin("test"))
 }
+
+kotlin {
+    jvmToolchain(8)
+}
