@@ -100,7 +100,7 @@ public fun Path(base: Path, vararg parts: String): Path {
 /**
  * Returns [RawSource] for the given file or throws if path is not a file or does not exist
  *
- * Use of this method is deprecated with warning since kotlinx-io 0.3.0. The method will be removed in 0.6.0.
+ * Use of this method is deprecated with warning since kotlinx-io 0.3.0. The method will be removed in 0.7.0.
  */
 @Deprecated(
     message = "Use FileSystem.source instead",
@@ -117,7 +117,7 @@ public fun Path.source(): Source = SystemFileSystem.source(this).buffered()
  * Returns [RawSink] for the given path, creates file if it doesn't exist, throws if it's a directory,
  * overwrites contents.
  *
- * Use of this method is deprecated with warning since kotlinx-io 0.3.0. The method will be removed in 0.6.0.
+ * Use of this method is deprecated with warning since kotlinx-io 0.3.0. The method will be removed in 0.7.0.
  */
 @Deprecated(
     message = "Use FileSystem.sink instead",
