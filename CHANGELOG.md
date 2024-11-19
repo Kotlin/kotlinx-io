@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.6.0
+> Published 19 November 2024
+
+### Features
+- On JVM, libraries now include Java Platform Module System (JPMS) modules [#406](https://github.com/Kotlin/kotlinx-io/pull/406)
+- Made Segment's size and capacity public [#409](https://github.com/Kotlin/kotlinx-io/pull/409)
+- Improved performance of extension functions reading and writing using little-endian byte order [#414](https://github.com/Kotlin/kotlinx-io/pull/414)
+- Minor documentation improvements
+
 ## 0.5.4
 > Published 17 September 2024
 
