@@ -813,4 +813,734 @@ class KotlinxIoCoreCommonSamples {
 
         assertContentEquals(byteArrayOf(35, -13, -56, -97, 12, 36, -2, 64), buffer.readByteArray())
     }
+
+    @Test
+    fun readToShortArray() {
+        val buffer = Buffer().apply {
+            shortArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeShort)
+        }
+
+        // read into pre allocated array
+        val out = ShortArray(10)
+        buffer.readTo(out, startIndex = 1, endIndex = 3)
+        assertContentEquals(shortArrayOf(0, 1234, 5678, 0, 0, 0, 0, 0, 0, 0), out)
+
+        assertEquals(10, buffer.size)
+    }
+
+    @Test
+    fun readShortArray() {
+        val buffer = Buffer().apply {
+            shortArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeShort)
+        }
+
+        // read all remaining values as a new array
+        assertContentEquals(shortArrayOf(1234, 5678, -1, -2, -3, -4, -5), buffer.readShortArray())
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(3))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (3) is not a multiple of Short.SIZE_BYTES (2)
+            buffer.readShortArray()
+        }
+        assertEquals(3, buffer.size)
+    }
+
+    @Test
+    fun readShortArraySized() {
+        val buffer = Buffer().apply {
+            shortArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeShort)
+        }
+
+        // read 3 short values as a new array
+        assertContentEquals(shortArrayOf(1234, 5678, -1), buffer.readShortArray(3))
+        assertEquals(8, buffer.size)
+    }
+
+    @Test
+    fun readToIntArray() {
+        val buffer = Buffer().apply {
+            intArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeInt)
+        }
+
+        // read into pre allocated array
+        val out = IntArray(10)
+        buffer.readTo(out, startIndex = 1, endIndex = 3)
+        assertContentEquals(intArrayOf(0, 1234, 5678, 0, 0, 0, 0, 0, 0, 0), out)
+        assertEquals(20, buffer.size)
+    }
+
+    @Test
+    fun readIntArray() {
+        val buffer = Buffer().apply {
+            intArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeInt)
+        }
+        // read all remaining values as a new array
+        assertContentEquals(intArrayOf(1234, 5678, -1, -2, -3, -4, -5), buffer.readIntArray())
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(5))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (5) is not a multiple of Int.SIZE_BYTES (4)
+            buffer.readIntArray()
+        }
+        assertEquals(5, buffer.size)
+    }
+
+    @Test
+    fun readIntArraySized() {
+        val buffer = Buffer().apply {
+            intArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeInt)
+        }
+
+        // read 3 int values as a new array
+        assertContentEquals(intArrayOf(1234, 5678, -1), buffer.readIntArray(3))
+        assertEquals(16, buffer.size)
+    }
+
+    @Test
+    fun readToLongArray() {
+        val buffer = Buffer().apply {
+            longArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeLong)
+        }
+
+        // read into pre allocated array
+        val out = LongArray(10)
+        buffer.readTo(out, startIndex = 1, endIndex = 3)
+        assertContentEquals(longArrayOf(0, 1234, 5678, 0, 0, 0, 0, 0, 0, 0), out)
+        assertEquals(40, buffer.size)
+    }
+
+    @Test
+    fun readLongArray() {
+        val buffer = Buffer().apply {
+            longArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeLong)
+        }
+
+        // read all remaining values as a new array
+        assertContentEquals(longArrayOf(1234, 5678, -1, -2, -3, -4, -5), buffer.readLongArray())
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(11))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (11) is not a multiple of Long.SIZE_BYTES (8)
+            buffer.readLongArray()
+        }
+        assertEquals(11, buffer.size)
+    }
+
+    @Test
+    fun readLongArraySized() {
+        val buffer = Buffer().apply {
+            longArrayOf(1234, 5678, -1, -2, -3, -4, -5).forEach(this::writeLong)
+        }
+
+        // read 3 long values as a new array
+        assertContentEquals(longArrayOf(1234, 5678, -1), buffer.readLongArray(3))
+        assertEquals(32, buffer.size)
+    }
+
+    @Test
+    fun readToFloatArray() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                floatArrayOf(0.5f, 0.5f, 0.5f),
+                floatArrayOf(0.5f, -0.5f, 0.0f),
+                floatArrayOf(-0.5f, 0.5f, 0.0f)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeFloat)
+            }
+        }
+
+        // read into pre allocated array
+        val out = FloatArray(10)
+        buffer.readTo(out, startIndex = 1, endIndex = 4)
+        assertContentEquals(floatArrayOf(0f, 0.5f, 0.5f, 0.5f, 0f, 0f, 0f, 0f, 0f, 0f), out)
+        assertEquals(24, buffer.size)
+    }
+
+    @Test
+    fun readFloatArray() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                floatArrayOf(0.5f, 0.5f, 0.5f),
+                floatArrayOf(0.5f, -0.5f, 0.0f),
+                floatArrayOf(-0.5f, 0.5f, 0.0f)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeFloat)
+            }
+        }
+
+        // read all remaining values as a new array
+        assertContentEquals(
+            floatArrayOf(0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.0f, -0.5f, 0.5f, 0.0f),
+            buffer.readFloatArray()
+        )
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(5))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (5) is not a multiple of Float.SIZE_BYTES (4)
+            buffer.readFloatArray()
+        }
+        assertEquals(5, buffer.size)
+    }
+
+    @Test
+    fun readFloatArraySized() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                floatArrayOf(0.5f, 0.5f, 0.5f),
+                floatArrayOf(0.5f, -0.5f, 0.0f),
+                floatArrayOf(-0.5f, 0.5f, 0.0f)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeFloat)
+            }
+        }
+        // read 3 float values as a new array
+        assertContentEquals(floatArrayOf(0.5f, 0.5f, 0.5f), buffer.readFloatArray(3))
+        assertEquals(24, buffer.size)
+    }
+
+    @Test
+    fun readToDoubleArray() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                doubleArrayOf(0.5, 0.5, 0.5),
+                doubleArrayOf(0.5, -0.5, 0.0),
+                doubleArrayOf(-0.5, 0.5, 0.0)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeDouble)
+            }
+        }
+
+        // read into pre allocated array
+        val out = DoubleArray(10)
+        buffer.readTo(out, startIndex = 1, endIndex = 4)
+        assertContentEquals(doubleArrayOf(.0, 0.5, 0.5, 0.5, .0, .0, .0, .0, .0, .0), out)
+        assertEquals(48, buffer.size)
+    }
+
+    @Test
+    fun readDoubleArray() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                doubleArrayOf(0.5, 0.5, 0.5),
+                doubleArrayOf(0.5, -0.5, 0.0),
+                doubleArrayOf(-0.5, 0.5, 0.0)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeDouble)
+            }
+        }
+
+        // read all remaining values as a new array
+        assertContentEquals(
+            doubleArrayOf(0.5, 0.5, 0.5, 0.5, -0.5, 0.0, -0.5, 0.5, 0.0),
+            buffer.readDoubleArray()
+        )
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(5))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (11) is not a multiple of Double.SIZE_BYTES (8)
+            buffer.readDoubleArray()
+        }
+        assertEquals(5, buffer.size)
+    }
+
+    @Test
+    fun readDoubleArraySized() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                doubleArrayOf(0.5, 0.5, 0.5),
+                doubleArrayOf(0.5, -0.5, 0.0),
+                doubleArrayOf(-0.5, 0.5, 0.0)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeDouble)
+            }
+        }
+
+        // read 3 double values as a new array
+        assertContentEquals(doubleArrayOf(0.5, 0.5, 0.5), buffer.readDoubleArray(3))
+        assertEquals(48, buffer.size)
+    }
+
+    @Test
+    fun readToShortLeArray() {
+        val buffer = Buffer().apply {
+            shortArrayOf(0x0123, 0x4567, 0x89ab.toShort(), 0xcdef.toShort(), 0x1122, 0x2233).forEach(this::writeShort)
+        }
+
+        // read into pre allocated array
+        val out = ShortArray(10)
+        buffer.readLeTo(out, startIndex = 1, endIndex = 3)
+        assertContentEquals(shortArrayOf(0, 0x2301, 0x6745, 0, 0, 0, 0, 0, 0, 0), out)
+        assertEquals(8, buffer.size)
+    }
+
+    @Test
+    fun readShortLeArray() {
+        val buffer = Buffer().apply {
+            shortArrayOf(0x0123, 0x4567, 0x89ab.toShort(), 0xcdef.toShort(), 0x1122, 0x2233).forEach(this::writeShort)
+        }
+
+        // read all remaining values as a new array
+        assertContentEquals(
+            shortArrayOf(0x2301, 0x6745, 0xab89.toShort(), 0xefcd.toShort(), 0x2211, 0x3322),
+            buffer.readShortLeArray()
+        )
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(3))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (3) is not a multiple of Short.SIZE_BYTES (2)
+            buffer.readShortLeArray()
+        }
+        assertEquals(3, buffer.size)
+    }
+
+    @Test
+    fun readShortLeArraySized() {
+        val buffer = Buffer().apply {
+            shortArrayOf(0x0123, 0x4567, 0x89ab.toShort(), 0xcdef.toShort(), 0x1122, 0x2233).forEach(this::writeShort)
+        }
+
+        // read 3 short values as a new array
+        assertContentEquals(shortArrayOf(0x2301, 0x6745, 0xab89.toShort()), buffer.readShortLeArray(3))
+        assertEquals(6, buffer.size)
+    }
+
+    @Test
+    fun readToIntLeArray() {
+        val buffer = Buffer().apply {
+            intArrayOf(1, 2, 3, 0xcafe, 0xc0de, 5, 6).forEach(this::writeInt)
+        }
+
+        // read into pre allocated array
+        val out = IntArray(10)
+        buffer.readLeTo(out, startIndex = 1, endIndex = 3)
+        assertContentEquals(intArrayOf(0, 0x01000000, 0x02000000, 0, 0, 0, 0, 0, 0, 0), out)
+        assertEquals(20, buffer.size)
+    }
+
+    @Test
+    fun readIntLeArray() {
+        val buffer = Buffer().apply {
+            intArrayOf(1, 2, 3, 0xcafe, 0xc0de, 5, 6).forEach(this::writeInt)
+        }
+
+        // read all remaining values as a new array
+        assertContentEquals(
+            intArrayOf(
+                0x01000000,
+                0x02000000,
+                0x03000000,
+                0xfeca0000.toInt(),
+                0xdec00000.toInt(),
+                0x05000000,
+                0x06000000
+            ), buffer.readIntLeArray()
+        )
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(5))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (5) is not a multiple of Int.SIZE_BYTES (4)
+            buffer.readIntLeArray()
+        }
+        assertEquals(5, buffer.size)
+    }
+
+    @Test
+    fun readIntLeArraySized() {
+        val buffer = Buffer().apply {
+            intArrayOf(1, 2, 3, 0xcafe, 0xc0de, 5, 6).forEach(this::writeInt)
+        }
+
+        // read 3 int values as a new array
+        assertContentEquals(intArrayOf(0x01000000, 0x02000000, 0x03000000), buffer.readIntLeArray(3))
+        assertEquals(16, buffer.size)
+    }
+
+    @Test
+    fun readToLongLeArray() {
+        val buffer = Buffer().apply {
+            longArrayOf(0x1234, 0x5678, 0, 1, 2, 0xc0ffee).forEach(this::writeLong)
+        }
+
+        // read into pre allocated array
+        val out = LongArray(10)
+        buffer.readLeTo(out, startIndex = 1, endIndex = 3)
+        assertContentEquals(longArrayOf(0, 0x34120000_00000000L, 0x78560000_00000000L, 0, 0, 0, 0, 0, 0, 0), out)
+        assertEquals(32, buffer.size)
+    }
+
+    @Test
+    fun readLongLeArray() {
+        val buffer = Buffer().apply {
+            longArrayOf(0x1234, 0x5678, 0, 1, 2, 0xc0ffee).forEach(this::writeLong)
+        }
+
+        // read all remaining values as a new array
+        assertContentEquals(
+            longArrayOf(
+                0x34120000_00000000L,
+                0x78560000_00000000L,
+                0L,
+                0x01000000_00000000L,
+                0x02000000_00000000L,
+                0xeeffc000_00000000UL.toLong()
+            ), buffer.readLongLeArray()
+        )
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(11))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (11) is not a multiple of Long.SIZE_BYTES (8)
+            buffer.readLongLeArray()
+        }
+        assertEquals(11, buffer.size)
+    }
+
+    @Test
+    fun readLongLeArraySized() {
+        val buffer = Buffer().apply {
+            longArrayOf(0x1234, 0x5678, 0, 1, 2, 0xc0ffee).forEach(this::writeLong)
+        }
+
+        // read 3 long values as a new array
+        assertContentEquals(longArrayOf(0x34120000_00000000L, 0x78560000_00000000L, 0L), buffer.readLongLeArray(3))
+        assertEquals(24, buffer.size)
+    }
+
+    @Test
+    fun readToFloatLeArray() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                floatArrayOf(0.5f, 0.5f, 0.5f),
+                floatArrayOf(0.5f, -0.5f, 0.0f),
+                floatArrayOf(-0.5f, 0.5f, 0.0f)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeFloat)
+            }
+        }
+
+        // read into pre allocated array
+        val out = FloatArray(10)
+        buffer.readLeTo(out, startIndex = 1, endIndex = 4)
+        // 0.5f.toBits().toHexString()     -> 3f000000
+        // 8.8e-44f.toBits().toHexString() -> 0000003f
+        assertContentEquals(floatArrayOf(0f, 8.8e-44f, 8.8e-44f, 8.8e-44f, 0f, 0f, 0f, 0f, 0f, 0f), out)
+        assertEquals(24, buffer.size)
+    }
+
+    @Test
+    fun readFloatLeArray() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                floatArrayOf(0.5f, 0.5f, 0.5f),
+                floatArrayOf(0.5f, -0.5f, 0.0f),
+                floatArrayOf(-0.5f, 0.5f, 0.0f)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeFloat)
+            }
+        }
+
+        // read all remaining values as a new array
+        // 0.5f.toBits().toHexString()     -> 3f000000
+        // 8.8e-44f.toBits().toHexString() -> 0000003f
+        // (-0.5f).toBits().toHexString()   -> bf000000
+        // 2.68e-43f.toBits().toHexString() -> 000000bf
+        assertContentEquals(
+            floatArrayOf(
+                8.8e-44f, 8.8e-44f, 8.8e-44f,
+                8.8e-44f, 2.68e-43f, 0.0f,
+                2.68e-43f, 8.8e-44f, 0.0f
+            ), buffer.readFloatLeArray()
+        )
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(5))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (5) is not a multiple of Float.SIZE_BYTES (4)
+            buffer.readFloatLeArray()
+        }
+        assertEquals(5, buffer.size)
+    }
+
+    @Test
+    fun readFloatLeArraySized() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                floatArrayOf(0.5f, 0.5f, 0.5f),
+                floatArrayOf(0.5f, -0.5f, 0.0f),
+                floatArrayOf(-0.5f, 0.5f, 0.0f)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeFloat)
+            }
+        }
+
+        // read 3 float values as a new array
+        // 0.5f.toBits().toHexString()     -> 3f000000
+        // 8.8e-44f.toBits().toHexString() -> 0000003f
+        assertContentEquals(floatArrayOf(8.8e-44f, 8.8e-44f, 8.8e-44f), buffer.readFloatLeArray(3))
+        assertEquals(24, buffer.size)
+    }
+
+    @Test
+    fun readToDoubleLeArray() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                doubleArrayOf(0.5, 0.5, 0.5),
+                doubleArrayOf(0.5, -0.5, 0.0),
+                doubleArrayOf(-0.5, 0.5, 0.0)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeDouble)
+            }
+        }
+
+        // read into pre allocated array
+        val out = DoubleArray(10)
+        buffer.readLeTo(out, startIndex = 1, endIndex = 4)
+        // 0.5.toBits().toHexString()         -> 3fe0000000000000
+        // 2.8363e-319.toBits().toHexString() -> 000000000000e03f
+        assertContentEquals(doubleArrayOf(.0, 2.8363e-319, 2.8363e-319, 2.8363e-319, .0, .0, .0, .0, .0, .0), out)
+        assertEquals(48, buffer.size)
+    }
+
+    @Test
+    fun readDoubleLeArray() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                doubleArrayOf(0.5, 0.5, 0.5),
+                doubleArrayOf(0.5, -0.5, 0.0),
+                doubleArrayOf(-0.5, 0.5, 0.0)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeDouble)
+            }
+        }
+
+        // read all remaining values as a new array
+        // 0.5.toBits().toHexString()         -> 3fe0000000000000
+        // 2.8363e-319.toBits().toHexString() -> 000000000000e03f
+        // (-0.5).toBits().toHexString()      -> bfe0000000000000
+        // 2.8426e-319.toBits().toHexString() -> 0000000000000bfe
+        assertContentEquals(
+            doubleArrayOf(
+                2.8363e-319, 2.8363e-319, 2.8363e-319,
+                2.8363e-319, 2.8426e-319, 0.0,
+                2.8426e-319, 2.8363e-319, 0.0
+            ),
+            buffer.readDoubleLeArray()
+        )
+        assertTrue(buffer.exhausted())
+
+        buffer.write(ByteArray(11))
+        assertFailsWith<IllegalStateException> {
+            // the number of bytes in buffer (11) is not a multiple of Double.SIZE_BYTES (8)
+            buffer.readDoubleLeArray()
+        }
+        assertEquals(11, buffer.size)
+    }
+
+    @Test
+    fun readDoubleLeArraySized() {
+        val buffer = Buffer().apply {
+            arrayOf(
+                doubleArrayOf(0.5, 0.5, 0.5),
+                doubleArrayOf(0.5, -0.5, 0.0),
+                doubleArrayOf(-0.5, 0.5, 0.0)
+            ).forEach { vertex ->
+                vertex.forEach(this::writeDouble)
+            }
+        }
+
+        // read 3 double values as a new array
+        // 0.5.toBits().toHexString()         -> 3fe0000000000000
+        // 2.8363e-319.toBits().toHexString() -> 000000000000e03f
+        assertContentEquals(doubleArrayOf(2.8363e-319, 2.8363e-319, 2.8363e-319), buffer.readDoubleLeArray(3))
+        assertEquals(48, buffer.size)
+    }
+
+    @Test
+    fun writeShortArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.write(shortArrayOf(1, 2, 3, 4))
+        assertEquals(1, buffer.readShort())
+        assertEquals(2, buffer.readShort())
+        assertEquals(3, buffer.readShort())
+        assertEquals(4, buffer.readShort())
+        assertTrue(buffer.exhausted())
+
+        buffer.write(shortArrayOf(1, 2, 3, 4), startIndex = 1, endIndex = 3)
+        assertEquals(2, buffer.readShort())
+        assertEquals(3, buffer.readShort())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeIntArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.write(intArrayOf(1, 2, 3, 4))
+        assertEquals(1, buffer.readInt())
+        assertEquals(2, buffer.readInt())
+        assertEquals(3, buffer.readInt())
+        assertEquals(4, buffer.readInt())
+        assertTrue(buffer.exhausted())
+
+        buffer.write(intArrayOf(1, 2, 3, 4), startIndex = 1, endIndex = 3)
+        assertEquals(2, buffer.readInt())
+        assertEquals(3, buffer.readInt())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeLongArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.write(longArrayOf(1, 2, 3, 4))
+        assertEquals(1, buffer.readLong())
+        assertEquals(2, buffer.readLong())
+        assertEquals(3, buffer.readLong())
+        assertEquals(4, buffer.readLong())
+        assertTrue(buffer.exhausted())
+
+        buffer.write(longArrayOf(1, 2, 3, 4), startIndex = 1, endIndex = 3)
+        assertEquals(2, buffer.readLong())
+        assertEquals(3, buffer.readLong())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeFloatArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.write(floatArrayOf(-0.5f, 0.5f, 0.0f))
+        assertEquals(-0.5f, buffer.readFloat())
+        assertEquals(0.5f, buffer.readFloat())
+        assertEquals(0.0f, buffer.readFloat())
+        assertTrue(buffer.exhausted())
+
+        val points = floatArrayOf(0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.0f, -0.5f, 0.5f, 0.0f)
+        buffer.write(points, startIndex = 3, endIndex = 6)
+        assertEquals(0.5f, buffer.readFloat())
+        assertEquals(-0.5f, buffer.readFloat())
+        assertEquals(0.0f, buffer.readFloat())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeDoubleArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.write(doubleArrayOf(-0.5, 0.5, 0.0))
+        assertEquals(-0.5, buffer.readDouble())
+        assertEquals(0.5, buffer.readDouble())
+        assertEquals(0.0, buffer.readDouble())
+        assertTrue(buffer.exhausted())
+
+        val points = doubleArrayOf(0.5, 0.5, 0.5, 0.5, -0.5, 0.0, -0.5, 0.5, 0.0)
+        buffer.write(points, startIndex = 3, endIndex = 6)
+        assertEquals(0.5, buffer.readDouble())
+        assertEquals(-0.5, buffer.readDouble())
+        assertEquals(0.0, buffer.readDouble())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeShortLeArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.writeLe(shortArrayOf(1, 2, 3, 4))
+        assertEquals(0x0100, buffer.readShort())
+        assertEquals(0x0200, buffer.readShort())
+        assertEquals(0x0300, buffer.readShort())
+        assertEquals(0x0400, buffer.readShort())
+        assertTrue(buffer.exhausted())
+
+        buffer.writeLe(shortArrayOf(1, 2, 3, 4), startIndex = 1, endIndex = 3)
+        assertEquals(0x0200, buffer.readShort())
+        assertEquals(0x0300, buffer.readShort())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeIntLeArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.writeLe(intArrayOf(1, 2, 3, 4))
+        assertEquals(0x0100_0000, buffer.readInt())
+        assertEquals(0x0200_0000, buffer.readInt())
+        assertEquals(0x0300_0000, buffer.readInt())
+        assertEquals(0x0400_0000, buffer.readInt())
+        assertTrue(buffer.exhausted())
+
+        buffer.writeLe(intArrayOf(1, 2, 3, 4), startIndex = 1, endIndex = 3)
+        assertEquals(0x0200_0000, buffer.readInt())
+        assertEquals(0x0300_0000, buffer.readInt())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeLongLeArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.writeLe(longArrayOf(1, 2, 3, 4))
+        assertEquals(0x0100_0000_0000_0000L, buffer.readLong())
+        assertEquals(0x0200_0000_0000_0000L, buffer.readLong())
+        assertEquals(0x0300_0000_0000_0000L, buffer.readLong())
+        assertEquals(0x0400_0000_0000_0000L, buffer.readLong())
+        assertTrue(buffer.exhausted())
+
+        buffer.writeLe(longArrayOf(1, 2, 3, 4), startIndex = 1, endIndex = 3)
+        assertEquals(0x0200_0000_0000_0000L, buffer.readLong())
+        assertEquals(0x0300_0000_0000_0000L, buffer.readLong())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeFloatLeArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.writeLe(floatArrayOf(-0.5f, 0.5f, 0.0f))
+        // (-0.5f).toBits().toHexString()   -> bf000000
+        // 2.68e-43f.toBits().toHexString() -> 000000bf
+        assertEquals(2.68e-43f, buffer.readFloat())
+        // 0.5f.toBits().toHexString()     -> 3f000000
+        // 8.8e-44f.toBits().toHexString() -> 0000003f
+        assertEquals(8.8e-44f, buffer.readFloat())
+        assertEquals(0.0f, buffer.readFloat())
+        assertTrue(buffer.exhausted())
+
+        val points = floatArrayOf(0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.0f, -0.5f, 0.5f, 0.0f)
+        buffer.writeLe(points, startIndex = 3, endIndex = 6)
+        assertEquals(8.8e-44f, buffer.readFloat())
+        assertEquals(2.68e-43f, buffer.readFloat())
+        assertEquals(0.0f, buffer.readFloat())
+        assertTrue(buffer.exhausted())
+    }
+
+    @Test
+    fun writeDoubleLeArrayToSink() {
+        val buffer = Buffer()
+
+        buffer.writeLe(doubleArrayOf(-0.5, 0.5, 0.0))
+        // (-0.5).toBits().toHexString()      -> bfe0000000000000
+        // 2.8426e-319.toBits().toHexString() -> 0000000000000bfe
+        assertEquals(2.8426e-319, buffer.readDouble())
+        // 0.5.toBits().toHexString()         -> 3fe0000000000000
+        // 2.8363e-319.toBits().toHexString() -> 000000000000e03f
+        assertEquals(2.8363e-319, buffer.readDouble())
+        assertEquals(0.0, buffer.readDouble())
+        assertTrue(buffer.exhausted())
+
+        val points = doubleArrayOf(0.5, 0.5, 0.5, 0.5, -0.5, 0.0, -0.5, 0.5, 0.0)
+        buffer.writeLe(points, startIndex = 3, endIndex = 6)
+        assertEquals(2.8363e-319, buffer.readDouble())
+        assertEquals(2.8426e-319, buffer.readDouble())
+        assertEquals(0.0, buffer.readDouble())
+        assertTrue(buffer.exhausted())
+    }
 }

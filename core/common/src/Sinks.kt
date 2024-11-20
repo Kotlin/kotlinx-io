@@ -499,7 +499,7 @@ public fun Sink.write(source: DoubleArray, startIndex: Int = 0, endIndex: Int = 
  * @throws IllegalStateException when the sink is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeShortArrayToSink
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeShortLeArrayToSink
  */
 public fun Sink.writeLe(source: ShortArray, startIndex: Int = 0, endIndex: Int = source.size) {
     checkBounds(source.size, startIndex, endIndex)
@@ -519,7 +519,7 @@ public fun Sink.writeLe(source: ShortArray, startIndex: Int = 0, endIndex: Int =
  * @throws IllegalStateException when the sink is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeIntArrayToSink
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeIntLeArrayToSink
  */
 public fun Sink.writeLe(source: IntArray, startIndex: Int = 0, endIndex: Int = source.size) {
     checkBounds(source.size, startIndex, endIndex)
@@ -539,7 +539,7 @@ public fun Sink.writeLe(source: IntArray, startIndex: Int = 0, endIndex: Int = s
  * @throws IllegalStateException when the sink is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeLongArrayToSink
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeLongLeArrayToSink
  */
 public fun Sink.writeLe(source: LongArray, startIndex: Int = 0, endIndex: Int = source.size) {
     checkBounds(source.size, startIndex, endIndex)
@@ -564,7 +564,7 @@ public fun Sink.writeLe(source: LongArray, startIndex: Int = 0, endIndex: Int = 
  * @throws IllegalStateException when the sink is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeFloatArrayToSink
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeFloatLeArrayToSink
  */
 public fun Sink.writeLe(source: FloatArray, startIndex: Int = 0, endIndex: Int = source.size) {
     checkBounds(source.size, startIndex, endIndex)
@@ -589,7 +589,7 @@ public fun Sink.writeLe(source: FloatArray, startIndex: Int = 0, endIndex: Int =
  * @throws IllegalStateException when the sink is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDoubleArrayToSink
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.writeDoubleLeArrayToSink
  */
 public fun Sink.writeLe(source: DoubleArray, startIndex: Int = 0, endIndex: Int = source.size) {
     checkBounds(source.size, startIndex, endIndex)

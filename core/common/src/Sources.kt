@@ -481,7 +481,7 @@ public fun Source.startsWith(byte: Byte): Boolean = request(1) && buffer[0] == b
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToShortArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToShortArray
  */
 public fun Source.readTo(sink: ShortArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -511,7 +511,7 @@ public fun Source.readTo(sink: ShortArray, startIndex: Int = 0, endIndex: Int = 
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToIntArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToIntArray
  */
 public fun Source.readTo(sink: IntArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -541,7 +541,7 @@ public fun Source.readTo(sink: IntArray, startIndex: Int = 0, endIndex: Int = si
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToLongArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToLongArray
  */
 public fun Source.readTo(sink: LongArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -578,7 +578,7 @@ public fun Source.readTo(sink: LongArray, startIndex: Int = 0, endIndex: Int = s
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToFloatArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToFloatArray
  */
 public fun Source.readTo(sink: FloatArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -615,7 +615,7 @@ public fun Source.readTo(sink: FloatArray, startIndex: Int = 0, endIndex: Int = 
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToDoubleArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToDoubleArray
  */
 public fun Source.readTo(sink: DoubleArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -645,7 +645,7 @@ public fun Source.readTo(sink: DoubleArray, startIndex: Int = 0, endIndex: Int =
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToShortArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToShortLeArray
  */
 public fun Source.readLeTo(sink: ShortArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -675,7 +675,7 @@ public fun Source.readLeTo(sink: ShortArray, startIndex: Int = 0, endIndex: Int 
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToIntArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToIntLeArray
  */
 public fun Source.readLeTo(sink: IntArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -705,7 +705,7 @@ public fun Source.readLeTo(sink: IntArray, startIndex: Int = 0, endIndex: Int = 
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToLongArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToLongLeArray
  */
 public fun Source.readLeTo(sink: LongArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -742,7 +742,7 @@ public fun Source.readLeTo(sink: LongArray, startIndex: Int = 0, endIndex: Int =
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToFloatArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToFloatLeArray
  */
 public fun Source.readLeTo(sink: FloatArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -779,7 +779,7 @@ public fun Source.readLeTo(sink: FloatArray, startIndex: Int = 0, endIndex: Int 
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToDoubleArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readToDoubleLeArray
  */
 public fun Source.readLeTo(sink: DoubleArray, startIndex: Int = 0, endIndex: Int = sink.size) {
     checkBounds(sink.size, startIndex, endIndex)
@@ -805,7 +805,7 @@ public fun Source.readLeTo(sink: DoubleArray, startIndex: Int = 0, endIndex: Int
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySized
  */
 public fun Source.readShortArray(size: Int): ShortArray {
     checkSize(size)
@@ -824,7 +824,7 @@ public fun Source.readShortArray(size: Int): ShortArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Short.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArray
  */
 public fun Source.readShortArray(): ShortArray {
     val array = ShortArray(prefetchArrayData(-1, Short.SIZE_BYTES))
@@ -843,7 +843,7 @@ public fun Source.readShortArray(): ShortArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySized
  */
 public fun Source.readIntArray(size: Int): IntArray {
     checkSize(size)
@@ -862,7 +862,7 @@ public fun Source.readIntArray(size: Int): IntArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Int.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArray
  */
 public fun Source.readIntArray(): IntArray {
     val array = IntArray(prefetchArrayData(-1, Int.SIZE_BYTES))
@@ -880,7 +880,7 @@ public fun Source.readIntArray(): IntArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Long.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArray
  */
 public fun Source.readLongArray(): LongArray {
     val array = LongArray(prefetchArrayData(-1, Long.SIZE_BYTES))
@@ -899,7 +899,7 @@ public fun Source.readLongArray(): LongArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySized
  */
 public fun Source.readLongArray(size: Int): LongArray {
     checkSize(size)
@@ -925,7 +925,7 @@ public fun Source.readLongArray(size: Int): LongArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Float.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArray
  */
 public fun Source.readFloatArray(): FloatArray {
     val array = FloatArray(prefetchArrayData(-1, Float.SIZE_BYTES))
@@ -951,7 +951,7 @@ public fun Source.readFloatArray(): FloatArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySized
  */
 public fun Source.readFloatArray(size: Int): FloatArray {
     checkSize(size)
@@ -977,7 +977,7 @@ public fun Source.readFloatArray(size: Int): FloatArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Double.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArray
  */
 public fun Source.readDoubleArray(): DoubleArray {
     val array = DoubleArray(prefetchArrayData(-1, Double.SIZE_BYTES))
@@ -1003,7 +1003,7 @@ public fun Source.readDoubleArray(): DoubleArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySized
  */
 public fun Source.readDoubleArray(size: Int): DoubleArray {
     checkSize(size)
@@ -1022,7 +1022,7 @@ public fun Source.readDoubleArray(size: Int): DoubleArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Short.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortLeArraySized
  */
 public fun Source.readShortLeArray(size: Int): ShortArray {
     checkSize(size)
@@ -1042,7 +1042,7 @@ public fun Source.readShortLeArray(size: Int): ShortArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readShortLeArray
  */
 public fun Source.readShortLeArray(): ShortArray {
     val array = ShortArray(prefetchArrayData(-1, Short.SIZE_BYTES))
@@ -1061,7 +1061,7 @@ public fun Source.readShortLeArray(): ShortArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntLeArraySized
  */
 public fun Source.readIntLeArray(size: Int): IntArray {
     checkSize(size)
@@ -1080,7 +1080,7 @@ public fun Source.readIntLeArray(size: Int): IntArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Int.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readIntLeArray
  */
 public fun Source.readIntLeArray(): IntArray {
     val array = IntArray(prefetchArrayData(-1, Int.SIZE_BYTES))
@@ -1098,7 +1098,7 @@ public fun Source.readIntLeArray(): IntArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Long.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongLeArray
  */
 public fun Source.readLongLeArray(): LongArray {
     val array = LongArray(prefetchArrayData(-1, Long.SIZE_BYTES))
@@ -1117,7 +1117,7 @@ public fun Source.readLongLeArray(): LongArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readLongLeArraySized
  */
 public fun Source.readLongLeArray(size: Int): LongArray {
     checkSize(size)
@@ -1143,7 +1143,7 @@ public fun Source.readLongLeArray(size: Int): LongArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Float.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatLeArray
  */
 public fun Source.readFloatLeArray(): FloatArray {
     val array = FloatArray(prefetchArrayData(-1, Float.SIZE_BYTES))
@@ -1169,7 +1169,7 @@ public fun Source.readFloatLeArray(): FloatArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readFloatLeArraySized
  */
 public fun Source.readFloatLeArray(size: Int): FloatArray {
     checkSize(size)
@@ -1195,7 +1195,7 @@ public fun Source.readFloatLeArray(size: Int): FloatArray {
  * @throws IllegalStateException when a number of bytes contained in the source is not a multiple of [Double.SIZE_BYTES].
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleLeArray
  */
 public fun Source.readDoubleLeArray(): DoubleArray {
     val array = DoubleArray(prefetchArrayData(-1, Double.SIZE_BYTES))
@@ -1221,7 +1221,7 @@ public fun Source.readDoubleLeArray(): DoubleArray {
  * @throws IllegalStateException when the source is closed.
  * @throws IOException when some I/O error occurs.
  *
- * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleArraySample
+ * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.readDoubleLeArraySized
  */
 public fun Source.readDoubleLeArray(size: Int): DoubleArray {
     checkSize(size)
