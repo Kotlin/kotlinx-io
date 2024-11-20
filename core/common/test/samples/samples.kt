@@ -1324,7 +1324,7 @@ class KotlinxIoCoreCommonSamples {
         // 0.5.toBits().toHexString()         -> 3fe0000000000000
         // 2.8363e-319.toBits().toHexString() -> 000000000000e03f
         // (-0.5).toBits().toHexString()      -> bfe0000000000000
-        // 2.8426e-319.toBits().toHexString() -> 0000000000000bfe
+        // 2.8426e-319.toBits().toHexString() -> 000000000000e0bf
         assertContentEquals(
             doubleArrayOf(
                 2.8363e-319, 2.8363e-319, 2.8363e-319,
@@ -1507,18 +1507,18 @@ class KotlinxIoCoreCommonSamples {
         buffer.writeLe(floatArrayOf(-0.5f, 0.5f, 0.0f))
         // (-0.5f).toBits().toHexString()   -> bf000000
         // 2.68e-43f.toBits().toHexString() -> 000000bf
-        assertEquals(2.68e-43f, buffer.readFloat())
+        assertEquals(0x000000bf, buffer.readInt())
         // 0.5f.toBits().toHexString()     -> 3f000000
         // 8.8e-44f.toBits().toHexString() -> 0000003f
-        assertEquals(8.8e-44f, buffer.readFloat())
-        assertEquals(0.0f, buffer.readFloat())
+        assertEquals(0x0000003f, buffer.readInt())
+        assertEquals(0x00000000, buffer.readInt())
         assertTrue(buffer.exhausted())
 
         val points = floatArrayOf(0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.0f, -0.5f, 0.5f, 0.0f)
         buffer.writeLe(points, startIndex = 3, endIndex = 6)
-        assertEquals(8.8e-44f, buffer.readFloat())
-        assertEquals(2.68e-43f, buffer.readFloat())
-        assertEquals(0.0f, buffer.readFloat())
+        assertEquals(0x0000003f, buffer.readInt())
+        assertEquals(0x000000bf, buffer.readInt())
+        assertEquals(0x00000000, buffer.readInt())
         assertTrue(buffer.exhausted())
     }
 
@@ -1528,19 +1528,19 @@ class KotlinxIoCoreCommonSamples {
 
         buffer.writeLe(doubleArrayOf(-0.5, 0.5, 0.0))
         // (-0.5).toBits().toHexString()      -> bfe0000000000000
-        // 2.8426e-319.toBits().toHexString() -> 0000000000000bfe
-        assertEquals(2.8426e-319, buffer.readDouble())
+        // 2.8426e-319.toBits().toHexString() -> 000000000000e0bf
+        assertEquals(0xe0bfL, buffer.readLong())
         // 0.5.toBits().toHexString()         -> 3fe0000000000000
         // 2.8363e-319.toBits().toHexString() -> 000000000000e03f
-        assertEquals(2.8363e-319, buffer.readDouble())
-        assertEquals(0.0, buffer.readDouble())
+        assertEquals(0xe03fL, buffer.readLong())
+        assertEquals(0L, buffer.readLong())
         assertTrue(buffer.exhausted())
 
         val points = doubleArrayOf(0.5, 0.5, 0.5, 0.5, -0.5, 0.0, -0.5, 0.5, 0.0)
         buffer.writeLe(points, startIndex = 3, endIndex = 6)
-        assertEquals(2.8363e-319, buffer.readDouble())
-        assertEquals(2.8426e-319, buffer.readDouble())
-        assertEquals(0.0, buffer.readDouble())
+        assertEquals(0xe03fL, buffer.readLong())
+        assertEquals(0xe0bfL, buffer.readLong())
+        assertEquals(0L, buffer.readLong())
         assertTrue(buffer.exhausted())
     }
 }
