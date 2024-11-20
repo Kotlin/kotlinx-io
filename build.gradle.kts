@@ -33,6 +33,9 @@ apiValidation {
 dependencies {
     kover(project(":kotlinx-io-core"))
     kover(project(":kotlinx-io-bytestring"))
+
+    dokka(project(":kotlinx-io-bytestring"))
+    dokka(project(":kotlinx-io-core"))
 }
 
 kover {
