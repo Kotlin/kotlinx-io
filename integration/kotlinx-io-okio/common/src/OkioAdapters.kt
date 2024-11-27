@@ -43,7 +43,7 @@ private inline fun <T> withKxIO2OkioExceptionMapping(block: () -> T): T {
  * Closing one of these sources will also close another one.
  */
 public fun RawSource.asOkioSource(): okio.Source = object : okio.Source {
-    private val buffer = Buffer()
+    private val buffer = Buffer() // TODO: optimization - reuse Source's buffer if possible
 
     override fun close() = withKxIO2OkioExceptionMapping {
         this@asOkioSource.close()
@@ -73,7 +73,7 @@ public fun RawSource.asOkioSource(): okio.Source = object : okio.Source {
  * Closing one of these sinks will also close another one.
  */
 public fun RawSink.asOkioSink(): okio.Sink = object : okio.Sink {
-    private val buffer = Buffer()
+    private val buffer = Buffer() // TODO: optimization - reuse Sink's buffer if possible
 
     override fun close() = withKxIO2OkioExceptionMapping {
         this@asOkioSink.close()
@@ -112,7 +112,7 @@ public fun RawSink.asOkioSink(): okio.Sink = object : okio.Sink {
  * Closing one of these sinks will also close another one.
  */
 public fun okio.Sink.asKotlinxIoRawSink(): RawSink = object : RawSink {
-    private val buffer = okio.Buffer()
+    private val buffer = okio.Buffer() // TODO: optimization - reuse BufferedSink's buffer if possible
 
     override fun write(source: Buffer, byteCount: Long) = withOkio2KxIOExceptionMapping {
         require(source.size >= byteCount) {
@@ -146,7 +146,7 @@ public fun okio.Sink.asKotlinxIoRawSink(): RawSink = object : RawSink {
  * Closing one of these sources will also close another one.
  */
 public fun okio.Source.asKotlinxIoRawSource(): RawSource = object : RawSource {
-    private val buffer = okio.Buffer()
+    private val buffer = okio.Buffer() // TODO: optimization - reuse BufferedSource's buffer if possible
 
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = withOkio2KxIOExceptionMapping {
         val readBytes = this@asKotlinxIoRawSource.read(buffer, byteCount)
