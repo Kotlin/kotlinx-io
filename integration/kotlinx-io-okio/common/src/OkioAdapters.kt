@@ -17,6 +17,26 @@ import kotlinx.io.unsafe.UnsafeBufferOperations
 import okio.ByteString.Companion.toByteString
 import kotlin.math.min
 
+private inline fun <T> withOkio2KxIOExceptionMapping(block: () -> T): T {
+    try {
+        return block()
+    } catch (eofe: okio.EOFException) {
+        throw kotlinx.io.EOFException(eofe.message)
+    } catch (ioe: okio.IOException) {
+        throw kotlinx.io.IOException(ioe.message, ioe)
+    }
+}
+
+private inline fun <T> withKxIO2OkioExceptionMapping(block: () -> T): T {
+    try {
+        return block()
+    } catch (eofe: kotlinx.io.EOFException) {
+        throw okio.EOFException(eofe.message)
+    } catch (ioe: kotlinx.io.IOException) {
+        throw okio.IOException(ioe.message, ioe)
+    }
+}
+
 /**
  * Returns a [okio.Source] backed by this [kotlinx.io.RawSource].
  *
@@ -25,33 +45,23 @@ import kotlin.math.min
 public fun RawSource.asOkioSource(): okio.Source = object : okio.Source {
     private val buffer = Buffer()
 
-    override fun close() {
-        try {
-            this@asOkioSource.close()
-        } catch (e: kotlinx.io.IOException) {
-            throw okio.IOException(e.message, e)
-        }
+    override fun close() = withKxIO2OkioExceptionMapping {
+        this@asOkioSource.close()
     }
 
-    override fun read(sink: okio.Buffer, byteCount: Long): Long {
-        try {
-            val read = this@asOkioSource.readAtMostTo(buffer, byteCount)
-            if (read <= 0) return read
+    override fun read(sink: okio.Buffer, byteCount: Long): Long = withKxIO2OkioExceptionMapping {
+        val read = this@asOkioSource.readAtMostTo(buffer, byteCount)
+        if (read <= 0) return read
 
-            while (!buffer.exhausted()) {
-                @OptIn(UnsafeIoApi::class)
-                UnsafeBufferOperations.readFromHead(buffer) { data, from, to ->
-                    val len = to - from
-                    sink.write(data, from, len)
-                    len
-                }
+        while (!buffer.exhausted()) {
+            @OptIn(UnsafeIoApi::class)
+            UnsafeBufferOperations.readFromHead(buffer) { data, from, to ->
+                val len = to - from
+                sink.write(data, from, len)
+                len
             }
-            return read
-        } catch (eofe: kotlinx.io.EOFException) {
-            throw okio.EOFException(eofe.message)
-        } catch (ioe: kotlinx.io.IOException) {
-            throw okio.IOException(ioe.message, ioe)
         }
+        return read
     }
 
     override fun timeout(): okio.Timeout = okio.Timeout.NONE
@@ -65,45 +75,34 @@ public fun RawSource.asOkioSource(): okio.Source = object : okio.Source {
 public fun RawSink.asOkioSink(): okio.Sink = object : okio.Sink {
     private val buffer = Buffer()
 
-    override fun close() {
-        try {
-            this@asOkioSink.close()
-        } catch (e: kotlinx.io.IOException) {
-            throw okio.IOException(e.message, e)
-        }
+    override fun close() = withKxIO2OkioExceptionMapping {
+        this@asOkioSink.close()
     }
 
-    override fun flush() {
-        try {
-            this@asOkioSink.flush()
-        } catch (e: kotlinx.io.IOException) {
-            throw okio.IOException(e.message, e)
-        }
+    override fun flush() = withKxIO2OkioExceptionMapping {
+        this@asOkioSink.flush()
+
     }
 
     override fun timeout(): okio.Timeout = okio.Timeout.NONE
 
-    override fun write(source: okio.Buffer, byteCount: Long) {
+    override fun write(source: okio.Buffer, byteCount: Long) = withKxIO2OkioExceptionMapping {
         require(source.size >= byteCount) {
             "Buffer does not contain enough bytes to write. Requested $byteCount, actual size is ${source.size}"
         }
-        try {
-            var remaining = byteCount
-            while (remaining > 0) {
-                @OptIn(UnsafeIoApi::class)
-                UnsafeBufferOperations.writeToTail(buffer, 1) { data, from, to ->
-                    val toWrite = min((to - from).toLong(), remaining).toInt()
+        var remaining = byteCount
+        while (remaining > 0) {
+            @OptIn(UnsafeIoApi::class)
+            UnsafeBufferOperations.writeToTail(buffer, 1) { data, from, to ->
+                val toWrite = min((to - from).toLong(), remaining).toInt()
 
-                    val read = source.read(data, from, toWrite)
-                    check(read > 0) { "Can't read $toWrite bytes from okio.Buffer" }
-                    remaining -= read
-                    read
-                }
+                val read = source.read(data, from, toWrite)
+                check(read > 0) { "Can't read $toWrite bytes from okio.Buffer" }
+                remaining -= read
+                read
             }
-            this@asOkioSink.write(buffer, buffer.size)
-        } catch (e: kotlinx.io.IOException) {
-            throw okio.IOException(e.message, e)
         }
+        this@asOkioSink.write(buffer, buffer.size)
     }
 }
 
@@ -115,41 +114,29 @@ public fun RawSink.asOkioSink(): okio.Sink = object : okio.Sink {
 public fun okio.Sink.asKotlinxIoRawSink(): RawSink = object : RawSink {
     private val buffer = okio.Buffer()
 
-    override fun write(source: Buffer, byteCount: Long) {
+    override fun write(source: Buffer, byteCount: Long) = withOkio2KxIOExceptionMapping {
         require(source.size >= byteCount) {
             "Buffer does not contain enough bytes to write. Requested $byteCount, actual size is ${source.size}"
         }
-        try {
-            var remaining = byteCount
-            while (remaining > 0) {
-                @OptIn(UnsafeIoApi::class)
-                UnsafeBufferOperations.readFromHead(source) { data, from, to ->
-                    val toRead = min((to - from).toLong(), remaining).toInt()
-                    remaining -= toRead
-                    buffer.write(data, from, toRead)
-                    toRead
-                }
-                this@asKotlinxIoRawSink.write(buffer, byteCount)
+        var remaining = byteCount
+        while (remaining > 0) {
+            @OptIn(UnsafeIoApi::class)
+            UnsafeBufferOperations.readFromHead(source) { data, from, to ->
+                val toRead = min((to - from).toLong(), remaining).toInt()
+                remaining -= toRead
+                buffer.write(data, from, toRead)
+                toRead
             }
-        } catch (e: okio.IOException) {
-            throw kotlinx.io.IOException(e.message, e)
+            this@asKotlinxIoRawSink.write(buffer, byteCount)
         }
     }
 
-    override fun flush() {
-        try {
-            this@asKotlinxIoRawSink.flush()
-        } catch (e: okio.IOException) {
-            throw kotlinx.io.IOException(e.message, e)
-        }
+    override fun flush() = withOkio2KxIOExceptionMapping {
+        this@asKotlinxIoRawSink.flush()
     }
 
-    override fun close() {
-        try {
-            this@asKotlinxIoRawSink.close()
-        } catch (e: okio.IOException) {
-            throw kotlinx.io.IOException(e.message, e)
-        }
+    override fun close() = withOkio2KxIOExceptionMapping {
+        this@asKotlinxIoRawSink.close()
     }
 }
 
@@ -161,38 +148,28 @@ public fun okio.Sink.asKotlinxIoRawSink(): RawSink = object : RawSink {
 public fun okio.Source.asKotlinxIoRawSource(): RawSource = object : RawSource {
     private val buffer = okio.Buffer()
 
-    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-        try {
-            val readBytes = this@asKotlinxIoRawSource.read(buffer, byteCount)
+    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = withOkio2KxIOExceptionMapping {
+        val readBytes = this@asKotlinxIoRawSource.read(buffer, byteCount)
 
-            if (readBytes <= 0L) return readBytes
+        if (readBytes <= 0L) return readBytes
 
-            var remaining = readBytes
-            while (remaining > 0) {
-                @OptIn(UnsafeIoApi::class)
-                UnsafeBufferOperations.writeToTail(sink, 1) { data, from, to ->
-                    val toRead = min((to - from).toLong(), remaining).toInt()
-                    val read = buffer.read(data, from, toRead)
-                    check(read == toRead) { "Can't read $toRead bytes from okio.Buffer" }
-                    remaining -= toRead
-                    toRead
-                }
+        var remaining = readBytes
+        while (remaining > 0) {
+            @OptIn(UnsafeIoApi::class)
+            UnsafeBufferOperations.writeToTail(sink, 1) { data, from, to ->
+                val toRead = min((to - from).toLong(), remaining).toInt()
+                val read = buffer.read(data, from, toRead)
+                check(read == toRead) { "Can't read $toRead bytes from okio.Buffer" }
+                remaining -= toRead
+                toRead
             }
-
-            return readBytes
-        } catch (eofe: okio.EOFException) {
-            throw kotlinx.io.EOFException(eofe.message)
-        } catch (e: okio.IOException) {
-            throw kotlinx.io.IOException(e.message, e)
         }
+
+        return readBytes
     }
 
-    override fun close() {
-        try {
-            this@asKotlinxIoRawSource.close()
-        } catch (e: okio.IOException) {
-            throw kotlinx.io.IOException(e.message, e)
-        }
+    override fun close() = withOkio2KxIOExceptionMapping {
+        this@asKotlinxIoRawSource.close()
     }
 }
 

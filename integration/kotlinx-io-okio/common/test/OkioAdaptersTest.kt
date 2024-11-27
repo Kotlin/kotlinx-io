@@ -7,7 +7,6 @@ package kotlinx.io.okio
 
 import kotlinx.io.bytestring.isEmpty
 import kotlinx.io.readByteArray
-import okio.Buffer
 import okio.Timeout
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -85,7 +84,7 @@ class OkioAdaptersTest {
             override fun close() = throw okio.IOException()
             override fun flush() = throw okio.IOException()
             override fun timeout(): Timeout = TODO()
-            override fun write(source: Buffer, byteCount: Long) = throw okio.IOException()
+            override fun write(source: okio.Buffer, byteCount: Long) = throw okio.IOException()
         }.asKotlinxIoRawSink()
 
         assertFailsWith<kotlinx.io.IOException> {
@@ -150,7 +149,7 @@ class OkioAdaptersTest {
         val adapter = object : okio.Source {
             override fun close() = throw okio.IOException()
 
-            override fun read(sink: Buffer, byteCount: Long): Long = if (throwEOF) {
+            override fun read(sink: okio.Buffer, byteCount: Long): Long = if (throwEOF) {
                 throw okio.EOFException()
             } else {
                 throw okio.IOException()
