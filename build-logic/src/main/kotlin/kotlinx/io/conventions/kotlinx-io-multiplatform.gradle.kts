@@ -8,7 +8,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.utils.toSetOrEmpty
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -79,11 +78,7 @@ kotlin {
         nodejs()
     }
 
-    val disabledTargets = (findProperty("disabled.native.targets")?.toString() ?: "")
-        .split(",")
-        .toSet()
-
-    nativeTargets(disabledTargets)
+    nativeTargets()
 
     sourceSets {
         commonTest.dependencies {
@@ -149,7 +144,9 @@ fun KotlinSourceSet.configureSourceSet() {
     }
 }
 
-private fun KotlinMultiplatformExtension.nativeTargets(disabledTargets: Set<String>) {
+private fun KotlinMultiplatformExtension.nativeTargets() {
+    val configureAllTargets = project.findProperty("kotlinx.io.okio.compat.targets")?.toString()?.toBoolean() != true
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -164,7 +161,7 @@ private fun KotlinMultiplatformExtension.nativeTargets(disabledTargets: Set<Stri
     watchosSimulatorArm64()
     watchosDeviceArm64()
 
-    if (!disabledTargets.contains("androidNative")) {
+    if (configureAllTargets) {
         androidNativeArm32()
         androidNativeArm64()
         androidNativeX64()
@@ -173,7 +170,7 @@ private fun KotlinMultiplatformExtension.nativeTargets(disabledTargets: Set<Stri
 
     linuxX64()
     linuxArm64()
-    if (!disabledTargets.contains("linuxArm32Hfp")) {
+    if (configureAllTargets) {
         @Suppress("DEPRECATION") // https://github.com/Kotlin/kotlinx-io/issues/303
         linuxArm32Hfp()
     }
