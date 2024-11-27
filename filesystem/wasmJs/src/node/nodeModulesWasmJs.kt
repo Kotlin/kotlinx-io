@@ -5,7 +5,6 @@
 
 package kotlinx.io.node
 
-
 internal fun requireExists(): Boolean = js("typeof require === 'function'")
 
 internal fun requireModule(mod: String): JsAny? = js("""{

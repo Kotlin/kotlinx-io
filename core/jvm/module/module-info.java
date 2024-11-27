@@ -3,6 +3,5 @@ module kotlinx.io.core {
     requires transitive kotlinx.io.bytestring;
 
     exports kotlinx.io;
-    exports kotlinx.io.files;
     exports kotlinx.io.unsafe;
 }

@@ -9,6 +9,7 @@ import kotlinx.io.*
 import kotlinx.io.node.buffer
 import kotlinx.io.node.fs
 import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlin.math.min
 import kotlinx.io.node.path as nodeJsPath
 
 public actual class Path internal constructor(
@@ -112,7 +113,7 @@ internal class FileSource(private val path: Path) : RawSource {
         if (offset >= len) {
             return -1L
         }
-        val bytesToRead = minOf(byteCount, (len - offset))
+        val bytesToRead = min(byteCount, (len - offset).toLong())
         for (i in 0 until bytesToRead) {
             sink.writeByte(buffer!!.readInt8(offset++))
         }

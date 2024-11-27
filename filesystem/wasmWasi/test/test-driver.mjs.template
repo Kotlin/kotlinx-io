@@ -14,7 +14,7 @@ const path = require('path');
 const url = require('url');
 const filepath = url.fileURLToPath(import.meta.url);
 const dirpath = path.dirname(filepath);
-const wasmBuffer = fs.readFileSync(path.resolve(dirpath, './kotlinx-io-kotlinx-io-core-wasm-wasi-test.wasm'));
+const wasmBuffer = fs.readFileSync(path.resolve(dirpath, './kotlinx-io-kotlinx-io-filesystem-wasm-wasi-test.wasm'));
 const wasmModule = new WebAssembly.Module(wasmBuffer);
 const wasmInstance = new WebAssembly.Instance(wasmModule, wasi.getImportObject());
 

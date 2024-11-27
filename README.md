@@ -30,7 +30,8 @@ which includes the `FileSystem` interface and its default implementation - `Syst
 
 There are two `kotlinx-io` modules:
 - [kotlinx-io-bytestring](./bytestring) - provides `ByteString`.
-- [kotlinx-io-core](./core) - provides IO primitives (`Buffer`, `Source`, `Sink`), filesystems support, depends on `kotlinx-io-bytestring`.
+- [kotlinx-io-core](./core) - provides IO primitives (`Buffer`, `Source`, `Sink`), depends on `kotlinx-io-bytestring`.
+- [kotlinx-io-filesystem](./filesystem) - provides basic filesystem support, depends on `kotlinx-io-core`.
 
 ## Using in your projects
 
@@ -81,6 +82,7 @@ Add the library to dependencies:
 On JVM, `kotlinx-io` supports Java Modules:
 - `kotlinx-io-bytestring` library provides `kotlinx.io.bytestring` module; 
 - `kotlinx-io-core` library provides `kotlinx.io.core` module.
+- `kotlinx-io-filesystem` library provides `kotlinx.io.filesystem` module.
 
 Read [this](https://kotlinlang.org/docs/gradle-configure-project.html#configure-with-java-modules-jpms-enabled) article 
 for details on how to configure a Gradle project to utilize JPMS.

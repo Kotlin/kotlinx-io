@@ -462,7 +462,7 @@ private class FileSink(private val fd: Fd) : RawSink {
             val resultPtr = allocator.allocateInt()
 
             while (remaining > 0) {
-                val bytesToWrite = minOf(remaining, TEMP_CIOVEC_BUFFER_LEN).toInt()
+                val bytesToWrite = min(remaining, TEMP_CIOVEC_BUFFER_LEN.toLong()).toInt()
                 source.readToLinearMemory(temporaryWriteBuffer, bytesToWrite)
                 ciovec.length = bytesToWrite
 
@@ -512,7 +512,7 @@ private class FileSource(private val fd: Fd) : RawSource {
 
             val resultPtr = allocator.allocateInt()
             while (remaining > 0) {
-                val bytesToRead = minOf(remaining, TEMP_CIOVEC_BUFFER_LEN).toInt()
+                val bytesToRead = min(remaining, TEMP_CIOVEC_BUFFER_LEN.toLong()).toInt()
                 ciovec.length = bytesToRead
 
                 val res = Errno(fd_read(fd, ciovec.address, 1, resultPtr.address.toInt()))
