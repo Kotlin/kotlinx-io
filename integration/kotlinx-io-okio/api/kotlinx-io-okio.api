@@ -1,0 +1,9 @@
+public final class kotlinx/io/okio/OkioAdaptersKt {
+	public static final fun asKotlinxIoRawSink (Lokio/Sink;)Lkotlinx/io/RawSink;
+	public static final fun asKotlinxIoRawSource (Lokio/Source;)Lkotlinx/io/RawSource;
+	public static final fun asOkioSink (Lkotlinx/io/RawSink;)Lokio/Sink;
+	public static final fun asOkioSource (Lkotlinx/io/RawSource;)Lokio/Source;
+	public static final fun toKotlinxIoByteString (Lokio/ByteString;)Lkotlinx/io/bytestring/ByteString;
+	public static final fun toOkioByteString (Lkotlinx/io/bytestring/ByteString;)Lokio/ByteString;
+}
+
