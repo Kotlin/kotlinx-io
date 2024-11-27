@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
-package kotlinx.io.integration.okio
+package kotlinx.io.okio
 
 import kotlinx.io.Buffer
 import kotlinx.io.RawSink

@@ -13,9 +13,9 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":kotlinx-io-core"))
-            implementation(project(":kotlinx-io-bytestring"))
-            implementation(libs.okio)
+            api(project(":kotlinx-io-core"))
+            api(project(":kotlinx-io-bytestring"))
+            api(libs.okio)
         }
     }
 }
