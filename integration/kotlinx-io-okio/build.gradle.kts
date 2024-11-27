@@ -18,4 +18,21 @@ kotlin {
             api(libs.okio)
         }
     }
+
+    js {
+        nodejs {
+            testTask {
+                useMocha {
+                    timeout = "300s"
+                }
+            }
+        }
+        browser {
+            testTask {
+                useMocha {
+                    timeout = "300s"
+                }
+            }
+        }
+    }
 }
