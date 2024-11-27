@@ -97,7 +97,7 @@ public fun RawSink.asOkioSink(): okio.Sink = object : okio.Sink {
                 val toWrite = min((to - from).toLong(), remaining).toInt()
 
                 val read = source.read(data, from, toWrite)
-                check(read > 0) { "Can't read $toWrite bytes from okio.Buffer" }
+                check(read == toWrite) { "Can't read $toWrite bytes from okio.Buffer" }
                 remaining -= read
                 read
             }
