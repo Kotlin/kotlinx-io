@@ -50,18 +50,20 @@ public fun RawSource.asOkioSource(): okio.Source = object : okio.Source {
     }
 
     override fun read(sink: okio.Buffer, byteCount: Long): Long = withKxIO2OkioExceptionMapping {
-        val read = this@asOkioSource.readAtMostTo(buffer, byteCount)
-        if (read <= 0) return read
+        val readBytes = this@asOkioSource.readAtMostTo(buffer, byteCount)
+        if (readBytes == -1L) return -1L
 
-        while (!buffer.exhausted()) {
+        var remainingBytes = readBytes
+        while (remainingBytes > 0) {
             @OptIn(UnsafeIoApi::class)
             UnsafeBufferOperations.readFromHead(buffer) { data, from, to ->
                 val len = to - from
+                remainingBytes -= len
                 sink.write(data, from, len)
                 len
             }
         }
-        return read
+        return readBytes
     }
 
     override fun timeout(): okio.Timeout = okio.Timeout.NONE
@@ -97,7 +99,7 @@ public fun RawSink.asOkioSink(): okio.Sink = object : okio.Sink {
                 val toWrite = min((to - from).toLong(), remaining).toInt()
 
                 val read = source.read(data, from, toWrite)
-                check(read == toWrite) { "Can't read $toWrite bytes from okio.Buffer" }
+                check(read != -1) { "Buffer was exhausted from reading $toWrite bytes from it." }
                 remaining -= read
                 read
             }
@@ -150,8 +152,7 @@ public fun okio.Source.asKotlinxIoRawSource(): RawSource = object : RawSource {
 
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = withOkio2KxIOExceptionMapping {
         val readBytes = this@asKotlinxIoRawSource.read(buffer, byteCount)
-
-        if (readBytes <= 0L) return readBytes
+        if (readBytes == -1L) return -1L
 
         var remaining = readBytes
         while (remaining > 0) {
@@ -159,9 +160,9 @@ public fun okio.Source.asKotlinxIoRawSource(): RawSource = object : RawSource {
             UnsafeBufferOperations.writeToTail(sink, 1) { data, from, to ->
                 val toRead = min((to - from).toLong(), remaining).toInt()
                 val read = buffer.read(data, from, toRead)
-                check(read == toRead) { "Can't read $toRead bytes from okio.Buffer" }
-                remaining -= toRead
-                toRead
+                check(read != -1) { "Buffer was exhausted before reading $toRead bytes from it." }
+                remaining -= read
+                read
             }
         }
 
