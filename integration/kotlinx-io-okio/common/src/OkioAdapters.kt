@@ -20,8 +20,20 @@ import kotlin.math.min
 private inline fun <T> withOkio2KxIOExceptionMapping(block: () -> T): T {
     try {
         return block()
+    } catch (bypassIOE: kotlinx.io.IOException) { // on JVM, kotlinx.io.IOException and okio.IOException are the same
+        throw bypassIOE
+    } catch (bypassEOF: kotlinx.io.EOFException) { // see above
+        throw bypassEOF
     } catch (eofe: okio.EOFException) {
-        throw kotlinx.io.EOFException(eofe.message)
+        throw kotlinx.io.EOFException(buildString {
+            if (eofe.message != null) {
+                append(eofe.message)
+            } else {
+                append("Intercepted okio.EOFException")
+            }
+            append("\nCaused by: ")
+            append(eofe.stackTraceToString())
+        })
     } catch (ioe: okio.IOException) {
         throw kotlinx.io.IOException(ioe.message, ioe)
     }
@@ -30,8 +42,20 @@ private inline fun <T> withOkio2KxIOExceptionMapping(block: () -> T): T {
 private inline fun <T> withKxIO2OkioExceptionMapping(block: () -> T): T {
     try {
         return block()
+    } catch (bypassIOE: okio.IOException) {  // on JVM, kotlinx.io.IOException and okio.IOException are the same
+        throw bypassIOE
+    } catch (bypassEOF: okio.EOFException) { // see above
+        throw bypassEOF
     } catch (eofe: kotlinx.io.EOFException) {
-        throw okio.EOFException(eofe.message)
+        throw okio.EOFException(buildString {
+            if (eofe.message != null) {
+                append(eofe.message)
+            } else {
+                append("Intercepted kotlinx.io.EOFException")
+            }
+            append("\nCaused by: ")
+            append(eofe.stackTraceToString())
+        })
     } catch (ioe: kotlinx.io.IOException) {
         throw okio.IOException(ioe.message, ioe)
     }
