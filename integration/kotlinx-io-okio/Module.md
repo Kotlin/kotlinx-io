@@ -1,6 +1,6 @@
 # Module kotlinx-io-okio
 
-The module bridges `Okio` interfaces with `kotlinx-io` and vice versa.
+The module bridges `Okio` `3.x` interfaces with `kotlinx-io` and vice versa.
 
 [okio.Source] could be wrapped into [kotlinx.io.RawSource]
 using [kotlinx.io.okio.asKotlinxIoRawSource], and [kotlinx.io.RawSource]
