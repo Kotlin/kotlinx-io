@@ -20,6 +20,7 @@
  */
 package kotlinx.io
 
+import kotlinx.io.bytestring.ByteString
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
