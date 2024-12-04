@@ -28,9 +28,10 @@ public class GradleProjectsTest {
     private val stagingRepository: String = System.getProperty("stagingRepository")!!
     private val bytestringDependency: String = "org.jetbrains.kotlinx:kotlinx-io-bytestring:$kotlinxIoVersion"
     private val coreDependency: String = "org.jetbrains.kotlinx:kotlinx-io-core:$kotlinxIoVersion"
+    private val okioAdapterDependency: String = "org.jetbrains.kotlinx:kotlinx-io-okio:$kotlinxIoVersion"
 
-    private fun generateBuildScript(multiplatform: Boolean, dependencyName: String) {
-        val templateFile = (if (multiplatform) "kmp" else "jvm") + "." + buildScriptFilename
+    private fun generateBuildScript(multiplatform: Boolean, dependencyName: String, isOkio: Boolean = false) {
+        val templateFile = (if (multiplatform) (if (isOkio) "kmp.okio" else "kmp") else "jvm") + "." + buildScriptFilename
         var template = GradleProjectsTest::class.java.getResourceAsStream(
             "/templates/$templateFile")!!.reader().readText()
 
@@ -51,6 +52,17 @@ public class GradleProjectsTest {
         }
 
         generateBuildScript(multiplatform, dependencyName)
+    }
+
+    private fun setupOkioKmpTest() {
+        // TODO: merge jvm and multiplatform test sources
+        copySrcFile("okio", true)
+
+        projectDir.newFile(settingsFilename).outputStream().use {
+            GradleProjectsTest::class.java.getResourceAsStream("/templates/$settingsFilename")!!.copyTo(it)
+        }
+
+        generateBuildScript(true, okioAdapterDependency, isOkio = true)
     }
 
     private fun copySrcFile(testCase: String, multiplatform: Boolean) {
@@ -104,6 +116,28 @@ public class GradleProjectsTest {
     @Test
     fun coreMultiplatform() {
         setupTest("core-multiplatform", true, coreDependency)
+        val results = GradleRunner.create()
+            .withProjectDir(projectDir.root)
+            .withArguments(":allTests")
+            .run()
+
+        assertTestPassed(results, ":allTests")
+    }
+
+    @Test
+    fun okioJvm() {
+        setupTest("okio", false, okioAdapterDependency)
+        val results = GradleRunner.create()
+            .withProjectDir(projectDir.root)
+            .withArguments(":test")
+            .run()
+
+        assertTestPassed(results)
+    }
+
+    @Test
+    fun okioMultiplatform() {
+        setupOkioKmpTest()
         val results = GradleRunner.create()
             .withProjectDir(projectDir.root)
             .withArguments(":allTests")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -34,4 +34,6 @@ public actual open class EOFException : IOException {
     public actual constructor() : super()
 
     public actual constructor(message: String?) : super(message)
+
+    public constructor(message: String?, cause: Throwable?) : super(message, cause)
 }

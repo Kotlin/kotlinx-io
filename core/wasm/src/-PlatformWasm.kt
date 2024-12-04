@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
@@ -19,4 +19,6 @@ public actual open class EOFException : IOException {
     public actual constructor() : super()
 
     public actual constructor(message: String?) : super(message)
+
+    public constructor(message: String?, cause: Throwable?) : super(message, cause)
 }

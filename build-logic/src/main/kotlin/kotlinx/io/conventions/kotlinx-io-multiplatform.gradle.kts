@@ -145,6 +145,8 @@ fun KotlinSourceSet.configureSourceSet() {
 }
 
 private fun KotlinMultiplatformExtension.nativeTargets() {
+    val configureAllTargets = project.findProperty("kotlinx.io.okio.compat.targets")?.toString()?.toBoolean() != true
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -159,15 +161,19 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
     watchosSimulatorArm64()
     watchosDeviceArm64()
 
-    androidNativeArm32()
-    androidNativeArm64()
-    androidNativeX64()
-    androidNativeX86()
+    if (configureAllTargets) {
+        androidNativeArm32()
+        androidNativeArm64()
+        androidNativeX64()
+        androidNativeX86()
+    }
 
     linuxX64()
     linuxArm64()
-    @Suppress("DEPRECATION") // https://github.com/Kotlin/kotlinx-io/issues/303
-    linuxArm32Hfp()
+    if (configureAllTargets) {
+        @Suppress("DEPRECATION") // https://github.com/Kotlin/kotlinx-io/issues/303
+        linuxArm32Hfp()
+    }
 
     macosX64()
     macosArm64()
