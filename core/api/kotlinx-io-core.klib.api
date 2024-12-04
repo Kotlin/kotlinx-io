@@ -197,6 +197,7 @@ open class kotlinx.io.files/FileNotFoundException : kotlinx.io/IOException { // 
 open class kotlinx.io/EOFException : kotlinx.io/IOException { // kotlinx.io/EOFException|null[0]
     constructor <init>() // kotlinx.io/EOFException.<init>|<init>(){}[0]
     constructor <init>(kotlin/String?) // kotlinx.io/EOFException.<init>|<init>(kotlin.String?){}[0]
+    constructor <init>(kotlin/String?, kotlin/Throwable?) // kotlinx.io/EOFException.<init>|<init>(kotlin.String?;kotlin.Throwable?){}[0]
 }
 
 open class kotlinx.io/IOException : kotlin/Exception { // kotlinx.io/IOException|null[0]
