@@ -85,6 +85,8 @@ public fun Source.readByteString(byteCount: Int): ByteString {
  * expands the source's buffer as necessary until [byteString] is found. This reads an unbounded number of
  * bytes into the buffer. Returns `-1` if the stream is exhausted before the requested bytes are found.
  *
+ * For empty byte strings this function always return `0`.
+ *
  * @param byteString the sequence of bytes to find within the source.
  * @param startIndex the index into the source to start searching from.
  *
@@ -96,11 +98,9 @@ public fun Source.readByteString(byteCount: Int): ByteString {
  */
 @OptIn(InternalIoApi::class, UnsafeByteStringApi::class)
 public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
-    require(startIndex >= 0) { "startIndex: $startIndex" }
+    require(startIndex >= 0) { "startIndex should be non-negative, but was: $startIndex" }
 
-    if (byteString.isEmpty()) {
-        return 0
-    }
+    if (byteString.isEmpty()) return 0
 
     var offset = startIndex
     while (request(offset + byteString.size)) {
@@ -117,11 +117,24 @@ public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
     return -1
 }
 
+/**
+ * Returns the index of the first match for [byteString] in the buffer at or after [startIndex].
+ * Returns `-1` if the stream is exhausted before the requested bytes are found.
+ *
+ * For empty byte strings this function always return `0`.
+ *
+ * @param byteString the sequence of bytes to find within the buffer.
+ * @param startIndex the index into the buffer to start searching from.
+ *
+ * @throws IllegalArgumentException if [startIndex] is negative or if it is greater of equal to buffer's [Buffer.size].
+ *
+ * @sample kotlinx.io.samples.ByteStringSamples.indexOfByteString
+ */
 @OptIn(UnsafeByteStringApi::class)
 public fun Buffer.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
-    require(startIndex <= size) {
-        "startIndex ($startIndex) should not exceed size ($size)"
-    }
+    require(startIndex <= size) { "startIndex ($startIndex) should not exceed size ($size)" }
+    require(startIndex >= 0) { "startIndex should be non-negative, but was: $startIndex" }
+
     if (byteString.isEmpty()) return 0
     if (startIndex > size - byteString.size) return -1L
 

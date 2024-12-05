@@ -24,6 +24,7 @@ import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
@@ -617,5 +618,20 @@ class CommonBufferTest {
         assertEquals(dst.head, dst.tail)
         assertEquals(null, dst.head?.prev)
         assertEquals(null, dst.tail?.next)
+    }
+
+    @Test
+    fun indexOfByteString() {
+        val buffer = Buffer()
+        buffer.writeString("hello")
+
+        assertFailsWith<IllegalArgumentException> { buffer.indexOf(ByteString(1, 2, 3), -1) }
+        assertFailsWith<IllegalArgumentException> { buffer.indexOf(ByteString(1, 2, 3), 10) }
+
+        assertEquals(2, buffer.indexOf("ll".encodeToByteString()))
+        assertEquals(2, buffer.indexOf("ll".encodeToByteString(), 2))
+        assertEquals(-1, buffer.indexOf("ll".encodeToByteString(), 3))
+        assertEquals(-1, buffer.indexOf("hello world".encodeToByteString()))
+        assertEquals(0, buffer.indexOf(ByteString()))
     }
 }
