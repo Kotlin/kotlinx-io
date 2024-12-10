@@ -4,22 +4,7 @@
  */
 package kotlinx.io
 
-import kotlinx.io.files.SystemTemporaryDirectory
-import java.io.File
-import kotlin.random.Random
 import kotlin.test.assertEquals
-
-@OptIn(ExperimentalStdlibApi::class)
-actual fun tempFileName(): String {
-    val tmpDir = SystemTemporaryDirectory.file
-    while (true) {
-        val randomString = Random.nextBytes(32).toHexString()
-        val res = File(tmpDir, randomString)
-        if (!res.exists()) {
-            return res.absolutePath
-        }
-    }
-}
 
 fun assertByteArrayEquals(expectedUtf8: String, b: ByteArray) {
     assertEquals(expectedUtf8, b.toString(Charsets.UTF_8))

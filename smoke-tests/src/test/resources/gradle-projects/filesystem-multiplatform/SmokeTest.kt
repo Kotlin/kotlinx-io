@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2010-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -7,6 +7,8 @@ package org.example
 
 import kotlinx.io.Buffer
 import kotlinx.io.bytestring.ByteString
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import kotlinx.io.readByteString
 import kotlinx.io.write
@@ -29,5 +31,14 @@ class SmokeTest {
         buffer.write(byteString)
 
         assertEquals(ByteString(0x42), buffer.readByteString())
+    }
+
+    @Test
+    fun testUseFiles() {
+        try {
+            SystemFileSystem.exists(Path("."))
+        } catch (t: Exception) {
+            // that's fine
+        }
     }
 }
