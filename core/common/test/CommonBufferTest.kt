@@ -625,13 +625,18 @@ class CommonBufferTest {
         val buffer = Buffer()
         buffer.writeString("hello")
 
-        assertFailsWith<IllegalArgumentException> { buffer.indexOf(ByteString(1, 2, 3), -1) }
-        assertFailsWith<IllegalArgumentException> { buffer.indexOf(ByteString(1, 2, 3), 10) }
+        assertEquals(-1, buffer.indexOf(ByteString(1, 2, 3), -1))
+        assertEquals(-1, buffer.indexOf(ByteString(1, 2, 3), 10))
 
         assertEquals(2, buffer.indexOf("ll".encodeToByteString()))
         assertEquals(2, buffer.indexOf("ll".encodeToByteString(), 2))
+        assertEquals(2, buffer.indexOf("ll".encodeToByteString(), -2))
         assertEquals(-1, buffer.indexOf("ll".encodeToByteString(), 3))
         assertEquals(-1, buffer.indexOf("hello world".encodeToByteString()))
+
         assertEquals(0, buffer.indexOf(ByteString()))
+        assertEquals(buffer.size, buffer.indexOf(ByteString(), 1000))
+        assertEquals(1, buffer.indexOf(ByteString(), 1))
+        assertEquals(0, buffer.indexOf(ByteString(), -1))
     }
 }
