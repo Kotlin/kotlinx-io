@@ -4,7 +4,7 @@
  */
 
 import org.gradle.internal.os.OperatingSystem
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     id("kotlinx-io-multiplatform")
