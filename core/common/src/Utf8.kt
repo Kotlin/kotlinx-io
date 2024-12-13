@@ -206,7 +206,7 @@ public fun Sink.writeString(chars: CharSequence, startIndex: Int = 0, endIndex: 
  */
 @OptIn(InternalIoApi::class)
 public fun Source.readString(): String {
-    request(Long.MAX_VALUE) // Request all data
+    val _ = request(Long.MAX_VALUE) // Request all data
     return buffer.commonReadUtf8(buffer.size)
 }
 

@@ -14,6 +14,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
+@Suppress("RETURN_VALUE_NOT_USED")
 public class ByteStringByteBufferExtensionsTest {
     @Test
     fun asReadOnlyByteBuffer() {

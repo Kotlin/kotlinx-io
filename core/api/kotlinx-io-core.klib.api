@@ -19,6 +19,10 @@ open annotation class kotlinx.io/UnsafeIoApi : kotlin/Annotation { // kotlinx.io
     constructor <init>() // kotlinx.io/UnsafeIoApi.<init>|<init>(){}[0]
 }
 
+open annotation class kotlinx.io/_Discardable : kotlin/Annotation { // kotlinx.io/_Discardable|null[0]
+    constructor <init>() // kotlinx.io/_Discardable.<init>|<init>(){}[0]
+}
+
 abstract interface kotlinx.io.unsafe/BufferIterationContext : kotlinx.io.unsafe/SegmentReadContext { // kotlinx.io.unsafe/BufferIterationContext|null[0]
     abstract fun next(kotlinx.io/Segment): kotlinx.io/Segment? // kotlinx.io.unsafe/BufferIterationContext.next|next(kotlinx.io.Segment){}[0]
 }

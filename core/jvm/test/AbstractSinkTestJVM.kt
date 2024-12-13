@@ -83,7 +83,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     fun writeNioBuffer() {
         val expected = "abcdefg"
         val nioByteBuffer: ByteBuffer = ByteBuffer.allocate(1024)
-        nioByteBuffer.put("abcdefg".toByteArray(UTF_8))
+        val _ = nioByteBuffer.put("abcdefg".toByteArray(UTF_8))
         nioByteBuffer.flip() // Cast necessary for Java 8.
         val byteCount: Int = sink.write(nioByteBuffer)
         assertEquals(expected.length, byteCount)
@@ -97,7 +97,7 @@ abstract class AbstractSinkTestJVM internal constructor(factory: SinkFactory) {
     fun writeLargeNioBufferWritesAllData() {
         val expected: String = "a".repeat(SEGMENT_SIZE * 3)
         val nioByteBuffer: ByteBuffer = ByteBuffer.allocate(SEGMENT_SIZE * 4)
-        nioByteBuffer.put("a".repeat(SEGMENT_SIZE * 3).toByteArray(UTF_8))
+        val _ = nioByteBuffer.put("a".repeat(SEGMENT_SIZE * 3).toByteArray(UTF_8))
         nioByteBuffer.flip() // Cast necessary for Java 8.
         val byteCount: Int = sink.write(nioByteBuffer)
         assertEquals(expected.length, byteCount)

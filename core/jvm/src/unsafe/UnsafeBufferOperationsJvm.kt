@@ -11,6 +11,7 @@ import kotlin.contracts.contract
 import kotlinx.io.Buffer
 import kotlinx.io.Segment
 import kotlinx.io.UnsafeIoApi
+import kotlinx.io._Discardable
 import kotlinx.io.unsafe.UnsafeBufferOperations.maxSafeWriteCapacity
 import java.nio.ByteBuffer
 
@@ -41,6 +42,7 @@ import java.nio.ByteBuffer
  *
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.writeToByteChannel
  */
+@_Discardable
 @UnsafeIoApi
 @OptIn(ExperimentalContracts::class)
 public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction: (ByteBuffer) -> Unit): Int {
@@ -87,6 +89,7 @@ public inline fun UnsafeBufferOperations.readFromHead(buffer: Buffer, readAction
  *
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.readFromByteChannel
  */
+@_Discardable
 @UnsafeIoApi
 @OptIn(ExperimentalContracts::class)
 public inline fun UnsafeBufferOperations.writeToTail(
@@ -144,6 +147,7 @@ public inline fun UnsafeBufferOperations.writeToTail(
  * @sample kotlinx.io.samples.unsafe.UnsafeReadWriteSamplesJvm.gatheringWrite
  *
  */
+@_Discardable
 @UnsafeIoApi
 @OptIn(ExperimentalContracts::class)
 public inline fun UnsafeBufferOperations.readBulk(

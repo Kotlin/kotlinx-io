@@ -344,7 +344,8 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             }
             return children
         } finally {
-            fd_close(dir_fd)
+            // TODO: handle it
+            val _ = fd_close(dir_fd)
         }
     }
 }
@@ -358,7 +359,7 @@ private fun Path.normalized(): Path {
     for (idx in 1 until parts.size) {
         when (val part = parts[idx]) {
             "." -> continue
-            ".." -> constructedPath.removeLastOrNull()
+            ".." -> { val _ = constructedPath.removeLastOrNull() }
             else -> constructedPath.add(part)
         }
     }
@@ -488,7 +489,8 @@ private class FileSink(private val fd: Fd) : RawSink {
     override fun close() {
         if (!closed) {
             closed = true
-            fd_close(fd)
+            // TODO: handle it
+            val _ = fd_close(fd)
         }
     }
 }
@@ -536,7 +538,8 @@ private class FileSource(private val fd: Fd) : RawSource {
     override fun close() {
         if (!closed) {
             closed = true
-            fd_close(fd)
+            // TODO: handle it
+            val _ = fd_close(fd)
         }
     }
 }

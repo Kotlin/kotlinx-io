@@ -88,6 +88,7 @@ public object UnsafeBufferOperations {
      *
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.readByteArrayFromHead
      */
+    @_Discardable
     public inline fun readFromHead(
         buffer: Buffer,
         readAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Int
@@ -135,6 +136,7 @@ public object UnsafeBufferOperations {
      *
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.readUleb128
      */
+    @_Discardable
     public inline fun readFromHead(buffer: Buffer, readAction: (SegmentReadContext, Segment) -> Int): Int {
         contract {
             callsInPlace(readAction, EXACTLY_ONCE)
@@ -184,6 +186,7 @@ public object UnsafeBufferOperations {
      *
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.writeByteArrayToTail
      */
+    @_Discardable
     public inline fun writeToTail(
         buffer: Buffer, minimumCapacity: Int,
         writeAction: (bytes: ByteArray, startIndexInclusive: Int, endIndexExclusive: Int) -> Int
@@ -251,6 +254,7 @@ public object UnsafeBufferOperations {
      *
      * @sample kotlinx.io.samples.unsafe.UnsafeBufferOperationsSamples.writeUleb128
      */
+    @_Discardable
     public inline fun writeToTail(
         buffer: Buffer,
         minimumCapacity: Int,

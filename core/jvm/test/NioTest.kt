@@ -113,6 +113,7 @@ class NioTest {
      * Does some basic writes to `channel`. We execute this against both Okio's channels and
      * also a standard implementation from the JDK to confirm that their behavior is consistent.
      */
+    @Suppress("RETURN_VALUE_NOT_USED")
     private fun testWritableByteChannel(isBuffer: Boolean, channel: WritableByteChannel) {
         assertTrue(channel.isOpen())
         val byteBuffer = ByteBuffer.allocate(1024)
@@ -132,10 +133,11 @@ class NioTest {
      * Does some basic reads from `channel`. We execute this against both Okio's channels and
      * also a standard implementation from the JDK to confirm that their behavior is consistent.
      */
+    @Suppress("RETURN_VALUE_NOT_USED")
     private fun testReadableByteChannel(isBuffer: Boolean, channel: ReadableByteChannel) {
         assertTrue(channel.isOpen)
         val byteBuffer = ByteBuffer.allocate(1024)
-        byteBuffer.position(3) // Cast necessary for Java 8.
+        /* why val _ = is not needed here? */ byteBuffer.position(3) // Cast necessary for Java 8.
         byteBuffer.limit(23) // Cast necessary for Java 8.
         val byteCount: Int = channel.read(byteBuffer)
         assertEquals(20, byteCount)

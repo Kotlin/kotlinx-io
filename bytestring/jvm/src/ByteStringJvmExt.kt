@@ -60,7 +60,7 @@ public fun ByteBuffer.getByteString(length: Int = remaining()): ByteString {
         throw IndexOutOfBoundsException("length ($length) exceeds remaining bytes count ({${remaining()}})")
     }
     val bytes = ByteArray(length)
-    get(bytes)
+    val _ = get(bytes)
     return UnsafeByteStringOperations.wrapUnsafe(bytes)
 }
 
@@ -99,6 +99,7 @@ public fun ByteBuffer.getByteString(at: Int, length: Int): ByteString {
 @OptIn(UnsafeByteStringApi::class)
 public fun ByteBuffer.putByteString(string: ByteString) {
     UnsafeByteStringOperations.withByteArrayUnsafe(string) {
+        // This one was not reported :(
         put(it)
     }
 }
@@ -118,7 +119,7 @@ public fun ByteBuffer.putByteString(at: Int, string: ByteString) {
     checkIndexAndCapacity(at, string.size)
     // Absolute put(byte[]) was added only in JDK 16
     for (idx in string.indices) {
-        put(at + idx, string[idx])
+        val _ = put(at + idx, string[idx])
     }
 }
 

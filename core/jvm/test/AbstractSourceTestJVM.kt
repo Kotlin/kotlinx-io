@@ -164,10 +164,10 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
 
         assertEquals(4, input.available())
 
-        input.read()
+        val _ = input.read()
         assertEquals(3, input.available())
 
-        source.readByte()
+        source.skip(1)
         assertEquals(2, input.available())
 
         sink.writeByte(0)
@@ -205,7 +205,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         assertEquals(nioByteBuffer.capacity(), nioByteBuffer.limit())
         (nioByteBuffer as Buffer).flip() // Cast necessary for Java 8.
         val data = ByteArray(expected.length)
-        nioByteBuffer.get(data)
+        val _ = nioByteBuffer.get(data)
         assertEquals(expected, String(data))
     }
 
@@ -222,7 +222,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         assertEquals(nioByteBuffer.capacity(), nioByteBuffer.limit())
         (nioByteBuffer as Buffer).flip() // Cast necessary for Java 8.
         val data = ByteArray(expected.length)
-        nioByteBuffer.get(data)
+        val _ = nioByteBuffer.get(data)
         assertEquals(expected, String(data))
     }
 

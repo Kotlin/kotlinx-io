@@ -24,7 +24,7 @@ private class NioMover : Mover {
             throw FileNotFoundException("Source file does not exist: ${source.file}")
         }
         try {
-            Files.move(
+            val _ = Files.move(
                 source.file.toPath(), destination.file.toPath(),
                 StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING
             )

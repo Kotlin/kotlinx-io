@@ -51,7 +51,8 @@ internal class RefCountingCopyTracker : SegmentCopyTracker() {
         }
 
     override fun addCopy() {
-        fieldUpdater.incrementAndGet(this)
+        // For those who use jvm atomics that would be really annoying
+        val _ = fieldUpdater.incrementAndGet(this)
     }
 
     override fun removeCopy(): Boolean {

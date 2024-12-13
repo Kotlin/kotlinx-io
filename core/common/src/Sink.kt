@@ -98,6 +98,7 @@ public sealed interface Sink : RawSink {
      *
      * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.transferFrom
      */
+    @_Discardable
     public fun transferFrom(source: RawSource): Long
 
     /**

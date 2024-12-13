@@ -226,6 +226,7 @@ public sealed interface Source : RawSource {
    *
    * @sample kotlinx.io.samples.KotlinxIoCoreCommonSamples.transferTo
    */
+  @_Discardable // Not sure, need to double check it
   public fun transferTo(sink: RawSink): Long
 
   /**

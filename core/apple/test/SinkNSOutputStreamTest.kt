@@ -20,8 +20,8 @@ import kotlin.test.*
 
 private fun NSOutputStream.write(vararg strings: String) {
     for (str in strings) {
-        str.encodeToByteArray().apply {
-            assertEquals(size, this.write(this@write))
+        str.encodeToByteArray().let {
+            assertEquals(it.size, it.write(this@write))
         }
     }
 }
@@ -32,6 +32,7 @@ class SinkNSOutputStreamTest {
     @Test
     fun multipleWrites() {
         val buffer = Buffer()
+        @Suppress("RETURN_VALUE_NOT_USED")
         buffer.asNSOutputStream().apply {
             open()
             write("hello", " ", "world")
@@ -39,6 +40,7 @@ class SinkNSOutputStreamTest {
         }
         assertEquals("hello world", buffer.readString())
 
+        @Suppress("RETURN_VALUE_NOT_USED")
         RealSink(buffer).asNSOutputStream().apply {
             open()
             write("hello", " ", "real", " sink")

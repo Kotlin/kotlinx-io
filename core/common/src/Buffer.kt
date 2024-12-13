@@ -335,6 +335,7 @@ public class Buffer : Source, Sink {
         sink.write(this, byteCount)
     }
 
+    @_Discardable
     override fun transferTo(sink: RawSink): Long {
         val byteCount = size
         if (byteCount > 0L) {
@@ -488,6 +489,7 @@ public class Buffer : Source, Sink {
         }
     }
 
+    @_Discardable
     override fun transferFrom(source: RawSource): Long {
         var totalBytesRead = 0L
         while (true) {

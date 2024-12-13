@@ -80,7 +80,7 @@ class JvmPlatformTest {
         val bais = ByteArrayInputStream(byteArrayOf(0x61))
         val source = bais.asSource()
         val buffer = Buffer()
-        source.readAtMostTo(buffer, 1)
+        assertEquals(1, source.readAtMostTo(buffer, 1))
         assertEquals(buffer.readString(), "a")
     }
 
@@ -89,7 +89,7 @@ class JvmPlatformTest {
         val bais = ByteArrayInputStream(ByteArray(128))
         val source = bais.asSource()
         val buffer = Buffer()
-        source.readAtMostTo(buffer, 0)
+        assertEquals(0, source.readAtMostTo(buffer, 0))
         assertEquals(0, buffer.size)
     }
 
@@ -125,7 +125,7 @@ class JvmPlatformTest {
         file.writeText("a")
         val buffer = Buffer()
         file.inputStream().asSource().use { source ->
-            source.readAtMostTo(buffer, 1L)
+            assertEquals(1, source.readAtMostTo(buffer, 1L))
         }
         assertEquals(buffer.readString(), "a")
     }
@@ -155,7 +155,7 @@ class JvmPlatformTest {
         file.writeText("a")
         val buffer = Buffer()
         file.toPath().inputStream().asSource().use { source ->
-            source.readAtMostTo(buffer, 1L)
+            assertEquals(1, source.readAtMostTo(buffer, 1L))
         }
         assertEquals(buffer.readString(), "a")
     }
@@ -166,7 +166,7 @@ class JvmPlatformTest {
         assertTrue(file.createNewFile())
         val link = File(tempDir, "link.txt")
         try {
-            Files.createSymbolicLink(link.toPath(), file.toPath())
+            val _ = Files.createSymbolicLink(link.toPath(), file.toPath())
         } catch (e: UnsupportedOperationException) {
             // the FS does not support symlinks
             return
@@ -197,7 +197,7 @@ class JvmPlatformTest {
         }
         val source = socket.inputStream.asSource()
         val buffer = Buffer()
-        source.readAtMostTo(buffer, 1L)
+        assertEquals(1, source.readAtMostTo(buffer, 1L))
         assertEquals(buffer.readString(), "a")
     }
 }

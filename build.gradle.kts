@@ -18,6 +18,7 @@ allprojects {
     properties["DeployVersion"]?.let { version = it }
     repositories {
         mavenCentral()
+        mavenLocal()
     }
 }
 
@@ -25,7 +26,7 @@ allprojects {
 apiValidation {
     ignoredProjects.addAll(listOf(
         "kotlinx-io-benchmarks",
-        "kotlinx-io-smoke-tests"
+        //"kotlinx-io-smoke-tests"
     ))
     klib.enabled = true
 }

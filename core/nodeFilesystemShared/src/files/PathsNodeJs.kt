@@ -89,7 +89,7 @@ internal class FileSource(private val path: Path) : RawSource {
         var fd: Int = -1
         withCaughtException {
             fd = fs.openSync(path.path, "r")
-        }?.also {
+        }?.let {
             throw IOException("Failed to open a file ${path.path}.", it)
         }
         if (fd < 0) throw IOException("Failed to open a file ${path.path}.")
@@ -102,9 +102,9 @@ internal class FileSource(private val path: Path) : RawSource {
             return 0
         }
         if (buffer === null) {
-            withCaughtException {
+             withCaughtException {
                 buffer = fs.readFileSync(fd, null)
-            }?.also {
+            }?.let {
                 throw IOException("Failed to read data from ${path.path}", it)
             }
         }
@@ -137,7 +137,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
         var fd = -1
         withCaughtException {
             fd = fs.openSync(path.path, flags)
-        }?.also {
+        }?.let {
             throw IOException("Failed to open a file ${path.path}.", it)
         }
         if (fd < 0) throw IOException("Failed to open a file ${path.path}.")

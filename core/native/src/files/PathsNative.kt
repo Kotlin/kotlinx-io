@@ -93,7 +93,8 @@ internal class FileSource(
     override fun close() {
         if (closed) return
         closed = true
-        fclose(file)
+        // TODO: decide how to handle errors here
+        val _ = fclose(file)
     }
 }
 

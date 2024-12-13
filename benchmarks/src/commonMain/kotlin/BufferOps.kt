@@ -123,7 +123,7 @@ open class DecimalLongBenchmark : BufferRWBenchmarkBase() {
         buffer.writeDecimalLong(value)
         buffer.writeByte(' '.code.toByte())
         val l = buffer.readDecimalLong()
-        buffer.readByte() // consume the delimiter
+        val _ = buffer.readByte() // consume the delimiter
         return l
     }
 }
@@ -148,7 +148,7 @@ open class HexadecimalLongBenchmark : BufferRWBenchmarkBase() {
         buffer.writeHexadecimalUnsignedLong(value)
         buffer.writeByte(' '.code.toByte())
         val l = buffer.readHexadecimalUnsignedLong()
-        buffer.readByte()
+        val _ = buffer.readByte()
         return l
     }
 }

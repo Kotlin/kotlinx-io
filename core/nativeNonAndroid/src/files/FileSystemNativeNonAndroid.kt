@@ -23,7 +23,8 @@ internal actual class OpaqueDirEntry(private val dir: CPointer<DIR>) : AutoClose
     }
 
     actual override fun close() {
-        closedir(dir)
+        // TODO: how should we handle this?
+        val _ = closedir(dir)
     }
 }
 

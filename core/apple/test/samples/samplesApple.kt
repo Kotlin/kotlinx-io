@@ -10,6 +10,7 @@ import kotlinx.io.*
 import platform.Foundation.*
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 
 class KotlinxIoSamplesApple {
     @Test
@@ -35,6 +36,7 @@ class KotlinxIoSamplesApple {
     }
 
     @Test
+    @Suppress("RETURN_VALUE_NOT_USED")
     @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, BetaInteropApi::class)
     fun asStream() {
         val buffer = Buffer()

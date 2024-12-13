@@ -22,12 +22,15 @@ open class ByteBufferReadWrite : BufferRWBenchmarkBase() {
     @Setup
     fun allocateBuffers() {
         inputBuffer = ByteBuffer.allocate(size)
-        inputBuffer.put(ByteArray(size))
+        // With fluent API, that's a nightmare
+        val _ = inputBuffer.put(ByteArray(size))
         outputBuffer = ByteBuffer.allocate(size)
     }
 
     @Benchmark
+    @Suppress("RETURN_VALUE_NOT_USED")
     fun benchmark(): ByteBuffer {
+        // all three calls return discardable values:
         inputBuffer.rewind()
         outputBuffer.clear()
         buffer.write(inputBuffer)

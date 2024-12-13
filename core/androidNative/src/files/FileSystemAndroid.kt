@@ -35,7 +35,8 @@ internal actual class OpaqueDirEntry(private val dir: CPointer<cnames.structs.DI
     }
 
     actual override fun close() {
-        closedir(dir)
+        // TODO: handle error?
+        val _ = closedir(dir)
     }
 }
 

@@ -50,7 +50,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         val paths = arrayListOf<String>()
         var p: Path? = path
         while (p != null && !exists(p)) {
-            paths.add(p.toString())
+            val _ = paths.add(p.toString())
             p = p.parent
         }
         paths.asReversed().forEach {

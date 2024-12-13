@@ -225,8 +225,10 @@ open class EqualsBenchmark : ByteStringComparisonBenchmarkBase() {
     var useHashCode: Boolean = false
 
     @Setup
+    @Suppress("RETURN_VALUE_NOT_USED")
     fun computeHashCodes() {
         if (useHashCode) {
+            // can't use `val _ = ...` twice in the scope :(
             stringA.hashCode()
             stringB.hashCode()
         }

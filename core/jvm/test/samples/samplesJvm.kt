@@ -60,7 +60,7 @@ class KotlinxIoSamplesJvm {
         assertEquals(5, nioByteBuffer.capacity() - nioByteBuffer.remaining())
 
         nioByteBuffer.position(0)
-        nioByteBuffer.limit(5)
+        val _ = nioByteBuffer.limit(5)
 
         val bytesWrite = buffer.write(nioByteBuffer)
         assertEquals(5, bytesWrite)
@@ -104,13 +104,17 @@ class KotlinxIoSamplesJvm {
         assertEquals("ring", outputStream.toString("UTF-8"))
     }
 
+    @Suppress("RETURN_VALUE_NOT_USED")
     @Test
     fun transferBufferFromByteBuffer() {
         val buffer = Buffer()
         val nioBuffer = ByteBuffer.allocate(32)
 
+        // this was reported
         nioBuffer.put("hello".encodeToByteArray())
+        // this was NOT reported, for some reason
         nioBuffer.position(0)
+        // this was reported
         nioBuffer.limit(5)
         buffer.transferFrom(nioBuffer)
 

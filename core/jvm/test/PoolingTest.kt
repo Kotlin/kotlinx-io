@@ -34,7 +34,7 @@ class PoolingTest {
         buffer.writeByte(1)
         poolSize = SegmentPool.byteCount
         val peek = buffer.peek().buffered()
-        peek.readByte()
+        peek.skip(1)
         buffer.clear()
         assertTrue(poolSize < SegmentPool.byteCount)
 
@@ -99,7 +99,7 @@ class PoolingTest {
             }
         }
         pool.shutdown()
-        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
+        val _ = pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
 
         val maxPoolSize =
             (SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE + SegmentPool.MAX_SIZE * SegmentPool.HASH_BUCKET_COUNT) / Segment.SIZE
@@ -146,7 +146,7 @@ class PoolingTest {
             }
         }
         pool.shutdown()
-        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
+        val _ = pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
 
         val maxPoolSize =
             (SegmentPool.SECOND_LEVEL_POOL_TOTAL_SIZE + SegmentPool.MAX_SIZE * SegmentPool.HASH_BUCKET_COUNT) / Segment.SIZE

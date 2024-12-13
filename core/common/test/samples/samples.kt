@@ -139,7 +139,7 @@ class KotlinxIoCoreCommonSamples {
         assertEquals("🌞", buffer.readString())
 
         // we won't achieve that by writing surrogates as it is
-        buffer.apply {
+        val _ = buffer.apply {
             writeCodePointValue(highSurrogate)
             writeCodePointValue(lowSurrogate)
         }

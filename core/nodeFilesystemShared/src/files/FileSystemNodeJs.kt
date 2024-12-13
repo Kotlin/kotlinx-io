@@ -31,7 +31,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             } else {
                 fs.rmSync(path.path)
             }
-        }?.also {
+        }?.let {
             throw IOException("Delete failed for $path", it)
         }
     }
@@ -51,7 +51,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         val parts = arrayListOf<String>()
         var p: Path? = path
         while (p != null && !exists(p)) {
-            parts.add(p.toString())
+            val _ = parts.add(p.toString())
             p = p.parent
         }
         parts.asReversed().forEach {
@@ -65,7 +65,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
         }
         withCaughtException {
             fs.renameSync(source.path, destination.path)
-        }?.also {
+        }?.let {
             throw IOException("Move failed from $source to $destination", it)
         }
     }
@@ -82,7 +82,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
                 isDirectory = (mode and fs.constants.S_IFMT) == fs.constants.S_IFDIR,
                 if (isFile) stat.size.toLong() else -1L
             )
-        }?.also {
+        }?.let {
             throw IOException("Stat failed for $path", it)
         }
         return metadata

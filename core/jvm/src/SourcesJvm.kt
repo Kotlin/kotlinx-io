@@ -146,7 +146,7 @@ public fun Source.asInputStream(): InputStream {
 @OptIn(InternalIoApi::class)
 public fun Source.readAtMostTo(sink: ByteBuffer): Int {
     if (buffer.size == 0L) {
-        request(Segment.SIZE.toLong())
+        val _ = request(Segment.SIZE.toLong())
         if (buffer.size == 0L) return -1
     }
 

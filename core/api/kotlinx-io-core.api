@@ -236,6 +236,9 @@ public final class kotlinx/io/Utf8Kt {
 	public static synthetic fun writeString$default (Lkotlinx/io/Sink;Ljava/lang/String;IIILjava/lang/Object;)V
 }
 
+public abstract interface annotation class kotlinx/io/_Discardable : java/lang/annotation/Annotation {
+}
+
 public final class kotlinx/io/files/FileMetadata {
 	public fun <init> ()V
 	public fun <init> (ZZJ)V

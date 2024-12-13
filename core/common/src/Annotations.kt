@@ -53,3 +53,7 @@ public annotation class InternalIoApi
             "Make sure you fully understand documentation of the declaration marked as UnsafeIoApi"
 )
 public annotation class UnsafeIoApi
+
+@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FUNCTION)
+@Suppress("ClassName")
+public annotation class _Discardable

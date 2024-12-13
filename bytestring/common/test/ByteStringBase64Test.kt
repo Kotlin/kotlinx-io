@@ -58,6 +58,7 @@ class ByteStringBase64Test {
     }
 
     @Test
+    @Suppress("RETURN_VALUE_NOT_USED")
     fun testEncode() {
         assertFailsWith<IndexOutOfBoundsException> { Base64.encode(byteString, startIndex = -1) }
         assertFailsWith<IndexOutOfBoundsException> { Base64.encode(byteString, endIndex = byteString.size + 1) }

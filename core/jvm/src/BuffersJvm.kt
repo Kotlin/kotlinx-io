@@ -36,6 +36,7 @@ import java.nio.channels.ByteChannel
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.bufferTransferToStream
  */
+@_Discardable
 public fun Buffer.transferFrom(input: InputStream): Buffer {
     write(input, Long.MAX_VALUE, true)
     return this
@@ -53,6 +54,7 @@ public fun Buffer.transferFrom(input: InputStream): Buffer {
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.writeInputStreamToBuffer
  */
+@_Discardable
 public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
     checkByteCount(byteCount)
     write(input, byteCount, false)
@@ -171,6 +173,7 @@ public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.transferBufferFromByteBuffer
  */
+@_Discardable
 @OptIn(UnsafeIoApi::class)
 public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
