@@ -29,10 +29,7 @@ dokka {
 
         // as in kotlinx-io-multiplatform.gradle.kts:configureSourceSet
         val platform = name.dropLast(4)
-        samples.from(
-            "common/test/samples",
-            "$platform/test/samples"
-        )
+        samples.from("$platform/test/samples")
 
         pluginsConfiguration.html {
             templatesDir = rootDir.resolve("dokka-templates")
