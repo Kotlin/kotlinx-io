@@ -41,11 +41,11 @@ kotlin {
     }
 }
 
-tasks.withType(DokkaTaskPartial::class) {
+dokka {
     dokkaSourceSets.configureEach {
-        externalDocumentationLink {
-            url = URL("https://square.github.io/okio/3.x/okio/")
-            packageListUrl = URL("https://square.github.io/okio/3.x/okio/okio/package-list")
+        externalDocumentationLinks.register("okio") {
+            url("https://square.github.io/okio/3.x/okio/")
+            packageListUrl("https://square.github.io/okio/3.x/okio/okio/package-list")
         }
     }
 }
