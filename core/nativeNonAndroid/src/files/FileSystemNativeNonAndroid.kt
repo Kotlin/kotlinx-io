@@ -23,7 +23,11 @@ internal actual class OpaqueDirEntry(private val dir: CPointer<DIR>) : AutoClose
     }
 
     actual override fun close() {
-        closedir(dir)
+        if (closedir(dir) != 0) {
+            val err = errno
+            val strerr = strerror(err)?.toKString() ?: "unknown error"
+            throw IOException("closedir failed with errno $err ($strerr)")
+        }
     }
 }
 
@@ -31,5 +35,8 @@ internal actual class OpaqueDirEntry(private val dir: CPointer<DIR>) : AutoClose
 internal actual fun opendir(path: String): OpaqueDirEntry {
     val dirent = platform.posix.opendir(path)
     if (dirent != null) return OpaqueDirEntry(dirent)
-    throw IOException("Can't open directory $path: ${strerror(errno)?.toKString() ?: "reason unknown"}")
+
+    val err = errno
+    val strerr = strerror(err)?.toKString() ?: "unknown error"
+    throw IOException("Can't open directory $path: $err ($strerr)")
 }

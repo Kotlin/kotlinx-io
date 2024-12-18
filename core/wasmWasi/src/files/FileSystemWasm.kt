@@ -344,7 +344,10 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             }
             return children
         } finally {
-            fd_close(dir_fd)
+            val res = Errno(fd_close(dir_fd))
+            if (res != Errno.success) {
+                throw IOException("fd_close failed for directory '$directory': ${res.description}")
+            }
         }
     }
 }
@@ -488,7 +491,10 @@ private class FileSink(private val fd: Fd) : RawSink {
     override fun close() {
         if (!closed) {
             closed = true
-            fd_close(fd)
+            val res = Errno(fd_close(fd))
+            if (res != Errno.success) {
+                throw IOException("fd_close failed: ${res.description}")
+            }
         }
     }
 }
@@ -536,7 +542,10 @@ private class FileSource(private val fd: Fd) : RawSource {
     override fun close() {
         if (!closed) {
             closed = true
-            fd_close(fd)
+            val res = Errno(fd_close(fd))
+            if (res != Errno.success) {
+                throw IOException("fd_close failed: ${res.description}")
+            }
         }
     }
 }
