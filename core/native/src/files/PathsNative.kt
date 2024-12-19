@@ -64,6 +64,12 @@ internal expect fun isAbsoluteImpl(path: String): Boolean
 
 public actual fun Path(path: String): Path = Path(path, null)
 
+private fun throwIOExceptionForErrno(operation: String): Nothing {
+    val err = errno
+    val strerr = strerror(err)?.toKString() ?: "unknown error"
+    throw IOException("$operation failed with errno $err ($strerr)")
+}
+
 internal class FileSource(
     private val file: CPointer<FILE>
 ) : RawSource {
@@ -85,7 +91,7 @@ internal class FileSource(
         return when {
             bytesRead == byteCount -> bytesRead
             feof(file) != 0 -> if (bytesRead == 0L) -1L else bytesRead
-            ferror(file) != 0 -> throw IOException(errno.toString())
+            ferror(file) != 0 -> throwIOExceptionForErrno("write")
             else -> bytesRead
         }
     }
@@ -93,7 +99,9 @@ internal class FileSource(
     override fun close() {
         if (closed) return
         closed = true
-        fclose(file)
+        if (fclose(file) != 0) {
+            throwIOExceptionForErrno("fclose")
+        }
     }
 }
 
@@ -130,13 +138,13 @@ internal class FileSink(
             variantFwrite(pinned.addressOf(0), byteCount.toUInt(), file).toLong()
         }
         if (bytesWritten < byteCount) {
-            throw IOException(errno.toString())
+            throwIOExceptionForErrno("file write")
         }
     }
 
     override fun flush() {
         if (fflush(file) != 0) {
-            throw IOException(errno.toString())
+            throwIOExceptionForErrno("fflush")
         }
     }
 
@@ -144,7 +152,7 @@ internal class FileSink(
         if (closed) return
         closed = true
         if (fclose(file) != 0) {
-            throw IOException(errno.toString())
+            throwIOExceptionForErrno("fclose")
         }
     }
 }
