@@ -79,8 +79,11 @@ public class ByteStringBuilder private constructor(
      * @param byte the byte to append.
      */
     public fun append(byte: Byte) {
-        ensureCapacity(size + 1)
-        buffer[offset++] = byte
+		val newOffset = offset + 1
+        ensureCapacity(newOffset)
+
+        buffer[offset] = byte
+	    offset = newOffset
     }
 
     /**
