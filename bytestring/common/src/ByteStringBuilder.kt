@@ -17,44 +17,61 @@ import kotlin.math.max
  * The builder avoids additional copies and allocations when `size == capacity` when [toByteString] called,
  * thus it's recommended to specify expected [ByteString] size as `initialCapacity` when creating a builder.
  *
- * When a builder runs out of available capacity, a new byte sequence with extended capacity
- * will be allocated and previously written data will be copied into it.
- *
- * @param initialCapacity the initial size of an underlying byte sequence.
- *
  * @sample kotlinx.io.bytestring.samples.ByteStringSamples.builderSample
  * @sample kotlinx.io.bytestring.samples.ByteStringSamples.builderSampleWithoutAdditionalAllocs
  */
-public class ByteStringBuilder(initialCapacity: Int = 0) {
-    private var buffer = ByteArray(initialCapacity)
-    private var offset: Int = 0
+public class ByteStringBuilder private constructor(
+	private var buffer: ByteArray,
+	private var offset: Int,
+	private val extendable: Boolean
+) {
+	private val safeBuffer get() = if (extendable) buffer else buffer.copyOf()
 
     /**
      * The number of bytes being written to this builder.
      */
     public val size: Int
-        get() = offset
+        get() = if (extendable) offset else buffer.size
 
     /**
-     * The number of bytes this builder can store without an extension of an internal buffer.
+     * The number of bytes this builder can store without extending the internal buffer or throwing.
      */
     public val capacity: Int
         get() = buffer.size
 
-    /**
-     * Returns a new [ByteString] wrapping all bytes written to this builder.
-     *
-     * There will be no additional allocations or copying of data when `size == capacity`.
-     */
-    public fun toByteString(): ByteString {
-        if (size == 0) {
-            return ByteString()
-        }
-        if (buffer.size == size) {
-            return ByteString.wrap(buffer)
-        }
-        return ByteString(buffer, 0, size)
-    }
+	/**
+	 * Creates a new [ByteStringBuilder].
+	 *
+	 * If this builder runs out of available capacity,
+	 * a new byte sequence with extended capacity will be allocated and previously written data will be copied to it.
+	 *
+	 * @param initialCapacity the initial size of the underlying byte sequence.
+	 */
+	public constructor(initialCapacity: Int = 0) : this(ByteArray(initialCapacity), 0, true)
+
+	/**
+	 * Creates a new [ByteStringBuilder] on top of an existing [buffer].
+	 *
+	 * This builder throws when running out of available capacity.
+	 *
+	 * @param initialOffset the offset at which the builder will begin overriding bytes.
+	 */
+	public constructor(buffer: ByteArray, initialOffset: Int = 0) : this(buffer, initialOffset, false)
+
+	/**
+	 * Returns a new [ByteString] wrapping all bytes written to this builder.
+	 *
+	 * There will be no additional allocations or copying of data when `size == capacity`.
+	 */
+	public fun toByteString(): ByteString {
+		if (size == 0) {
+			return ByteString()
+		}
+		if (buffer.size == size) {
+			return ByteString.wrap(safeBuffer)
+		}
+		return ByteString(safeBuffer, 0, size)
+	}
 
     /**
      * Append a single byte to this builder.
@@ -92,6 +109,8 @@ public class ByteStringBuilder(initialCapacity: Int = 0) {
         if (buffer.size >= requiredCapacity) {
             return
         }
+
+	    if (!extendable) throw IndexOutOfBoundsException("Needed capacity for appending to this non-extendable ByteString builder is $requiredCapacity, exceeding the available $capacity.")
 
         var desiredSize = if (buffer.isEmpty()) 16 else (buffer.size * 1.5).toInt()
         desiredSize = max(desiredSize, requiredCapacity)
