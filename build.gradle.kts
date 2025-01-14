@@ -34,6 +34,10 @@ dependencies {
     kover(project(":kotlinx-io-core"))
     kover(project(":kotlinx-io-bytestring"))
     kover(project(":kotlinx-io-okio"))
+
+    dokka(project(":kotlinx-io-bytestring"))
+    dokka(project(":kotlinx-io-core"))
+    dokka(project(":kotlinx-io-okio"))
 }
 
 kover {
