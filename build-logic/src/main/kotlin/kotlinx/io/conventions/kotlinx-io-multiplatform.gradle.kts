@@ -5,9 +5,9 @@
 
 import kotlinx.io.build.configureJava9ModuleInfoCompilation
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import kotlin.jvm.optionals.getOrNull
 
 plugins {
@@ -22,7 +22,7 @@ kotlin {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
-    val versionCatalog: VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+    val versionCatalog: VersionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
     jvmToolchain {
         val javaVersion = versionCatalog.findVersion("java").getOrNull()?.requiredVersion
             ?: throw GradleException("Version 'java' is not specified in the version catalog")
