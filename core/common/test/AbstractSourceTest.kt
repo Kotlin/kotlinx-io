@@ -1723,12 +1723,15 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeString("flop flip flop")
         sink.emit()
         assertEquals(10, source.indexOf("flop".encodeToByteString(), 1))
+        assertEquals(0, source.indexOf("flop".encodeToByteString(), -1))
         source.readString() // Clear stream
 
-        // Make sure we backtrack and resume searching after partial match.
+        // Make sure we backtrack and resume searching after the partial match.
         sink.writeString("hi hi hi hi hey")
         sink.emit()
         assertEquals(6, source.indexOf("hi hi hey".encodeToByteString(), 1))
+
+        assertEquals(-1, source.indexOf("ho ho ho".encodeToByteString(), 9001))
     }
 
     @Test
@@ -1738,13 +1741,8 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeString("blablabla")
         sink.emit()
         assertEquals(0, source.indexOf(ByteString()))
-    }
-
-    @Test
-    fun indexOfByteStringInvalidArgumentsThrows() {
-        assertFailsWith<IllegalArgumentException> {
-            source.indexOf("hi".encodeToByteString(), -1)
-        }
+        assertEquals(0, source.indexOf(ByteString(), -1))
+        assertEquals(9, source.indexOf(ByteString(), 100000))
     }
 
     /**
