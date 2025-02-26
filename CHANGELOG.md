@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.7.0
+> Published 26 February 2025
+ 
+### Features
+- Implemented Okio adapters shipped in a `kotlinx-io-okio` module [#178](https://github.com/Kotlin/kotlinx-io/issues/178)
+- Bumped up the Kotlin version to 2.1, as well as version of some dependencies [#426](https://github.com/Kotlin/kotlinx-io/issues/426)
+
+### Bugfixes
+- Error codes from various POSIX-ish calls are now always checked and propagated [#262](https://github.com/Kotlin/kotlinx-io/issues/262)
+- Behavior of `indexOf` functions accepting `ByteString` is now aligned with `CharSequence.indexOf` [#422](https://github.com/Kotlin/kotlinx-io/issues/422), [#423](https://github.com/Kotlin/kotlinx-io/issues/423)
+
 ## 0.6.0
 > Published 19 November 2024
 
