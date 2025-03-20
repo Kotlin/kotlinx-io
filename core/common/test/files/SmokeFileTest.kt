@@ -120,6 +120,25 @@ class SmokeFileTest {
     }
 
     @Test
+    fun atomicMoveWithOverwrite() {
+        val src = createTempPath()
+        val dst = createTempPath()
+        SystemFileSystem.sink(src).buffered().use {
+            it.writeString("hello")
+        }
+        SystemFileSystem.sink(dst).buffered().use {
+            it.writeString("world")
+        }
+        SystemFileSystem.atomicMove(src, dst)
+        assertTrue(SystemFileSystem.exists(dst))
+        assertFalse(SystemFileSystem.exists(src))
+
+        SystemFileSystem.source(dst).buffered().use {
+            assertEquals("hello", it.readString())
+        }
+    }
+
+    @Test
     fun atomicMoveDir() {
         val src = createTempPath()
         val dst = createTempPath()
