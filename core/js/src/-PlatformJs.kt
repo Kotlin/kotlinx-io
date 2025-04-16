@@ -5,6 +5,8 @@
 
 package kotlinx.io
 
+import kotlinx.io.node.os
+
 public actual open class IOException : Exception {
     public actual constructor() : super()
 
@@ -29,5 +31,19 @@ internal actual fun withCaughtException(block: () -> Unit): Throwable? {
         return null
     } catch (t: Throwable) {
         return t
+    }
+}
+
+/**
+ * Sequence of characters used as a line separator by the underlying platform.
+ *
+ * In NodeJS-compatible environments, this property derives value from [os.EOL](https://nodejs.org/api/os.html#oseol),
+ * in all other environments (like a web-browser), its value is always `"\n"`.
+ */
+public actual val SystemLineSeparator: String by lazy {
+    try {
+        os.EOL
+    } catch (_: Throwable) {
+        "\r\n"
     }
 }

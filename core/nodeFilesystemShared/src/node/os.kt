@@ -16,6 +16,11 @@ internal external interface Os {
      * See https://nodejs.org/api/os.html#osplatform
      */
     fun platform(): String
+
+    /**
+     * See https://nodejs.org/api/os.html#oseol
+     */
+    val EOL: String
 }
 
 internal expect val os: Os

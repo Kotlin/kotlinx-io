@@ -233,6 +233,8 @@ final val kotlinx.io.unsafe/SegmentReadContextImpl // kotlinx.io.unsafe/SegmentR
     final fun <get-SegmentReadContextImpl>(): kotlinx.io.unsafe/SegmentReadContext // kotlinx.io.unsafe/SegmentReadContextImpl.<get-SegmentReadContextImpl>|<get-SegmentReadContextImpl>(){}[0]
 final val kotlinx.io.unsafe/SegmentWriteContextImpl // kotlinx.io.unsafe/SegmentWriteContextImpl|{}SegmentWriteContextImpl[0]
     final fun <get-SegmentWriteContextImpl>(): kotlinx.io.unsafe/SegmentWriteContext // kotlinx.io.unsafe/SegmentWriteContextImpl.<get-SegmentWriteContextImpl>|<get-SegmentWriteContextImpl>(){}[0]
+final val kotlinx.io/SystemLineSeparator // kotlinx.io/SystemLineSeparator|{}SystemLineSeparator[0]
+    final fun <get-SystemLineSeparator>(): kotlin/String // kotlinx.io/SystemLineSeparator.<get-SystemLineSeparator>|<get-SystemLineSeparator>(){}[0]
 
 final fun (kotlinx.io.files/Path).kotlinx.io.files/sink(): kotlinx.io/Sink // kotlinx.io.files/sink|sink@kotlinx.io.files.Path(){}[0]
 final fun (kotlinx.io.files/Path).kotlinx.io.files/source(): kotlinx.io/Source // kotlinx.io.files/source|source@kotlinx.io.files.Path(){}[0]
