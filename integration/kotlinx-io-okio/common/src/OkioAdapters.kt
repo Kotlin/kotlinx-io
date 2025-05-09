@@ -109,8 +109,8 @@ public fun okio.Sink.asKotlinxIoRawSink(): RawSink = object : RawSink {
                 buffer.write(data, from, toRead)
                 toRead
             }
-            this@asKotlinxIoRawSink.write(buffer, byteCount)
         }
+        this@asKotlinxIoRawSink.write(buffer, byteCount)
     }
 
     override fun flush() = withOkio2KxIOExceptionMapping {
