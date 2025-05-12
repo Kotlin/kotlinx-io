@@ -1,11 +1,7 @@
 /*
- * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2025 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
-
-import org.gradle.kotlin.dsl.execution.templateIdFor
-import org.jetbrains.dokka.gradle.*
-import java.net.URI
 
 plugins {
     id("org.jetbrains.dokka")
@@ -31,8 +27,8 @@ dokka {
         val platform = name.dropLast(4)
         samples.from("$platform/test/samples")
 
-        pluginsConfiguration.html {
-            templatesDir = rootDir.resolve("dokka-templates")
-        }
+    }
+    pluginsConfiguration.html {
+        templatesDir = rootDir.resolve("dokka-templates")
     }
 }
