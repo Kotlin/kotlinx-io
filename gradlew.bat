@@ -70,7 +70,9 @@ goto fail
 
 set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 
-PowerShell -Command "& { Invoke-Command -ComputerName . -AsJob -scriptblock  { New-MpPerformanceRecording -RecordTo Z:\BuildAgent\temp\build.etl -Seconds 10 } }"
+PowerShell -Command "& { New-MpPerformanceRecording -RecordTo Z:\BuildAgent\temp\build.etl -Seconds 10 }"
+PowerShell -Command "& { Get-MpPerformanceReport -Path Z:\BuildAgent\temp\build.etl -Overview }"
+PowerShell -Command "& { Get-MpPerformanceReport -Path Z:\BuildAgent\temp\build.etl -TopPaths:10 -TopExtensions:10 }"
 
 @rem Execute Gradle
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %*
