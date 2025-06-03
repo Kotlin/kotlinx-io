@@ -70,9 +70,13 @@ goto fail
 
 set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 
+PowerShell -Command "& { Invoke-Command -ComputerName . -AsJob -scriptblock  { New-MpPerformanceRecording -RecordTo Z:\BuildAgent\temp\buildTmp\build.etl -Seconds 60 } }"
 
 @rem Execute Gradle
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %*
+
+PowerShell -Command "& { Get-MpPerformanceReport -Path Z:\BuildAgent\temp\buildTmp\build.etl -Overview }"
+PowerShell -Command "& { Get-MpPerformanceReport -Path Z:\BuildAgent\temp\buildTmp\build.etl -TopPaths:10 -TopExtensions:10 }"
 
 :end
 @rem End local scope for the variables with windows NT shell
