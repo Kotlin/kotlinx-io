@@ -78,12 +78,22 @@ fun mavenRepositoryUri(): URI {
     }
 }
 
-fun RepositoryHandler.configureMavenPublication( project: Project) {
-    maven {
-        url = mavenRepositoryUri()
-        credentials {
-            username = project.getSensitiveProperty("libs.sonatype.user")
-            password = project.getSensitiveProperty("libs.sonatype.password")
+fun RepositoryHandler.configureMavenPublication(project: Project) {
+    if (project.findProperty("libs.publication_repository") == "space-central") {
+        maven {
+            url = uri(project.getSensitiveProperty("libs.repo.url")!!)
+            credentials {
+                username = project.getSensitiveProperty("libs.repo.user")
+                password = project.getSensitiveProperty("libs.repo.password")
+            }
+        }
+    } else {
+        maven {
+            url = mavenRepositoryUri()
+            credentials {
+                username = project.getSensitiveProperty("libs.sonatype.user")
+                password = project.getSensitiveProperty("libs.sonatype.password")
+            }
         }
     }
 
