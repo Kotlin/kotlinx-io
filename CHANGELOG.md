@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.8.0
+> Published 24 June 2025
+
+### Features
+- Updated Kotlin version to 2.2, Dokka to 2.0.0 and also updated few other dependencies [#455](https://github.com/Kotlin/kotlinx-io/pull/455), [#432](https://github.com/Kotlin/kotlinx-io/pull/432), [#442](https://github.com/Kotlin/kotlinx-io/pull/442), [#456](https://github.com/Kotlin/kotlinx-io/pull/456)
+- Increased deprecation level for `kotlinx.io.files.Path.source` and `kotlinx.io.files.Path.sink` to `ERROR` [#457](https://github.com/Kotlin/kotlinx-io/pull/457)
+### Bugfixes
+- Fixed `ArrayIndexOutOfBoundsException` thrown from `okio.Sink.asKotlinxIoRawSink` [#453](https://github.com/Kotlin/kotlinx-io/pull/453)
+
 ## 0.7.0
 > Published 26 February 2025
  
