@@ -12,7 +12,7 @@ import platform.Foundation.*
 import kotlin.test.*
 
 class ByteStringSamplesApple {
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
     @Test
     fun nsDataConversion() {
         val originalByteString: ByteString = "Compress me, please!".encodeToByteString()

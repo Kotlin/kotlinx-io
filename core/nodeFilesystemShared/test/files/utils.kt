@@ -10,7 +10,6 @@ import kotlinx.io.node.os
 import kotlinx.io.node.path
 import kotlin.random.Random
 
-@OptIn(ExperimentalStdlibApi::class)
 actual fun tempFileName(): String {
     while (true) {
         val tmpdir = os.tmpdir()

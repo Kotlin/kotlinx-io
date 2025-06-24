@@ -9,7 +9,6 @@ import java.io.File
 import kotlin.random.Random
 import kotlin.test.assertEquals
 
-@OptIn(ExperimentalStdlibApi::class)
 actual fun tempFileName(): String {
     val tmpDir = SystemTemporaryDirectory.file
     while (true) {

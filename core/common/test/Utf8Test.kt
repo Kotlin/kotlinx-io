@@ -432,7 +432,6 @@ class Utf8Test {
         buffer.assertUtf8StringDecoded("${REPLACEMENT_CHARACTER}aaa", "f0616161")
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun encodeUtf16SurrogatePair() {
         val buffer = Buffer()

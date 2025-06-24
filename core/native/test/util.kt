@@ -12,7 +12,6 @@ import platform.posix.F_OK
 import platform.posix.access
 import kotlin.random.Random
 
-@OptIn(ExperimentalStdlibApi::class)
 actual fun tempFileName(): String {
     val tmpDir = SystemTemporaryDirectory.path
     for (i in 0 until 10) {

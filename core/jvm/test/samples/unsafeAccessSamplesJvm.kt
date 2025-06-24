@@ -101,7 +101,7 @@ class UnsafeReadWriteSamplesJvm {
         }
     }
 
-    @OptIn(UnsafeByteStringApi::class, ExperimentalStdlibApi::class)
+    @OptIn(UnsafeByteStringApi::class)
     @Test
     fun messageDigest() {
         fun Buffer.digest(algorithm: String): ByteString {

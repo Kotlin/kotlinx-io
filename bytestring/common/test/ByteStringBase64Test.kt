@@ -3,12 +3,9 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
-@file:OptIn(ExperimentalEncodingApi::class)
-
 package kotlinx.io.bytestring
 
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.test.*
 
 class ByteStringBase64Test {
