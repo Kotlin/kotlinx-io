@@ -14,7 +14,6 @@ package kotlinx.io.bytestring
  *
  * @throws IllegalArgumentException if the result length is more than [String] maximum capacity.
  */
-@ExperimentalStdlibApi
 public fun ByteString.toHexString(format: HexFormat = HexFormat.Default): String {
     return getBackingArrayReference().toHexString(0, getBackingArrayReference().size, format)
 }
@@ -32,7 +31,6 @@ public fun ByteString.toHexString(format: HexFormat = HexFormat.Default): String
  * @throws IllegalArgumentException when `startIndex > endIndex`.
  * @throws IllegalArgumentException if the result length is more than [String] maximum capacity.
  */
-@ExperimentalStdlibApi
 public fun ByteString.toHexString(
     startIndex: Int = 0,
     endIndex: Int = size,
@@ -52,7 +50,6 @@ public fun ByteString.toHexString(
  *
  * @throws IllegalArgumentException if this string does not comply with the specified [format].
  */
-@ExperimentalStdlibApi
 public fun String.hexToByteString(format: HexFormat = HexFormat.Default): ByteString {
     return ByteString.wrap(hexToByteArray(format))
 }

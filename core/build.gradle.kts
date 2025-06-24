@@ -61,7 +61,7 @@ tasks.named("wasmWasiNodeTest") {
         val templateFile = layout.projectDirectory.file("wasmWasi/test/test-driver.mjs.template").asFile
 
         val driverFile = layout.buildDirectory.file(
-            "compileSync/wasmWasi/test/testDevelopmentExecutable/kotlin/kotlinx-io-kotlinx-io-core-wasm-wasi-test.mjs"
+            "compileSync/wasmWasi/test/testDevelopmentExecutable/kotlin/kotlinx-io-kotlinx-io-core-test.mjs"
         )
 
         fun File.mkdirsAndEscape(): String {

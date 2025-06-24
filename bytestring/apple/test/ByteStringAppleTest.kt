@@ -12,7 +12,6 @@ import platform.Foundation.NSData
 import platform.Foundation.create
 import platform.posix.memset
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.test.*
 
 @OptIn(UnsafeNumber::class)
@@ -27,12 +26,12 @@ class ByteStringAppleTest {
         assertContentEquals(byteArrayOf(0, 1, 2, 3, 4, 5), copy.bytes!!.readBytes(copy.length.convert()))
     }
 
-    @OptIn(BetaInteropApi::class, ExperimentalEncodingApi::class)
+    @OptIn(BetaInteropApi::class)
     @Test
     fun fromNSData() {
         assertTrue(NSData().toByteString().isEmpty())
         val src = NSData.create(
-            base64EncodedString = Base64.Default.encode(byteArrayOf(0, 1, 2, 3, 4, 5)),
+            base64EncodedString = Base64.encode(byteArrayOf(0, 1, 2, 3, 4, 5)),
             options = 0u
         )!!
         val copy = src.toByteString()
