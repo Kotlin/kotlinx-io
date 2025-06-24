@@ -9,6 +9,5 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemTemporaryDirectory
 import kotlin.random.Random
 
-@OptIn(ExperimentalStdlibApi::class)
 actual fun tempFileName(): String =
     Path(SystemTemporaryDirectory, Random.nextBytes(32).toHexString()).toString()

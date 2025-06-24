@@ -331,7 +331,6 @@ class SmokeFileTest {
         assertFailsWith<IOException> { SystemFileSystem.source(dir).buffered().readByte() }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun writeDirectory() {
         val dir = createTempPath()

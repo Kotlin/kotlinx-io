@@ -53,6 +53,19 @@ class OkioAdaptersTest {
     }
 
     @Test
+    fun okioSinkLargeWrite() {
+        val arrayLength = 8193
+        val data = ByteArray(arrayLength) { it.toByte() }
+        val kxBuffer = kotlinx.io.Buffer().also { it.write(data) }
+        val okioBuffer = okio.Buffer()
+        val okioSink = okioBuffer as okio.Sink
+        val wrapper = okioSink.asKotlinxIoRawSink()
+        wrapper.write(kxBuffer, arrayLength.toLong())
+        assertContentEquals(data, okioBuffer.readByteArray())
+        assertTrue(kxBuffer.exhausted())
+    }
+
+    @Test
     fun okioSinkViewDelegation() {
         var closed = false
         var flushed = false

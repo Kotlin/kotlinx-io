@@ -10,7 +10,6 @@ import kotlinx.io.bytestring.ByteString
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlinx.io.unsafe.withData
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.math.min
 import kotlin.random.Random
 import kotlin.test.*
@@ -47,7 +46,7 @@ class UnsafeBufferOperationsSamples {
         assertEquals(10042L, buffer.size)
     }
 
-    @OptIn(ExperimentalEncodingApi::class, UnsafeIoApi::class)
+    @OptIn(UnsafeIoApi::class)
     @Test
     fun moveToTail() {
         fun Buffer.writeBase64(data: ByteArray, encoder: Base64 = Base64.Default) {
