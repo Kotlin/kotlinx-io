@@ -6,6 +6,7 @@
 import kotlinx.io.build.configureJava9ModuleInfoCompilation
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import kotlin.jvm.optionals.getOrNull
@@ -30,17 +31,11 @@ kotlin {
     }
 
     jvm {
-        withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
-        // can be replaced with just `compilerOptions { }` in Kotlin 2.0
-        compilations.configureEach {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    freeCompilerArgs.add("-Xjvm-default=all")
-                }
-            }
+        compilerOptions {
+            jvmDefault = JvmDefaultMode.NO_COMPATIBILITY
         }
 
         val mrjToolchain = versionCatalog.findVersion("multi.release.toolchain").getOrNull()?.requiredVersion

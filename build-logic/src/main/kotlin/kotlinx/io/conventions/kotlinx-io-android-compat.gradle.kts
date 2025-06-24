@@ -9,7 +9,7 @@ pluginManager.withPlugin("org.gradle.java-base") {
     apply(plugin = "ru.vyarus.animalsniffer")
 
     configure<AnimalSnifferExtension> {
-        sourceSets = listOf((project.extensions.getByName("sourceSets") as SourceSetContainer).getByName("main"))
+        defaultTargets = setOf("jvmMain")
     }
     val signature: Configuration by configurations
     dependencies {
