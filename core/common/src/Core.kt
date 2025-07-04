@@ -43,3 +43,12 @@ private class DiscardingSink : RawSink {
   override fun flush() {}
   override fun close() {}
 }
+
+/**
+ * Sequence of characters used as a line separator by the underlying platform.
+ *
+ * The value of this property is platform-specific, but usually it is either `"\n"` or `"\r\n"`.
+ *
+ * See the documentation for a particular platform to get more information about the value of this property.
+ */
+public expect val SystemLineSeparator: String

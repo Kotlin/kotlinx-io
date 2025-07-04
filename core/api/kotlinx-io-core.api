@@ -91,6 +91,7 @@ public abstract interface annotation class kotlinx/io/InternalIoApi : java/lang/
 public final class kotlinx/io/JvmCoreKt {
 	public static final fun asSink (Ljava/io/OutputStream;)Lkotlinx/io/RawSink;
 	public static final fun asSource (Ljava/io/InputStream;)Lkotlinx/io/RawSource;
+	public static final fun getSystemLineSeparator ()Ljava/lang/String;
 }
 
 public abstract interface class kotlinx/io/RawSink : java/io/Flushable, java/lang/AutoCloseable {
