@@ -68,32 +68,12 @@ fun MavenPublication.mavenCentralArtifacts(project: Project, sources: SourceDire
     artifact(javadocJar)
 }
 
-
-fun mavenRepositoryUri(): URI {
-    val repositoryId: String? = System.getenv("libs.repository.id")
-    return if (repositoryId == null) {
-        URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-    } else {
-        URI("https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId")
-    }
-}
-
 fun RepositoryHandler.configureMavenPublication(project: Project) {
-    if (project.findProperty("libs.publication_repository") == "space-central") {
-        maven {
-            url = uri(project.getSensitiveProperty("libs.repo.url")!!)
-            credentials {
-                username = project.getSensitiveProperty("libs.repo.user")
-                password = project.getSensitiveProperty("libs.repo.password")
-            }
-        }
-    } else {
-        maven {
-            url = mavenRepositoryUri()
-            credentials {
-                username = project.getSensitiveProperty("libs.sonatype.user")
-                password = project.getSensitiveProperty("libs.sonatype.password")
-            }
+    maven {
+        url = uri(project.getSensitiveProperty("libs.repo.url")!!)
+        credentials {
+            username = project.getSensitiveProperty("libs.repo.user")
+            password = project.getSensitiveProperty("libs.repo.password")
         }
     }
 
