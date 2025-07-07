@@ -55,25 +55,16 @@ fun MavenPom.configureMavenCentralMetadata(project: Project) {
     }
 }
 
-fun MavenPublication.mavenCentralArtifacts(project: Project, sources: SourceDirectorySet) {
-    val sourcesJar by project.tasks.creating(Jar::class) {
-        archiveClassifier = "sources"
-        from(sources)
-    }
-    val javadocJar by project.tasks.creating(Jar::class) {
-        archiveClassifier = "javadoc"
-        // contents are deliberately left empty
-    }
-    artifact(sourcesJar)
-    artifact(javadocJar)
-}
 
 fun RepositoryHandler.configureMavenPublication(project: Project) {
-    maven {
-        url = uri(project.getSensitiveProperty("libs.repo.url")!!)
-        credentials {
-            username = project.getSensitiveProperty("libs.repo.user")
-            password = project.getSensitiveProperty("libs.repo.password")
+    val repositoryUrl = project.getSensitiveProperty("libs.repo.url")
+    if (!repositoryUrl.isNullOrBlank()) {
+        maven {
+            url = uri(repositoryUrl)
+            credentials {
+                username = project.getSensitiveProperty("libs.repo.user")
+                password = project.getSensitiveProperty("libs.repo.password")
+            }
         }
     }
 
