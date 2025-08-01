@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
-
 /*
  * Copyright 2010-2024 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
@@ -45,17 +43,6 @@ dokka {
         externalDocumentationLinks.register("okio") {
             url("https://square.github.io/okio/3.x/okio/")
             packageListUrl("https://square.github.io/okio/3.x/okio/okio/package-list")
-        }
-    }
-}
-
-kotlin {
-    @OptIn(ExperimentalAbiValidation::class)
-    abiValidation {
-        enabled = true
-
-        klib {
-            enabled = true
         }
     }
 }
