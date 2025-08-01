@@ -1,6 +1,4 @@
-import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import java.net.URL
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 /*
  * Copyright 2010-2024 JetBrains s.r.o. and respective authors and developers.
@@ -11,6 +9,7 @@ plugins {
     id("kotlinx-io-multiplatform")
     id("kotlinx-io-publish")
     id("kotlinx-io-dokka")
+    id("kotlinx-io-compatibility")
     alias(libs.plugins.kover)
 }
 
@@ -50,3 +49,13 @@ dokka {
     }
 }
 
+kotlin {
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation {
+        enabled = true
+
+        klib {
+            enabled = true
+        }
+    }
+}

@@ -24,5 +24,4 @@ okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
-bcv = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }
 kotlinx-benchmark-plugin = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "benchmark"}
