@@ -13,10 +13,6 @@ kotlin {
     @OptIn(ExperimentalAbiValidation::class)
     abiValidation {
         enabled = true
-
-        klib {
-            enabled = true
-        }
     }
 }
 
