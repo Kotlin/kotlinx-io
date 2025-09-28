@@ -6,10 +6,29 @@
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.get
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
-import platform.Foundation.*
-import platform.posix.*
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSFileSize
+import platform.Foundation.NSFileType
+import platform.Foundation.NSFileTypeDirectory
+import platform.Foundation.NSFileTypeRegular
+import platform.Foundation.NSTemporaryDirectory
+import platform.posix.DIR
+import platform.posix.basename
+import platform.posix.closedir
+import platform.posix.dirname
+import platform.posix.errno
+import platform.posix.free
+import platform.posix.mkdir
+import platform.posix.realpath
+import platform.posix.rename
+import platform.posix.strerror
 
 
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
@@ -64,3 +83,30 @@ internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
         size = if (isFile) attributes[NSFileSize] as Long else -1
     )
 }
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual class OpaqueDirEntry(private val dir: CPointer<DIR>) : AutoCloseable {
+    actual fun readdir(): String? {
+        val entry = platform.posix.readdir(dir) ?: return null
+        return entry[0].d_name.toKString()
+    }
+
+    actual override fun close() {
+        if (closedir(dir) != 0) {
+            val err = errno
+            val strerr = strerror(err)?.toKString() ?: "unknown error"
+            throw IOException("closedir failed with errno $err ($strerr)")
+        }
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun opendir(path: String): OpaqueDirEntry {
+    val dirent = platform.posix.opendir(path)
+    if (dirent != null) return OpaqueDirEntry(dirent)
+
+    val err = errno
+    val strerr = strerror(err)?.toKString() ?: "unknown error"
+    throw IOException("Can't open directory $path: $err ($strerr)")
+}
+
