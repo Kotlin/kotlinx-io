@@ -97,6 +97,10 @@ kotlin {
                         group("androidNative")
                     }
                 }
+                group("appleAndLinux") {
+                    group("apple")
+                    group("linux")
+                }
             }
             group("nodeFilesystemShared") {
                 withJs()
