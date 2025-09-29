@@ -30,4 +30,3 @@ internal actual fun basenameImpl(path: String): String {
 }
 
 internal actual fun isAbsoluteImpl(path: String): Boolean = path.startsWith('/')
-
