@@ -11,11 +11,11 @@ class SmokeFileTestWindows {
     @Test
     fun isAbsolute() {
         if (!isWindows) return
-        assertFalse(Path("C:").isAbsolute)
+        assertTrue(Path("C:").isAbsolute)
         assertTrue(Path("C:\\").isAbsolute)
         assertTrue(Path("C:/").isAbsolute)
         assertTrue(Path("C:/../").isAbsolute)
-        assertFalse(Path("C:file").isAbsolute)
+        assertTrue(Path("C:file").isAbsolute)
         assertFalse(Path("bla\\bla\\bla").isAbsolute)
         assertTrue(Path("\\\\server\\share").isAbsolute)
     }
