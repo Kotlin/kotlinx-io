@@ -16,9 +16,7 @@ import kotlin.experimental.ExperimentalNativeApi
 
 @OptIn(ExperimentalForeignApi::class)
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
-    override fun exists(path: Path): Boolean {
-        return access(path.path, F_OK) == 0
-    }
+    override fun exists(path: Path): Boolean = existsImpl(path.path)
 
     @OptIn(ExperimentalForeignApi::class)
     override fun delete(path: Path, mustExist: Boolean) {
@@ -28,12 +26,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             }
             return
         }
-        if (remove(path.path) != 0) {
-            if (errno == EACCES) {
-                if (rmdir(path.path) == 0) return
-            }
-            throw IOException("Delete failed for $path: ${strerror(errno)?.toKString()}")
-        }
+        deleteNoCheckImpl(path.path)
     }
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
@@ -113,6 +106,10 @@ internal expect fun atomicMoveImpl(source: Path, destination: Path)
 internal expect fun mkdirImpl(path: String)
 
 internal expect fun realpathImpl(path: String): String
+
+internal expect fun existsImpl(path: String): Boolean
+
+internal expect fun deleteNoCheckImpl(path: String)
 
 public actual open class FileNotFoundException actual constructor(
     message: String?

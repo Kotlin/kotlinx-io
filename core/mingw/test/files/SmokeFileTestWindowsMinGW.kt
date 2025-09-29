@@ -13,8 +13,10 @@ import platform.windows.ERROR_TOO_MANY_OPEN_FILES
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertTrue
 
 class SmokeFileTestWindowsMinGW {
+    private val testDir = Path("""./mingw/testdir""")
     @OptIn(ExperimentalForeignApi::class)
     @Test
     fun mingwProblem() {
@@ -74,7 +76,14 @@ class SmokeFileTestWindowsMinGW {
     @Test
     fun testReadDir() {
         val expected = listOf("foo", "いろは歌", "天地玄黄")
-        val actual = SystemFileSystem.list(Path("""./mingw/testdir""")).map { it.name }.sorted()
+        val actual = SystemFileSystem.list(testDir).map { it.name }.sorted()
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testExists() {
+        for (path in SystemFileSystem.list(testDir)) {
+            assertTrue(SystemFileSystem.exists(path), path.toString())
+        }
     }
 }

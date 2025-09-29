@@ -7,48 +7,10 @@
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.Arena
-import kotlinx.cinterop.CFunction
-import kotlinx.cinterop.CPointed
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.allocArray
-import kotlinx.cinterop.convert
-import kotlinx.cinterop.invoke
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.toKString
-import kotlinx.cinterop.wcstr
+import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.posix.size_t
-import platform.windows.CloseHandle
-import platform.windows.CreateDirectoryW
-import platform.windows.ERROR_FILE_NOT_FOUND
-import platform.windows.ERROR_NO_MORE_FILES
-import platform.windows.FALSE
-import platform.windows.FindClose
-import platform.windows.FindFirstFileW
-import platform.windows.FindNextFileW
-import platform.windows.GetFullPathNameW
-import platform.windows.GetLastError
-import platform.windows.GetProcAddress
-import platform.windows.HANDLE
-import platform.windows.HMODULE
-import platform.windows.HRESULT
-import platform.windows.INVALID_HANDLE_VALUE
-import platform.windows.LoadLibraryW
-import platform.windows.MAX_PATH
-import platform.windows.MOVEFILE_REPLACE_EXISTING
-import platform.windows.MoveFileExW
-import platform.windows.PWSTR
-import platform.windows.PathFindFileNameW
-import platform.windows.PathIsRelativeW
-import platform.windows.PathIsRootW
-import platform.windows.TRUE
-import platform.windows.WCHARVar
-import platform.windows.WIN32_FIND_DATAW
+import platform.windows.*
 import kotlin.experimental.ExperimentalNativeApi
 
 private typealias PathCchRemoveFileSpecFunc = CPointer<CFunction<(PWSTR, size_t) -> HRESULT>>
@@ -86,7 +48,7 @@ internal actual fun dirnameImpl(path: String): String {
 }
 
 internal actual fun basenameImpl(path: String): String {
-    if (PathIsRootW(path)  == TRUE) return ""
+    if (PathIsRootW(path) == TRUE) return ""
     return PathFindFileNameW(path)?.toKString() ?: ""
 }
 
@@ -179,3 +141,18 @@ internal actual class OpaqueDirEntry(private val directory: String) : AutoClosea
 }
 
 internal actual fun opendir(path: String): OpaqueDirEntry = OpaqueDirEntry(path)
+
+internal actual fun existsImpl(path: String): Boolean = PathFileExistsW(path) == TRUE
+
+internal actual fun deleteNoCheckImpl(path: String) {
+    if (DeleteFileW(path) != FALSE) return
+    var e = GetLastError()
+    if (e == ERROR_FILE_NOT_FOUND.toUInt()) return // ignore it
+    if (e == ERROR_ACCESS_DENIED.toUInt()) {
+        // might be a directory
+        if (RemoveDirectoryW(path) != FALSE) return
+        e = GetLastError()
+        if (e == ERROR_FILE_NOT_FOUND.toUInt()) return // ignore it
+    }
+    throw IOException("Delete failed for $path: ${formatWin32ErrorMessage(e)}")
+}

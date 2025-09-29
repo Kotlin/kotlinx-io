@@ -101,6 +101,10 @@ kotlin {
                     group("apple")
                     group("linux")
                 }
+                group("posix") {
+                    group("apple")
+                    group("unix")
+                }
             }
             group("nodeFilesystemShared") {
                 withJs()
