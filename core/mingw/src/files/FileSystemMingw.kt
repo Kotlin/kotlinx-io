@@ -39,6 +39,7 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
 }
 
 internal actual fun dirnameImpl(path: String): String {
+    val path = path.replace(UnixPathSeparator, WindowsPathSeparator)
     memScoped {
         val p = path.wcstr.ptr
         // we don't care the result, even it failed.
