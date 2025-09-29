@@ -75,7 +75,7 @@ public expect val SystemPathSeparator: Char
 public expect fun Path(path: String): Path
 
 /**
- * Returns Path for the given [base] path concatenated with [parts] using [SystemPathSeparator].
+ * Returns Path for the given [base] path concatenated with [parts] using [files.SystemPathSeparator].
  */
 public fun Path(base: String, vararg parts: String): Path {
     // Parameter name has to be specified explicitly to overcome https://youtrack.jetbrains.com/issue/KT-22520
@@ -91,7 +91,7 @@ public fun Path(base: String, vararg parts: String): Path {
 }
 
 /**
- * Returns Path for the given [base] path concatenated with [parts] using [SystemPathSeparator].
+ * Returns Path for the given [base] path concatenated with [parts] using [files.SystemPathSeparator].
  */
 public fun Path(base: Path, vararg parts: String): Path {
     return Path(base.toString(), *parts)

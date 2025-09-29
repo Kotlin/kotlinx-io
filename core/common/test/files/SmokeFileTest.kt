@@ -186,7 +186,7 @@ class SmokeFileTest {
     @Test
     fun pathParent() {
         val p = Path(SystemPathSeparator.toString(), "a", "b", "c")
-        assertEquals(constructAbsolutePath("a", "b"), p.parent?.toString())
+        assertEquals(constructAbsolutePath("a", "b").also { println(it) }, p.parent?.toString())
         assertEquals(constructAbsolutePath("a"), p.parent?.parent?.toString())
         assertEquals(constructAbsolutePath(), p.parent?.parent?.parent?.toString())
         assertNull(p.parent?.parent?.parent?.parent)

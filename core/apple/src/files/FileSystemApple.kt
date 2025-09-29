@@ -6,6 +6,7 @@
 
 package kotlinx.io.files
 
+import files.SystemPathSeparator
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.memScoped
