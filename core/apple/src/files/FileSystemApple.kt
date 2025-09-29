@@ -6,26 +6,13 @@
 
 package kotlinx.io.files
 
-import files.SystemPathSeparator
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
-import platform.Foundation.NSFileManager
-import platform.Foundation.NSFileSize
-import platform.Foundation.NSFileType
-import platform.Foundation.NSFileTypeDirectory
-import platform.Foundation.NSFileTypeRegular
-import platform.Foundation.NSTemporaryDirectory
-import platform.posix.basename
-import platform.posix.dirname
-import platform.posix.errno
-import platform.posix.free
-import platform.posix.mkdir
-import platform.posix.realpath
-import platform.posix.rename
-import platform.posix.strerror
+import platform.Foundation.*
+import platform.posix.*
 
 
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
