@@ -55,12 +55,12 @@ private typealias PathCchRemoveFileSpecFunc = CPointer<CFunction<(PWSTR, size_t)
 
 @OptIn(ExperimentalNativeApi::class)
 private val kernelBaseDll = LoadLibraryW("kernelbase.dll") ?: run {
-    terminateWithUnhandledException(RuntimeException("kernelbase_dll is not supported: ${formatWin32ErrorMessage()}"))
+    terminateWithUnhandledException(RuntimeException("kernelbase.dll is not supported: ${formatWin32ErrorMessage()}"))
 }
 
 @OptIn(ExperimentalNativeApi::class)
 private fun <T : CPointed> getProcAddressOrFailed(module: HMODULE, name: String): CPointer<T> {
-    val pointer = GetProcAddress(kernelBaseDll, "PathCchRemoveFileSpec") ?: terminateWithUnhandledException(
+    val pointer = GetProcAddress(kernelBaseDll, name) ?: terminateWithUnhandledException(
         UnsupportedOperationException("Failed to get proc: $name: ${formatWin32ErrorMessage()}"),
     )
     return pointer.reinterpret()
