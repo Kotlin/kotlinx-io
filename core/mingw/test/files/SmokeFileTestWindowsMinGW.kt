@@ -17,6 +17,7 @@ import kotlin.test.assertTrue
 
 class SmokeFileTestWindowsMinGW {
     private val testDir = Path("""./mingw/testdir""")
+
     @OptIn(ExperimentalForeignApi::class)
     @Test
     fun mingwProblem() {
@@ -51,7 +52,7 @@ class SmokeFileTestWindowsMinGW {
     }
 
     @Test
-    fun basename(){
+    fun basename() {
         assertEquals("あいうえお", Path("""C:\あいうえお""").name)
         assertEquals("", Path("""C:\""").name)
     }
