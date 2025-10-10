@@ -9,28 +9,8 @@ package kotlinx.io.files
 
 import kotlinx.cinterop.*
 import kotlinx.io.IOException
-import platform.posix.size_t
 import platform.windows.*
-import kotlin.experimental.ExperimentalNativeApi
 
-private typealias PathCchRemoveFileSpecFunc = CPointer<CFunction<(PWSTR, size_t) -> HRESULT>>
-
-@OptIn(ExperimentalNativeApi::class)
-private val kernelBaseDll = LoadLibraryW("kernelbase.dll") ?: run {
-    terminateWithUnhandledException(RuntimeException("kernelbase.dll is not supported: ${formatWin32ErrorMessage()}"))
-}
-
-@OptIn(ExperimentalNativeApi::class)
-private fun <T : CPointed> getProcAddressOrFailed(module: HMODULE, name: String): CPointer<T> {
-    val pointer = GetProcAddress(kernelBaseDll, name) ?: terminateWithUnhandledException(
-        UnsupportedOperationException("Failed to get proc: $name: ${formatWin32ErrorMessage()}"),
-    )
-    return pointer.reinterpret()
-}
-
-// Available since Windows 8 / Windows Server 2012, long path and UNC path supported
-private val PathCchRemoveFileSpec: PathCchRemoveFileSpecFunc =
-    getProcAddressOrFailed(kernelBaseDll, "PathCchRemoveFileSpec")
 
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
     if (MoveFileExW(source.path, destination.path, MOVEFILE_REPLACE_EXISTING.convert()) == 0) {
@@ -42,8 +22,9 @@ internal actual fun dirnameImpl(path: String): String {
     val path = path.replace(UnixPathSeparator, WindowsPathSeparator)
     memScoped {
         val p = path.wcstr.ptr
-        // we don't care the result, even it failed.
-        PathCchRemoveFileSpec.invoke(p, path.length.convert())
+        // This function is deprecated, should use PathCchRemoveFileSpec,
+        // but it's not available in current version of Kotlin
+        PathRemoveFileSpecW(p)
         return p.toKString()
     }
 }
@@ -54,7 +35,15 @@ internal actual fun basenameImpl(path: String): String {
 }
 
 internal actual fun isAbsoluteImpl(path: String): Boolean {
-    return PathIsRelativeW(path) == 0
+    val p = path.replace(UnixPathSeparator, WindowsPathSeparator)
+    if (PathIsRelativeW(p) == TRUE) {
+        return false
+    }
+    // PathIsRelativeW returns FALSE for paths like "C:relative\path" which are not absolute, in DoS
+    if (p.length >= 2 && p[0].isLetter() && p[1] == ':') {
+        return p.length > 2 && (p[2] == WindowsPathSeparator || p[2] == UnixPathSeparator)
+    }
+    return true
 }
 
 internal actual fun mkdirImpl(path: String) {

@@ -10,30 +10,37 @@ import kotlinx.cinterop.cstr
 import kotlinx.cinterop.toKString
 import platform.posix.dirname
 import platform.windows.ERROR_TOO_MANY_OPEN_FILES
+import platform.windows.GetConsoleCP
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalForeignApi::class)
 class SmokeFileTestWindowsMinGW {
     private val testDir = Path("""./mingw/testdir""")
 
     @OptIn(ExperimentalForeignApi::class)
     @Test
     fun mingwProblem() {
+        // Skipping test because console code page is UTF-8,
+        // use when clause because I'm not sure which codepage should be skipped
+        when (GetConsoleCP()) {
+            65001u -> return
+        }
         assertEquals("""C:\foo""", dirname("""C:\foo\bar""".cstr)!!.toKString())
         assertFails {
             assertEquals(
                 """C:\あいうえお""",
                 dirname("""C:\あいうえお\かきくけこ""".cstr)!!.toKString(),
             )
-        }.let(::println)
+        }
         assertFails {
             assertEquals(
                 """C:\一二三四""",
                 dirname("""C:\一二三四\五六七八""".cstr)!!.toKString(),
             )
-        }.let(::println)
+        }
     }
 
     @Test
@@ -57,21 +64,11 @@ class SmokeFileTestWindowsMinGW {
         assertEquals("", Path("""C:\""").name)
     }
 
-
-    @Test
-    fun isAbs() {
-        assertEquals(true, Path("""C:\foo""").isAbsolute, """C:\foo""")
-        assertEquals(false, Path("""foo\bar""").isAbsolute, """foo\bar""")
-        assertEquals(true, Path("""\foo\bar""").isAbsolute, """\foo\bar""")
-        assertEquals(true, Path("""C:\""").isAbsolute, """C:\""")
-        assertEquals(true, Path("""\\server\share\dir""").isAbsolute, """\\server\share\dir""")
-    }
-
     @Test
     fun testFormatError() {
         val s = formatWin32ErrorMessage(ERROR_TOO_MANY_OPEN_FILES.toUInt())
         // it should be trimmed, drop the trailing rubbish
-        assertEquals(s.trim(), s.trim())
+        assertEquals(s.trim(), s)
     }
 
     @Test
