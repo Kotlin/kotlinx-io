@@ -16,6 +16,7 @@ okio = "3.10.2"
 kotlinx-benchmark-runtime = { group = "org.jetbrains.kotlinx", name = "kotlinx-benchmark-runtime", version.ref = "benchmark" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plugin", version.ref = "dokka" }
+power-assert-plugin = { group = "org.jetbrains.kotlin.plugin.power-assert", name = "org.jetbrains.kotlin.plugin.power-assert.gradle.plugin", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 animalsniffer-gradle-plugin = { group = "ru.vyarus", name = "gradle-animalsniffer-plugin", version.ref = "animalsniffer" }
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
@@ -23,5 +24,6 @@ okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 [plugins]
 
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+power-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 kotlinx-benchmark-plugin = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "benchmark"}
