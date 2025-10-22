@@ -2,14 +2,14 @@
 kotlin = "2.2.0"
 java = "8"
 multi-release-toolchain = "17"
-dokka = "2.0.0"
-kover = "0.9.1"
-bcv = "0.17.0"
+dokka = "2.1.0"
+kover = "0.9.3"
+bcv = "0.18.1"
 benchmark = "0.4.14"
 jmh = "1.37"
 coroutines = "1.10.2"
-animalsniffer = "2.0.0"
-okio = "3.10.2"
+animalsniffer = "2.0.1"
+okio = "3.16.2"
 
 [libraries]
 
