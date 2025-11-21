@@ -153,9 +153,8 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
 
         var remainingBytes = minOf(byteCount, source.size)
         while (remainingBytes > 0) {
-            var segmentBytes = 0
-            UnsafeBufferOperations.readFromHead(source) { headData, headPos, headLimit ->
-                segmentBytes = headLimit - headPos
+            val segmentBytes = UnsafeBufferOperations.readFromHead(source) { headData, headPos, headLimit ->
+                val segmentBytes = headLimit - headPos
                 val buf = buffer.Buffer.allocUnsafe(segmentBytes)
                 for (offset in 0 until segmentBytes) {
                     buf.writeInt8(headData[headPos + offset], offset)

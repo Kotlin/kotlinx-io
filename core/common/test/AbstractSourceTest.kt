@@ -100,7 +100,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     fun readShortTooShortThrows() {
         sink.writeShort(Short.MAX_VALUE)
         sink.emit()
-        source.readByte()
+        source.skip(1)
         assertFailsWith<EOFException> {
             source.readShort()
         }
@@ -111,7 +111,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     fun readShortLeTooShortThrows() {
         sink.writeShortLe(Short.MAX_VALUE)
         sink.emit()
-        source.readByte()
+        source.skip(1)
         assertFailsWith<EOFException> {
             source.readShortLe()
         }
@@ -172,7 +172,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     fun readIntTooShortThrows() {
         sink.writeInt(Int.MAX_VALUE)
         sink.emit()
-        source.readByte()
+        source.skip(1)
         assertFailsWith<EOFException> {
             source.readInt()
         }
@@ -183,7 +183,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     fun readIntLeTooShortThrows() {
         sink.writeIntLe(Int.MAX_VALUE)
         sink.emit()
-        source.readByte()
+        source.skip(1)
         assertFailsWith<EOFException> {
             source.readIntLe()
         }
@@ -271,7 +271,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     fun readLongTooShortThrows() {
         sink.writeLong(Long.MAX_VALUE)
         sink.emit()
-        source.readByte()
+        source.skip(1)
         assertFailsWith<EOFException> {
             source.readLong()
         }
@@ -282,7 +282,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
     fun readLongLeTooShortThrows() {
         sink.writeLongLe(Long.MAX_VALUE)
         sink.emit()
-        source.readByte()
+        source.skip(1)
         assertFailsWith<EOFException> {
             source.readLongLe()
         }
@@ -355,7 +355,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeByte(42)
         sink.flush()
 
-        source.request(1)
+        assertTrue(source.request(1))
         assertEquals(1, source.readAtMostTo(Buffer(), 128))
     }
 
@@ -370,7 +370,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.write(ByteArray(expectedReadSize))
         sink.flush()
 
-        source.request(1)
+        assertTrue(source.request(1))
         val buffer = Buffer().also { it.write(ByteArray(SEGMENT_SIZE - expectedReadSize)) }
         assertEquals(expectedReadSize.toLong(), source.readAtMostTo(buffer, SEGMENT_SIZE.toLong()))
 
@@ -378,7 +378,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.write(ByteArray(expectedReadSize))
         sink.flush()
 
-        source.request(1)
+        assertTrue(source.request(1))
         buffer.clear()
         assertEquals(42L, source.readAtMostTo(buffer, 42L))
     }
@@ -388,7 +388,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeByte(42)
         sink.flush()
 
-        source.request(1)
+        assertTrue(source.request(1))
         assertEquals(1, source.readAtMostTo(ByteArray(128)))
     }
 
@@ -817,7 +817,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
             assertEquals(-1, source.indexOf(c, p.toLong(), p.toLong()))
 
             // Reset.
-            source.readString()
+            val _ = source.readString()
             bytes[p] = a
         }
     }
@@ -1641,7 +1641,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeString("flip flop")
         sink.emit()
         assertEquals(5, source.indexOf("flop".encodeToByteString()))
-        source.readString() // Clear stream.
+        val _ = source.readString() // Clear stream.
 
         // Make sure we backtrack and resume searching after partial match.
         sink.writeString("hi hi hi hey")
@@ -1724,7 +1724,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.emit()
         assertEquals(10, source.indexOf("flop".encodeToByteString(), 1))
         assertEquals(0, source.indexOf("flop".encodeToByteString(), -1))
-        source.readString() // Clear stream
+        val _ = source.readString() // Clear stream
 
         // Make sure we backtrack and resume searching after the partial match.
         sink.writeString("hi hi hi hi hey")

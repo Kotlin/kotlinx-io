@@ -34,7 +34,7 @@ class PoolingTest {
         buffer.writeByte(1)
         poolSize = SegmentPool.byteCount
         val peek = buffer.peek().buffered()
-        peek.readByte()
+        peek.skip(1)
         buffer.clear()
         assertTrue(poolSize < SegmentPool.byteCount)
 

@@ -22,6 +22,7 @@ kotlin {
     compilerOptions {
         allWarningsAsErrors = true
         freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.add("-Xreturn-value-checker=full")
     }
 
     val versionCatalog: VersionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")

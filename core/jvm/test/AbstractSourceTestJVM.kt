@@ -167,7 +167,7 @@ abstract class AbstractSourceTestJVM(private val factory: SourceFactory) {
         input.read()
         assertEquals(3, input.available())
 
-        source.readByte()
+        source.skip(1)
         assertEquals(2, input.available())
 
         sink.writeByte(0)
