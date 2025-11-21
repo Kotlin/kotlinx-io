@@ -45,10 +45,9 @@ private open class OutputStreamSink(
         var remaining = byteCount
         while (remaining > 0) {
             // kotlinx.io TODO: detect Interruption.
-            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+            remaining -= UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
                 val toCopy = minOf(remaining, limit - pos).toInt()
                 out.write(data, pos, toCopy)
-                remaining -= toCopy
                 toCopy
             }
         }
@@ -79,8 +78,8 @@ private open class InputStreamSource(
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
         try {
-            var readTotal = 0L
-            UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
+            var readTotal: Long
+            val _ = UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
                 val maxToCopy = minOf(byteCount, limit - pos).toInt()
                 readTotal = input.read(data, pos, maxToCopy).toLong()
                 if (readTotal == -1L) {

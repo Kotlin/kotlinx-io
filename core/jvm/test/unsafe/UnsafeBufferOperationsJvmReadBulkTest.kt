@@ -22,7 +22,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
         UnsafeBufferOperations.readBulk(buffer, array) { _, _ ->
             called = true
             0
-        }
+        }.also { assertEquals(0, it) }
         assertTrue(called)
     }
 
@@ -121,7 +121,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
             assertEquals(3, array[3]!!.get())
 
             buffer.size
-        }
+        }.also { assertEquals(Segment.SIZE * 3 + 1L, it) }
         assertTrue(buffer.exhausted())
     }
 
@@ -154,7 +154,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
             assertEquals(3, array[3]!!.get())
 
             0
-        }
+        }.also { assertEquals(0, it) }
         assertEquals(Segment.SIZE * 3 + 1L, buffer.size)
     }
 
@@ -165,7 +165,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
         }
         UnsafeBufferOperations.readBulk(buffer, Array(1) { null }) { _, _ ->
             6
-        }
+        }.also { assertEquals(6, it) }
         assertEquals("world", buffer.readString())
     }
 
@@ -176,7 +176,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
         }
         UnsafeBufferOperations.readBulk(buffer, Array(3) { null }) { _, _ ->
             Segment.SIZE * 3 - 1111L
-        }
+        }.also { assertEquals(Segment.SIZE * 3 - 1111L, it) }
         assertEquals(1111, buffer.size)
     }
 
@@ -187,7 +187,7 @@ class UnsafeBufferOperationsJvmReadBulkTest {
         }
         UnsafeBufferOperations.readBulk(buffer, Array(1) { null }) { array, _ ->
             array[0]!!.remaining().toLong()
-        }
+        }.also { assertEquals(Segment.SIZE.toLong(), it) }
         assertEquals(Segment.SIZE.toLong(), buffer.size)
     }
 

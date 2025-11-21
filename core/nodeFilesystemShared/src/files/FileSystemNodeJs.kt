@@ -55,7 +55,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             p = p.parent
         }
         parts.asReversed().forEach {
-            fs.mkdirSync(it)
+            val _ = fs.mkdirSync(it)
         }
     }
 

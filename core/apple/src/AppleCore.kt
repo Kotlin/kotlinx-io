@@ -40,7 +40,7 @@ private open class OutputStreamSink(
         var remaining = byteCount
         var bytesWritten = 0L
         while (remaining > 0) {
-            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+            val _ = UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
                 val toCopy = minOf(remaining, limit - pos).toInt()
                 bytesWritten = data.usePinned {
                     val bytes = it.addressOf(pos).reinterpret<uint8_tVar>()
@@ -91,21 +91,19 @@ private open class NSInputStreamSource(
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
 
-        var bytesRead = 0L
-        UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
+        val bytesRead = UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
             val maxToCopy = minOf(byteCount, limit - pos)
             val read = data.usePinned { ba ->
                 val bytes = ba.addressOf(pos).reinterpret<uint8_tVar>()
                 @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") // https://youtrack.jetbrains.com/issue/KT-81896
                 input.read(bytes, maxToCopy.convert()).toLong()
             }
-            bytesRead = read
             maxOf(read.toInt(), 0)
         }
 
-        if (bytesRead < 0L) throw IOException(input.streamError?.localizedDescription ?: "Unknown error")
-        if (bytesRead == 0L) return -1
-        return bytesRead
+        if (bytesRead < 0) throw IOException(input.streamError?.localizedDescription ?: "Unknown error")
+        if (bytesRead == 0) return -1
+        return bytesRead.toLong()
     }
 
     override fun close() = input.close()
