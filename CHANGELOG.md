@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.8.1
+> Published 21 November 2025
+
+This release addresses an issue with Wasm/JS,
+where the `require` function will no longer be available starting from Kotlin `2.3.20`
+(and it was never guaranteed to be available in Wasm/JS).
+
+The release also includes some infrastructure changes.
+
+### Bugfixes
+- Fixed the issue with the `require`-function that Wasm/JS-projects migrating to future versions of Kotlin might face [#481](https://github.com/Kotlin/kotlinx-io/pull/481)
+
 ## 0.8.0
 > Published 24 June 2025
 
