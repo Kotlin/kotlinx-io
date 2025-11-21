@@ -211,6 +211,7 @@ class SourceNSInputStreamTest {
                                 sink.usePinned {
                                     val readBytes = input.read(it.addressOf(read).reinterpret(), 3U)
                                     assertNotEquals(0, readBytes)
+                                    @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") // https://youtrack.jetbrains.com/issue/KT-81896
                                     read += readBytes.toInt()
                                 }
                                 if (read == data.length) {

@@ -23,6 +23,7 @@ internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
         }
         val mode = struct_stat.st_mode.toInt()
         val isFile = (mode and S_IFMT) == S_IFREG
+        @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") // https://youtrack.jetbrains.com/issue/KT-81896
         return FileMetadata(
             isRegularFile = isFile,
             isDirectory = (mode and S_IFMT) == S_IFDIR,

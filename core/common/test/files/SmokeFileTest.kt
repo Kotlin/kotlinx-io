@@ -22,7 +22,7 @@ class SmokeFileTest {
             }
         }
         if (lastException != null) {
-            throw lastException!!
+            throw lastException
         }
     }
 

@@ -43,7 +43,7 @@ class OkioAdaptersTest {
         assertEquals(okioBuffer.size, prefixLength.toLong())
         assertEquals(kxBuffer.size, arrayLength - prefixLength.toLong())
 
-        wrapper.write(kxBuffer, kxBuffer.size.toLong())
+        wrapper.write(kxBuffer, kxBuffer.size)
         assertContentEquals(data, okioBuffer.readByteArray())
         assertTrue(kxBuffer.exhausted())
 
@@ -266,7 +266,7 @@ class OkioAdaptersTest {
         assertEquals(prefixLength.toLong(), kxBuffer.size)
         assertEquals(arrayLength.toLong() - prefixLength, okioBuffer.size)
 
-        wrapper.write(okioBuffer, okioBuffer.size.toLong())
+        wrapper.write(okioBuffer, okioBuffer.size)
         assertContentEquals(data, kxBuffer.readByteArray())
         assertTrue(okioBuffer.exhausted())
 
