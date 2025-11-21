@@ -44,6 +44,7 @@ private open class OutputStreamSink(
                 val toCopy = minOf(remaining, limit - pos).toInt()
                 bytesWritten = data.usePinned {
                     val bytes = it.addressOf(pos).reinterpret<uint8_tVar>()
+                    @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") // https://youtrack.jetbrains.com/issue/KT-81896
                     out.write(bytes, toCopy.convert()).toLong()
                 }
                 0
@@ -95,6 +96,7 @@ private open class NSInputStreamSource(
             val maxToCopy = minOf(byteCount, limit - pos)
             val read = data.usePinned { ba ->
                 val bytes = ba.addressOf(pos).reinterpret<uint8_tVar>()
+                @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") // https://youtrack.jetbrains.com/issue/KT-81896
                 input.read(bytes, maxToCopy.convert()).toLong()
             }
             bytesRead = read

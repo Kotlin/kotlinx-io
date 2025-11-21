@@ -47,11 +47,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
             0
         }
     }
-    return if (result == null) {
-        String(readByteArray(byteCount.toInt()), charset)
-    } else {
-        result!!
-    }
+    return result ?: String(readByteArray(byteCount.toInt()), charset)
 }
 
 /**
