@@ -5,24 +5,36 @@
 
 package kotlinx.io.node
 
+@JsFun("""
+    (globalThis.module = (typeof process !== 'undefined') && (process.release.name === 'node') ?
+        await import('node:module') : void 0, () => {})
+""")
+internal external fun persistModule()
 
-internal fun requireExists(): Boolean = js("typeof require === 'function'")
+@JsFun("""() => { 
+    const importMeta = import.meta;
+    return globalThis.module.default.createRequire(importMeta.url);
+}
+""")
+internal external fun getRequire(): JsAny
 
-internal fun requireModule(mod: String): JsAny? = js("""{
-     try {
-         let m = require(mod);
-         if (m) return m;
-         return null;
-     } catch (e) {
-         return null;
-     }
- }""")
+private val require = persistModule().let { getRequire() }
+
+@JsFun("""
+    (require, mod) => {
+         try {
+             let m = require(mod);
+             if (m) return m;
+             return null;
+         } catch (e) {
+             return null;
+         }
+    }
+""")
+internal external fun requireModule(require: JsAny, mod: String): JsAny?
 
 internal fun loadModule(name: String): JsAny {
-    if (!requireExists()) {
-        throw UnsupportedOperationException("Module $name could not be loaded")
-    }
-    val mod = requireModule(name) ?: throw UnsupportedOperationException("Module '$name' could not be imported")
+    val mod = requireModule(require, name) ?: throw UnsupportedOperationException("Module '$name' could not be imported")
     return mod
 }
 

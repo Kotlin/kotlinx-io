@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 JetBrains s.r.o. and respective authors and developers.
+ * Copyright 2017-2025 JetBrains s.r.o. and respective authors and developers.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
@@ -13,6 +13,7 @@ import kotlin.jvm.optionals.getOrNull
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.power-assert")
     id("kotlinx-io-clean")
 }
 
@@ -123,6 +124,24 @@ kotlin {
             from(project.sourceSets["java9ModuleInfo"].output)
         }
     }
+}
+
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
+powerAssert {
+    // assertFails* are not included as p-a does not help with them yet
+    val kotlinTestFunctions = listOf(
+        "assertTrue", "assertFalse",
+        "assertNull", "assertNotNull",
+        "assertSame", "assertNotSame",
+        "assertEquals", "assertNotEquals",
+        "assertIs", "assertIsNot",
+        "assertIsOfType", "assertIsNotOfType",
+        "assertContains",
+        "assertContentEquals",
+        "expect"
+    ).map { "kotlin.test.$it"}
+
+    functions.addAll(kotlinTestFunctions)
 }
 
 fun KotlinSourceSet.configureSourceSet() {

@@ -55,35 +55,16 @@ fun MavenPom.configureMavenCentralMetadata(project: Project) {
     }
 }
 
-fun MavenPublication.mavenCentralArtifacts(project: Project, sources: SourceDirectorySet) {
-    val sourcesJar by project.tasks.creating(Jar::class) {
-        archiveClassifier = "sources"
-        from(sources)
-    }
-    val javadocJar by project.tasks.creating(Jar::class) {
-        archiveClassifier = "javadoc"
-        // contents are deliberately left empty
-    }
-    artifact(sourcesJar)
-    artifact(javadocJar)
-}
 
-
-fun mavenRepositoryUri(): URI {
-    val repositoryId: String? = System.getenv("libs.repository.id")
-    return if (repositoryId == null) {
-        URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-    } else {
-        URI("https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId")
-    }
-}
-
-fun RepositoryHandler.configureMavenPublication( project: Project) {
-    maven {
-        url = mavenRepositoryUri()
-        credentials {
-            username = project.getSensitiveProperty("libs.sonatype.user")
-            password = project.getSensitiveProperty("libs.sonatype.password")
+fun RepositoryHandler.configureMavenPublication(project: Project) {
+    val repositoryUrl = project.getSensitiveProperty("libs.repo.url")
+    if (!repositoryUrl.isNullOrBlank()) {
+        maven {
+            url = uri(repositoryUrl)
+            credentials {
+                username = project.getSensitiveProperty("libs.repo.user")
+                password = project.getSensitiveProperty("libs.repo.password")
+            }
         }
     }
 

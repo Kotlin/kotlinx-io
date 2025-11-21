@@ -48,5 +48,5 @@ to Gradle (in Preferences -> Build, Execution, Deployment -> Build Tools -> Grad
 ### Updating the public API dump
 
 * Use the [Binary Compatibility Validator](https://github.com/Kotlin/binary-compatibility-validator/blob/master/README.md) for updates to public API:
-    * Run `./gradlew apiDump` to update API index files.
+    * Run `./gradlew updateLegacyAbi` to update API index files.
     * Commit the updated API indexes together with other changes.

@@ -4,14 +4,11 @@
  */
 
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
-import kotlinx.validation.ExperimentalBCVApi
 
 plugins {
     id("kotlinx-io-publish") apply false
     id("kotlinx-io-dokka")
-
     alias(libs.plugins.kover)
-    alias(libs.plugins.bcv)
 }
 
 allprojects {
@@ -19,15 +16,6 @@ allprojects {
     repositories {
         mavenCentral()
     }
-}
-
-@OptIn(ExperimentalBCVApi::class)
-apiValidation {
-    ignoredProjects.addAll(listOf(
-        "kotlinx-io-benchmarks",
-        "kotlinx-io-smoke-tests"
-    ))
-    klib.enabled = true
 }
 
 dependencies {
