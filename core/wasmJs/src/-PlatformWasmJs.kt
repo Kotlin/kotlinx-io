@@ -5,6 +5,8 @@
 
 package kotlinx.io
 
+import kotlinx.io.node.os
+
 internal class JsException(message: String) : RuntimeException(message)
 
 internal actual fun withCaughtException(block: () -> Unit): Throwable? {
@@ -23,3 +25,16 @@ private fun catchJsThrowable(block: () -> Unit): JsAny? = js("""{
     }
 }""")
 
+/**
+ * Sequence of characters used as a line separator by the underlying platform.
+ *
+ * In NodeJS-compatible environments, this property derives value from [os.EOL](https://nodejs.org/api/os.html#oseol),
+ * in all other environments (like a web-browser), its value is always `"\n"`.
+ */
+public actual val SystemLineSeparator: String by lazy {
+    try {
+        os.EOL
+    } catch (_: Throwable) {
+        "\n"
+    }
+}
