@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.8.2
+> Published 24 November 2025
+
+### Bugfixes
+- Fixed the issue with Webpack not being able to process module import introduced in `0.8.1` [#483](https://github.com/Kotlin/kotlinx-io/issues/483)
+
 ## 0.8.1
 > Published 21 November 2025
 
