@@ -78,7 +78,10 @@ class WasiFsTest {
         try {
             WasiFileSystem.symlink(Path("/tmp/a/b/c/d/e"), Path("/tmp/l"))
             WasiFileSystem.symlink(Path("a/b/c/d/e"), Path("/tmp/lr"))
-            WasiFileSystem.symlink(Path("/blablabla"), Path("/tmp/dangling"))
+
+            assertFailsWith<IOException> {
+                WasiFileSystem.symlink(Path("/blablabla"), Path("/tmp/dangling"))
+            }
 
             assertEquals(Path("/tmp/a/b"), SystemFileSystem.resolve(Path("/tmp/lr/../../..")))
             assertEquals(Path("/tmp/a/b/c"), SystemFileSystem.resolve(Path("/tmp/l/../..")))
@@ -94,7 +97,6 @@ class WasiFsTest {
             SystemFileSystem.delete(Path("/tmp/a"))
             SystemFileSystem.delete(Path("/tmp/l"))
             SystemFileSystem.delete(Path("/tmp/lr"))
-            SystemFileSystem.delete(Path("/tmp/dangling"))
         }
     }
 
@@ -181,12 +183,14 @@ class WasiFsTest {
 
             assertEquals(src, WasiFileSystem.resolve(Path(finalLink)))
         } finally {
-            SystemFileSystem.delete(Path("/tmp/x/y"))
-            SystemFileSystem.delete(Path("/tmp/x"))
-            SystemFileSystem.delete(Path("/tmp/foo"))
-            SystemFileSystem.delete(Path("/tmp/result/a/z"))
-            SystemFileSystem.delete(Path("/tmp/result/a"))
-            SystemFileSystem.delete(Path("/tmp/result"))
+            try {
+                SystemFileSystem.delete(Path("/tmp/x/y"))
+                SystemFileSystem.delete(Path("/tmp/x"))
+                SystemFileSystem.delete(Path("/tmp/foo"))
+                SystemFileSystem.delete(Path("/tmp/result/a/z"))
+                SystemFileSystem.delete(Path("/tmp/result/a"))
+                SystemFileSystem.delete(Path("/tmp/result"))
+            } catch (_: Exception) {}
         }
     }
 
