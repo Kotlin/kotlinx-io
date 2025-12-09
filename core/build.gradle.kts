@@ -48,9 +48,10 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":kotlinx-io-bytestring"))
+            api(libs.kotlinx.coroutines.core)
         }
-        appleTest.dependencies {
-            implementation(libs.kotlinx.coroutines.core)
+        commonTest.dependencies {
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }
