@@ -4,10 +4,10 @@
  */
 package kotlinx.io.coroutines
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import kotlinx.io.Buffer
@@ -45,44 +45,44 @@ public const val READ_BUFFER_SIZE: Long = 8196
 public fun <T> RawSource.asFlow(
     decoder: StreamingDecoder<T>,
     readBufferSize: Long = READ_BUFFER_SIZE
-): Flow<T> =
-    channelFlow {
-        val source = this@asFlow
-        val buffer = Buffer()
-        var decoderClosed = false
-        try {
-            source.use { source ->
-                while (isActive) {
-                    val bytesRead = source.readAtMostTo(buffer, readBufferSize)
-                    if (bytesRead == -1L) {
-                        break
-                    }
-
-                    if (bytesRead > 0L) {
-                        val bytes = buffer.readByteArray()
-                        buffer.clear()
-                        decoder.decode(bytes) {
-                            send(it)
-                        }
-                    }
-
-                    yield() // Giving other coroutines a chance to run
+): Flow<T> = flow {
+    val source = this@asFlow
+    val buffer = Buffer()
+    var decoderClosed = false
+    try {
+        source.use { source ->
+            while (true) {
+                val bytesRead = source.readAtMostTo(buffer, readBufferSize)
+                if (bytesRead == -1L) {
+                    break
                 }
-            }
-            // Normal completion: emit any remaining buffered data
-            decoder.onClose { send(it) }
-            decoderClosed = true
-        } catch (exception: IOException) {
-            // IO error: try to emit remaining data, then close with error
-            runCatching { decoder.onClose { send(it) } }.onSuccess { decoderClosed = true }
-            throw exception
-        } finally {
-            // Ensure decoder cleanup even on cancellation or other exceptions
-            if (!decoderClosed) {
-                withContext(NonCancellable) {
-                    runCatching { decoder.onClose { /* discard data, cleanup only */ } }
+
+                if (bytesRead > 0L) {
+                    val bytes = buffer.readByteArray()
+                    decoder.decode(bytes) {
+                        emit(it)
+                    }
                 }
+
+                yield() // Giving other coroutines a chance to run
             }
-            buffer.clear()
         }
+        // Normal completion: emit any remaining buffered data
+        decoder.onClose { emit(it) }
+        decoderClosed = true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (exception: IOException) {
+        // IO error: try to emit remaining data, then close with error
+        runCatching { decoder.onClose { emit(it) } }.onSuccess { decoderClosed = true }
+        throw exception
+    } finally {
+        // Ensure decoder cleanup even on cancellation or other exceptions
+        if (!decoderClosed) {
+            withContext(NonCancellable) {
+                runCatching { decoder.onClose { /* discard data, cleanup only */ } }
+            }
+        }
+        buffer.clear()
     }
+}
