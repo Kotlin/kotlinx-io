@@ -38,10 +38,7 @@ public actual val SystemLineSeparator: String by lazy {
 }
 
 @JsFun("""
-    () =>
-        (typeof navigator !== "undefined" && navigator.platform)
-        || (typeof window !== "undefined" && typeof window.navigator !== "undefined" && window.navigator.platform)
-        || "unknown"
+    () => (typeof navigator !== "undefined" && navigator.platform) || "unknown"
 """)
 private external fun getPlatformName(): String
 

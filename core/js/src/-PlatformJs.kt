@@ -52,8 +52,6 @@ internal actual val isWindows: Boolean by lazy {
 
 private fun getPlatformName(): String = js(
     """
-        (typeof navigator !== "undefined" && navigator.platform) 
-        || (typeof window !== "undefined" && typeof window.navigator !== "undefined" && window.navigator.platform) 
-        || "unknown"
+        (typeof navigator !== "undefined" && navigator.platform) || "unknown"
     """
 )
