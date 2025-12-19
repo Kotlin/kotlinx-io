@@ -39,7 +39,9 @@ kotlin {
         nodejs()
         browser {
             testTask {
-                useMocha {}
+                useKarma {
+                    useChromeHeadless()
+                }
                 filter.setExcludePatterns("kotlinx.io.files.*")
             }
         }
