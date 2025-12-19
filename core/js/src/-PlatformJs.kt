@@ -5,9 +5,6 @@
 
 package kotlinx.io
 
-import kotlinx.browser.window
-import kotlinx.io.node.os
-
 public actual open class IOException : Exception {
     public actual constructor() : super()
 
@@ -38,19 +35,25 @@ internal actual fun withCaughtException(block: () -> Unit): Throwable? {
 /**
  * Sequence of characters used as a line separator by the underlying platform.
  *
- * In NodeJS-compatible environments, this property derives value from [os.EOL](https://nodejs.org/api/os.html#oseol).
- * In all other environments, it checks [Navigator.platform](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/platform)
- * property and returns `"\r\n"` if the platform is Windows, and `"\n"` otherwise.
+ * Value of this property depends on [Navigator.platform](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/platform):
+ * it is `"\r\n"` on Windows, and `"\n"` on all other platforms.
  */
 public actual val SystemLineSeparator: String by lazy {
-    try {
-        os.EOL
-    } catch (_: Throwable) {
-        platformLineSeparator()
+    if (isWindows) {
+        "\r\n"
+    } else {
+        "\n"
     }
 }
 
-private fun platformLineSeparator(): String {
-    val platform = window.navigator.platform
-    return if (platform.startsWith("Win", ignoreCase = true)) "\r\n" else "\n"
+internal actual val isWindows: Boolean by lazy {
+    getPlatformName().startsWith("Win", ignoreCase = true)
 }
+
+private fun getPlatformName(): String = js(
+    """
+        (typeof navigator !== "undefined" && navigator.platform) 
+        || (typeof window !== "undefined" && typeof window.navigator !== "undefined" && window.navigator.platform) 
+        || "unknown"
+    """
+)

@@ -11,3 +11,10 @@ package kotlinx.io
  * The value of this property is always `"\n"`.
  */
 public actual val SystemLineSeparator: String = "\n"
+
+/**
+ * The property affects paths processing and [SystemLineSeparator].
+ * In Wasi, paths are always '/'-delimited, so it does not really affect paths processing.
+ * As of [SystemLineSeparator], it seems like there's not so much we can do right now.
+ */
+internal actual val isWindows: Boolean get() = false

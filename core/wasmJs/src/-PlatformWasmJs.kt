@@ -28,21 +28,25 @@ private fun catchJsThrowable(block: () -> Unit): JsAny? = js("""{
 /**
  * Sequence of characters used as a line separator by the underlying platform.
  *
- * In NodeJS-compatible environments, this property derives value from [os.EOL](https://nodejs.org/api/os.html#oseol).
- * In all other environments, it checks [Navigator.platform](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/platform)
- * property and returns `"\r\n"` if the platform is Windows, and `"\n"` otherwise.
+ * Value of this property depends on [Navigator.platform](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/platform):
+ * it is `"\r\n"` on Windows, and `"\n"` on all other platforms.
  */
 public actual val SystemLineSeparator: String by lazy {
-    try {
-        os.EOL
-    } catch (_: Throwable) {
-        platformLineSeparator()
+    if (isWindows) {
+        "\r\n"
+    } else {
+        "\n"
     }
 }
 
-private fun platformLineSeparator(): String {
-    return if (windowNavigatorPlatform().startsWith("Win", ignoreCase = true)) "\r\n" else "\n"
-}
-
-@JsFun("() => window.navigator.platform")
+@JsFun("""
+    () =>
+        (typeof navigator !== "undefined" && navigator.platform)
+        || (typeof window !== "undefined" && typeof window.navigator !== "undefined" && window.navigator.platform)
+        || "unknown"
+""")
 private external fun windowNavigatorPlatform(): String
+
+internal actual val isWindows by lazy {
+    windowNavigatorPlatform().startsWith("Win", ignoreCase = true)
+}
