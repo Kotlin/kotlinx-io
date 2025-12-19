@@ -37,12 +37,16 @@ kotlin {
     }
     wasmJs {
         nodejs()
+        /*
         browser {
             testTask {
-                useMocha {}
+                useKarma {
+                    // how to configure browsers available in CI?
+                }
                 filter.setExcludePatterns("kotlinx.io.files.*")
             }
         }
+         */
     }
     wasmWasi {
         nodejs {
