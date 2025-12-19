@@ -121,9 +121,6 @@ public actual open class FileNotFoundException actual constructor(
 // 777 in octal, rwx for all (owner, group and others).
 internal const val PermissionAllowAll: UShort = 511u
 
-@OptIn(ExperimentalNativeApi::class)
-internal actual val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS
-
 internal expect class OpaqueDirEntry : AutoCloseable {
     fun readdir(): String?
     override fun close()

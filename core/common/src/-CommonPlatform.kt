@@ -38,3 +38,8 @@ public expect open class EOFException : IOException {
     public constructor()
     public constructor(message: String?)
 }
+
+/**
+ * True if the underlying platform is Windows (assuming that it's possible to get this info).
+ */
+internal expect val isWindows: Boolean

@@ -7,6 +7,7 @@ package kotlinx.io.files
 
 import kotlinx.io.IOException
 import kotlinx.io.buffered
+import kotlinx.io.isWindows
 import kotlinx.io.readLine
 import kotlinx.io.writeString
 import kotlin.test.*

@@ -113,5 +113,3 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 public actual val SystemTemporaryDirectory: Path = Path(System.getProperty("java.io.tmpdir"))
 
 public actual typealias FileNotFoundException = java.io.FileNotFoundException
-
-internal actual val isWindows: Boolean = System.getProperty("os.name")?.startsWith("Windows") ?: false
