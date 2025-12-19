@@ -5,8 +5,6 @@
 
 package kotlinx.io
 
-import kotlinx.io.node.os
-
 internal class JsException(message: String) : RuntimeException(message)
 
 internal actual fun withCaughtException(block: () -> Unit): Throwable? {
@@ -45,8 +43,8 @@ public actual val SystemLineSeparator: String by lazy {
         || (typeof window !== "undefined" && typeof window.navigator !== "undefined" && window.navigator.platform)
         || "unknown"
 """)
-private external fun windowNavigatorPlatform(): String
+private external fun getPlatformName(): String
 
 internal actual val isWindows by lazy {
-    windowNavigatorPlatform().startsWith("Win", ignoreCase = true)
+    getPlatformName().startsWith("Win", ignoreCase = true)
 }
