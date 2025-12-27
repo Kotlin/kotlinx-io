@@ -8,6 +8,8 @@ package kotlinx.io.files
 import kotlinx.io.IOException
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * An interface providing basic operations on a filesystem, such as reading and writing files,
@@ -192,6 +194,7 @@ public expect val SystemTemporaryDirectory: Path
  * Represents information about a file or directory obtainable from a filesystem like
  * a type of filesystem node (is it a directory or a file?), its size, and so on.
  */
+@OptIn(ExperimentalTime::class)
 public class FileMetadata(
     /**
      * Flag indicating that the metadata was retrieved for a regular file.
@@ -204,7 +207,15 @@ public class FileMetadata(
     /**
      * File size. Defined only for regular files, for other filesystem entities it will be `-1`.
      */
-    public val size: Long = 0L
+    public val size: Long = 0L,
+    /**
+     * Time when the file was created, or `null` if the filesystem does not support it.
+     */
+    public val createdAt: Instant? = null,
+    /**
+     * Time when the file was last modified, or `null` if the filesystem does not support it.
+     */
+    public val updatedAt: Instant? = null,
 )
 
 /**
