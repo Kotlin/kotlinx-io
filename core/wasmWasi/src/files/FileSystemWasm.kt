@@ -42,8 +42,9 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
     override fun delete(path: Path, mustExist: Boolean) {
         val preOpen = PreOpens.findPreopen(path)
+        val relativePath = preOpen.toRelativePath(path)
         withScopedMemoryAllocator { allocator ->
-            val (stringBuffer, stringLength) = allocator.storeString(path.path)
+            val (stringBuffer, stringLength) = allocator.storeString(relativePath.path)
 
             val unlinkRes = Errno(path_unlink_file(preOpen.fd, stringBuffer.address.toInt(), stringLength))
             if (unlinkRes == Errno.success) return
@@ -117,8 +118,8 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
         val destPreOpen = PreOpens.findPreopen(destination)
 
         withScopedMemoryAllocator { allocator ->
-            val (sourceBuffer, sourceBufferLength) = allocator.storeString(source.path)
-            val (destBuffer, destBufferLength) = allocator.storeString(destination.path)
+            val (sourceBuffer, sourceBufferLength) = allocator.storeString(sourcePreOpen.toRelativePath(source).path)
+            val (destBuffer, destBufferLength) = allocator.storeString(destPreOpen.toRelativePath(destination).path)
 
             val res = Errno(
                 path_rename(
@@ -147,7 +148,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
         val fd = withScopedMemoryAllocator { allocator ->
             val fdPtr = allocator.allocateInt()
-            val (stringBuffer, stringBufferLength) = allocator.storeString(path.path)
+            val (stringBuffer, stringBufferLength) = allocator.storeString(preOpen.toRelativePath(path).path)
 
             val res = Errno(
                 path_open(
@@ -176,7 +177,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
         val fd = withScopedMemoryAllocator { allocator ->
             val fdPtr = allocator.allocateInt()
-            val (stringBuffer, stringBufferLength) = allocator.storeString(path.path)
+            val (stringBuffer, stringBufferLength) = allocator.storeString(preOpen.toRelativePath(path).path)
 
             val fdFlags = buildList {
                 if (append) {
@@ -213,7 +214,8 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
     override fun metadataOrNull(path: Path): FileMetadata? {
         val preOpen = PreOpens.findPreopenOrNull(path) ?: return null
-        val md = metadataOrNullInternal(preOpen.fd, path, true) ?: return null
+        val relativePath = preOpen.toRelativePath(path)
+        val md = metadataOrNullInternal(preOpen.fd, relativePath, true) ?: return null
 
         val filetype = md.filetype
         val isDirectory = filetype == FileType.directory
@@ -249,7 +251,6 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
         }
 
         val resolvedPath = resolvePathImpl(absolutePath, 0)
-            ?: throw FileNotFoundException("Path does not exist: $path")
         check(resolvedPath.isAbsolute) {
             "Path is not absolute after symlinks resolution"
         }
@@ -264,7 +265,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
         withScopedMemoryAllocator { allocator ->
             val (fromBuffer, fromBufferLength) = allocator.storeString(linked.path)
-            val (toBuffer, toBufferLength) = allocator.storeString(target.path)
+            val (toBuffer, toBufferLength) = allocator.storeString(preOpen.toRelativePath(target).path)
             val res = Errno(
                 path_symlink(
                     fromBuffer.address.toInt(), fromBufferLength,
@@ -279,15 +280,16 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
     override fun list(directory: Path): Collection<Path> {
         val preOpen = PreOpens.findPreopen(directory)
+        val relativeDirectoryPath = preOpen.toRelativePath(directory)
 
-        val metadata = metadataOrNullInternal(preOpen.fd, directory, true)
+        val metadata = metadataOrNullInternal(preOpen.fd, relativeDirectoryPath, true)
             ?: throw FileNotFoundException(directory.path)
         if (metadata.filetype != FileType.directory) throw IOException("Not a directory: ${directory.path}")
 
         val children = mutableListOf<Path>()
         val dir_fd = withScopedMemoryAllocator { allocator ->
             val fdPtr = allocator.allocateInt()
-            val (stringBuffer, stringBufferLength) = allocator.storeString(directory.path)
+            val (stringBuffer, stringBufferLength) = allocator.storeString(relativeDirectoryPath.path)
 
             val res = Errno(
                 path_open(
@@ -310,8 +312,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
                 // directory's filesize expected to be larger than the actual buffer size required to fit all entries
                 val bufferSize = metadata.filesize.toInt()
                 val buffer = allocator.allocate(bufferSize)
-                val resultSize: Int
-                // Unsuported on Windows and Android:
+                // Unsupported on Windows and Android:
                 // https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19
                 val res = Errno(
                     fd_readdir(
@@ -325,7 +326,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
                 if (res != Errno.success) {
                     throw IOException("Can't read directory ${directory.path}: ${res.description}")
                 }
-                resultSize = resultSizePtr.loadInt()
+                val resultSize: Int = resultSizePtr.loadInt()
                 check(resultSize <= bufferSize) { "Result size: $resultSize, buffer size: $bufferSize" }
                 var entryPtr = buffer
                 val endPtr = entryPtr + resultSize
@@ -445,6 +446,22 @@ internal object PreOpens {
     }
 }
 
+internal fun PreOpens.PreOpen.toRelativePath(path: Path): Path {
+    if (!path.isAbsolute) return path
+
+    if (this.path == path) return Path("")
+
+    val prefix = this.path.path.let {
+        if (it.endsWith('/')) it else "$it/"
+    }
+
+    if (path.path.startsWith(prefix)) {
+        return Path(path.path.substring(prefix.length))
+    }
+
+    throw IllegalArgumentException("Path does not belong to the preopened directory ${this.path}: $path")
+}
+
 private const val TEMP_CIOVEC_BUFFER_LEN = 8192
 
 private class FileSink(private val fd: Fd) : RawSink {
@@ -554,6 +571,7 @@ private data class InternalMetadata(val filetype: FileType, val filesize: Long)
 
 @OptIn(UnsafeWasmMemoryApi::class)
 private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boolean): InternalMetadata? {
+    require(!path.isAbsolute) { "only relative paths are allowed, was: $path" }
     withScopedMemoryAllocator { allocator ->
         val (pathBuffer, pathBufferLength) = allocator.storeString(path.path)
 
@@ -577,6 +595,7 @@ private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boole
 
 @OptIn(UnsafeWasmMemoryApi::class)
 private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
+    require(!path.isAbsolute) { "only relative paths are allowed, was: $path" }
     withScopedMemoryAllocator { allocator ->
         val resultPtr = allocator.allocateInt()
         val (pathBuffer, pathBufferLength) = allocator.storeString(path.path)
@@ -603,7 +622,7 @@ private fun readlinkInternal(rootFd: Fd, path: Path, linkSize: Int): Path {
 // The value compatible with current Linux defaults
 private const val PATH_RESOLUTION_MAX_LINKS_DEPTH = 40
 
-private fun resolvePathImpl(path: Path, recursion: Int): Path? {
+private fun resolvePathImpl(path: Path, recursion: Int): Path {
     if (recursion >= PATH_RESOLUTION_MAX_LINKS_DEPTH) {
         throw IOException("Too many levels of symbolic links")
     }
@@ -623,9 +642,10 @@ private fun resolvePathImpl(path: Path, recursion: Int): Path? {
     // may point to a directory not belonging to any of pre-opened directories (like /a/b/c/../..).
     // So, let's hope for the best and throw an exception after resolution and normalization.
     val preOpen = PreOpens.findPreopenOrNull(withResolvedParent) ?: return withResolvedParent
-    val metadata = metadataOrNullInternal(preOpen.fd, withResolvedParent, false) ?: return withResolvedParent
+    val relativePath = preOpen.toRelativePath(withResolvedParent)
+    val metadata = metadataOrNullInternal(preOpen.fd, relativePath, false) ?: return withResolvedParent
     if (metadata.filetype == FileType.symbolic_link) {
-        val linkTarget = readlinkInternal(preOpen.fd, withResolvedParent, metadata.filesize.toInt())
+        val linkTarget = readlinkInternal(preOpen.fd, relativePath, metadata.filesize.toInt())
         val resolvedPath = if (linkTarget.isAbsolute || resolvedParent == null) {
             linkTarget
         } else {

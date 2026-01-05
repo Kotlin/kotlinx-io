@@ -106,6 +106,20 @@ class WasiFsTest {
     }
 
     @Test
+    fun resolveCrossPreOpenSymLinks() {
+        val src = Path("/tmp/src")
+        val tgt = Path("/var/log/tgt")
+
+        try {
+            WasiFileSystem.symlink(tgt, src)
+            SystemFileSystem.sink(tgt)
+            assertEquals(tgt, SystemFileSystem.resolve(src))
+        } finally {
+            SystemFileSystem.delete(src)
+        }
+    }
+
+    @Test
     fun symlinks() {
         val src = Path("/tmp/src")
         val tgt = Path("/tmp/tgt")
@@ -125,7 +139,7 @@ class WasiFsTest {
     }
 
     @Test
-    fun recursiveSimlinks() {
+    fun recursiveSymlinks() {
         val src = Path("/tmp/src")
         val tgt = Path("/tmp/tgt")
 
@@ -151,7 +165,7 @@ class WasiFsTest {
         val linksCount = 100
         val safeSymlinksDepth = 30
         val paths = mutableListOf(src)
-        for (i in 0 ..< linksCount) {
+        for (i in 0..<linksCount) {
             val link = Path("/tmp/link$i")
             WasiFileSystem.symlink(paths.last(), link)
             paths.add(link)
