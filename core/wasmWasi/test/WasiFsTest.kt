@@ -83,12 +83,10 @@ class WasiFsTest {
 
         SystemFileSystem.createDirectories(Path("/tmp/a/b/c/d/e"))
         try {
-            WasiFileSystem.symlink(Path("/tmp/a/b/c/d/e"), Path("/tmp/l"))
             WasiFileSystem.symlink(Path("a/b/c/d/e"), Path("/tmp/lr"))
-            WasiFileSystem.symlink(Path("/blablabla"), Path("/tmp/dangling"))
+            WasiFileSystem.symlink(Path("blablabla"), Path("/tmp/dangling"))
 
             assertEquals(Path("/tmp/a/b"), SystemFileSystem.resolve(Path("/tmp/lr/../../..")))
-            assertEquals(Path("/tmp/a/b/c"), SystemFileSystem.resolve(Path("/tmp/l/../..")))
 
             assertFailsWith<FileNotFoundException> {
                 SystemFileSystem.resolve(Path("/tmp/dangling"))
@@ -99,12 +97,12 @@ class WasiFsTest {
             SystemFileSystem.delete(Path("/tmp/a/b/c"))
             SystemFileSystem.delete(Path("/tmp/a/b"))
             SystemFileSystem.delete(Path("/tmp/a"))
-            SystemFileSystem.delete(Path("/tmp/l"))
             SystemFileSystem.delete(Path("/tmp/lr"))
             SystemFileSystem.delete(Path("/tmp/dangling"))
         }
     }
 
+    @Ignore // Cross-pre-open symlinks are not supported by (at least) NodeJs
     @Test
     fun resolveCrossPreOpenSymLinks() {
         val src = Path("/tmp/src")
@@ -121,7 +119,7 @@ class WasiFsTest {
 
     @Test
     fun symlinks() {
-        val src = Path("/tmp/src")
+        val src = Path("src")
         val tgt = Path("/tmp/tgt")
 
         try {
@@ -143,8 +141,8 @@ class WasiFsTest {
         val src = Path("/tmp/src")
         val tgt = Path("/tmp/tgt")
 
-        WasiFileSystem.symlink(src, tgt)
-        WasiFileSystem.symlink(tgt, src)
+        WasiFileSystem.symlink(Path("src"), tgt)
+        WasiFileSystem.symlink(Path("tgt"), src)
 
         try {
             assertFailsWith<IOException> {
@@ -158,7 +156,7 @@ class WasiFsTest {
 
     @Test
     fun deepSymlinksChain() {
-        val src = Path("/tmp/src")
+        val src = Path("src")
 
         SystemFileSystem.sink(src).close()
 
@@ -166,13 +164,13 @@ class WasiFsTest {
         val safeSymlinksDepth = 30
         val paths = mutableListOf(src)
         for (i in 0..<linksCount) {
-            val link = Path("/tmp/link$i")
+            val link = Path("link$i")
             WasiFileSystem.symlink(paths.last(), link)
             paths.add(link)
         }
 
         try {
-            assertEquals(src, SystemFileSystem.resolve(paths[safeSymlinksDepth]))
+            assertEquals(Path("/tmp/src"), SystemFileSystem.resolve(paths[safeSymlinksDepth]))
             val exception = assertFailsWith<IOException> {
                 SystemFileSystem.resolve(paths.last())
             }
@@ -184,6 +182,7 @@ class WasiFsTest {
         }
     }
 
+    @Ignore // Due to unsupported links to absolute paths, the test does not make a lot of sense
     @Test
     fun multilevelSymlinks() {
         val src = Path("/tmp/result/a/z")

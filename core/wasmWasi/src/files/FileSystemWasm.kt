@@ -74,31 +74,33 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             if (!mustCreate) return
             throw IOException("Directory already exists: $path")
         }
-        val segments: List<String> = buildList {
+        val segmentNames: List<String> = buildList {
             var currentPath: Path? = path
             while (currentPath != null && currentPath != preOpen.path) {
-                add(currentPath.path)
+                add(currentPath.name)
                 currentPath = currentPath.parent
             }
         }
         var created = false
         withScopedMemoryAllocator { allocator ->
             // Allocating one extra byte to place the NULL-byte there
-            val pathBuffer = allocator.allocate(segments.first().encodeToByteArray().size + 1)
+            val pathBuffer = allocator.allocate(path.path.encodeToByteArray().size + 1)
+            val pathBuilder = StringBuilder()
 
-            for (idx in segments.size - 1 downTo 0) {
-                val segment = segments[idx]
-                val segmentLength = pathBuffer.allocateString(segment)
+            for (idx in segmentNames.size - 1 downTo 0) {
+                pathBuilder.append(segmentNames[idx])
 
+                val segmentLength = pathBuffer.allocateString(pathBuilder.toString())
                 val res = Errno(path_create_directory(preOpen.fd, pathBuffer.address.toInt(), segmentLength))
                 if (res == Errno.success) {
                     created = true
                 } else if (res != Errno.exist) {
                     throw IOException(
-                        "Can't create directory $path. " +
-                                "Creation of an intermediate directory $segment failed: ${res.description}"
+                        "Can't create directory $path. Creation of an intermediate directory " +
+                                "${Path(preOpen.path, pathBuilder.toString())} failed: ${res.description}"
                     )
                 }
+                pathBuilder.append(SystemPathSeparator)
             }
             if (mustCreate && !created) throw IOException("Directory already exists: $path")
             if (!created) {
