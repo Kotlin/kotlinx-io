@@ -194,3 +194,7 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
 
     mingwX64()
 }
+
+project.plugins.withType<org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsPlugin> {
+    project.the<org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsEnvSpec>().version = "25.0.0"
+}
