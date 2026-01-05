@@ -22,12 +22,12 @@ class WasiFsTest {
     @Test
     fun multiplePreOpens() {
         fun checkPreOpen(forPath: String, expected: String?) {
-            val preOpen = PreOpens.findPreopenOrNull(Path(forPath))
+            val preOpen = PreOpens.resolvePreopenOrNull(Path(forPath))
             if (expected == null) {
                 assertNull(preOpen)
             } else {
                 assertNotNull(preOpen)
-                assertEquals(Path(expected), preOpen.path)
+                assertEquals(Path(expected), preOpen.first.path)
             }
         }
 
