@@ -74,6 +74,13 @@ class WasiFsTest {
         val resolved = SystemFileSystem.resolve(Path("/tmp/../../a/../b/../../tmp"))
         assertEquals(Path("/tmp"), resolved)
 
+        assertEquals(
+            Path("/tmp"),
+            SystemFileSystem.resolve(
+                Path("/tmp" + "/p".repeat(128) + "/..".repeat(128))
+            )
+        )
+
         SystemFileSystem.createDirectories(Path("/tmp/a/b/c/d/e"))
         try {
             WasiFileSystem.symlink(Path("/tmp/a/b/c/d/e"), Path("/tmp/l"))

@@ -609,7 +609,7 @@ private fun resolvePathImpl(path: Path, recursion: Int): Path? {
     }
     val resolvedParent = when (val parent = path.parent) {
         null -> null
-        else -> resolvePathImpl(parent, recursion + 1)
+        else -> resolvePathImpl(parent, recursion)
     }
     val withResolvedParent = when (resolvedParent) {
         null -> path
