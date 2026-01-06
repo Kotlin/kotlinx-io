@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.3.0-Beta2"
+kotlin = "2.3.0"
 java = "8"
 multi-release-toolchain = "17"
 dokka = "2.1.0"
