@@ -119,7 +119,12 @@ kotlin {
     tasks {
         val jvmJar by existing(Jar::class) {
             manifest {
-                attributes("Multi-Release" to true)
+                attributes(
+                    "Multi-Release" to true,
+                    "Implementation-Vendor" to "JetBrains",
+                    "Implementation-Title" to project.name,
+                    "Implementation-Version" to project.version,
+                )
             }
             from(project.sourceSets["java9ModuleInfo"].output)
         }
