@@ -45,6 +45,17 @@ kotlin {
         }
     }
 
+    mingwX64 {
+        compilations.getByName("main") {
+            cinterops {
+                val winapi by creating {
+                    definitionFile.set(project.file("mingw/cinterop/winapi.def"))
+                    packageName("kotlinx.io.internal.winapi")
+                }
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(project(":kotlinx-io-bytestring"))

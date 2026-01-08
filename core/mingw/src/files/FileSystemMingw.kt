@@ -9,6 +9,9 @@ package kotlinx.io.files
 
 import kotlinx.cinterop.*
 import kotlinx.io.IOException
+import kotlinx.io.internal.winapi.PathCchIsRoot
+import kotlinx.io.internal.winapi.PathCchRemoveFileSpec
+import platform.posix.wmemcpy
 import platform.windows.*
 
 
@@ -20,17 +23,19 @@ internal actual fun atomicMoveImpl(source: Path, destination: Path) {
 
 internal actual fun dirnameImpl(path: String): String {
     val path = path.replace(UnixPathSeparator, WindowsPathSeparator)
+    val len = path.length + 1 /* it is null-terminated */
     memScoped {
-        val p = path.wcstr.ptr
-        // This function is deprecated, should use PathCchRemoveFileSpec,
-        // but it's not available in current version of Kotlin
-        PathRemoveFileSpecW(p)
-        return p.toKString()
+        val buffer = allocArray<UShortVarOf<UShort>>(len)
+        wmemcpy(buffer, path.wcstr, len.convert())
+        PathCchRemoveFileSpec(buffer, len.convert())
+        return buffer.toKString()
     }
 }
 
 internal actual fun basenameImpl(path: String): String {
-    if (PathIsRootW(path) == TRUE) return ""
+    memScoped {
+        if (PathCchIsRoot(path.wcstr.ptr) == TRUE) return ""
+    }
     return PathFindFileNameW(path)?.toKString() ?: ""
 }
 
