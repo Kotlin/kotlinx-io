@@ -92,6 +92,61 @@ for details on how to configure a Gradle project to utilize JPMS.
 `kotlinx-io` is not tested on Android on a regular basis,
 but the library is compatible with Android 5.0+ (API level 21+).
 
+### Segment pooling
+
+As an optimization, on some platforms `Buffer`'s segments are pooled,
+meaning that everytime a buffer needs a new segment,
+an attempt will be made to take a pre-allocated segment from a pool,
+and if the pool is empty, only then a new segment will be created.
+Everytime a segment is no longer needed, it will be placed back into a pool (unless the pool is already full).
+
+Currently, the pooling is only supported on JVM (and Android).
+
+The segment pool has a two-level structure, with a smaller first-level pool aimed to serve requests as quickly as possible,
+and a larger second-level pool. While the first-level pool sizing could not be configured at the moment,
+the size of the second-level pool could be adjusted using the `kotlinx.io.pool.size.bytes` system property.
+The property accepts numeric values only.
+On Android, the second-level pool size is `0` by default,
+for all other JVM environments it is `4194304` (4 megabytes) by default. 
+
+While the size could be changed using the system property, it is necessary to note that its value will be read during
+the pool initialization, and later changes of the property will not affect the pool size. 
+In other words, the property has to be updated before any calls to the `kotlinx-io` API.
+
+On JVM, the easiest way to achieve that is to supply the property value via command line JVM flag
+(`-Pkotlinx.io.pool.size.bytes=XXX`).
+
+On Android, it is a bit trickier. One of the ways to set up the property before running any `kotlinx-io`-related code
+is by overriding `Application.onCreate` and setting the property there:
+```kotlin
+package org.example
+
+import android.app.Application
+
+class MySegmentHungryApp : Application() {
+    override fun onCreate() {
+        System.setProperty("kotlinx.io.pool.size.bytes", "2097152" /* or whatever value suites your case */)
+        super.onCreate()
+    }
+}
+```
+
+Then, the application class needs to be explicitly registered in the manifest:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application 
+       android:name="org.example.MySegmentHungryApp"
+       ...
+    >
+
+    </application>
+</manifest>
+```
+
 ## Contributing
 
 Read the [Contributing Guidelines](CONTRIBUTING.md).
