@@ -817,7 +817,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
             assertEquals(-1, source.indexOf(c, p.toLong(), p.toLong()))
 
             // Reset.
-            val _ = source.readString()
+            source.transferTo(discardingSink())
             bytes[p] = a
         }
     }
@@ -1641,7 +1641,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.writeString("flip flop")
         sink.emit()
         assertEquals(5, source.indexOf("flop".encodeToByteString()))
-        val _ = source.readString() // Clear stream.
+        source.transferTo(discardingSink()) // Clear stream.
 
         // Make sure we backtrack and resume searching after partial match.
         sink.writeString("hi hi hi hey")
@@ -1724,7 +1724,7 @@ abstract class AbstractBufferedSourceTest internal constructor(
         sink.emit()
         assertEquals(10, source.indexOf("flop".encodeToByteString(), 1))
         assertEquals(0, source.indexOf("flop".encodeToByteString(), -1))
-        val _ = source.readString() // Clear stream
+        source.transferTo(discardingSink()) // Clear stream
 
         // Make sure we backtrack and resume searching after the partial match.
         sink.writeString("hi hi hi hi hey")

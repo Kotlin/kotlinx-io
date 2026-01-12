@@ -220,7 +220,7 @@ class CommonBufferTest {
     fun writePrefixDoesntSplitButRequiresCompact() {
         val sink = Buffer()
         sink.writeString('b'.repeat(Segment.SIZE - 10)) // limit = size - 10
-        val _ = sink.readString((Segment.SIZE - 20).toLong()) // pos = size = 20
+        sink.skip((Segment.SIZE - 20).toLong()) // pos = size = 20
 
         val source = Buffer()
         source.writeString('a'.repeat(Segment.SIZE * 2))
