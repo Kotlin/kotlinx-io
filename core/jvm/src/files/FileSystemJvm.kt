@@ -10,6 +10,11 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.BasicFileAttributes
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.time.toKotlinInstant
+
 
 internal annotation class AnimalSnifferIgnore()
 
@@ -48,6 +53,7 @@ private val mover: Mover by lazy {
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @JvmField
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
 
@@ -84,8 +90,15 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
 
     override fun metadataOrNull(path: Path): FileMetadata? {
         if (!path.file.exists()) return null
-        return FileMetadata(path.file.isFile, path.file.isDirectory,
-            if (path.file.isFile) path.file.length() else -1L)
+        val attributes = Files.readAttributes(path.file.toPath(), BasicFileAttributes::class.java)
+
+        return FileMetadata(
+            isRegularFile = path.file.isFile,
+            isDirectory = path.file.isDirectory,
+            size = if (path.file.isFile) path.file.length() else -1L,
+            createdAt = attributes.creationTime().toInstant().toKotlinInstant(),
+            updatedAt = path.file.lastModified().let(Instant::fromEpochMilliseconds),
+        )
     }
 
     override fun source(path: Path): RawSource = FileInputStream(path.file).asSource()

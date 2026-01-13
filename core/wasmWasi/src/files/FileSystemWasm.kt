@@ -8,6 +8,8 @@ package kotlinx.io.files
 import kotlinx.io.*
 import kotlinx.io.wasi.*
 import kotlin.math.min
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
 
@@ -211,6 +213,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
         return FileSink(fd)
     }
 
+    @OptIn(ExperimentalTime::class)
     override fun metadataOrNull(path: Path): FileMetadata? {
         val preOpen = PreOpens.findPreopenOrNull(path) ?: return null
         val md = metadataOrNullInternal(preOpen.fd, path, true) ?: return null
@@ -221,7 +224,9 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
         return FileMetadata(
             isRegularFile = filetype == FileType.regular_file,
             isDirectory = isDirectory,
-            size = filesize
+            size = filesize,
+            createdAt = md.createdAt,
+            updatedAt = md.modifiedAt,
         )
     }
 
@@ -550,15 +555,20 @@ private class FileSource(private val fd: Fd) : RawSource {
     }
 }
 
-private data class InternalMetadata(val filetype: FileType, val filesize: Long)
+@OptIn(ExperimentalTime::class)
+private data class InternalMetadata(
+    val createdAt: Instant?,
+    val filesize: Long,
+    val filetype: FileType,
+    val modifiedAt: Instant,
+)
 
-@OptIn(UnsafeWasmMemoryApi::class)
+@OptIn(UnsafeWasmMemoryApi::class, ExperimentalTime::class)
 private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boolean): InternalMetadata? {
     withScopedMemoryAllocator { allocator ->
         val (pathBuffer, pathBufferLength) = allocator.storeString(path.path)
 
         val filestat = FileStat(allocator)
-
         val res = Errno(
             path_filestat_get(
                 fd = rootFd,
@@ -571,7 +581,18 @@ private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boole
         if (res == Errno.noent || res == Errno.notcapable) return null
         if (res != Errno.success) throw IOException(res.description)
 
-        return InternalMetadata(filestat.filetype, filestat.filesize)
+        val modifiedAt = run {
+            val epoch = filestat.modificationTime * 1e-9
+            val seconds = epoch.toLong()
+            val nanos = (epoch - seconds) * 1e9
+            Instant.fromEpochSeconds(seconds, nanos.toLong())
+        }
+        return InternalMetadata(
+            createdAt = null,
+            filesize = filestat.filesize,
+            filetype = filestat.filetype,
+            modifiedAt = modifiedAt,
+        )
     }
 }
 

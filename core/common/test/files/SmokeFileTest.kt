@@ -7,7 +7,12 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 import kotlin.test.*
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
+@OptIn(ExperimentalTime::class)
 class SmokeFileTest {
     private val files: MutableList<Path> = arrayListOf()
 
@@ -259,14 +264,22 @@ class SmokeFileTest {
 
     @Test
     fun fileMetadata() {
+        val validateAt: (Instant?) -> Boolean = {
+            val now = Clock.System.now()
+            val margin = 5.seconds
+            it == null || (now.minus(margin) < it && now.plus(margin) > it)
+        }
         val path = createTempPath()
-        assertNull(SystemFileSystem.metadataOrNull(path))
+        val metadata = SystemFileSystem.metadataOrNull(path)
+        assertNull(metadata)
 
         SystemFileSystem.createDirectories(path)
         val dirMetadata = SystemFileSystem.metadataOrNull(path)
         assertNotNull(dirMetadata)
         assertTrue(dirMetadata.isDirectory)
         assertFalse(dirMetadata.isRegularFile)
+        assertTrue(validateAt(dirMetadata.createdAt))
+        assertTrue(validateAt(dirMetadata.updatedAt))
 
         val filePath = Path(path, "test.txt")
         assertNull(SystemFileSystem.metadataOrNull(filePath))
@@ -279,6 +292,8 @@ class SmokeFileTest {
             assertNotNull(fileMetadata)
             assertFalse(fileMetadata.isDirectory)
             assertTrue(fileMetadata.isRegularFile)
+            assertTrue(validateAt(fileMetadata.createdAt))
+            assertTrue(validateAt(fileMetadata.updatedAt))
         } finally {
             SystemFileSystem.delete(filePath, false)
         }
@@ -353,13 +368,15 @@ class SmokeFileTest {
         SystemFileSystem.sink(path).buffered().use {
             it.writeString("second")
         }
-        assertEquals("second",
+        assertEquals(
+            "second",
             SystemFileSystem.source(path).buffered().use { it.readString() })
 
         SystemFileSystem.sink(path, append = true).buffered().use {
             it.writeString(" third")
         }
-        assertEquals("second third",
+        assertEquals(
+            "second third",
             SystemFileSystem.source(path).buffered().use { it.readString() })
     }
 
