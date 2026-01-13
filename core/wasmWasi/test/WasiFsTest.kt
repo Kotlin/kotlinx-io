@@ -21,25 +21,26 @@ class WasiFsTest {
 
     @Test
     fun multiplePreOpens() {
-        fun checkPreOpen(forPath: String, expected: String?) {
+        fun checkPreOpen(forPath: String, expectedRoot: String?, expectedRelative: String? = null) {
             val preOpen = PreOpens.resolvePreopenOrNull(Path(forPath))
-            if (expected == null) {
+            if (expectedRoot == null) {
                 assertNull(preOpen)
             } else {
                 assertNotNull(preOpen)
-                assertEquals(Path(expected), preOpen.first.path)
+                assertEquals(Path(expectedRoot), preOpen.preOpenPath)
+                assertEquals(Path(expectedRelative!!), preOpen.relativePath)
             }
         }
 
-        checkPreOpen(forPath = "/data", expected = null)
-        checkPreOpen(forPath = "/tmp", expected = "/tmp")
-        checkPreOpen(forPath = "/tmp/a", expected = "/tmp")
-        checkPreOpen(forPath = "/var", expected = null)
-        checkPreOpen(forPath = "/var/what", expected = null)
-        checkPreOpen(forPath = "/var/log", expected = "/var/log")
-        checkPreOpen(forPath = "/tmp ", expected = null)
-        checkPreOpen(forPath = "/tmpry", expected = null)
-        checkPreOpen(forPath = "/var/logging", expected = null)
+        checkPreOpen(forPath = "/data", expectedRoot = null)
+        checkPreOpen(forPath = "/tmp", expectedRoot = "/tmp", expectedRelative = "")
+        checkPreOpen(forPath = "/tmp/a", expectedRoot = "/tmp", expectedRelative = "a")
+        checkPreOpen(forPath = "/var", expectedRoot = null)
+        checkPreOpen(forPath = "/var/what", expectedRoot = null)
+        checkPreOpen(forPath = "/var/log", expectedRoot = "/var/log", expectedRelative = "")
+        checkPreOpen(forPath = "/tmp ", expectedRoot = null)
+        checkPreOpen(forPath = "/tmpry", expectedRoot = null)
+        checkPreOpen(forPath = "/var/logging", expectedRoot = null)
     }
 
     @Test
