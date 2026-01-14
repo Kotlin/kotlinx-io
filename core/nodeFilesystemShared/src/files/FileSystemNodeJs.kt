@@ -128,4 +128,3 @@ public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
 
-internal actual val isWindows = os.platform() == "win32"

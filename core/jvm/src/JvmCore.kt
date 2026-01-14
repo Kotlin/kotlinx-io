@@ -108,3 +108,10 @@ internal val AssertionError.isAndroidGetsocknameError: Boolean
     get() {
         return cause != null && message?.contains("getsockname failed") ?: false
     }
+
+/**
+ * Sequence of characters used as a line separator by the underlying platform.
+ *
+ * Returns the same value as [System.lineSeparator].
+ */
+public actual val SystemLineSeparator: String = System.lineSeparator()

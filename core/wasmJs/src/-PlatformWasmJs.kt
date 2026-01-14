@@ -25,3 +25,25 @@ private fun catchJsThrowable(block: () -> Unit): JsAny? = js("""{
     }
 }""")
 
+/**
+ * Sequence of characters used as a line separator by the underlying platform.
+ *
+ * Value of this property depends on [Navigator.platform](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/platform):
+ * it is `"\r\n"` on Windows, and `"\n"` on all other platforms.
+ */
+public actual val SystemLineSeparator: String by lazy {
+    if (isWindows) {
+        "\r\n"
+    } else {
+        "\n"
+    }
+}
+
+@JsFun("""
+    () => (typeof navigator !== "undefined" && navigator.platform) || "unknown"
+""")
+private external fun getPlatformName(): String
+
+internal actual val isWindows by lazy {
+    getPlatformName().startsWith("Win", ignoreCase = true)
+}
