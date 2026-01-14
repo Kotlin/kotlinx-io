@@ -6,6 +6,7 @@
 package kotlinx.io.unsafe
 
 import kotlinx.io.Buffer
+import kotlinx.io.Segment
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.assertArrayEquals
 import kotlinx.io.writeString
@@ -27,7 +28,7 @@ class UnsafeBufferOperationsJvmReadFromHeadTest {
         val called: Boolean
         UnsafeBufferOperations.readFromHead(buffer) { _ ->
             called = true
-        }
+        }.also { assertEquals(0, it) }
         assertTrue(called)
     }
 
@@ -40,7 +41,7 @@ class UnsafeBufferOperationsJvmReadFromHeadTest {
             assertEquals(head.size, bb.remaining())
             assertEquals(0, bb.position())
             assertEquals(head.size, bb.limit())
-        }
+        }.also { assertEquals(0, it) }
     }
 
     @Test
@@ -85,7 +86,7 @@ class UnsafeBufferOperationsJvmReadFromHeadTest {
             assertFailsWith<UnsupportedOperationException> {
                 bb.put(42)
             }
-        }
+        }.also { assertEquals(0, it) }
         assertEquals(42, buffer.readInt())
     }
 
@@ -111,7 +112,7 @@ class UnsafeBufferOperationsJvmReadFromHeadTest {
         UnsafeBufferOperations.readFromHead(buffer) { bb ->
             assertEquals(segmentSize - bytesToSkip, bb.remaining())
             bb.getShort()
-        }
+        }.also { assertEquals(2, it) }
 
         assertEquals(extraBytesCount, buffer.size.toInt())
     }

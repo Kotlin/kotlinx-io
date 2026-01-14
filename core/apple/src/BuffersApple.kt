@@ -22,12 +22,11 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
 
     var currentOffset = 0
     while (currentOffset < maxLength) {
-        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+        currentOffset += UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
             val toCopy = minOf(maxLength - currentOffset, limit - pos)
             data.usePinned {
-                memcpy(it.addressOf(pos), source + currentOffset, toCopy.convert())
+                val _ = memcpy(it.addressOf(pos), source + currentOffset, toCopy.convert())
             }
-            currentOffset += toCopy
             toCopy
         }
     }
@@ -37,16 +36,13 @@ internal fun Buffer.write(source: CPointer<uint8_tVar>, maxLength: Int) {
 internal fun Buffer.readAtMostTo(sink: CPointer<uint8_tVar>, maxLength: Int): Int {
     require(maxLength >= 0) { "maxLength ($maxLength) must not be negative" }
 
-    var toCopy = 0
-    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
-        toCopy = minOf(maxLength, limit - pos)
+    return UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        val toCopy = minOf(maxLength, limit - pos)
         data.usePinned {
-            memcpy(sink, it.addressOf(pos), toCopy.convert())
+            val _ = memcpy(sink, it.addressOf(pos), toCopy.convert())
         }
         toCopy
     }
-
-    return toCopy
 }
 
 @OptIn(BetaInteropApi::class, UnsafeIoApi::class)
@@ -63,7 +59,7 @@ internal fun Buffer.snapshotAsNSData(): NSData {
         ctx.withData(segment) { data, pos, limit ->
             val length = limit - pos
             data.usePinned {
-                memcpy(bytes + index, it.addressOf(pos), length.convert())
+                val _ = memcpy(bytes + index, it.addressOf(pos), length.convert())
             }
             index += length
         }

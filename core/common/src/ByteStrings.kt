@@ -39,11 +39,10 @@ public fun Sink.write(byteString: ByteString, startIndex: Int = 0, endIndex: Int
 
         UnsafeByteStringOperations.withByteArrayUnsafe(byteString) { data ->
             while (offset < endIndex) {
-                var written = 0
-                UnsafeBufferOperations.writeToTail(buffer, 1) { segData, pos, limit ->
-                    written = min(endIndex - offset, limit - pos)
-                    data.copyInto(segData, pos, offset, offset + written)
-                    written
+                val written = UnsafeBufferOperations.writeToTail(buffer, 1) { segData, pos, limit ->
+                    val toWrite = min(endIndex - offset, limit - pos)
+                    data.copyInto(segData, pos, offset, offset + toWrite)
+                    toWrite
                 }
                 offset += written
             }
@@ -104,7 +103,8 @@ public fun Source.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
     val startIndex = max(0, startIndex)
 
     if (byteString.isEmpty()) {
-        request(startIndex)
+        // Ignore the result: we'll use buffer's size if request failed anyway.
+        val _ = request(startIndex)
         return min(startIndex, buffer.size)
     }
 

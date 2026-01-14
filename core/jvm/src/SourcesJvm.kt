@@ -38,7 +38,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
     if (byteCount == 0L) return ""
 
     var result: String? = null
-    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+    val _ = UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
         val len = limit - pos
         if (len >= byteCount) {
             result = String(data, pos, byteCount.toInt(), charset)
@@ -47,11 +47,7 @@ private fun Buffer.readStringImpl(byteCount: Long, charset: Charset): String {
             0
         }
     }
-    return if (result == null) {
-        String(readByteArray(byteCount.toInt()), charset)
-    } else {
-        result!!
-    }
+    return result ?: String(readByteArray(byteCount.toInt()), charset)
 }
 
 /**
@@ -146,7 +142,7 @@ public fun Source.asInputStream(): InputStream {
 @OptIn(InternalIoApi::class)
 public fun Source.readAtMostTo(sink: ByteBuffer): Int {
     if (buffer.size == 0L) {
-        request(Segment.SIZE.toLong())
+        val _ = request(Segment.SIZE.toLong())
         if (buffer.size == 0L) return -1
     }
 

@@ -111,7 +111,7 @@ class WasiFsTest {
 
         try {
             WasiFileSystem.symlink(tgt, src)
-            SystemFileSystem.sink(tgt)
+            SystemFileSystem.sink(tgt).close()
             assertEquals(tgt, SystemFileSystem.resolve(src))
         } finally {
             SystemFileSystem.delete(src)

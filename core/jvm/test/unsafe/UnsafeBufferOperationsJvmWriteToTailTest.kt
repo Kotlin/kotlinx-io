@@ -23,7 +23,7 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
         val called: Boolean
         UnsafeBufferOperations.writeToTail(buffer, 1) { _ ->
             called = true
-        }
+        }.also { assertEquals(0, it) }
         assertTrue(called)
     }
 
@@ -36,7 +36,7 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
             assertEquals(buffer.head!!.remainingCapacity, bb.remaining())
             assertEquals(0, bb.position())
             assertEquals(buffer.head!!.remainingCapacity, bb.limit())
-        }
+        }.also { assertEquals(0, it) }
     }
 
     @Test
@@ -87,11 +87,11 @@ class UnsafeBufferOperationsJvmWriteToTailTest {
         UnsafeBufferOperations.writeToTail(buffer, 1) { bb ->
             assertEquals(1, bb.remaining())
             bb.put(42)
-        }
+        }.also { assertEquals(1, it) }
         assertEquals(Segment.SIZE, buffer.size.toInt())
         UnsafeBufferOperations.writeToTail(buffer, 1) { bb ->
             bb.put(43)
-        }
+        }.also { assertEquals(1, it) }
         assertEquals(Segment.SIZE + 1, buffer.size.toInt())
 
         buffer.skip(Segment.SIZE - 1L)

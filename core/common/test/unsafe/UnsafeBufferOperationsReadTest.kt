@@ -27,14 +27,15 @@ class UnsafeBufferOperationsReadTest {
         UnsafeBufferOperations.readFromHead(buffer) { _, _, _ ->
             bytesCalled = true
             0
-        }
+        }.also { assertEquals(0, it) }
         assertTrue(bytesCalled)
+
 
         val segmentsCalled: Boolean
         UnsafeBufferOperations.readFromHead(buffer) { _, _ ->
             segmentsCalled = true
             0
-        }
+        }.also { assertEquals(0, it) }
         assertTrue(segmentsCalled)
     }
 
@@ -48,7 +49,7 @@ class UnsafeBufferOperationsReadTest {
             assertEquals(0, startIndex)
             assertEquals(head.size, endIndex)
             0
-        }
+        }.also { assertEquals(0, it) }
     }
 
     @Test
@@ -123,7 +124,7 @@ class UnsafeBufferOperationsReadTest {
         UnsafeBufferOperations.readFromHead(buffer) { _, startIndex, endIndex ->
             assertEquals(2, endIndex - startIndex)
             2
-        }
+        }.also { assertEquals(2, it) }
 
         assertEquals(extraBytesCount, buffer.size.toInt())
     }
@@ -142,7 +143,7 @@ class UnsafeBufferOperationsReadTest {
         UnsafeBufferOperations.readFromHead(buffer) { _, seg ->
             assertEquals(2, seg.size)
             2
-        }
+        }.also { assertEquals(2, it) }
 
         assertEquals(extraBytesCount, buffer.size.toInt())
     }
