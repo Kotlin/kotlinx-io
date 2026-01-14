@@ -21,25 +21,26 @@ class WasiFsTest {
 
     @Test
     fun multiplePreOpens() {
-        fun checkPreOpen(forPath: String, expected: String?) {
-            val preOpen = PreOpens.findPreopenOrNull(Path(forPath))
-            if (expected == null) {
+        fun checkPreOpen(forPath: String, expectedRoot: String?, expectedRelative: String? = null) {
+            val preOpen = PreOpens.resolvePreopenOrNull(Path(forPath))
+            if (expectedRoot == null) {
                 assertNull(preOpen)
             } else {
                 assertNotNull(preOpen)
-                assertEquals(Path(expected), preOpen.path)
+                assertEquals(Path(expectedRoot), preOpen.preOpenPath)
+                assertEquals(Path(expectedRelative!!), preOpen.relativePath)
             }
         }
 
-        checkPreOpen(forPath = "/data", expected = null)
-        checkPreOpen(forPath = "/tmp", expected = "/tmp")
-        checkPreOpen(forPath = "/tmp/a", expected = "/tmp")
-        checkPreOpen(forPath = "/var", expected = null)
-        checkPreOpen(forPath = "/var/what", expected = null)
-        checkPreOpen(forPath = "/var/log", expected = "/var/log")
-        checkPreOpen(forPath = "/tmp ", expected = null)
-        checkPreOpen(forPath = "/tmpry", expected = null)
-        checkPreOpen(forPath = "/var/logging", expected = null)
+        checkPreOpen(forPath = "/data", expectedRoot = null)
+        checkPreOpen(forPath = "/tmp", expectedRoot = "/tmp", expectedRelative = "")
+        checkPreOpen(forPath = "/tmp/a", expectedRoot = "/tmp", expectedRelative = "a")
+        checkPreOpen(forPath = "/var", expectedRoot = null)
+        checkPreOpen(forPath = "/var/what", expectedRoot = null)
+        checkPreOpen(forPath = "/var/log", expectedRoot = "/var/log", expectedRelative = "")
+        checkPreOpen(forPath = "/tmp ", expectedRoot = null)
+        checkPreOpen(forPath = "/tmpry", expectedRoot = null)
+        checkPreOpen(forPath = "/var/logging", expectedRoot = null)
     }
 
     @Test
@@ -74,14 +75,19 @@ class WasiFsTest {
         val resolved = SystemFileSystem.resolve(Path("/tmp/../../a/../b/../../tmp"))
         assertEquals(Path("/tmp"), resolved)
 
+        assertEquals(
+            Path("/tmp"),
+            SystemFileSystem.resolve(
+                Path("/tmp" + "/p".repeat(128) + "/..".repeat(128))
+            )
+        )
+
         SystemFileSystem.createDirectories(Path("/tmp/a/b/c/d/e"))
         try {
-            WasiFileSystem.symlink(Path("/tmp/a/b/c/d/e"), Path("/tmp/l"))
             WasiFileSystem.symlink(Path("a/b/c/d/e"), Path("/tmp/lr"))
-            WasiFileSystem.symlink(Path("/blablabla"), Path("/tmp/dangling"))
+            WasiFileSystem.symlink(Path("blablabla"), Path("/tmp/dangling"))
 
             assertEquals(Path("/tmp/a/b"), SystemFileSystem.resolve(Path("/tmp/lr/../../..")))
-            assertEquals(Path("/tmp/a/b/c"), SystemFileSystem.resolve(Path("/tmp/l/../..")))
 
             assertFailsWith<FileNotFoundException> {
                 SystemFileSystem.resolve(Path("/tmp/dangling"))
@@ -92,15 +98,29 @@ class WasiFsTest {
             SystemFileSystem.delete(Path("/tmp/a/b/c"))
             SystemFileSystem.delete(Path("/tmp/a/b"))
             SystemFileSystem.delete(Path("/tmp/a"))
-            SystemFileSystem.delete(Path("/tmp/l"))
             SystemFileSystem.delete(Path("/tmp/lr"))
             SystemFileSystem.delete(Path("/tmp/dangling"))
         }
     }
 
+    @Ignore // Cross-pre-open symlinks are not supported by (at least) NodeJs
+    @Test
+    fun resolveCrossPreOpenSymLinks() {
+        val src = Path("/tmp/src")
+        val tgt = Path("/var/log/tgt")
+
+        try {
+            WasiFileSystem.symlink(tgt, src)
+            SystemFileSystem.sink(tgt)
+            assertEquals(tgt, SystemFileSystem.resolve(src))
+        } finally {
+            SystemFileSystem.delete(src)
+        }
+    }
+
     @Test
     fun symlinks() {
-        val src = Path("/tmp/src")
+        val src = Path("src")
         val tgt = Path("/tmp/tgt")
 
         try {
@@ -118,12 +138,12 @@ class WasiFsTest {
     }
 
     @Test
-    fun recursiveSimlinks() {
+    fun recursiveSymlinks() {
         val src = Path("/tmp/src")
         val tgt = Path("/tmp/tgt")
 
-        WasiFileSystem.symlink(src, tgt)
-        WasiFileSystem.symlink(tgt, src)
+        WasiFileSystem.symlink(Path("src"), tgt)
+        WasiFileSystem.symlink(Path("tgt"), src)
 
         try {
             assertFailsWith<IOException> {
@@ -137,21 +157,21 @@ class WasiFsTest {
 
     @Test
     fun deepSymlinksChain() {
-        val src = Path("/tmp/src")
+        val src = Path("src")
 
         SystemFileSystem.sink(src).close()
 
         val linksCount = 100
         val safeSymlinksDepth = 30
         val paths = mutableListOf(src)
-        for (i in 0 ..< linksCount) {
-            val link = Path("/tmp/link$i")
+        for (i in 0..<linksCount) {
+            val link = Path("link$i")
             WasiFileSystem.symlink(paths.last(), link)
             paths.add(link)
         }
 
         try {
-            assertEquals(src, SystemFileSystem.resolve(paths[safeSymlinksDepth]))
+            assertEquals(Path("/tmp/src"), SystemFileSystem.resolve(paths[safeSymlinksDepth]))
             val exception = assertFailsWith<IOException> {
                 SystemFileSystem.resolve(paths.last())
             }
@@ -163,6 +183,7 @@ class WasiFsTest {
         }
     }
 
+    @Ignore // Due to unsupported links to absolute paths, the test does not make a lot of sense
     @Test
     fun multilevelSymlinks() {
         val src = Path("/tmp/result/a/z")
