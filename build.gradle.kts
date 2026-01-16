@@ -9,6 +9,7 @@ plugins {
     id("kotlinx-io-publish") apply false
     id("kotlinx-io-dokka")
     alias(libs.plugins.kover)
+    id("kotlinx-io-validate-artifacts")
 }
 
 allprojects {
