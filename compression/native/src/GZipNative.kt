@@ -7,24 +7,34 @@
 
 package kotlinx.io.compression
 
-import kotlinx.cinterop.*
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
-import platform.zlib.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.io.Transform
+import platform.zlib.MAX_WBITS
 
 /**
- * Returns a [RawSource] that decompresses GZIP data read from this source.
+ * GZIP compression format (RFC 1952) - Native implementation.
  */
-public actual fun RawSource.gzip(): RawSource {
-    // windowBits = MAX_WBITS + 16 for GZIP automatic header detection
-    return DecompressingSource(this, ZlibDecompressor(windowBits = MAX_WBITS + 16))
-}
+public actual class GZip actual constructor(
+    public actual val level: Int
+) : Compressor, Decompressor {
 
-/**
- * Returns a [RawSink] that compresses data written to it using GZIP format.
- */
-public actual fun RawSink.gzip(level: Int): RawSink {
-    require(level in 0..9) { "Compression level must be in 0..9, got $level" }
-    // windowBits = MAX_WBITS + 16 for GZIP format
-    return CompressingSink(this, ZlibCompressor(level, windowBits = MAX_WBITS + 16))
+    init {
+        require(level in 0..9) { "Compression level must be in 0..9, got $level" }
+    }
+
+    actual override fun createCompressTransform(): Transform {
+        // windowBits = MAX_WBITS + 16 for GZIP format
+        return ZlibCompressor(level, windowBits = MAX_WBITS + 16)
+    }
+
+    actual override fun createDecompressTransform(): Transform {
+        // windowBits = MAX_WBITS + 16 for GZIP automatic header detection
+        return ZlibDecompressor(windowBits = MAX_WBITS + 16)
+    }
+
+    public actual companion object {
+        public actual fun compressor(level: Int): Compressor = GZip(level)
+
+        public actual fun decompressor(): Decompressor = GZip()
+    }
 }

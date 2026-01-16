@@ -7,24 +7,34 @@
 
 package kotlinx.io.compression
 
-import kotlinx.cinterop.*
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
-import platform.zlib.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.io.Transform
+import platform.zlib.MAX_WBITS
 
 /**
- * Returns a [RawSource] that decompresses data read from this source using the DEFLATE algorithm.
+ * DEFLATE compression algorithm (RFC 1951) - Native implementation.
  */
-public actual fun RawSource.inflate(): RawSource {
-    // Negative windowBits for raw DEFLATE (no zlib/gzip header)
-    return DecompressingSource(this, ZlibDecompressor(windowBits = -MAX_WBITS))
-}
+public actual class Deflate actual constructor(
+    public actual val level: Int
+) : Compressor, Decompressor {
 
-/**
- * Returns a [RawSink] that compresses data written to it using the DEFLATE algorithm.
- */
-public actual fun RawSink.deflate(level: Int): RawSink {
-    require(level in 0..9) { "Compression level must be in 0..9, got $level" }
-    // Negative windowBits for raw DEFLATE (no zlib/gzip header)
-    return CompressingSink(this, ZlibCompressor(level, windowBits = -MAX_WBITS))
+    init {
+        require(level in 0..9) { "Compression level must be in 0..9, got $level" }
+    }
+
+    actual override fun createCompressTransform(): Transform {
+        // Negative windowBits for raw DEFLATE (no zlib/gzip header)
+        return ZlibCompressor(level, windowBits = -MAX_WBITS)
+    }
+
+    actual override fun createDecompressTransform(): Transform {
+        // Negative windowBits for raw DEFLATE (no zlib/gzip header)
+        return ZlibDecompressor(windowBits = -MAX_WBITS)
+    }
+
+    public actual companion object {
+        public actual fun compressor(level: Int): Compressor = Deflate(level)
+
+        public actual fun decompressor(): Decompressor = Deflate()
+    }
 }

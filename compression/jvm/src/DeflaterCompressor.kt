@@ -6,25 +6,26 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
+import kotlinx.io.Transform
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.Deflater
 
 /**
- * A [Compressor] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
+ * A [Transform] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
  */
 internal class DeflaterCompressor(
     private val deflater: Deflater
-) : Compressor {
+) : Transform {
 
     private val outputArray = ByteArray(BUFFER_SIZE)
     private var finished = false
 
     @OptIn(UnsafeIoApi::class)
-    override fun compress(source: Buffer, sink: Buffer) {
+    override fun transform(source: Buffer, sink: Buffer) {
         // Feed data to the deflater
         while (!source.exhausted()) {
-            val _ = UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
                 val count = limit - pos
                 deflater.setInput(data, pos, count)
 
@@ -47,6 +48,9 @@ internal class DeflaterCompressor(
 
         finished = true
     }
+
+    override val isFinished: Boolean
+        get() = finished
 
     override fun close() {
         deflater.end()

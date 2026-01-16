@@ -9,12 +9,14 @@ package kotlinx.io.compression
 
 import kotlinx.cinterop.*
 import kotlinx.io.Buffer
+import kotlinx.io.IOException
+import kotlinx.io.Transform
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.zlib.*
 
 /**
- * A [Decompressor] implementation that uses zlib for DEFLATE/GZIP decompression.
+ * A [Transform] implementation that uses zlib for DEFLATE/GZIP decompression.
  *
  * @param windowBits determines the format:
  *        - Negative (-15 to -8): raw DEFLATE
@@ -24,7 +26,7 @@ import platform.zlib.*
  */
 internal class ZlibDecompressor(
     windowBits: Int
-) : Decompressor {
+) : Transform {
 
     private val arena = Arena()
     private val zStream: z_stream = arena.alloc()
@@ -40,7 +42,7 @@ internal class ZlibDecompressor(
 
         if (result != Z_OK) {
             arena.clear()
-            throw CompressionException("Failed to initialize zlib inflate: ${zlibErrorMessage(result)}")
+            throw IOException("Failed to initialize zlib inflate: ${zlibErrorMessage(result)}")
         }
     }
 
@@ -48,7 +50,7 @@ internal class ZlibDecompressor(
         get() = finished
 
     @OptIn(UnsafeIoApi::class)
-    override fun decompress(source: Buffer, sink: Buffer) {
+    override fun transform(source: Buffer, sink: Buffer) {
         check(initialized) { "Decompressor is closed" }
 
         if (finished) return
@@ -69,6 +71,10 @@ internal class ZlibDecompressor(
                 count - zStream.avail_in.toInt()
             }
         }
+    }
+
+    override fun finish(sink: Buffer) {
+        // For decompression, finish is a no-op - the stream determines when it's done
     }
 
     override fun close() {
@@ -95,10 +101,10 @@ internal class ZlibDecompressor(
                         finished = true
                     }
                     Z_DATA_ERROR -> {
-                        throw CompressionException("Invalid compressed data: ${zlibErrorMessage(result)}")
+                        throw IOException("Invalid compressed data: ${zlibErrorMessage(result)}")
                     }
                     else -> {
-                        throw CompressionException("Decompression failed: ${zlibErrorMessage(result)}")
+                        throw IOException("Decompression failed: ${zlibErrorMessage(result)}")
                     }
                 }
 

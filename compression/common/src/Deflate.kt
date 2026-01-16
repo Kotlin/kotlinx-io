@@ -5,38 +5,48 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
+import kotlinx.io.Transform
 
 /**
- * Returns a [RawSource] that decompresses data read from this source using the DEFLATE algorithm.
+ * DEFLATE compression algorithm (RFC 1951).
  *
- * The returned source reads compressed data from this source and returns decompressed data.
- * The source should contain data compressed using raw DEFLATE (RFC 1951) without any wrapper format.
- *
- * Closing the returned source will also close this source.
- *
- * @throws CompressionException if the compressed data is corrupted or in an invalid format
- *
- * @sample kotlinx.io.compression.samples.CompressionSamples.inflateDeflate
- */
-public expect fun RawSource.inflate(): RawSource
-
-/**
- * Returns a [RawSink] that compresses data written to it using the DEFLATE algorithm.
- *
- * The returned sink compresses data and writes the compressed output to this sink.
- * Data is compressed using raw DEFLATE (RFC 1951) without any wrapper format.
- *
- * It is important to close the returned sink to ensure all compressed data is flushed.
- * Closing the returned sink will also close this sink.
+ * This class provides both compression and decompression using raw DEFLATE format
+ * without any wrapper (no zlib or gzip headers/trailers).
  *
  * @param level compression level from 0 (no compression) to 9 (maximum compression).
- *              Default is [CompressionLevel.DEFAULT] (6).
+ *              Default is 6, which provides a good balance between speed and compression ratio.
+ *              This parameter is only used for compression; it is ignored for decompression.
  *
  * @throws IllegalArgumentException if [level] is not in the range 0..9
- * @throws CompressionException if compression fails
  *
- * @sample kotlinx.io.compression.samples.CompressionSamples.inflateDeflate
+ * @sample kotlinx.io.compression.samples.CompressionSamples.deflateUsage
  */
-public expect fun RawSink.deflate(level: Int = CompressionLevel.DEFAULT): RawSink
+public expect class Deflate(level: Int = 6) : Compressor, Decompressor {
+    /**
+     * The compression level (0-9).
+     */
+    public val level: Int
+
+    override fun createCompressTransform(): Transform
+
+    override fun createDecompressTransform(): Transform
+
+    public companion object {
+        /**
+         * Creates a compression-only configuration with the specified level.
+         *
+         * @param level compression level from 0 (no compression) to 9 (maximum compression).
+         *              Default is 6.
+         * @return a [Compressor] instance for DEFLATE compression
+         * @throws IllegalArgumentException if [level] is not in the range 0..9
+         */
+        public fun compressor(level: Int = 6): Compressor
+
+        /**
+         * Creates a decompression-only configuration.
+         *
+         * @return a [Decompressor] instance for DEFLATE decompression
+         */
+        public fun decompressor(): Decompressor
+    }
+}

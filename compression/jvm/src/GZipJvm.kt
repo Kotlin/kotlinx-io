@@ -5,24 +5,30 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
-import java.util.zip.Deflater
-import java.util.zip.Inflater
+import kotlinx.io.Transform
 
 /**
- * Returns a [RawSource] that decompresses GZIP data read from this source.
+ * GZIP compression format (RFC 1952) - JVM implementation.
  */
-public actual fun RawSource.gzip(): RawSource {
-    // For GZIP, we use the GzipDecompressor which handles the full GZIP format
-    return DecompressingSource(this, GzipDecompressor())
-}
+public actual class GZip actual constructor(
+    public actual val level: Int
+) : Compressor, Decompressor {
 
-/**
- * Returns a [RawSink] that compresses data written to it using GZIP format.
- */
-public actual fun RawSink.gzip(level: Int): RawSink {
-    require(level in 0..9) { "Compression level must be in 0..9, got $level" }
-    // For GZIP, we use the GzipCompressor which handles the full GZIP format
-    return CompressingSink(this, GzipCompressor(level))
+    init {
+        require(level in 0..9) { "Compression level must be in 0..9, got $level" }
+    }
+
+    actual override fun createCompressTransform(): Transform {
+        return GzipCompressor(level)
+    }
+
+    actual override fun createDecompressTransform(): Transform {
+        return GzipDecompressor()
+    }
+
+    public actual companion object {
+        public actual fun compressor(level: Int): Compressor = GZip(level)
+
+        public actual fun decompressor(): Decompressor = GZip()
+    }
 }

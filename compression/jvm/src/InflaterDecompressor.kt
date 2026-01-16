@@ -6,17 +6,19 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
+import kotlinx.io.IOException
+import kotlinx.io.Transform
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.DataFormatException
 import java.util.zip.Inflater
 
 /**
- * A [Decompressor] implementation that uses [java.util.zip.Inflater] for DEFLATE decompression.
+ * A [Transform] implementation that uses [java.util.zip.Inflater] for DEFLATE decompression.
  */
 internal class InflaterDecompressor(
     private val inflater: Inflater
-) : Decompressor {
+) : Transform {
 
     private val outputArray = ByteArray(BUFFER_SIZE)
 
@@ -24,10 +26,10 @@ internal class InflaterDecompressor(
         get() = inflater.finished()
 
     @OptIn(UnsafeIoApi::class)
-    override fun decompress(source: Buffer, sink: Buffer) {
+    override fun transform(source: Buffer, sink: Buffer) {
         // Feed data to the inflater if it needs input
         if (inflater.needsInput() && !source.exhausted()) {
-            val _ = UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
                 val count = limit - pos
                 inflater.setInput(data, pos, count)
                 count
@@ -36,6 +38,10 @@ internal class InflaterDecompressor(
 
         // Inflate while possible
         inflateToBuffer(sink)
+    }
+
+    override fun finish(sink: Buffer) {
+        // For decompression, finish is a no-op - the stream determines when it's done
     }
 
     override fun close() {
@@ -54,7 +60,7 @@ internal class InflaterDecompressor(
                 }
             }
         } catch (e: DataFormatException) {
-            throw CompressionException("Invalid compressed data: ${e.message}", e)
+            throw IOException("Invalid compressed data: ${e.message}", e)
         }
     }
 

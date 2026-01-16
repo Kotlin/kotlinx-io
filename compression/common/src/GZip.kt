@@ -5,41 +5,48 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
+import kotlinx.io.Transform
 
 /**
- * Returns a [RawSource] that decompresses GZIP data read from this source.
+ * GZIP compression format (RFC 1952).
  *
- * The returned source reads GZIP compressed data (RFC 1952) from this source
- * and returns decompressed data. The GZIP format includes a header, compressed data
- * using DEFLATE, and a trailer with CRC32 checksum.
- *
- * Closing the returned source will also close this source.
- *
- * @throws CompressionException if the compressed data is corrupted, has an invalid
- *         GZIP header/trailer, or the CRC32 checksum doesn't match
- *
- * @sample kotlinx.io.compression.samples.CompressionSamples.gzipFile
- */
-public expect fun RawSource.gzip(): RawSource
-
-/**
- * Returns a [RawSink] that compresses data written to it using GZIP format.
- *
- * The returned sink compresses data using the GZIP format (RFC 1952) and writes
- * the compressed output to this sink. The output includes a GZIP header,
- * DEFLATE compressed data, and a trailer with CRC32 checksum.
- *
- * It is important to close the returned sink to ensure the GZIP trailer is written
- * and all compressed data is flushed. Closing the returned sink will also close this sink.
+ * This class provides both compression and decompression using the GZIP format,
+ * which includes a header, DEFLATE-compressed data, and a trailer with CRC32 checksum.
  *
  * @param level compression level from 0 (no compression) to 9 (maximum compression).
- *              Default is [CompressionLevel.DEFAULT] (6).
+ *              Default is 6, which provides a good balance between speed and compression ratio.
+ *              This parameter is only used for compression; it is ignored for decompression.
  *
  * @throws IllegalArgumentException if [level] is not in the range 0..9
- * @throws CompressionException if compression fails
  *
- * @sample kotlinx.io.compression.samples.CompressionSamples.gzipFile
+ * @sample kotlinx.io.compression.samples.CompressionSamples.gzipUsage
  */
-public expect fun RawSink.gzip(level: Int = CompressionLevel.DEFAULT): RawSink
+public expect class GZip(level: Int = 6) : Compressor, Decompressor {
+    /**
+     * The compression level (0-9).
+     */
+    public val level: Int
+
+    override fun createCompressTransform(): Transform
+
+    override fun createDecompressTransform(): Transform
+
+    public companion object {
+        /**
+         * Creates a compression-only configuration with the specified level.
+         *
+         * @param level compression level from 0 (no compression) to 9 (maximum compression).
+         *              Default is 6.
+         * @return a [Compressor] instance for GZIP compression
+         * @throws IllegalArgumentException if [level] is not in the range 0..9
+         */
+        public fun compressor(level: Int = 6): Compressor
+
+        /**
+         * Creates a decompression-only configuration.
+         *
+         * @return a [Decompressor] instance for GZIP decompression
+         */
+        public fun decompressor(): Decompressor
+    }
+}

@@ -9,12 +9,14 @@ package kotlinx.io.compression
 
 import kotlinx.cinterop.*
 import kotlinx.io.Buffer
+import kotlinx.io.IOException
+import kotlinx.io.Transform
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.zlib.*
 
 /**
- * A [Compressor] implementation that uses zlib for DEFLATE/GZIP compression.
+ * A [Transform] implementation that uses zlib for DEFLATE/GZIP compression.
  *
  * @param level compression level (0-9)
  * @param windowBits determines the format:
@@ -25,7 +27,7 @@ import platform.zlib.*
 internal class ZlibCompressor(
     level: Int,
     windowBits: Int
-) : Compressor {
+) : Transform {
 
     private val arena = Arena()
     private val zStream: z_stream = arena.alloc()
@@ -48,12 +50,12 @@ internal class ZlibCompressor(
 
         if (result != Z_OK) {
             arena.clear()
-            throw CompressionException("Failed to initialize zlib deflate: ${zlibErrorMessage(result)}")
+            throw IOException("Failed to initialize zlib deflate: ${zlibErrorMessage(result)}")
         }
     }
 
     @OptIn(UnsafeIoApi::class)
-    override fun compress(source: Buffer, sink: Buffer) {
+    override fun transform(source: Buffer, sink: Buffer) {
         check(initialized) { "Compressor is closed" }
 
         while (!source.exhausted()) {
@@ -85,6 +87,9 @@ internal class ZlibCompressor(
         finished = true
     }
 
+    override val isFinished: Boolean
+        get() = finished
+
     override fun close() {
         if (!initialized) return
 
@@ -102,7 +107,7 @@ internal class ZlibCompressor(
                 val result = deflate(zStream.ptr, flush)
 
                 if (result != Z_OK && result != Z_STREAM_END && result != Z_BUF_ERROR) {
-                    throw CompressionException("Compression failed: ${zlibErrorMessage(result)}")
+                    throw IOException("Compression failed: ${zlibErrorMessage(result)}")
                 }
 
                 val produced = BUFFER_SIZE - zStream.avail_out.toInt()

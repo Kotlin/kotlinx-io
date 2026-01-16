@@ -6,20 +6,21 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
+import kotlinx.io.Transform
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 
 /**
- * A [Compressor] implementation for GZIP format (RFC 1952).
+ * A [Transform] implementation for GZIP compression (RFC 1952).
  *
  * GZIP format consists of:
  * - 10-byte header
  * - DEFLATE compressed data
  * - 8-byte trailer (CRC32 + original size)
  */
-internal class GzipCompressor(level: Int) : Compressor {
+internal class GzipCompressor(level: Int) : Transform {
 
     // Use raw deflate (nowrap=true) as we manually handle GZIP header/trailer
     private val deflater = Deflater(level, true)
@@ -31,7 +32,7 @@ internal class GzipCompressor(level: Int) : Compressor {
     private var uncompressedSize = 0L
 
     @OptIn(UnsafeIoApi::class)
-    override fun compress(source: Buffer, sink: Buffer) {
+    override fun transform(source: Buffer, sink: Buffer) {
         // Write GZIP header if not yet written
         if (!headerWritten) {
             writeHeader(sink)
@@ -40,7 +41,7 @@ internal class GzipCompressor(level: Int) : Compressor {
 
         // Feed data to the deflater and update CRC
         while (!source.exhausted()) {
-            val _ = UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
                 val count = limit - pos
 
                 // Update CRC32 checksum
@@ -76,6 +77,9 @@ internal class GzipCompressor(level: Int) : Compressor {
 
         finished = true
     }
+
+    override val isFinished: Boolean
+        get() = finished
 
     override fun close() {
         deflater.end()

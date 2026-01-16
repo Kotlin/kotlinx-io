@@ -5,24 +5,34 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
+import kotlinx.io.Transform
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
 /**
- * Returns a [RawSource] that decompresses data read from this source using the DEFLATE algorithm.
+ * DEFLATE compression algorithm (RFC 1951) - JVM implementation.
  */
-public actual fun RawSource.inflate(): RawSource {
-    // nowrap=true for raw DEFLATE (no zlib header/trailer)
-    return DecompressingSource(this, InflaterDecompressor(Inflater(true)))
-}
+public actual class Deflate actual constructor(
+    public actual val level: Int
+) : Compressor, Decompressor {
 
-/**
- * Returns a [RawSink] that compresses data written to it using the DEFLATE algorithm.
- */
-public actual fun RawSink.deflate(level: Int): RawSink {
-    require(level in 0..9) { "Compression level must be in 0..9, got $level" }
-    // nowrap=true for raw DEFLATE (no zlib header/trailer)
-    return CompressingSink(this, DeflaterCompressor(Deflater(level, true)))
+    init {
+        require(level in 0..9) { "Compression level must be in 0..9, got $level" }
+    }
+
+    actual override fun createCompressTransform(): Transform {
+        // nowrap=true for raw DEFLATE (no zlib header/trailer)
+        return DeflaterCompressor(Deflater(level, true))
+    }
+
+    actual override fun createDecompressTransform(): Transform {
+        // nowrap=true for raw DEFLATE (no zlib header/trailer)
+        return InflaterDecompressor(Inflater(true))
+    }
+
+    public actual companion object {
+        public actual fun compressor(level: Int): Compressor = Deflate(level)
+
+        public actual fun decompressor(): Decompressor = Deflate()
+    }
 }
