@@ -12,32 +12,31 @@ class RC4SourceSample {
     @Test
     fun rc4() {
         /**
-         * Source decrypting all the data read from the downstream using RC4 algorithm.
+         * Transformation that decrypts data using RC4 algorithm.
          *
          * See https://en.wikipedia.org/wiki/RC4 for more information about the cypher.
          *
          * Implementation of RC4 stream cypher based on http://cypherpunks.venona.com/archive/1994/09/msg00304.html
          */
         @OptIn(ExperimentalUnsignedTypes::class)
-        class RC4DecryptingSource(private val downstream: RawSource, key: String): RawSource {
-            private val buffer = Buffer()
+        class RC4Transformation(key: String) : Transformation {
             private val key = RC4Key(key)
+            private var finished = false
 
-            override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-                val bytesRead = downstream.readAtMostTo(buffer, byteCount)
-                if (bytesRead == -1L) {
-                    return -1L
-                }
+            override val isFinished: Boolean get() = finished
 
-                while (!buffer.exhausted()) {
-                    val byte = buffer.readByte()
+            override fun transform(source: Buffer, sink: Buffer) {
+                while (!source.exhausted()) {
+                    val byte = source.readByte()
                     sink.writeByte(byte.xor(key.nextByte()))
                 }
-
-                return bytesRead
             }
 
-            override fun close() = downstream.close()
+            override fun finish(sink: Buffer) {
+                finished = true
+            }
+
+            override fun close() {}
 
             private inner class RC4Key(key: String) {
                 private var keyState: UByteArray
@@ -76,7 +75,7 @@ class RC4SourceSample {
 
         val key = "key"
         val source = Buffer().also { it.write(byteArrayOf(0x58, 0x09, 0x57, 0x9fU.toByte(), 0x41, 0xfbU.toByte())) }
-        val rc4Source = RC4DecryptingSource(source, key).buffered()
+        val rc4Source = source.transformedWith(RC4Transformation(key)).buffered()
 
         assertEquals("Secret", rc4Source.readString())
     }

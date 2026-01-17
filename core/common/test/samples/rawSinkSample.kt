@@ -13,15 +13,15 @@ class Crc32Sample {
     @Test
     fun crc32() {
         /**
-         * Sink calculating CRC-32 code for all the data written to it and sending this data to the upstream afterward.
+         * Transformation that calculates CRC-32 code for all the data passing through it.
          * The CRC-32 value could be obtained using [crc32] method.
          *
          * See https://en.wikipedia.org/wiki/Cyclic_redundancy_check for more information about CRC-32.
          */
-        class CRC32Sink(private val upstream: RawSink): RawSink {
-            private val tempBuffer = Buffer()
+        class CRC32Transformation : Transformation {
             private val crc32Table = generateCrc32Table()
             private var crc32: UInt = 0xffffffffU
+            private var finished = false
 
             private fun update(value: Byte) {
                 val index = value.toUInt().xor(crc32).toUByte()
@@ -30,19 +30,21 @@ class Crc32Sample {
 
             fun crc32(): UInt = crc32.xor(0xffffffffU)
 
-            override fun write(source: Buffer, byteCount: Long) {
-                source.copyTo(tempBuffer, 0, byteCount)
+            override val isFinished: Boolean get() = finished
 
-                while (!tempBuffer.exhausted()) {
-                    update(tempBuffer.readByte())
+            override fun transform(source: Buffer, sink: Buffer) {
+                while (!source.exhausted()) {
+                    val byte = source.readByte()
+                    update(byte)
+                    sink.writeByte(byte)
                 }
-
-                upstream.write(source, byteCount)
             }
 
-            override fun flush() = upstream.flush()
+            override fun finish(sink: Buffer) {
+                finished = true
+            }
 
-            override fun close() = upstream.close()
+            override fun close() {}
 
             private fun generateCrc32Table(): UIntArray {
                 val table = UIntArray(256)
@@ -62,12 +64,12 @@ class Crc32Sample {
             }
         }
 
-        val crc32Sink = CRC32Sink(discardingSink())
+        val crc32Transform = CRC32Transformation()
 
-        crc32Sink.buffered().use {
+        discardingSink().transformedWith(crc32Transform).buffered().use {
             it.writeString("hello crc32")
         }
 
-        assertEquals(0x9896d398U, crc32Sink.crc32())
+        assertEquals(0x9896d398U, crc32Transform.crc32())
     }
 }
