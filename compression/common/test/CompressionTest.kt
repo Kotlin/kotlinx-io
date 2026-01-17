@@ -19,12 +19,12 @@ class CompressionTest {
 
         // Compress
         val compressed = Buffer()
-        compressed.compress(Deflate()).buffered().use { sink ->
+        compressed.compressed(Deflate()).buffered().use { sink ->
             sink.writeString(original)
         }
 
         // Decompress
-        val decompressed = compressed.decompress(Deflate.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(Deflate.decompressor()).buffered().readString()
 
         assertEquals(original, decompressed)
     }
@@ -40,7 +40,7 @@ class CompressionTest {
 
         // Compress
         val compressed = Buffer()
-        compressed.compress(Deflate()).buffered().use { sink ->
+        compressed.compressed(Deflate()).buffered().use { sink ->
             sink.writeString(original)
         }
 
@@ -48,7 +48,7 @@ class CompressionTest {
         assertTrue(compressed.size < original.length, "Compression should reduce size")
 
         // Decompress
-        val decompressed = compressed.decompress(Deflate.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(Deflate.decompressor()).buffered().readString()
 
         assertEquals(original, decompressed)
     }
@@ -63,24 +63,24 @@ class CompressionTest {
 
         // Compress with different levels
         val compressedNoCompression = Buffer()
-        compressedNoCompression.compress(Deflate(level = 0)).buffered().use { sink ->
+        compressedNoCompression.compressed(Deflate(level = 0)).buffered().use { sink ->
             sink.writeString(original)
         }
 
         val compressedFast = Buffer()
-        compressedFast.compress(Deflate(level = 1)).buffered().use { sink ->
+        compressedFast.compressed(Deflate(level = 1)).buffered().use { sink ->
             sink.writeString(original)
         }
 
         val compressedBest = Buffer()
-        compressedBest.compress(Deflate(level = 9)).buffered().use { sink ->
+        compressedBest.compressed(Deflate(level = 9)).buffered().use { sink ->
             sink.writeString(original)
         }
 
         // Verify all can be decompressed
-        assertEquals(original, compressedNoCompression.decompress(Deflate.decompressor()).buffered().readString())
-        assertEquals(original, compressedFast.decompress(Deflate.decompressor()).buffered().readString())
-        assertEquals(original, compressedBest.decompress(Deflate.decompressor()).buffered().readString())
+        assertEquals(original, compressedNoCompression.decompressed(Deflate.decompressor()).buffered().readString())
+        assertEquals(original, compressedFast.decompressed(Deflate.decompressor()).buffered().readString())
+        assertEquals(original, compressedBest.decompressed(Deflate.decompressor()).buffered().readString())
 
         // Best compression should be smaller than fast (usually)
         assertTrue(
@@ -95,7 +95,7 @@ class CompressionTest {
 
         // Compress
         val compressed = Buffer()
-        compressed.compress(GZip()).buffered().use { sink ->
+        compressed.compressed(GZip()).buffered().use { sink ->
             sink.writeString(original)
         }
 
@@ -113,7 +113,7 @@ class CompressionTest {
         fullCompressed.write(compressed, compressed.size)
 
         // Decompress
-        val decompressed = fullCompressed.decompress(GZip.decompressor()).buffered().readString()
+        val decompressed = fullCompressed.decompressed(GZip.decompressor()).buffered().readString()
 
         assertEquals(original, decompressed)
     }
@@ -129,12 +129,12 @@ class CompressionTest {
 
         // Compress
         val compressed = Buffer()
-        compressed.compress(GZip()).buffered().use { sink ->
+        compressed.compressed(GZip()).buffered().use { sink ->
             sink.writeString(original)
         }
 
         // Decompress
-        val decompressed = compressed.decompress(GZip.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(GZip.decompressor()).buffered().readString()
 
         assertEquals(original, decompressed)
     }
@@ -148,18 +148,18 @@ class CompressionTest {
         }
 
         val compressedFast = Buffer()
-        compressedFast.compress(GZip(level = 1)).buffered().use { sink ->
+        compressedFast.compressed(GZip(level = 1)).buffered().use { sink ->
             sink.writeString(original)
         }
 
         val compressedBest = Buffer()
-        compressedBest.compress(GZip(level = 9)).buffered().use { sink ->
+        compressedBest.compressed(GZip(level = 9)).buffered().use { sink ->
             sink.writeString(original)
         }
 
         // Both should decompress to original
-        assertEquals(original, compressedFast.decompress(GZip.decompressor()).buffered().readString())
-        assertEquals(original, compressedBest.decompress(GZip.decompressor()).buffered().readString())
+        assertEquals(original, compressedFast.decompressed(GZip.decompressor()).buffered().readString())
+        assertEquals(original, compressedBest.decompressed(GZip.decompressor()).buffered().readString())
     }
 
     @Test
@@ -167,11 +167,11 @@ class CompressionTest {
         val original = ""
 
         val compressed = Buffer()
-        compressed.compress(Deflate()).buffered().use { sink ->
+        compressed.compressed(Deflate()).buffered().use { sink ->
             sink.writeString(original)
         }
 
-        val decompressed = compressed.decompress(Deflate.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(Deflate.decompressor()).buffered().readString()
 
         assertEquals(original, decompressed)
     }
@@ -181,11 +181,11 @@ class CompressionTest {
         val original = ""
 
         val compressed = Buffer()
-        compressed.compress(GZip()).buffered().use { sink ->
+        compressed.compressed(GZip()).buffered().use { sink ->
             sink.writeString(original)
         }
 
-        val decompressed = compressed.decompress(GZip.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(GZip.decompressor()).buffered().readString()
 
         assertEquals(original, decompressed)
     }
@@ -196,12 +196,12 @@ class CompressionTest {
         val original = ByteArray(256) { it.toByte() }
 
         val compressed = Buffer()
-        compressed.compress(Deflate()).buffered().use { sink ->
+        compressed.compressed(Deflate()).buffered().use { sink ->
             sink.write(original)
         }
 
         val decompressedBuffer = Buffer()
-        compressed.decompress(Deflate.decompressor()).buffered().use { source ->
+        compressed.decompressed(Deflate.decompressor()).buffered().use { source ->
             source.transferTo(decompressedBuffer)
         }
 
@@ -217,12 +217,12 @@ class CompressionTest {
         val original = ByteArray(256) { it.toByte() }
 
         val compressed = Buffer()
-        compressed.compress(GZip()).buffered().use { sink ->
+        compressed.compressed(GZip()).buffered().use { sink ->
             sink.write(original)
         }
 
         val decompressedBuffer = Buffer()
-        compressed.decompress(GZip.decompressor()).buffered().use { source ->
+        compressed.decompressed(GZip.decompressor()).buffered().use { source ->
             source.transferTo(decompressedBuffer)
         }
 
@@ -261,7 +261,7 @@ class CompressionTest {
         invalidData.writeString("This is not valid deflate data!")
 
         assertFailsWith<IOException> {
-            invalidData.decompress(Deflate.decompressor()).buffered().readString()
+            invalidData.decompressed(Deflate.decompressor()).buffered().readString()
         }
     }
 
@@ -274,7 +274,7 @@ class CompressionTest {
         invalidData.writeString("Not valid GZIP!")
 
         assertFailsWith<IOException> {
-            invalidData.decompress(GZip.decompressor()).buffered().readString()
+            invalidData.decompressed(GZip.decompressor()).buffered().readString()
         }
     }
 
@@ -283,7 +283,7 @@ class CompressionTest {
         // Create valid compressed data, then truncate it
         val original = "Hello, World!"
         val compressed = Buffer()
-        compressed.compress(Deflate()).buffered().use { sink ->
+        compressed.compressed(Deflate()).buffered().use { sink ->
             sink.writeString(original)
         }
 
@@ -292,7 +292,7 @@ class CompressionTest {
         truncated.write(compressed, compressed.size / 2)
 
         assertFailsWith<IOException> {
-            truncated.decompress(Deflate.decompressor()).buffered().readString()
+            truncated.decompressed(Deflate.decompressor()).buffered().readString()
         }
     }
 
@@ -304,11 +304,11 @@ class CompressionTest {
 
         // Using Deflate class directly
         val compressed = Buffer()
-        compressed.compress(Deflate(level = 6)).buffered().use { sink ->
+        compressed.compressed(Deflate(level = 6)).buffered().use { sink ->
             sink.writeString(original)
         }
 
-        val decompressed = compressed.decompress(Deflate.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(Deflate.decompressor()).buffered().readString()
         assertEquals(original, decompressed)
     }
 
@@ -318,11 +318,11 @@ class CompressionTest {
 
         // Using GZip class directly
         val compressed = Buffer()
-        compressed.compress(GZip(level = 6)).buffered().use { sink ->
+        compressed.compressed(GZip(level = 6)).buffered().use { sink ->
             sink.writeString(original)
         }
 
-        val decompressed = compressed.decompress(GZip.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(GZip.decompressor()).buffered().readString()
         assertEquals(original, decompressed)
     }
 
@@ -332,12 +332,12 @@ class CompressionTest {
 
         // Using compression factory
         val compressed = Buffer()
-        compressed.compress(Deflate.compressor(level = 9)).buffered().use { sink ->
+        compressed.compressed(Deflate.compressor(level = 9)).buffered().use { sink ->
             sink.writeString(original)
         }
 
         // Using decompression factory
-        val decompressed = compressed.decompress(Deflate.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(Deflate.decompressor()).buffered().readString()
         assertEquals(original, decompressed)
     }
 
@@ -347,12 +347,12 @@ class CompressionTest {
 
         // Using compression factory
         val compressed = Buffer()
-        compressed.compress(GZip.compressor(level = 9)).buffered().use { sink ->
+        compressed.compressed(GZip.compressor(level = 9)).buffered().use { sink ->
             sink.writeString(original)
         }
 
         // Using decompression factory
-        val decompressed = compressed.decompress(GZip.decompressor()).buffered().readString()
+        val decompressed = compressed.decompressed(GZip.decompressor()).buffered().readString()
         assertEquals(original, decompressed)
     }
 }

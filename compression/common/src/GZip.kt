@@ -5,7 +5,7 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 
 /**
  * GZIP compression format (RFC 1952).
@@ -27,9 +27,9 @@ public expect class GZip(level: Int = 6) : Compressor, Decompressor {
      */
     public val level: Int
 
-    override fun createCompressTransform(): Transform
+    override fun createCompressTransformation(): Transformation
 
-    override fun createDecompressTransform(): Transform
+    override fun createDecompressTransformation(): Transformation
 
     public companion object {
         /**

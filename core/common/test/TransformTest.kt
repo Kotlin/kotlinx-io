@@ -17,7 +17,7 @@ class TransformTest {
         val downstream = Buffer()
         val transform = DoubleByteTransform()
 
-        val sink = downstream.transform(transform)
+        val sink = downstream.transformedWith(transform)
         sink.buffered().use { bufferedSink ->
             bufferedSink.writeString("abc")
         }
@@ -32,7 +32,7 @@ class TransformTest {
         upstream.writeString("aabbcc")
 
         val transform = HalveByteTransform()
-        val source = upstream.transform(transform)
+        val source = upstream.transformedWith(transform)
 
         val result = source.buffered().readString()
         assertEquals("abc", result)
@@ -43,7 +43,7 @@ class TransformTest {
         val downstream = Buffer()
         val transform = DoubleByteTransform()
 
-        val sink = downstream.transform(transform)
+        val sink = downstream.transformedWith(transform)
         sink.buffered().use { /* write nothing */ }
 
         assertEquals("", downstream.readString())
@@ -54,7 +54,7 @@ class TransformTest {
         val upstream = Buffer()
         val transform = HalveByteTransform()
 
-        val source = upstream.transform(transform)
+        val source = upstream.transformedWith(transform)
         val result = source.buffered().readString()
 
         assertEquals("", result)
@@ -66,7 +66,7 @@ class TransformTest {
         val transform = DoubleByteTransform()
 
         val original = "x".repeat(10000)
-        val sink = downstream.transform(transform)
+        val sink = downstream.transformedWith(transform)
         sink.buffered().use { bufferedSink ->
             bufferedSink.writeString(original)
         }
@@ -81,7 +81,7 @@ class TransformTest {
         upstream.writeString("xx".repeat(10000))
 
         val transform = HalveByteTransform()
-        val source = upstream.transform(transform)
+        val source = upstream.transformedWith(transform)
 
         val result = source.buffered().readString()
         assertEquals("x".repeat(10000), result)
@@ -93,7 +93,7 @@ class TransformTest {
         val transform = DoubleByteTransform()
 
         val original = ByteArray(256) { it.toByte() }
-        val sink = downstream.transform(transform)
+        val sink = downstream.transformedWith(transform)
         sink.buffered().use { bufferedSink ->
             bufferedSink.write(original)
         }
@@ -117,7 +117,7 @@ class TransformTest {
         }
 
         val transform = HalveByteTransform()
-        val source = upstream.transform(transform)
+        val source = upstream.transformedWith(transform)
 
         val result = source.buffered().use { bufferedSource ->
             val buffer = Buffer()
@@ -146,7 +146,7 @@ class TransformTest {
             }
         }
 
-        val transform = object : Transform {
+        val transform = object : Transformation {
             override fun transform(source: Buffer, sink: Buffer) {
                 sink.write(source, source.size)
             }
@@ -157,7 +157,7 @@ class TransformTest {
             }
         }
 
-        val sink = downstream.transform(transform)
+        val sink = downstream.transformedWith(transform)
         sink.buffered().use { bufferedSink ->
             bufferedSink.writeString("test")
         }
@@ -184,7 +184,7 @@ class TransformTest {
             }
         }
 
-        val transform = object : Transform {
+        val transform = object : Transformation {
             private var finished = false
             override fun transform(source: Buffer, sink: Buffer) {
                 if (source.size > 0) {
@@ -200,7 +200,7 @@ class TransformTest {
             }
         }
 
-        val source = upstream.transform(transform)
+        val source = upstream.transformedWith(transform)
         source.buffered().use { bufferedSource ->
             bufferedSource.readString()
         }
@@ -214,7 +214,7 @@ class TransformTest {
         val downstream = Buffer()
         val transform = DoubleByteTransform()
 
-        val sink = downstream.transform(transform)
+        val sink = downstream.transformedWith(transform)
         sink.close()
 
         assertFailsWith<IllegalStateException> {
@@ -231,7 +231,7 @@ class TransformTest {
         upstream.writeString("test")
         val transform = HalveByteTransform()
 
-        val source = upstream.transform(transform)
+        val source = upstream.transformedWith(transform)
         source.close()
 
         assertFailsWith<IllegalStateException> {
@@ -244,7 +244,7 @@ class TransformTest {
         val downstream = Buffer()
         val transform = AppendTrailerTransform("--END--")
 
-        val sink = downstream.transform(transform)
+        val sink = downstream.transformedWith(transform)
         sink.buffered().use { bufferedSink ->
             bufferedSink.writeString("Hello")
         }
@@ -257,7 +257,7 @@ class TransformTest {
         val downstream = Buffer()
         val transform = DoubleByteTransform()
 
-        val sink = downstream.transform(transform).buffered()
+        val sink = downstream.transformedWith(transform).buffered()
         sink.writeString("a")
         sink.writeString("b")
         sink.writeString("c")
@@ -271,7 +271,7 @@ class TransformTest {
         val downstream = Buffer()
         val transform = AppendTrailerTransform("--END--")
 
-        val sink = downstream.transform(transform).buffered()
+        val sink = downstream.transformedWith(transform).buffered()
         sink.writeString("Hello")
         sink.flush()
 
@@ -290,7 +290,7 @@ class TransformTest {
     /**
      * A transform that doubles each byte (writes each byte twice).
      */
-    private class DoubleByteTransform : Transform {
+    private class DoubleByteTransform : Transformation {
         private var finished = false
 
         override fun transform(source: Buffer, sink: Buffer) {
@@ -314,7 +314,7 @@ class TransformTest {
      * A transform that takes every other byte (halves the data).
      * Expects input where each byte appears twice.
      */
-    private class HalveByteTransform : Transform {
+    private class HalveByteTransform : Transformation {
         private var finished = false
 
         override fun transform(source: Buffer, sink: Buffer) {
@@ -341,7 +341,7 @@ class TransformTest {
     /**
      * A transform that appends a trailer on finish.
      */
-    private class AppendTrailerTransform(private val trailer: String) : Transform {
+    private class AppendTrailerTransform(private val trailer: String) : Transformation {
         private var finished = false
 
         override fun transform(source: Buffer, sink: Buffer) {

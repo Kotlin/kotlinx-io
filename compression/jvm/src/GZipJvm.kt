@@ -5,7 +5,7 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 
 /**
  * GZIP compression format (RFC 1952) - JVM implementation.
@@ -18,11 +18,11 @@ public actual class GZip actual constructor(
         require(level in 0..9) { "Compression level must be in 0..9, got $level" }
     }
 
-    actual override fun createCompressTransform(): Transform {
+    actual override fun createCompressTransformation(): Transformation {
         return GzipCompressor(level)
     }
 
-    actual override fun createDecompressTransform(): Transform {
+    actual override fun createDecompressTransformation(): Transformation {
         return GzipDecompressor()
     }
 

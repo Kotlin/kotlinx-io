@@ -5,7 +5,7 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
@@ -20,12 +20,12 @@ public actual class Deflate actual constructor(
         require(level in 0..9) { "Compression level must be in 0..9, got $level" }
     }
 
-    actual override fun createCompressTransform(): Transform {
+    actual override fun createCompressTransformation(): Transformation {
         // nowrap=true for raw DEFLATE (no zlib header/trailer)
         return DeflaterCompressor(Deflater(level, true))
     }
 
-    actual override fun createDecompressTransform(): Transform {
+    actual override fun createDecompressTransformation(): Transformation {
         // nowrap=true for raw DEFLATE (no zlib header/trailer)
         return InflaterDecompressor(Inflater(true))
     }

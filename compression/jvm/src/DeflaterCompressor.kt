@@ -6,17 +6,17 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.Deflater
 
 /**
- * A [Transform] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
+ * A [Transformation] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
  */
 internal class DeflaterCompressor(
     private val deflater: Deflater
-) : Transform {
+) : Transformation {
 
     private val outputArray = ByteArray(BUFFER_SIZE)
     private var finished = false

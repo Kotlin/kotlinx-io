@@ -10,13 +10,13 @@ package kotlinx.io.compression
 import kotlinx.cinterop.*
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.zlib.*
 
 /**
- * A [Transform] implementation that uses zlib for DEFLATE/GZIP compression.
+ * A [Transformation] implementation that uses zlib for DEFLATE/GZIP compression.
  *
  * @param level compression level (0-9)
  * @param windowBits determines the format:
@@ -27,7 +27,7 @@ import platform.zlib.*
 internal class ZlibCompressor(
     level: Int,
     windowBits: Int
-) : Transform {
+) : Transformation {
 
     private val arena = Arena()
     private val zStream: z_stream = arena.alloc()

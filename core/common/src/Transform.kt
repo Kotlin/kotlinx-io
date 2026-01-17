@@ -23,7 +23,17 @@ package kotlinx.io
  *
  * @sample kotlinx.io.samples.TransformSamples.customTransform
  */
-public interface Transform : AutoCloseable {
+public interface Transformation : AutoCloseable {
+    /**
+     * Indicates whether the transformation is complete.
+     *
+     * Returns `true` when the transform has processed all input data and
+     * reached the end of the transformation. For some transforms (like decompression),
+     * this is determined by the input stream format. For others (like compression),
+     * this becomes `true` after [finish] is called.
+     */
+    public val isFinished: Boolean
+
     /**
      * Transforms data from [source], consuming input bytes and writing transformed output to [sink].
      *
@@ -48,17 +58,7 @@ public interface Transform : AutoCloseable {
     public fun finish(sink: Buffer)
 
     /**
-     * Indicates whether the transformation is complete.
-     *
-     * Returns `true` when the transform has processed all input data and
-     * reached the end of the transformation. For some transforms (like decompression),
-     * this is determined by the input stream format. For others (like compression),
-     * this becomes `true` after [finish] is called.
-     */
-    public val isFinished: Boolean
-
-    /**
-     * Releases all resources associated with this transform.
+     * Releases all resources associated with this transformation.
      *
      * After closing, the transform should not be used.
      */
@@ -66,36 +66,36 @@ public interface Transform : AutoCloseable {
 }
 
 /**
- * Returns a [RawSink] that transforms data written to it using the specified [transform].
+ * Returns a [RawSink] that transforms data written to it using the specified [transformation].
  *
  * The returned sink transforms data and writes the transformed output to this sink.
  *
  * It is important to close the returned sink to ensure all transformed data is flushed
  * and any trailers are written. Closing the returned sink will also close this sink.
  *
- * @param transform the transformation to apply to written data
+ * @param transformation the transformation to apply to written data
  * @throws IOException if transformation fails
  *
  * @sample kotlinx.io.samples.TransformSamples.transformSink
  */
-public fun RawSink.transform(transform: Transform): RawSink {
-    return TransformingSink(this, transform)
+public fun RawSink.transformedWith(transformation: Transformation): RawSink {
+    return TransformingSink(this, transformation)
 }
 
 /**
- * Returns a [RawSource] that transforms data read from this source using the specified [transform].
+ * Returns a [RawSource] that transforms data read from this source using the specified [transformation].
  *
  * The returned source reads data from this source and returns transformed data.
  *
  * Closing the returned source will also close this source.
  *
- * @param transform the transformation to apply to read data
+ * @param transformation the transformation to apply to read data
  * @throws IOException if transformation fails
  *
  * @sample kotlinx.io.samples.TransformSamples.transformSource
  */
-public fun RawSource.transform(transform: Transform): RawSource {
-    return TransformingSource(this, transform)
+public fun RawSource.transformedWith(transformation: Transformation): RawSource {
+    return TransformingSource(this, transformation)
 }
 
 /**
@@ -106,7 +106,7 @@ public fun RawSource.transform(transform: Transform): RawSource {
  */
 internal class TransformingSink(
     private val downstream: RawSink,
-    private val transform: Transform
+    private val transformation: Transformation
 ) : RawSink {
 
     private val outputBuffer = Buffer()
@@ -123,7 +123,7 @@ internal class TransformingSink(
         inputBuffer.write(source, byteCount)
 
         // Transform the input
-        transform.transform(inputBuffer, outputBuffer)
+        transformation.transform(inputBuffer, outputBuffer)
 
         // Forward any transformed data to downstream
         emitTransformedData()
@@ -145,7 +145,7 @@ internal class TransformingSink(
 
         // Finish transformation and write any remaining data
         try {
-            transform.finish(outputBuffer)
+            transformation.finish(outputBuffer)
             emitTransformedData()
         } catch (e: Throwable) {
             thrown = e
@@ -153,7 +153,7 @@ internal class TransformingSink(
 
         // Close the transform to release resources
         try {
-            transform.close()
+            transformation.close()
         } catch (e: Throwable) {
             if (thrown == null) thrown = e
         }
@@ -183,7 +183,7 @@ internal class TransformingSink(
  */
 internal class TransformingSource(
     private val upstream: RawSource,
-    private val transform: Transform
+    private val transformation: Transformation
 ) : RawSource {
 
     private val inputBuffer = Buffer()
@@ -196,13 +196,13 @@ internal class TransformingSource(
         if (byteCount == 0L) return 0L
 
         // If transformation is already finished, return EOF
-        if (transform.isFinished) return -1L
+        if (transformation.isFinished) return -1L
 
         val startSize = sink.size
 
         while (sink.size - startSize < byteCount) {
             // Try to transform from existing input
-            transform.transform(inputBuffer, sink)
+            transformation.transform(inputBuffer, sink)
 
             // Check if we got some output
             if (sink.size - startSize > 0) {
@@ -211,7 +211,7 @@ internal class TransformingSource(
             }
 
             // Check if transformation is complete
-            if (transform.isFinished) {
+            if (transformation.isFinished) {
                 val bytesRead = sink.size - startSize
                 return if (bytesRead == 0L) -1L else bytesRead
             }
@@ -220,7 +220,7 @@ internal class TransformingSource(
             val read = upstream.readAtMostTo(inputBuffer, BUFFER_SIZE)
             if (read == -1L) {
                 // Upstream exhausted before transformation complete
-                if (!transform.isFinished) {
+                if (!transformation.isFinished) {
                     throw IOException("Unexpected end of stream")
                 }
                 val bytesRead = sink.size - startSize
@@ -246,7 +246,7 @@ internal class TransformingSource(
 
         // Close transform
         try {
-            transform.close()
+            transformation.close()
         } catch (e: Throwable) {
             if (thrown == null) thrown = e
         }

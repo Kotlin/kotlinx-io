@@ -7,13 +7,13 @@ package kotlinx.io.compression
 
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
-import kotlinx.io.Transform
-import kotlinx.io.transform
+import kotlinx.io.Transformation
+import kotlinx.io.transformedWith
 
 /**
  * Provides a compression transform.
  *
- * Implementations of this interface create [Transform] instances that compress data.
+ * Implementations of this interface create [Transformation] instances that compress data.
  * Built-in implementations include [Deflate] and [GZip].
  *
  * Third-party libraries can implement this interface to provide additional compression
@@ -22,11 +22,11 @@ import kotlinx.io.transform
  * Example usage:
  * ```kotlin
  * // Using built-in compression
- * sink.compress(Deflate(level = 6))
- * sink.compress(GZip(level = 9))
+ * sink.compressed(Deflate(level = 6))
+ * sink.compressed(GZip(level = 9))
  *
  * // Using third-party compression
- * sink.compress(Zstd(level = 3))
+ * sink.compressed(Zstd(level = 3))
  * ```
  *
  * @see Decompressor
@@ -37,15 +37,15 @@ public interface Compressor {
     /**
      * Creates a new compression transform.
      *
-     * @return a new [Transform] instance configured for compression
+     * @return a new [Transformation] instance configured for compression
      */
-    public fun createCompressTransform(): Transform
+    public fun createCompressTransformation(): Transformation
 }
 
 /**
  * Provides a decompression transform.
  *
- * Implementations of this interface create [Transform] instances that decompress data.
+ * Implementations of this interface create [Transformation] instances that decompress data.
  * Built-in implementations include [Deflate] and [GZip].
  *
  * Third-party libraries can implement this interface to provide additional decompression
@@ -54,11 +54,11 @@ public interface Compressor {
  * Example usage:
  * ```kotlin
  * // Using built-in decompression
- * source.decompress(Deflate.decompressor())
- * source.decompress(GZip.decompressor())
+ * source.decompressed(Deflate.decompressor())
+ * source.decompressed(GZip.decompressor())
  *
  * // Using third-party decompression
- * source.decompress(Zstd())
+ * source.decompressed(Zstd())
  * ```
  *
  * @see Compressor
@@ -69,9 +69,9 @@ public interface Decompressor {
     /**
      * Creates a new decompression transform.
      *
-     * @return a new [Transform] instance configured for decompression
+     * @return a new [Transformation] instance configured for decompression
      */
-    public fun createDecompressTransform(): Transform
+    public fun createDecompressTransformation(): Transformation
 }
 
 /**
@@ -87,8 +87,8 @@ public interface Decompressor {
  *
  * @sample kotlinx.io.compression.samples.CompressionSamples.compressedSink
  */
-public fun RawSink.compress(compressor: Compressor): RawSink {
-    return transform(compressor.createCompressTransform())
+public fun RawSink.compressed(compressor: Compressor): RawSink {
+    return transformedWith(compressor.createCompressTransformation())
 }
 
 /**
@@ -103,6 +103,6 @@ public fun RawSink.compress(compressor: Compressor): RawSink {
  *
  * @sample kotlinx.io.compression.samples.CompressionSamples.decompressedSource
  */
-public fun RawSource.decompress(decompressor: Decompressor): RawSource {
-    return transform(decompressor.createDecompressTransform())
+public fun RawSource.decompressed(decompressor: Decompressor): RawSource {
+    return transformedWith(decompressor.createDecompressTransformation())
 }

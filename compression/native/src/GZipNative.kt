@@ -8,7 +8,7 @@
 package kotlinx.io.compression
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 import platform.zlib.MAX_WBITS
 
 /**
@@ -22,12 +22,12 @@ public actual class GZip actual constructor(
         require(level in 0..9) { "Compression level must be in 0..9, got $level" }
     }
 
-    actual override fun createCompressTransform(): Transform {
+    actual override fun createCompressTransformation(): Transformation {
         // windowBits = MAX_WBITS + 16 for GZIP format
         return ZlibCompressor(level, windowBits = MAX_WBITS + 16)
     }
 
-    actual override fun createDecompressTransform(): Transform {
+    actual override fun createDecompressTransformation(): Transformation {
         // windowBits = MAX_WBITS + 16 for GZIP automatic header detection
         return ZlibDecompressor(windowBits = MAX_WBITS + 16)
     }

@@ -7,7 +7,7 @@ package kotlinx.io.compression
 
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.CRC32
@@ -15,14 +15,14 @@ import java.util.zip.DataFormatException
 import java.util.zip.Inflater
 
 /**
- * A [Transform] implementation for GZIP decompression (RFC 1952).
+ * A [Transformation] implementation for GZIP decompression (RFC 1952).
  *
  * GZIP format consists of:
  * - 10-byte minimum header (may be longer with optional fields)
  * - DEFLATE compressed data
  * - 8-byte trailer (CRC32 + original size)
  */
-internal class GzipDecompressor : Transform {
+internal class GzipDecompressor : Transformation {
 
     // Use raw inflate (nowrap=true) as we manually handle GZIP header/trailer
     private val inflater = Inflater(true)

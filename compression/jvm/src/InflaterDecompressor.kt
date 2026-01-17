@@ -7,18 +7,18 @@ package kotlinx.io.compression
 
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 import kotlinx.io.UnsafeIoApi
 import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.DataFormatException
 import java.util.zip.Inflater
 
 /**
- * A [Transform] implementation that uses [java.util.zip.Inflater] for DEFLATE decompression.
+ * A [Transformation] implementation that uses [java.util.zip.Inflater] for DEFLATE decompression.
  */
 internal class InflaterDecompressor(
     private val inflater: Inflater
-) : Transform {
+) : Transformation {
 
     private val outputArray = ByteArray(BUFFER_SIZE)
 

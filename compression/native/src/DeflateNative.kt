@@ -8,7 +8,7 @@
 package kotlinx.io.compression
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.io.Transform
+import kotlinx.io.Transformation
 import platform.zlib.MAX_WBITS
 
 /**
@@ -22,12 +22,12 @@ public actual class Deflate actual constructor(
         require(level in 0..9) { "Compression level must be in 0..9, got $level" }
     }
 
-    actual override fun createCompressTransform(): Transform {
+    actual override fun createCompressTransformation(): Transformation {
         // Negative windowBits for raw DEFLATE (no zlib/gzip header)
         return ZlibCompressor(level, windowBits = -MAX_WBITS)
     }
 
-    actual override fun createDecompressTransform(): Transform {
+    actual override fun createDecompressTransformation(): Transformation {
         // Negative windowBits for raw DEFLATE (no zlib/gzip header)
         return ZlibDecompressor(windowBits = -MAX_WBITS)
     }
