@@ -46,35 +46,51 @@ internal class ZlibDecompressor(
         }
     }
 
-    override val isFinished: Boolean
-        get() = finished
-
     @OptIn(UnsafeIoApi::class)
-    override fun transform(source: Buffer, sink: Buffer) {
+    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         check(initialized) { "Decompressor is closed" }
 
-        if (finished) return
+        // If already finished, return EOF
+        if (finished) {
+            return -1L
+        }
 
-        // Feed data to zlib if available
-        if (!source.exhausted()) {
-            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
-                val count = limit - pos
+        if (source.exhausted()) return 0L
+
+        var totalConsumed = 0L
+
+        // Consume up to byteCount bytes from source and decompress
+        while (totalConsumed < byteCount && !source.exhausted()) {
+            val consumed = UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+                val available = limit - pos
+                val toConsume = minOf(available.toLong(), byteCount - totalConsumed).toInt()
 
                 data.usePinned { pinnedInput ->
                     zStream.next_in = pinnedInput.addressOf(pos).reinterpret()
-                    zStream.avail_in = count.convert()
+                    zStream.avail_in = toConsume.convert()
 
                     inflateLoop(sink)
                 }
 
-                // Return the number of bytes consumed by zlib
-                count - zStream.avail_in.toInt()
+                // Return the number of bytes actually consumed by zlib
+                toConsume - zStream.avail_in.toInt()
+            }
+            totalConsumed += consumed
+
+            // If finished, we're done
+            if (finished) {
+                return if (totalConsumed == 0L) -1L else totalConsumed
             }
         }
+
+        return totalConsumed
     }
 
     override fun finish(sink: Buffer) {
-        // For decompression, finish is a no-op - the stream determines when it's done
+        // Verify that decompression is complete
+        if (!finished) {
+            throw IOException("Truncated or corrupt deflate/gzip data")
+        }
     }
 
     override fun close() {

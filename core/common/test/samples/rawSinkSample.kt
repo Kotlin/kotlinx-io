@@ -21,7 +21,6 @@ class Crc32Sample {
         class CRC32Transformation : Transformation {
             private val crc32Table = generateCrc32Table()
             private var crc32: UInt = 0xffffffffU
-            private var finished = false
 
             private fun update(value: Byte) {
                 val index = value.toUInt().xor(crc32).toUByte()
@@ -30,19 +29,20 @@ class Crc32Sample {
 
             fun crc32(): UInt = crc32.xor(0xffffffffU)
 
-            override val isFinished: Boolean get() = finished
+            override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+                if (source.exhausted()) return 0L
 
-            override fun transform(source: Buffer, sink: Buffer) {
-                while (!source.exhausted()) {
+                var bytesConsumed = 0L
+                while (!source.exhausted() && bytesConsumed < byteCount) {
                     val byte = source.readByte()
                     update(byte)
                     sink.writeByte(byte)
+                    bytesConsumed++
                 }
+                return bytesConsumed
             }
 
-            override fun finish(sink: Buffer) {
-                finished = true
-            }
+            override fun finish(sink: Buffer) {}
 
             override fun close() {}
 

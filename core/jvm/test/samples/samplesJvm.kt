@@ -150,20 +150,25 @@ class CipherTransformationSamples {
      */
     private class CipherTransformation(private val cipher: Cipher) : Transformation {
         private val outputBuffer = ByteArray(cipher.getOutputSize(8192))
-        private var finished = false
 
-        override val isFinished: Boolean get() = finished
+        override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            if (source.exhausted()) return 0L
 
-        override fun transform(source: Buffer, sink: Buffer) {
-            while (!source.exhausted()) {
-                val inputSize = minOf(source.size, 8192L).toInt()
-                val inputBytes = source.readByteArray(inputSize)
+            var totalConsumed = 0L
 
-                val outputSize = cipher.update(inputBytes, 0, inputSize, outputBuffer)
+            while (!source.exhausted() && totalConsumed < byteCount) {
+                val toConsume = minOf(source.size, byteCount - totalConsumed, 8192L).toInt()
+                val inputBytes = source.readByteArray(toConsume)
+
+                val outputSize = cipher.update(inputBytes, 0, toConsume, outputBuffer)
                 if (outputSize > 0) {
                     sink.write(outputBuffer, 0, outputSize)
                 }
+
+                totalConsumed += toConsume
             }
+
+            return totalConsumed
         }
 
         override fun finish(sink: Buffer) {
@@ -171,7 +176,6 @@ class CipherTransformationSamples {
             if (finalBytes.isNotEmpty()) {
                 sink.write(finalBytes)
             }
-            finished = true
         }
 
         override fun close() {}
@@ -192,7 +196,7 @@ class CipherTransformationSamples {
         encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
 
         val encryptedBuffer = Buffer()
-        encryptedBuffer.transformedWith(CipherTransformation(encryptCipher)).buffered().use { sink ->
+        (encryptedBuffer as RawSink).transformedWith(CipherTransformation(encryptCipher)).buffered().use { sink ->
             sink.writeString(originalText)
         }
 
@@ -204,7 +208,7 @@ class CipherTransformationSamples {
         val decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
         decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
 
-        val decryptedText = encryptedBuffer.transformedWith(CipherTransformation(decryptCipher)).buffered().readString()
+        val decryptedText = (encryptedBuffer as RawSource).transformedWith(CipherTransformation(decryptCipher)).buffered().readString()
 
         assertEquals(originalText, decryptedText)
     }
@@ -224,7 +228,7 @@ class CipherTransformationSamples {
         encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
 
         val encryptedBuffer = Buffer()
-        encryptedBuffer.transformedWith(CipherTransformation(encryptCipher)).buffered().use { sink ->
+        (encryptedBuffer as RawSink).transformedWith(CipherTransformation(encryptCipher)).buffered().use { sink ->
             sink.write(originalData)
         }
 
@@ -233,7 +237,7 @@ class CipherTransformationSamples {
         decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
 
         val decryptedBuffer = Buffer()
-        encryptedBuffer.transformedWith(CipherTransformation(decryptCipher)).buffered().use { source ->
+        (encryptedBuffer as RawSource).transformedWith(CipherTransformation(decryptCipher)).buffered().use { source ->
             source.transferTo(decryptedBuffer)
         }
 
@@ -251,10 +255,11 @@ class CipherTransformationSamples {
         val ivSpec = IvParameterSpec(ivBytes)
 
         // CRC32 transformation to verify data integrity
+        // Pass-through that computes CRC32 as data flows through
+        @OptIn(ExperimentalUnsignedTypes::class)
         class CRC32Transformation : Transformation {
             private val crc32Table = generateCrc32Table()
             private var crc32: UInt = 0xffffffffU
-            private var finished = false
 
             private fun update(value: Byte) {
                 val index = value.toUInt().xor(crc32).toUByte()
@@ -263,23 +268,23 @@ class CipherTransformationSamples {
 
             fun crc32(): UInt = crc32.xor(0xffffffffU)
 
-            override val isFinished: Boolean get() = finished
+            override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+                if (source.exhausted()) return 0L
 
-            override fun transform(source: Buffer, sink: Buffer) {
-                while (!source.exhausted()) {
+                var bytesConsumed = 0L
+                while (!source.exhausted() && bytesConsumed < byteCount) {
                     val byte = source.readByte()
                     update(byte)
                     sink.writeByte(byte)
+                    bytesConsumed++
                 }
+                return bytesConsumed
             }
 
-            override fun finish(sink: Buffer) {
-                finished = true
-            }
+            override fun finish(sink: Buffer) {}
 
             override fun close() {}
 
-            @OptIn(ExperimentalUnsignedTypes::class)
             private fun generateCrc32Table(): UIntArray {
                 val table = UIntArray(256)
                 for (idx in table.indices) {
@@ -303,7 +308,7 @@ class CipherTransformationSamples {
 
         val encryptedBuffer = Buffer()
         // Chain: write -> CRC32 -> encrypt -> buffer
-        encryptedBuffer
+        (encryptedBuffer as RawSink)
             .transformedWith(CipherTransformation(encryptCipher))
             .transformedWith(crc32Transform)
             .buffered()
@@ -318,7 +323,7 @@ class CipherTransformationSamples {
         decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
         val verifyCrc32Transform = CRC32Transformation()
 
-        val decryptedText = encryptedBuffer
+        val decryptedText = (encryptedBuffer as RawSource)
             .transformedWith(CipherTransformation(decryptCipher))
             .transformedWith(verifyCrc32Transform)
             .buffered()

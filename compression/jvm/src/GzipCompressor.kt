@@ -7,8 +7,6 @@ package kotlinx.io.compression
 
 import kotlinx.io.Buffer
 import kotlinx.io.Transformation
-import kotlinx.io.UnsafeIoApi
-import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 
@@ -25,36 +23,49 @@ internal class GzipCompressor(level: Int) : Transformation {
     // Use raw deflate (nowrap=true) as we manually handle GZIP header/trailer
     private val deflater = Deflater(level, true)
     private val crc32 = CRC32()
+    private val inputArray = ByteArray(BUFFER_SIZE)
     private val outputArray = ByteArray(BUFFER_SIZE)
 
     private var headerWritten = false
     private var finished = false
     private var uncompressedSize = 0L
 
-    @OptIn(UnsafeIoApi::class)
-    override fun transform(source: Buffer, sink: Buffer) {
+    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        if (source.exhausted()) return 0L
+
         // Write GZIP header if not yet written
         if (!headerWritten) {
             writeHeader(sink)
             headerWritten = true
         }
 
-        // Feed data to the deflater and update CRC
-        while (!source.exhausted()) {
-            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
-                val count = limit - pos
+        var totalConsumed = 0L
 
-                // Update CRC32 checksum
-                crc32.update(data, pos, count)
-                uncompressedSize += count
-
-                // Compress the data
-                deflater.setInput(data, pos, count)
+        // Consume up to byteCount bytes from source
+        while (!source.exhausted() && totalConsumed < byteCount) {
+            // Wait for deflater to be ready for more input
+            if (!deflater.needsInput()) {
                 deflateToBuffer(sink)
-
-                count
+                continue
             }
+
+            // Read into our own array (deflater keeps reference, so we can't use buffer's internal array)
+            val toRead = minOf(source.size, byteCount - totalConsumed, BUFFER_SIZE.toLong()).toInt()
+            @Suppress("UNUSED_VALUE")
+            val ignored = source.readAtMostTo(inputArray, 0, toRead)
+
+            // Update CRC32 checksum
+            crc32.update(inputArray, 0, toRead)
+            uncompressedSize += toRead
+
+            // Compress the data
+            deflater.setInput(inputArray, 0, toRead)
+            deflateToBuffer(sink)
+
+            totalConsumed += toRead
         }
+
+        return totalConsumed
     }
 
     override fun finish(sink: Buffer) {
@@ -77,9 +88,6 @@ internal class GzipCompressor(level: Int) : Transformation {
 
         finished = true
     }
-
-    override val isFinished: Boolean
-        get() = finished
 
     override fun close() {
         deflater.end()

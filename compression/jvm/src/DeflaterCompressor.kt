@@ -7,8 +7,6 @@ package kotlinx.io.compression
 
 import kotlinx.io.Buffer
 import kotlinx.io.Transformation
-import kotlinx.io.UnsafeIoApi
-import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.Deflater
 
 /**
@@ -18,23 +16,35 @@ internal class DeflaterCompressor(
     private val deflater: Deflater
 ) : Transformation {
 
+    private val inputArray = ByteArray(BUFFER_SIZE)
     private val outputArray = ByteArray(BUFFER_SIZE)
     private var finished = false
 
-    @OptIn(UnsafeIoApi::class)
-    override fun transform(source: Buffer, sink: Buffer) {
-        // Feed data to the deflater
-        while (!source.exhausted()) {
-            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
-                val count = limit - pos
-                deflater.setInput(data, pos, count)
+    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        if (source.exhausted()) return 0L
 
-                // Deflate while the deflater can produce output
+        var totalConsumed = 0L
+
+        // Consume up to byteCount bytes from source
+        while (!source.exhausted() && totalConsumed < byteCount) {
+            // Wait for deflater to be ready for more input
+            if (!deflater.needsInput()) {
                 deflateToBuffer(sink)
-
-                count
+                continue
             }
+
+            // Read into our own array (deflater keeps reference, so we can't use buffer's internal array)
+            val toRead = minOf(source.size, byteCount - totalConsumed, BUFFER_SIZE.toLong()).toInt()
+            @Suppress("UNUSED_VALUE")
+            val ignored = source.readAtMostTo(inputArray, 0, toRead)
+
+            deflater.setInput(inputArray, 0, toRead)
+            deflateToBuffer(sink)
+
+            totalConsumed += toRead
         }
+
+        return totalConsumed
     }
 
     override fun finish(sink: Buffer) {
@@ -48,9 +58,6 @@ internal class DeflaterCompressor(
 
         finished = true
     }
-
-    override val isFinished: Boolean
-        get() = finished
 
     override fun close() {
         deflater.end()

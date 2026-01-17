@@ -8,8 +8,6 @@ package kotlinx.io.compression
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.Transformation
-import kotlinx.io.UnsafeIoApi
-import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.CRC32
 import java.util.zip.DataFormatException
 import java.util.zip.Inflater
@@ -27,6 +25,7 @@ internal class GzipDecompressor : Transformation {
     // Use raw inflate (nowrap=true) as we manually handle GZIP header/trailer
     private val inflater = Inflater(true)
     private val crc32 = CRC32()
+    private val inputArray = ByteArray(BUFFER_SIZE)
     private val outputArray = ByteArray(BUFFER_SIZE)
 
     private var headerParsed = false
@@ -40,21 +39,21 @@ internal class GzipDecompressor : Transformation {
     // Buffer for storing remaining bytes after inflater finishes (for trailer verification)
     private val remainingBuffer = Buffer()
 
-    // Track the last input array and position for extracting remaining bytes
-    private var lastInputArray: ByteArray? = null
-    private var lastInputPos: Int = 0
-    private var lastInputCount: Int = 0
+    // Track how many bytes from inputArray the inflater hasn't consumed yet
+    private var inputArrayOffset: Int = 0
+    private var inputArrayLength: Int = 0
 
-    override val isFinished: Boolean
-        get() = finished
+    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        // If already finished, return EOF
+        if (finished) {
+            return -1L
+        }
 
-    @OptIn(UnsafeIoApi::class)
-    override fun transform(source: Buffer, sink: Buffer) {
         // Parse GZIP header if not yet parsed
         if (!headerParsed) {
             if (!parseHeader(source)) {
                 // Not enough data for header yet
-                return
+                return 0L
             }
             headerParsed = true
         }
@@ -66,57 +65,77 @@ internal class GzipDecompressor : Transformation {
 
             if (!verifyTrailer(source)) {
                 // Not enough data for trailer yet
-                return
+                return 0L
             }
             trailerVerified = true
             finished = true
-            return
+            return -1L
         }
 
-        if (finished) return
+        if (source.exhausted() && inflater.needsInput()) {
+            return 0L
+        }
 
-        // Feed data to the inflater if it needs input
-        if (inflater.needsInput() && !source.exhausted()) {
-            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
-                val count = limit - pos
-                inflater.setInput(data, pos, count)
+        var totalConsumed = 0L
 
-                // Store reference for extracting remaining bytes later
-                lastInputArray = data
-                lastInputPos = pos
-                lastInputCount = count
+        // Consume up to byteCount bytes from source and decompress
+        while (totalConsumed < byteCount && !source.exhausted()) {
+            // Feed data to the inflater if it needs input
+            if (inflater.needsInput()) {
+                val toRead = minOf(source.size, byteCount - totalConsumed, BUFFER_SIZE.toLong()).toInt()
+                @Suppress("UNUSED_VALUE")
+                val ignored = source.readAtMostTo(inputArray, 0, toRead)
+                inflater.setInput(inputArray, 0, toRead)
 
-                count
+                // Track for extracting remaining bytes
+                inputArrayOffset = 0
+                inputArrayLength = toRead
+
+                totalConsumed += toRead
+            }
+
+            // Inflate and update CRC
+            inflateToBuffer(sink)
+
+            // Check if inflater just finished - extract remaining bytes and try to verify trailer
+            if (inflater.finished() && !trailerVerified) {
+                extractRemainingBytes()
+
+                // Try to verify trailer immediately if we have enough bytes
+                if (verifyTrailer(source)) {
+                    trailerVerified = true
+                    finished = true
+                    return if (totalConsumed == 0L) -1L else totalConsumed
+                }
+                // If not enough bytes for trailer yet, return what we consumed
+                // Next call will try to verify trailer again
+                return totalConsumed
             }
         }
 
-        // Inflate and update CRC
-        inflateToBuffer(sink)
-
-        // Check if inflater just finished - extract remaining bytes immediately
-        if (inflater.finished() && !trailerVerified) {
-            extractRemainingBytes()
-        }
+        return totalConsumed
     }
 
     override fun finish(sink: Buffer) {
-        // For decompression, finish is a no-op - the stream determines when it's done
+        // Verify that decompression is complete (header parsed, data inflated, trailer verified)
+        if (!finished) {
+            throw IOException("Truncated or corrupt gzip data")
+        }
     }
 
     override fun close() {
         inflater.end()
         headerBuffer.clear()
         remainingBuffer.clear()
-        lastInputArray = null
     }
 
     private fun extractRemainingBytes() {
         val remaining = inflater.remaining
-        if (remaining > 0 && lastInputArray != null) {
+        if (remaining > 0 && inputArrayLength > 0) {
             // Calculate where the remaining bytes start in the original input
-            val remainingStart = lastInputPos + lastInputCount - remaining
-            remainingBuffer.write(lastInputArray!!, remainingStart, remainingStart + remaining)
-            lastInputArray = null
+            val remainingStart = inputArrayOffset + inputArrayLength - remaining
+            remainingBuffer.write(inputArray, remainingStart, remainingStart + remaining)
+            inputArrayLength = 0
         }
     }
 

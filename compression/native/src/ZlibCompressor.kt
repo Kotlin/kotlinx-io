@@ -55,23 +55,32 @@ internal class ZlibCompressor(
     }
 
     @OptIn(UnsafeIoApi::class)
-    override fun transform(source: Buffer, sink: Buffer) {
+    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         check(initialized) { "Compressor is closed" }
 
-        while (!source.exhausted()) {
-            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
-                val count = limit - pos
+        if (source.exhausted()) return 0L
+
+        var totalConsumed = 0L
+
+        // Consume up to byteCount bytes from source
+        while (!source.exhausted() && totalConsumed < byteCount) {
+            val consumed = UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
+                val available = limit - pos
+                val toConsume = minOf(available.toLong(), byteCount - totalConsumed).toInt()
 
                 data.usePinned { pinnedInput ->
                     zStream.next_in = pinnedInput.addressOf(pos).reinterpret()
-                    zStream.avail_in = count.convert()
+                    zStream.avail_in = toConsume.convert()
 
                     deflateLoop(sink, Z_NO_FLUSH)
                 }
 
-                count
+                toConsume
             }
+            totalConsumed += consumed
         }
+
+        return totalConsumed
     }
 
     override fun finish(sink: Buffer) {
@@ -86,9 +95,6 @@ internal class ZlibCompressor(
 
         finished = true
     }
-
-    override val isFinished: Boolean
-        get() = finished
 
     override fun close() {
         if (!initialized) return

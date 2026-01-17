@@ -8,8 +8,6 @@ package kotlinx.io.compression
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.Transformation
-import kotlinx.io.UnsafeIoApi
-import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.util.zip.DataFormatException
 import java.util.zip.Inflater
 
@@ -20,28 +18,49 @@ internal class InflaterDecompressor(
     private val inflater: Inflater
 ) : Transformation {
 
+    private val inputArray = ByteArray(BUFFER_SIZE)
     private val outputArray = ByteArray(BUFFER_SIZE)
 
-    override val isFinished: Boolean
-        get() = inflater.finished()
+    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        // If already finished, return EOF
+        if (inflater.finished()) {
+            return -1L
+        }
 
-    @OptIn(UnsafeIoApi::class)
-    override fun transform(source: Buffer, sink: Buffer) {
-        // Feed data to the inflater if it needs input
-        if (inflater.needsInput() && !source.exhausted()) {
-            UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
-                val count = limit - pos
-                inflater.setInput(data, pos, count)
-                count
+        if (source.exhausted() && inflater.needsInput()) {
+            return 0L
+        }
+
+        var totalConsumed = 0L
+
+        // Consume up to byteCount bytes from source and decompress
+        while (totalConsumed < byteCount && !source.exhausted()) {
+            // Feed data to the inflater if it needs input
+            if (inflater.needsInput()) {
+                val toRead = minOf(source.size, byteCount - totalConsumed, BUFFER_SIZE.toLong()).toInt()
+                @Suppress("UNUSED_VALUE")
+                val ignored = source.readAtMostTo(inputArray, 0, toRead)
+                inflater.setInput(inputArray, 0, toRead)
+                totalConsumed += toRead
+            }
+
+            // Inflate while possible
+            inflateToBuffer(sink)
+
+            // If inflater finished, we're done
+            if (inflater.finished()) {
+                return if (totalConsumed == 0L) -1L else totalConsumed
             }
         }
 
-        // Inflate while possible
-        inflateToBuffer(sink)
+        return totalConsumed
     }
 
     override fun finish(sink: Buffer) {
-        // For decompression, finish is a no-op - the stream determines when it's done
+        // Verify that decompression is complete
+        if (!inflater.finished()) {
+            throw IOException("Truncated or corrupt deflate data")
+        }
     }
 
     override fun close() {

@@ -21,20 +21,20 @@ class RC4SourceSample {
         @OptIn(ExperimentalUnsignedTypes::class)
         class RC4Transformation(key: String) : Transformation {
             private val key = RC4Key(key)
-            private var finished = false
 
-            override val isFinished: Boolean get() = finished
+            override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+                if (source.exhausted()) return 0L
 
-            override fun transform(source: Buffer, sink: Buffer) {
-                while (!source.exhausted()) {
+                var bytesConsumed = 0L
+                while (!source.exhausted() && bytesConsumed < byteCount) {
                     val byte = source.readByte()
                     sink.writeByte(byte.xor(key.nextByte()))
+                    bytesConsumed++
                 }
+                return bytesConsumed
             }
 
-            override fun finish(sink: Buffer) {
-                finished = true
-            }
+            override fun finish(sink: Buffer) {}
 
             override fun close() {}
 
@@ -75,7 +75,7 @@ class RC4SourceSample {
 
         val key = "key"
         val source = Buffer().also { it.write(byteArrayOf(0x58, 0x09, 0x57, 0x9fU.toByte(), 0x41, 0xfbU.toByte())) }
-        val rc4Source = source.transformedWith(RC4Transformation(key)).buffered()
+        val rc4Source = (source as RawSource).transformedWith(RC4Transformation(key)).buffered()
 
         assertEquals("Secret", rc4Source.readString())
     }

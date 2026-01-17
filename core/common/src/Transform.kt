@@ -15,7 +15,7 @@ package kotlinx.io
  *
  * The typical lifecycle is:
  * 1. Create a transform instance
- * 2. Call [transform] multiple times with input data
+ * 2. Call [transformAtMostTo] multiple times with input data
  * 3. Call [finish] to signal end of input and flush remaining output
  * 4. Call [close] to release resources
  *
@@ -25,26 +25,21 @@ package kotlinx.io
  */
 public interface Transformation : AutoCloseable {
     /**
-     * Indicates whether the transformation is complete.
+     * Removes at least 1 and up to [byteCount] bytes from [source], transforms them,
+     * and appends the result to [sink].
      *
-     * Returns `true` when the transform has processed all input data and
-     * reached the end of the transformation. For some transforms (like decompression),
-     * this is determined by the input stream format. For others (like compression),
-     * this becomes `true` after [finish] is called.
-     */
-    public val isFinished: Boolean
-
-    /**
-     * Transforms data from [source], consuming input bytes and writing transformed output to [sink].
-     *
-     * This method may not consume all available input in [source] if the internal buffer
-     * is full. Callers should continue calling this method while [source] has remaining data.
+     * The number of bytes written to [sink] may differ from the number of bytes read
+     * from [source] depending on the transformation (e.g., compression may produce
+     * fewer bytes, decompression may produce more).
      *
      * @param source buffer containing input data to transform
      * @param sink buffer to write transformed output to
+     * @param byteCount maximum number of bytes to read from source
+     * @return the number of bytes read from [source], or `-1` if this transformation
+     *         is exhausted and will produce no more output
      * @throws IOException if transformation fails
      */
-    public fun transform(source: Buffer, sink: Buffer)
+    public fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long
 
     /**
      * Signals end of input and flushes any remaining transformed data.
@@ -122,8 +117,16 @@ internal class TransformingSink(
         val inputBuffer = Buffer()
         inputBuffer.write(source, byteCount)
 
-        // Transform the input
-        transformation.transform(inputBuffer, outputBuffer)
+        // Transform all input - loop until all bytes are consumed
+        while (!inputBuffer.exhausted()) {
+            val consumed = transformation.transformAtMostTo(inputBuffer, outputBuffer, inputBuffer.size)
+            if (consumed == -1L) break
+            if (consumed == 0L && !inputBuffer.exhausted()) {
+                // Transformation didn't consume anything but there's still input
+                // This shouldn't happen with well-behaved transformations
+                break
+            }
+        }
 
         // Forward any transformed data to downstream
         emitTransformedData()
@@ -188,6 +191,7 @@ internal class TransformingSource(
 
     private val inputBuffer = Buffer()
     private var closed = false
+    private var transformationFinished = false
 
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         check(!closed) { "Source is closed." }
@@ -196,35 +200,45 @@ internal class TransformingSource(
         if (byteCount == 0L) return 0L
 
         // If transformation is already finished, return EOF
-        if (transformation.isFinished) return -1L
+        if (transformationFinished) return -1L
 
         val startSize = sink.size
 
         while (sink.size - startSize < byteCount) {
-            // Try to transform from existing input
-            transformation.transform(inputBuffer, sink)
+            val sinkSizeBefore = sink.size
 
-            // Check if we got some output
-            if (sink.size - startSize > 0) {
-                // We have some transformed data, return what we have
-                break
-            }
+            // Try to transform (even with empty input, to allow decompressors to finalize)
+            val consumed = transformation.transformAtMostTo(inputBuffer, sink, inputBuffer.size)
 
-            // Check if transformation is complete
-            if (transformation.isFinished) {
+            if (consumed == -1L) {
+                // Transformation is complete
+                transformationFinished = true
                 val bytesRead = sink.size - startSize
                 return if (bytesRead == 0L) -1L else bytesRead
             }
 
-            // Need more input data - read from upstream
+            // Check if transformation produced any output
+            if (sink.size > sinkSizeBefore) {
+                // We have some transformed data, continue to get more if needed
+                continue
+            }
+
+            // No output produced and no input consumed, need more input
+            // Read from upstream
             val read = upstream.readAtMostTo(inputBuffer, BUFFER_SIZE)
             if (read == -1L) {
-                // Upstream exhausted before transformation complete
-                if (!transformation.isFinished) {
-                    throw IOException("Unexpected end of stream")
+                // Upstream exhausted
+                // If inputBuffer is also empty, the transformation has nothing more to process
+                if (inputBuffer.exhausted()) {
+                    // Call finish to allow the transformation to finalize (e.g., for block ciphers)
+                    transformation.finish(sink)
+                    transformationFinished = true
+                    val bytesRead = sink.size - startSize
+                    return if (bytesRead == 0L) -1L else bytesRead
                 }
-                val bytesRead = sink.size - startSize
-                return if (bytesRead == 0L) -1L else bytesRead
+                // Otherwise, there's still data in inputBuffer that wasn't consumed
+                // This indicates the transformation expected more input (e.g., truncated compressed data)
+                throw IOException("Unexpected end of stream")
             }
         }
 
