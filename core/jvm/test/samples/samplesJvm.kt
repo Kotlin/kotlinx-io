@@ -141,6 +141,200 @@ class KotlinxIoSamplesJvm {
     }
 }
 
+class ProcessorSamplesJvm {
+    /**
+     * A [Processor] that computes a hash using JDK's [java.security.MessageDigest].
+     *
+     * This demonstrates how to implement [Processor] for cryptographic hashing.
+     * The processor reads bytes without consuming them from the buffer.
+     */
+    private class MessageDigestProcessor(algorithm: String) : Processor<ByteArray> {
+        private val digest = java.security.MessageDigest.getInstance(algorithm)
+        private var closed = false
+
+        override fun process(source: Buffer, byteCount: Long) {
+            check(!closed) { "Processor is closed" }
+            require(byteCount >= 0) { "byteCount: $byteCount" }
+
+            val toProcess = minOf(byteCount, source.size).toInt()
+            // Read bytes without consuming - copy to temp buffer then to array
+            val tempBuffer = Buffer()
+            source.copyTo(tempBuffer, startIndex = 0, endIndex = toProcess.toLong())
+            val bytes = tempBuffer.readByteArray()
+            digest.update(bytes)
+        }
+
+        override fun compute(): ByteArray {
+            check(!closed) { "Processor is closed" }
+            // digest() returns result AND resets the MessageDigest
+            return digest.digest()
+        }
+
+        override fun close() {
+            closed = true
+        }
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun ByteArray.toHexString(): String =
+        joinToString("") { "%02x".format(it) }
+
+    @Test
+    fun sha256Hash() {
+        val data = "Hello, World!"
+        val buffer = Buffer()
+        buffer.writeString(data)
+
+        val hash = (buffer as RawSource).compute(MessageDigestProcessor("SHA-256"))
+
+        // SHA-256 produces 32 bytes
+        assertEquals(32, hash.size)
+
+        // Verify against known hash
+        val expectedHex = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
+        assertEquals(expectedHex, hash.toHexString())
+    }
+
+    @Test
+    fun md5Hash() {
+        val data = "Hello, World!"
+        val buffer = Buffer()
+        buffer.writeString(data)
+
+        val hash = (buffer as RawSource).compute(MessageDigestProcessor("MD5"))
+
+        // MD5 produces 16 bytes
+        assertEquals(16, hash.size)
+
+        // Verify against known hash
+        val expectedHex = "65a8e27d8879283831b664bd8b7f0ad4"
+        assertEquals(expectedHex, hash.toHexString())
+    }
+
+    @Test
+    fun hashLargeData() {
+        // Generate large data to verify streaming works
+        val data = ByteArray(100_000) { (it % 256).toByte() }
+        val buffer = Buffer()
+        buffer.write(data)
+
+        val hash = (buffer as RawSource).compute(MessageDigestProcessor("SHA-256"))
+
+        assertEquals(32, hash.size)
+    }
+
+    @Test
+    fun processorReuse() {
+        val processor = MessageDigestProcessor("SHA-256")
+
+        // First hash
+        val buffer1 = Buffer()
+        buffer1.writeString("First")
+        val hash1 = (buffer1 as RawSource).compute(processor)
+
+        // Second hash - processor was reset by compute()
+        val buffer2 = Buffer()
+        buffer2.writeString("Second")
+        val hash2 = (buffer2 as RawSource).compute(processor)
+
+        // Hashes should be different
+        assertFalse(hash1.contentEquals(hash2))
+
+        processor.close()
+    }
+
+    /**
+     * A [RunningProcessor] that computes CRC32 using JDK's [java.util.zip.CRC32].
+     *
+     * This demonstrates how to implement [RunningProcessor] for checksums
+     * that support reading intermediate values.
+     */
+    private class Crc32Processor : RunningProcessor<Long> {
+        private val crc32 = java.util.zip.CRC32()
+        private var closed = false
+
+        override fun process(source: Buffer, byteCount: Long) {
+            check(!closed) { "Processor is closed" }
+            require(byteCount >= 0) { "byteCount: $byteCount" }
+
+            val toProcess = minOf(byteCount, source.size).toInt()
+            // Read bytes without consuming - copy to temp buffer then to array
+            val tempBuffer = Buffer()
+            source.copyTo(tempBuffer, startIndex = 0, endIndex = toProcess.toLong())
+            val bytes = tempBuffer.readByteArray()
+            crc32.update(bytes)
+        }
+
+        override fun current(): Long {
+            check(!closed) { "Processor is closed" }
+            return crc32.value
+        }
+
+        override fun compute(): Long {
+            check(!closed) { "Processor is closed" }
+            val result = crc32.value
+            crc32.reset()
+            return result
+        }
+
+        override fun close() {
+            closed = true
+        }
+    }
+
+    @Test
+    fun crc32Checksum() {
+        val data = "Hello, World!"
+        val buffer = Buffer()
+        buffer.writeString(data)
+
+        val checksum = (buffer as RawSource).compute(Crc32Processor())
+
+        // Known CRC32 for "Hello, World!"
+        assertEquals(3964322768L, checksum)
+    }
+
+    @Test
+    fun crc32IntermediateValues() {
+        val processor = Crc32Processor()
+
+        val buffer1 = Buffer()
+        buffer1.writeString("Hello")
+        processor.process(buffer1, buffer1.size)
+
+        // Get intermediate CRC32
+        val intermediate = processor.current()
+        assertTrue(intermediate > 0)
+
+        val buffer2 = Buffer()
+        buffer2.writeString(", World!")
+        processor.process(buffer2, buffer2.size)
+
+        // Final CRC32 should be different from intermediate
+        val final = processor.current()
+        assertNotEquals(intermediate, final)
+
+        // compute() returns same value as current() but resets
+        assertEquals(final, processor.compute())
+
+        // After compute(), should be reset
+        assertEquals(0L, processor.current())
+
+        processor.close()
+    }
+
+    @Test
+    fun crc32LargeData() {
+        val data = ByteArray(100_000) { (it % 256).toByte() }
+        val buffer = Buffer()
+        buffer.write(data)
+
+        val checksum = (buffer as RawSource).compute(Crc32Processor())
+
+        assertTrue(checksum > 0)
+    }
+}
+
 class CipherTransformationSamples {
     /**
      * A [Transformation] that encrypts or decrypts data using a [Cipher].
