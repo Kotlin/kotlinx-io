@@ -145,3 +145,122 @@ public fun <T> RawSource.compute(processor: Processor<T>): T {
 }
 
 private const val PROCESSOR_BUFFER_SIZE = 8192L
+
+/**
+ * Returns a [RawSource] that passes data through while the [processor] observes it.
+ *
+ * The returned source reads data from this source and passes it to the processor
+ * before returning it to the caller. The data flows through unchanged - the processor
+ * only observes it.
+ *
+ * This allows computing a hash or checksum while streaming data through a pipeline:
+ * ```kotlin
+ * val crc = Crc32()
+ * val source = fileSource.processedWith(crc)
+ * source.transferTo(outputSink)  // data flows through, crc observes
+ * val checksum = crc.compute()   // get the checksum
+ * ```
+ *
+ * The processor is NOT closed when the returned source is closed. The caller
+ * is responsible for managing the processor's lifecycle.
+ *
+ * @param processor the processor to observe the data
+ * @return a new [RawSource] that passes data through while the processor observes
+ */
+public fun RawSource.processedWith(processor: Processor<*>): RawSource {
+    return ProcessingSource(this, processor)
+}
+
+/**
+ * Returns a [RawSink] that passes data through while the [processor] observes it.
+ *
+ * The returned sink passes data to the processor before writing it to this sink.
+ * The data flows through unchanged - the processor only observes it.
+ *
+ * This allows computing a hash or checksum while streaming data through a pipeline:
+ * ```kotlin
+ * val sha = Sha256()
+ * val sink = fileSink.processedWith(sha)
+ * sink.write(data)  // data flows through, sha observes
+ * sink.close()
+ * val hash = sha.compute()  // get the hash
+ * ```
+ *
+ * The processor is NOT closed when the returned sink is closed. The caller
+ * is responsible for managing the processor's lifecycle.
+ *
+ * @param processor the processor to observe the data
+ * @return a new [RawSink] that passes data through while the processor observes
+ */
+public fun RawSink.processedWith(processor: Processor<*>): RawSink {
+    return ProcessingSink(this, processor)
+}
+
+/**
+ * A [RawSource] that passes data through while a processor observes it.
+ */
+internal class ProcessingSource(
+    private val upstream: RawSource,
+    private val processor: Processor<*>
+) : RawSource {
+
+    private var closed = false
+
+    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        check(!closed) { "Source is closed." }
+        require(byteCount >= 0) { "byteCount: $byteCount" }
+
+        if (byteCount == 0L) return 0L
+
+        val bytesRead = upstream.readAtMostTo(sink, byteCount)
+
+        if (bytesRead > 0) {
+            processor.process(sink, bytesRead)
+        }
+
+        return bytesRead
+    }
+
+    override fun close() {
+        if (closed) return
+        closed = true
+        // Don't close the processor - caller manages its lifecycle
+        upstream.close()
+    }
+}
+
+/**
+ * A [RawSink] that passes data through while a processor observes it.
+ */
+internal class ProcessingSink(
+    private val downstream: RawSink,
+    private val processor: Processor<*>
+) : RawSink {
+
+    private var closed = false
+
+    override fun write(source: Buffer, byteCount: Long) {
+        check(!closed) { "Sink is closed." }
+        require(byteCount >= 0) { "byteCount: $byteCount" }
+
+        if (byteCount == 0L) return
+
+        // Process the data before writing (process doesn't consume)
+        processor.process(source, byteCount)
+
+        // Write to downstream
+        downstream.write(source, byteCount)
+    }
+
+    override fun flush() {
+        check(!closed) { "Sink is closed." }
+        downstream.flush()
+    }
+
+    override fun close() {
+        if (closed) return
+        closed = true
+        // Don't close the processor - caller manages its lifecycle
+        downstream.close()
+    }
+}

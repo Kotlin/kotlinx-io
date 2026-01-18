@@ -172,6 +172,148 @@ class ProcessorTest {
         // Buffer should still have all data
         assertEquals(13L, buffer.size)
     }
+
+    @Test
+    fun processedWithSource() {
+        val processor = ByteCountProcessor()
+        val upstream = Buffer()
+        upstream.writeString("Hello, World!")
+
+        val processedWithSource = (upstream as RawSource).processedWith(processor)
+        val output = Buffer()
+
+        // Read all data through the processedWith source
+        processedWithSource.buffered().use { source ->
+            source.transferTo(output)
+        }
+
+        // Data should flow through unchanged
+        assertEquals("Hello, World!", output.readString())
+
+        // Processor should have processedWith all data
+        assertEquals(13L, processor.current())
+
+        // Can still compute after source is closed
+        assertEquals(13L, processor.compute())
+
+        processor.close()
+    }
+
+    @Test
+    fun processedWithSourcePartialReads() {
+        val processor = ByteCountProcessor()
+        val upstream = Buffer()
+        upstream.writeString("Hello, World!")
+
+        val processedWithSource = (upstream as RawSource).processedWith(processor)
+        val output = Buffer()
+
+        // Read in chunks directly from RawSource (buffered reads ahead)
+        @Suppress("UNUSED_VARIABLE")
+        var bytesRead = processedWithSource.readAtMostTo(output, 5)
+        assertEquals("Hello", output.readString())
+        assertEquals(5L, processor.current())
+
+        bytesRead = processedWithSource.readAtMostTo(output, 2)
+        assertEquals(", ", output.readString())
+        assertEquals(7L, processor.current())
+
+        bytesRead = processedWithSource.readAtMostTo(output, 6)
+        assertEquals("World!", output.readString())
+        assertEquals(13L, processor.current())
+
+        processedWithSource.close()
+        processor.close()
+    }
+
+    @Test
+    fun processedWithSink() {
+        val processor = ByteCountProcessor()
+        val downstream = Buffer()
+
+        val processedWithSink = (downstream as RawSink).processedWith(processor)
+
+        processedWithSink.buffered().use { sink ->
+            sink.writeString("Hello, World!")
+        }
+
+        // Data should flow through unchanged
+        assertEquals("Hello, World!", downstream.readString())
+
+        // Processor should have processedWith all data
+        assertEquals(13L, processor.compute())
+
+        processor.close()
+    }
+
+    @Test
+    fun processedWithSinkMultipleWrites() {
+        val processor = ByteCountProcessor()
+        val downstream = Buffer()
+
+        val processedWithSink = (downstream as RawSink).processedWith(processor)
+        val buffered = processedWithSink.buffered()
+
+        buffered.writeString("Hello")
+        buffered.flush()
+        assertEquals(5L, processor.current())
+
+        buffered.writeString(", World!")
+        buffered.flush()
+        assertEquals(13L, processor.current())
+
+        buffered.close()
+
+        assertEquals("Hello, World!", downstream.readString())
+        assertEquals(13L, processor.compute())
+
+        processor.close()
+    }
+
+    @Test
+    fun processedWithSourceProcessorNotClosed() {
+        val processor = ByteCountProcessor()
+        val upstream = Buffer()
+        upstream.writeString("Test")
+
+        val processedWithSource = (upstream as RawSource).processedWith(processor)
+        processedWithSource.buffered().use { it.readString() }
+
+        // Processor should still be usable after source is closed
+        assertEquals(4L, processor.current())
+        assertEquals(4L, processor.compute())
+
+        // Can reuse processor with another source
+        val upstream2 = Buffer()
+        upstream2.writeString("More")
+        val processedWithSource2 = (upstream2 as RawSource).processedWith(processor)
+        processedWithSource2.buffered().use { it.readString() }
+
+        assertEquals(4L, processor.compute())
+
+        processor.close()
+    }
+
+    @Test
+    fun processedWithSinkProcessorNotClosed() {
+        val processor = ByteCountProcessor()
+        val downstream = Buffer()
+
+        val processedWithSink = (downstream as RawSink).processedWith(processor)
+        processedWithSink.buffered().use { it.writeString("Test") }
+
+        // Processor should still be usable after sink is closed
+        assertEquals(4L, processor.current())
+
+        // Can reuse processor with another sink
+        val downstream2 = Buffer()
+        val processedWithSink2 = (downstream2 as RawSink).processedWith(processor)
+        processedWithSink2.buffered().use { it.writeString("More") }
+
+        assertEquals(8L, processor.compute())
+
+        processor.close()
+    }
 }
 
 /**
