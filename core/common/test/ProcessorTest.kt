@@ -318,9 +318,8 @@ class ProcessorTest {
 
 /**
  * Simple test processor that counts bytes.
- * Implements RunningProcessor to support current().
  */
-private class ByteCountProcessor : RunningProcessor<Long> {
+private class ByteCountProcessor : Processor<Long> {
     private var count: Long = 0
     private var closed = false
 
@@ -333,7 +332,8 @@ private class ByteCountProcessor : RunningProcessor<Long> {
         count += toProcess
     }
 
-    override fun current(): Long {
+    /** Returns current value without resetting. */
+    fun current(): Long {
         check(!closed) { "Processor is closed" }
         return count
     }
@@ -341,7 +341,7 @@ private class ByteCountProcessor : RunningProcessor<Long> {
     override fun compute(): Long {
         check(!closed) { "Processor is closed" }
         val result = count
-        count = 0  // reset
+        count = 0  // reset for reuse
         return result
     }
 
@@ -352,9 +352,8 @@ private class ByteCountProcessor : RunningProcessor<Long> {
 
 /**
  * Test processor that sums byte values.
- * Implements RunningProcessor to support current().
  */
-private class ByteSumProcessor : RunningProcessor<Int> {
+private class ByteSumProcessor : Processor<Int> {
     private var sum: Int = 0
     private var closed = false
 
@@ -369,15 +368,10 @@ private class ByteSumProcessor : RunningProcessor<Int> {
         }
     }
 
-    override fun current(): Int {
-        check(!closed) { "Processor is closed" }
-        return sum
-    }
-
     override fun compute(): Int {
         check(!closed) { "Processor is closed" }
         val result = sum
-        sum = 0  // reset
+        sum = 0  // reset for reuse
         return result
     }
 

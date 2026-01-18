@@ -5,8 +5,11 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.withData
+
 /**
- * A streaming processor that consumes input bytes and produces a result of type [T].
+ * A streaming processor that processes input bytes and produces a result of type [T].
  *
  * This interface provides a general-purpose abstraction for processing operations such as
  * hashing, MACs, checksums, and other computations over byte streams. Implementations
@@ -16,18 +19,12 @@ package kotlinx.io
  * The typical lifecycle is:
  * 1. Create a processor instance
  * 2. Call [process] multiple times with input data
- * 3. Call [compute] to retrieve the result (this also resets the processor)
- * 4. Optionally reuse by going back to step 2, or call [close] to release resources
+ * 3. Call [compute] to retrieve the result
+ * 4. Call [close] to release resources
  *
  * The [process] method reads bytes from the provided buffer without consuming them.
  * The bytes remain in the buffer after processing, allowing them to be used for
  * other purposes (e.g., writing to a sink while computing a checksum).
- *
- * Calling [compute] returns the result and resets the processor to its initial state,
- * ready for a new computation.
- *
- * For processors that support reading intermediate results without resetting,
- * see [RunningProcessor].
  *
  * Processor instances are not thread-safe and should only be used by a single thread.
  *
@@ -40,12 +37,11 @@ package kotlinx.io
  * val hasher = Sha256()
  * hasher.process(buffer1, buffer1.size)
  * hasher.process(buffer2, buffer2.size)
- * val result = hasher.compute()  // get result and reset
+ * val result = hasher.compute()
  * hasher.close()
  * ```
  *
  * @param T the type of the processed result (e.g., ByteString for hashes, Long for checksums)
- * @see RunningProcessor
  * @see RawSource.compute
  */
 public interface Processor<out T> : AutoCloseable {
@@ -64,10 +60,7 @@ public interface Processor<out T> : AutoCloseable {
     public fun process(source: Buffer, byteCount: Long)
 
     /**
-     * Computes and returns the result, then resets the processor to its initial state.
-     *
-     * After calling this method, the processor is ready for a new computation.
-     * Any subsequent calls to [process] will start fresh.
+     * Computes and returns the result.
      *
      * @return the computed result
      * @throws IllegalStateException if called after [close]
@@ -81,42 +74,6 @@ public interface Processor<out T> : AutoCloseable {
      * After closing, the processor should not be used.
      */
     override fun close()
-}
-
-/**
- * A [Processor] that supports reading intermediate results without resetting.
- *
- * This interface extends [Processor] to add the ability to read the current
- * computed value at any point without affecting the ongoing computation.
- * This is useful for checksums and other computations where intermediate
- * values are meaningful.
- *
- * Example usage:
- * ```kotlin
- * val crc = Crc32()  // implements RunningProcessor<Long>
- * crc.process(chunk1, chunk1.size)
- * val intermediate = crc.current()  // read without resetting
- * crc.process(chunk2, chunk2.size)
- * val stillRunning = crc.current()  // read again
- * val final = crc.compute()  // get final result and reset
- * ```
- *
- * @param T the type of the processed result
- * @see Processor
- */
-public interface RunningProcessor<out T> : Processor<T> {
-    /**
-     * Returns the current computed value without resetting the processor.
-     *
-     * Unlike [compute], this method does not reset the processor state.
-     * Further calls to [process] will continue from the current state,
-     * and subsequent calls to [current] will reflect the updated value.
-     *
-     * @return the current computed value
-     * @throws IllegalStateException if called after [close]
-     * @throws IOException if computation fails
-     */
-    public fun current(): T
 }
 
 /**
@@ -194,6 +151,71 @@ public fun RawSource.processedWith(processor: Processor<*>): RawSource {
  */
 public fun RawSink.processedWith(processor: Processor<*>): RawSink {
     return ProcessingSink(this, processor)
+}
+
+/**
+ * Abstract base class for implementing [Processor] using `ByteArray`-based APIs.
+ *
+ * This class provides a convenient way to implement processors that work with
+ * `ByteArray` operations (such as JDK's `MessageDigest` or `CRC32`) without
+ * requiring manual buffer management. The class uses kotlinx.io's unsafe API
+ * internally to avoid unnecessary copies when accessing buffer data.
+ *
+ * Subclasses implement [process] with a `ByteArray` signature instead of `Buffer`.
+ * The base class handles buffer iteration using the unsafe API.
+ *
+ * Example implementation for a hash processor:
+ * ```kotlin
+ * class Sha256Processor : ByteArrayProcessor<ByteArray>() {
+ *     private val digest = MessageDigest.getInstance("SHA-256")
+ *
+ *     override fun process(source: ByteArray, startIndex: Int, endIndex: Int) {
+ *         digest.update(source, startIndex, endIndex - startIndex)
+ *     }
+ *
+ *     override fun compute(): ByteArray = digest.digest()
+ *
+ *     override fun close() {}
+ * }
+ * ```
+ *
+ * @param T the type of the computed result
+ * @see Processor
+ */
+@UnsafeIoApi
+public abstract class ByteArrayProcessor<out T> : Processor<T> {
+    /**
+     * Processes bytes from the given array range.
+     *
+     * This method is called with direct access to buffer segment data,
+     * avoiding unnecessary copies. The bytes in the specified range should
+     * be incorporated into the computation.
+     *
+     * @param source the byte array containing data to process
+     * @param startIndex the start index (inclusive) of data to process
+     * @param endIndex the end index (exclusive) of data to process
+     */
+    protected abstract fun process(source: ByteArray, startIndex: Int, endIndex: Int)
+
+    final override fun process(source: Buffer, byteCount: Long) {
+        require(byteCount >= 0) { "byteCount: $byteCount" }
+
+        if (byteCount == 0L || source.exhausted()) return
+
+        val toProcess = minOf(byteCount, source.size)
+        var remaining = toProcess
+
+        UnsafeBufferOperations.forEachSegment(source) { context, segment ->
+            if (remaining <= 0) return@forEachSegment
+
+            context.withData(segment) { bytes, startIndex, endIndex ->
+                val segmentSize = endIndex - startIndex
+                val bytesToProcess = minOf(remaining, segmentSize.toLong()).toInt()
+                process(bytes, startIndex, startIndex + bytesToProcess)
+                remaining -= bytesToProcess
+            }
+        }
+    }
 }
 
 /**

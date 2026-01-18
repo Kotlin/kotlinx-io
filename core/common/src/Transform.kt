@@ -5,6 +5,9 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.unsafe.withData
+
 /**
  * A streaming transformation that converts input bytes to output bytes.
  *
@@ -58,6 +61,191 @@ public interface Transformation : AutoCloseable {
      * After closing, the transform should not be used.
      */
     override fun close()
+}
+
+/**
+ * Abstract base class for implementing [Transformation] using `ByteArray`-based APIs.
+ *
+ * This class provides a convenient way to implement transformations that work with
+ * `ByteArray` operations (such as JDK's `Cipher`, `Inflater`, or `Deflater`) without
+ * requiring manual buffer management. The class uses kotlinx.io's unsafe API
+ * internally to avoid unnecessary copies when reading source buffer data.
+ *
+ * Subclasses must implement either:
+ * - [transformToByteArray] and [finishToByteArray] for simple cases, OR
+ * - [maxOutputSize], [transformIntoByteArray], and [finishIntoByteArray] for zero-allocation
+ *
+ * Default implementations delegate between the two approaches, so implementing
+ * one automatically provides the other.
+ *
+ * Example using allocating API (simple):
+ * ```kotlin
+ * class Base64Encoder : ByteArrayTransformation() {
+ *     override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int) =
+ *         Base64.encode(source.copyOfRange(startIndex, endIndex))
+ *
+ *     override fun finishToByteArray() = ByteArray(0)
+ *     override fun close() {}
+ * }
+ * ```
+ *
+ * Example using non-allocating API (efficient):
+ * ```kotlin
+ * class CipherTransformation(private val cipher: Cipher) : ByteArrayTransformation() {
+ *     override fun maxOutputSize(inputSize: Int) = cipher.getOutputSize(inputSize)
+ *
+ *     override fun transformIntoByteArray(
+ *         source: ByteArray, startIndex: Int, endIndex: Int,
+ *         destination: ByteArray, destinationOffset: Int
+ *     ) = cipher.update(source, startIndex, endIndex - startIndex, destination, destinationOffset)
+ *
+ *     override fun finishIntoByteArray(destination: ByteArray, destinationOffset: Int) =
+ *         cipher.doFinal(destination, destinationOffset)
+ *
+ *     override fun close() {}
+ * }
+ * ```
+ *
+ * @see Transformation
+ */
+@UnsafeIoApi
+public abstract class ByteArrayTransformation : Transformation {
+    /**
+     * Returns the maximum output size for the given input size.
+     *
+     * Override this along with [transformIntoByteArray] for zero-allocation transformations.
+     * Pass `inputSize = 0` to get the maximum size for [finish] output.
+     *
+     * @param inputSize the input size in bytes, or 0 for finish output size
+     * @return the maximum output size, or -1 if unknown (will use [transformToByteArray])
+     */
+    protected open fun maxOutputSize(inputSize: Int): Int = -1
+
+    /**
+     * Transforms input bytes and returns the result as a new array.
+     *
+     * Override this for simple transformations. The default implementation
+     * uses [maxOutputSize] and [transformIntoByteArray].
+     *
+     * @param source the byte array containing data to transform
+     * @param startIndex the start index (inclusive) of data to transform
+     * @param endIndex the end index (exclusive) of data to transform
+     * @return the transformed bytes
+     */
+    protected open fun transformToByteArray(
+        source: ByteArray,
+        startIndex: Int = 0,
+        endIndex: Int = source.size
+    ): ByteArray {
+        val inputSize = endIndex - startIndex
+        val maxSize = maxOutputSize(inputSize)
+        check(maxSize >= 0) {
+            "Override either transformToByteArray, or both maxOutputSize and transformIntoByteArray"
+        }
+        val destination = ByteArray(maxSize)
+        val actualSize = transformIntoByteArray(source, startIndex, endIndex, destination, 0)
+        return if (actualSize == maxSize) destination else destination.copyOf(actualSize)
+    }
+
+    /**
+     * Transforms input bytes into the destination array.
+     *
+     * Override this along with [maxOutputSize] for zero-allocation transformations.
+     * The default implementation uses [transformToByteArray].
+     *
+     * @param source the byte array containing data to transform
+     * @param startIndex the start index (inclusive) of data to transform
+     * @param endIndex the end index (exclusive) of data to transform
+     * @param destination the byte array to write transformed data to
+     * @param destinationOffset the offset in destination to start writing
+     * @return the number of bytes written to destination
+     */
+    protected open fun transformIntoByteArray(
+        source: ByteArray,
+        startIndex: Int,
+        endIndex: Int,
+        destination: ByteArray,
+        destinationOffset: Int
+    ): Int {
+        val result = transformToByteArray(source, startIndex, endIndex)
+        result.copyInto(destination, destinationOffset)
+        return result.size
+    }
+
+    /**
+     * Finishes the transformation and returns any remaining output as a new array.
+     *
+     * Override this for simple transformations. The default implementation
+     * uses [maxOutputSize] with `inputSize = 0` and [finishIntoByteArray].
+     *
+     * @return the final transformed bytes, or empty array if none
+     */
+    protected open fun finishToByteArray(): ByteArray {
+        val maxSize = maxOutputSize(0)
+        if (maxSize == 0) return ByteArray(0)
+        check(maxSize > 0) {
+            "Override either finishToByteArray, or both maxOutputSize (for inputSize=0) and finishIntoByteArray"
+        }
+        val destination = ByteArray(maxSize)
+        val actualSize = finishIntoByteArray(destination, 0)
+        return if (actualSize == maxSize) destination else destination.copyOf(actualSize)
+    }
+
+    /**
+     * Finishes the transformation into the destination array.
+     *
+     * Override this along with [maxOutputSize] for zero-allocation transformations.
+     * The default implementation uses [finishToByteArray].
+     *
+     * @param destination the byte array to write final transformed data to
+     * @param destinationOffset the offset in destination to start writing
+     * @return the number of bytes written to destination
+     */
+    protected open fun finishIntoByteArray(
+        destination: ByteArray,
+        destinationOffset: Int
+    ): Int {
+        val result = finishToByteArray()
+        result.copyInto(destination, destinationOffset)
+        return result.size
+    }
+
+    final override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        if (source.exhausted()) return 0L
+
+        val toProcess = minOf(byteCount, source.size)
+        var totalConsumed = 0L
+        var remaining = toProcess
+
+        UnsafeBufferOperations.forEachSegment(source) { context, segment ->
+            if (remaining <= 0) return@forEachSegment
+
+            context.withData(segment) { bytes, startIndex, endIndex ->
+                val segmentSize = endIndex - startIndex
+                val bytesToOffer = minOf(remaining, segmentSize.toLong()).toInt()
+                val result = transformToByteArray(bytes, startIndex, startIndex + bytesToOffer)
+                if (result.isNotEmpty()) {
+                    sink.write(result)
+                }
+                totalConsumed += bytesToOffer
+                remaining -= bytesToOffer
+            }
+        }
+
+        // Consume the processed bytes from source
+        if (totalConsumed > 0) {
+            source.skip(totalConsumed)
+        }
+
+        return totalConsumed
+    }
+
+    final override fun finish(sink: Buffer) {
+        val result = finishToByteArray()
+        if (result.isNotEmpty()) {
+            sink.write(result)
+        }
+    }
 }
 
 /**

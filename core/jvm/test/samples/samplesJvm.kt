@@ -244,12 +244,9 @@ class ProcessorSamplesJvm {
     }
 
     /**
-     * A [RunningProcessor] that computes CRC32 using JDK's [java.util.zip.CRC32].
-     *
-     * This demonstrates how to implement [RunningProcessor] for checksums
-     * that support reading intermediate values.
+     * A [Processor] that computes CRC32 using JDK's [java.util.zip.CRC32].
      */
-    private class Crc32Processor : RunningProcessor<Long> {
+    private class Crc32Processor : Processor<Long> {
         private val crc32 = java.util.zip.CRC32()
         private var closed = false
 
@@ -265,7 +262,8 @@ class ProcessorSamplesJvm {
             crc32.update(bytes)
         }
 
-        override fun current(): Long {
+        /** Returns current value without resetting. */
+        fun current(): Long {
             check(!closed) { "Processor is closed" }
             return crc32.value
         }
@@ -525,5 +523,241 @@ class CipherTransformationSamples {
 
         assertEquals(originalText, decryptedText)
         assertEquals(originalCrc32, verifyCrc32Transform.crc32())
+    }
+}
+
+/**
+ * Samples demonstrating [ByteArrayProcessor] for zero-copy processing.
+ */
+@OptIn(UnsafeIoApi::class)
+class ByteArrayProcessorSamplesJvm {
+    /**
+     * A [ByteArrayProcessor] that computes a hash using JDK's [java.security.MessageDigest].
+     *
+     * This demonstrates zero-copy processing - bytes are accessed directly
+     * from buffer segments without intermediate copies.
+     */
+    private class MessageDigestByteArrayProcessor(algorithm: String) : ByteArrayProcessor<ByteArray>() {
+        private val digest = java.security.MessageDigest.getInstance(algorithm)
+
+        override fun process(source: ByteArray, startIndex: Int, endIndex: Int) {
+            digest.update(source, startIndex, endIndex - startIndex)
+        }
+
+        override fun compute(): ByteArray = digest.digest()
+
+        override fun close() {}
+    }
+
+    /**
+     * A [ByteArrayProcessor] that computes CRC32 using JDK's [java.util.zip.CRC32].
+     *
+     * This demonstrates zero-copy processing.
+     */
+    private class Crc32ByteArrayProcessor : ByteArrayProcessor<Long>() {
+        private val crc32 = java.util.zip.CRC32()
+
+        override fun process(source: ByteArray, startIndex: Int, endIndex: Int) {
+            crc32.update(source, startIndex, endIndex - startIndex)
+        }
+
+        /** Returns current value without resetting. */
+        fun current(): Long = crc32.value
+
+        override fun compute(): Long {
+            val result = crc32.value
+            crc32.reset()
+            return result
+        }
+
+        override fun close() {}
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun ByteArray.toHexString(): String =
+        joinToString("") { "%02x".format(it) }
+
+    @Test
+    fun sha256HashZeroCopy() {
+        val data = "Hello, World!"
+        val buffer = Buffer()
+        buffer.writeString(data)
+
+        val hash = (buffer as RawSource).compute(MessageDigestByteArrayProcessor("SHA-256"))
+
+        // SHA-256 produces 32 bytes
+        assertEquals(32, hash.size)
+
+        // Verify against known hash
+        val expectedHex = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
+        assertEquals(expectedHex, hash.toHexString())
+    }
+
+    @Test
+    fun crc32ZeroCopy() {
+        val data = "Hello, World!"
+        val buffer = Buffer()
+        buffer.writeString(data)
+
+        val checksum = (buffer as RawSource).compute(Crc32ByteArrayProcessor())
+
+        // Known CRC32 for "Hello, World!"
+        assertEquals(3964322768L, checksum)
+    }
+
+    @Test
+    fun crc32IntermediateValuesZeroCopy() {
+        val processor = Crc32ByteArrayProcessor()
+
+        val buffer1 = Buffer()
+        buffer1.writeString("Hello")
+        processor.process(buffer1, buffer1.size)
+
+        // Get intermediate CRC32
+        val intermediate = processor.current()
+        assertTrue(intermediate > 0)
+
+        val buffer2 = Buffer()
+        buffer2.writeString(", World!")
+        processor.process(buffer2, buffer2.size)
+
+        // Final CRC32 should be different from intermediate
+        val final = processor.current()
+        assertNotEquals(intermediate, final)
+
+        // compute() returns same value as current() but resets
+        assertEquals(final, processor.compute())
+
+        // After compute(), should be reset
+        assertEquals(0L, processor.current())
+
+        processor.close()
+    }
+
+    @Test
+    fun hashLargeDataZeroCopy() {
+        // Generate large data to verify streaming works with multiple segments
+        val data = ByteArray(100_000) { (it % 256).toByte() }
+        val buffer = Buffer()
+        buffer.write(data)
+
+        val hash = (buffer as RawSource).compute(MessageDigestByteArrayProcessor("SHA-256"))
+
+        assertEquals(32, hash.size)
+    }
+
+    @Test
+    fun processorReuseZeroCopy() {
+        val processor = MessageDigestByteArrayProcessor("SHA-256")
+
+        // First hash
+        val buffer1 = Buffer()
+        buffer1.writeString("First")
+        val hash1 = (buffer1 as RawSource).compute(processor)
+
+        // Second hash - processor was reset by compute()
+        val buffer2 = Buffer()
+        buffer2.writeString("Second")
+        val hash2 = (buffer2 as RawSource).compute(processor)
+
+        // Hashes should be different
+        assertFalse(hash1.contentEquals(hash2))
+
+        processor.close()
+    }
+}
+
+/**
+ * Samples demonstrating [ByteArrayTransformation] for zero-copy transformations.
+ */
+@OptIn(UnsafeIoApi::class)
+class ByteArrayTransformationSamplesJvm {
+    /**
+     * A [ByteArrayTransformation] that encrypts or decrypts data using a [Cipher].
+     *
+     * This demonstrates zero-copy reading from source - bytes are accessed directly
+     * from buffer segments without intermediate copies.
+     */
+    private class CipherByteArrayTransformation(private val cipher: Cipher) : ByteArrayTransformation() {
+        override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
+
+        override fun transformIntoByteArray(
+            source: ByteArray,
+            startIndex: Int,
+            endIndex: Int,
+            destination: ByteArray,
+            destinationOffset: Int
+        ): Int = cipher.update(source, startIndex, endIndex - startIndex, destination, destinationOffset)
+
+        override fun finishIntoByteArray(
+            destination: ByteArray,
+            destinationOffset: Int
+        ): Int = cipher.doFinal(destination, destinationOffset)
+
+        override fun close() {}
+    }
+
+    @Test
+    fun aesEncryptionDecryptionZeroCopy() {
+        val originalText = "Hello, AES encryption with ByteArrayTransformation!"
+
+        // Generate a 128-bit AES key and IV
+        val keyBytes = ByteArray(16) { it.toByte() }
+        val ivBytes = ByteArray(16) { (it + 16).toByte() }
+        val secretKey = SecretKeySpec(keyBytes, "AES")
+        val ivSpec = IvParameterSpec(ivBytes)
+
+        // Encrypt
+        val encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
+
+        val encryptedBuffer = Buffer()
+        (encryptedBuffer as RawSink).transformedWith(CipherByteArrayTransformation(encryptCipher)).buffered().use { sink ->
+            sink.writeString(originalText)
+        }
+
+        // The encrypted data should be different from the original
+        val encryptedBytes = encryptedBuffer.copy().readByteArray()
+        assertFalse(encryptedBytes.contentEquals(originalText.encodeToByteArray()))
+
+        // Decrypt
+        val decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
+
+        val decryptedText = (encryptedBuffer as RawSource).transformedWith(CipherByteArrayTransformation(decryptCipher)).buffered().readString()
+
+        assertEquals(originalText, decryptedText)
+    }
+
+    @Test
+    fun aesEncryptLargeDataZeroCopy() {
+        // Generate large data (larger than internal buffer size)
+        val originalData = ByteArray(100_000) { (it % 256).toByte() }
+
+        val keyBytes = ByteArray(16) { it.toByte() }
+        val ivBytes = ByteArray(16) { (it + 16).toByte() }
+        val secretKey = SecretKeySpec(keyBytes, "AES")
+        val ivSpec = IvParameterSpec(ivBytes)
+
+        // Encrypt
+        val encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
+
+        val encryptedBuffer = Buffer()
+        (encryptedBuffer as RawSink).transformedWith(CipherByteArrayTransformation(encryptCipher)).buffered().use { sink ->
+            sink.write(originalData)
+        }
+
+        // Decrypt
+        val decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
+
+        val decryptedBuffer = Buffer()
+        (encryptedBuffer as RawSource).transformedWith(CipherByteArrayTransformation(decryptCipher)).buffered().use { source ->
+            source.transferTo(decryptedBuffer)
+        }
+
+        val decryptedData = decryptedBuffer.readByteArray()
+        assertContentEquals(originalData, decryptedData)
     }
 }

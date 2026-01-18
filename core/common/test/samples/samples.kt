@@ -816,17 +816,17 @@ class KotlinxIoCoreCommonSamples {
 }
 
 /**
- * Samples demonstrating [Processor] and [RunningProcessor] usage with pure Kotlin implementations.
+ * Samples demonstrating [Processor] usage with pure Kotlin implementations.
  */
 @OptIn(ExperimentalUnsignedTypes::class)
 class ProcessorSamplesCommon {
     /**
-     * A pure Kotlin implementation of CRC32 as a [RunningProcessor].
+     * A pure Kotlin implementation of CRC32 as a [Processor].
      *
      * This demonstrates how to implement a checksum processor that works
      * across all Kotlin platforms without platform-specific dependencies.
      */
-    private class Crc32Processor : RunningProcessor<Long> {
+    private class Crc32Processor : Processor<Long> {
         private var crc: UInt = 0xffffffffU
         private var closed = false
 
@@ -843,7 +843,7 @@ class ProcessorSamplesCommon {
             }
         }
 
-        override fun current(): Long {
+        fun current(): Long {
             check(!closed) { "Processor is closed" }
             return (crc xor 0xffffffffU).toLong()
         }
