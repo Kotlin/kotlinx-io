@@ -6,13 +6,13 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
-import kotlinx.io.ByteArrayTransformation
+import kotlinx.io.StreamingTransformation
 import kotlinx.io.UnsafeIoApi
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 
 /**
- * A [ByteArrayTransformation] implementation for GZIP compression (RFC 1952).
+ * A [StreamingTransformation] implementation for GZIP compression (RFC 1952).
  *
  * GZIP format consists of:
  * - 10-byte header
@@ -20,19 +20,16 @@ import java.util.zip.Deflater
  * - 8-byte trailer (CRC32 + original size)
  */
 @OptIn(UnsafeIoApi::class)
-internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
+internal class GzipCompressor(level: Int) : StreamingTransformation() {
 
     // Use raw deflate (nowrap=true) as we manually handle GZIP header/trailer
     private val deflater = Deflater(level, true)
     private val crc32 = CRC32()
-    private val outputArray = ByteArray(BUFFER_SIZE)
 
     private var headerWritten = false
-    private var finished = false
+    private var finishCalled = false
+    private var trailerWritten = false
     private var uncompressedSize = 0L
-
-    // Note: maxOutputSize returns -1 to use allocating API because DEFLATE
-    // with Z_NO_FLUSH buffers data internally, making output size unpredictable.
 
     override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         if (source.exhausted()) return 0L
@@ -43,40 +40,25 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
             headerWritten = true
         }
 
-        // Call parent implementation which will use transformToByteArray
         return super.transformAtMostTo(source, sink, byteCount)
     }
 
-    override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
-        val inputSize = endIndex - startIndex
-        if (inputSize == 0) return ByteArray(0)
+    override fun feedInput(source: ByteArray, startIndex: Int, endIndex: Int) {
+        val length = endIndex - startIndex
+        // Update CRC32 checksum before compression
+        crc32.update(source, startIndex, length)
+        uncompressedSize += length
+        deflater.setInput(source, startIndex, length)
+    }
 
-        // Update CRC32 checksum
-        crc32.update(source, startIndex, inputSize)
-        uncompressedSize += inputSize
+    override fun needsInput(): Boolean = deflater.needsInput()
 
-        // Compress the data
-        deflater.setInput(source, startIndex, inputSize)
-
-        // Collect all output from deflater
-        val result = mutableListOf<ByteArray>()
-        var totalSize = 0
-
-        while (!deflater.needsInput()) {
-            val count = deflater.deflate(outputArray)
-            if (count > 0) {
-                result.add(outputArray.copyOf(count))
-                totalSize += count
-            } else {
-                break
-            }
-        }
-
-        return combineChunks(result, totalSize)
+    override fun drainOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+        return deflater.deflate(destination, startIndex, endIndex - startIndex)
     }
 
     override fun finalize(sink: Buffer) {
-        if (finished) return
+        if (trailerWritten) return
 
         // Ensure header is written even if no data was compressed
         if (!headerWritten) {
@@ -84,38 +66,21 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
             headerWritten = true
         }
 
-        // Call parent finalize which will call finalizeToByteArray
+        // Finalize deflate output
         super.finalize(sink)
 
         // Write GZIP trailer
         writeTrailer(sink)
-
-        finished = true
+        trailerWritten = true
     }
 
-    override fun finalizeToByteArray(): ByteArray {
-        // Finish deflate
-        deflater.finish()
-
-        // Collect all remaining output
-        val result = mutableListOf<ByteArray>()
-        var totalSize = 0
-
-        while (!deflater.finished()) {
-            val count = deflater.deflate(outputArray)
-            if (count > 0) {
-                result.add(outputArray.copyOf(count))
-                totalSize += count
-            } else if (deflater.finished()) {
-                break
-            }
+    override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+        if (!finishCalled) {
+            deflater.finish()
+            finishCalled = true
         }
-
-        return combineChunks(result, totalSize)
-    }
-
-    private companion object {
-        private const val BUFFER_SIZE = 8192
+        if (deflater.finished()) return -1
+        return deflater.deflate(destination, startIndex, endIndex - startIndex)
     }
 
     override fun close() {

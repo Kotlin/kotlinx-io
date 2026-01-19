@@ -12,6 +12,8 @@ import kotlinx.io.Buffer
 import kotlinx.io.ByteArrayTransformation
 import kotlinx.io.IOException
 import kotlinx.io.UnsafeIoApi
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import platform.posix.memset
 import platform.zlib.*
 
 /**
@@ -30,7 +32,6 @@ internal class ZlibDecompressor(
 
     private val arena = Arena()
     private val zStream: z_stream = arena.alloc()
-    private val outputBuffer = ByteArray(BUFFER_SIZE)
     private var finished = false
     private var initialized = true
 
@@ -50,74 +51,61 @@ internal class ZlibDecompressor(
         check(initialized) { "Decompressor is closed" }
 
         // If already finished, return EOF
-        if (finished) {
-            return -1L
-        }
-
+        if (finished) return -1L
         if (source.exhausted()) return 0L
 
-        // Call parent implementation which will use transformToByteArray
-        return super.transformAtMostTo(source, sink, byteCount)
-    }
+        val consumed = UnsafeBufferOperations.readFromHead(source) { inputBytes, inputStart, inputEnd ->
+            val available = minOf(byteCount.toInt(), inputEnd - inputStart)
 
-    override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
-        check(initialized) { "Decompressor is closed" }
+            inputBytes.usePinned { pinnedInput ->
+                zStream.next_in = pinnedInput.addressOf(inputStart).reinterpret()
+                zStream.avail_in = available.convert()
 
-        val inputSize = endIndex - startIndex
-        if (inputSize == 0) return ByteArray(0)
+                // Drain all output for this input
+                while (zStream.avail_in > 0u && !finished) {
+                    val written = UnsafeBufferOperations.writeToTail(sink, 1) { outputBytes, outputStart, outputEnd ->
+                        outputBytes.usePinned { pinnedOutput ->
+                            zStream.next_out = pinnedOutput.addressOf(outputStart).reinterpret()
+                            zStream.avail_out = (outputEnd - outputStart).convert()
 
-        // If already finished, return empty
-        if (finished) return ByteArray(0)
+                            val inflateResult = inflate(zStream.ptr, Z_NO_FLUSH)
 
-        // Collect all output
-        val result = mutableListOf<ByteArray>()
-        var totalSize = 0
+                            when (inflateResult) {
+                                Z_OK, Z_BUF_ERROR -> {
+                                    // Continue processing
+                                }
+                                Z_STREAM_END -> {
+                                    finished = true
+                                }
+                                Z_DATA_ERROR -> {
+                                    throw IOException("Invalid compressed data: ${zlibErrorMessage(inflateResult)}")
+                                }
+                                else -> {
+                                    throw IOException("Decompression failed: ${zlibErrorMessage(inflateResult)}")
+                                }
+                            }
 
-        source.usePinned { pinnedInput ->
-            zStream.next_in = pinnedInput.addressOf(startIndex).reinterpret()
-            zStream.avail_in = inputSize.convert()
-
-            outputBuffer.usePinned { pinnedOutput ->
-                do {
-                    zStream.next_out = pinnedOutput.addressOf(0).reinterpret()
-                    zStream.avail_out = BUFFER_SIZE.convert()
-
-                    val inflateResult = inflate(zStream.ptr, Z_NO_FLUSH)
-
-                    when (inflateResult) {
-                        Z_OK, Z_BUF_ERROR -> {
-                            // Continue processing
-                        }
-                        Z_STREAM_END -> {
-                            finished = true
-                        }
-                        Z_DATA_ERROR -> {
-                            throw IOException("Invalid compressed data: ${zlibErrorMessage(inflateResult)}")
-                        }
-                        else -> {
-                            throw IOException("Decompression failed: ${zlibErrorMessage(inflateResult)}")
+                            (outputEnd - outputStart) - zStream.avail_out.toInt()
                         }
                     }
-
-                    val produced = BUFFER_SIZE - zStream.avail_out.toInt()
-                    if (produced > 0) {
-                        result.add(outputBuffer.copyOf(produced))
-                        totalSize += produced
-                    }
-
-                } while (zStream.avail_out == 0u && !finished)
+                    if (written == 0) break
+                }
             }
+
+            available
         }
 
-        return combineChunks(result, totalSize)
+        return consumed.toLong()
     }
 
-    override fun finalizeToByteArray(): ByteArray {
+    override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+        check(initialized) { "Decompressor is closed" }
+
         // Verify that decompression is complete
         if (!finished) {
             throw IOException("Truncated or corrupt deflate/gzip data")
         }
-        return ByteArray(0)
+        return -1
     }
 
     override fun close() {
@@ -126,9 +114,5 @@ internal class ZlibDecompressor(
         inflateEnd(zStream.ptr)
         arena.clear()
         initialized = false
-    }
-
-    private companion object {
-        private const val BUFFER_SIZE = 8192
     }
 }

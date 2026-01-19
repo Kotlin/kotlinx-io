@@ -8,9 +8,12 @@
 package kotlinx.io.compression
 
 import kotlinx.cinterop.*
+import kotlinx.io.Buffer
 import kotlinx.io.ByteArrayTransformation
 import kotlinx.io.IOException
 import kotlinx.io.UnsafeIoApi
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import platform.posix.memset
 import platform.zlib.*
 
 /**
@@ -30,7 +33,7 @@ internal class ZlibCompressor(
 
     private val arena = Arena()
     private val zStream: z_stream = arena.alloc()
-    private val outputBuffer = ByteArray(BUFFER_SIZE)
+    private var finishCalled = false
     private var finished = false
     private var initialized = true
 
@@ -53,85 +56,75 @@ internal class ZlibCompressor(
         }
     }
 
-    // Note: maxOutputSize returns -1 to use allocating API because DEFLATE
-    // with Z_NO_FLUSH buffers data internally, making output size unpredictable.
-
-    override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
+    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         check(initialized) { "Compressor is closed" }
+        if (source.exhausted()) return 0L
 
-        val inputSize = endIndex - startIndex
-        if (inputSize == 0) return ByteArray(0)
+        val consumed = UnsafeBufferOperations.readFromHead(source) { inputBytes, inputStart, inputEnd ->
+            val available = minOf(byteCount.toInt(), inputEnd - inputStart)
 
-        // Collect all output
-        val result = mutableListOf<ByteArray>()
-        var totalSize = 0
+            inputBytes.usePinned { pinnedInput ->
+                zStream.next_in = pinnedInput.addressOf(inputStart).reinterpret()
+                zStream.avail_in = available.convert()
 
-        source.usePinned { pinnedInput ->
-            zStream.next_in = pinnedInput.addressOf(startIndex).reinterpret()
-            zStream.avail_in = inputSize.convert()
-
-            outputBuffer.usePinned { pinnedOutput ->
+                // Drain all output for this input
                 while (zStream.avail_in > 0u) {
-                    zStream.next_out = pinnedOutput.addressOf(0).reinterpret()
-                    zStream.avail_out = BUFFER_SIZE.convert()
+                    val written = UnsafeBufferOperations.writeToTail(sink, 1) { outputBytes, outputStart, outputEnd ->
+                        outputBytes.usePinned { pinnedOutput ->
+                            zStream.next_out = pinnedOutput.addressOf(outputStart).reinterpret()
+                            zStream.avail_out = (outputEnd - outputStart).convert()
 
-                    val deflateResult = deflate(zStream.ptr, Z_NO_FLUSH)
+                            val deflateResult = deflate(zStream.ptr, Z_NO_FLUSH)
 
-                    if (deflateResult != Z_OK && deflateResult != Z_BUF_ERROR) {
-                        throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
+                            if (deflateResult != Z_OK && deflateResult != Z_BUF_ERROR) {
+                                throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
+                            }
+
+                            (outputEnd - outputStart) - zStream.avail_out.toInt()
+                        }
                     }
+                    if (written == 0) break
+                }
+            }
 
-                    val produced = BUFFER_SIZE - zStream.avail_out.toInt()
-                    if (produced > 0) {
-                        result.add(outputBuffer.copyOf(produced))
-                        totalSize += produced
-                    }
+            available
+        }
+
+        return consumed.toLong()
+    }
+
+    override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+        check(initialized) { "Compressor is closed" }
+        if (finished) return -1
+
+        if (!finishCalled) {
+            zStream.next_in = null
+            zStream.avail_in = 0u
+            finishCalled = true
+        }
+
+        return destination.usePinned { pinnedOutput ->
+            zStream.next_out = pinnedOutput.addressOf(startIndex).reinterpret()
+            zStream.avail_out = (endIndex - startIndex).convert()
+
+            val deflateResult = deflate(zStream.ptr, Z_FINISH)
+
+            val written = (endIndex - startIndex) - zStream.avail_out.toInt()
+
+            when (deflateResult) {
+                Z_OK, Z_BUF_ERROR -> {
+                    // More output pending
+                    written
+                }
+                Z_STREAM_END -> {
+                    finished = true
+                    if (written > 0) written else -1
+                }
+                else -> {
+                    throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
                 }
             }
         }
-
-        return combineChunks(result, totalSize)
-    }
-
-    override fun finalizeToByteArray(): ByteArray {
-        if (finished) return ByteArray(0)
-        check(initialized) { "Compressor is closed" }
-
-        // Set empty input and finish
-        zStream.next_in = null
-        zStream.avail_in = 0u
-
-        // Collect all remaining output
-        val result = mutableListOf<ByteArray>()
-        var totalSize = 0
-
-        outputBuffer.usePinned { pinnedOutput ->
-            var deflateResult: Int
-            do {
-                zStream.next_out = pinnedOutput.addressOf(0).reinterpret()
-                zStream.avail_out = BUFFER_SIZE.convert()
-
-                deflateResult = deflate(zStream.ptr, Z_FINISH)
-
-                if (deflateResult != Z_OK && deflateResult != Z_STREAM_END && deflateResult != Z_BUF_ERROR) {
-                    throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
-                }
-
-                val produced = BUFFER_SIZE - zStream.avail_out.toInt()
-                if (produced > 0) {
-                    result.add(outputBuffer.copyOf(produced))
-                    totalSize += produced
-                }
-            } while (deflateResult != Z_STREAM_END)
-        }
-
-        finished = true
-
-        return combineChunks(result, totalSize)
-    }
-
-    private companion object {
-        private const val BUFFER_SIZE = 8192
     }
 
     override fun close() {

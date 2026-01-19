@@ -668,23 +668,36 @@ class ByteArrayProcessorSamplesJvm {
 }
 
 /**
- * Samples demonstrating [ByteArrayTransformation] for zero-copy transformations.
+ * Samples demonstrating [BlockTransformation] for bounded transformations like cipher.
  */
 @OptIn(UnsafeIoApi::class)
 class ByteArrayTransformationSamplesJvm {
     /**
-     * A [ByteArrayTransformation] that encrypts or decrypts data using a [Cipher].
+     * A [BlockTransformation] that encrypts or decrypts data using a [Cipher].
      *
-     * This demonstrates how to implement a ByteArray-based transformation by wrapping
-     * JDK's Cipher API.
+     * This demonstrates how to implement a bounded transformation by wrapping
+     * JDK's Cipher API, where the maximum output size can be determined from input size.
      */
-    private class CipherByteArrayTransformation(private val cipher: Cipher) : ByteArrayTransformation() {
-        override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
-            return cipher.update(source, startIndex, endIndex - startIndex) ?: ByteArray(0)
+    private class CipherBlockTransformation(private val cipher: Cipher) : BlockTransformation() {
+        private var finalized = false
+
+        override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
+
+        override fun transformIntoByteArray(
+            source: ByteArray,
+            sourceStart: Int,
+            sourceEnd: Int,
+            destination: ByteArray,
+            destinationStart: Int,
+            destinationEnd: Int
+        ): Int {
+            return cipher.update(source, sourceStart, sourceEnd - sourceStart, destination, destinationStart)
         }
 
-        override fun finalizeToByteArray(): ByteArray {
-            return cipher.doFinal() ?: ByteArray(0)
+        override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+            if (finalized) return -1
+            finalized = true
+            return cipher.doFinal(destination, startIndex)
         }
 
         override fun close() {}
@@ -705,7 +718,7 @@ class ByteArrayTransformationSamplesJvm {
         encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
 
         val encryptedBuffer = Buffer()
-        (encryptedBuffer as RawSink).transformedWith(CipherByteArrayTransformation(encryptCipher)).buffered().use { sink ->
+        (encryptedBuffer as RawSink).transformedWith(CipherBlockTransformation(encryptCipher)).buffered().use { sink ->
             sink.writeString(originalText)
         }
 
@@ -717,7 +730,7 @@ class ByteArrayTransformationSamplesJvm {
         val decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
         decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
 
-        val decryptedText = (encryptedBuffer as RawSource).transformedWith(CipherByteArrayTransformation(decryptCipher)).buffered().readString()
+        val decryptedText = (encryptedBuffer as RawSource).transformedWith(CipherBlockTransformation(decryptCipher)).buffered().readString()
 
         assertEquals(originalText, decryptedText)
     }
@@ -737,7 +750,7 @@ class ByteArrayTransformationSamplesJvm {
         encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
 
         val encryptedBuffer = Buffer()
-        (encryptedBuffer as RawSink).transformedWith(CipherByteArrayTransformation(encryptCipher)).buffered().use { sink ->
+        (encryptedBuffer as RawSink).transformedWith(CipherBlockTransformation(encryptCipher)).buffered().use { sink ->
             sink.write(originalData)
         }
 
@@ -746,7 +759,7 @@ class ByteArrayTransformationSamplesJvm {
         decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
 
         val decryptedBuffer = Buffer()
-        (encryptedBuffer as RawSource).transformedWith(CipherByteArrayTransformation(decryptCipher)).buffered().use { source ->
+        (encryptedBuffer as RawSource).transformedWith(CipherBlockTransformation(decryptCipher)).buffered().use { source ->
             source.transferTo(decryptedBuffer)
         }
 
