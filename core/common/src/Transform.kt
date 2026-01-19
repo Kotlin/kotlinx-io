@@ -194,9 +194,23 @@ public abstract class ByteArrayTransformation : Transformation {
             context.withData(segment) { bytes, startIndex, endIndex ->
                 val segmentSize = endIndex - startIndex
                 val bytesToOffer = minOf(remaining, segmentSize.toLong()).toInt()
-                val result = transformToByteArray(bytes, startIndex, startIndex + bytesToOffer)
-                if (result.isNotEmpty()) {
-                    sink.write(result)
+                val inputEnd = startIndex + bytesToOffer
+
+                // Try non-allocating path if maxOutputSize is available
+                val maxSize = maxOutputSize(bytesToOffer)
+                if (maxSize >= 0) {
+                    // Use non-allocating API
+                    val destination = ByteArray(maxSize)
+                    val written = transformIntoByteArray(bytes, startIndex, inputEnd, destination, 0)
+                    if (written > 0) {
+                        sink.write(destination, 0, written)
+                    }
+                } else {
+                    // Use allocating API
+                    val result = transformToByteArray(bytes, startIndex, inputEnd)
+                    if (result.isNotEmpty()) {
+                        sink.write(result)
+                    }
                 }
                 totalConsumed += bytesToOffer
                 remaining -= bytesToOffer
@@ -212,9 +226,24 @@ public abstract class ByteArrayTransformation : Transformation {
     }
 
     override fun finalize(sink: Buffer) {
-        val result = finalizeToByteArray()
-        if (result.isNotEmpty()) {
-            sink.write(result)
+        // Try non-allocating path if maxOutputSize is available
+        val maxSize = maxOutputSize(0)
+        if (maxSize > 0) {
+            // Use non-allocating API
+            val destination = ByteArray(maxSize)
+            val written = finalizeIntoByteArray(destination, 0)
+            if (written > 0) {
+                sink.write(destination, 0, written)
+            }
+        } else if (maxSize == 0) {
+            // No output expected from finalize
+            return
+        } else {
+            // Use allocating API
+            val result = finalizeToByteArray()
+            if (result.isNotEmpty()) {
+                sink.write(result)
+            }
         }
     }
 

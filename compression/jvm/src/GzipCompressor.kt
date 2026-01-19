@@ -31,6 +31,9 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
     private var finished = false
     private var uncompressedSize = 0L
 
+    // Note: maxOutputSize returns -1 to use allocating API because DEFLATE
+    // with Z_NO_FLUSH buffers data internally, making output size unpredictable.
+
     override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         if (source.exhausted()) return 0L
 
@@ -111,6 +114,10 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
         return combineChunks(result, totalSize)
     }
 
+    private companion object {
+        private const val BUFFER_SIZE = 8192
+    }
+
     override fun close() {
         deflater.end()
     }
@@ -149,9 +156,5 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
         sink.writeByte((sizeValue shr 8 and 0xFF).toByte())
         sink.writeByte((sizeValue shr 16 and 0xFF).toByte())
         sink.writeByte((sizeValue shr 24 and 0xFF).toByte())
-    }
-
-    private companion object {
-        private const val BUFFER_SIZE = 8192
     }
 }

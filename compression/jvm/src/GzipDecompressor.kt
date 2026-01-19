@@ -128,6 +128,19 @@ internal class GzipDecompressor : ByteArrayTransformation() {
     }
 
     override fun finalize(sink: Buffer) {
+        // If inflater is finished but trailer not verified, verify it now
+        // This can happen when the deflate data and trailer are in the same input chunk
+        if (inflater.finished() && !trailerVerified) {
+            extractRemainingBytes()
+            // Create an empty buffer - all trailer data should be in remainingBuffer
+            val emptySource = Buffer()
+            if (!verifyTrailer(emptySource)) {
+                throw IOException("Truncated or corrupt gzip data: incomplete trailer")
+            }
+            trailerVerified = true
+            finished = true
+        }
+
         // Verify that decompression is complete (header parsed, data inflated, trailer verified)
         if (!finished) {
             throw IOException("Truncated or corrupt gzip data")

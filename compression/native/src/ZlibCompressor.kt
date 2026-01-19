@@ -53,6 +53,9 @@ internal class ZlibCompressor(
         }
     }
 
+    // Note: maxOutputSize returns -1 to use allocating API because DEFLATE
+    // with Z_NO_FLUSH buffers data internally, making output size unpredictable.
+
     override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
         check(initialized) { "Compressor is closed" }
 
@@ -127,15 +130,15 @@ internal class ZlibCompressor(
         return combineChunks(result, totalSize)
     }
 
+    private companion object {
+        private const val BUFFER_SIZE = 8192
+    }
+
     override fun close() {
         if (!initialized) return
 
         deflateEnd(zStream.ptr)
         arena.clear()
         initialized = false
-    }
-
-    private companion object {
-        private const val BUFFER_SIZE = 8192
     }
 }

@@ -20,6 +20,10 @@ internal class DeflaterCompressor(
     private val outputArray = ByteArray(BUFFER_SIZE)
     private var finished = false
 
+    // Note: maxOutputSize returns -1 to use allocating API because DEFLATE
+    // with Z_NO_FLUSH buffers data internally, making output size unpredictable.
+    // The allocating API handles this by collecting output chunks.
+
     override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
         val inputSize = endIndex - startIndex
         if (inputSize == 0) return ByteArray(0)
@@ -67,11 +71,11 @@ internal class DeflaterCompressor(
         return combineChunks(result, totalSize)
     }
 
-    override fun close() {
-        deflater.end()
-    }
-
     private companion object {
         private const val BUFFER_SIZE = 8192
+    }
+
+    override fun close() {
+        deflater.end()
     }
 }
