@@ -5,34 +5,17 @@
 
 package kotlinx.io
 
-import kotlinx.io.unsafe.UnsafeBufferOperations
-import kotlinx.io.unsafe.withData
+import kotlinx.io.unsafe.UnsafeByteArrayProcessor
 import java.util.zip.CRC32
 
 internal actual fun crc32(): Processor<Long> = Crc32Processor()
 
 @OptIn(UnsafeIoApi::class)
-private class Crc32Processor : Processor<Long> {
+private class Crc32Processor : UnsafeByteArrayProcessor<Long>() {
     private val crc32 = CRC32()
 
-    override fun process(source: Buffer, byteCount: Long) {
-        require(byteCount >= 0) { "byteCount: $byteCount" }
-
-        if (byteCount == 0L || source.exhausted()) return
-
-        val toProcess = minOf(byteCount, source.size)
-        var remaining = toProcess
-
-        UnsafeBufferOperations.forEachSegment(source) { context, segment ->
-            if (remaining <= 0) return@forEachSegment
-
-            context.withData(segment) { bytes, startIndex, endIndex ->
-                val segmentSize = endIndex - startIndex
-                val bytesToProcess = minOf(remaining, segmentSize.toLong()).toInt()
-                crc32.update(bytes, startIndex, bytesToProcess)
-                remaining -= bytesToProcess
-            }
-        }
+    override fun process(source: ByteArray, startIndex: Int, endIndex: Int) {
+        crc32.update(source, startIndex, endIndex - startIndex)
     }
 
     override fun compute(): Long = crc32.value
