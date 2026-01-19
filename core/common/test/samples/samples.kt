@@ -843,16 +843,9 @@ class ProcessorSamplesCommon {
             }
         }
 
-        fun current(): Long {
-            check(!closed) { "Processor is closed" }
-            return (crc xor 0xffffffffU).toLong()
-        }
-
         override fun compute(): Long {
             check(!closed) { "Processor is closed" }
-            val result = current()
-            crc = 0xffffffffU  // reset
-            return result
+            return (crc xor 0xffffffffU).toLong()
         }
 
         override fun close() {
@@ -896,7 +889,7 @@ class ProcessorSamplesCommon {
         processor.process(buffer1, buffer1.size)
 
         // Get intermediate CRC32
-        val intermediate = processor.current()
+        val intermediate = processor.compute()
         assertTrue(intermediate > 0)
 
         val buffer2 = Buffer()
@@ -904,20 +897,17 @@ class ProcessorSamplesCommon {
         processor.process(buffer2, buffer2.size)
 
         // Final CRC32 should be different from intermediate
-        val final = processor.current()
+        val final = processor.compute()
         assertNotEquals(intermediate, final)
 
-        // compute() returns same value as current() but resets
+        // Multiple compute() calls return the same value
         assertEquals(final, processor.compute())
-
-        // After compute(), starting value should be used
-        assertEquals(0L, processor.current())
 
         processor.close()
     }
 
     @Test
-    fun crc32ProcessorReuse() {
+    fun crc32ProcessorAccumulates() {
         val processor = Crc32Processor()
 
         // First computation
@@ -926,13 +916,13 @@ class ProcessorSamplesCommon {
         processor.process(buffer1, buffer1.size)
         val first = processor.compute()
 
-        // Second computation - processor was reset
+        // Second computation - processor accumulates
         val buffer2 = Buffer()
         buffer2.writeString("Test2")
         processor.process(buffer2, buffer2.size)
         val second = processor.compute()
 
-        // Different inputs should produce different checksums
+        // Second value includes data from both buffers, so it's different
         assertNotEquals(first, second)
 
         processor.close()
@@ -962,12 +952,12 @@ class ProcessorSamplesCommon {
         // Process only first 5 bytes
         processor.process(buffer, 5)
 
-        val partialCrc = processor.current()
+        val partialCrc = processor.compute()
 
         // Process remaining bytes
         processor.process(buffer, buffer.size)
 
-        val fullCrc = processor.current()
+        val fullCrc = processor.compute()
 
         // But wait - we processed "Hello" twice because buffer wasn't consumed!
         // This is expected behavior - process() doesn't consume.

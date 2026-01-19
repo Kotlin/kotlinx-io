@@ -57,7 +57,7 @@ class ProcessorTest {
     }
 
     @Test
-    fun computeResetsProcessor() {
+    fun computeAccumulatesAcrossMultipleCalls() {
         val processor = ByteCountProcessor()
         val buffer = Buffer()
         buffer.writeString("Test")
@@ -67,42 +67,36 @@ class ProcessorTest {
 
         assertEquals(4L, first)
 
-        // After compute(), processor should be reset
+        // After compute(), processor retains the accumulated value
         val buffer2 = Buffer()
         buffer2.writeString("More")
         processor.process(buffer2, buffer2.size)
         val second = processor.compute()
 
-        // Should be 4, not 8, because compute() reset the state
-        assertEquals(4L, second)
+        // Should be 8, because compute() does not reset the state
+        assertEquals(8L, second)
     }
 
     @Test
-    fun currentDoesNotReset() {
+    fun computeDoesNotReset() {
         val processor = ByteCountProcessor()
 
         val buffer1 = Buffer()
         buffer1.writeString("Hello")
         processor.process(buffer1, buffer1.size)
 
-        // Get intermediate result with current()
-        assertEquals(5L, processor.current())
+        // Get intermediate result with compute()
+        assertEquals(5L, processor.compute())
 
         val buffer2 = Buffer()
         buffer2.writeString(", World!")
         processor.process(buffer2, buffer2.size)
 
-        // current() should reflect cumulative value
-        assertEquals(13L, processor.current())
-
-        // current() can be called multiple times
-        assertEquals(13L, processor.current())
-
-        // compute() returns same value but resets
+        // compute() should reflect cumulative value
         assertEquals(13L, processor.compute())
 
-        // After compute(), should be reset to 0
-        assertEquals(0L, processor.current())
+        // compute() can be called multiple times and returns the same value
+        assertEquals(13L, processor.compute())
     }
 
     @Test
@@ -140,23 +134,22 @@ class ProcessorTest {
     }
 
     @Test
-    fun processorReuseAfterCompute() {
+    fun processorContinuesAfterCompute() {
         val processor = ByteCountProcessor()
 
         // First computation
         val buffer1 = Buffer()
         buffer1.writeString("Hello")
         processor.process(buffer1, buffer1.size)
-        @Suppress("UNUSED_VARIABLE")
-        val ignored = processor.compute()  // resets
+        assertEquals(5L, processor.compute())
 
-        // Second computation - should start fresh
+        // Second computation - values accumulate
         val buffer2 = Buffer()
         buffer2.writeString("World!")
         processor.process(buffer2, buffer2.size)
         val result = processor.compute()
 
-        assertEquals(6L, result)  // Just "World!", not cumulative
+        assertEquals(11L, result)  // Cumulative: "Hello" + "World!"
     }
 
     @Test
@@ -168,7 +161,7 @@ class ProcessorTest {
         // Process only first 5 bytes
         processor.process(buffer, 5)
 
-        assertEquals(5L, processor.current())
+        assertEquals(5L, processor.compute())
         // Buffer should still have all data
         assertEquals(13L, buffer.size)
     }
@@ -191,7 +184,7 @@ class ProcessorTest {
         assertEquals("Hello, World!", output.readString())
 
         // Processor should have processedWith all data
-        assertEquals(13L, processor.current())
+        assertEquals(13L, processor.compute())
 
         // Can still compute after source is closed
         assertEquals(13L, processor.compute())
@@ -212,15 +205,15 @@ class ProcessorTest {
         @Suppress("UNUSED_VARIABLE")
         var bytesRead = processedWithSource.readAtMostTo(output, 5)
         assertEquals("Hello", output.readString())
-        assertEquals(5L, processor.current())
+        assertEquals(5L, processor.compute())
 
         bytesRead = processedWithSource.readAtMostTo(output, 2)
         assertEquals(", ", output.readString())
-        assertEquals(7L, processor.current())
+        assertEquals(7L, processor.compute())
 
         bytesRead = processedWithSource.readAtMostTo(output, 6)
         assertEquals("World!", output.readString())
-        assertEquals(13L, processor.current())
+        assertEquals(13L, processor.compute())
 
         processedWithSource.close()
         processor.close()
@@ -256,11 +249,11 @@ class ProcessorTest {
 
         buffered.writeString("Hello")
         buffered.flush()
-        assertEquals(5L, processor.current())
+        assertEquals(5L, processor.compute())
 
         buffered.writeString(", World!")
         buffered.flush()
-        assertEquals(13L, processor.current())
+        assertEquals(13L, processor.compute())
 
         buffered.close()
 
@@ -280,16 +273,16 @@ class ProcessorTest {
         processedWithSource.buffered().use { it.readString() }
 
         // Processor should still be usable after source is closed
-        assertEquals(4L, processor.current())
+        assertEquals(4L, processor.compute())
         assertEquals(4L, processor.compute())
 
-        // Can reuse processor with another source
+        // Can reuse processor with another source - values accumulate
         val upstream2 = Buffer()
         upstream2.writeString("More")
         val processedWithSource2 = (upstream2 as RawSource).processedWith(processor)
         processedWithSource2.buffered().use { it.readString() }
 
-        assertEquals(4L, processor.compute())
+        assertEquals(8L, processor.compute())
 
         processor.close()
     }
@@ -303,7 +296,7 @@ class ProcessorTest {
         processedWithSink.buffered().use { it.writeString("Test") }
 
         // Processor should still be usable after sink is closed
-        assertEquals(4L, processor.current())
+        assertEquals(4L, processor.compute())
 
         // Can reuse processor with another sink
         val downstream2 = Buffer()
@@ -332,17 +325,9 @@ private class ByteCountProcessor : Processor<Long> {
         count += toProcess
     }
 
-    /** Returns current value without resetting. */
-    fun current(): Long {
-        check(!closed) { "Processor is closed" }
-        return count
-    }
-
     override fun compute(): Long {
         check(!closed) { "Processor is closed" }
-        val result = count
-        count = 0  // reset for reuse
-        return result
+        return count
     }
 
     override fun close() {
@@ -370,9 +355,7 @@ private class ByteSumProcessor : Processor<Int> {
 
     override fun compute(): Int {
         check(!closed) { "Processor is closed" }
-        val result = sum
-        sum = 0  // reset for reuse
-        return result
+        return sum
     }
 
     override fun close() {

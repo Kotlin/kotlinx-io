@@ -262,17 +262,9 @@ class ProcessorSamplesJvm {
             crc32.update(bytes)
         }
 
-        /** Returns current value without resetting. */
-        fun current(): Long {
-            check(!closed) { "Processor is closed" }
-            return crc32.value
-        }
-
         override fun compute(): Long {
             check(!closed) { "Processor is closed" }
-            val result = crc32.value
-            crc32.reset()
-            return result
+            return crc32.value
         }
 
         override fun close() {
@@ -301,7 +293,7 @@ class ProcessorSamplesJvm {
         processor.process(buffer1, buffer1.size)
 
         // Get intermediate CRC32
-        val intermediate = processor.current()
+        val intermediate = processor.compute()
         assertTrue(intermediate > 0)
 
         val buffer2 = Buffer()
@@ -309,14 +301,11 @@ class ProcessorSamplesJvm {
         processor.process(buffer2, buffer2.size)
 
         // Final CRC32 should be different from intermediate
-        val final = processor.current()
+        val final = processor.compute()
         assertNotEquals(intermediate, final)
 
-        // compute() returns same value as current() but resets
+        // Multiple compute() calls return the same value
         assertEquals(final, processor.compute())
-
-        // After compute(), should be reset
-        assertEquals(0L, processor.current())
 
         processor.close()
     }
@@ -523,147 +512,6 @@ class CipherTransformationSamples {
 
         assertEquals(originalText, decryptedText)
         assertEquals(originalCrc32, verifyCrc32Transform.crc32())
-    }
-}
-
-/**
- * Samples demonstrating [ByteArrayProcessor] for zero-copy processing.
- */
-@OptIn(UnsafeIoApi::class)
-class ByteArrayProcessorSamplesJvm {
-    /**
-     * A [ByteArrayProcessor] that computes a hash using JDK's [java.security.MessageDigest].
-     *
-     * This demonstrates zero-copy processing - bytes are accessed directly
-     * from buffer segments without intermediate copies.
-     */
-    private class MessageDigestByteArrayProcessor(algorithm: String) : ByteArrayProcessor<ByteArray>() {
-        private val digest = java.security.MessageDigest.getInstance(algorithm)
-
-        override fun process(source: ByteArray, startIndex: Int, endIndex: Int) {
-            digest.update(source, startIndex, endIndex - startIndex)
-        }
-
-        override fun compute(): ByteArray = digest.digest()
-
-        override fun close() {}
-    }
-
-    /**
-     * A [ByteArrayProcessor] that computes CRC32 using JDK's [java.util.zip.CRC32].
-     *
-     * This demonstrates zero-copy processing.
-     */
-    private class Crc32ByteArrayProcessor : ByteArrayProcessor<Long>() {
-        private val crc32 = java.util.zip.CRC32()
-
-        override fun process(source: ByteArray, startIndex: Int, endIndex: Int) {
-            crc32.update(source, startIndex, endIndex - startIndex)
-        }
-
-        /** Returns current value without resetting. */
-        fun current(): Long = crc32.value
-
-        override fun compute(): Long {
-            val result = crc32.value
-            crc32.reset()
-            return result
-        }
-
-        override fun close() {}
-    }
-
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun ByteArray.toHexString(): String =
-        joinToString("") { "%02x".format(it) }
-
-    @Test
-    fun sha256HashZeroCopy() {
-        val data = "Hello, World!"
-        val buffer = Buffer()
-        buffer.writeString(data)
-
-        val hash = (buffer as RawSource).compute(MessageDigestByteArrayProcessor("SHA-256"))
-
-        // SHA-256 produces 32 bytes
-        assertEquals(32, hash.size)
-
-        // Verify against known hash
-        val expectedHex = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
-        assertEquals(expectedHex, hash.toHexString())
-    }
-
-    @Test
-    fun crc32ZeroCopy() {
-        val data = "Hello, World!"
-        val buffer = Buffer()
-        buffer.writeString(data)
-
-        val checksum = (buffer as RawSource).compute(Crc32ByteArrayProcessor())
-
-        // Known CRC32 for "Hello, World!"
-        assertEquals(3964322768L, checksum)
-    }
-
-    @Test
-    fun crc32IntermediateValuesZeroCopy() {
-        val processor = Crc32ByteArrayProcessor()
-
-        val buffer1 = Buffer()
-        buffer1.writeString("Hello")
-        processor.process(buffer1, buffer1.size)
-
-        // Get intermediate CRC32
-        val intermediate = processor.current()
-        assertTrue(intermediate > 0)
-
-        val buffer2 = Buffer()
-        buffer2.writeString(", World!")
-        processor.process(buffer2, buffer2.size)
-
-        // Final CRC32 should be different from intermediate
-        val final = processor.current()
-        assertNotEquals(intermediate, final)
-
-        // compute() returns same value as current() but resets
-        assertEquals(final, processor.compute())
-
-        // After compute(), should be reset
-        assertEquals(0L, processor.current())
-
-        processor.close()
-    }
-
-    @Test
-    fun hashLargeDataZeroCopy() {
-        // Generate large data to verify streaming works with multiple segments
-        val data = ByteArray(100_000) { (it % 256).toByte() }
-        val buffer = Buffer()
-        buffer.write(data)
-
-        val hash = (buffer as RawSource).compute(MessageDigestByteArrayProcessor("SHA-256"))
-
-        assertEquals(32, hash.size)
-    }
-
-    @Test
-    fun processorReuseZeroCopy() {
-        val processor = MessageDigestByteArrayProcessor("SHA-256")
-
-        // First hash
-        val buffer1 = Buffer()
-        buffer1.writeString("First")
-        val hash1 = (buffer1 as RawSource).compute(processor)
-
-        // Second hash - processor was reset by compute()
-        val buffer2 = Buffer()
-        buffer2.writeString("Second")
-        val hash2 = (buffer2 as RawSource).compute(processor)
-
-        // Hashes should be different
-        assertFalse(hash1.contentEquals(hash2))
-
-        processor.close()
     }
 }
 
