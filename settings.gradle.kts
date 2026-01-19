@@ -22,13 +22,11 @@ rootProject.name = "kotlinx-io"
 include(":kotlinx-io-core")
 include(":kotlinx-io-benchmarks")
 include(":kotlinx-io-bytestring")
-include(":kotlinx-io-compression")
 include(":kotlinx-io-smoke-tests")
 include(":kotlinx-io-okio")
 
 project(":kotlinx-io-core").projectDir = file("./core")
 project(":kotlinx-io-benchmarks").projectDir = file("./benchmarks")
 project(":kotlinx-io-bytestring").projectDir = file("./bytestring")
-project(":kotlinx-io-compression").projectDir = file("./compression")
 project(":kotlinx-io-smoke-tests").projectDir = file("./smoke-tests")
 project(":kotlinx-io-okio").projectDir = file("./integration/kotlinx-io-okio")

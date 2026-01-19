@@ -10,21 +10,17 @@ import kotlinx.io.RawSource
 import kotlinx.io.Transformation
 import kotlinx.io.transformedWith
 
-// TODO: merge those into `kotlinx-io-core` under `compression` package
-// TODO: move `Deflate` and `GZip` into `jvm+native` source-set for now
-
 /**
  * Provides a compression transform.
  *
  * Implementations of this interface create [Transformation] instances that compress data.
- * Built-in implementations include [Deflate] and [GZip].
  *
  * Third-party libraries can implement this interface to provide additional compression
  * algorithms such as Zstandard (zstd), Brotli, or LZ4.
  *
  * Example usage:
  * ```kotlin
- * // Using built-in compression
+ * // Using built-in compression (on JVM and Native)
  * sink.compressed(Deflate(level = 6))
  * sink.compressed(GZip(level = 9))
  *
@@ -33,8 +29,6 @@ import kotlinx.io.transformedWith
  * ```
  *
  * @see Decompressor
- * @see Deflate
- * @see GZip
  */
 public interface Compressor {
     /**
@@ -49,14 +43,13 @@ public interface Compressor {
  * Provides a decompression transform.
  *
  * Implementations of this interface create [Transformation] instances that decompress data.
- * Built-in implementations include [Deflate] and [GZip].
  *
  * Third-party libraries can implement this interface to provide additional decompression
  * algorithms such as Zstandard (zstd), Brotli, or LZ4.
  *
  * Example usage:
  * ```kotlin
- * // Using built-in decompression
+ * // Using built-in decompression (on JVM and Native)
  * source.decompressed(Deflate.decompressor())
  * source.decompressed(GZip.decompressor())
  *
@@ -65,8 +58,6 @@ public interface Compressor {
  * ```
  *
  * @see Compressor
- * @see Deflate
- * @see GZip
  */
 public interface Decompressor {
     /**
@@ -86,9 +77,7 @@ public interface Decompressor {
  * and any trailers are written. Closing the returned sink will also close this sink.
  *
  * @param compressor the compressor to use
- * @throws IOException if compression fails
- *
- * @sample kotlinx.io.compression.samples.CompressionSamples.compressedSink
+ * @throws kotlinx.io.IOException if compression fails
  */
 public fun RawSink.compressed(compressor: Compressor): RawSink {
     return transformedWith(compressor.createCompressTransformation())
@@ -102,9 +91,7 @@ public fun RawSink.compressed(compressor: Compressor): RawSink {
  * Closing the returned source will also close this source.
  *
  * @param decompressor the decompressor to use
- * @throws IOException if decompression fails or the compressed data is corrupted
- *
- * @sample kotlinx.io.compression.samples.CompressionSamples.decompressedSource
+ * @throws kotlinx.io.IOException if decompression fails or the compressed data is corrupted
  */
 public fun RawSource.decompressed(decompressor: Decompressor): RawSource {
     return transformedWith(decompressor.createDecompressTransformation())

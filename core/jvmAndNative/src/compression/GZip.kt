@@ -18,8 +18,6 @@ import kotlinx.io.Transformation
  *              This parameter is only used for compression; it is ignored for decompression.
  *
  * @throws IllegalArgumentException if [level] is not in the range 0..9
- *
- * @sample kotlinx.io.compression.samples.CompressionSamples.gzipUsage
  */
 public expect class GZip(level: Int = 6) : Compressor, Decompressor {
     /**
