@@ -91,20 +91,23 @@ kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
         common {
-            group("native") {
-                group("nativeNonApple") {
-                    group("mingw")
-                    group("unix") {
+            group("jvmAndNative") {
+                group("native") {
+                    group("nativeNonApple") {
+                        group("mingw")
+                        group("unix") {
+                            group("linux")
+                            group("androidNative")
+                        }
+                    }
+
+                    group("nativeNonAndroid") {
+                        group("apple")
+                        group("mingw")
                         group("linux")
-                        group("androidNative")
                     }
                 }
-
-                group("nativeNonAndroid") {
-                    group("apple")
-                    group("mingw")
-                    group("linux")
-                }
+                withJvm()
             }
             group("nodeFilesystemShared") {
                 withJs()
@@ -145,7 +148,7 @@ powerAssert {
         "assertContains",
         "assertContentEquals",
         "expect"
-    ).map { "kotlin.test.$it"}
+    ).map { "kotlin.test.$it" }
 
     functions.addAll(kotlinTestFunctions)
 }
