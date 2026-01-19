@@ -182,6 +182,7 @@ public fun RawSink.processedWith(processor: Processor<*>): RawSink {
  * @param T the type of the computed result
  * @see Processor
  */
+// TODO: rename it to some kind of `Unsafe` processor, move it to `unsafe` package and make `UnsafeIoApi` a sub-class opt-in
 @UnsafeIoApi
 public abstract class ByteArrayProcessor<out T> : Processor<T> {
     /**
@@ -197,6 +198,7 @@ public abstract class ByteArrayProcessor<out T> : Processor<T> {
      */
     protected abstract fun process(source: ByteArray, startIndex: Int, endIndex: Int)
 
+    // TODO: drop final?
     final override fun process(source: Buffer, byteCount: Long) {
         require(byteCount >= 0) { "byteCount: $byteCount" }
 

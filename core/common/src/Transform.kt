@@ -42,6 +42,7 @@ public interface Transformation : AutoCloseable {
      *         is exhausted and will produce no more output
      * @throws IOException if transformation fails
      */
+    // TODO: decide on name - it shares `readAtMostTo` pattern
     public fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long
 
     /**
@@ -53,6 +54,7 @@ public interface Transformation : AutoCloseable {
      * @param sink buffer to write remaining transformed output to
      * @throws IOException if finalization fails
      */
+    // TODO: decide on name - it shares `write` pattern
     public fun finalize(sink: Buffer)
 
     /**
@@ -69,6 +71,7 @@ public interface Transformation : AutoCloseable {
  * @property inputConsumed number of bytes consumed from the input array
  * @property outputProduced number of bytes written to the output array
  */
+// TODO: convert to value class over `Long`
 @UnsafeIoApi
 public class TransformResult(
     public val inputConsumed: Int,
@@ -95,6 +98,7 @@ public class TransformResult(
  *
  * @see Transformation
  */
+// TODO: rename it to some kind of `Unsafe` transformation, move it to `unsafe` package and make `UnsafeIoApi` a sub-class opt-in
 @UnsafeIoApi
 public abstract class ByteArrayTransformation : Transformation {
     /**
@@ -111,10 +115,12 @@ public abstract class ByteArrayTransformation : Transformation {
      * @param destinationEnd the end index (exclusive) of available space
      * @return result containing bytes consumed from input and produced to output
      */
+    // TODO: we might need to have `transformToByteArray` in case we can't fit output into one segment
     protected abstract fun transformIntoByteArray(
         source: ByteArray,
         sourceStart: Int,
         sourceEnd: Int,
+        // TODO: migrate to `destination` + `destinationOffset` as in copy operations
         destination: ByteArray,
         destinationStart: Int,
         destinationEnd: Int
@@ -129,6 +135,7 @@ public abstract class ByteArrayTransformation : Transformation {
      * For transformations without internal buffering (like native zlib or Cipher),
      * this should return false.
      */
+    // TODO: try to drop it
     protected abstract fun hasPendingOutput(): Boolean
 
     /**
@@ -144,6 +151,7 @@ public abstract class ByteArrayTransformation : Transformation {
      * @param inputSize the input size in bytes
      * @return the maximum output size, or -1 if unknown/unbounded
      */
+    // TODO: maybe rename it to `estimateMaxOutputSize`?
     protected open fun maxOutputSize(inputSize: Int): Int = -1
 
     /**
@@ -157,6 +165,8 @@ public abstract class ByteArrayTransformation : Transformation {
      * @param endIndex the end index (exclusive) of available space
      * @return the number of bytes written, or -1 if finalization is complete
      */
+    // TODO: we might need to have `finalize` which returns an array (same as with transform)
+    // TODO: rename to `finalizeIntoByteArray`
     protected abstract fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int
 
     override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {

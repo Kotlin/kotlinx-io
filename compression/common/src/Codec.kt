@@ -10,6 +10,9 @@ import kotlinx.io.RawSource
 import kotlinx.io.Transformation
 import kotlinx.io.transformedWith
 
+// TODO: merge those into `kotlinx-io-core` under `compression` package
+// TODO: move `Deflate` and `GZip` into `jvm+native` source-set for now
+
 /**
  * Provides a compression transform.
  *

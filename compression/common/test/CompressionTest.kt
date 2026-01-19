@@ -19,6 +19,22 @@ class CompressionTest {
 
         // Compress
         val compressed = Buffer()
+
+        val crc32 = Crc32()
+        val sha256 = Sha256()
+
+        // TODO: create pipeline example
+        (compressed as RawSource)
+            .processedWith(crc32)
+            .processedWith(sha256)
+            .transformedWith(CipherProcessor("AES256", key))
+            .decompressed(Deflate()).buffered().use { source ->
+                // do something with source (read everything)
+                source.readString()
+                val crcResult = crc32.compute()
+                val hashResult = sha256.compute()
+            }
+
         compressed.compressed(Deflate()).buffered().use { sink ->
             sink.writeString(original)
         }
