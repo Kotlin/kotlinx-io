@@ -668,31 +668,34 @@ class ByteArrayProcessorSamplesJvm {
 }
 
 /**
- * Samples demonstrating [BlockTransformation] for bounded transformations like cipher.
+ * Samples demonstrating [ByteArrayTransformation] for bounded transformations like cipher.
  */
 @OptIn(UnsafeIoApi::class)
 class ByteArrayTransformationSamplesJvm {
     /**
-     * A [BlockTransformation] that encrypts or decrypts data using a [Cipher].
+     * A [ByteArrayTransformation] that encrypts or decrypts data using a [Cipher].
      *
      * This demonstrates how to implement a bounded transformation by wrapping
      * JDK's Cipher API, where the maximum output size can be determined from input size.
      */
-    private class CipherBlockTransformation(private val cipher: Cipher) : BlockTransformation() {
+    private class CipherBlockTransformation(private val cipher: Cipher) : ByteArrayTransformation() {
         private var finalized = false
 
         override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
 
-        override fun transformBlock(
+        override fun transformIntoByteArray(
             source: ByteArray,
             sourceStart: Int,
             sourceEnd: Int,
             destination: ByteArray,
             destinationStart: Int,
             destinationEnd: Int
-        ): Int {
-            return cipher.update(source, sourceStart, sourceEnd - sourceStart, destination, destinationStart)
+        ): TransformResult {
+            val written = cipher.update(source, sourceStart, sourceEnd - sourceStart, destination, destinationStart)
+            return TransformResult(sourceEnd - sourceStart, written)
         }
+
+        override fun hasPendingOutput(): Boolean = false
 
         override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
             if (finalized) return -1

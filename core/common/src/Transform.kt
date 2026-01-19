@@ -78,10 +78,11 @@ public class TransformResult(
 /**
  * Abstract base class for implementing [Transformation] using `ByteArray`-based APIs.
  *
- * This class provides a unified pattern for streaming transformations where both
- * input and output arrays are provided simultaneously. This design works for:
+ * This class provides a unified pattern for transformations where both input and output
+ * arrays are provided simultaneously. This design works for:
  * - JDK APIs like [java.util.zip.Deflater] that copy input internally
  * - Native APIs like zlib that require input to stay valid during processing
+ * - Bounded APIs like [javax.crypto.Cipher] where output size is predictable
  *
  * Subclasses must implement:
  * - [transformIntoByteArray] to transform input bytes into output bytes
@@ -89,10 +90,9 @@ public class TransformResult(
  * - [finalizeOutput] to produce final output after all input is processed
  * - [close] to release resources
  *
- * For bounded transformations where output size is predictable (like Cipher),
- * use [BlockTransformation] instead.
+ * For bounded transformations (like Cipher), also override [maxOutputSize] to return
+ * the maximum output size for a given input size. This enables optimized buffer handling.
  *
- * @see BlockTransformation
  * @see Transformation
  */
 @UnsafeIoApi
@@ -126,10 +126,25 @@ public abstract class ByteArrayTransformation : Transformation {
      * This is used for transformations that buffer data internally. When true,
      * [transformIntoByteArray] may be called with empty input to drain the buffer.
      *
-     * For transformations without internal buffering (like native zlib), this
-     * should return false.
+     * For transformations without internal buffering (like native zlib or Cipher),
+     * this should return false.
      */
     protected abstract fun hasPendingOutput(): Boolean
+
+    /**
+     * Returns the maximum output size for the given input size, or -1 if unknown.
+     *
+     * Override this method for bounded transformations (like Cipher) where the
+     * maximum output size can be determined from the input size. This enables
+     * optimized buffer allocation.
+     *
+     * The default implementation returns -1, indicating streaming behavior where
+     * output size is unpredictable.
+     *
+     * @param inputSize the input size in bytes
+     * @return the maximum output size, or -1 if unknown/unbounded
+     */
+    protected open fun maxOutputSize(inputSize: Int): Int = -1
 
     /**
      * Produces finalization output into the destination array.
@@ -154,25 +169,45 @@ public abstract class ByteArrayTransformation : Transformation {
 
         return UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
             val available = minOf(byteCount.toInt(), inputEnd - inputStart)
-            var totalConsumed = 0
+            val maxOutput = maxOutputSize(available)
 
-            while (totalConsumed < available || hasPendingOutput()) {
-                var progressMade = false
+            if (maxOutput >= 0) {
+                // Bounded transformation - output size is known, consume all input at once
+                val _ = UnsafeBufferOperations.writeToTail(sink, minOf(maxOutput, UnsafeBufferOperations.maxSafeWriteCapacity)) { dest, destStart, destEnd ->
+                    if (destEnd - destStart >= maxOutput) {
+                        // Output fits in segment
+                        transformIntoByteArray(input, inputStart, inputStart + available, dest, destStart, destEnd).outputProduced
+                    } else {
+                        // Need separate buffer for large output
+                        val tempBuffer = ByteArray(maxOutput)
+                        val result = transformIntoByteArray(input, inputStart, inputStart + available, tempBuffer, 0, maxOutput)
+                        tempBuffer.copyInto(dest, destStart, 0, result.outputProduced)
+                        result.outputProduced
+                    }
+                }
+                available
+            } else {
+                // Streaming transformation - output size unknown, loop until input consumed
+                var totalConsumed = 0
 
-                val _ = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
-                    val result = transformIntoByteArray(
-                        input, inputStart + totalConsumed, inputStart + available,
-                        output, outputStart, outputEnd
-                    )
-                    totalConsumed += result.inputConsumed
-                    progressMade = result.inputConsumed > 0 || result.outputProduced > 0
-                    result.outputProduced
+                while (totalConsumed < available || hasPendingOutput()) {
+                    var progressMade = false
+
+                    val _ = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
+                        val result = transformIntoByteArray(
+                            input, inputStart + totalConsumed, inputStart + available,
+                            output, outputStart, outputEnd
+                        )
+                        totalConsumed += result.inputConsumed
+                        progressMade = result.inputConsumed > 0 || result.outputProduced > 0
+                        result.outputProduced
+                    }
+
+                    if (!progressMade) break
                 }
 
-                if (!progressMade) break
+                totalConsumed
             }
-
-            totalConsumed
         }.toLong()
     }
 
@@ -201,116 +236,6 @@ public abstract class ByteArrayTransformation : Transformation {
 
     private companion object {
         private val EMPTY_BYTE_ARRAY = ByteArray(0)
-    }
-}
-
-/**
- * Abstract base class for implementing [Transformation] using bounded `ByteArray`-based APIs.
- *
- * This class is designed for transformations where the maximum output size can be
- * determined from the input size, such as [javax.crypto.Cipher] or Base64 encoding.
- *
- * Subclasses must implement:
- * - [maxOutputSize] to return the maximum output size for a given input size
- * - [transformBlock] to transform input directly into output array
- * - [finalizeOutput] to produce final output
- * - [close] to release resources
- *
- * Example for Cipher:
- * ```kotlin
- * class CipherTransformation(private val cipher: Cipher) : BlockTransformation() {
- *     override fun maxOutputSize(inputSize: Int) = cipher.getOutputSize(inputSize)
- *     override fun transformBlock(
- *         source: ByteArray, sourceStart: Int, sourceEnd: Int,
- *         destination: ByteArray, destinationStart: Int, destinationEnd: Int
- *     ) = cipher.update(source, sourceStart, sourceEnd - sourceStart, destination, destinationStart)
- *     override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
- *         if (finalized) return -1
- *         finalized = true
- *         return cipher.doFinal(destination, startIndex)
- *     }
- *     override fun close() {}
- * }
- * ```
- *
- * @see ByteArrayTransformation
- */
-@UnsafeIoApi
-public abstract class BlockTransformation : ByteArrayTransformation() {
-    /**
-     * Returns the maximum output size for the given input size.
-     *
-     * @param inputSize the input size in bytes
-     * @return the maximum output size
-     */
-    protected abstract fun maxOutputSize(inputSize: Int): Int
-
-    /**
-     * Transforms input bytes directly into the destination array.
-     *
-     * For bounded transformations, all input is consumed in a single call
-     * and the output size is bounded by [maxOutputSize].
-     *
-     * @param source the byte array containing input data
-     * @param sourceStart the start index (inclusive) of input data
-     * @param sourceEnd the end index (exclusive) of input data
-     * @param destination the byte array to write output to
-     * @param destinationStart the start index (inclusive) to write from
-     * @param destinationEnd the end index (exclusive) of available space
-     * @return the number of bytes written to destination
-     */
-    protected abstract fun transformBlock(
-        source: ByteArray,
-        sourceStart: Int,
-        sourceEnd: Int,
-        destination: ByteArray,
-        destinationStart: Int,
-        destinationEnd: Int
-    ): Int
-
-    // BlockTransformation consumes all input immediately, no internal buffering
-    final override fun hasPendingOutput(): Boolean = false
-
-    // Implement parent's transformIntoByteArray by delegating to transformBlock
-    final override fun transformIntoByteArray(
-        source: ByteArray,
-        sourceStart: Int,
-        sourceEnd: Int,
-        destination: ByteArray,
-        destinationStart: Int,
-        destinationEnd: Int
-    ): TransformResult {
-        val written = transformBlock(source, sourceStart, sourceEnd, destination, destinationStart, destinationEnd)
-        return TransformResult(sourceEnd - sourceStart, written)
-    }
-
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
-        if (source.exhausted()) return 0L
-
-        // Read input from source head
-        val consumed = UnsafeBufferOperations.readFromHead(source) { bytes, startIndex, endIndex ->
-            val available = minOf(byteCount.toInt(), endIndex - startIndex)
-            val inputEnd = startIndex + available
-            val maxOutput = maxOutputSize(available)
-
-            // Write output directly to sink
-            val _ = UnsafeBufferOperations.writeToTail(sink, minOf(maxOutput, UnsafeBufferOperations.maxSafeWriteCapacity)) { dest, destStart, destEnd ->
-                if (destEnd - destStart >= maxOutput) {
-                    // Output fits in segment
-                    transformBlock(bytes, startIndex, inputEnd, dest, destStart, destEnd)
-                } else {
-                    // Need separate buffer for large output
-                    val tempBuffer = ByteArray(maxOutput)
-                    val written = transformBlock(bytes, startIndex, inputEnd, tempBuffer, 0, maxOutput)
-                    tempBuffer.copyInto(dest, destStart, 0, written)
-                    written
-                }
-            }
-
-            available
-        }
-
-        return consumed.toLong()
     }
 }
 
