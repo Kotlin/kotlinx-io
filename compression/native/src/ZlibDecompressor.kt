@@ -11,8 +11,8 @@ import kotlinx.cinterop.*
 import kotlinx.io.Buffer
 import kotlinx.io.ByteArrayTransformation
 import kotlinx.io.IOException
+import kotlinx.io.TransformResult
 import kotlinx.io.UnsafeIoApi
-import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.posix.memset
 import platform.zlib.*
 
@@ -54,49 +54,55 @@ internal class ZlibDecompressor(
         if (finished) return -1L
         if (source.exhausted()) return 0L
 
-        val consumed = UnsafeBufferOperations.readFromHead(source) { inputBytes, inputStart, inputEnd ->
-            val available = minOf(byteCount.toInt(), inputEnd - inputStart)
-
-            inputBytes.usePinned { pinnedInput ->
-                zStream.next_in = pinnedInput.addressOf(inputStart).reinterpret()
-                zStream.avail_in = available.convert()
-
-                // Drain all output for this input
-                while (zStream.avail_in > 0u && !finished) {
-                    val written = UnsafeBufferOperations.writeToTail(sink, 1) { outputBytes, outputStart, outputEnd ->
-                        outputBytes.usePinned { pinnedOutput ->
-                            zStream.next_out = pinnedOutput.addressOf(outputStart).reinterpret()
-                            zStream.avail_out = (outputEnd - outputStart).convert()
-
-                            val inflateResult = inflate(zStream.ptr, Z_NO_FLUSH)
-
-                            when (inflateResult) {
-                                Z_OK, Z_BUF_ERROR -> {
-                                    // Continue processing
-                                }
-                                Z_STREAM_END -> {
-                                    finished = true
-                                }
-                                Z_DATA_ERROR -> {
-                                    throw IOException("Invalid compressed data: ${zlibErrorMessage(inflateResult)}")
-                                }
-                                else -> {
-                                    throw IOException("Decompression failed: ${zlibErrorMessage(inflateResult)}")
-                                }
-                            }
-
-                            (outputEnd - outputStart) - zStream.avail_out.toInt()
-                        }
-                    }
-                    if (written == 0) break
-                }
-            }
-
-            available
-        }
-
-        return consumed.toLong()
+        return super.transformAtMostTo(source, sink, byteCount)
     }
+
+    override fun transformIntoByteArray(
+        source: ByteArray,
+        sourceStart: Int,
+        sourceEnd: Int,
+        destination: ByteArray,
+        destinationStart: Int,
+        destinationEnd: Int
+    ): TransformResult {
+        check(initialized) { "Decompressor is closed" }
+
+        val inputSize = sourceEnd - sourceStart
+
+        return source.usePinned { pinnedInput ->
+            destination.usePinned { pinnedOutput ->
+                zStream.next_in = pinnedInput.addressOf(sourceStart).reinterpret()
+                zStream.avail_in = inputSize.convert()
+                zStream.next_out = pinnedOutput.addressOf(destinationStart).reinterpret()
+                zStream.avail_out = (destinationEnd - destinationStart).convert()
+
+                val inflateResult = inflate(zStream.ptr, Z_NO_FLUSH)
+
+                when (inflateResult) {
+                    Z_OK, Z_BUF_ERROR -> {
+                        // Continue processing
+                    }
+                    Z_STREAM_END -> {
+                        finished = true
+                    }
+                    Z_DATA_ERROR -> {
+                        throw IOException("Invalid compressed data: ${zlibErrorMessage(inflateResult)}")
+                    }
+                    else -> {
+                        throw IOException("Decompression failed: ${zlibErrorMessage(inflateResult)}")
+                    }
+                }
+
+                val consumed = inputSize - zStream.avail_in.toInt()
+                val produced = (destinationEnd - destinationStart) - zStream.avail_out.toInt()
+
+                TransformResult(consumed, produced)
+            }
+        }
+    }
+
+    // Native zlib doesn't buffer internally, so no pending output
+    override fun hasPendingOutput(): Boolean = false
 
     override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Decompressor is closed" }

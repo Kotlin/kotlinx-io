@@ -64,21 +64,73 @@ public interface Transformation : AutoCloseable {
 }
 
 /**
+ * Result of a [ByteArrayTransformation.transformIntoByteArray] operation.
+ *
+ * @property inputConsumed number of bytes consumed from the input array
+ * @property outputProduced number of bytes written to the output array
+ */
+@UnsafeIoApi
+public class TransformResult(
+    public val inputConsumed: Int,
+    public val outputProduced: Int
+)
+
+/**
  * Abstract base class for implementing [Transformation] using `ByteArray`-based APIs.
  *
- * This class provides a common finalization pattern for transformations. Subclasses
- * must implement [finalizeOutput] which is called repeatedly until it returns -1.
+ * This class provides a unified pattern for streaming transformations where both
+ * input and output arrays are provided simultaneously. This design works for:
+ * - JDK APIs like [java.util.zip.Deflater] that copy input internally
+ * - Native APIs like zlib that require input to stay valid during processing
  *
- * For specific transformation patterns, use one of the subclasses:
- * - [StreamingTransformation] for streaming APIs like Deflater/Inflater
- * - [BlockTransformation] for bounded APIs like Cipher
+ * Subclasses must implement:
+ * - [transformIntoByteArray] to transform input bytes into output bytes
+ * - [hasPendingOutput] to indicate if there's buffered output to drain
+ * - [finalizeOutput] to produce final output after all input is processed
+ * - [close] to release resources
  *
- * @see StreamingTransformation
+ * For bounded transformations where output size is predictable (like Cipher),
+ * use [BlockTransformation] instead.
+ *
  * @see BlockTransformation
  * @see Transformation
  */
 @UnsafeIoApi
 public abstract class ByteArrayTransformation : Transformation {
+    /**
+     * Transforms input bytes into output bytes.
+     *
+     * Both input and output arrays are valid for the duration of this call,
+     * allowing implementations to pin memory or hold references as needed.
+     *
+     * @param source the byte array containing input data
+     * @param sourceStart the start index (inclusive) of input data
+     * @param sourceEnd the end index (exclusive) of input data
+     * @param destination the byte array to write output to
+     * @param destinationStart the start index (inclusive) to write from
+     * @param destinationEnd the end index (exclusive) of available space
+     * @return result containing bytes consumed from input and produced to output
+     */
+    protected abstract fun transformIntoByteArray(
+        source: ByteArray,
+        sourceStart: Int,
+        sourceEnd: Int,
+        destination: ByteArray,
+        destinationStart: Int,
+        destinationEnd: Int
+    ): TransformResult
+
+    /**
+     * Returns true if there's pending output that can be produced without new input.
+     *
+     * This is used for transformations that buffer data internally. When true,
+     * [transformIntoByteArray] may be called with empty input to drain the buffer.
+     *
+     * For transformations without internal buffering (like native zlib), this
+     * should return false.
+     */
+    protected abstract fun hasPendingOutput(): Boolean
+
     /**
      * Produces finalization output into the destination array.
      *
@@ -92,6 +144,51 @@ public abstract class ByteArrayTransformation : Transformation {
      */
     protected abstract fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int
 
+    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        // Handle case where source is exhausted but we have pending output
+        if (source.exhausted()) {
+            if (!hasPendingOutput()) return 0L
+            drainPendingOutput(sink)
+            return 0L
+        }
+
+        return UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
+            val available = minOf(byteCount.toInt(), inputEnd - inputStart)
+            var totalConsumed = 0
+
+            while (totalConsumed < available || hasPendingOutput()) {
+                var progressMade = false
+
+                val _ = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
+                    val result = transformIntoByteArray(
+                        input, inputStart + totalConsumed, inputStart + available,
+                        output, outputStart, outputEnd
+                    )
+                    totalConsumed += result.inputConsumed
+                    progressMade = result.inputConsumed > 0 || result.outputProduced > 0
+                    result.outputProduced
+                }
+
+                if (!progressMade) break
+            }
+
+            totalConsumed
+        }.toLong()
+    }
+
+    private fun drainPendingOutput(sink: Buffer) {
+        while (hasPendingOutput()) {
+            val written = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
+                val result = transformIntoByteArray(
+                    EMPTY_BYTE_ARRAY, 0, 0,
+                    output, outputStart, outputEnd
+                )
+                result.outputProduced
+            }
+            if (written == 0) break
+        }
+    }
+
     override fun finalize(sink: Buffer) {
         while (true) {
             val written = UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndex, endIndex ->
@@ -101,93 +198,9 @@ public abstract class ByteArrayTransformation : Transformation {
             if (written == 0) break
         }
     }
-}
 
-/**
- * Abstract base class for implementing [Transformation] using streaming `ByteArray`-based APIs.
- *
- * This class is designed for transformations that work with streaming APIs like
- * [java.util.zip.Deflater] or [java.util.zip.Inflater], where:
- * - Input is fed incrementally
- * - Output size is unpredictable per input chunk
- * - Output must be drained in a loop
- *
- * Subclasses must implement:
- * - [feedInput] to provide input data to the underlying transformation
- * - [needsInput] to check if more input can be accepted
- * - [drainOutput] to extract transformed output
- * - [finalizeOutput] to produce final output after all input is processed
- * - [close] to release resources
- *
- * Example for Deflater:
- * ```kotlin
- * class DeflaterTransformation(private val deflater: Deflater) : StreamingTransformation() {
- *     override fun feedInput(source: ByteArray, startIndex: Int, endIndex: Int) {
- *         deflater.setInput(source, startIndex, endIndex - startIndex)
- *     }
- *     override fun needsInput() = deflater.needsInput()
- *     override fun drainOutput(destination: ByteArray, startIndex: Int, endIndex: Int) =
- *         deflater.deflate(destination, startIndex, endIndex - startIndex)
- *     override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
- *         if (!finishCalled) { deflater.finish(); finishCalled = true }
- *         if (deflater.finished()) return -1
- *         return deflater.deflate(destination, startIndex, endIndex - startIndex)
- *     }
- *     override fun close() = deflater.end()
- * }
- * ```
- *
- * @see ByteArrayTransformation
- * @see BlockTransformation
- */
-@UnsafeIoApi
-public abstract class StreamingTransformation : ByteArrayTransformation() {
-    /**
-     * Feeds input data to the transformation.
-     *
-     * @param source the byte array containing input data
-     * @param startIndex the start index (inclusive) of input data
-     * @param endIndex the end index (exclusive) of input data
-     */
-    protected abstract fun feedInput(source: ByteArray, startIndex: Int, endIndex: Int)
-
-    /**
-     * Returns true if the transformation needs more input data.
-     *
-     * When this returns true, all previously fed input has been consumed.
-     */
-    protected abstract fun needsInput(): Boolean
-
-    /**
-     * Drains transformed output into the destination array.
-     *
-     * @param destination the byte array to write output to
-     * @param startIndex the start index (inclusive) to write from
-     * @param endIndex the end index (exclusive) of available space
-     * @return the number of bytes written, may be 0 if no output is available yet
-     */
-    protected abstract fun drainOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int
-
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
-        if (source.exhausted()) return 0L
-
-        // Read input from source head
-        val consumed = UnsafeBufferOperations.readFromHead(source) { bytes, startIndex, endIndex ->
-            val available = minOf(byteCount.toInt(), endIndex - startIndex)
-            feedInput(bytes, startIndex, startIndex + available)
-
-            // Drain all output for this input
-            while (!needsInput()) {
-                val written = UnsafeBufferOperations.writeToTail(sink, 1) { dest, destStart, destEnd ->
-                    drainOutput(dest, destStart, destEnd)
-                }
-                if (written == 0) break
-            }
-
-            available
-        }
-
-        return consumed.toLong()
+    private companion object {
+        private val EMPTY_BYTE_ARRAY = ByteArray(0)
     }
 }
 
@@ -199,7 +212,7 @@ public abstract class StreamingTransformation : ByteArrayTransformation() {
  *
  * Subclasses must implement:
  * - [maxOutputSize] to return the maximum output size for a given input size
- * - [transformIntoByteArray] to transform input directly into output array
+ * - [transformBlock] to transform input directly into output array
  * - [finalizeOutput] to produce final output
  * - [close] to release resources
  *
@@ -207,7 +220,7 @@ public abstract class StreamingTransformation : ByteArrayTransformation() {
  * ```kotlin
  * class CipherTransformation(private val cipher: Cipher) : BlockTransformation() {
  *     override fun maxOutputSize(inputSize: Int) = cipher.getOutputSize(inputSize)
- *     override fun transformIntoByteArray(
+ *     override fun transformBlock(
  *         source: ByteArray, sourceStart: Int, sourceEnd: Int,
  *         destination: ByteArray, destinationStart: Int, destinationEnd: Int
  *     ) = cipher.update(source, sourceStart, sourceEnd - sourceStart, destination, destinationStart)
@@ -221,7 +234,6 @@ public abstract class StreamingTransformation : ByteArrayTransformation() {
  * ```
  *
  * @see ByteArrayTransformation
- * @see StreamingTransformation
  */
 @UnsafeIoApi
 public abstract class BlockTransformation : ByteArrayTransformation() {
@@ -236,6 +248,9 @@ public abstract class BlockTransformation : ByteArrayTransformation() {
     /**
      * Transforms input bytes directly into the destination array.
      *
+     * For bounded transformations, all input is consumed in a single call
+     * and the output size is bounded by [maxOutputSize].
+     *
      * @param source the byte array containing input data
      * @param sourceStart the start index (inclusive) of input data
      * @param sourceEnd the end index (exclusive) of input data
@@ -244,7 +259,7 @@ public abstract class BlockTransformation : ByteArrayTransformation() {
      * @param destinationEnd the end index (exclusive) of available space
      * @return the number of bytes written to destination
      */
-    protected abstract fun transformIntoByteArray(
+    protected abstract fun transformBlock(
         source: ByteArray,
         sourceStart: Int,
         sourceEnd: Int,
@@ -252,6 +267,22 @@ public abstract class BlockTransformation : ByteArrayTransformation() {
         destinationStart: Int,
         destinationEnd: Int
     ): Int
+
+    // BlockTransformation consumes all input immediately, no internal buffering
+    final override fun hasPendingOutput(): Boolean = false
+
+    // Implement parent's transformIntoByteArray by delegating to transformBlock
+    final override fun transformIntoByteArray(
+        source: ByteArray,
+        sourceStart: Int,
+        sourceEnd: Int,
+        destination: ByteArray,
+        destinationStart: Int,
+        destinationEnd: Int
+    ): TransformResult {
+        val written = transformBlock(source, sourceStart, sourceEnd, destination, destinationStart, destinationEnd)
+        return TransformResult(sourceEnd - sourceStart, written)
+    }
 
     override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         if (source.exhausted()) return 0L
@@ -266,11 +297,11 @@ public abstract class BlockTransformation : ByteArrayTransformation() {
             val _ = UnsafeBufferOperations.writeToTail(sink, minOf(maxOutput, UnsafeBufferOperations.maxSafeWriteCapacity)) { dest, destStart, destEnd ->
                 if (destEnd - destStart >= maxOutput) {
                     // Output fits in segment
-                    transformIntoByteArray(bytes, startIndex, inputEnd, dest, destStart, destEnd)
+                    transformBlock(bytes, startIndex, inputEnd, dest, destStart, destEnd)
                 } else {
                     // Need separate buffer for large output
                     val tempBuffer = ByteArray(maxOutput)
-                    val written = transformIntoByteArray(bytes, startIndex, inputEnd, tempBuffer, 0, maxOutput)
+                    val written = transformBlock(bytes, startIndex, inputEnd, tempBuffer, 0, maxOutput)
                     tempBuffer.copyInto(dest, destStart, 0, written)
                     written
                 }

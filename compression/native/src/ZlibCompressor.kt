@@ -8,11 +8,10 @@
 package kotlinx.io.compression
 
 import kotlinx.cinterop.*
-import kotlinx.io.Buffer
 import kotlinx.io.ByteArrayTransformation
 import kotlinx.io.IOException
+import kotlinx.io.TransformResult
 import kotlinx.io.UnsafeIoApi
-import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.posix.memset
 import platform.zlib.*
 
@@ -56,42 +55,41 @@ internal class ZlibCompressor(
         }
     }
 
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformIntoByteArray(
+        source: ByteArray,
+        sourceStart: Int,
+        sourceEnd: Int,
+        destination: ByteArray,
+        destinationStart: Int,
+        destinationEnd: Int
+    ): TransformResult {
         check(initialized) { "Compressor is closed" }
-        if (source.exhausted()) return 0L
 
-        val consumed = UnsafeBufferOperations.readFromHead(source) { inputBytes, inputStart, inputEnd ->
-            val available = minOf(byteCount.toInt(), inputEnd - inputStart)
+        val inputSize = sourceEnd - sourceStart
 
-            inputBytes.usePinned { pinnedInput ->
-                zStream.next_in = pinnedInput.addressOf(inputStart).reinterpret()
-                zStream.avail_in = available.convert()
+        return source.usePinned { pinnedInput ->
+            destination.usePinned { pinnedOutput ->
+                zStream.next_in = pinnedInput.addressOf(sourceStart).reinterpret()
+                zStream.avail_in = inputSize.convert()
+                zStream.next_out = pinnedOutput.addressOf(destinationStart).reinterpret()
+                zStream.avail_out = (destinationEnd - destinationStart).convert()
 
-                // Drain all output for this input
-                while (zStream.avail_in > 0u) {
-                    val written = UnsafeBufferOperations.writeToTail(sink, 1) { outputBytes, outputStart, outputEnd ->
-                        outputBytes.usePinned { pinnedOutput ->
-                            zStream.next_out = pinnedOutput.addressOf(outputStart).reinterpret()
-                            zStream.avail_out = (outputEnd - outputStart).convert()
+                val deflateResult = deflate(zStream.ptr, Z_NO_FLUSH)
 
-                            val deflateResult = deflate(zStream.ptr, Z_NO_FLUSH)
-
-                            if (deflateResult != Z_OK && deflateResult != Z_BUF_ERROR) {
-                                throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
-                            }
-
-                            (outputEnd - outputStart) - zStream.avail_out.toInt()
-                        }
-                    }
-                    if (written == 0) break
+                if (deflateResult != Z_OK && deflateResult != Z_BUF_ERROR) {
+                    throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
                 }
+
+                val consumed = inputSize - zStream.avail_in.toInt()
+                val produced = (destinationEnd - destinationStart) - zStream.avail_out.toInt()
+
+                TransformResult(consumed, produced)
             }
-
-            available
         }
-
-        return consumed.toLong()
     }
+
+    // Native zlib doesn't buffer internally, so no pending output
+    override fun hasPendingOutput(): Boolean = false
 
     override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Compressor is closed" }

@@ -119,6 +119,22 @@ internal class GzipDecompressor : ByteArrayTransformation() {
         return consumed.toLong()
     }
 
+    // GzipDecompressor uses custom transformAtMostTo, so these are not called during normal operation
+    override fun transformIntoByteArray(
+        source: ByteArray,
+        sourceStart: Int,
+        sourceEnd: Int,
+        destination: ByteArray,
+        destinationStart: Int,
+        destinationEnd: Int
+    ): TransformResult {
+        // This is only called if someone uses the base class implementation
+        // For GZIP, we need the header/trailer handling in transformAtMostTo
+        throw UnsupportedOperationException("GzipDecompressor requires custom transformAtMostTo handling")
+    }
+
+    override fun hasPendingOutput(): Boolean = !inflater.needsInput() && !inflater.finished()
+
     override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         // If inflater is finished but trailer not verified, verify it now
         if (inflater.finished() && !trailerVerified) {

@@ -5,29 +5,44 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.StreamingTransformation
+import kotlinx.io.ByteArrayTransformation
+import kotlinx.io.TransformResult
 import kotlinx.io.UnsafeIoApi
 import java.util.zip.Deflater
 
 /**
- * A [StreamingTransformation] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
+ * A [ByteArrayTransformation] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
  */
 @OptIn(UnsafeIoApi::class)
 internal class DeflaterCompressor(
     private val deflater: Deflater
-) : StreamingTransformation() {
+) : ByteArrayTransformation() {
 
     private var finishCalled = false
 
-    override fun feedInput(source: ByteArray, startIndex: Int, endIndex: Int) {
-        deflater.setInput(source, startIndex, endIndex - startIndex)
+    override fun transformIntoByteArray(
+        source: ByteArray,
+        sourceStart: Int,
+        sourceEnd: Int,
+        destination: ByteArray,
+        destinationStart: Int,
+        destinationEnd: Int
+    ): TransformResult {
+        // If deflater needs input and we have some, provide it
+        val inputSize = sourceEnd - sourceStart
+        if (deflater.needsInput() && inputSize > 0) {
+            deflater.setInput(source, sourceStart, inputSize)
+        }
+
+        val produced = deflater.deflate(destination, destinationStart, destinationEnd - destinationStart)
+
+        // JDK deflater copies all input at once, so consumed is either 0 or all of it
+        val consumed = if (deflater.needsInput()) inputSize else 0
+
+        return TransformResult(consumed, produced)
     }
 
-    override fun needsInput(): Boolean = deflater.needsInput()
-
-    override fun drainOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
-        return deflater.deflate(destination, startIndex, endIndex - startIndex)
-    }
+    override fun hasPendingOutput(): Boolean = !deflater.needsInput()
 
     override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!finishCalled) {

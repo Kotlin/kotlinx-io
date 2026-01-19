@@ -6,13 +6,14 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
-import kotlinx.io.StreamingTransformation
+import kotlinx.io.ByteArrayTransformation
+import kotlinx.io.TransformResult
 import kotlinx.io.UnsafeIoApi
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 
 /**
- * A [StreamingTransformation] implementation for GZIP compression (RFC 1952).
+ * A [ByteArrayTransformation] implementation for GZIP compression (RFC 1952).
  *
  * GZIP format consists of:
  * - 10-byte header
@@ -20,7 +21,7 @@ import java.util.zip.Deflater
  * - 8-byte trailer (CRC32 + original size)
  */
 @OptIn(UnsafeIoApi::class)
-internal class GzipCompressor(level: Int) : StreamingTransformation() {
+internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
 
     // Use raw deflate (nowrap=true) as we manually handle GZIP header/trailer
     private val deflater = Deflater(level, true)
@@ -32,7 +33,7 @@ internal class GzipCompressor(level: Int) : StreamingTransformation() {
     private var uncompressedSize = 0L
 
     override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
-        if (source.exhausted()) return 0L
+        if (source.exhausted() && !hasPendingOutput()) return 0L
 
         // Write GZIP header if not yet written
         if (!headerWritten) {
@@ -43,19 +44,33 @@ internal class GzipCompressor(level: Int) : StreamingTransformation() {
         return super.transformAtMostTo(source, sink, byteCount)
     }
 
-    override fun feedInput(source: ByteArray, startIndex: Int, endIndex: Int) {
-        val length = endIndex - startIndex
-        // Update CRC32 checksum before compression
-        crc32.update(source, startIndex, length)
-        uncompressedSize += length
-        deflater.setInput(source, startIndex, length)
+    override fun transformIntoByteArray(
+        source: ByteArray,
+        sourceStart: Int,
+        sourceEnd: Int,
+        destination: ByteArray,
+        destinationStart: Int,
+        destinationEnd: Int
+    ): TransformResult {
+        val inputSize = sourceEnd - sourceStart
+
+        // If deflater needs input and we have some, provide it
+        if (deflater.needsInput() && inputSize > 0) {
+            // Update CRC32 checksum before compression
+            crc32.update(source, sourceStart, inputSize)
+            uncompressedSize += inputSize
+            deflater.setInput(source, sourceStart, inputSize)
+        }
+
+        val produced = deflater.deflate(destination, destinationStart, destinationEnd - destinationStart)
+
+        // JDK deflater copies all input at once, so consumed is either 0 or all of it
+        val consumed = if (deflater.needsInput()) inputSize else 0
+
+        return TransformResult(consumed, produced)
     }
 
-    override fun needsInput(): Boolean = deflater.needsInput()
-
-    override fun drainOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
-        return deflater.deflate(destination, startIndex, endIndex - startIndex)
-    }
+    override fun hasPendingOutput(): Boolean = !deflater.needsInput()
 
     override fun finalize(sink: Buffer) {
         if (trailerWritten) return

@@ -683,7 +683,7 @@ class ByteArrayTransformationSamplesJvm {
 
         override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
 
-        override fun transformIntoByteArray(
+        override fun transformBlock(
             source: ByteArray,
             sourceStart: Int,
             sourceEnd: Int,
