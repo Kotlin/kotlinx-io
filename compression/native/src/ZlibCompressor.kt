@@ -8,15 +8,13 @@
 package kotlinx.io.compression
 
 import kotlinx.cinterop.*
-import kotlinx.io.Buffer
+import kotlinx.io.ByteArrayTransformation
 import kotlinx.io.IOException
-import kotlinx.io.Transformation
 import kotlinx.io.UnsafeIoApi
-import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.zlib.*
 
 /**
- * A [Transformation] implementation that uses zlib for DEFLATE/GZIP compression.
+ * A [ByteArrayTransformation] implementation that uses zlib for DEFLATE/GZIP compression.
  *
  * @param level compression level (0-9)
  * @param windowBits determines the format:
@@ -24,10 +22,11 @@ import platform.zlib.*
  *        - 8-15: zlib format
  *        - 24-31 (windowBits + 16): GZIP format
  */
+@OptIn(UnsafeIoApi::class)
 internal class ZlibCompressor(
     level: Int,
     windowBits: Int
-) : Transformation {
+) : ByteArrayTransformation() {
 
     private val arena = Arena()
     private val zStream: z_stream = arena.alloc()
@@ -54,46 +53,78 @@ internal class ZlibCompressor(
         }
     }
 
-    @OptIn(UnsafeIoApi::class)
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
         check(initialized) { "Compressor is closed" }
 
-        if (source.exhausted()) return 0L
+        val inputSize = endIndex - startIndex
+        if (inputSize == 0) return ByteArray(0)
 
-        var totalConsumed = 0L
+        // Collect all output
+        val result = mutableListOf<ByteArray>()
+        var totalSize = 0
 
-        // Consume up to byteCount bytes from source
-        while (!source.exhausted() && totalConsumed < byteCount) {
-            val consumed = UnsafeBufferOperations.readFromHead(source) { data, pos, limit ->
-                val available = limit - pos
-                val toConsume = minOf(available.toLong(), byteCount - totalConsumed).toInt()
+        source.usePinned { pinnedInput ->
+            zStream.next_in = pinnedInput.addressOf(startIndex).reinterpret()
+            zStream.avail_in = inputSize.convert()
 
-                data.usePinned { pinnedInput ->
-                    zStream.next_in = pinnedInput.addressOf(pos).reinterpret()
-                    zStream.avail_in = toConsume.convert()
+            outputBuffer.usePinned { pinnedOutput ->
+                while (zStream.avail_in > 0u) {
+                    zStream.next_out = pinnedOutput.addressOf(0).reinterpret()
+                    zStream.avail_out = BUFFER_SIZE.convert()
 
-                    deflateLoop(sink, Z_NO_FLUSH)
+                    val deflateResult = deflate(zStream.ptr, Z_NO_FLUSH)
+
+                    if (deflateResult != Z_OK && deflateResult != Z_BUF_ERROR) {
+                        throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
+                    }
+
+                    val produced = BUFFER_SIZE - zStream.avail_out.toInt()
+                    if (produced > 0) {
+                        result.add(outputBuffer.copyOf(produced))
+                        totalSize += produced
+                    }
                 }
-
-                toConsume
             }
-            totalConsumed += consumed
         }
 
-        return totalConsumed
+        return combineChunks(result, totalSize)
     }
 
-    override fun finish(sink: Buffer) {
-        if (finished) return
+    override fun finalizeToByteArray(): ByteArray {
+        if (finished) return ByteArray(0)
         check(initialized) { "Compressor is closed" }
 
         // Set empty input and finish
         zStream.next_in = null
         zStream.avail_in = 0u
 
-        deflateLoop(sink, Z_FINISH)
+        // Collect all remaining output
+        val result = mutableListOf<ByteArray>()
+        var totalSize = 0
+
+        outputBuffer.usePinned { pinnedOutput ->
+            var deflateResult: Int
+            do {
+                zStream.next_out = pinnedOutput.addressOf(0).reinterpret()
+                zStream.avail_out = BUFFER_SIZE.convert()
+
+                deflateResult = deflate(zStream.ptr, Z_FINISH)
+
+                if (deflateResult != Z_OK && deflateResult != Z_STREAM_END && deflateResult != Z_BUF_ERROR) {
+                    throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
+                }
+
+                val produced = BUFFER_SIZE - zStream.avail_out.toInt()
+                if (produced > 0) {
+                    result.add(outputBuffer.copyOf(produced))
+                    totalSize += produced
+                }
+            } while (deflateResult != Z_STREAM_END)
+        }
 
         finished = true
+
+        return combineChunks(result, totalSize)
     }
 
     override fun close() {
@@ -102,38 +133,6 @@ internal class ZlibCompressor(
         deflateEnd(zStream.ptr)
         arena.clear()
         initialized = false
-    }
-
-    private fun deflateLoop(sink: Buffer, flush: Int) {
-        outputBuffer.usePinned { pinnedOutput ->
-            do {
-                zStream.next_out = pinnedOutput.addressOf(0).reinterpret()
-                zStream.avail_out = BUFFER_SIZE.convert()
-
-                val result = deflate(zStream.ptr, flush)
-
-                if (result != Z_OK && result != Z_STREAM_END && result != Z_BUF_ERROR) {
-                    throw IOException("Compression failed: ${zlibErrorMessage(result)}")
-                }
-
-                val produced = BUFFER_SIZE - zStream.avail_out.toInt()
-                if (produced > 0) {
-                    sink.write(outputBuffer, 0, produced)
-                }
-            } while (zStream.avail_out == 0u || (flush == Z_FINISH && result != Z_STREAM_END))
-        }
-    }
-
-    private fun zlibErrorMessage(code: Int): String {
-        return when (code) {
-            Z_ERRNO -> "Z_ERRNO"
-            Z_STREAM_ERROR -> "Z_STREAM_ERROR"
-            Z_DATA_ERROR -> "Z_DATA_ERROR"
-            Z_MEM_ERROR -> "Z_MEM_ERROR"
-            Z_BUF_ERROR -> "Z_BUF_ERROR"
-            Z_VERSION_ERROR -> "Z_VERSION_ERROR"
-            else -> "Unknown error: $code"
-        }
     }
 
     private companion object {

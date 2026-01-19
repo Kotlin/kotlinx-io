@@ -6,26 +6,27 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
+import kotlinx.io.ByteArrayTransformation
 import kotlinx.io.IOException
-import kotlinx.io.Transformation
+import kotlinx.io.UnsafeIoApi
 import java.util.zip.CRC32
 import java.util.zip.DataFormatException
 import java.util.zip.Inflater
 
 /**
- * A [Transformation] implementation for GZIP decompression (RFC 1952).
+ * A [ByteArrayTransformation] implementation for GZIP decompression (RFC 1952).
  *
  * GZIP format consists of:
  * - 10-byte minimum header (may be longer with optional fields)
  * - DEFLATE compressed data
  * - 8-byte trailer (CRC32 + original size)
  */
-internal class GzipDecompressor : Transformation {
+@OptIn(UnsafeIoApi::class)
+internal class GzipDecompressor : ByteArrayTransformation() {
 
     // Use raw inflate (nowrap=true) as we manually handle GZIP header/trailer
     private val inflater = Inflater(true)
     private val crc32 = CRC32()
-    private val inputArray = ByteArray(BUFFER_SIZE)
     private val outputArray = ByteArray(BUFFER_SIZE)
 
     private var headerParsed = false
@@ -39,9 +40,10 @@ internal class GzipDecompressor : Transformation {
     // Buffer for storing remaining bytes after inflater finishes (for trailer verification)
     private val remainingBuffer = Buffer()
 
-    // Track how many bytes from inputArray the inflater hasn't consumed yet
-    private var inputArrayOffset: Int = 0
-    private var inputArrayLength: Int = 0
+    // Track the last input for extracting remaining bytes
+    private var lastInput: ByteArray? = null
+    private var lastInputStart: Int = 0
+    private var lastInputLength: Int = 0
 
     override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         // If already finished, return EOF
@@ -76,51 +78,65 @@ internal class GzipDecompressor : Transformation {
             return 0L
         }
 
-        var totalConsumed = 0L
-
-        // Consume up to byteCount bytes from source and decompress
-        while (totalConsumed < byteCount && !source.exhausted()) {
-            // Feed data to the inflater if it needs input
-            if (inflater.needsInput()) {
-                val toRead = minOf(source.size, byteCount - totalConsumed, BUFFER_SIZE.toLong()).toInt()
-                @Suppress("UNUSED_VALUE")
-                val ignored = source.readAtMostTo(inputArray, 0, toRead)
-                inflater.setInput(inputArray, 0, toRead)
-
-                // Track for extracting remaining bytes
-                inputArrayOffset = 0
-                inputArrayLength = toRead
-
-                totalConsumed += toRead
-            }
-
-            // Inflate and update CRC
-            inflateToBuffer(sink)
-
-            // Check if inflater just finished - extract remaining bytes and try to verify trailer
-            if (inflater.finished() && !trailerVerified) {
-                extractRemainingBytes()
-
-                // Try to verify trailer immediately if we have enough bytes
-                if (verifyTrailer(source)) {
-                    trailerVerified = true
-                    finished = true
-                    return if (totalConsumed == 0L) -1L else totalConsumed
-                }
-                // If not enough bytes for trailer yet, return what we consumed
-                // Next call will try to verify trailer again
-                return totalConsumed
-            }
-        }
-
-        return totalConsumed
+        // Call parent implementation which will use transformToByteArray
+        return super.transformAtMostTo(source, sink, byteCount)
     }
 
-    override fun finish(sink: Buffer) {
+    override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
+        val inputSize = endIndex - startIndex
+        if (inputSize == 0) return ByteArray(0)
+
+        // If already finished, return empty
+        if (inflater.finished()) return ByteArray(0)
+
+        // Track input for extracting remaining bytes
+        lastInput = source
+        lastInputStart = startIndex
+        lastInputLength = inputSize
+
+        // Feed data to inflater
+        inflater.setInput(source, startIndex, inputSize)
+
+        // Collect all output
+        val result = mutableListOf<ByteArray>()
+        var totalSize = 0
+
+        try {
+            while (!inflater.needsInput() && !inflater.finished()) {
+                val count = inflater.inflate(outputArray)
+                if (count > 0) {
+                    // Update CRC
+                    crc32.update(outputArray, 0, count)
+                    uncompressedSize += count
+
+                    result.add(outputArray.copyOf(count))
+                    totalSize += count
+                } else {
+                    break
+                }
+            }
+        } catch (e: DataFormatException) {
+            throw IOException("Invalid GZIP data: ${e.message}", e)
+        }
+
+        // If inflater finished, extract remaining bytes
+        if (inflater.finished()) {
+            extractRemainingBytes()
+        }
+
+        return combineChunks(result, totalSize)
+    }
+
+    override fun finalize(sink: Buffer) {
         // Verify that decompression is complete (header parsed, data inflated, trailer verified)
         if (!finished) {
             throw IOException("Truncated or corrupt gzip data")
         }
+    }
+
+    override fun finalizeToByteArray(): ByteArray {
+        // Nothing to do - verification is done in finalize()
+        return ByteArray(0)
     }
 
     override fun close() {
@@ -131,11 +147,11 @@ internal class GzipDecompressor : Transformation {
 
     private fun extractRemainingBytes() {
         val remaining = inflater.remaining
-        if (remaining > 0 && inputArrayLength > 0) {
+        if (remaining > 0 && lastInput != null && lastInputLength > 0) {
             // Calculate where the remaining bytes start in the original input
-            val remainingStart = inputArrayOffset + inputArrayLength - remaining
-            remainingBuffer.write(inputArray, remainingStart, remainingStart + remaining)
-            inputArrayLength = 0
+            val remainingStart = lastInputStart + lastInputLength - remaining
+            remainingBuffer.write(lastInput!!, remainingStart, remainingStart + remaining)
+            lastInputLength = 0
         }
     }
 
@@ -218,27 +234,6 @@ internal class GzipDecompressor : Transformation {
             }
         }
         return false // Need more data
-    }
-
-    private fun inflateToBuffer(sink: Buffer) {
-        try {
-            while (true) {
-                val count = inflater.inflate(outputArray)
-                if (count > 0) {
-                    // Update CRC
-                    crc32.update(outputArray, 0, count)
-                    uncompressedSize += count
-
-                    // Write to sink
-                    sink.write(outputArray, 0, count)
-                }
-                if (count == 0 || inflater.finished() || inflater.needsInput()) {
-                    break
-                }
-            }
-        } catch (e: DataFormatException) {
-            throw IOException("Invalid GZIP data: ${e.message}", e)
-        }
     }
 
     private fun verifyTrailer(source: Buffer): Boolean {

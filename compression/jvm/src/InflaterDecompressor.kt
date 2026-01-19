@@ -6,19 +6,20 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
+import kotlinx.io.ByteArrayTransformation
 import kotlinx.io.IOException
-import kotlinx.io.Transformation
+import kotlinx.io.UnsafeIoApi
 import java.util.zip.DataFormatException
 import java.util.zip.Inflater
 
 /**
- * A [Transformation] implementation that uses [java.util.zip.Inflater] for DEFLATE decompression.
+ * A [ByteArrayTransformation] implementation that uses [java.util.zip.Inflater] for DEFLATE decompression.
  */
+@OptIn(UnsafeIoApi::class)
 internal class InflaterDecompressor(
     private val inflater: Inflater
-) : Transformation {
+) : ByteArrayTransformation() {
 
-    private val inputArray = ByteArray(BUFFER_SIZE)
     private val outputArray = ByteArray(BUFFER_SIZE)
 
     override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
@@ -31,56 +32,51 @@ internal class InflaterDecompressor(
             return 0L
         }
 
-        var totalConsumed = 0L
-
-        // Consume up to byteCount bytes from source and decompress
-        while (totalConsumed < byteCount && !source.exhausted()) {
-            // Feed data to the inflater if it needs input
-            if (inflater.needsInput()) {
-                val toRead = minOf(source.size, byteCount - totalConsumed, BUFFER_SIZE.toLong()).toInt()
-                @Suppress("UNUSED_VALUE")
-                val ignored = source.readAtMostTo(inputArray, 0, toRead)
-                inflater.setInput(inputArray, 0, toRead)
-                totalConsumed += toRead
-            }
-
-            // Inflate while possible
-            inflateToBuffer(sink)
-
-            // If inflater finished, we're done
-            if (inflater.finished()) {
-                return if (totalConsumed == 0L) -1L else totalConsumed
-            }
-        }
-
-        return totalConsumed
+        // Call parent implementation which will use transformToByteArray
+        return super.transformAtMostTo(source, sink, byteCount)
     }
 
-    override fun finish(sink: Buffer) {
-        // Verify that decompression is complete
-        if (!inflater.finished()) {
-            throw IOException("Truncated or corrupt deflate data")
-        }
-    }
+    override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
+        val inputSize = endIndex - startIndex
+        if (inputSize == 0) return ByteArray(0)
 
-    override fun close() {
-        inflater.end()
-    }
+        // If already finished, return empty
+        if (inflater.finished()) return ByteArray(0)
 
-    private fun inflateToBuffer(sink: Buffer) {
+        // Feed data to inflater
+        inflater.setInput(source, startIndex, inputSize)
+
+        // Collect all output
+        val result = mutableListOf<ByteArray>()
+        var totalSize = 0
+
         try {
-            while (true) {
+            while (!inflater.needsInput() && !inflater.finished()) {
                 val count = inflater.inflate(outputArray)
                 if (count > 0) {
-                    sink.write(outputArray, 0, count)
-                }
-                if (count == 0 || inflater.finished() || inflater.needsInput()) {
+                    result.add(outputArray.copyOf(count))
+                    totalSize += count
+                } else {
                     break
                 }
             }
         } catch (e: DataFormatException) {
             throw IOException("Invalid compressed data: ${e.message}", e)
         }
+
+        return combineChunks(result, totalSize)
+    }
+
+    override fun finalizeToByteArray(): ByteArray {
+        // Verify that decompression is complete
+        if (!inflater.finished()) {
+            throw IOException("Truncated or corrupt deflate data")
+        }
+        return ByteArray(0)
+    }
+
+    override fun close() {
+        inflater.end()
     }
 
     private companion object {

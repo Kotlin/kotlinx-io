@@ -152,7 +152,7 @@ class TransformTest {
                 sink.write(source, toWrite)
                 return toWrite
             }
-            override fun finish(sink: Buffer) {}
+            override fun finalize(sink: Buffer) {}
             override fun close() {
                 transformClosed = true
             }
@@ -196,7 +196,7 @@ class TransformTest {
                 }
                 return 0L
             }
-            override fun finish(sink: Buffer) {
+            override fun finalize(sink: Buffer) {
                 finished = true
             }
             override fun close() {
@@ -307,7 +307,7 @@ class TransformTest {
             return bytesConsumed
         }
 
-        override fun finish(sink: Buffer) {}
+        override fun finalize(sink: Buffer) {}
 
         override fun close() {}
     }
@@ -331,7 +331,7 @@ class TransformTest {
             return bytesConsumed
         }
 
-        override fun finish(sink: Buffer) {}
+        override fun finalize(sink: Buffer) {}
 
         override fun close() {}
     }
@@ -347,7 +347,7 @@ class TransformTest {
             return toConsume
         }
 
-        override fun finish(sink: Buffer) {
+        override fun finalize(sink: Buffer) {
             sink.writeString(trailer)
         }
 

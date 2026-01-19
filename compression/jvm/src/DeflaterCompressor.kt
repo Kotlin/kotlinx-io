@@ -5,75 +5,70 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.Buffer
-import kotlinx.io.Transformation
+import kotlinx.io.ByteArrayTransformation
+import kotlinx.io.UnsafeIoApi
 import java.util.zip.Deflater
 
 /**
- * A [Transformation] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
+ * A [ByteArrayTransformation] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
  */
+@OptIn(UnsafeIoApi::class)
 internal class DeflaterCompressor(
     private val deflater: Deflater
-) : Transformation {
+) : ByteArrayTransformation() {
 
-    private val inputArray = ByteArray(BUFFER_SIZE)
     private val outputArray = ByteArray(BUFFER_SIZE)
     private var finished = false
 
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
-        if (source.exhausted()) return 0L
+    override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
+        val inputSize = endIndex - startIndex
+        if (inputSize == 0) return ByteArray(0)
 
-        var totalConsumed = 0L
+        deflater.setInput(source, startIndex, inputSize)
 
-        // Consume up to byteCount bytes from source
-        while (!source.exhausted() && totalConsumed < byteCount) {
-            // Wait for deflater to be ready for more input
-            if (!deflater.needsInput()) {
-                deflateToBuffer(sink)
-                continue
+        // Collect all output from deflater
+        val result = mutableListOf<ByteArray>()
+        var totalSize = 0
+
+        while (!deflater.needsInput()) {
+            val count = deflater.deflate(outputArray)
+            if (count > 0) {
+                result.add(outputArray.copyOf(count))
+                totalSize += count
+            } else {
+                break
             }
-
-            // Read into our own array (deflater keeps reference, so we can't use buffer's internal array)
-            val toRead = minOf(source.size, byteCount - totalConsumed, BUFFER_SIZE.toLong()).toInt()
-            @Suppress("UNUSED_VALUE")
-            val ignored = source.readAtMostTo(inputArray, 0, toRead)
-
-            deflater.setInput(inputArray, 0, toRead)
-            deflateToBuffer(sink)
-
-            totalConsumed += toRead
         }
 
-        return totalConsumed
+        return combineChunks(result, totalSize)
     }
 
-    override fun finish(sink: Buffer) {
-        if (finished) return
+    override fun finalizeToByteArray(): ByteArray {
+        if (finished) return ByteArray(0)
 
         deflater.finish()
 
+        // Collect all remaining output
+        val result = mutableListOf<ByteArray>()
+        var totalSize = 0
+
         while (!deflater.finished()) {
-            deflateToBuffer(sink)
+            val count = deflater.deflate(outputArray)
+            if (count > 0) {
+                result.add(outputArray.copyOf(count))
+                totalSize += count
+            } else if (deflater.finished()) {
+                break
+            }
         }
 
         finished = true
+
+        return combineChunks(result, totalSize)
     }
 
     override fun close() {
         deflater.end()
-    }
-
-    private fun deflateToBuffer(sink: Buffer) {
-        while (true) {
-            val count = deflater.deflate(outputArray)
-            if (count > 0) {
-                sink.write(outputArray, 0, count)
-            }
-            if (count < outputArray.size) {
-                // No more output available
-                break
-            }
-        }
     }
 
     private companion object {

@@ -6,24 +6,25 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
-import kotlinx.io.Transformation
+import kotlinx.io.ByteArrayTransformation
+import kotlinx.io.UnsafeIoApi
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 
 /**
- * A [Transformation] implementation for GZIP compression (RFC 1952).
+ * A [ByteArrayTransformation] implementation for GZIP compression (RFC 1952).
  *
  * GZIP format consists of:
  * - 10-byte header
  * - DEFLATE compressed data
  * - 8-byte trailer (CRC32 + original size)
  */
-internal class GzipCompressor(level: Int) : Transformation {
+@OptIn(UnsafeIoApi::class)
+internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
 
     // Use raw deflate (nowrap=true) as we manually handle GZIP header/trailer
     private val deflater = Deflater(level, true)
     private val crc32 = CRC32()
-    private val inputArray = ByteArray(BUFFER_SIZE)
     private val outputArray = ByteArray(BUFFER_SIZE)
 
     private var headerWritten = false
@@ -39,36 +40,39 @@ internal class GzipCompressor(level: Int) : Transformation {
             headerWritten = true
         }
 
-        var totalConsumed = 0L
-
-        // Consume up to byteCount bytes from source
-        while (!source.exhausted() && totalConsumed < byteCount) {
-            // Wait for deflater to be ready for more input
-            if (!deflater.needsInput()) {
-                deflateToBuffer(sink)
-                continue
-            }
-
-            // Read into our own array (deflater keeps reference, so we can't use buffer's internal array)
-            val toRead = minOf(source.size, byteCount - totalConsumed, BUFFER_SIZE.toLong()).toInt()
-            @Suppress("UNUSED_VALUE")
-            val ignored = source.readAtMostTo(inputArray, 0, toRead)
-
-            // Update CRC32 checksum
-            crc32.update(inputArray, 0, toRead)
-            uncompressedSize += toRead
-
-            // Compress the data
-            deflater.setInput(inputArray, 0, toRead)
-            deflateToBuffer(sink)
-
-            totalConsumed += toRead
-        }
-
-        return totalConsumed
+        // Call parent implementation which will use transformToByteArray
+        return super.transformAtMostTo(source, sink, byteCount)
     }
 
-    override fun finish(sink: Buffer) {
+    override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
+        val inputSize = endIndex - startIndex
+        if (inputSize == 0) return ByteArray(0)
+
+        // Update CRC32 checksum
+        crc32.update(source, startIndex, inputSize)
+        uncompressedSize += inputSize
+
+        // Compress the data
+        deflater.setInput(source, startIndex, inputSize)
+
+        // Collect all output from deflater
+        val result = mutableListOf<ByteArray>()
+        var totalSize = 0
+
+        while (!deflater.needsInput()) {
+            val count = deflater.deflate(outputArray)
+            if (count > 0) {
+                result.add(outputArray.copyOf(count))
+                totalSize += count
+            } else {
+                break
+            }
+        }
+
+        return combineChunks(result, totalSize)
+    }
+
+    override fun finalize(sink: Buffer) {
         if (finished) return
 
         // Ensure header is written even if no data was compressed
@@ -77,11 +81,8 @@ internal class GzipCompressor(level: Int) : Transformation {
             headerWritten = true
         }
 
-        // Finish deflate
-        deflater.finish()
-        while (!deflater.finished()) {
-            deflateToBuffer(sink)
-        }
+        // Call parent finalize which will call finalizeToByteArray
+        super.finalize(sink)
 
         // Write GZIP trailer
         writeTrailer(sink)
@@ -89,20 +90,29 @@ internal class GzipCompressor(level: Int) : Transformation {
         finished = true
     }
 
-    override fun close() {
-        deflater.end()
-    }
+    override fun finalizeToByteArray(): ByteArray {
+        // Finish deflate
+        deflater.finish()
 
-    private fun deflateToBuffer(sink: Buffer) {
-        while (true) {
+        // Collect all remaining output
+        val result = mutableListOf<ByteArray>()
+        var totalSize = 0
+
+        while (!deflater.finished()) {
             val count = deflater.deflate(outputArray)
             if (count > 0) {
-                sink.write(outputArray, 0, count)
-            }
-            if (count < outputArray.size) {
+                result.add(outputArray.copyOf(count))
+                totalSize += count
+            } else if (deflater.finished()) {
                 break
             }
         }
+
+        return combineChunks(result, totalSize)
+    }
+
+    override fun close() {
+        deflater.end()
     }
 
     private fun writeHeader(sink: Buffer) {

@@ -363,7 +363,7 @@ class CipherTransformationSamples {
             return totalConsumed
         }
 
-        override fun finish(sink: Buffer) {
+        override fun finalize(sink: Buffer) {
             val finalBytes = cipher.doFinal()
             if (finalBytes.isNotEmpty()) {
                 sink.write(finalBytes)
@@ -473,7 +473,7 @@ class CipherTransformationSamples {
                 return bytesConsumed
             }
 
-            override fun finish(sink: Buffer) {}
+            override fun finalize(sink: Buffer) {}
 
             override fun close() {}
 
@@ -675,24 +675,17 @@ class ByteArrayTransformationSamplesJvm {
     /**
      * A [ByteArrayTransformation] that encrypts or decrypts data using a [Cipher].
      *
-     * This demonstrates zero-copy reading from source - bytes are accessed directly
-     * from buffer segments without intermediate copies.
+     * This demonstrates how to implement a ByteArray-based transformation by wrapping
+     * JDK's Cipher API.
      */
     private class CipherByteArrayTransformation(private val cipher: Cipher) : ByteArrayTransformation() {
-        override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
+        override fun transformToByteArray(source: ByteArray, startIndex: Int, endIndex: Int): ByteArray {
+            return cipher.update(source, startIndex, endIndex - startIndex) ?: ByteArray(0)
+        }
 
-        override fun transformIntoByteArray(
-            source: ByteArray,
-            startIndex: Int,
-            endIndex: Int,
-            destination: ByteArray,
-            destinationOffset: Int
-        ): Int = cipher.update(source, startIndex, endIndex - startIndex, destination, destinationOffset)
-
-        override fun finishIntoByteArray(
-            destination: ByteArray,
-            destinationOffset: Int
-        ): Int = cipher.doFinal(destination, destinationOffset)
+        override fun finalizeToByteArray(): ByteArray {
+            return cipher.doFinal() ?: ByteArray(0)
+        }
 
         override fun close() {}
     }

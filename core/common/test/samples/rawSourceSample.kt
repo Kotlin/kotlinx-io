@@ -34,7 +34,7 @@ class RC4SourceSample {
                 return bytesConsumed
             }
 
-            override fun finish(sink: Buffer) {}
+            override fun finalize(sink: Buffer) {}
 
             override fun close() {}
 
