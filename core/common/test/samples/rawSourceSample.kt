@@ -22,7 +22,7 @@ class RC4SourceSample {
         class RC4Transformation(key: String) : Transformation {
             private val key = RC4Key(key)
 
-            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
                 if (source.exhausted()) return 0L
 
                 var bytesConsumed = 0L

@@ -42,7 +42,7 @@ public interface Transformation : AutoCloseable {
      *         is exhausted and will produce no more output
      * @throws IOException if transformation fails
      */
-    public fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long
+    public fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long
 
     /**
      * Signals end of input and flushes any remaining transformed data.
@@ -165,7 +165,7 @@ public abstract class ByteArrayTransformation : Transformation {
     // TODO: we might need to have `finalize` which returns an array (same as with transform)
     protected abstract fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int
 
-    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         // Handle case where source is exhausted but we have pending output
         if (source.exhausted()) {
             if (!hasPendingOutput()) return 0L
@@ -304,7 +304,7 @@ internal class TransformingSink(
 
         // Transform all input - loop until all bytes are consumed
         while (!inputBuffer.exhausted()) {
-            val consumed = transformation.transformTo(inputBuffer, outputBuffer, inputBuffer.size)
+            val consumed = transformation.transformTo(inputBuffer, inputBuffer.size, outputBuffer)
             if (consumed == -1L) break
             if (consumed == 0L && !inputBuffer.exhausted()) {
                 // Transformation didn't consume anything but there's still input
@@ -393,7 +393,7 @@ internal class TransformingSource(
             val sinkSizeBefore = sink.size
 
             // Try to transform (even with empty input, to allow decompressors to finalize)
-            val consumed = transformation.transformTo(inputBuffer, sink, inputBuffer.size)
+            val consumed = transformation.transformTo(inputBuffer, inputBuffer.size, sink)
 
             if (consumed == -1L) {
                 // Transformation is complete

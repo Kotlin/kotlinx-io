@@ -32,7 +32,7 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
     private var trailerWritten = false
     private var uncompressedSize = 0L
 
-    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         if (source.exhausted() && !hasPendingOutput()) return 0L
 
         // Write GZIP header if not yet written
@@ -41,7 +41,7 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
             headerWritten = true
         }
 
-        return super.transformTo(source, sink, byteCount)
+        return super.transformTo(source, byteCount, sink)
     }
 
     override fun transformIntoByteArray(

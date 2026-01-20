@@ -47,14 +47,14 @@ internal class ZlibDecompressor(
         }
     }
 
-    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         check(initialized) { "Decompressor is closed" }
 
         // If already finished, return EOF
         if (finished) return -1L
         if (source.exhausted()) return 0L
 
-        return super.transformTo(source, sink, byteCount)
+        return super.transformTo(source, byteCount, sink)
     }
 
     override fun transformIntoByteArray(

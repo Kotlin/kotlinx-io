@@ -42,7 +42,7 @@ internal class GzipDecompressor : ByteArrayTransformation() {
     private var lastInputStart: Int = 0
     private var lastInputLength: Int = 0
 
-    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         // If already finished, return EOF
         if (finished) {
             return -1L

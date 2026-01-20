@@ -332,7 +332,7 @@ class CipherTransformationSamples {
     private class CipherTransformation(private val cipher: Cipher) : Transformation {
         private val outputBuffer = ByteArray(cipher.getOutputSize(8192))
 
-        override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
             if (source.exhausted()) return 0L
 
             var totalConsumed = 0L
@@ -449,7 +449,7 @@ class CipherTransformationSamples {
 
             fun crc32(): UInt = crc32.xor(0xffffffffU)
 
-            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
                 if (source.exhausted()) return 0L
 
                 var bytesConsumed = 0L

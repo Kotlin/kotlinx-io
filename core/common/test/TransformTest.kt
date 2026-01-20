@@ -147,7 +147,7 @@ class TransformTest {
         }
 
         val transform = object : Transformation {
-            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
                 val toWrite = minOf(source.size, byteCount)
                 sink.write(source, toWrite)
                 return toWrite
@@ -187,7 +187,7 @@ class TransformTest {
 
         val transform = object : Transformation {
             private var finished = false
-            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
                 if (finished) return -1L
                 if (source.size > 0) {
                     val toWrite = minOf(source.size, byteCount)
@@ -296,7 +296,7 @@ class TransformTest {
      * Consumes 1 byte, produces 2 bytes.
      */
     private class DoubleByteTransform : Transformation {
-        override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
             var bytesConsumed = 0L
             while (!source.exhausted() && bytesConsumed < byteCount) {
                 val byte = source.readByte()
@@ -320,7 +320,7 @@ class TransformTest {
      * It relies on TransformingSource to detect EOF when upstream is exhausted.
      */
     private class HalveByteTransform : Transformation {
-        override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
             var bytesConsumed = 0L
             while (source.size >= 2 && bytesConsumed + 2 <= byteCount) {
                 val byte = source.readByte()
@@ -341,7 +341,7 @@ class TransformTest {
      * Pass-through for normal data, adds trailer on finish.
      */
     private class AppendTrailerTransform(private val trailer: String) : Transformation {
-        override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
             val toConsume = minOf(source.size, byteCount)
             sink.write(source, toConsume)
             return toConsume

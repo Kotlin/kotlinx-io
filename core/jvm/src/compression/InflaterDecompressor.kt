@@ -21,12 +21,12 @@ internal class InflaterDecompressor(
     private val inflater: Inflater
 ) : ByteArrayTransformation() {
 
-    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         // If already finished, return EOF
         if (inflater.finished()) {
             return -1L
         }
-        return super.transformTo(source, sink, byteCount)
+        return super.transformTo(source, byteCount, sink)
     }
 
     override fun transformIntoByteArray(
