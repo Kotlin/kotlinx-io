@@ -6,6 +6,7 @@
 package kotlinx.io.samples
 
 import kotlinx.io.*
+import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -516,17 +517,17 @@ class CipherTransformationSamples {
 }
 
 /**
- * Samples demonstrating [ByteArrayTransformation] for bounded transformations like cipher.
+ * Samples demonstrating [kotlinx.io.unsafe.UnsafeByteArrayTransformation] for bounded transformations like cipher.
  */
 @OptIn(UnsafeIoApi::class)
 class ByteArrayTransformationSamplesJvm {
     /**
-     * A [ByteArrayTransformation] that encrypts or decrypts data using a [Cipher].
+     * A [kotlinx.io.unsafe.UnsafeByteArrayTransformation] that encrypts or decrypts data using a [Cipher].
      *
      * This demonstrates how to implement a bounded transformation by wrapping
      * JDK's Cipher API, where the maximum output size can be determined from input size.
      */
-    private class CipherBlockTransformation(private val cipher: Cipher) : ByteArrayTransformation() {
+    private class CipherBlockTransformation(private val cipher: Cipher) : UnsafeByteArrayTransformation() {
         private var finalized = false
 
         override fun maxDestinationSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)

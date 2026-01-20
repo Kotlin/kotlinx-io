@@ -6,14 +6,13 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
-import kotlinx.io.ByteArrayTransformation
-import kotlinx.io.TransformResult
+import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.UnsafeIoApi
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 
 /**
- * A [ByteArrayTransformation] implementation for GZIP compression (RFC 1952).
+ * A [UnsafeByteArrayTransformation] implementation for GZIP compression (RFC 1952).
  *
  * GZIP format consists of:
  * - 10-byte header
@@ -21,7 +20,7 @@ import java.util.zip.Deflater
  * - 8-byte trailer (CRC32 + original size)
  */
 @OptIn(UnsafeIoApi::class)
-internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
+internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
 
     // Use raw deflate (nowrap=true) as we manually handle GZIP header/trailer
     private val deflater = Deflater(level, true)

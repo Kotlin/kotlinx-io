@@ -5,18 +5,17 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.ByteArrayTransformation
-import kotlinx.io.TransformResult
+import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.UnsafeIoApi
 import java.util.zip.Deflater
 
 /**
- * A [ByteArrayTransformation] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
+ * A [UnsafeByteArrayTransformation] implementation that uses [java.util.zip.Deflater] for DEFLATE compression.
  */
 @OptIn(UnsafeIoApi::class)
 internal class DeflaterCompressor(
     private val deflater: Deflater
-) : ByteArrayTransformation() {
+) : UnsafeByteArrayTransformation() {
 
     private var finishCalled = false
 

@@ -9,7 +9,7 @@ package kotlinx.io.compression
 
 import kotlinx.cinterop.*
 import kotlinx.io.Buffer
-import kotlinx.io.ByteArrayTransformation
+import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.IOException
 import kotlinx.io.TransformResult
 import kotlinx.io.UnsafeIoApi
@@ -17,7 +17,7 @@ import platform.posix.memset
 import platform.zlib.*
 
 /**
- * A [ByteArrayTransformation] implementation that uses zlib for DEFLATE/GZIP decompression.
+ * A [UnsafeByteArrayTransformation] implementation that uses zlib for DEFLATE/GZIP decompression.
  *
  * @param windowBits determines the format:
  *        - Negative (-15 to -8): raw DEFLATE
@@ -28,7 +28,7 @@ import platform.zlib.*
 @OptIn(UnsafeIoApi::class)
 internal class ZlibDecompressor(
     windowBits: Int
-) : ByteArrayTransformation() {
+) : UnsafeByteArrayTransformation() {
 
     private val arena = Arena()
     private val zStream: z_stream = arena.alloc()

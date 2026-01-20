@@ -6,20 +6,19 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
-import kotlinx.io.ByteArrayTransformation
+import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.IOException
-import kotlinx.io.TransformResult
 import kotlinx.io.UnsafeIoApi
 import java.util.zip.DataFormatException
 import java.util.zip.Inflater
 
 /**
- * A [ByteArrayTransformation] implementation that uses [java.util.zip.Inflater] for DEFLATE decompression.
+ * A [UnsafeByteArrayTransformation] implementation that uses [java.util.zip.Inflater] for DEFLATE decompression.
  */
 @OptIn(UnsafeIoApi::class)
 internal class InflaterDecompressor(
     private val inflater: Inflater
-) : ByteArrayTransformation() {
+) : UnsafeByteArrayTransformation() {
 
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         // If already finished, return EOF
