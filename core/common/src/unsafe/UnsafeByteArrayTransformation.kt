@@ -19,7 +19,7 @@ import kotlinx.io.UnsafeIoApi
  * - [finalizeIntoByteArray] to produce final output after all input is processed
  * - [close] to release resources
  *
- * For bounded transformations (like Cipher), also override [maxDestinationSize] to return
+ * For bounded transformations (like Cipher), also override [maxOutputSize] to return
  * the maximum output size for a given input size. This enables optimized buffer handling.
  *
  * @see kotlinx.io.Transformation
@@ -89,7 +89,7 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * @param inputSize the input size in bytes
      * @return the maximum output size, or -1 if unknown/unbounded
      */
-    protected open fun maxDestinationSize(inputSize: Int): Int = -1
+    protected open fun maxOutputSize(inputSize: Int): Int = -1
 
     /**
      * Produces finalization output into the sink array.
@@ -115,7 +115,7 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
 
         return UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
             val available = minOf(byteCount.toInt(), inputEnd - inputStart)
-            val maxOutput = maxDestinationSize(available)
+            val maxOutput = maxOutputSize(available)
 
             if (maxOutput >= 0) {
                 // Bounded transformation - output size is known, consume all input at once

@@ -530,7 +530,7 @@ class ByteArrayTransformationSamplesJvm {
     private class CipherBlockTransformation(private val cipher: Cipher) : UnsafeByteArrayTransformation() {
         private var finalized = false
 
-        override fun maxDestinationSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
+        override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
 
         override fun transformIntoByteArray(
             source: ByteArray,
