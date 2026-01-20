@@ -30,12 +30,11 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * Use factory methods to create instances:
      * - [ok] for normal progress (consumed input and/or produced output)
      * - [done] when transformation is complete (no more output will be produced)
-     * - [inputRequired] when more input is needed to proceed
      * - [outputRequired] when a larger output buffer is needed
      *
      * Use access properties to inspect results:
      * - [consumed] / [produced] for actual bytes processed (0 if requirement result)
-     * - [inputRequired] / [outputRequired] for buffer size needed (0 if ok result)
+     * - [outputRequired] for buffer size needed (0 if ok result)
      */
     protected class TransformResult private constructor(
         private val _consumed: Int,
@@ -43,21 +42,15 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
     ) {
         /**
          * Number of bytes consumed from the input array.
-         * Returns 0 if this is a requirement result ([inputRequired] or [outputRequired]).
+         * Returns 0 if this is a requirement result ([outputRequired]).
          */
-        public val consumed: Int get() = if (_consumed >= 0) _consumed else 0
+        public val consumed: Int get() = _consumed
 
         /**
          * Number of bytes written to the output array.
-         * Returns 0 if this is a requirement result ([inputRequired] or [outputRequired]).
+         * Returns 0 if this is a requirement result ([outputRequired]).
          */
         public val produced: Int get() = if (_produced >= 0) _produced else 0
-
-        /**
-         * Size of additional input required to proceed.
-         * Returns 0 if this is an ok result (normal progress).
-         */
-        public val inputRequired: Int get() = if (_consumed < 0) -_consumed else 0
 
         /**
          * Size of output buffer required to proceed.
@@ -84,17 +77,6 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
              * Equivalent to `ok(0, 0)`.
              */
             public fun done(): TransformResult = TransformResult(0, 0)
-
-            /**
-             * Creates a result indicating that more input is needed.
-             *
-             * @param size minimum number of additional input bytes required (must be > 0)
-             * @throws IllegalArgumentException if size is not positive
-             */
-            public fun inputRequired(size: Int): TransformResult {
-                require(size > 0) { "size must be positive: $size" }
-                return TransformResult(-size, 0)
-            }
 
             /**
              * Creates a result indicating that a larger output buffer is needed.
@@ -227,7 +209,6 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
                 }
 
                 when {
-                    result.inputRequired > 0 -> break
                     result.outputRequired > 0 -> {
                         // Retry with larger buffer
                         if (result.outputRequired <= UnsafeBufferOperations.maxSafeWriteCapacity) {

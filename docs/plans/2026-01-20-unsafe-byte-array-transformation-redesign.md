@@ -38,17 +38,15 @@ abstract class UnsafeByteArrayTransformation : Transformation {
         private val _produced: Int
     ) {
         // For ok results - actual bytes processed
-        val consumed: Int get() = if (_consumed >= 0) _consumed else 0
+        val consumed: Int get() = _consumed
         val produced: Int get() = if (_produced >= 0) _produced else 0
 
         // For requirement results - buffer size needed (0 if not required)
-        val inputRequired: Int get() = if (_consumed < 0) -_consumed else 0
         val outputRequired: Int get() = if (_produced < 0) -_produced else 0
 
         companion object {
             fun ok(consumed: Int, produced: Int) = TransformResult(consumed, produced)  // consumed, produced >= 0
             fun done() = TransformResult(0, 0)  // transformation complete
-            fun inputRequired(size: Int) = TransformResult(-size, 0)  // size > 0
             fun outputRequired(size: Int) = TransformResult(0, -size)  // size > 0
         }
     }
@@ -94,18 +92,16 @@ abstract class UnsafeByteArrayTransformation : Transformation {
 | Internal state | Meaning | Access pattern |
 |----------------|---------|----------------|
 | `_consumed >= 0, _produced >= 0` | Normal progress | `consumed`, `produced` |
-| `_consumed < 0` | Need more input | `inputRequired > 0` |
 | `_produced < 0` | Need larger output buffer | `outputRequired > 0` |
 
 **Factory methods:**
 - `TransformResult.ok(consumed, produced)` - normal progress (consumed, produced >= 0)
 - `TransformResult.done()` - transformation complete (equivalent to `ok(0, 0)`)
-- `TransformResult.inputRequired(size)` - can't proceed without more input (size > 0)
 - `TransformResult.outputRequired(size)` - output buffer too small (size > 0)
 
 **Access properties:**
 - `consumed` / `produced` - actual bytes processed (0 if requirement result)
-- `inputRequired` / `outputRequired` - buffer size needed (0 if ok result)
+- `outputRequired` - buffer size needed (0 if ok result)
 
 ### FinalizeResult Contract
 
@@ -154,7 +150,6 @@ override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
             }
 
             when {
-                result.inputRequired > 0 -> break
                 result.outputRequired > 0 -> {
                     // Allocate requested buffer and retry
                     val temp = ByteArray(result.outputRequired)
@@ -349,7 +344,7 @@ class AesGcmDecryptor(private val cipher: Cipher) : UnsafeByteArrayTransformatio
 | 5 abstract methods | 3 abstract methods |
 | Implicit bounded/streaming distinction via `maxOutputSize` | Explicit signaling via `outputRequired` |
 | Duplicate code in `*IntoByteArray` and `*ToByteArray` | Single method, base class handles buffer growing |
-| Magic `-1` return values | Self-documenting `ok()`, `done()`, `inputRequired()`, `outputRequired()` |
+| Magic `-1` return values | Self-documenting `ok()`, `done()`, `outputRequired()` |
 | EOF signal from `transformTo` | No EOF, finished transformations return `ok(0, 0)` |
 
 ## API Quick Reference
@@ -359,13 +354,12 @@ class AesGcmDecryptor(private val cipher: Cipher) : UnsafeByteArrayTransformatio
 ```kotlin
 // Factory methods
 TransformResult.ok(consumed, produced)      // normal progress
-TransformResult.inputRequired(size)         // need more input
+TransformResult.done()                      // transformation complete
 TransformResult.outputRequired(size)        // need larger output buffer
 
 // Access properties
-result.consumed        // bytes consumed (0 if requirement result)
+result.consumed        // bytes consumed
 result.produced        // bytes produced (0 if requirement result)
-result.inputRequired   // input size needed (0 if ok result)
 result.outputRequired  // output size needed (0 if ok result)
 ```
 
