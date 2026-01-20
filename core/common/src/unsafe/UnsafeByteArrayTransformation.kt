@@ -14,12 +14,12 @@ import kotlinx.io.UnsafeIoApi
  * - Bounded APIs like [javax.crypto.Cipher] where output size is predictable
  *
  * Subclasses must implement:
- * - [transformIntoByteArray] to transform input bytes into output bytes
+ * - [maxOutputSize] to return the maximum output size for a given input size (-1 if unknown)
+ * - [transformIntoByteArray] to transform input bytes into output bytes incrementally
+ * - [transformToByteArray] fallback for atomic transformations that can't produce incremental output
  * - [finalizeIntoByteArray] to produce final output after all input is processed
+ * - [finalizeToByteArray] fallback for atomic finalizations that can't produce incremental output
  * - [close] to release resources
- *
- * For bounded transformations (like Cipher), also override [maxOutputSize] to return
- * the maximum output size for a given input size. This enables optimized buffer handling.
  *
  * @see kotlinx.io.Transformation
  */
@@ -71,12 +71,8 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      *
      * This method is called as a **last resort** when [transformIntoByteArray] makes no progress
      * (returns 0 consumed and 0 produced). It allocates a new ByteArray, so prefer:
-     * 1. Overriding [maxOutputSize] if output size is known
+     * 1. Returning appropriate [maxOutputSize] if output size is known
      * 2. Implementing incremental output in [transformIntoByteArray]
-     *
-     * Override this method only when:
-     * - Output size is unknown upfront (can't override [maxOutputSize])
-     * - AND the underlying API cannot produce output incrementally
      *
      * All input bytes are considered consumed when this method returns a non-empty array.
      * Returning an empty array indicates no fallback is available (transformation needs more input).
@@ -86,17 +82,17 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * @param sourceEndIndex the end index (exclusive) of input data in [source]
      * @return the output ByteArray, or empty array if no fallback is available
      */
-    protected open fun transformToByteArray(
+    protected abstract fun transformToByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
         sourceEndIndex: Int
-    ): ByteArray = ByteArray(0)
+    ): ByteArray
 
     /**
      * Returns the maximum output size for the given input size, or -1 if unknown.
      *
-     * Override this method for bounded transformations (like Cipher) where the
-     * maximum output size can be determined from the input size. This enables
+     * For bounded transformations (like Cipher) where the maximum output size
+     * can be determined from the input size, return that value. This enables
      * optimized buffer allocation.
      *
      * When called with inputSize=0, this should return the maximum finalization
@@ -104,13 +100,12 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * This is used by [finalizeTo] to allocate appropriate buffers for transformations
      * like AES-GCM that buffer all data until finalization.
      *
-     * The default implementation returns -1, indicating streaming behavior where
-     * output size is unpredictable.
+     * Return -1 to indicate streaming behavior where output size is unpredictable.
      *
      * @param inputSize the input size in bytes
      * @return the maximum output size, or -1 if unknown/unbounded
      */
-    protected open fun maxOutputSize(inputSize: Int): Int = -1
+    protected abstract fun maxOutputSize(inputSize: Int): Int
 
     /**
      * Produces finalization output into the sink array.
@@ -134,17 +129,12 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      *
      * This method is called as a **last resort** when [finalizeIntoByteArray] makes no progress
      * (returns 0 or -1 immediately). It allocates a new ByteArray, so prefer:
-     * 1. Overriding [maxOutputSize] with inputSize=0 for known finalization size
+     * 1. Returning appropriate [maxOutputSize] with inputSize=0 for known finalization size
      * 2. Implementing incremental output in [finalizeIntoByteArray]
-     *
-     * Override this method only when:
-     * - Finalization output size is unknown upfront (can't override [maxOutputSize])
-     * - AND the underlying API cannot produce output incrementally (e.g., AES-GCM decryption
-     *   where all output is produced atomically by doFinal)
      *
      * @return the finalization output as a ByteArray (empty if no output)
      */
-    protected open fun finalizeToByteArray(): ByteArray = ByteArray(0)
+    protected abstract fun finalizeToByteArray(): ByteArray
 
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         if (source.exhausted()) return 0L

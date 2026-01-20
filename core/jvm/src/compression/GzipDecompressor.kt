@@ -43,6 +43,8 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
     private var lastInputStart: Int = 0
     private var lastInputLength: Int = 0
 
+    override fun maxOutputSize(inputSize: Int): Int = -1
+
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         // If already finished, return EOF
         if (finished) {
@@ -134,6 +136,14 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         throw UnsupportedOperationException("GzipDecompressor requires custom transformTo handling")
     }
 
+    override fun transformToByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int
+    ): ByteArray {
+        throw UnsupportedOperationException("GzipDecompressor requires custom transformTo handling")
+    }
+
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         // If inflater is finished but trailer not verified, verify it now
         if (inflater.finished() && !trailerVerified) {
@@ -152,6 +162,8 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         }
         return -1
     }
+
+    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
     override fun close() {
         inflater.end()

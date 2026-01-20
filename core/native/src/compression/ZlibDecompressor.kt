@@ -46,6 +46,8 @@ internal class ZlibDecompressor(
         }
     }
 
+    override fun maxOutputSize(inputSize: Int): Int = -1
+
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         check(initialized) { "Decompressor is closed" }
 
@@ -101,6 +103,12 @@ internal class ZlibDecompressor(
         }
     }
 
+    override fun transformToByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int
+    ): ByteArray = ByteArray(0)
+
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Decompressor is closed" }
 
@@ -110,6 +118,8 @@ internal class ZlibDecompressor(
         }
         return -1
     }
+
+    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
     override fun close() {
         if (!initialized) return

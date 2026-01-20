@@ -31,6 +31,8 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
     private var trailerWritten = false
     private var uncompressedSize = 0L
 
+    override fun maxOutputSize(inputSize: Int): Int = -1
+
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         if (source.exhausted() && deflater.needsInput()) return 0L
 
@@ -69,6 +71,12 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
         return TransformResult(consumed, produced)
     }
 
+    override fun transformToByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int
+    ): ByteArray = ByteArray(0)
+
     override fun finalizeTo(sink: Buffer) {
         if (trailerWritten) return
 
@@ -94,6 +102,8 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
         if (deflater.finished()) return -1
         return deflater.deflate(sink, startIndex, endIndex - startIndex)
     }
+
+    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
     override fun close() {
         deflater.end()

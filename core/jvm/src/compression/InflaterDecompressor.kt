@@ -20,6 +20,8 @@ internal class InflaterDecompressor(
     private val inflater: Inflater
 ) : UnsafeByteArrayTransformation() {
 
+    override fun maxOutputSize(inputSize: Int): Int = -1
+
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         // If already finished, return EOF
         if (inflater.finished()) {
@@ -54,12 +56,20 @@ internal class InflaterDecompressor(
         return TransformResult(consumed, produced)
     }
 
+    override fun transformToByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int
+    ): ByteArray = ByteArray(0)
+
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!inflater.finished()) {
             throw IOException("Truncated or corrupt deflate data")
         }
         return -1
     }
+
+    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
     override fun close() {
         inflater.end()

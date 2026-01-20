@@ -350,11 +350,19 @@ class CipherTransformationSamples {
             return TransformResult(inputSize, written)
         }
 
+        override fun transformToByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int
+        ): ByteArray = ByteArray(0)
+
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             if (finalized) return -1
             finalized = true
             return cipher.doFinal(sink, startIndex)
         }
+
+        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
         override fun close() {}
     }

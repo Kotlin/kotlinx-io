@@ -299,6 +299,8 @@ class TransformTest {
      */
     @OptIn(UnsafeIoApi::class)
     private class DoubleByteTransform : UnsafeByteArrayTransformation() {
+        override fun maxOutputSize(inputSize: Int): Int = -1
+
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -323,7 +325,15 @@ class TransformTest {
             return TransformResult(canProcess, canProcess * 2)
         }
 
+        override fun transformToByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int
+        ): ByteArray = ByteArray(0)
+
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
+
+        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
         override fun close() {}
     }
@@ -337,6 +347,8 @@ class TransformTest {
      */
     @OptIn(UnsafeIoApi::class)
     private class HalveByteTransform : UnsafeByteArrayTransformation() {
+        override fun maxOutputSize(inputSize: Int): Int = -1
+
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -361,7 +373,15 @@ class TransformTest {
             return TransformResult(pairs * 2, pairs)
         }
 
+        override fun transformToByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int
+        ): ByteArray = ByteArray(0)
+
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
+
+        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
         override fun close() {}
     }
@@ -479,6 +499,8 @@ class TransformTest {
         private var outputBuffer: ByteArray? = null
         private var outputPos = 0
 
+        override fun maxOutputSize(inputSize: Int): Int = -1
+
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -537,6 +559,12 @@ class TransformTest {
             return TransformResult(consumed, produced)
         }
 
+        override fun transformToByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int
+        ): ByteArray = ByteArray(0)
+
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             // Drain any remaining output buffer
             val pending = outputBuffer
@@ -574,6 +602,8 @@ class TransformTest {
 
             return -1
         }
+
+        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
         override fun close() {}
     }
@@ -616,6 +646,8 @@ class TransformTest {
      */
     @OptIn(UnsafeIoApi::class)
     private class AtomicExpandTransform(private val expansionFactor: Int) : UnsafeByteArrayTransformation() {
+        override fun maxOutputSize(inputSize: Int): Int = -1
+
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -648,6 +680,8 @@ class TransformTest {
         }
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
+
+        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
         override fun close() {}
     }
@@ -688,6 +722,7 @@ class TransformTest {
      */
     @OptIn(UnsafeIoApi::class)
     private class AtomicLargeOutputTransform(private val outputSize: Int) : UnsafeByteArrayTransformation() {
+        override fun maxOutputSize(inputSize: Int): Int = -1
 
         override fun transformIntoByteArray(
             source: ByteArray,
@@ -700,6 +735,12 @@ class TransformTest {
             // Consume input, produce nothing
             return TransformResult(sourceEndIndex - sourceStartIndex, 0)
         }
+
+        override fun transformToByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int
+        ): ByteArray = ByteArray(0)
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             // Return -1 to signal no incremental progress, triggering finalizeToByteArray fallback
@@ -727,6 +768,8 @@ class TransformTest {
         private var outputBuffer: ByteArray? = null
         private var outputPos = 0
 
+        override fun maxOutputSize(inputSize: Int): Int = -1
+
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -740,6 +783,12 @@ class TransformTest {
             inputBuffer.write(source, sourceStartIndex, sourceStartIndex + inputSize)
             return TransformResult(inputSize, 0)
         }
+
+        override fun transformToByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int
+        ): ByteArray = ByteArray(0)
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             // On first call, expand all buffered input
@@ -769,6 +818,8 @@ class TransformTest {
 
             return -1
         }
+
+        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
         override fun close() {}
     }

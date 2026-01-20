@@ -19,6 +19,8 @@ internal class DeflaterCompressor(
 
     private var finishCalled = false
 
+    override fun maxOutputSize(inputSize: Int): Int = -1
+
     override fun transformIntoByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
@@ -41,6 +43,12 @@ internal class DeflaterCompressor(
         return TransformResult(consumed, produced)
     }
 
+    override fun transformToByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int
+    ): ByteArray = ByteArray(0)
+
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!finishCalled) {
             deflater.finish()
@@ -49,6 +57,8 @@ internal class DeflaterCompressor(
         if (deflater.finished()) return -1
         return deflater.deflate(sink, startIndex, endIndex - startIndex)
     }
+
+    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
     override fun close() {
         deflater.end()

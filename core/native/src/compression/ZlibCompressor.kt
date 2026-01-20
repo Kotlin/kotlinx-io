@@ -54,6 +54,8 @@ internal class ZlibCompressor(
         }
     }
 
+    override fun maxOutputSize(inputSize: Int): Int = -1
+
     override fun transformIntoByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
@@ -87,6 +89,12 @@ internal class ZlibCompressor(
             }
         }
     }
+
+    override fun transformToByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int
+    ): ByteArray = ByteArray(0)
 
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Compressor is closed" }
@@ -123,6 +131,8 @@ internal class ZlibCompressor(
             }
         }
     }
+
+    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
     override fun close() {
         if (!initialized) return
