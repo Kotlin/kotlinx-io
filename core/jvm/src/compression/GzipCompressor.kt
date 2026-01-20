@@ -32,7 +32,7 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
     private var uncompressedSize = 0L
 
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        if (source.exhausted() && !hasPendingOutput()) return 0L
+        if (source.exhausted() && deflater.needsInput()) return 0L
 
         // Write GZIP header if not yet written
         if (!headerWritten) {
@@ -68,8 +68,6 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
 
         return TransformResult(consumed, produced)
     }
-
-    override fun hasPendingOutput(): Boolean = !deflater.needsInput()
 
     override fun finalizeTo(sink: Buffer) {
         if (trailerWritten) return

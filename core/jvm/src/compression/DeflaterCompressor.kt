@@ -41,8 +41,6 @@ internal class DeflaterCompressor(
         return TransformResult(consumed, produced)
     }
 
-    override fun hasPendingOutput(): Boolean = !deflater.needsInput()
-
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!finishCalled) {
             deflater.finish()

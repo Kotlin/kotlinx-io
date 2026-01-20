@@ -10,7 +10,6 @@ package kotlinx.io.compression
 import kotlinx.cinterop.*
 import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.IOException
-import kotlinx.io.TransformResult
 import kotlinx.io.UnsafeIoApi
 import platform.posix.memset
 import platform.zlib.*
@@ -88,9 +87,6 @@ internal class ZlibCompressor(
             }
         }
     }
-
-    // Native zlib doesn't buffer internally, so no pending output
-    override fun hasPendingOutput(): Boolean = false
 
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Compressor is closed" }

@@ -54,8 +54,6 @@ internal class InflaterDecompressor(
         return TransformResult(consumed, produced)
     }
 
-    override fun hasPendingOutput(): Boolean = !inflater.needsInput() && !inflater.finished()
-
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!inflater.finished()) {
             throw IOException("Truncated or corrupt deflate data")

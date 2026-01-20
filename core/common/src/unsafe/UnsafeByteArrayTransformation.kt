@@ -15,7 +15,6 @@ import kotlinx.io.UnsafeIoApi
  *
  * Subclasses must implement:
  * - [transformIntoByteArray] to transform input bytes into output bytes
- * - [hasPendingOutput] to indicate if there's buffered output to drain
  * - [finalizeIntoByteArray] to produce final output after all input is processed
  * - [close] to release resources
  *
@@ -65,18 +64,6 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
     ): TransformResult
 
     /**
-     * Returns true if there's pending output that can be produced without new input.
-     *
-     * This is used for transformations that buffer data internally. When true,
-     * [transformIntoByteArray] may be called with empty input to drain the buffer.
-     *
-     * For transformations without internal buffering (like native zlib or Cipher),
-     * this should return false.
-     */
-    // TODO: try to drop it
-    protected abstract fun hasPendingOutput(): Boolean
-
-    /**
      * Returns the maximum output size for the given input size, or -1 if unknown.
      *
      * Override this method for bounded transformations (like Cipher) where the
@@ -106,12 +93,7 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
     protected abstract fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int
 
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        // Handle case where source is exhausted but we have pending output
-        if (source.exhausted()) {
-            if (!hasPendingOutput()) return 0L
-            drainPendingOutput(sink)
-            return 0L
-        }
+        if (source.exhausted()) return 0L
 
         return UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
             val available = minOf(byteCount.toInt(), inputEnd - inputStart)
@@ -147,7 +129,7 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
                 // Streaming transformation - output size unknown, loop until input consumed
                 var totalConsumed = 0
 
-                while (totalConsumed < available || hasPendingOutput()) {
+                while (totalConsumed < available) {
                     var progressMade = false
 
                     val _ = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
@@ -168,19 +150,6 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
         }.toLong()
     }
 
-    private fun drainPendingOutput(sink: Buffer) {
-        while (hasPendingOutput()) {
-            val written = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
-                val result = transformIntoByteArray(
-                    EMPTY_BYTE_ARRAY, 0, 0,
-                    output, outputStart, outputEnd
-                )
-                result.produced
-            }
-            if (written == 0) break
-        }
-    }
-
     override fun finalizeTo(sink: Buffer) {
         while (true) {
             val written = UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndex, endIndex ->
@@ -189,9 +158,5 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
             }
             if (written == 0) break
         }
-    }
-
-    private companion object {
-        private val EMPTY_BYTE_ARRAY = ByteArray(0)
     }
 }

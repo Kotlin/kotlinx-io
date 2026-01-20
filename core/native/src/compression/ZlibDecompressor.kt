@@ -11,7 +11,6 @@ import kotlinx.cinterop.*
 import kotlinx.io.Buffer
 import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.IOException
-import kotlinx.io.TransformResult
 import kotlinx.io.UnsafeIoApi
 import platform.posix.memset
 import platform.zlib.*
@@ -101,9 +100,6 @@ internal class ZlibDecompressor(
             }
         }
     }
-
-    // Native zlib doesn't buffer internally, so no pending output
-    override fun hasPendingOutput(): Boolean = false
 
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Decompressor is closed" }

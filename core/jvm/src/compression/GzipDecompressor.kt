@@ -134,8 +134,6 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         throw UnsupportedOperationException("GzipDecompressor requires custom transformTo handling")
     }
 
-    override fun hasPendingOutput(): Boolean = !inflater.needsInput() && !inflater.finished()
-
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         // If inflater is finished but trailer not verified, verify it now
         if (inflater.finished() && !trailerVerified) {

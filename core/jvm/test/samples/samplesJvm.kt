@@ -544,8 +544,6 @@ class ByteArrayTransformationSamplesJvm {
             return TransformResult(sourceEndIndex - sourceStartIndex, written)
         }
 
-        override fun hasPendingOutput(): Boolean = false
-
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             if (finalized) return -1
             finalized = true
