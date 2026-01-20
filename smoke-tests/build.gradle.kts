@@ -4,16 +4,14 @@ plugins {
     kotlin("jvm")
 }
 
-val stagingRepositoryIdRawValue = project.findProperty("smokeTest.stagingRepository")?.toString()
+val stagingRepositoryRawValue = project.findProperty("smokeTest.stagingRepository")?.toString()
 
-val stagingRepositoryId: String = if (stagingRepositoryIdRawValue != null) {
-    stagingRepositoryIdRawValue
+val stagingRepository: String = if (stagingRepositoryRawValue != null) {
+    stagingRepositoryRawValue
 } else {
     logger.warn("smokeTest.stagingRepository was not set.")
     ""
 }
-
-val stagingRepository: String = "https://oss.sonatype.org/content/repositories/$stagingRepositoryId"
 
 val kotlinxIoVersionRawValue = project.findProperty("smokeTest.kotlinxIoVersion")?.toString()
 var useLocalBuild = false
