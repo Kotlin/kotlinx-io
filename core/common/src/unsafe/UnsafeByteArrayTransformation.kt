@@ -45,6 +45,10 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * Both input and output arrays are valid for the duration of this call,
      * allowing implementations to pin memory or hold references as needed.
      *
+     * For transformations that cannot produce output incrementally and don't know
+     * the output size upfront (can't override [maxOutputSize]), override
+     * [transformToByteArray] instead.
+     *
      * @param source the byte array containing input data
      * @param sourceStartIndex the start index (inclusive) of input data in [source]
      * @param sourceEndIndex the end index (exclusive) of input data in [source]
@@ -53,7 +57,6 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * @param sinkEndIndex the end index (exclusive) of available space in [sink]
      * @return result containing bytes consumed from input and produced to output
      */
-    // TODO: we might need to have `transformToByteArray` in case we can't fit output into one segment
     protected abstract fun transformIntoByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
@@ -62,6 +65,27 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
         sinkStartIndex: Int,
         sinkEndIndex: Int
     ): TransformResult
+
+    /**
+     * Transforms input bytes and returns output as a ByteArray.
+     *
+     * Override this method when:
+     * - Output size is unknown upfront (can't override [maxOutputSize])
+     * - AND the underlying API cannot produce output incrementally
+     *
+     * When this method returns non-null, [transformIntoByteArray] is not called for that input.
+     * The default implementation returns null, meaning [transformIntoByteArray] will be used.
+     *
+     * @param source the byte array containing input data
+     * @param sourceStartIndex the start index (inclusive) of input data in [source]
+     * @param sourceEndIndex the end index (exclusive) of input data in [source]
+     * @return a Pair of (bytes consumed, output ByteArray), or null to use [transformIntoByteArray]
+     */
+    protected open fun transformToByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int
+    ): Pair<Int, ByteArray>? = null
 
     /**
      * Returns the maximum output size for the given input size, or -1 if unknown.
@@ -89,19 +113,48 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * This method is called repeatedly until it returns -1, indicating no more output.
      * Implementations should track their finalization state internally.
      *
+     * For transformations that cannot produce output incrementally and don't know
+     * the output size upfront (can't override [maxOutputSize]), override
+     * [finalizeToByteArray] instead.
+     *
      * @param sink the byte array to write output to
      * @param startIndex the start index (inclusive) in [sink] to write from
      * @param endIndex the end index (exclusive) of available space in [sink]
      * @return the number of bytes written, or -1 if finalization is complete
      */
-    // TODO: we might need to have `finalize` which returns an array (same as with transform)
     protected abstract fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int
+
+    /**
+     * Produces finalization output as a ByteArray.
+     *
+     * Override this method when:
+     * - Finalization output size is unknown upfront (can't override [maxOutputSize])
+     * - AND the underlying API cannot produce output incrementally (e.g., AES-GCM decryption
+     *   where all output is produced atomically by doFinal)
+     *
+     * When this method returns non-null, [finalizeIntoByteArray] is not called.
+     * The default implementation returns null, meaning [finalizeIntoByteArray] will be used.
+     *
+     * @return the finalization output as a ByteArray, or null to use [finalizeIntoByteArray]
+     */
+    protected open fun finalizeToByteArray(): ByteArray? = null
 
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         if (source.exhausted()) return 0L
 
         return UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
             val available = minOf(byteCount.toInt(), inputEnd - inputStart)
+
+            // First, try the ByteArray-returning method for atomic large output
+            val directResult = transformToByteArray(input, inputStart, inputStart + available)
+            if (directResult != null) {
+                val (consumed, output) = directResult
+                if (output.isNotEmpty()) {
+                    sink.write(output)
+                }
+                return@readFromHead consumed
+            }
+
             val maxOutput = maxOutputSize(available)
 
             if (maxOutput >= 0) {
@@ -156,6 +209,15 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
     }
 
     override fun finalizeTo(sink: Buffer) {
+        // First, try the ByteArray-returning method for atomic large output
+        val directOutput = finalizeToByteArray()
+        if (directOutput != null) {
+            if (directOutput.isNotEmpty()) {
+                sink.write(directOutput)
+            }
+            return
+        }
+
         val maxFinalize = maxOutputSize(0)
 
         if (maxFinalize > 0) {
