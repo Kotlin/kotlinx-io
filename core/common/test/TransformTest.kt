@@ -632,9 +632,9 @@ class TransformTest {
             source: ByteArray,
             sourceStartIndex: Int,
             sourceEndIndex: Int
-        ): ByteArray? {
+        ): ByteArray {
             val inputSize = sourceEndIndex - sourceStartIndex
-            if (inputSize == 0) return null
+            if (inputSize == 0) return ByteArray(0)
 
             // Expand each byte to expansionFactor bytes
             val output = ByteArray(inputSize * expansionFactor)
@@ -688,7 +688,6 @@ class TransformTest {
      */
     @OptIn(UnsafeIoApi::class)
     private class AtomicLargeOutputTransform(private val outputSize: Int) : UnsafeByteArrayTransformation() {
-        private var finalized = false
 
         override fun transformIntoByteArray(
             source: ByteArray,
@@ -703,14 +702,11 @@ class TransformTest {
         }
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
-            // Not used when finalizeToByteArray is overridden
+            // Return -1 to signal no incremental progress, triggering finalizeToByteArray fallback
             return -1
         }
 
-        override fun finalizeToByteArray(): ByteArray? {
-            if (finalized) return null
-            finalized = true
-
+        override fun finalizeToByteArray(): ByteArray {
             // Produce outputSize bytes atomically - works regardless of segment size
             return ByteArray(outputSize) { (it % 256).toByte() }
         }

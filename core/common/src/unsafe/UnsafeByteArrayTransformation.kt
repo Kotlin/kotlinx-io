@@ -67,26 +67,30 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
     ): TransformResult
 
     /**
-     * Transforms input bytes and returns output as a ByteArray.
+     * Fallback method that transforms input bytes and returns output as a ByteArray.
      *
-     * Override this method when:
+     * This method is called as a **last resort** when [transformIntoByteArray] makes no progress
+     * (returns 0 consumed and 0 produced). It allocates a new ByteArray, so prefer:
+     * 1. Overriding [maxOutputSize] if output size is known
+     * 2. Implementing incremental output in [transformIntoByteArray]
+     *
+     * Override this method only when:
      * - Output size is unknown upfront (can't override [maxOutputSize])
      * - AND the underlying API cannot produce output incrementally
      *
-     * When this method returns non-null, [transformIntoByteArray] is not called for that input.
-     * All input bytes are considered consumed when this method returns non-null.
-     * The default implementation returns null, meaning [transformIntoByteArray] will be used.
+     * All input bytes are considered consumed when this method returns a non-empty array.
+     * Returning an empty array indicates no fallback is available (transformation needs more input).
      *
      * @param source the byte array containing input data
      * @param sourceStartIndex the start index (inclusive) of input data in [source]
      * @param sourceEndIndex the end index (exclusive) of input data in [source]
-     * @return the output ByteArray, or null to use [transformIntoByteArray]
+     * @return the output ByteArray, or empty array if no fallback is available
      */
     protected open fun transformToByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
         sourceEndIndex: Int
-    ): ByteArray? = null
+    ): ByteArray = ByteArray(0)
 
     /**
      * Returns the maximum output size for the given input size, or -1 if unknown.
@@ -126,35 +130,27 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
     protected abstract fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int
 
     /**
-     * Produces finalization output as a ByteArray.
+     * Fallback method that produces finalization output as a ByteArray.
      *
-     * Override this method when:
+     * This method is called as a **last resort** when [finalizeIntoByteArray] makes no progress
+     * (returns 0 or -1 immediately). It allocates a new ByteArray, so prefer:
+     * 1. Overriding [maxOutputSize] with inputSize=0 for known finalization size
+     * 2. Implementing incremental output in [finalizeIntoByteArray]
+     *
+     * Override this method only when:
      * - Finalization output size is unknown upfront (can't override [maxOutputSize])
      * - AND the underlying API cannot produce output incrementally (e.g., AES-GCM decryption
      *   where all output is produced atomically by doFinal)
      *
-     * When this method returns non-null, [finalizeIntoByteArray] is not called.
-     * The default implementation returns null, meaning [finalizeIntoByteArray] will be used.
-     *
-     * @return the finalization output as a ByteArray, or null to use [finalizeIntoByteArray]
+     * @return the finalization output as a ByteArray (empty if no output)
      */
-    protected open fun finalizeToByteArray(): ByteArray? = null
+    protected open fun finalizeToByteArray(): ByteArray = ByteArray(0)
 
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         if (source.exhausted()) return 0L
 
         return UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
             val available = minOf(byteCount.toInt(), inputEnd - inputStart)
-
-            // First, try the ByteArray-returning method for atomic large output
-            val directOutput = transformToByteArray(input, inputStart, inputStart + available)
-            if (directOutput != null) {
-                if (directOutput.isNotEmpty()) {
-                    sink.write(directOutput)
-                }
-                return@readFromHead available // All input consumed
-            }
-
             val maxOutput = maxOutputSize(available)
 
             if (maxOutput >= 0) {
@@ -203,21 +199,22 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
                     if (!progressMade) break
                 }
 
+                // If no progress was made, try ByteArray-returning method as last resort
+                if (totalConsumed == 0) {
+                    val directOutput = transformToByteArray(input, inputStart, inputStart + available)
+                    if (directOutput.isNotEmpty()) {
+                        sink.write(directOutput)
+                        return@readFromHead available // All input consumed
+                    }
+                    // Empty output means no fallback available (needs more input)
+                }
+
                 totalConsumed
             }
         }.toLong()
     }
 
     override fun finalizeTo(sink: Buffer) {
-        // First, try the ByteArray-returning method for atomic large output
-        val directOutput = finalizeToByteArray()
-        if (directOutput != null) {
-            if (directOutput.isNotEmpty()) {
-                sink.write(directOutput)
-            }
-            return
-        }
-
         val maxFinalize = maxOutputSize(0)
 
         if (maxFinalize > 0) {
@@ -228,13 +225,23 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
                 sink.write(tempBuffer, 0, written)
             }
         } else {
-            // Unknown size - loop with segment-sized chunks
+            // Unknown size - try incremental with segment-sized chunks first
+            var madeProgress = false
             while (true) {
                 val written = UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndex, endIndex ->
                     val result = finalizeIntoByteArray(bytes, startIndex, endIndex)
                     if (result == -1) 0 else result
                 }
+                if (written > 0) madeProgress = true
                 if (written == 0) break
+            }
+
+            // If no progress was made, try ByteArray-returning method as last resort
+            if (!madeProgress) {
+                val directOutput = finalizeToByteArray()
+                if (directOutput.isNotEmpty()) {
+                    sink.write(directOutput)
+                }
             }
         }
     }
