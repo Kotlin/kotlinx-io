@@ -8,7 +8,6 @@
 package kotlinx.io.compression
 
 import kotlinx.cinterop.*
-import kotlinx.io.Buffer
 import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.IOException
 import kotlinx.io.UnsafeIoApi
@@ -46,18 +45,6 @@ internal class ZlibDecompressor(
         }
     }
 
-    override fun maxOutputSize(inputSize: Int): Int = -1
-
-    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        check(initialized) { "Decompressor is closed" }
-
-        // If already finished, return EOF
-        if (finished) return -1L
-        if (source.exhausted()) return 0L
-
-        return super.transformTo(source, byteCount, sink)
-    }
-
     override fun transformIntoByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
@@ -67,6 +54,11 @@ internal class ZlibDecompressor(
         sinkEndIndex: Int
     ): TransformResult {
         check(initialized) { "Decompressor is closed" }
+
+        // If already finished, ignore any further input
+        if (finished) {
+            return TransformResult.done()
+        }
 
         val inputSize = sourceEndIndex - sourceStartIndex
         val outputSize = sinkEndIndex - sinkStartIndex
@@ -98,72 +90,19 @@ internal class ZlibDecompressor(
                 val consumed = inputSize - zStream.avail_in.toInt()
                 val produced = outputSize - zStream.avail_out.toInt()
 
-                TransformResult(consumed, produced)
+                TransformResult.ok(consumed, produced)
             }
         }
     }
 
-    override fun transformToByteArray(
-        source: ByteArray,
-        sourceStartIndex: Int,
-        sourceEndIndex: Int
-    ): ByteArray {
-        check(initialized) { "Decompressor is closed" }
-
-        val inputSize = sourceEndIndex - sourceStartIndex
-        if (inputSize == 0) return ByteArray(0)
-
-        // Decompressed size is unknown, start with estimate and grow
-        var output = ByteArray(inputSize * 4)
-        var totalProduced = 0
-
-        source.usePinned { pinnedInput ->
-            zStream.next_in = pinnedInput.addressOf(sourceStartIndex).reinterpret()
-            zStream.avail_in = inputSize.convert()
-
-            while (zStream.avail_in > 0u && !finished) {
-                if (totalProduced >= output.size) {
-                    output = output.copyOf(output.size * 2)
-                }
-                output.usePinned { pinnedOutput ->
-                    zStream.next_out = pinnedOutput.addressOf(totalProduced).reinterpret()
-                    zStream.avail_out = (output.size - totalProduced).convert()
-
-                    val inflateResult = inflate(zStream.ptr, Z_NO_FLUSH)
-
-                    when (inflateResult) {
-                        Z_OK, Z_BUF_ERROR -> { /* Continue processing */ }
-                        Z_STREAM_END -> finished = true
-                        Z_DATA_ERROR -> throw IOException("Invalid compressed data: ${zlibErrorMessage(inflateResult)}")
-                        else -> throw IOException("Decompression failed: ${zlibErrorMessage(inflateResult)}")
-                    }
-
-                    totalProduced = output.size - zStream.avail_out.toInt()
-                }
-            }
-        }
-
-        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
-    }
-
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
         check(initialized) { "Decompressor is closed" }
 
         // Verify that decompression is complete
         if (!finished) {
             throw IOException("Truncated or corrupt deflate/gzip data")
         }
-        return -1
-    }
-
-    override fun finalizeToByteArray(): ByteArray {
-        check(initialized) { "Decompressor is closed" }
-
-        // Verify that decompression is complete
-        if (!finished) {
-            throw IOException("Truncated or corrupt deflate/gzip data")
-        }
-        return ByteArray(0)
+        return FinalizeResult.done()
     }
 
     override fun close() {

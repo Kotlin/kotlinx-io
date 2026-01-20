@@ -43,12 +43,10 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
     private var lastInputStart: Int = 0
     private var lastInputLength: Int = 0
 
-    override fun maxOutputSize(inputSize: Int): Int = -1
-
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        // If already finished, return EOF
+        // If already finished, ignore any further input
         if (finished) {
-            return -1L
+            return 0L
         }
 
         // Parse GZIP header if not yet parsed
@@ -70,7 +68,7 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
             }
             trailerVerified = true
             finished = true
-            return -1L
+            return 0L
         }
 
         if (source.exhausted() && inflater.needsInput()) {
@@ -122,7 +120,6 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         return consumed.toLong()
     }
 
-    // GzipDecompressor uses custom transformTo, so these are not called during normal operation
     override fun transformIntoByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
@@ -131,20 +128,36 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         sinkStartIndex: Int,
         sinkEndIndex: Int
     ): TransformResult {
-        // This is only called if someone uses the base class implementation
-        // For GZIP, we need the header/trailer handling in transformTo
-        throw UnsupportedOperationException("GzipDecompressor requires custom transformTo handling")
+        // If already finished, ignore any further input
+        if (inflater.finished()) {
+            return TransformResult.done()
+        }
+
+        val inputSize = sourceEndIndex - sourceStartIndex
+
+        // If inflater needs input and we have some, provide it
+        if (inflater.needsInput() && inputSize > 0) {
+            inflater.setInput(source, sourceStartIndex, inputSize)
+        }
+
+        val produced = try {
+            inflater.inflate(sink, sinkStartIndex, sinkEndIndex - sinkStartIndex)
+        } catch (e: DataFormatException) {
+            throw IOException("Invalid GZIP data: ${e.message}", e)
+        }
+
+        if (produced > 0) {
+            crc32.update(sink, sinkStartIndex, produced)
+            uncompressedSize += produced
+        }
+
+        // JDK inflater copies all input at once, so consumed is either 0 or all of it
+        val consumed = if (inflater.needsInput() || inflater.finished()) inputSize else 0
+
+        return TransformResult.ok(consumed, produced)
     }
 
-    override fun transformToByteArray(
-        source: ByteArray,
-        sourceStartIndex: Int,
-        sourceEndIndex: Int
-    ): ByteArray {
-        throw UnsupportedOperationException("GzipDecompressor requires custom transformTo handling")
-    }
-
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
         // If inflater is finished but trailer not verified, verify it now
         if (inflater.finished() && !trailerVerified) {
             extractRemainingBytes()
@@ -160,26 +173,7 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         if (!finished) {
             throw IOException("Truncated or corrupt gzip data")
         }
-        return -1
-    }
-
-    override fun finalizeToByteArray(): ByteArray {
-        // If inflater is finished but trailer not verified, verify it now
-        if (inflater.finished() && !trailerVerified) {
-            extractRemainingBytes()
-            val emptySource = Buffer()
-            if (!verifyTrailer(emptySource)) {
-                throw IOException("Truncated or corrupt gzip data: incomplete trailer")
-            }
-            trailerVerified = true
-            finished = true
-        }
-
-        // Verify that decompression is complete
-        if (!finished) {
-            throw IOException("Truncated or corrupt gzip data")
-        }
-        return ByteArray(0)
+        return FinalizeResult.done()
     }
 
     override fun close() {

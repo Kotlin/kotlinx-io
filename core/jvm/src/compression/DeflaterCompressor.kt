@@ -19,8 +19,6 @@ internal class DeflaterCompressor(
 
     private var finishCalled = false
 
-    override fun maxOutputSize(inputSize: Int): Int = -1
-
     override fun transformIntoByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
@@ -40,64 +38,18 @@ internal class DeflaterCompressor(
         // JDK deflater copies all input at once, so consumed is either 0 or all of it
         val consumed = if (deflater.needsInput()) inputSize else 0
 
-        return TransformResult(consumed, produced)
+        return TransformResult.ok(consumed, produced)
     }
 
-    override fun transformToByteArray(
-        source: ByteArray,
-        sourceStartIndex: Int,
-        sourceEndIndex: Int
-    ): ByteArray {
-        val inputSize = sourceEndIndex - sourceStartIndex
-        if (inputSize == 0) return ByteArray(0)
-
-        deflater.setInput(source, sourceStartIndex, inputSize)
-
-        // Estimate output size and grow if needed
-        var output = ByteArray(inputSize)
-        var totalProduced = 0
-
-        while (!deflater.needsInput()) {
-            if (totalProduced >= output.size) {
-                output = output.copyOf(output.size * 2)
-            }
-            val produced = deflater.deflate(output, totalProduced, output.size - totalProduced)
-            if (produced == 0) break
-            totalProduced += produced
-        }
-
-        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
-    }
-
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
         if (!finishCalled) {
             deflater.finish()
             finishCalled = true
         }
-        if (deflater.finished()) return -1
-        return deflater.deflate(sink, startIndex, endIndex - startIndex)
-    }
+        if (deflater.finished()) return FinalizeResult.done()
 
-    override fun finalizeToByteArray(): ByteArray {
-        if (!finishCalled) {
-            deflater.finish()
-            finishCalled = true
-        }
-        if (deflater.finished()) return ByteArray(0)
-
-        var output = ByteArray(256)
-        var totalProduced = 0
-
-        while (!deflater.finished()) {
-            if (totalProduced >= output.size) {
-                output = output.copyOf(output.size * 2)
-            }
-            val produced = deflater.deflate(output, totalProduced, output.size - totalProduced)
-            if (produced == 0) break
-            totalProduced += produced
-        }
-
-        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
+        val produced = deflater.deflate(sink, startIndex, endIndex - startIndex)
+        return FinalizeResult.ok(produced)
     }
 
     override fun close() {

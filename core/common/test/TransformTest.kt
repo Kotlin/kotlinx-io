@@ -189,7 +189,7 @@ class TransformTest {
         val transform = object : Transformation {
             private var finished = false
             override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-                if (finished) return -1L
+                if (finished) return 0L
                 if (source.size > 0) {
                     val toWrite = minOf(source.size, byteCount)
                     sink.write(source, toWrite)
@@ -299,8 +299,6 @@ class TransformTest {
      */
     @OptIn(UnsafeIoApi::class)
     private class DoubleByteTransform : UnsafeByteArrayTransformation() {
-        override fun maxOutputSize(inputSize: Int): Int = -1
-
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -322,29 +320,11 @@ class TransformTest {
                 sink[sinkPos++] = byte
             }
 
-            return TransformResult(canProcess, canProcess * 2)
+            return TransformResult.ok(canProcess, canProcess * 2)
         }
 
-        override fun transformToByteArray(
-            source: ByteArray,
-            sourceStartIndex: Int,
-            sourceEndIndex: Int
-        ): ByteArray {
-            val inputSize = sourceEndIndex - sourceStartIndex
-            if (inputSize == 0) return ByteArray(0)
-
-            val output = ByteArray(inputSize * 2)
-            for (i in 0 until inputSize) {
-                val byte = source[sourceStartIndex + i]
-                output[i * 2] = byte
-                output[i * 2 + 1] = byte
-            }
-            return output
-        }
-
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
-
-        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult =
+            FinalizeResult.done()
 
         override fun close() {}
     }
@@ -358,8 +338,6 @@ class TransformTest {
      */
     @OptIn(UnsafeIoApi::class)
     private class HalveByteTransform : UnsafeByteArrayTransformation() {
-        override fun maxOutputSize(inputSize: Int): Int = -1
-
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -381,28 +359,11 @@ class TransformTest {
                 sourcePos += 2 // Skip the duplicate
             }
 
-            return TransformResult(pairs * 2, pairs)
+            return TransformResult.ok(pairs * 2, pairs)
         }
 
-        override fun transformToByteArray(
-            source: ByteArray,
-            sourceStartIndex: Int,
-            sourceEndIndex: Int
-        ): ByteArray {
-            val inputSize = sourceEndIndex - sourceStartIndex
-            val pairs = inputSize / 2
-            if (pairs == 0) return ByteArray(0) // Need at least 2 bytes
-
-            val output = ByteArray(pairs)
-            for (i in 0 until pairs) {
-                output[i] = source[sourceStartIndex + i * 2]
-            }
-            return output
-        }
-
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
-
-        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult =
+            FinalizeResult.done()
 
         override fun close() {}
     }
@@ -483,7 +444,7 @@ class TransformTest {
 
     /**
      * Test transformation that produces large output during finalization
-     * in streaming mode (maxOutputSize returns -1).
+     * in streaming mode (returns ok(0, 0) during transform).
      *
      * This simulates a transformation that buffers everything and only
      * outputs during finalize, but doesn't know the output size upfront.
@@ -520,8 +481,6 @@ class TransformTest {
         private var outputBuffer: ByteArray? = null
         private var outputPos = 0
 
-        override fun maxOutputSize(inputSize: Int): Int = -1
-
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -545,7 +504,7 @@ class TransformTest {
                     outputBuffer = null
                     outputPos = 0
                 }
-                return TransformResult(consumed, produced)
+                return TransformResult.ok(consumed, produced)
             }
 
             // Buffer input until we have a complete block
@@ -577,38 +536,10 @@ class TransformTest {
                 }
             }
 
-            return TransformResult(consumed, produced)
+            return TransformResult.ok(consumed, produced)
         }
 
-        override fun transformToByteArray(
-            source: ByteArray,
-            sourceStartIndex: Int,
-            sourceEndIndex: Int
-        ): ByteArray {
-            val inputSize = sourceEndIndex - sourceStartIndex
-
-            // Buffer input
-            val toBuffer = minOf(inputSize, blockSize - bufferedCount)
-            source.copyInto(inputBuffer, bufferedCount, sourceStartIndex, sourceStartIndex + toBuffer)
-            bufferedCount += toBuffer
-
-            // If we have a complete block, expand it
-            if (bufferedCount == blockSize) {
-                val expanded = ByteArray(blockSize * expansionFactor)
-                for (i in 0 until blockSize) {
-                    for (j in 0 until expansionFactor) {
-                        expanded[i * expansionFactor + j] = inputBuffer[i]
-                    }
-                }
-                bufferedCount = 0
-                return expanded
-            }
-
-            // Not enough input for a block yet
-            return ByteArray(0)
-        }
-
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
             // Drain any remaining output buffer
             val pending = outputBuffer
             if (pending != null && outputPos < pending.size) {
@@ -619,7 +550,7 @@ class TransformTest {
                 if (outputPos >= pending.size) {
                     outputBuffer = null
                 }
-                return toCopy
+                return FinalizeResult.ok(toCopy)
             }
 
             // Handle any remaining buffered input (incomplete block)
@@ -640,53 +571,29 @@ class TransformTest {
                 if (outputPos >= outputBuffer!!.size) {
                     outputBuffer = null
                 }
-                return toCopy
+                return FinalizeResult.ok(toCopy)
             }
 
-            return -1
-        }
-
-        override fun finalizeToByteArray(): ByteArray {
-            // Drain any remaining output buffer
-            val pending = outputBuffer
-            if (pending != null && outputPos < pending.size) {
-                val result = pending.copyOfRange(outputPos, pending.size)
-                outputBuffer = null
-                return result
-            }
-
-            // Handle any remaining buffered input (incomplete block)
-            if (bufferedCount > 0) {
-                val expanded = ByteArray(bufferedCount * expansionFactor)
-                for (i in 0 until bufferedCount) {
-                    for (j in 0 until expansionFactor) {
-                        expanded[i * expansionFactor + j] = inputBuffer[i]
-                    }
-                }
-                bufferedCount = 0
-                return expanded
-            }
-
-            return ByteArray(0)
+            return FinalizeResult.done()
         }
 
         override fun close() {}
     }
 
     /**
-     * Test that demonstrates using transformToByteArray() for atomic large output during transform.
+     * Test that demonstrates using outputRequired for atomic large output during transform.
      *
      * When a transformation:
      * - Can't produce partial output (atomic operation)
-     * - Doesn't know output size upfront
+     * - Knows the output size upfront
      *
-     * It should override transformToByteArray() to return the output directly.
+     * It should return TransformResult.outputRequired(size) to request a larger buffer.
      */
     @Test
-    fun streamingTransformAtomicLargeOutputWithByteArrayReturn() {
+    fun streamingTransformAtomicLargeOutputWithOutputRequired() {
         val downstream = Buffer()
         // This transformation expands each input byte to 1000 bytes atomically
-        // using transformToByteArray() - works regardless of segment size
+        // using outputRequired() to request proper buffer size
         val transform = AtomicExpandTransform(expansionFactor = 1000)
 
         val sink = (downstream as RawSink).transformedWith(transform)
@@ -707,12 +614,10 @@ class TransformTest {
 
     /**
      * A transformation that expands each byte atomically to many bytes.
-     * Uses transformToByteArray() to handle output that may exceed segment size.
+     * Uses TransformResult.outputRequired(size) when buffer is too small.
      */
     @OptIn(UnsafeIoApi::class)
     private class AtomicExpandTransform(private val expansionFactor: Int) : UnsafeByteArrayTransformation() {
-        override fun maxOutputSize(inputSize: Int): Int = -1
-
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -721,50 +626,49 @@ class TransformTest {
             sinkStartIndex: Int,
             sinkEndIndex: Int
         ): TransformResult {
-            // Not used when transformToByteArray is overridden
-            return TransformResult(0, 0)
-        }
-
-        override fun transformToByteArray(
-            source: ByteArray,
-            sourceStartIndex: Int,
-            sourceEndIndex: Int
-        ): ByteArray {
             val inputSize = sourceEndIndex - sourceStartIndex
-            if (inputSize == 0) return ByteArray(0)
+            if (inputSize == 0) return TransformResult.ok(0, 0)
+
+            val requiredOutput = inputSize * expansionFactor
+            val availableOutput = sinkEndIndex - sinkStartIndex
+
+            // If buffer is too small, request larger buffer
+            if (availableOutput < requiredOutput) {
+                return TransformResult.outputRequired(requiredOutput)
+            }
 
             // Expand each byte to expansionFactor bytes
-            val output = ByteArray(inputSize * expansionFactor)
+            var sinkPos = sinkStartIndex
             for (i in 0 until inputSize) {
                 val byte = source[sourceStartIndex + i]
                 for (j in 0 until expansionFactor) {
-                    output[i * expansionFactor + j] = byte
+                    sink[sinkPos++] = byte
                 }
             }
-            return output
+
+            return TransformResult.ok(inputSize, requiredOutput)
         }
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
-
-        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult =
+            FinalizeResult.done()
 
         override fun close() {}
     }
 
     /**
-     * Test that demonstrates using finalizeToByteArray() for atomic large output.
+     * Test that demonstrates using FinalizeResult.outputRequired for atomic large output.
      *
      * When a transformation:
      * - Can't produce partial output (atomic operation)
-     * - Doesn't know output size upfront
+     * - Knows the output size upfront during finalization
      *
-     * It should override finalizeToByteArray() to return the output directly.
+     * It should return FinalizeResult.outputRequired(size) to request a larger buffer.
      */
     @Test
-    fun streamingFinalizeAtomicLargeOutputWithByteArrayReturn() {
+    fun streamingFinalizeAtomicLargeOutputWithOutputRequired() {
         val downstream = Buffer()
         // This transformation produces 20KB atomically during finalize
-        // using finalizeToByteArray() - it works correctly
+        // using FinalizeResult.outputRequired() to request proper buffer size
         val transform = AtomicLargeOutputTransform(outputSize = 20_000)
 
         val sink = (downstream as RawSink).transformedWith(transform)
@@ -783,11 +687,11 @@ class TransformTest {
 
     /**
      * A transformation that produces large output atomically during finalize.
-     * Uses finalizeToByteArray() to handle output that may exceed segment size.
+     * Uses FinalizeResult.outputRequired(size) when buffer is too small.
      */
     @OptIn(UnsafeIoApi::class)
     private class AtomicLargeOutputTransform(private val outputSize: Int) : UnsafeByteArrayTransformation() {
-        override fun maxOutputSize(inputSize: Int): Int = -1
+        private var finalized = false
 
         override fun transformIntoByteArray(
             source: ByteArray,
@@ -798,23 +702,25 @@ class TransformTest {
             sinkEndIndex: Int
         ): TransformResult {
             // Consume input, produce nothing
-            return TransformResult(sourceEndIndex - sourceStartIndex, 0)
+            return TransformResult.ok(sourceEndIndex - sourceStartIndex, 0)
         }
 
-        override fun transformToByteArray(
-            source: ByteArray,
-            sourceStartIndex: Int,
-            sourceEndIndex: Int
-        ): ByteArray = ByteArray(0)
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+            if (finalized) return FinalizeResult.done()
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
-            // Return -1 to signal no incremental progress, triggering finalizeToByteArray fallback
-            return -1
-        }
+            val availableOutput = endIndex - startIndex
 
-        override fun finalizeToByteArray(): ByteArray {
-            // Produce outputSize bytes atomically - works regardless of segment size
-            return ByteArray(outputSize) { (it % 256).toByte() }
+            // If buffer is too small, request larger buffer
+            if (availableOutput < outputSize) {
+                return FinalizeResult.outputRequired(outputSize)
+            }
+
+            // Produce outputSize bytes atomically
+            for (i in 0 until outputSize) {
+                sink[startIndex + i] = (i % 256).toByte()
+            }
+            finalized = true
+            return FinalizeResult.ok(outputSize)
         }
 
         override fun close() {}
@@ -822,7 +728,7 @@ class TransformTest {
 
     /**
      * A streaming transformation that buffers ALL input and only outputs
-     * during finalization. Does NOT override maxOutputSize (returns -1).
+     * during finalization. Does NOT use outputRequired.
      * Simulates algorithms like AES-GCM decryption but without known output size.
      */
     @OptIn(UnsafeIoApi::class)
@@ -832,8 +738,6 @@ class TransformTest {
         private val inputBuffer = Buffer()
         private var outputBuffer: ByteArray? = null
         private var outputPos = 0
-
-        override fun maxOutputSize(inputSize: Int): Int = -1
 
         override fun transformIntoByteArray(
             source: ByteArray,
@@ -846,21 +750,10 @@ class TransformTest {
             // Buffer all input, produce no output during transform
             val inputSize = sourceEndIndex - sourceStartIndex
             inputBuffer.write(source, sourceStartIndex, sourceStartIndex + inputSize)
-            return TransformResult(inputSize, 0)
+            return TransformResult.ok(inputSize, 0)
         }
 
-        override fun transformToByteArray(
-            source: ByteArray,
-            sourceStartIndex: Int,
-            sourceEndIndex: Int
-        ): ByteArray {
-            // Buffer input, produce no output during transform
-            val inputSize = sourceEndIndex - sourceStartIndex
-            inputBuffer.write(source, sourceStartIndex, sourceStartIndex + inputSize)
-            return ByteArray(0)
-        }
-
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
             // On first call, expand all buffered input
             if (outputBuffer == null && inputBuffer.size > 0) {
                 val input = inputBuffer.readByteArray()
@@ -883,34 +776,10 @@ class TransformTest {
                 if (outputPos >= pending.size) {
                     outputBuffer = null
                 }
-                return toCopy
+                return FinalizeResult.ok(toCopy)
             }
 
-            return -1
-        }
-
-        override fun finalizeToByteArray(): ByteArray {
-            // If we have pending output, return it
-            val pending = outputBuffer
-            if (pending != null && outputPos < pending.size) {
-                val result = pending.copyOfRange(outputPos, pending.size)
-                outputBuffer = null
-                return result
-            }
-
-            // Expand all buffered input
-            if (inputBuffer.size > 0) {
-                val input = inputBuffer.readByteArray()
-                val expanded = ByteArray(input.size * expansionFactor)
-                for (i in input.indices) {
-                    for (j in 0 until expansionFactor) {
-                        expanded[i * expansionFactor + j] = input[i]
-                    }
-                }
-                return expanded
-            }
-
-            return ByteArray(0)
+            return FinalizeResult.done()
         }
 
         override fun close() {}

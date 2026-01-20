@@ -46,9 +46,10 @@ abstract class UnsafeByteArrayTransformation : Transformation {
         val outputRequired: Int get() = if (_produced < 0) -_produced else 0
 
         companion object {
-            fun ok(consumed: Int, produced: Int) = TransformResult(consumed, produced)
-            fun inputRequired(size: Int) = TransformResult(-size, 0)
-            fun outputRequired(size: Int) = TransformResult(0, -size)
+            fun ok(consumed: Int, produced: Int) = TransformResult(consumed, produced)  // consumed, produced >= 0
+            fun done() = TransformResult(0, 0)  // transformation complete
+            fun inputRequired(size: Int) = TransformResult(-size, 0)  // size > 0
+            fun outputRequired(size: Int) = TransformResult(0, -size)  // size > 0
         }
     }
 
@@ -63,9 +64,9 @@ abstract class UnsafeByteArrayTransformation : Transformation {
         val isDone: Boolean get() = _produced == 0
 
         companion object {
-            fun ok(produced: Int) = FinalizeResult(produced)
-            fun done() = FinalizeResult(0)
-            fun outputRequired(size: Int) = FinalizeResult(-size)
+            fun ok(produced: Int) = FinalizeResult(produced)  // produced > 0
+            fun done() = FinalizeResult(0)  // finalization complete
+            fun outputRequired(size: Int) = FinalizeResult(-size)  // size > 0
         }
     }
 
@@ -97,9 +98,10 @@ abstract class UnsafeByteArrayTransformation : Transformation {
 | `_produced < 0` | Need larger output buffer | `outputRequired > 0` |
 
 **Factory methods:**
-- `TransformResult.ok(consumed, produced)` - normal progress
-- `TransformResult.inputRequired(size)` - can't proceed without more input
-- `TransformResult.outputRequired(size)` - output buffer too small
+- `TransformResult.ok(consumed, produced)` - normal progress (consumed, produced >= 0)
+- `TransformResult.done()` - transformation complete (equivalent to `ok(0, 0)`)
+- `TransformResult.inputRequired(size)` - can't proceed without more input (size > 0)
+- `TransformResult.outputRequired(size)` - output buffer too small (size > 0)
 
 **Access properties:**
 - `consumed` / `produced` - actual bytes processed (0 if requirement result)
@@ -209,7 +211,7 @@ override fun finalizeTo(sink: Buffer) {
 The `transformTo` method always returns `>= 0` (bytes consumed). There is no `-1` EOF signal.
 
 When a transformation is "finished" (e.g., Inflater detects end-of-stream marker):
-- Return `TransformResult.ok(0, 0)` for any further input
+- Return `TransformResult.done()` for any further input
 - The transformation becomes a no-op, ignoring additional input
 - Higher-level code handles concatenated streams if needed
 

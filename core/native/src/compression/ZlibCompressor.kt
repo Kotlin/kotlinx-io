@@ -54,8 +54,6 @@ internal class ZlibCompressor(
         }
     }
 
-    override fun maxOutputSize(inputSize: Int): Int = -1
-
     override fun transformIntoByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
@@ -85,53 +83,14 @@ internal class ZlibCompressor(
                 val consumed = inputSize - zStream.avail_in.toInt()
                 val produced = outputSize - zStream.avail_out.toInt()
 
-                TransformResult(consumed, produced)
+                TransformResult.ok(consumed, produced)
             }
         }
     }
 
-    override fun transformToByteArray(
-        source: ByteArray,
-        sourceStartIndex: Int,
-        sourceEndIndex: Int
-    ): ByteArray {
+    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
         check(initialized) { "Compressor is closed" }
-
-        val inputSize = sourceEndIndex - sourceStartIndex
-        if (inputSize == 0) return ByteArray(0)
-
-        // Estimate output size and grow if needed
-        var output = ByteArray(inputSize)
-        var totalProduced = 0
-
-        source.usePinned { pinnedInput ->
-            zStream.next_in = pinnedInput.addressOf(sourceStartIndex).reinterpret()
-            zStream.avail_in = inputSize.convert()
-
-            while (zStream.avail_in > 0u) {
-                if (totalProduced >= output.size) {
-                    output = output.copyOf(output.size * 2)
-                }
-                output.usePinned { pinnedOutput ->
-                    zStream.next_out = pinnedOutput.addressOf(totalProduced).reinterpret()
-                    zStream.avail_out = (output.size - totalProduced).convert()
-
-                    val deflateResult = deflate(zStream.ptr, Z_NO_FLUSH)
-                    if (deflateResult != Z_OK && deflateResult != Z_BUF_ERROR) {
-                        throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
-                    }
-
-                    totalProduced = output.size - zStream.avail_out.toInt()
-                }
-            }
-        }
-
-        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
-    }
-
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
-        check(initialized) { "Compressor is closed" }
-        if (finished) return -1
+        if (finished) return FinalizeResult.done()
 
         if (!finishCalled) {
             zStream.next_in = null
@@ -152,53 +111,17 @@ internal class ZlibCompressor(
             when (deflateResult) {
                 Z_OK, Z_BUF_ERROR -> {
                     // More output pending
-                    written
+                    FinalizeResult.ok(written)
                 }
                 Z_STREAM_END -> {
                     finished = true
-                    if (written > 0) written else -1
+                    if (written > 0) FinalizeResult.ok(written) else FinalizeResult.done()
                 }
                 else -> {
                     throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
                 }
             }
         }
-    }
-
-    override fun finalizeToByteArray(): ByteArray {
-        check(initialized) { "Compressor is closed" }
-        if (finished) return ByteArray(0)
-
-        if (!finishCalled) {
-            zStream.next_in = null
-            zStream.avail_in = 0u
-            finishCalled = true
-        }
-
-        var output = ByteArray(256)
-        var totalProduced = 0
-
-        while (!finished) {
-            if (totalProduced >= output.size) {
-                output = output.copyOf(output.size * 2)
-            }
-            output.usePinned { pinnedOutput ->
-                zStream.next_out = pinnedOutput.addressOf(totalProduced).reinterpret()
-                zStream.avail_out = (output.size - totalProduced).convert()
-
-                val deflateResult = deflate(zStream.ptr, Z_FINISH)
-                val written = (output.size - totalProduced) - zStream.avail_out.toInt()
-                totalProduced += written
-
-                when (deflateResult) {
-                    Z_OK, Z_BUF_ERROR -> { /* More output pending */ }
-                    Z_STREAM_END -> finished = true
-                    else -> throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
-                }
-            }
-        }
-
-        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
     }
 
     override fun close() {

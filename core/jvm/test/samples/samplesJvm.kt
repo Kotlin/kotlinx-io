@@ -335,8 +335,6 @@ class CipherTransformationSamples {
     private class CipherTransformation(private val cipher: Cipher) : UnsafeByteArrayTransformation() {
         private var finalized = false
 
-        override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
-
         override fun transformIntoByteArray(
             source: ByteArray,
             sourceStartIndex: Int,
@@ -346,30 +344,30 @@ class CipherTransformationSamples {
             sinkEndIndex: Int
         ): TransformResult {
             val inputSize = sourceEndIndex - sourceStartIndex
+            val outputSize = sinkEndIndex - sinkStartIndex
+
+            // Check if we have enough output space
+            val requiredOutput = cipher.getOutputSize(inputSize)
+            if (requiredOutput > outputSize) {
+                return TransformResult.outputRequired(requiredOutput)
+            }
+
             val written = cipher.update(source, sourceStartIndex, inputSize, sink, sinkStartIndex)
-            return TransformResult(inputSize, written)
+            return TransformResult.ok(inputSize, written)
         }
 
-        override fun transformToByteArray(
-            source: ByteArray,
-            sourceStartIndex: Int,
-            sourceEndIndex: Int
-        ): ByteArray {
-            val inputSize = sourceEndIndex - sourceStartIndex
-            if (inputSize == 0) return ByteArray(0)
-            return cipher.update(source, sourceStartIndex, inputSize) ?: ByteArray(0)
-        }
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+            if (finalized) return FinalizeResult.done()
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
-            if (finalized) return -1
+            val outputSize = endIndex - startIndex
+            val requiredOutput = cipher.getOutputSize(0)
+            if (requiredOutput > outputSize) {
+                return FinalizeResult.outputRequired(requiredOutput)
+            }
+
             finalized = true
-            return cipher.doFinal(sink, startIndex)
-        }
-
-        override fun finalizeToByteArray(): ByteArray {
-            if (finalized) return ByteArray(0)
-            finalized = true
-            return cipher.doFinal()
+            val written = cipher.doFinal(sink, startIndex)
+            return if (written > 0) FinalizeResult.ok(written) else FinalizeResult.done()
         }
 
         override fun close() {}
