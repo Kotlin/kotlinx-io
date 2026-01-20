@@ -147,12 +147,12 @@ class TransformTest {
         }
 
         val transform = object : Transformation {
-            override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
                 val toWrite = minOf(source.size, byteCount)
                 sink.write(source, toWrite)
                 return toWrite
             }
-            override fun finalize(sink: Buffer) {}
+            override fun finalizeTo(sink: Buffer) {}
             override fun close() {
                 transformClosed = true
             }
@@ -187,7 +187,7 @@ class TransformTest {
 
         val transform = object : Transformation {
             private var finished = false
-            override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
                 if (finished) return -1L
                 if (source.size > 0) {
                     val toWrite = minOf(source.size, byteCount)
@@ -196,7 +196,7 @@ class TransformTest {
                 }
                 return 0L
             }
-            override fun finalize(sink: Buffer) {
+            override fun finalizeTo(sink: Buffer) {
                 finished = true
             }
             override fun close() {
@@ -296,7 +296,7 @@ class TransformTest {
      * Consumes 1 byte, produces 2 bytes.
      */
     private class DoubleByteTransform : Transformation {
-        override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
             var bytesConsumed = 0L
             while (!source.exhausted() && bytesConsumed < byteCount) {
                 val byte = source.readByte()
@@ -307,7 +307,7 @@ class TransformTest {
             return bytesConsumed
         }
 
-        override fun finalize(sink: Buffer) {}
+        override fun finalizeTo(sink: Buffer) {}
 
         override fun close() {}
     }
@@ -320,7 +320,7 @@ class TransformTest {
      * It relies on TransformingSource to detect EOF when upstream is exhausted.
      */
     private class HalveByteTransform : Transformation {
-        override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
             var bytesConsumed = 0L
             while (source.size >= 2 && bytesConsumed + 2 <= byteCount) {
                 val byte = source.readByte()
@@ -331,7 +331,7 @@ class TransformTest {
             return bytesConsumed
         }
 
-        override fun finalize(sink: Buffer) {}
+        override fun finalizeTo(sink: Buffer) {}
 
         override fun close() {}
     }
@@ -341,13 +341,13 @@ class TransformTest {
      * Pass-through for normal data, adds trailer on finish.
      */
     private class AppendTrailerTransform(private val trailer: String) : Transformation {
-        override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
             val toConsume = minOf(source.size, byteCount)
             sink.write(source, toConsume)
             return toConsume
         }
 
-        override fun finalize(sink: Buffer) {
+        override fun finalizeTo(sink: Buffer) {
             sink.writeString(trailer)
         }
 

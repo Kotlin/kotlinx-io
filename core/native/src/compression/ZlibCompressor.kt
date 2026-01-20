@@ -91,7 +91,7 @@ internal class ZlibCompressor(
     // Native zlib doesn't buffer internally, so no pending output
     override fun hasPendingOutput(): Boolean = false
 
-    override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Compressor is closed" }
         if (finished) return -1
 

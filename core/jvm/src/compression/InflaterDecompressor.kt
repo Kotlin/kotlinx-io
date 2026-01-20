@@ -21,12 +21,12 @@ internal class InflaterDecompressor(
     private val inflater: Inflater
 ) : ByteArrayTransformation() {
 
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         // If already finished, return EOF
         if (inflater.finished()) {
             return -1L
         }
-        return super.transformAtMostTo(source, sink, byteCount)
+        return super.transformTo(source, sink, byteCount)
     }
 
     override fun transformIntoByteArray(
@@ -57,7 +57,7 @@ internal class InflaterDecompressor(
 
     override fun hasPendingOutput(): Boolean = !inflater.needsInput() && !inflater.finished()
 
-    override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!inflater.finished()) {
             throw IOException("Truncated or corrupt deflate data")
         }

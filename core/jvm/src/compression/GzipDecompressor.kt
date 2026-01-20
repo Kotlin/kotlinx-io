@@ -42,7 +42,7 @@ internal class GzipDecompressor : ByteArrayTransformation() {
     private var lastInputStart: Int = 0
     private var lastInputLength: Int = 0
 
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         // If already finished, return EOF
         if (finished) {
             return -1L
@@ -119,7 +119,7 @@ internal class GzipDecompressor : ByteArrayTransformation() {
         return consumed.toLong()
     }
 
-    // GzipDecompressor uses custom transformAtMostTo, so these are not called during normal operation
+    // GzipDecompressor uses custom transformTo, so these are not called during normal operation
     override fun transformIntoByteArray(
         source: ByteArray,
         sourceStart: Int,
@@ -129,13 +129,13 @@ internal class GzipDecompressor : ByteArrayTransformation() {
         destinationEnd: Int
     ): TransformResult {
         // This is only called if someone uses the base class implementation
-        // For GZIP, we need the header/trailer handling in transformAtMostTo
-        throw UnsupportedOperationException("GzipDecompressor requires custom transformAtMostTo handling")
+        // For GZIP, we need the header/trailer handling in transformTo
+        throw UnsupportedOperationException("GzipDecompressor requires custom transformTo handling")
     }
 
     override fun hasPendingOutput(): Boolean = !inflater.needsInput() && !inflater.finished()
 
-    override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         // If inflater is finished but trailer not verified, verify it now
         if (inflater.finished() && !trailerVerified) {
             extractRemainingBytes()

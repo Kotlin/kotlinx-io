@@ -22,7 +22,7 @@ class RC4SourceSample {
         class RC4Transformation(key: String) : Transformation {
             private val key = RC4Key(key)
 
-            override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
                 if (source.exhausted()) return 0L
 
                 var bytesConsumed = 0L
@@ -34,7 +34,7 @@ class RC4SourceSample {
                 return bytesConsumed
             }
 
-            override fun finalize(sink: Buffer) {}
+            override fun finalizeTo(sink: Buffer) {}
 
             override fun close() {}
 

@@ -332,7 +332,7 @@ class CipherTransformationSamples {
     private class CipherTransformation(private val cipher: Cipher) : Transformation {
         private val outputBuffer = ByteArray(cipher.getOutputSize(8192))
 
-        override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+        override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
             if (source.exhausted()) return 0L
 
             var totalConsumed = 0L
@@ -352,7 +352,7 @@ class CipherTransformationSamples {
             return totalConsumed
         }
 
-        override fun finalize(sink: Buffer) {
+        override fun finalizeTo(sink: Buffer) {
             val finalBytes = cipher.doFinal()
             if (finalBytes.isNotEmpty()) {
                 sink.write(finalBytes)
@@ -449,7 +449,7 @@ class CipherTransformationSamples {
 
             fun crc32(): UInt = crc32.xor(0xffffffffU)
 
-            override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
                 if (source.exhausted()) return 0L
 
                 var bytesConsumed = 0L
@@ -462,7 +462,7 @@ class CipherTransformationSamples {
                 return bytesConsumed
             }
 
-            override fun finalize(sink: Buffer) {}
+            override fun finalizeTo(sink: Buffer) {}
 
             override fun close() {}
 
@@ -529,7 +529,7 @@ class ByteArrayTransformationSamplesJvm {
     private class CipherBlockTransformation(private val cipher: Cipher) : ByteArrayTransformation() {
         private var finalized = false
 
-        override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
+        override fun maxDestinationSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
 
         override fun transformIntoByteArray(
             source: ByteArray,
@@ -545,7 +545,7 @@ class ByteArrayTransformationSamplesJvm {
 
         override fun hasPendingOutput(): Boolean = false
 
-        override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+        override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
             if (finalized) return -1
             finalized = true
             return cipher.doFinal(destination, startIndex)

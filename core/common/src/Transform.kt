@@ -18,8 +18,8 @@ import kotlinx.io.unsafe.withData
  *
  * The typical lifecycle is:
  * 1. Create a transform instance
- * 2. Call [transformAtMostTo] multiple times with input data
- * 3. Call [finish] to signal end of input and flush remaining output
+ * 2. Call [transformTo] multiple times with input data
+ * 3. Call [finalizeTo] to signal end of input and flush remaining output
  * 4. Call [close] to release resources
  *
  * Transform instances are not thread-safe and should only be used by a single thread.
@@ -42,8 +42,7 @@ public interface Transformation : AutoCloseable {
      *         is exhausted and will produce no more output
      * @throws IOException if transformation fails
      */
-    // TODO: decide on name - it shares `readAtMostTo` pattern
-    public fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long
+    public fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long
 
     /**
      * Signals end of input and flushes any remaining transformed data.
@@ -54,8 +53,7 @@ public interface Transformation : AutoCloseable {
      * @param sink buffer to write remaining transformed output to
      * @throws IOException if finalization fails
      */
-    // TODO: decide on name - it shares `write` pattern
-    public fun finalize(sink: Buffer)
+    public fun finalizeTo(sink: Buffer)
 
     /**
      * Releases all resources associated with this transformation.
@@ -68,14 +66,14 @@ public interface Transformation : AutoCloseable {
 /**
  * Result of a [ByteArrayTransformation.transformIntoByteArray] operation.
  *
- * @property inputConsumed number of bytes consumed from the input array
- * @property outputProduced number of bytes written to the output array
+ * @property consumed number of bytes consumed from the input array
+ * @property produced number of bytes written to the output array
  */
 // TODO: convert to value class over `Long`
 @UnsafeIoApi
 public class TransformResult(
-    public val inputConsumed: Int,
-    public val outputProduced: Int
+    public val consumed: Int,
+    public val produced: Int
 )
 
 /**
@@ -90,10 +88,10 @@ public class TransformResult(
  * Subclasses must implement:
  * - [transformIntoByteArray] to transform input bytes into output bytes
  * - [hasPendingOutput] to indicate if there's buffered output to drain
- * - [finalizeOutput] to produce final output after all input is processed
+ * - [finalizeIntoByteArray] to produce final output after all input is processed
  * - [close] to release resources
  *
- * For bounded transformations (like Cipher), also override [maxOutputSize] to return
+ * For bounded transformations (like Cipher), also override [maxDestinationSize] to return
  * the maximum output size for a given input size. This enables optimized buffer handling.
  *
  * @see Transformation
@@ -151,8 +149,7 @@ public abstract class ByteArrayTransformation : Transformation {
      * @param inputSize the input size in bytes
      * @return the maximum output size, or -1 if unknown/unbounded
      */
-    // TODO: maybe rename it to `estimateMaxOutputSize`?
-    protected open fun maxOutputSize(inputSize: Int): Int = -1
+    protected open fun maxDestinationSize(inputSize: Int): Int = -1
 
     /**
      * Produces finalization output into the destination array.
@@ -166,10 +163,9 @@ public abstract class ByteArrayTransformation : Transformation {
      * @return the number of bytes written, or -1 if finalization is complete
      */
     // TODO: we might need to have `finalize` which returns an array (same as with transform)
-    // TODO: rename to `finalizeIntoByteArray`
-    protected abstract fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int
+    protected abstract fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int
 
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         // Handle case where source is exhausted but we have pending output
         if (source.exhausted()) {
             if (!hasPendingOutput()) return 0L
@@ -179,20 +175,20 @@ public abstract class ByteArrayTransformation : Transformation {
 
         return UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
             val available = minOf(byteCount.toInt(), inputEnd - inputStart)
-            val maxOutput = maxOutputSize(available)
+            val maxOutput = maxDestinationSize(available)
 
             if (maxOutput >= 0) {
                 // Bounded transformation - output size is known, consume all input at once
                 val _ = UnsafeBufferOperations.writeToTail(sink, minOf(maxOutput, UnsafeBufferOperations.maxSafeWriteCapacity)) { dest, destStart, destEnd ->
                     if (destEnd - destStart >= maxOutput) {
                         // Output fits in segment
-                        transformIntoByteArray(input, inputStart, inputStart + available, dest, destStart, destEnd).outputProduced
+                        transformIntoByteArray(input, inputStart, inputStart + available, dest, destStart, destEnd).produced
                     } else {
                         // Need separate buffer for large output
                         val tempBuffer = ByteArray(maxOutput)
                         val result = transformIntoByteArray(input, inputStart, inputStart + available, tempBuffer, 0, maxOutput)
-                        tempBuffer.copyInto(dest, destStart, 0, result.outputProduced)
-                        result.outputProduced
+                        tempBuffer.copyInto(dest, destStart, 0, result.produced)
+                        result.produced
                     }
                 }
                 available
@@ -208,9 +204,9 @@ public abstract class ByteArrayTransformation : Transformation {
                             input, inputStart + totalConsumed, inputStart + available,
                             output, outputStart, outputEnd
                         )
-                        totalConsumed += result.inputConsumed
-                        progressMade = result.inputConsumed > 0 || result.outputProduced > 0
-                        result.outputProduced
+                        totalConsumed += result.consumed
+                        progressMade = result.consumed > 0 || result.produced > 0
+                        result.produced
                     }
 
                     if (!progressMade) break
@@ -228,16 +224,16 @@ public abstract class ByteArrayTransformation : Transformation {
                     EMPTY_BYTE_ARRAY, 0, 0,
                     output, outputStart, outputEnd
                 )
-                result.outputProduced
+                result.produced
             }
             if (written == 0) break
         }
     }
 
-    override fun finalize(sink: Buffer) {
+    override fun finalizeTo(sink: Buffer) {
         while (true) {
             val written = UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndex, endIndex ->
-                val result = finalizeOutput(bytes, startIndex, endIndex)
+                val result = finalizeIntoByteArray(bytes, startIndex, endIndex)
                 if (result == -1) 0 else result
             }
             if (written == 0) break
@@ -308,7 +304,7 @@ internal class TransformingSink(
 
         // Transform all input - loop until all bytes are consumed
         while (!inputBuffer.exhausted()) {
-            val consumed = transformation.transformAtMostTo(inputBuffer, outputBuffer, inputBuffer.size)
+            val consumed = transformation.transformTo(inputBuffer, outputBuffer, inputBuffer.size)
             if (consumed == -1L) break
             if (consumed == 0L && !inputBuffer.exhausted()) {
                 // Transformation didn't consume anything but there's still input
@@ -337,7 +333,7 @@ internal class TransformingSink(
 
         // Finalize transformation and write any remaining data
         try {
-            transformation.finalize(outputBuffer)
+            transformation.finalizeTo(outputBuffer)
             emitTransformedData()
         } catch (e: Throwable) {
             thrown = e
@@ -397,7 +393,7 @@ internal class TransformingSource(
             val sinkSizeBefore = sink.size
 
             // Try to transform (even with empty input, to allow decompressors to finalize)
-            val consumed = transformation.transformAtMostTo(inputBuffer, sink, inputBuffer.size)
+            val consumed = transformation.transformTo(inputBuffer, sink, inputBuffer.size)
 
             if (consumed == -1L) {
                 // Transformation is complete
@@ -420,7 +416,7 @@ internal class TransformingSource(
                 // If inputBuffer is also empty, the transformation has nothing more to process
                 if (inputBuffer.exhausted()) {
                     // Call finalize to allow the transformation to complete (e.g., for block ciphers)
-                    transformation.finalize(sink)
+                    transformation.finalizeTo(sink)
                     transformationFinished = true
                     val bytesRead = sink.size - startSize
                     return if (bytesRead == 0L) -1L else bytesRead

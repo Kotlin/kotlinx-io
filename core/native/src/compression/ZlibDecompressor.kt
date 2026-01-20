@@ -47,14 +47,14 @@ internal class ZlibDecompressor(
         }
     }
 
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         check(initialized) { "Decompressor is closed" }
 
         // If already finished, return EOF
         if (finished) return -1L
         if (source.exhausted()) return 0L
 
-        return super.transformAtMostTo(source, sink, byteCount)
+        return super.transformTo(source, sink, byteCount)
     }
 
     override fun transformIntoByteArray(
@@ -104,7 +104,7 @@ internal class ZlibDecompressor(
     // Native zlib doesn't buffer internally, so no pending output
     override fun hasPendingOutput(): Boolean = false
 
-    override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Decompressor is closed" }
 
         // Verify that decompression is complete

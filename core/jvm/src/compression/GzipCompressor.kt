@@ -32,7 +32,7 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
     private var trailerWritten = false
     private var uncompressedSize = 0L
 
-    override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+    override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
         if (source.exhausted() && !hasPendingOutput()) return 0L
 
         // Write GZIP header if not yet written
@@ -41,7 +41,7 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
             headerWritten = true
         }
 
-        return super.transformAtMostTo(source, sink, byteCount)
+        return super.transformTo(source, sink, byteCount)
     }
 
     override fun transformIntoByteArray(
@@ -72,7 +72,7 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
 
     override fun hasPendingOutput(): Boolean = !deflater.needsInput()
 
-    override fun finalize(sink: Buffer) {
+    override fun finalizeTo(sink: Buffer) {
         if (trailerWritten) return
 
         // Ensure header is written even if no data was compressed
@@ -82,14 +82,14 @@ internal class GzipCompressor(level: Int) : ByteArrayTransformation() {
         }
 
         // Finalize deflate output
-        super.finalize(sink)
+        super.finalizeTo(sink)
 
         // Write GZIP trailer
         writeTrailer(sink)
         trailerWritten = true
     }
 
-    override fun finalizeOutput(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!finishCalled) {
             deflater.finish()
             finishCalled = true

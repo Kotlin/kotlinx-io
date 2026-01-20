@@ -29,7 +29,7 @@ class Crc32Sample {
 
             fun crc32(): UInt = crc32.xor(0xffffffffU)
 
-            override fun transformAtMostTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
+            override fun transformTo(source: Buffer, sink: Buffer, byteCount: Long): Long {
                 if (source.exhausted()) return 0L
 
                 var bytesConsumed = 0L
@@ -42,7 +42,7 @@ class Crc32Sample {
                 return bytesConsumed
             }
 
-            override fun finalize(sink: Buffer) {}
+            override fun finalizeTo(sink: Buffer) {}
 
             override fun close() {}
 
