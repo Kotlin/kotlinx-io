@@ -229,16 +229,29 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
                 when {
                     result.inputRequired > 0 -> break
                     result.outputRequired > 0 -> {
-                        // Allocate requested buffer and retry
-                        val temp = ByteArray(result.outputRequired)
-                        val retryResult = transformIntoByteArray(
-                            input, inputStart + totalConsumed, inputStart + available,
-                            temp, 0, temp.size
-                        )
-                        if (retryResult.produced > 0) {
-                            sink.write(temp, 0, retryResult.produced)
+                        // Retry with larger buffer
+                        if (result.outputRequired <= UnsafeBufferOperations.maxSafeWriteCapacity) {
+                            @Suppress("UNUSED_VARIABLE")
+                            val written = UnsafeBufferOperations.writeToTail(sink, result.outputRequired) { output, outputStart, outputEnd ->
+                                val retryResult = transformIntoByteArray(
+                                    input, inputStart + totalConsumed, inputStart + available,
+                                    output, outputStart, outputEnd
+                                )
+                                totalConsumed += retryResult.consumed
+                                retryResult.produced
+                            }
+                        } else {
+                            // Fall back to temporary array for large outputs
+                            val temp = ByteArray(result.outputRequired)
+                            val retryResult = transformIntoByteArray(
+                                input, inputStart + totalConsumed, inputStart + available,
+                                temp, 0, temp.size
+                            )
+                            if (retryResult.produced > 0) {
+                                sink.write(temp, 0, retryResult.produced)
+                            }
+                            totalConsumed += retryResult.consumed
                         }
-                        totalConsumed += retryResult.consumed
                     }
 
                     else -> {
@@ -265,10 +278,20 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
             when {
                 result.isDone -> break
                 result.outputRequired > 0 -> {
-                    val temp = ByteArray(result.outputRequired)
-                    val retryResult = finalizeIntoByteArray(temp, 0, temp.size)
-                    if (retryResult.produced > 0) {
-                        sink.write(temp, 0, retryResult.produced)
+                    // Retry with larger buffer
+                    if (result.outputRequired <= UnsafeBufferOperations.maxSafeWriteCapacity) {
+                        @Suppress("UNUSED_VARIABLE")
+                        val written = UnsafeBufferOperations.writeToTail(sink, result.outputRequired) { bytes, startIndex, endIndex ->
+                            val retryResult = finalizeIntoByteArray(bytes, startIndex, endIndex)
+                            retryResult.produced
+                        }
+                    } else {
+                        // Fall back to temporary array for large outputs
+                        val temp = ByteArray(result.outputRequired)
+                        val retryResult = finalizeIntoByteArray(temp, 0, temp.size)
+                        if (retryResult.produced > 0) {
+                            sink.write(temp, 0, retryResult.produced)
+                        }
                     }
                     // Continue loop to check for more output or completion
                 }
