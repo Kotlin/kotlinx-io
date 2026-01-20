@@ -33,29 +33,40 @@ The redesigned API has **3 abstract methods** (down from 5) and **2 result types
 @SubclassOptInRequired(UnsafeIoApi::class)
 abstract class UnsafeByteArrayTransformation : Transformation {
 
-    class TransformResult(val consumed: Int, val produced: Int) {
-        companion object {
-            fun progress(consumed: Int, produced: Int) = TransformResult(consumed, produced)
-            fun needMoreInput(bytes: Int) = TransformResult(-bytes, 0)
-            fun needMoreOutput(bytes: Int) = TransformResult(0, -bytes)
-        }
+    class TransformResult private constructor(
+        private val _consumed: Int,
+        private val _produced: Int
+    ) {
+        // For ok results - actual bytes processed
+        val consumed: Int get() = if (_consumed >= 0) _consumed else 0
+        val produced: Int get() = if (_produced >= 0) _produced else 0
 
-        val isNeedMoreInput: Boolean get() = consumed < 0
-        val isNeedMoreOutput: Boolean get() = produced < 0
-        val requiredInputSize: Int get() = if (consumed < 0) -consumed else 0
-        val requiredOutputSize: Int get() = if (produced < 0) -produced else 0
+        // For requirement results - buffer size needed (0 if not required)
+        val inputRequired: Int get() = if (_consumed < 0) -_consumed else 0
+        val outputRequired: Int get() = if (_produced < 0) -_produced else 0
+
+        companion object {
+            fun ok(consumed: Int, produced: Int) = TransformResult(consumed, produced)
+            fun inputRequired(size: Int) = TransformResult(-size, 0)
+            fun outputRequired(size: Int) = TransformResult(0, -size)
+        }
     }
 
-    class FinalizeResult(val produced: Int) {
-        companion object {
-            fun output(bytes: Int) = FinalizeResult(bytes)
-            fun done() = FinalizeResult(0)
-            fun needBuffer(size: Int) = FinalizeResult(-size)
-        }
+    class FinalizeResult private constructor(private val _produced: Int) {
+        // For ok results
+        val produced: Int get() = if (_produced >= 0) _produced else 0
 
-        val isDone: Boolean get() = produced == 0
-        val isNeedBuffer: Boolean get() = produced < 0
-        val requiredBufferSize: Int get() = if (produced < 0) -produced else 0
+        // For requirement results
+        val outputRequired: Int get() = if (_produced < 0) -_produced else 0
+
+        // Completion check
+        val isDone: Boolean get() = _produced == 0
+
+        companion object {
+            fun ok(produced: Int) = FinalizeResult(produced)
+            fun done() = FinalizeResult(0)
+            fun outputRequired(size: Int) = FinalizeResult(-size)
+        }
     }
 
     abstract fun transformIntoByteArray(
@@ -79,38 +90,46 @@ abstract class UnsafeByteArrayTransformation : Transformation {
 
 ### TransformResult Contract
 
-| `consumed` | `produced` | Meaning |
-|------------|------------|---------|
-| `>= 0` | `>= 0` | Normal progress: consumed N bytes, produced M bytes |
-| `>= 0` | `< 0` | Need larger output buffer of size `\|produced\|` |
-| `< 0` | `>= 0` | Need more input, at least `\|consumed\|` bytes |
-| `< 0` | `< 0` | Need both (rare) |
+| Internal state | Meaning | Access pattern |
+|----------------|---------|----------------|
+| `_consumed >= 0, _produced >= 0` | Normal progress | `consumed`, `produced` |
+| `_consumed < 0` | Need more input | `inputRequired > 0` |
+| `_produced < 0` | Need larger output buffer | `outputRequired > 0` |
 
-**Factory methods for clarity:**
-- `TransformResult.progress(consumed, produced)` - normal progress
-- `TransformResult.needMoreInput(bytes)` - can't proceed without more input
-- `TransformResult.needMoreOutput(bytes)` - output buffer too small
+**Factory methods:**
+- `TransformResult.ok(consumed, produced)` - normal progress
+- `TransformResult.inputRequired(size)` - can't proceed without more input
+- `TransformResult.outputRequired(size)` - output buffer too small
+
+**Access properties:**
+- `consumed` / `produced` - actual bytes processed (0 if requirement result)
+- `inputRequired` / `outputRequired` - buffer size needed (0 if ok result)
 
 ### FinalizeResult Contract
 
-| `produced` | Meaning |
-|------------|---------|
-| `> 0` | Wrote N bytes, may have more output |
-| `= 0` | Finalization complete |
-| `< 0` | Need buffer of size `\|produced\|` |
+| Internal state | Meaning | Access pattern |
+|----------------|---------|----------------|
+| `_produced > 0` | Wrote bytes, may have more | `produced > 0` |
+| `_produced == 0` | Finalization complete | `isDone == true` |
+| `_produced < 0` | Need larger buffer | `outputRequired > 0` |
 
-**Factory methods for clarity:**
-- `FinalizeResult.output(bytes)` - produced N bytes
+**Factory methods:**
+- `FinalizeResult.ok(produced)` - produced N bytes
 - `FinalizeResult.done()` - finalization complete
-- `FinalizeResult.needBuffer(size)` - need larger buffer
+- `FinalizeResult.outputRequired(size)` - need larger buffer
+
+**Access properties:**
+- `produced` - actual bytes produced (0 if done or requirement result)
+- `outputRequired` - buffer size needed (0 if ok/done result)
+- `isDone` - true when finalization is complete
 
 ### Removed Methods
 
-1. **`maxOutputSize(inputSize: Int): Int`** - Replaced by `TransformResult.needMoreOutput(size)`. The implementation signals buffer requirements through return values instead of upfront estimation.
+1. **`maxOutputSize(inputSize: Int): Int`** - Replaced by `TransformResult.outputRequired(size)`. The implementation signals buffer requirements through return values instead of upfront estimation.
 
-2. **`transformToByteArray(...): ByteArray`** - Base class handles buffer growing when `isNeedMoreOutput` is true.
+2. **`transformToByteArray(...): ByteArray`** - Base class handles buffer growing when `outputRequired > 0`.
 
-3. **`finalizeToByteArray(): ByteArray`** - Base class handles buffer growing when `isNeedBuffer` is true.
+3. **`finalizeToByteArray(): ByteArray`** - Base class handles buffer growing when `outputRequired > 0`.
 
 ## Base Class Implementation
 
@@ -133,10 +152,10 @@ override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
             }
 
             when {
-                result.isNeedMoreInput -> break
-                result.isNeedMoreOutput -> {
+                result.inputRequired > 0 -> break
+                result.outputRequired > 0 -> {
                     // Allocate requested buffer and retry
-                    val temp = ByteArray(result.requiredOutputSize)
+                    val temp = ByteArray(result.outputRequired)
                     val retryResult = transformIntoByteArray(
                         input, inputStart + totalConsumed, inputStart + available,
                         temp, 0, temp.size
@@ -170,8 +189,8 @@ override fun finalizeTo(sink: Buffer) {
 
         when {
             result.isDone -> break
-            result.isNeedBuffer -> {
-                val temp = ByteArray(result.requiredBufferSize)
+            result.outputRequired > 0 -> {
+                val temp = ByteArray(result.outputRequired)
                 val retryResult = finalizeIntoByteArray(temp, 0, temp.size)
                 if (retryResult.produced > 0) {
                     sink.write(temp, 0, retryResult.produced)
@@ -190,7 +209,7 @@ override fun finalizeTo(sink: Buffer) {
 The `transformTo` method always returns `>= 0` (bytes consumed). There is no `-1` EOF signal.
 
 When a transformation is "finished" (e.g., Inflater detects end-of-stream marker):
-- Return `TransformResult.progress(0, 0)` for any further input
+- Return `TransformResult.ok(0, 0)` for any further input
 - The transformation becomes a no-op, ignoring additional input
 - Higher-level code handles concatenated streams if needed
 
@@ -260,7 +279,7 @@ class DeflaterCompressor(private val deflater: Deflater) : UnsafeByteArrayTransf
         val produced = deflater.deflate(sink, sinkStartIndex, sinkEndIndex - sinkStartIndex)
         val consumed = if (deflater.needsInput()) inputSize else 0
 
-        return TransformResult.progress(consumed, produced)
+        return TransformResult.ok(consumed, produced)
     }
 
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
@@ -272,7 +291,7 @@ class DeflaterCompressor(private val deflater: Deflater) : UnsafeByteArrayTransf
         if (deflater.finished()) return FinalizeResult.done()
 
         val produced = deflater.deflate(sink, startIndex, endIndex - startIndex)
-        return FinalizeResult.output(produced)
+        return FinalizeResult.ok(produced)
     }
 
     override fun close() {
@@ -293,7 +312,7 @@ class AesGcmDecryptor(private val cipher: Cipher) : UnsafeByteArrayTransformatio
         val inputSize = sourceEndIndex - sourceStartIndex
         // AES-GCM buffers all input, produces nothing until finalize
         cipher.update(source, sourceStartIndex, inputSize)
-        return TransformResult.progress(consumed = inputSize, produced = 0)
+        return TransformResult.ok(consumed = inputSize, produced = 0)
     }
 
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
@@ -301,11 +320,11 @@ class AesGcmDecryptor(private val cipher: Cipher) : UnsafeByteArrayTransformatio
         val available = endIndex - startIndex
 
         if (available < outputSize) {
-            return FinalizeResult.needBuffer(outputSize)
+            return FinalizeResult.outputRequired(outputSize)
         }
 
         val produced = cipher.doFinal(sink, startIndex)
-        return FinalizeResult.output(produced)
+        return FinalizeResult.ok(produced)
     }
 
     override fun close() {}
@@ -326,10 +345,41 @@ class AesGcmDecryptor(private val cipher: Cipher) : UnsafeByteArrayTransformatio
 | Before | After |
 |--------|-------|
 | 5 abstract methods | 3 abstract methods |
-| Implicit bounded/streaming distinction via `maxOutputSize` | Explicit signaling via result types |
+| Implicit bounded/streaming distinction via `maxOutputSize` | Explicit signaling via `outputRequired` |
 | Duplicate code in `*IntoByteArray` and `*ToByteArray` | Single method, base class handles buffer growing |
-| Magic `-1` return values | Self-documenting factory methods and properties |
-| EOF signal from `transformTo` | No EOF, finished transformations return `(0, 0)` |
+| Magic `-1` return values | Self-documenting `ok()`, `done()`, `inputRequired()`, `outputRequired()` |
+| EOF signal from `transformTo` | No EOF, finished transformations return `ok(0, 0)` |
+
+## API Quick Reference
+
+### TransformResult
+
+```kotlin
+// Factory methods
+TransformResult.ok(consumed, produced)      // normal progress
+TransformResult.inputRequired(size)         // need more input
+TransformResult.outputRequired(size)        // need larger output buffer
+
+// Access properties
+result.consumed        // bytes consumed (0 if requirement result)
+result.produced        // bytes produced (0 if requirement result)
+result.inputRequired   // input size needed (0 if ok result)
+result.outputRequired  // output size needed (0 if ok result)
+```
+
+### FinalizeResult
+
+```kotlin
+// Factory methods
+FinalizeResult.ok(produced)          // produced bytes
+FinalizeResult.done()                // finalization complete
+FinalizeResult.outputRequired(size)  // need larger buffer
+
+// Access properties
+result.produced        // bytes produced (0 if done/requirement)
+result.outputRequired  // output size needed (0 if ok/done)
+result.isDone          // true when finalization complete
+```
 
 ## Future Considerations
 
