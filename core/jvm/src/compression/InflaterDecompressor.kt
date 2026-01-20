@@ -60,7 +60,31 @@ internal class InflaterDecompressor(
         source: ByteArray,
         sourceStartIndex: Int,
         sourceEndIndex: Int
-    ): ByteArray = ByteArray(0)
+    ): ByteArray {
+        val inputSize = sourceEndIndex - sourceStartIndex
+        if (inputSize == 0) return ByteArray(0)
+
+        inflater.setInput(source, sourceStartIndex, inputSize)
+
+        // Decompressed size is unknown, start with estimate and grow
+        var output = ByteArray(inputSize * 4)
+        var totalProduced = 0
+
+        while (!inflater.needsInput() && !inflater.finished()) {
+            if (totalProduced >= output.size) {
+                output = output.copyOf(output.size * 2)
+            }
+            val produced = try {
+                inflater.inflate(output, totalProduced, output.size - totalProduced)
+            } catch (e: DataFormatException) {
+                throw IOException("Invalid compressed data: ${e.message}", e)
+            }
+            if (produced == 0) break
+            totalProduced += produced
+        }
+
+        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
+    }
 
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!inflater.finished()) {
@@ -69,7 +93,12 @@ internal class InflaterDecompressor(
         return -1
     }
 
-    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+    override fun finalizeToByteArray(): ByteArray {
+        if (!inflater.finished()) {
+            throw IOException("Truncated or corrupt deflate data")
+        }
+        return ByteArray(0)
+    }
 
     override fun close() {
         inflater.end()

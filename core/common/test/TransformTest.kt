@@ -329,7 +329,18 @@ class TransformTest {
             source: ByteArray,
             sourceStartIndex: Int,
             sourceEndIndex: Int
-        ): ByteArray = ByteArray(0)
+        ): ByteArray {
+            val inputSize = sourceEndIndex - sourceStartIndex
+            if (inputSize == 0) return ByteArray(0)
+
+            val output = ByteArray(inputSize * 2)
+            for (i in 0 until inputSize) {
+                val byte = source[sourceStartIndex + i]
+                output[i * 2] = byte
+                output[i * 2 + 1] = byte
+            }
+            return output
+        }
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
 
@@ -377,7 +388,17 @@ class TransformTest {
             source: ByteArray,
             sourceStartIndex: Int,
             sourceEndIndex: Int
-        ): ByteArray = ByteArray(0)
+        ): ByteArray {
+            val inputSize = sourceEndIndex - sourceStartIndex
+            val pairs = inputSize / 2
+            if (pairs == 0) return ByteArray(0) // Need at least 2 bytes
+
+            val output = ByteArray(pairs)
+            for (i in 0 until pairs) {
+                output[i] = source[sourceStartIndex + i * 2]
+            }
+            return output
+        }
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
 
@@ -563,7 +584,29 @@ class TransformTest {
             source: ByteArray,
             sourceStartIndex: Int,
             sourceEndIndex: Int
-        ): ByteArray = ByteArray(0)
+        ): ByteArray {
+            val inputSize = sourceEndIndex - sourceStartIndex
+
+            // Buffer input
+            val toBuffer = minOf(inputSize, blockSize - bufferedCount)
+            source.copyInto(inputBuffer, bufferedCount, sourceStartIndex, sourceStartIndex + toBuffer)
+            bufferedCount += toBuffer
+
+            // If we have a complete block, expand it
+            if (bufferedCount == blockSize) {
+                val expanded = ByteArray(blockSize * expansionFactor)
+                for (i in 0 until blockSize) {
+                    for (j in 0 until expansionFactor) {
+                        expanded[i * expansionFactor + j] = inputBuffer[i]
+                    }
+                }
+                bufferedCount = 0
+                return expanded
+            }
+
+            // Not enough input for a block yet
+            return ByteArray(0)
+        }
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             // Drain any remaining output buffer
@@ -603,7 +646,29 @@ class TransformTest {
             return -1
         }
 
-        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+        override fun finalizeToByteArray(): ByteArray {
+            // Drain any remaining output buffer
+            val pending = outputBuffer
+            if (pending != null && outputPos < pending.size) {
+                val result = pending.copyOfRange(outputPos, pending.size)
+                outputBuffer = null
+                return result
+            }
+
+            // Handle any remaining buffered input (incomplete block)
+            if (bufferedCount > 0) {
+                val expanded = ByteArray(bufferedCount * expansionFactor)
+                for (i in 0 until bufferedCount) {
+                    for (j in 0 until expansionFactor) {
+                        expanded[i * expansionFactor + j] = inputBuffer[i]
+                    }
+                }
+                bufferedCount = 0
+                return expanded
+            }
+
+            return ByteArray(0)
+        }
 
         override fun close() {}
     }
@@ -788,7 +853,12 @@ class TransformTest {
             source: ByteArray,
             sourceStartIndex: Int,
             sourceEndIndex: Int
-        ): ByteArray = ByteArray(0)
+        ): ByteArray {
+            // Buffer input, produce no output during transform
+            val inputSize = sourceEndIndex - sourceStartIndex
+            inputBuffer.write(source, sourceStartIndex, sourceStartIndex + inputSize)
+            return ByteArray(0)
+        }
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             // On first call, expand all buffered input
@@ -819,7 +889,29 @@ class TransformTest {
             return -1
         }
 
-        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+        override fun finalizeToByteArray(): ByteArray {
+            // If we have pending output, return it
+            val pending = outputBuffer
+            if (pending != null && outputPos < pending.size) {
+                val result = pending.copyOfRange(outputPos, pending.size)
+                outputBuffer = null
+                return result
+            }
+
+            // Expand all buffered input
+            if (inputBuffer.size > 0) {
+                val input = inputBuffer.readByteArray()
+                val expanded = ByteArray(input.size * expansionFactor)
+                for (i in input.indices) {
+                    for (j in 0 until expansionFactor) {
+                        expanded[i * expansionFactor + j] = input[i]
+                    }
+                }
+                return expanded
+            }
+
+            return ByteArray(0)
+        }
 
         override fun close() {}
     }

@@ -354,7 +354,11 @@ class CipherTransformationSamples {
             source: ByteArray,
             sourceStartIndex: Int,
             sourceEndIndex: Int
-        ): ByteArray = ByteArray(0)
+        ): ByteArray {
+            val inputSize = sourceEndIndex - sourceStartIndex
+            if (inputSize == 0) return ByteArray(0)
+            return cipher.update(source, sourceStartIndex, inputSize) ?: ByteArray(0)
+        }
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             if (finalized) return -1
@@ -362,7 +366,11 @@ class CipherTransformationSamples {
             return cipher.doFinal(sink, startIndex)
         }
 
-        override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+        override fun finalizeToByteArray(): ByteArray {
+            if (finalized) return ByteArray(0)
+            finalized = true
+            return cipher.doFinal()
+        }
 
         override fun close() {}
     }

@@ -47,7 +47,27 @@ internal class DeflaterCompressor(
         source: ByteArray,
         sourceStartIndex: Int,
         sourceEndIndex: Int
-    ): ByteArray = ByteArray(0)
+    ): ByteArray {
+        val inputSize = sourceEndIndex - sourceStartIndex
+        if (inputSize == 0) return ByteArray(0)
+
+        deflater.setInput(source, sourceStartIndex, inputSize)
+
+        // Estimate output size and grow if needed
+        var output = ByteArray(inputSize)
+        var totalProduced = 0
+
+        while (!deflater.needsInput()) {
+            if (totalProduced >= output.size) {
+                output = output.copyOf(output.size * 2)
+            }
+            val produced = deflater.deflate(output, totalProduced, output.size - totalProduced)
+            if (produced == 0) break
+            totalProduced += produced
+        }
+
+        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
+    }
 
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!finishCalled) {
@@ -58,7 +78,27 @@ internal class DeflaterCompressor(
         return deflater.deflate(sink, startIndex, endIndex - startIndex)
     }
 
-    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+    override fun finalizeToByteArray(): ByteArray {
+        if (!finishCalled) {
+            deflater.finish()
+            finishCalled = true
+        }
+        if (deflater.finished()) return ByteArray(0)
+
+        var output = ByteArray(256)
+        var totalProduced = 0
+
+        while (!deflater.finished()) {
+            if (totalProduced >= output.size) {
+                output = output.copyOf(output.size * 2)
+            }
+            val produced = deflater.deflate(output, totalProduced, output.size - totalProduced)
+            if (produced == 0) break
+            totalProduced += produced
+        }
+
+        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
+    }
 
     override fun close() {
         deflater.end()

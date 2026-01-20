@@ -75,7 +75,30 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
         source: ByteArray,
         sourceStartIndex: Int,
         sourceEndIndex: Int
-    ): ByteArray = ByteArray(0)
+    ): ByteArray {
+        val inputSize = sourceEndIndex - sourceStartIndex
+        if (inputSize == 0) return ByteArray(0)
+
+        // Update CRC32 checksum before compression
+        crc32.update(source, sourceStartIndex, inputSize)
+        uncompressedSize += inputSize
+        deflater.setInput(source, sourceStartIndex, inputSize)
+
+        // Estimate output size and grow if needed
+        var output = ByteArray(inputSize)
+        var totalProduced = 0
+
+        while (!deflater.needsInput()) {
+            if (totalProduced >= output.size) {
+                output = output.copyOf(output.size * 2)
+            }
+            val produced = deflater.deflate(output, totalProduced, output.size - totalProduced)
+            if (produced == 0) break
+            totalProduced += produced
+        }
+
+        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
+    }
 
     override fun finalizeTo(sink: Buffer) {
         if (trailerWritten) return
@@ -103,7 +126,27 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
         return deflater.deflate(sink, startIndex, endIndex - startIndex)
     }
 
-    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+    override fun finalizeToByteArray(): ByteArray {
+        if (!finishCalled) {
+            deflater.finish()
+            finishCalled = true
+        }
+        if (deflater.finished()) return ByteArray(0)
+
+        var output = ByteArray(256)
+        var totalProduced = 0
+
+        while (!deflater.finished()) {
+            if (totalProduced >= output.size) {
+                output = output.copyOf(output.size * 2)
+            }
+            val produced = deflater.deflate(output, totalProduced, output.size - totalProduced)
+            if (produced == 0) break
+            totalProduced += produced
+        }
+
+        return if (totalProduced == output.size) output else output.copyOf(totalProduced)
+    }
 
     override fun close() {
         deflater.end()

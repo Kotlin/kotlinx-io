@@ -163,7 +163,24 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         return -1
     }
 
-    override fun finalizeToByteArray(): ByteArray = ByteArray(0)
+    override fun finalizeToByteArray(): ByteArray {
+        // If inflater is finished but trailer not verified, verify it now
+        if (inflater.finished() && !trailerVerified) {
+            extractRemainingBytes()
+            val emptySource = Buffer()
+            if (!verifyTrailer(emptySource)) {
+                throw IOException("Truncated or corrupt gzip data: incomplete trailer")
+            }
+            trailerVerified = true
+            finished = true
+        }
+
+        // Verify that decompression is complete
+        if (!finished) {
+            throw IOException("Truncated or corrupt gzip data")
+        }
+        return ByteArray(0)
+    }
 
     override fun close() {
         inflater.end()
