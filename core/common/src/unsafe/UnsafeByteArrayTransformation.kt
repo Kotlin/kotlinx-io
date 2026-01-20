@@ -70,6 +70,11 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * maximum output size can be determined from the input size. This enables
      * optimized buffer allocation.
      *
+     * When called with inputSize=0, this should return the maximum finalization
+     * output size (e.g., buffered data that will be flushed during finalization).
+     * This is used by [finalizeTo] to allocate appropriate buffers for transformations
+     * like AES-GCM that buffer all data until finalization.
+     *
      * The default implementation returns -1, indicating streaming behavior where
      * output size is unpredictable.
      *
@@ -151,12 +156,24 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
     }
 
     override fun finalizeTo(sink: Buffer) {
-        while (true) {
-            val written = UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndex, endIndex ->
-                val result = finalizeIntoByteArray(bytes, startIndex, endIndex)
-                if (result == -1) 0 else result
+        val maxFinalize = maxOutputSize(0)
+
+        if (maxFinalize > 0) {
+            // Known finalization size - may need temp buffer for large output
+            val tempBuffer = ByteArray(maxFinalize)
+            val written = finalizeIntoByteArray(tempBuffer, 0, maxFinalize)
+            if (written > 0) {
+                sink.write(tempBuffer, 0, written)
             }
-            if (written == 0) break
+        } else {
+            // Unknown size - loop with segment-sized chunks
+            while (true) {
+                val written = UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndex, endIndex ->
+                    val result = finalizeIntoByteArray(bytes, startIndex, endIndex)
+                    if (result == -1) 0 else result
+                }
+                if (written == 0) break
+            }
         }
     }
 }

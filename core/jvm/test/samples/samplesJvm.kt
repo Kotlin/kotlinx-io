@@ -13,6 +13,7 @@ import java.nio.ByteBuffer
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import javax.crypto.Cipher
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.test.*
@@ -422,4 +423,49 @@ class CipherTransformationSamples {
         assertContentEquals(originalData, decryptedData)
     }
 
+    /**
+     * Test AES-GCM cipher which buffers all data during decryption.
+     *
+     * AES-GCM is an authenticated encryption mode where:
+     * - Encryption: cipher.update() produces output incrementally
+     * - Decryption: cipher.update() returns 0 bytes (buffers internally),
+     *   cipher.doFinal() outputs ALL decrypted data at once after verifying the auth tag
+     *
+     * This tests that finalizeIntoByteArray can handle output larger than a single segment.
+     */
+    @Test
+    fun aesGcmLargeDataDecryption() {
+        // Use data larger than typical segment size (8KB) to test finalization handling
+        val originalData = ByteArray(20_000) { (it % 256).toByte() }
+
+        // AES-GCM uses 128-bit key and 96-bit (12 byte) IV/nonce
+        val keyBytes = ByteArray(16) { it.toByte() }
+        val ivBytes = ByteArray(12) { (it + 100).toByte() }
+        val secretKey = SecretKeySpec(keyBytes, "AES")
+        val gcmSpec = GCMParameterSpec(128, ivBytes) // 128-bit auth tag
+
+        // Encrypt - GCM produces output incrementally during encryption
+        val encryptCipher = Cipher.getInstance("AES/GCM/NoPadding")
+        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec)
+
+        val encryptedBuffer = Buffer()
+        (encryptedBuffer as RawSink).transformedWith(CipherTransformation(encryptCipher)).buffered().use { sink ->
+            sink.write(originalData)
+        }
+
+        // Encrypted data should be original size + 16 bytes (auth tag)
+        assertEquals(originalData.size.toLong() + 16, encryptedBuffer.size)
+
+        // Decrypt - GCM buffers ALL data until doFinal() where it verifies tag and outputs everything
+        val decryptCipher = Cipher.getInstance("AES/GCM/NoPadding")
+        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec)
+
+        val decryptedBuffer = Buffer()
+        (encryptedBuffer as RawSource).transformedWith(CipherTransformation(decryptCipher)).buffered().use { source ->
+            source.transferTo(decryptedBuffer)
+        }
+
+        val decryptedData = decryptedBuffer.readByteArray()
+        assertContentEquals(originalData, decryptedData)
+    }
 }
