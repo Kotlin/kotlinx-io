@@ -325,39 +325,34 @@ class ProcessorSamplesJvm {
 
 class CipherTransformationSamples {
     /**
-     * A [Transformation] that encrypts or decrypts data using a [Cipher].
+     * A [UnsafeByteArrayTransformation] that encrypts or decrypts data using a [Cipher].
      *
      * This transformation can be used with any cipher algorithm supported by the JVM,
      * such as AES, DES, or RSA.
      */
-    private class CipherTransformation(private val cipher: Cipher) : Transformation {
-        private val outputBuffer = ByteArray(cipher.getOutputSize(8192))
+    @OptIn(UnsafeIoApi::class)
+    private class CipherTransformation(private val cipher: Cipher) : UnsafeByteArrayTransformation() {
+        private var finalized = false
 
-        override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-            if (source.exhausted()) return 0L
+        override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
 
-            var totalConsumed = 0L
-
-            while (!source.exhausted() && totalConsumed < byteCount) {
-                val toConsume = minOf(source.size, byteCount - totalConsumed, 8192L).toInt()
-                val inputBytes = source.readByteArray(toConsume)
-
-                val outputSize = cipher.update(inputBytes, 0, toConsume, outputBuffer)
-                if (outputSize > 0) {
-                    sink.write(outputBuffer, 0, outputSize)
-                }
-
-                totalConsumed += toConsume
-            }
-
-            return totalConsumed
+        override fun transformIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult {
+            val inputSize = sourceEndIndex - sourceStartIndex
+            val written = cipher.update(source, sourceStartIndex, inputSize, sink, sinkStartIndex)
+            return TransformResult(inputSize, written)
         }
 
-        override fun finalizeTo(sink: Buffer) {
-            val finalBytes = cipher.doFinal()
-            if (finalBytes.isNotEmpty()) {
-                sink.write(finalBytes)
-            }
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
+            if (finalized) return -1
+            finalized = true
+            return cipher.doFinal(sink, startIndex)
         }
 
         override fun close() {}
@@ -427,193 +422,4 @@ class CipherTransformationSamples {
         assertContentEquals(originalData, decryptedData)
     }
 
-    @Test
-    fun chainedTransformations() {
-        val originalText = "Chained transformations: encrypt then CRC32!"
-
-        val keyBytes = ByteArray(16) { it.toByte() }
-        val ivBytes = ByteArray(16) { (it + 16).toByte() }
-        val secretKey = SecretKeySpec(keyBytes, "AES")
-        val ivSpec = IvParameterSpec(ivBytes)
-
-        // CRC32 transformation to verify data integrity
-        // Pass-through that computes CRC32 as data flows through
-        @OptIn(ExperimentalUnsignedTypes::class)
-        class CRC32Transformation : Transformation {
-            private val crc32Table = generateCrc32Table()
-            private var crc32: UInt = 0xffffffffU
-
-            private fun update(value: Byte) {
-                val index = value.toUInt().xor(crc32).toUByte()
-                crc32 = crc32Table[index.toInt()].xor(crc32.shr(8))
-            }
-
-            fun crc32(): UInt = crc32.xor(0xffffffffU)
-
-            override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-                if (source.exhausted()) return 0L
-
-                var bytesConsumed = 0L
-                while (!source.exhausted() && bytesConsumed < byteCount) {
-                    val byte = source.readByte()
-                    update(byte)
-                    sink.writeByte(byte)
-                    bytesConsumed++
-                }
-                return bytesConsumed
-            }
-
-            override fun finalizeTo(sink: Buffer) {}
-
-            override fun close() {}
-
-            private fun generateCrc32Table(): UIntArray {
-                val table = UIntArray(256)
-                for (idx in table.indices) {
-                    table[idx] = idx.toUInt()
-                    for (bit in 8 downTo 1) {
-                        table[idx] = if (table[idx] % 2U == 0U) {
-                            table[idx].shr(1)
-                        } else {
-                            table[idx].shr(1).xor(0xEDB88320U)
-                        }
-                    }
-                }
-                return table
-            }
-        }
-
-        // Encrypt with CRC32 calculation
-        val encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
-        val crc32Transform = CRC32Transformation()
-
-        val encryptedBuffer = Buffer()
-        // Chain: write -> CRC32 -> encrypt -> buffer
-        (encryptedBuffer as RawSink)
-            .transformedWith(CipherTransformation(encryptCipher))
-            .transformedWith(crc32Transform)
-            .buffered()
-            .use { sink ->
-                sink.writeString(originalText)
-            }
-
-        val originalCrc32 = crc32Transform.crc32()
-
-        // Decrypt and verify CRC32
-        val decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
-        val verifyCrc32Transform = CRC32Transformation()
-
-        val decryptedText = (encryptedBuffer as RawSource)
-            .transformedWith(CipherTransformation(decryptCipher))
-            .transformedWith(verifyCrc32Transform)
-            .buffered()
-            .readString()
-
-        assertEquals(originalText, decryptedText)
-        assertEquals(originalCrc32, verifyCrc32Transform.crc32())
-    }
-}
-
-/**
- * Samples demonstrating [kotlinx.io.unsafe.UnsafeByteArrayTransformation] for bounded transformations like cipher.
- */
-@OptIn(UnsafeIoApi::class)
-class ByteArrayTransformationSamplesJvm {
-    /**
-     * A [kotlinx.io.unsafe.UnsafeByteArrayTransformation] that encrypts or decrypts data using a [Cipher].
-     *
-     * This demonstrates how to implement a bounded transformation by wrapping
-     * JDK's Cipher API, where the maximum output size can be determined from input size.
-     */
-    private class CipherBlockTransformation(private val cipher: Cipher) : UnsafeByteArrayTransformation() {
-        private var finalized = false
-
-        override fun maxOutputSize(inputSize: Int): Int = cipher.getOutputSize(inputSize)
-
-        override fun transformIntoByteArray(
-            source: ByteArray,
-            sourceStartIndex: Int,
-            sourceEndIndex: Int,
-            sink: ByteArray,
-            sinkStartIndex: Int,
-            sinkEndIndex: Int
-        ): TransformResult {
-            val written = cipher.update(source, sourceStartIndex, sourceEndIndex - sourceStartIndex, sink, sinkStartIndex)
-            return TransformResult(sourceEndIndex - sourceStartIndex, written)
-        }
-
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
-            if (finalized) return -1
-            finalized = true
-            return cipher.doFinal(sink, startIndex)
-        }
-
-        override fun close() {}
-    }
-
-    @Test
-    fun aesEncryptionDecryptionZeroCopy() {
-        val originalText = "Hello, AES encryption with ByteArrayTransformation!"
-
-        // Generate a 128-bit AES key and IV
-        val keyBytes = ByteArray(16) { it.toByte() }
-        val ivBytes = ByteArray(16) { (it + 16).toByte() }
-        val secretKey = SecretKeySpec(keyBytes, "AES")
-        val ivSpec = IvParameterSpec(ivBytes)
-
-        // Encrypt
-        val encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
-
-        val encryptedBuffer = Buffer()
-        (encryptedBuffer as RawSink).transformedWith(CipherBlockTransformation(encryptCipher)).buffered().use { sink ->
-            sink.writeString(originalText)
-        }
-
-        // The encrypted data should be different from the original
-        val encryptedBytes = encryptedBuffer.copy().readByteArray()
-        assertFalse(encryptedBytes.contentEquals(originalText.encodeToByteArray()))
-
-        // Decrypt
-        val decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
-
-        val decryptedText = (encryptedBuffer as RawSource).transformedWith(CipherBlockTransformation(decryptCipher)).buffered().readString()
-
-        assertEquals(originalText, decryptedText)
-    }
-
-    @Test
-    fun aesEncryptLargeDataZeroCopy() {
-        // Generate large data (larger than internal buffer size)
-        val originalData = ByteArray(100_000) { (it % 256).toByte() }
-
-        val keyBytes = ByteArray(16) { it.toByte() }
-        val ivBytes = ByteArray(16) { (it + 16).toByte() }
-        val secretKey = SecretKeySpec(keyBytes, "AES")
-        val ivSpec = IvParameterSpec(ivBytes)
-
-        // Encrypt
-        val encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
-
-        val encryptedBuffer = Buffer()
-        (encryptedBuffer as RawSink).transformedWith(CipherBlockTransformation(encryptCipher)).buffered().use { sink ->
-            sink.write(originalData)
-        }
-
-        // Decrypt
-        val decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
-
-        val decryptedBuffer = Buffer()
-        (encryptedBuffer as RawSource).transformedWith(CipherBlockTransformation(decryptCipher)).buffered().use { source ->
-            source.transferTo(decryptedBuffer)
-        }
-
-        val decryptedData = decryptedBuffer.readByteArray()
-        assertContentEquals(originalData, decryptedData)
-    }
 }

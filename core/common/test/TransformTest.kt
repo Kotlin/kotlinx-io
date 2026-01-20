@@ -5,6 +5,7 @@
 
 package kotlinx.io
 
+import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -294,20 +295,35 @@ class TransformTest {
     /**
      * A transform that doubles each byte (writes each byte twice).
      * Consumes 1 byte, produces 2 bytes.
+     * Uses streaming mode (unbounded output) since output can be larger than input.
      */
-    private class DoubleByteTransform : Transformation {
-        override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-            var bytesConsumed = 0L
-            while (!source.exhausted() && bytesConsumed < byteCount) {
-                val byte = source.readByte()
-                sink.writeByte(byte)
-                sink.writeByte(byte)
-                bytesConsumed++
+    @OptIn(UnsafeIoApi::class)
+    private class DoubleByteTransform : UnsafeByteArrayTransformation() {
+        override fun transformIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult {
+            val inputSize = sourceEndIndex - sourceStartIndex
+            val availableOutput = sinkEndIndex - sinkStartIndex
+
+            // Calculate how many bytes we can process given output space
+            val canProcess = minOf(inputSize, availableOutput / 2)
+
+            var sinkPos = sinkStartIndex
+            for (i in 0 until canProcess) {
+                val byte = source[sourceStartIndex + i]
+                sink[sinkPos++] = byte
+                sink[sinkPos++] = byte
             }
-            return bytesConsumed
+
+            return TransformResult(canProcess, canProcess * 2)
         }
 
-        override fun finalizeTo(sink: Buffer) {}
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
 
         override fun close() {}
     }
@@ -319,19 +335,33 @@ class TransformTest {
      * Note: This is a pass-through transformation that doesn't have its own EOF marker.
      * It relies on TransformingSource to detect EOF when upstream is exhausted.
      */
-    private class HalveByteTransform : Transformation {
-        override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-            var bytesConsumed = 0L
-            while (source.size >= 2 && bytesConsumed + 2 <= byteCount) {
-                val byte = source.readByte()
-                source.skip(1) // Skip the duplicate
-                sink.writeByte(byte)
-                bytesConsumed += 2
+    @OptIn(UnsafeIoApi::class)
+    private class HalveByteTransform : UnsafeByteArrayTransformation() {
+        override fun transformIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult {
+            val inputSize = sourceEndIndex - sourceStartIndex
+            val availableOutput = sinkEndIndex - sinkStartIndex
+
+            // Process complete pairs only (2 input bytes -> 1 output byte)
+            val pairs = minOf(inputSize / 2, availableOutput)
+
+            var sourcePos = sourceStartIndex
+            var sinkPos = sinkStartIndex
+            for (i in 0 until pairs) {
+                sink[sinkPos++] = source[sourcePos]
+                sourcePos += 2 // Skip the duplicate
             }
-            return bytesConsumed
+
+            return TransformResult(pairs * 2, pairs)
         }
 
-        override fun finalizeTo(sink: Buffer) {}
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
 
         override fun close() {}
     }
