@@ -74,18 +74,19 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * - AND the underlying API cannot produce output incrementally
      *
      * When this method returns non-null, [transformIntoByteArray] is not called for that input.
+     * All input bytes are considered consumed when this method returns non-null.
      * The default implementation returns null, meaning [transformIntoByteArray] will be used.
      *
      * @param source the byte array containing input data
      * @param sourceStartIndex the start index (inclusive) of input data in [source]
      * @param sourceEndIndex the end index (exclusive) of input data in [source]
-     * @return a Pair of (bytes consumed, output ByteArray), or null to use [transformIntoByteArray]
+     * @return the output ByteArray, or null to use [transformIntoByteArray]
      */
     protected open fun transformToByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
         sourceEndIndex: Int
-    ): Pair<Int, ByteArray>? = null
+    ): ByteArray? = null
 
     /**
      * Returns the maximum output size for the given input size, or -1 if unknown.
@@ -146,13 +147,12 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
             val available = minOf(byteCount.toInt(), inputEnd - inputStart)
 
             // First, try the ByteArray-returning method for atomic large output
-            val directResult = transformToByteArray(input, inputStart, inputStart + available)
-            if (directResult != null) {
-                val (consumed, output) = directResult
-                if (output.isNotEmpty()) {
-                    sink.write(output)
+            val directOutput = transformToByteArray(input, inputStart, inputStart + available)
+            if (directOutput != null) {
+                if (directOutput.isNotEmpty()) {
+                    sink.write(directOutput)
                 }
-                return@readFromHead consumed
+                return@readFromHead available // All input consumed
             }
 
             val maxOutput = maxOutputSize(available)

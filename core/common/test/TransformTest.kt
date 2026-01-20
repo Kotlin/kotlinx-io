@@ -632,7 +632,7 @@ class TransformTest {
             source: ByteArray,
             sourceStartIndex: Int,
             sourceEndIndex: Int
-        ): Pair<Int, ByteArray>? {
+        ): ByteArray? {
             val inputSize = sourceEndIndex - sourceStartIndex
             if (inputSize == 0) return null
 
@@ -644,7 +644,7 @@ class TransformTest {
                     output[i * expansionFactor + j] = byte
                 }
             }
-            return Pair(inputSize, output)
+            return output
         }
 
         override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int = -1
