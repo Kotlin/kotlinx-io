@@ -57,22 +57,23 @@ internal class ZlibCompressor(
 
     override fun transformIntoByteArray(
         source: ByteArray,
-        sourceStart: Int,
-        sourceEnd: Int,
-        destination: ByteArray,
-        destinationStart: Int,
-        destinationEnd: Int
+        sourceStartIndex: Int,
+        sourceEndIndex: Int,
+        sink: ByteArray,
+        sinkStartIndex: Int,
+        sinkEndIndex: Int
     ): TransformResult {
         check(initialized) { "Compressor is closed" }
 
-        val inputSize = sourceEnd - sourceStart
+        val inputSize = sourceEndIndex - sourceStartIndex
+        val outputSize = sinkEndIndex - sinkStartIndex
 
         return source.usePinned { pinnedInput ->
-            destination.usePinned { pinnedOutput ->
-                zStream.next_in = pinnedInput.addressOf(sourceStart).reinterpret()
+            sink.usePinned { pinnedOutput ->
+                zStream.next_in = pinnedInput.addressOf(sourceStartIndex).reinterpret()
                 zStream.avail_in = inputSize.convert()
-                zStream.next_out = pinnedOutput.addressOf(destinationStart).reinterpret()
-                zStream.avail_out = (destinationEnd - destinationStart).convert()
+                zStream.next_out = pinnedOutput.addressOf(sinkStartIndex).reinterpret()
+                zStream.avail_out = outputSize.convert()
 
                 val deflateResult = deflate(zStream.ptr, Z_NO_FLUSH)
 
@@ -81,7 +82,7 @@ internal class ZlibCompressor(
                 }
 
                 val consumed = inputSize - zStream.avail_in.toInt()
-                val produced = (destinationEnd - destinationStart) - zStream.avail_out.toInt()
+                val produced = outputSize - zStream.avail_out.toInt()
 
                 TransformResult(consumed, produced)
             }
@@ -91,7 +92,7 @@ internal class ZlibCompressor(
     // Native zlib doesn't buffer internally, so no pending output
     override fun hasPendingOutput(): Boolean = false
 
-    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Compressor is closed" }
         if (finished) return -1
 
@@ -101,13 +102,15 @@ internal class ZlibCompressor(
             finishCalled = true
         }
 
-        return destination.usePinned { pinnedOutput ->
+        val outputSize = endIndex - startIndex
+
+        return sink.usePinned { pinnedOutput ->
             zStream.next_out = pinnedOutput.addressOf(startIndex).reinterpret()
-            zStream.avail_out = (endIndex - startIndex).convert()
+            zStream.avail_out = outputSize.convert()
 
             val deflateResult = deflate(zStream.ptr, Z_FINISH)
 
-            val written = (endIndex - startIndex) - zStream.avail_out.toInt()
+            val written = outputSize - zStream.avail_out.toInt()
 
             when (deflateResult) {
                 Z_OK, Z_BUF_ERROR -> {

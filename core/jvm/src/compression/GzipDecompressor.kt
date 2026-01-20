@@ -123,11 +123,11 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
     // GzipDecompressor uses custom transformTo, so these are not called during normal operation
     override fun transformIntoByteArray(
         source: ByteArray,
-        sourceStart: Int,
-        sourceEnd: Int,
-        destination: ByteArray,
-        destinationStart: Int,
-        destinationEnd: Int
+        sourceStartIndex: Int,
+        sourceEndIndex: Int,
+        sink: ByteArray,
+        sinkStartIndex: Int,
+        sinkEndIndex: Int
     ): TransformResult {
         // This is only called if someone uses the base class implementation
         // For GZIP, we need the header/trailer handling in transformTo
@@ -136,7 +136,7 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
 
     override fun hasPendingOutput(): Boolean = !inflater.needsInput() && !inflater.finished()
 
-    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         // If inflater is finished but trailer not verified, verify it now
         if (inflater.finished() && !trailerVerified) {
             extractRemainingBytes()

@@ -30,20 +30,20 @@ internal class InflaterDecompressor(
 
     override fun transformIntoByteArray(
         source: ByteArray,
-        sourceStart: Int,
-        sourceEnd: Int,
-        destination: ByteArray,
-        destinationStart: Int,
-        destinationEnd: Int
+        sourceStartIndex: Int,
+        sourceEndIndex: Int,
+        sink: ByteArray,
+        sinkStartIndex: Int,
+        sinkEndIndex: Int
     ): TransformResult {
         // If inflater needs input and we have some, provide it
-        val inputSize = sourceEnd - sourceStart
+        val inputSize = sourceEndIndex - sourceStartIndex
         if (inflater.needsInput() && inputSize > 0) {
-            inflater.setInput(source, sourceStart, inputSize)
+            inflater.setInput(source, sourceStartIndex, inputSize)
         }
 
         val produced = try {
-            inflater.inflate(destination, destinationStart, destinationEnd - destinationStart)
+            inflater.inflate(sink, sinkStartIndex, sinkEndIndex - sinkStartIndex)
         } catch (e: DataFormatException) {
             throw IOException("Invalid compressed data: ${e.message}", e)
         }
@@ -56,7 +56,7 @@ internal class InflaterDecompressor(
 
     override fun hasPendingOutput(): Boolean = !inflater.needsInput() && !inflater.finished()
 
-    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         if (!inflater.finished()) {
             throw IOException("Truncated or corrupt deflate data")
         }

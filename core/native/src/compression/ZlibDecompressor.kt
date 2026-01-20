@@ -59,22 +59,23 @@ internal class ZlibDecompressor(
 
     override fun transformIntoByteArray(
         source: ByteArray,
-        sourceStart: Int,
-        sourceEnd: Int,
-        destination: ByteArray,
-        destinationStart: Int,
-        destinationEnd: Int
+        sourceStartIndex: Int,
+        sourceEndIndex: Int,
+        sink: ByteArray,
+        sinkStartIndex: Int,
+        sinkEndIndex: Int
     ): TransformResult {
         check(initialized) { "Decompressor is closed" }
 
-        val inputSize = sourceEnd - sourceStart
+        val inputSize = sourceEndIndex - sourceStartIndex
+        val outputSize = sinkEndIndex - sinkStartIndex
 
         return source.usePinned { pinnedInput ->
-            destination.usePinned { pinnedOutput ->
-                zStream.next_in = pinnedInput.addressOf(sourceStart).reinterpret()
+            sink.usePinned { pinnedOutput ->
+                zStream.next_in = pinnedInput.addressOf(sourceStartIndex).reinterpret()
                 zStream.avail_in = inputSize.convert()
-                zStream.next_out = pinnedOutput.addressOf(destinationStart).reinterpret()
-                zStream.avail_out = (destinationEnd - destinationStart).convert()
+                zStream.next_out = pinnedOutput.addressOf(sinkStartIndex).reinterpret()
+                zStream.avail_out = outputSize.convert()
 
                 val inflateResult = inflate(zStream.ptr, Z_NO_FLUSH)
 
@@ -94,7 +95,7 @@ internal class ZlibDecompressor(
                 }
 
                 val consumed = inputSize - zStream.avail_in.toInt()
-                val produced = (destinationEnd - destinationStart) - zStream.avail_out.toInt()
+                val produced = outputSize - zStream.avail_out.toInt()
 
                 TransformResult(consumed, produced)
             }
@@ -104,7 +105,7 @@ internal class ZlibDecompressor(
     // Native zlib doesn't buffer internally, so no pending output
     override fun hasPendingOutput(): Boolean = false
 
-    override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
         check(initialized) { "Decompressor is closed" }
 
         // Verify that decompression is complete

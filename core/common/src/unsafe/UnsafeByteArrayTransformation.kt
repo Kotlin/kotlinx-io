@@ -47,22 +47,21 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * allowing implementations to pin memory or hold references as needed.
      *
      * @param source the byte array containing input data
-     * @param sourceStart the start index (inclusive) of input data
-     * @param sourceEnd the end index (exclusive) of input data
-     * @param destination the byte array to write output to
-     * @param destinationStart the start index (inclusive) to write from
-     * @param destinationEnd the end index (exclusive) of available space
+     * @param sourceStartIndex the start index (inclusive) of input data in [source]
+     * @param sourceEndIndex the end index (exclusive) of input data in [source]
+     * @param sink the byte array to write output to
+     * @param sinkStartIndex the start index (inclusive) in [sink] to write from
+     * @param sinkEndIndex the end index (exclusive) of available space in [sink]
      * @return result containing bytes consumed from input and produced to output
      */
     // TODO: we might need to have `transformToByteArray` in case we can't fit output into one segment
     protected abstract fun transformIntoByteArray(
         source: ByteArray,
-        sourceStart: Int,
-        sourceEnd: Int,
-        // TODO: migrate to `destination` + `destinationOffset` as in copy operations
-        destination: ByteArray,
-        destinationStart: Int,
-        destinationEnd: Int
+        sourceStartIndex: Int,
+        sourceEndIndex: Int,
+        sink: ByteArray,
+        sinkStartIndex: Int,
+        sinkEndIndex: Int
     ): TransformResult
 
     /**
@@ -93,18 +92,18 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
     protected open fun maxDestinationSize(inputSize: Int): Int = -1
 
     /**
-     * Produces finalization output into the destination array.
+     * Produces finalization output into the sink array.
      *
      * This method is called repeatedly until it returns -1, indicating no more output.
      * Implementations should track their finalization state internally.
      *
-     * @param destination the byte array to write output to
-     * @param startIndex the start index (inclusive) to write from
-     * @param endIndex the end index (exclusive) of available space
+     * @param sink the byte array to write output to
+     * @param startIndex the start index (inclusive) in [sink] to write from
+     * @param endIndex the end index (exclusive) of available space in [sink]
      * @return the number of bytes written, or -1 if finalization is complete
      */
     // TODO: we might need to have `finalize` which returns an array (same as with transform)
-    protected abstract fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int
+    protected abstract fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int
 
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         // Handle case where source is exhausted but we have pending output

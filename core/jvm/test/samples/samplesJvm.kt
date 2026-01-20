@@ -534,22 +534,22 @@ class ByteArrayTransformationSamplesJvm {
 
         override fun transformIntoByteArray(
             source: ByteArray,
-            sourceStart: Int,
-            sourceEnd: Int,
-            destination: ByteArray,
-            destinationStart: Int,
-            destinationEnd: Int
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
         ): TransformResult {
-            val written = cipher.update(source, sourceStart, sourceEnd - sourceStart, destination, destinationStart)
-            return TransformResult(sourceEnd - sourceStart, written)
+            val written = cipher.update(source, sourceStartIndex, sourceEndIndex - sourceStartIndex, sink, sinkStartIndex)
+            return TransformResult(sourceEndIndex - sourceStartIndex, written)
         }
 
         override fun hasPendingOutput(): Boolean = false
 
-        override fun finalizeIntoByteArray(destination: ByteArray, startIndex: Int, endIndex: Int): Int {
+        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): Int {
             if (finalized) return -1
             finalized = true
-            return cipher.doFinal(destination, startIndex)
+            return cipher.doFinal(sink, startIndex)
         }
 
         override fun close() {}
