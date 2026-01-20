@@ -6,7 +6,6 @@
 package kotlinx.io.compression
 
 import kotlinx.io.*
-import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import java.util.zip.CRC32
 import java.util.zip.DataFormatException
@@ -30,7 +29,6 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
     private var headerParsed = false
     private var trailerVerified = false
     private var uncompressedSize = 0L
-    private var finished = false
 
     // Buffer for accumulating header bytes when source doesn't have enough
     private val headerBuffer = Buffer()
@@ -38,16 +36,8 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
     // Buffer for storing remaining bytes after inflater finishes (for trailer verification)
     private val remainingBuffer = Buffer()
 
-    // Track the last input for extracting remaining bytes
-    private var lastInput: ByteArray? = null
-    private var lastInputStart: Int = 0
-    private var lastInputLength: Int = 0
-
     override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        // If already finished, ignore any further input
-        if (finished) {
-            return 0L
-        }
+        if (source.exhausted() && inflater.needsInput()) return 0L
 
         // Parse GZIP header if not yet parsed
         if (!headerParsed) {
@@ -58,66 +48,7 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
             headerParsed = true
         }
 
-        // If inflater is finished, we need to verify the trailer
-        if (inflater.finished() && !trailerVerified) {
-            extractRemainingBytes()
-
-            if (!verifyTrailer(source)) {
-                // Not enough data for trailer yet
-                return 0L
-            }
-            trailerVerified = true
-            finished = true
-            return 0L
-        }
-
-        if (source.exhausted() && inflater.needsInput()) {
-            return 0L
-        }
-
-        // Read input from source head and decompress
-        val consumed = UnsafeBufferOperations.readFromHead(source) { bytes, startIndex, endIndex ->
-            val available = minOf(byteCount.toInt(), endIndex - startIndex)
-            val inputEnd = startIndex + available
-
-            // If already finished, return
-            if (inflater.finished()) return@readFromHead 0
-
-            // Track input for extracting remaining bytes
-            lastInput = bytes
-            lastInputStart = startIndex
-            lastInputLength = available
-
-            // Feed data to inflater
-            inflater.setInput(bytes, startIndex, available)
-
-            // Drain all output
-            try {
-                while (!inflater.needsInput() && !inflater.finished()) {
-                    val written = UnsafeBufferOperations.writeToTail(sink, 1) { dest, destStart, destEnd ->
-                        val count = inflater.inflate(dest, destStart, destEnd - destStart)
-                        if (count > 0) {
-                            // Update CRC on decompressed data
-                            crc32.update(dest, destStart, count)
-                            uncompressedSize += count
-                        }
-                        count
-                    }
-                    if (written == 0) break
-                }
-            } catch (e: DataFormatException) {
-                throw IOException("Invalid GZIP data: ${e.message}", e)
-            }
-
-            // If inflater finished, extract remaining bytes
-            if (inflater.finished()) {
-                extractRemainingBytes()
-            }
-
-            available
-        }
-
-        return consumed.toLong()
+        return super.transformTo(source, byteCount, sink)
     }
 
     override fun transformIntoByteArray(
@@ -151,6 +82,15 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
             uncompressedSize += produced
         }
 
+        // Store remaining bytes (trailer) if inflater finished
+        if (inflater.finished()) {
+            val remaining = inflater.remaining
+            if (remaining > 0) {
+                val remainingStart = sourceStartIndex + inputSize - remaining
+                remainingBuffer.write(source, remainingStart, remainingStart + remaining)
+            }
+        }
+
         // JDK inflater copies all input at once, so consumed is either 0 or all of it
         val consumed = if (inflater.needsInput() || inflater.finished()) inputSize else 0
 
@@ -160,17 +100,14 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
     override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
         // If inflater is finished but trailer not verified, verify it now
         if (inflater.finished() && !trailerVerified) {
-            extractRemainingBytes()
-            val emptySource = Buffer()
-            if (!verifyTrailer(emptySource)) {
+            if (!verifyTrailer()) {
                 throw IOException("Truncated or corrupt gzip data: incomplete trailer")
             }
             trailerVerified = true
-            finished = true
         }
 
         // Verify that decompression is complete
-        if (!finished) {
+        if (!inflater.finished()) {
             throw IOException("Truncated or corrupt gzip data")
         }
         return FinalizeResult.done()
@@ -180,15 +117,6 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         inflater.end()
         headerBuffer.clear()
         remainingBuffer.clear()
-    }
-
-    private fun extractRemainingBytes() {
-        val remaining = inflater.remaining
-        if (remaining > 0 && lastInput != null && lastInputLength > 0) {
-            val remainingStart = lastInputStart + lastInputLength - remaining
-            remainingBuffer.write(lastInput!!, remainingStart, remainingStart + remaining)
-            lastInputLength = 0
-        }
     }
 
     private fun parseHeader(source: Buffer): Boolean {
@@ -255,45 +183,26 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         return false
     }
 
-    private fun verifyTrailer(source: Buffer): Boolean {
-        val trailerSource = if (remainingBuffer.size > 0) {
-            val combined = Buffer()
-            combined.write(remainingBuffer, remainingBuffer.size)
-            combined.write(source, source.size)
-            combined
-        } else {
-            source
-        }
-
-        if (trailerSource.size < 8) {
-            if (trailerSource !== source && trailerSource.size > 0) {
-                val temp = Buffer()
-                temp.write(trailerSource, trailerSource.size)
-                temp.write(source, source.size)
-                source.write(temp, temp.size)
-            }
+    private fun verifyTrailer(): Boolean {
+        if (remainingBuffer.size < 8) {
             return false
         }
 
         // Read CRC32 (little-endian)
-        val crc1 = trailerSource.readByte().toInt() and 0xFF
-        val crc2 = trailerSource.readByte().toInt() and 0xFF
-        val crc3 = trailerSource.readByte().toInt() and 0xFF
-        val crc4 = trailerSource.readByte().toInt() and 0xFF
+        val crc1 = remainingBuffer.readByte().toInt() and 0xFF
+        val crc2 = remainingBuffer.readByte().toInt() and 0xFF
+        val crc3 = remainingBuffer.readByte().toInt() and 0xFF
+        val crc4 = remainingBuffer.readByte().toInt() and 0xFF
         val expectedCrc = crc1.toLong() or (crc2.toLong() shl 8) or
                 (crc3.toLong() shl 16) or (crc4.toLong() shl 24)
 
         // Read original size (little-endian)
-        val size1 = trailerSource.readByte().toInt() and 0xFF
-        val size2 = trailerSource.readByte().toInt() and 0xFF
-        val size3 = trailerSource.readByte().toInt() and 0xFF
-        val size4 = trailerSource.readByte().toInt() and 0xFF
+        val size1 = remainingBuffer.readByte().toInt() and 0xFF
+        val size2 = remainingBuffer.readByte().toInt() and 0xFF
+        val size3 = remainingBuffer.readByte().toInt() and 0xFF
+        val size4 = remainingBuffer.readByte().toInt() and 0xFF
         val expectedSize = size1.toLong() or (size2.toLong() shl 8) or
                 (size3.toLong() shl 16) or (size4.toLong() shl 24)
-
-        if (trailerSource !== source && trailerSource.size > 0) {
-            source.write(trailerSource, trailerSource.size)
-        }
 
         // Verify CRC
         if (crc32.value != expectedCrc) {
