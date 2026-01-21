@@ -5,6 +5,9 @@
 
 package kotlinx.io
 
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.decodeToString
+import kotlinx.io.bytestring.encodeToByteString
 import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -331,7 +334,22 @@ class TransformTest {
             sink: ByteArray,
             sinkStartIndex: Int,
             sinkEndIndex: Int
-        ): TransformResult = TransformResult.done()
+        ): TransformResult {
+            val inputSize = sourceEndIndex - sourceStartIndex
+            if (inputSize == 0) return TransformResult.done()
+
+            val availableOutput = sinkEndIndex - sinkStartIndex
+            val canProcess = minOf(inputSize, availableOutput / 2)
+
+            var sinkPos = sinkStartIndex
+            for (i in 0 until canProcess) {
+                val byte = source[sourceStartIndex + i]
+                sink[sinkPos++] = byte
+                sink[sinkPos++] = byte
+            }
+
+            return TransformResult.ok(canProcess, canProcess * 2)
+        }
 
         override fun close() {}
     }
@@ -824,5 +842,116 @@ class TransformTest {
         }
 
         override fun close() {}
+    }
+
+    // Tests for transformFinal(ByteString)
+
+    /**
+     * Test transformFinal(ByteString) with a Transformation that uses the default implementation
+     * (goes through transformFinalTo with Buffer).
+     */
+    @Test
+    fun transformFinalWithDefaultImplementation() {
+        val input = "Hello, World!".encodeToByteString()
+
+        // Use a simple transformation that implements Transformation directly
+        val transform = object : Transformation {
+            override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
+                if (source.exhausted()) return 0L
+                var consumed = 0L
+                while (!source.exhausted() && consumed < byteCount) {
+                    val byte = source.readByte()
+                    // Double each byte
+                    sink.writeByte(byte)
+                    sink.writeByte(byte)
+                    consumed++
+                }
+                return consumed
+            }
+
+            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
+                // Process remaining input same as transformTo
+                return transformTo(source, byteCount, sink)
+            }
+
+            override fun close() {}
+        }
+
+        val result = transform.use { it.transformFinal(input) }
+
+        // Each byte should be doubled
+        assertEquals(input.size * 2, result.size)
+        for (i in 0 until input.size) {
+            assertEquals(input[i], result[i * 2])
+            assertEquals(input[i], result[i * 2 + 1])
+        }
+    }
+
+    /**
+     * Test transformFinal(ByteString) with UnsafeByteArrayTransformation
+     * (optimized ByteArray-based implementation).
+     */
+    @Test
+    fun transformFinalWithUnsafeByteArrayTransformation() {
+        val input = "Hello, World!".encodeToByteString()
+        val transform = DoubleByteTransform()
+
+        val result = transform.use { it.transformFinal(input) }
+
+        // Each byte should be doubled
+        assertEquals(input.size * 2, result.size)
+        for (i in 0 until input.size) {
+            assertEquals(input[i], result[i * 2])
+            assertEquals(input[i], result[i * 2 + 1])
+        }
+    }
+
+    /**
+     * Test transformFinal(ByteString) with empty input.
+     */
+    @Test
+    fun transformFinalEmptyInput() {
+        val input = ByteString()
+        val transform = DoubleByteTransform()
+
+        val result = transform.use { it.transformFinal(input) }
+
+        assertEquals(0, result.size)
+    }
+
+    /**
+     * Test transformFinal(ByteString) with a transformation that produces output
+     * even for empty input (like compression formats with headers/trailers).
+     */
+    @Test
+    fun transformFinalEmptyInputWithOutput() {
+        val input = ByteString()
+
+        val transform = object : Transformation {
+            private var trailerWritten = false
+
+            override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
+                if (source.exhausted()) return 0L
+                val consumed = minOf(byteCount, source.size)
+                sink.write(source, consumed)
+                return consumed
+            }
+
+            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
+                val consumed = transformTo(source, byteCount, sink)
+                if (!trailerWritten) {
+                    // Write a trailer even with no input
+                    sink.writeString("TRAILER")
+                    trailerWritten = true
+                }
+                return consumed
+            }
+
+            override fun close() {}
+        }
+
+        val result = transform.use { it.transformFinal(input) }
+
+        assertEquals("TRAILER", result.decodeToString())
     }
 }

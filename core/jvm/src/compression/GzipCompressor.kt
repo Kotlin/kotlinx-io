@@ -5,7 +5,6 @@
 
 package kotlinx.io.compression
 
-import kotlinx.io.Buffer
 import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.UnsafeIoApi
 import java.util.zip.CRC32
@@ -31,18 +30,6 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
     private var trailerWritten = false
     private var uncompressedSize = 0L
 
-    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        if (source.exhausted() && deflater.needsInput()) return 0L
-
-        // Write GZIP header if not yet written
-        if (!headerWritten) {
-            writeHeader(sink)
-            headerWritten = true
-        }
-
-        return super.transformTo(source, byteCount, sink)
-    }
-
     override fun transformIntoByteArray(
         source: ByteArray,
         sourceStartIndex: Int,
@@ -51,6 +38,21 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
         sinkStartIndex: Int,
         sinkEndIndex: Int
     ): TransformResult {
+        var outputStart = sinkStartIndex
+        val outputSize = sinkEndIndex - sinkStartIndex
+        var totalProduced = 0
+
+        // Write GZIP header if not yet written
+        if (!headerWritten) {
+            if (outputSize < GZIP_HEADER_SIZE) {
+                return TransformResult.outputRequired(GZIP_HEADER_SIZE)
+            }
+            writeHeaderToByteArray(sink, outputStart)
+            outputStart += GZIP_HEADER_SIZE
+            totalProduced += GZIP_HEADER_SIZE
+            headerWritten = true
+        }
+
         val inputSize = sourceEndIndex - sourceStartIndex
 
         // If deflater needs input and we have some, provide it
@@ -61,31 +63,14 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
             deflater.setInput(source, sourceStartIndex, inputSize)
         }
 
-        val produced = deflater.deflate(sink, sinkStartIndex, sinkEndIndex - sinkStartIndex)
+        val availableForDeflate = sinkEndIndex - outputStart
+        val produced = deflater.deflate(sink, outputStart, availableForDeflate)
+        totalProduced += produced
 
         // JDK deflater copies all input at once, so consumed is either 0 or all of it
         val consumed = if (deflater.needsInput()) inputSize else 0
 
-        return TransformResult.ok(consumed, produced)
-    }
-
-    override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        // Ensure header is written even if no data was compressed
-        if (!headerWritten) {
-            writeHeader(sink)
-            headerWritten = true
-        }
-
-        // Process remaining input and finalize deflate output
-        val consumed = super.transformFinalTo(source, byteCount, sink)
-
-        // Write GZIP trailer
-        if (!trailerWritten) {
-            writeTrailer(sink)
-            trailerWritten = true
-        }
-
-        return consumed
+        return TransformResult.ok(consumed, totalProduced)
     }
 
     override fun transformFinalIntoByteArray(
@@ -188,41 +173,5 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
 
     override fun close() {
         deflater.end()
-    }
-
-    private fun writeHeader(sink: Buffer) {
-        // GZIP header (10 bytes minimum):
-        // - Magic number: 0x1f 0x8b
-        // - Compression method: 8 (deflate)
-        // - Flags: 0
-        // - Modification time: 0 (4 bytes)
-        // - Extra flags: 0
-        // - Operating system: 255 (unknown)
-        sink.writeByte(0x1f.toByte())
-        sink.writeByte(0x8b.toByte())
-        sink.writeByte(8) // Compression method: deflate
-        sink.writeByte(0) // Flags
-        sink.writeInt(0)  // Modification time (4 bytes, little-endian but we use 0)
-        sink.writeByte(0) // Extra flags
-        sink.writeByte(255.toByte()) // OS: unknown
-    }
-
-    private fun writeTrailer(sink: Buffer) {
-        // GZIP trailer (8 bytes):
-        // - CRC32 (4 bytes, little-endian)
-        // - Original size mod 2^32 (4 bytes, little-endian)
-        val crcValue = crc32.value.toInt()
-        val sizeValue = (uncompressedSize and 0xFFFFFFFFL).toInt()
-
-        // Write in little-endian order
-        sink.writeByte((crcValue and 0xFF).toByte())
-        sink.writeByte((crcValue shr 8 and 0xFF).toByte())
-        sink.writeByte((crcValue shr 16 and 0xFF).toByte())
-        sink.writeByte((crcValue shr 24 and 0xFF).toByte())
-
-        sink.writeByte((sizeValue and 0xFF).toByte())
-        sink.writeByte((sizeValue shr 8 and 0xFF).toByte())
-        sink.writeByte((sizeValue shr 16 and 0xFF).toByte())
-        sink.writeByte((sizeValue shr 24 and 0xFF).toByte())
     }
 }

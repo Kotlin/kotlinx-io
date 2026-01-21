@@ -84,13 +84,15 @@ public interface Transformation : AutoCloseable {
      * @return a new ByteString containing the transformed data
      * @throws IOException if transformation fails
      */
-    @Suppress("UNUSED_VARIABLE")
     public fun transformFinal(source: ByteString): ByteString {
         val inputBuffer = Buffer()
         inputBuffer.write(source)
         val outputBuffer = Buffer()
-        val size = inputBuffer.size
-        val consumed = transformFinalTo(inputBuffer, size, outputBuffer)
+        // Loop until all input is consumed and transformation is complete
+        while (true) {
+            val consumed = transformFinalTo(inputBuffer, inputBuffer.size, outputBuffer)
+            if (consumed == 0L) break
+        }
         return outputBuffer.readByteString()
     }
 }

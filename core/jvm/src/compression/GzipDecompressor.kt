@@ -30,26 +30,12 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
     private var trailerVerified = false
     private var uncompressedSize = 0L
 
-    // Buffer for accumulating header bytes when source doesn't have enough
-    private val headerBuffer = Buffer()
+    // Buffer for accumulating header bytes when source doesn't have enough (streaming mode)
+    private val headerAccumulator = ByteArray(MAX_HEADER_SIZE)
+    private var headerAccumulatorSize = 0
 
     // Buffer for storing remaining bytes after inflater finishes (for trailer verification)
     private val remainingBuffer = Buffer()
-
-    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        if (source.exhausted() && inflater.needsInput()) return 0L
-
-        // Parse GZIP header if not yet parsed
-        if (!headerParsed) {
-            if (!parseHeader(source)) {
-                // Not enough data for header yet
-                return 0L
-            }
-            headerParsed = true
-        }
-
-        return super.transformTo(source, byteCount, sink)
-    }
 
     override fun transformIntoByteArray(
         source: ByteArray,
@@ -64,11 +50,34 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
             return TransformResult.done()
         }
 
+        var inputStart = sourceStartIndex
         val inputSize = sourceEndIndex - sourceStartIndex
 
+        // Parse GZIP header if not yet parsed
+        if (!headerParsed) {
+            // Accumulate bytes into header buffer
+            val bytesToCopy = minOf(inputSize, MAX_HEADER_SIZE - headerAccumulatorSize)
+            source.copyInto(headerAccumulator, headerAccumulatorSize, sourceStartIndex, sourceStartIndex + bytesToCopy)
+            headerAccumulatorSize += bytesToCopy
+
+            // Try to parse header from accumulated bytes
+            val headerParseResult = parseHeaderFromByteArray(headerAccumulator, 0, headerAccumulatorSize)
+            if (headerParseResult < 0) {
+                // Not enough data for header yet, consume all input and wait for more
+                return TransformResult.ok(inputSize, 0)
+            }
+            headerParsed = true
+
+            // Calculate how many bytes from current input were used for header
+            val headerBytesFromCurrentInput = headerParseResult - (headerAccumulatorSize - bytesToCopy)
+            inputStart = sourceStartIndex + headerBytesFromCurrentInput.coerceAtLeast(0)
+        }
+
+        val adjustedInputSize = sourceEndIndex - inputStart
+
         // If inflater needs input and we have some, provide it
-        if (inflater.needsInput() && inputSize > 0) {
-            inflater.setInput(source, sourceStartIndex, inputSize)
+        if (inflater.needsInput() && adjustedInputSize > 0) {
+            inflater.setInput(source, inputStart, adjustedInputSize)
         }
 
         val produced = try {
@@ -86,7 +95,7 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         if (inflater.finished()) {
             val remaining = inflater.remaining
             if (remaining > 0) {
-                val remainingStart = sourceStartIndex + inputSize - remaining
+                val remainingStart = inputStart + adjustedInputSize - remaining
                 remainingBuffer.write(source, remainingStart, remainingStart + remaining)
             }
         }
@@ -230,76 +239,14 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
 
     private companion object {
         private const val GZIP_MIN_HEADER_SIZE = 10
+        // Max header size: 10 (fixed) + 2 (extra len) + 65535 (extra) + 256 (fname) + 256 (comment) + 2 (crc)
+        // For practical purposes, we limit to a reasonable size
+        private const val MAX_HEADER_SIZE = 4096
     }
 
     override fun close() {
         inflater.end()
-        headerBuffer.clear()
         remainingBuffer.clear()
-    }
-
-    private fun parseHeader(source: Buffer): Boolean {
-        // Accumulate header bytes
-        while (headerBuffer.size < 10 && !source.exhausted()) {
-            headerBuffer.writeByte(source.readByte())
-        }
-
-        if (headerBuffer.size < 10) {
-            return false
-        }
-
-        // Read header fields
-        val magic1 = headerBuffer.readByte().toInt() and 0xFF
-        val magic2 = headerBuffer.readByte().toInt() and 0xFF
-        val compressionMethod = headerBuffer.readByte().toInt() and 0xFF
-        val flags = headerBuffer.readByte().toInt() and 0xFF
-        headerBuffer.skip(4) // Skip modification time
-        headerBuffer.skip(1) // Skip extra flags
-        headerBuffer.skip(1) // Skip OS
-
-        // Validate magic number
-        if (magic1 != 0x1f || magic2 != 0x8b) {
-            throw IOException("Invalid GZIP magic number")
-        }
-
-        // Validate compression method
-        if (compressionMethod != 8) {
-            throw IOException("Unsupported GZIP compression method: $compressionMethod")
-        }
-
-        // Handle optional fields
-        val fextra = (flags and 0x04) != 0
-        val fname = (flags and 0x08) != 0
-        val fcomment = (flags and 0x10) != 0
-        val fhcrc = (flags and 0x02) != 0
-
-        if (fextra && !skipExtra(source)) return false
-        if (fname && !skipNullTerminated(source)) return false
-        if (fcomment && !skipNullTerminated(source)) return false
-        if (fhcrc) {
-            if (source.size < 2) return false
-            source.skip(2)
-        }
-
-        return true
-    }
-
-    private fun skipExtra(source: Buffer): Boolean {
-        if (source.size < 2) return false
-        val xlen1 = source.readByte().toInt() and 0xFF
-        val xlen2 = source.readByte().toInt() and 0xFF
-        val xlen = xlen1 or (xlen2 shl 8)
-
-        if (source.size < xlen.toLong()) return false
-        source.skip(xlen.toLong())
-        return true
-    }
-
-    private fun skipNullTerminated(source: Buffer): Boolean {
-        while (!source.exhausted()) {
-            if (source.readByte() == 0.toByte()) return true
-        }
-        return false
     }
 
     private fun verifyTrailer(): Boolean {

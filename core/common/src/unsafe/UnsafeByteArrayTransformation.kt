@@ -6,7 +6,6 @@ import kotlinx.io.UnsafeIoApi
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringApi
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringOperations
-import kotlinx.io.readByteArray
 
 /**
  * Abstract base class for implementing [kotlinx.io.Transformation] using `ByteArray`-based APIs.
@@ -144,7 +143,7 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
         sinkEndIndex: Int
     ): TransformResult
 
-    override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
+    final override fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         if (source.exhausted()) return 0L
 
         return UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
@@ -202,72 +201,18 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
         }.toLong()
     }
 
-    override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
-        // Use transformFinalIntoByteArray directly - it handles both input consumption and final output
-        var totalConsumed = 0L
-        val emptyArray = ByteArray(0)
+    final override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
+        return readFromHead(source) { input, inputStart, inputEnd ->
+            val available = minOf(byteCount.toInt(), inputEnd - inputStart)
+            var consumed = 0
 
-        // If there's input, process it with transformFinalIntoByteArray
-        if (!source.exhausted() && byteCount > 0) {
-            totalConsumed = UnsafeBufferOperations.readFromHead(source) { input, inputStart, inputEnd ->
-                val available = minOf(byteCount.toInt(), inputEnd - inputStart)
-                var consumed = 0
-
-                while (true) {
-                    lateinit var result: TransformResult
-
-                    @Suppress("UNUSED_VARIABLE")
-                    val _ = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
-                        result = transformFinalIntoByteArray(
-                            input, inputStart + consumed, inputStart + available,
-                            output, outputStart, outputEnd
-                        )
-                        result.produced
-                    }
-
-                    when {
-                        result.outputRequired > 0 -> {
-                            if (result.outputRequired <= UnsafeBufferOperations.maxSafeWriteCapacity) {
-                                @Suppress("UNUSED_VARIABLE")
-                                val written = UnsafeBufferOperations.writeToTail(sink, result.outputRequired) { output, outputStart, outputEnd ->
-                                    val retryResult = transformFinalIntoByteArray(
-                                        input, inputStart + consumed, inputStart + available,
-                                        output, outputStart, outputEnd
-                                    )
-                                    consumed += retryResult.consumed
-                                    retryResult.produced
-                                }
-                            } else {
-                                val temp = ByteArray(result.outputRequired)
-                                val retryResult = transformFinalIntoByteArray(
-                                    input, inputStart + consumed, inputStart + available,
-                                    temp, 0, temp.size
-                                )
-                                if (retryResult.produced > 0) {
-                                    sink.write(temp, 0, retryResult.produced)
-                                }
-                                consumed += retryResult.consumed
-                            }
-                        }
-
-                        else -> {
-                            consumed += result.consumed
-                            if (result.consumed == 0 && result.produced == 0) break
-                        }
-                    }
-                }
-
-                consumed
-            }.toLong()
-        } else {
-            // No input - still need to call transformFinalIntoByteArray to produce final output
             while (true) {
                 lateinit var result: TransformResult
 
                 @Suppress("UNUSED_VARIABLE")
                 val _ = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
                     result = transformFinalIntoByteArray(
-                        emptyArray, 0, 0,
+                        input, inputStart + consumed, inputStart + available,
                         output, outputStart, outputEnd
                     )
                     result.produced
@@ -278,29 +223,51 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
                         if (result.outputRequired <= UnsafeBufferOperations.maxSafeWriteCapacity) {
                             @Suppress("UNUSED_VARIABLE")
                             val written = UnsafeBufferOperations.writeToTail(sink, result.outputRequired) { output, outputStart, outputEnd ->
-                                transformFinalIntoByteArray(emptyArray, 0, 0, output, outputStart, outputEnd).produced
+                                val retryResult = transformFinalIntoByteArray(
+                                    input, inputStart + consumed, inputStart + available,
+                                    output, outputStart, outputEnd
+                                )
+                                consumed += retryResult.consumed
+                                retryResult.produced
                             }
                         } else {
                             val temp = ByteArray(result.outputRequired)
-                            val retryResult = transformFinalIntoByteArray(emptyArray, 0, 0, temp, 0, temp.size)
+                            val retryResult = transformFinalIntoByteArray(
+                                input, inputStart + consumed, inputStart + available,
+                                temp, 0, temp.size
+                            )
                             if (retryResult.produced > 0) {
                                 sink.write(temp, 0, retryResult.produced)
                             }
+                            consumed += retryResult.consumed
                         }
                     }
 
-                    result.consumed == 0 && result.produced == 0 -> break
+                    else -> {
+                        consumed += result.consumed
+                        if (result.consumed == 0 && result.produced == 0) break
+                    }
                 }
             }
-        }
 
-        return totalConsumed
+            consumed
+        }.toLong()
+    }
+
+    // TODO: decide on it later
+    private inline fun readFromHead(source: Buffer, block: (ByteArray, Int, Int) -> Int): Int {
+        return if(source.exhausted()) {
+            block(ByteArray(0), 0, 0)
+        } else {
+            UnsafeBufferOperations.readFromHead(source, block)
+        }
     }
 
     /**
      * Optimized implementation that transforms a [ByteString] using direct ByteArray access.
      *
      * This override uses [transformFinalIntoByteArray] directly since this is a one-shot operation.
+     * It avoids intermediate Buffer allocation by using a list of byte array chunks.
      *
      * @param source the ByteString to transform
      * @return a new ByteString containing the transformed data
@@ -308,56 +275,58 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      */
     @OptIn(UnsafeByteStringApi::class)
     override fun transformFinal(source: ByteString): ByteString {
-        val sink = Buffer()
+        val outputChunks = mutableListOf<ByteArray>()
+        var totalOutputSize = 0
 
         UnsafeByteStringOperations.withByteArrayUnsafe(source) { inputArray ->
             var offset = 0
+            var chunkSize = DEFAULT_CHUNK_SIZE
 
             while (true) {
-                lateinit var result: TransformResult
-
-                @Suppress("UNUSED_VARIABLE")
-                val _ = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
-                    result = transformFinalIntoByteArray(
-                        inputArray, offset, inputArray.size,
-                        output, outputStart, outputEnd
-                    )
-                    result.produced
-                }
+                val outputBuffer = ByteArray(chunkSize)
+                val result = transformFinalIntoByteArray(
+                    inputArray, offset, inputArray.size,
+                    outputBuffer, 0, outputBuffer.size
+                )
 
                 when {
                     result.outputRequired > 0 -> {
-                        if (result.outputRequired <= UnsafeBufferOperations.maxSafeWriteCapacity) {
-                            @Suppress("UNUSED_VARIABLE")
-                            val written = UnsafeBufferOperations.writeToTail(sink, result.outputRequired) { output, outputStart, outputEnd ->
-                                val retryResult = transformFinalIntoByteArray(
-                                    inputArray, offset, inputArray.size,
-                                    output, outputStart, outputEnd
-                                )
-                                offset += retryResult.consumed
-                                retryResult.produced
-                            }
-                        } else {
-                            val temp = ByteArray(result.outputRequired)
-                            val retryResult = transformFinalIntoByteArray(
-                                inputArray, offset, inputArray.size,
-                                temp, 0, temp.size
-                            )
-                            if (retryResult.produced > 0) {
-                                sink.write(temp, 0, retryResult.produced)
-                            }
-                            offset += retryResult.consumed
-                        }
+                        // Retry with the requested buffer size
+                        chunkSize = result.outputRequired
                     }
 
                     else -> {
+                        if (result.produced > 0) {
+                            outputChunks.add(outputBuffer.copyOf(result.produced))
+                            totalOutputSize += result.produced
+                        }
                         offset += result.consumed
                         if (result.consumed == 0 && result.produced == 0) break
+                        // Reset chunk size for next iteration
+                        chunkSize = DEFAULT_CHUNK_SIZE
                     }
                 }
             }
         }
 
-        return ByteString(sink.readByteArray())
+        // Concatenate all chunks into final result
+        if (outputChunks.isEmpty()) {
+            return ByteString()
+        }
+        if (outputChunks.size == 1) {
+            return ByteString(outputChunks[0])
+        }
+
+        val result = ByteArray(totalOutputSize)
+        var pos = 0
+        for (chunk in outputChunks) {
+            chunk.copyInto(result, pos)
+            pos += chunk.size
+        }
+        return ByteString(result)
+    }
+
+    private companion object {
+        private const val DEFAULT_CHUNK_SIZE = 8192
     }
 }
