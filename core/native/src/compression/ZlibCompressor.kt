@@ -88,37 +88,56 @@ internal class ZlibCompressor(
         }
     }
 
-    override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
+    override fun transformFinalIntoByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int,
+        sink: ByteArray,
+        sinkStartIndex: Int,
+        sinkEndIndex: Int
+    ): TransformResult {
         check(initialized) { "Compressor is closed" }
-        if (finished) return TransformFinalResult.done()
+        if (finished) return TransformResult.done()
 
-        if (!finishCalled) {
-            zStream.next_in = null
-            zStream.avail_in = 0u
-            finishCalled = true
-        }
+        val inputSize = sourceEndIndex - sourceStartIndex
+        val outputSize = sinkEndIndex - sinkStartIndex
 
-        val outputSize = endIndex - startIndex
-
-        return sink.usePinned { pinnedOutput ->
-            zStream.next_out = pinnedOutput.addressOf(startIndex).reinterpret()
-            zStream.avail_out = outputSize.convert()
-
-            val deflateResult = deflate(zStream.ptr, Z_FINISH)
-
-            val written = outputSize - zStream.avail_out.toInt()
-
-            when (deflateResult) {
-                Z_OK, Z_BUF_ERROR -> {
-                    // More output pending
-                    TransformFinalResult.ok(written)
+        return source.usePinned { pinnedInput ->
+            sink.usePinned { pinnedOutput ->
+                // Set input if we have any
+                if (inputSize > 0) {
+                    zStream.next_in = pinnedInput.addressOf(sourceStartIndex).reinterpret()
+                    zStream.avail_in = inputSize.convert()
+                } else if (!finishCalled) {
+                    zStream.next_in = null
+                    zStream.avail_in = 0u
                 }
-                Z_STREAM_END -> {
-                    finished = true
-                    if (written > 0) TransformFinalResult.ok(written) else TransformFinalResult.done()
+
+                // Signal finish
+                if (!finishCalled) {
+                    finishCalled = true
                 }
-                else -> {
-                    throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
+
+                zStream.next_out = pinnedOutput.addressOf(sinkStartIndex).reinterpret()
+                zStream.avail_out = outputSize.convert()
+
+                val deflateResult = deflate(zStream.ptr, Z_FINISH)
+
+                val consumed = inputSize - zStream.avail_in.toInt()
+                val produced = outputSize - zStream.avail_out.toInt()
+
+                when (deflateResult) {
+                    Z_OK, Z_BUF_ERROR -> {
+                        // More output pending
+                        TransformResult.ok(consumed, produced)
+                    }
+                    Z_STREAM_END -> {
+                        finished = true
+                        TransformResult.ok(consumed, produced)
+                    }
+                    else -> {
+                        throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")
+                    }
                 }
             }
         }

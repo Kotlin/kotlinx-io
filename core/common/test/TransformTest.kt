@@ -153,7 +153,7 @@ class TransformTest {
                 sink.write(source, toWrite)
                 return toWrite
             }
-            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer) {}
+            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long = 0L
             override fun close() {
                 transformClosed = true
             }
@@ -197,8 +197,9 @@ class TransformTest {
                 }
                 return 0L
             }
-            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer) {
+            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
                 finished = true
+                return 0L
             }
             override fun close() {
                 transformClosed = true
@@ -323,8 +324,14 @@ class TransformTest {
             return TransformResult.ok(canProcess, canProcess * 2)
         }
 
-        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult =
-            TransformFinalResult.done()
+        override fun transformFinalIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult = TransformResult.done()
 
         override fun close() {}
     }
@@ -362,8 +369,14 @@ class TransformTest {
             return TransformResult.ok(pairs * 2, pairs)
         }
 
-        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult =
-            TransformFinalResult.done()
+        override fun transformFinalIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult = TransformResult.done()
 
         override fun close() {}
     }
@@ -379,8 +392,9 @@ class TransformTest {
             return toConsume
         }
 
-        override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer) {
+        override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
             sink.writeString(trailer)
+            return 0L
         }
 
         override fun close() {}
@@ -539,18 +553,25 @@ class TransformTest {
             return TransformResult.ok(consumed, produced)
         }
 
-        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
+        override fun transformFinalIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult {
             // Drain any remaining output buffer
             val pending = outputBuffer
             if (pending != null && outputPos < pending.size) {
-                val availableOutput = endIndex - startIndex
+                val availableOutput = sinkEndIndex - sinkStartIndex
                 val toCopy = minOf(pending.size - outputPos, availableOutput)
-                pending.copyInto(sink, startIndex, outputPos, outputPos + toCopy)
+                pending.copyInto(sink, sinkStartIndex, outputPos, outputPos + toCopy)
                 outputPos += toCopy
                 if (outputPos >= pending.size) {
                     outputBuffer = null
                 }
-                return TransformFinalResult.ok(toCopy)
+                return TransformResult.ok(0, toCopy)
             }
 
             // Handle any remaining buffered input (incomplete block)
@@ -564,17 +585,17 @@ class TransformTest {
                 bufferedCount = 0
                 outputPos = 0
 
-                val availableOutput = endIndex - startIndex
+                val availableOutput = sinkEndIndex - sinkStartIndex
                 val toCopy = minOf(outputBuffer!!.size, availableOutput)
-                outputBuffer!!.copyInto(sink, startIndex, 0, toCopy)
+                outputBuffer!!.copyInto(sink, sinkStartIndex, 0, toCopy)
                 outputPos = toCopy
                 if (outputPos >= outputBuffer!!.size) {
                     outputBuffer = null
                 }
-                return TransformFinalResult.ok(toCopy)
+                return TransformResult.ok(0, toCopy)
             }
 
-            return TransformFinalResult.done()
+            return TransformResult.done()
         }
 
         override fun close() {}
@@ -649,8 +670,14 @@ class TransformTest {
             return TransformResult.ok(inputSize, requiredOutput)
         }
 
-        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult =
-            TransformFinalResult.done()
+        override fun transformFinalIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult = TransformResult.done()
 
         override fun close() {}
     }
@@ -705,22 +732,29 @@ class TransformTest {
             return TransformResult.ok(sourceEndIndex - sourceStartIndex, 0)
         }
 
-        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
-            if (finalized) return TransformFinalResult.done()
+        override fun transformFinalIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult {
+            if (finalized) return TransformResult.done()
 
-            val availableOutput = endIndex - startIndex
+            val availableOutput = sinkEndIndex - sinkStartIndex
 
             // If buffer is too small, request larger buffer
             if (availableOutput < outputSize) {
-                return TransformFinalResult.outputRequired(outputSize)
+                return TransformResult.outputRequired(outputSize)
             }
 
             // Produce outputSize bytes atomically
             for (i in 0 until outputSize) {
-                sink[startIndex + i] = (i % 256).toByte()
+                sink[sinkStartIndex + i] = (i % 256).toByte()
             }
             finalized = true
-            return TransformFinalResult.ok(outputSize)
+            return TransformResult.ok(0, outputSize)
         }
 
         override fun close() {}
@@ -753,7 +787,14 @@ class TransformTest {
             return TransformResult.ok(inputSize, 0)
         }
 
-        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
+        override fun transformFinalIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult {
             // On first call, expand all buffered input
             if (outputBuffer == null && inputBuffer.size > 0) {
                 val input = inputBuffer.readByteArray()
@@ -769,17 +810,17 @@ class TransformTest {
             // Output as much as we can
             val pending = outputBuffer
             if (pending != null && outputPos < pending.size) {
-                val availableOutput = endIndex - startIndex
+                val availableOutput = sinkEndIndex - sinkStartIndex
                 val toCopy = minOf(pending.size - outputPos, availableOutput)
-                pending.copyInto(sink, startIndex, outputPos, outputPos + toCopy)
+                pending.copyInto(sink, sinkStartIndex, outputPos, outputPos + toCopy)
                 outputPos += toCopy
                 if (outputPos >= pending.size) {
                     outputBuffer = null
                 }
-                return TransformFinalResult.ok(toCopy)
+                return TransformResult.ok(0, toCopy)
             }
 
-            return TransformFinalResult.done()
+            return TransformResult.done()
         }
 
         override fun close() {}

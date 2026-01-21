@@ -42,7 +42,7 @@ class Crc32Sample {
                 return bytesConsumed
             }
 
-            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer) {}
+            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long = 0L
 
             override fun close() {}
 

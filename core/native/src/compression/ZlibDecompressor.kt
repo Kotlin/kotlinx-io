@@ -95,14 +95,63 @@ internal class ZlibDecompressor(
         }
     }
 
-    override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
+    override fun transformFinalIntoByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int,
+        sink: ByteArray,
+        sinkStartIndex: Int,
+        sinkEndIndex: Int
+    ): TransformResult {
         check(initialized) { "Decompressor is closed" }
 
-        // Verify that decompression is complete
+        // Process any remaining input
+        val inputSize = sourceEndIndex - sourceStartIndex
+
         if (!finished) {
-            throw IOException("Truncated or corrupt deflate/gzip data")
+            val outputSize = sinkEndIndex - sinkStartIndex
+
+            return source.usePinned { pinnedInput ->
+                sink.usePinned { pinnedOutput ->
+                    if (inputSize > 0) {
+                        zStream.next_in = pinnedInput.addressOf(sourceStartIndex).reinterpret()
+                        zStream.avail_in = inputSize.convert()
+                    }
+                    zStream.next_out = pinnedOutput.addressOf(sinkStartIndex).reinterpret()
+                    zStream.avail_out = outputSize.convert()
+
+                    val inflateResult = inflate(zStream.ptr, Z_NO_FLUSH)
+
+                    when (inflateResult) {
+                        Z_OK, Z_BUF_ERROR -> {
+                            // Continue processing
+                        }
+                        Z_STREAM_END -> {
+                            finished = true
+                        }
+                        Z_DATA_ERROR -> {
+                            throw IOException("Invalid compressed data: ${zlibErrorMessage(inflateResult)}")
+                        }
+                        else -> {
+                            throw IOException("Decompression failed: ${zlibErrorMessage(inflateResult)}")
+                        }
+                    }
+
+                    val consumed = inputSize - zStream.avail_in.toInt()
+                    val produced = outputSize - zStream.avail_out.toInt()
+
+                    if (produced > 0 || consumed > 0) {
+                        TransformResult.ok(consumed, produced)
+                    } else if (!finished) {
+                        throw IOException("Truncated or corrupt deflate/gzip data")
+                    } else {
+                        TransformResult.done()
+                    }
+                }
+            }
         }
-        return TransformFinalResult.done()
+
+        return TransformResult.done()
     }
 
     override fun close() {

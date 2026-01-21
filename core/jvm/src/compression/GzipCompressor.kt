@@ -6,7 +6,6 @@
 package kotlinx.io.compression
 
 import kotlinx.io.Buffer
-import kotlinx.io.readByteArray
 import kotlinx.io.unsafe.UnsafeByteArrayTransformation
 import kotlinx.io.UnsafeIoApi
 import java.util.zip.CRC32
@@ -70,9 +69,7 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
         return TransformResult.ok(consumed, produced)
     }
 
-    override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer) {
-        if (trailerWritten) return
-
+    override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long {
         // Ensure header is written even if no data was compressed
         if (!headerWritten) {
             writeHeader(sink)
@@ -80,70 +77,113 @@ internal class GzipCompressor(level: Int) : UnsafeByteArrayTransformation() {
         }
 
         // Process remaining input and finalize deflate output
-        super.transformFinalTo(source, byteCount, sink)
+        val consumed = super.transformFinalTo(source, byteCount, sink)
 
         // Write GZIP trailer
-        writeTrailer(sink)
-        trailerWritten = true
+        if (!trailerWritten) {
+            writeTrailer(sink)
+            trailerWritten = true
+        }
+
+        return consumed
     }
 
-    override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
+    override fun transformFinalIntoByteArray(
+        source: ByteArray,
+        sourceStartIndex: Int,
+        sourceEndIndex: Int,
+        sink: ByteArray,
+        sinkStartIndex: Int,
+        sinkEndIndex: Int
+    ): TransformResult {
+        var outputStart = sinkStartIndex
+        val outputSize = sinkEndIndex - sinkStartIndex
+        var totalProduced = 0
+
+        // Write GZIP header if not yet written
+        if (!headerWritten) {
+            if (outputSize < GZIP_HEADER_SIZE) {
+                return TransformResult.outputRequired(GZIP_HEADER_SIZE)
+            }
+            writeHeaderToByteArray(sink, outputStart)
+            outputStart += GZIP_HEADER_SIZE
+            totalProduced += GZIP_HEADER_SIZE
+            headerWritten = true
+        }
+
+        val inputSize = sourceEndIndex - sourceStartIndex
+
+        // If deflater needs input and we have some, provide it
+        if (deflater.needsInput() && inputSize > 0) {
+            crc32.update(source, sourceStartIndex, inputSize)
+            uncompressedSize += inputSize
+            deflater.setInput(source, sourceStartIndex, inputSize)
+        }
+
+        // Signal finish if not yet done
         if (!finishCalled) {
             deflater.finish()
             finishCalled = true
         }
-        if (deflater.finished()) return TransformFinalResult.done()
 
-        val produced = deflater.deflate(sink, startIndex, endIndex - startIndex)
-        return TransformFinalResult.ok(produced)
+        // Write trailer if deflater is finished
+        if (deflater.finished()) {
+            if (!trailerWritten) {
+                val availableForTrailer = sinkEndIndex - outputStart
+                if (availableForTrailer < GZIP_TRAILER_SIZE) {
+                    return if (totalProduced > 0) {
+                        TransformResult.ok(inputSize, totalProduced)
+                    } else {
+                        TransformResult.outputRequired(GZIP_TRAILER_SIZE)
+                    }
+                }
+                writeTrailerToByteArray(sink, outputStart)
+                totalProduced += GZIP_TRAILER_SIZE
+                trailerWritten = true
+            }
+            return if (totalProduced > 0) TransformResult.ok(inputSize, totalProduced) else TransformResult.done()
+        }
+
+        val availableForDeflate = sinkEndIndex - outputStart
+        val produced = deflater.deflate(sink, outputStart, availableForDeflate)
+        totalProduced += produced
+
+        // JDK deflater copies all input at once, so consumed is either 0 or all of it
+        val consumed = if (deflater.needsInput()) inputSize else 0
+
+        return TransformResult.ok(consumed, totalProduced)
     }
 
-    @OptIn(kotlinx.io.bytestring.unsafe.UnsafeByteStringApi::class)
-    override fun transformFinal(source: kotlinx.io.bytestring.ByteString): kotlinx.io.bytestring.ByteString {
-        if (trailerWritten) return kotlinx.io.bytestring.ByteString()
+    private fun writeHeaderToByteArray(sink: ByteArray, startIndex: Int) {
+        sink[startIndex + 0] = 0x1f.toByte()
+        sink[startIndex + 1] = 0x8b.toByte()
+        sink[startIndex + 2] = 8 // Compression method: deflate
+        sink[startIndex + 3] = 0 // Flags
+        sink[startIndex + 4] = 0 // Modification time (4 bytes)
+        sink[startIndex + 5] = 0
+        sink[startIndex + 6] = 0
+        sink[startIndex + 7] = 0
+        sink[startIndex + 8] = 0 // Extra flags
+        sink[startIndex + 9] = 255.toByte() // OS: unknown
+    }
 
-        val sink = Buffer()
+    private fun writeTrailerToByteArray(sink: ByteArray, startIndex: Int) {
+        val crcValue = crc32.value.toInt()
+        val sizeValue = (uncompressedSize and 0xFFFFFFFFL).toInt()
 
-        // Write GZIP header
-        if (!headerWritten) {
-            writeHeader(sink)
-            headerWritten = true
-        }
+        sink[startIndex + 0] = (crcValue and 0xFF).toByte()
+        sink[startIndex + 1] = (crcValue shr 8 and 0xFF).toByte()
+        sink[startIndex + 2] = (crcValue shr 16 and 0xFF).toByte()
+        sink[startIndex + 3] = (crcValue shr 24 and 0xFF).toByte()
+        sink[startIndex + 4] = (sizeValue and 0xFF).toByte()
+        sink[startIndex + 5] = (sizeValue shr 8 and 0xFF).toByte()
+        sink[startIndex + 6] = (sizeValue shr 16 and 0xFF).toByte()
+        sink[startIndex + 7] = (sizeValue shr 24 and 0xFF).toByte()
+    }
 
-        // Process input through deflate using the optimized path
-        kotlinx.io.bytestring.unsafe.UnsafeByteStringOperations.withByteArrayUnsafe(source) { inputArray ->
-            if (inputArray.isNotEmpty()) {
-                crc32.update(inputArray, 0, inputArray.size)
-                uncompressedSize += inputArray.size
-                deflater.setInput(inputArray, 0, inputArray.size)
-            }
-
-            // Deflate all input
-            while (!deflater.needsInput()) {
-                val temp = ByteArray(8192)
-                val produced = deflater.deflate(temp)
-                if (produced > 0) {
-                    sink.write(temp, 0, produced)
-                }
-            }
-        }
-
-        // Finish deflate
-        deflater.finish()
-        finishCalled = true
-        while (!deflater.finished()) {
-            val temp = ByteArray(8192)
-            val produced = deflater.deflate(temp)
-            if (produced > 0) {
-                sink.write(temp, 0, produced)
-            }
-        }
-
-        // Write GZIP trailer
-        writeTrailer(sink)
-        trailerWritten = true
-
-        return kotlinx.io.bytestring.ByteString(sink.readByteArray())
+    private companion object {
+        private const val GZIP_HEADER_SIZE = 10
+        private const val GZIP_TRAILER_SIZE = 8
     }
 
     override fun close() {

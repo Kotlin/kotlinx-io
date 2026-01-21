@@ -356,18 +356,25 @@ class CipherTransformationSamples {
             return TransformResult.ok(inputSize, written)
         }
 
-        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
-            if (finalized) return TransformFinalResult.done()
+        override fun transformFinalIntoByteArray(
+            source: ByteArray,
+            sourceStartIndex: Int,
+            sourceEndIndex: Int,
+            sink: ByteArray,
+            sinkStartIndex: Int,
+            sinkEndIndex: Int
+        ): TransformResult {
+            if (finalized) return TransformResult.done()
 
-            val outputSize = endIndex - startIndex
+            val outputSize = sinkEndIndex - sinkStartIndex
             val requiredOutput = cipher.getOutputSize(0)
             if (requiredOutput > outputSize) {
-                return TransformFinalResult.outputRequired(requiredOutput)
+                return TransformResult.outputRequired(requiredOutput)
             }
 
             finalized = true
-            val written = cipher.doFinal(sink, startIndex)
-            return if (written > 0) TransformFinalResult.ok(written) else TransformFinalResult.done()
+            val written = cipher.doFinal(sink, sinkStartIndex)
+            return if (written > 0) TransformResult.ok(0, written) else TransformResult.done()
         }
 
         override fun close() {}

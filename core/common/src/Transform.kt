@@ -55,9 +55,10 @@ public interface Transformation : AutoCloseable {
      * @param source buffer containing the final input data to transform
      * @param byteCount maximum number of bytes to read from source
      * @param sink buffer to write transformed output to
+     * @return the number of bytes read from [source]
      * @throws IOException if transformation fails
      */
-    public fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer)
+    public fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer): Long
 
     /**
      * Releases all resources associated with this transformation.
@@ -83,11 +84,13 @@ public interface Transformation : AutoCloseable {
      * @return a new ByteString containing the transformed data
      * @throws IOException if transformation fails
      */
+    @Suppress("UNUSED_VARIABLE")
     public fun transformFinal(source: ByteString): ByteString {
         val inputBuffer = Buffer()
         inputBuffer.write(source)
         val outputBuffer = Buffer()
-        transformFinalTo(inputBuffer, inputBuffer.size, outputBuffer)
+        val size = inputBuffer.size
+        val consumed = transformFinalTo(inputBuffer, size, outputBuffer)
         return outputBuffer.readByteString()
     }
 }
@@ -136,6 +139,7 @@ internal class TransformingSink(
     private val transformation: Transformation
 ) : RawSink {
 
+    private val inputBuffer = Buffer()
     private val outputBuffer = Buffer()
     private var closed = false
 
@@ -145,8 +149,7 @@ internal class TransformingSink(
 
         if (byteCount == 0L) return
 
-        // Extract the requested bytes into a temporary buffer for transformation
-        val inputBuffer = Buffer()
+        // Extract the requested bytes into the input buffer for transformation
         inputBuffer.write(source, byteCount)
 
         // Transform all input - loop until all bytes are consumed
@@ -180,8 +183,8 @@ internal class TransformingSink(
 
         // Finalize transformation and write any remaining data
         try {
-            val emptyBuffer = Buffer()
-            transformation.transformFinalTo(emptyBuffer, 0L, outputBuffer)
+            @Suppress("UNUSED_VARIABLE")
+            val consumed = transformation.transformFinalTo(inputBuffer, inputBuffer.size, outputBuffer)
             emitTransformedData()
         } catch (e: Throwable) {
             thrown = e
@@ -260,19 +263,12 @@ internal class TransformingSource(
             // Read from upstream
             val read = upstream.readAtMostTo(inputBuffer, BUFFER_SIZE)
             if (read == -1L) {
-                // Upstream exhausted
-                // If inputBuffer is also empty, the transformation has nothing more to process
-                if (inputBuffer.exhausted()) {
-                    // Call transformFinalTo to allow the transformation to complete (e.g., for block ciphers)
-                    val emptyBuffer = Buffer()
-                    transformation.transformFinalTo(emptyBuffer, 0L, sink)
-                    transformationFinished = true
-                    val bytesRead = sink.size - startSize
-                    return if (bytesRead == 0L) -1L else bytesRead
-                }
-                // Otherwise, there's still data in inputBuffer that wasn't consumed
-                // This indicates the transformation expected more input (e.g., truncated compressed data)
-                throw IOException("Unexpected end of stream")
+                // Upstream exhausted - call transformFinalTo with any remaining input
+                @Suppress("UNUSED_VARIABLE")
+                val consumed = transformation.transformFinalTo(inputBuffer, inputBuffer.size, sink)
+                transformationFinished = true
+                val bytesRead = sink.size - startSize
+                return if (bytesRead == 0L) -1L else bytesRead
             }
         }
 
