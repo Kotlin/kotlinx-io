@@ -6,6 +6,7 @@ import kotlinx.io.UnsafeIoApi
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringApi
 import kotlinx.io.bytestring.unsafe.UnsafeByteStringOperations
+import kotlinx.io.readByteString
 
 /**
  * Abstract base class for implementing [kotlinx.io.Transformation] using `ByteArray`-based APIs.
@@ -267,7 +268,7 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      * Optimized implementation that transforms a [ByteString] using direct ByteArray access.
      *
      * This override uses [transformFinalIntoByteArray] directly since this is a one-shot operation.
-     * It avoids intermediate Buffer allocation by using a list of byte array chunks.
+     * It reads from the ByteString's underlying array directly and writes output to a Buffer.
      *
      * @param source the ByteString to transform
      * @return a new ByteString containing the transformed data
@@ -275,58 +276,56 @@ public abstract class UnsafeByteArrayTransformation : Transformation {
      */
     @OptIn(UnsafeByteStringApi::class)
     override fun transformFinal(source: ByteString): ByteString {
-        val outputChunks = mutableListOf<ByteArray>()
-        var totalOutputSize = 0
+        val sink = Buffer()
 
-        UnsafeByteStringOperations.withByteArrayUnsafe(source) { inputArray ->
-            var offset = 0
-            var chunkSize = DEFAULT_CHUNK_SIZE
+        UnsafeByteStringOperations.withByteArrayUnsafe(source) { input ->
+            var consumed = 0
 
             while (true) {
-                val outputBuffer = ByteArray(chunkSize)
-                val result = transformFinalIntoByteArray(
-                    inputArray, offset, inputArray.size,
-                    outputBuffer, 0, outputBuffer.size
-                )
+                lateinit var result: TransformResult
+
+                @Suppress("UNUSED_VARIABLE")
+                val _ = UnsafeBufferOperations.writeToTail(sink, 1) { output, outputStart, outputEnd ->
+                    result = transformFinalIntoByteArray(
+                        input, consumed, input.size,
+                        output, outputStart, outputEnd
+                    )
+                    result.produced
+                }
 
                 when {
                     result.outputRequired > 0 -> {
-                        // Retry with the requested buffer size
-                        chunkSize = result.outputRequired
+                        if (result.outputRequired <= UnsafeBufferOperations.maxSafeWriteCapacity) {
+                            @Suppress("UNUSED_VARIABLE")
+                            val written = UnsafeBufferOperations.writeToTail(sink, result.outputRequired) { output, outputStart, outputEnd ->
+                                val retryResult = transformFinalIntoByteArray(
+                                    input, consumed, input.size,
+                                    output, outputStart, outputEnd
+                                )
+                                consumed += retryResult.consumed
+                                retryResult.produced
+                            }
+                        } else {
+                            val temp = ByteArray(result.outputRequired)
+                            val retryResult = transformFinalIntoByteArray(
+                                input, consumed, input.size,
+                                temp, 0, temp.size
+                            )
+                            if (retryResult.produced > 0) {
+                                sink.write(temp, 0, retryResult.produced)
+                            }
+                            consumed += retryResult.consumed
+                        }
                     }
 
                     else -> {
-                        if (result.produced > 0) {
-                            outputChunks.add(outputBuffer.copyOf(result.produced))
-                            totalOutputSize += result.produced
-                        }
-                        offset += result.consumed
+                        consumed += result.consumed
                         if (result.consumed == 0 && result.produced == 0) break
-                        // Reset chunk size for next iteration
-                        chunkSize = DEFAULT_CHUNK_SIZE
                     }
                 }
             }
         }
 
-        // Concatenate all chunks into final result
-        if (outputChunks.isEmpty()) {
-            return ByteString()
-        }
-        if (outputChunks.size == 1) {
-            return ByteString(outputChunks[0])
-        }
-
-        val result = ByteArray(totalOutputSize)
-        var pos = 0
-        for (chunk in outputChunks) {
-            chunk.copyInto(result, pos)
-            pos += chunk.size
-        }
-        return ByteString(result)
-    }
-
-    private companion object {
-        private const val DEFAULT_CHUNK_SIZE = 8192
+        return sink.readByteString()
     }
 }
