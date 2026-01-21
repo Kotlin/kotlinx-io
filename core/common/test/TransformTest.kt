@@ -153,7 +153,7 @@ class TransformTest {
                 sink.write(source, toWrite)
                 return toWrite
             }
-            override fun finalizeTo(sink: Buffer) {}
+            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer) {}
             override fun close() {
                 transformClosed = true
             }
@@ -197,7 +197,7 @@ class TransformTest {
                 }
                 return 0L
             }
-            override fun finalizeTo(sink: Buffer) {
+            override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer) {
                 finished = true
             }
             override fun close() {
@@ -323,8 +323,8 @@ class TransformTest {
             return TransformResult.ok(canProcess, canProcess * 2)
         }
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult =
-            FinalizeResult.done()
+        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult =
+            TransformFinalResult.done()
 
         override fun close() {}
     }
@@ -362,8 +362,8 @@ class TransformTest {
             return TransformResult.ok(pairs * 2, pairs)
         }
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult =
-            FinalizeResult.done()
+        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult =
+            TransformFinalResult.done()
 
         override fun close() {}
     }
@@ -379,7 +379,7 @@ class TransformTest {
             return toConsume
         }
 
-        override fun finalizeTo(sink: Buffer) {
+        override fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer) {
             sink.writeString(trailer)
         }
 
@@ -539,7 +539,7 @@ class TransformTest {
             return TransformResult.ok(consumed, produced)
         }
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
             // Drain any remaining output buffer
             val pending = outputBuffer
             if (pending != null && outputPos < pending.size) {
@@ -550,7 +550,7 @@ class TransformTest {
                 if (outputPos >= pending.size) {
                     outputBuffer = null
                 }
-                return FinalizeResult.ok(toCopy)
+                return TransformFinalResult.ok(toCopy)
             }
 
             // Handle any remaining buffered input (incomplete block)
@@ -571,10 +571,10 @@ class TransformTest {
                 if (outputPos >= outputBuffer!!.size) {
                     outputBuffer = null
                 }
-                return FinalizeResult.ok(toCopy)
+                return TransformFinalResult.ok(toCopy)
             }
 
-            return FinalizeResult.done()
+            return TransformFinalResult.done()
         }
 
         override fun close() {}
@@ -649,8 +649,8 @@ class TransformTest {
             return TransformResult.ok(inputSize, requiredOutput)
         }
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult =
-            FinalizeResult.done()
+        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult =
+            TransformFinalResult.done()
 
         override fun close() {}
     }
@@ -705,14 +705,14 @@ class TransformTest {
             return TransformResult.ok(sourceEndIndex - sourceStartIndex, 0)
         }
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
-            if (finalized) return FinalizeResult.done()
+        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
+            if (finalized) return TransformFinalResult.done()
 
             val availableOutput = endIndex - startIndex
 
             // If buffer is too small, request larger buffer
             if (availableOutput < outputSize) {
-                return FinalizeResult.outputRequired(outputSize)
+                return TransformFinalResult.outputRequired(outputSize)
             }
 
             // Produce outputSize bytes atomically
@@ -720,7 +720,7 @@ class TransformTest {
                 sink[startIndex + i] = (i % 256).toByte()
             }
             finalized = true
-            return FinalizeResult.ok(outputSize)
+            return TransformFinalResult.ok(outputSize)
         }
 
         override fun close() {}
@@ -753,7 +753,7 @@ class TransformTest {
             return TransformResult.ok(inputSize, 0)
         }
 
-        override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+        override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
             // On first call, expand all buffered input
             if (outputBuffer == null && inputBuffer.size > 0) {
                 val input = inputBuffer.readByteArray()
@@ -776,10 +776,10 @@ class TransformTest {
                 if (outputPos >= pending.size) {
                     outputBuffer = null
                 }
-                return FinalizeResult.ok(toCopy)
+                return TransformFinalResult.ok(toCopy)
             }
 
-            return FinalizeResult.done()
+            return TransformFinalResult.done()
         }
 
         override fun close() {}

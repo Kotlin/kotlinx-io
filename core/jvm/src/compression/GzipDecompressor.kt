@@ -97,7 +97,7 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         return TransformResult.ok(consumed, produced)
     }
 
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+    override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
         // If inflater is finished but trailer not verified, verify it now
         if (inflater.finished() && !trailerVerified) {
             if (!verifyTrailer()) {
@@ -110,7 +110,62 @@ internal class GzipDecompressor : UnsafeByteArrayTransformation() {
         if (!inflater.finished()) {
             throw IOException("Truncated or corrupt gzip data")
         }
-        return FinalizeResult.done()
+        return TransformFinalResult.done()
+    }
+
+    override fun transformFinal(source: kotlinx.io.bytestring.ByteString): kotlinx.io.bytestring.ByteString {
+        val sourceBuffer = Buffer()
+        sourceBuffer.write(source.toByteArray())
+
+        // Parse header
+        if (!headerParsed) {
+            if (!parseHeader(sourceBuffer)) {
+                throw IOException("Truncated GZIP header")
+            }
+            headerParsed = true
+        }
+
+        val sink = Buffer()
+
+        // Inflate the compressed data
+        val inputArray = sourceBuffer.readByteArray()
+        if (inputArray.isNotEmpty()) {
+            inflater.setInput(inputArray, 0, inputArray.size)
+        }
+
+        while (!inflater.finished()) {
+            val temp = ByteArray(8192)
+            val produced = try {
+                inflater.inflate(temp)
+            } catch (e: DataFormatException) {
+                throw IOException("Invalid GZIP data: ${e.message}", e)
+            }
+            if (produced > 0) {
+                crc32.update(temp, 0, produced)
+                uncompressedSize += produced
+                sink.write(temp, 0, produced)
+            }
+            if (produced == 0 && inflater.needsInput() && !inflater.finished()) {
+                throw IOException("Truncated or corrupt gzip data")
+            }
+        }
+
+        // Get remaining bytes (trailer)
+        val remaining = inflater.remaining
+        if (remaining >= 8) {
+            val trailerStart = inputArray.size - remaining
+            remainingBuffer.write(inputArray, trailerStart, trailerStart + remaining)
+        }
+
+        // Verify trailer
+        if (!trailerVerified) {
+            if (!verifyTrailer()) {
+                throw IOException("Truncated or corrupt gzip data: incomplete trailer")
+            }
+            trailerVerified = true
+        }
+
+        return kotlinx.io.bytestring.ByteString(sink.readByteArray())
     }
 
     override fun close() {

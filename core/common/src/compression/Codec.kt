@@ -8,6 +8,8 @@ package kotlinx.io.compression
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 import kotlinx.io.Transformation
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.transform
 import kotlinx.io.transformedWith
 
 /**
@@ -95,4 +97,48 @@ public fun RawSink.compressed(compressor: Compressor): RawSink {
  */
 public fun RawSource.decompressed(decompressor: Decompressor): RawSource {
     return transformedWith(decompressor.createDecompressTransformation())
+}
+
+/**
+ * Compresses this byte string using the specified [compressor] and returns the result
+ * as a new byte string.
+ *
+ * The compressor's transformation is automatically closed after use.
+ *
+ * Example:
+ * ```kotlin
+ * val original = "Hello, World!".encodeToByteString()
+ * val compressed = original.compress(GZip())
+ * ```
+ *
+ * @param compressor the compressor to use for compression
+ * @return a new byte string containing the compressed data
+ * @throws kotlinx.io.IOException if compression fails
+ *
+ * @see decompress
+ */
+public fun ByteString.compress(compressor: Compressor): ByteString {
+    return transform(compressor.createCompressTransformation())
+}
+
+/**
+ * Decompresses this byte string using the specified [decompressor] and returns the result
+ * as a new byte string.
+ *
+ * The decompressor's transformation is automatically closed after use.
+ *
+ * Example:
+ * ```kotlin
+ * val compressed = getCompressedData()
+ * val original = compressed.decompress(GZip.decompressor())
+ * ```
+ *
+ * @param decompressor the decompressor to use for decompression
+ * @return a new byte string containing the decompressed data
+ * @throws kotlinx.io.IOException if decompression fails or the compressed data is corrupted
+ *
+ * @see compress
+ */
+public fun ByteString.decompress(decompressor: Decompressor): ByteString {
+    return transform(decompressor.createDecompressTransformation())
 }

@@ -5,6 +5,8 @@
 
 package kotlinx.io
 
+import kotlinx.io.bytestring.ByteString
+
 /**
  * A streaming transformation that converts input bytes to output bytes.
  *
@@ -13,11 +15,13 @@ package kotlinx.io
  * the stateful transformation operation, including any required headers, trailers, and
  * internal buffering.
  *
- * The typical lifecycle is:
+ * The typical lifecycle for streaming is:
  * 1. Create a transform instance
  * 2. Call [transformTo] multiple times with input data
- * 3. Call [finalizeTo] to signal end of input and flush remaining output
+ * 3. Call [transformFinalTo] with the last chunk of input to signal end and flush remaining output
  * 4. Call [close] to release resources
+ *
+ * For one-shot transformation, use [transformFinal] directly.
  *
  * Transform instances are not thread-safe and should only be used by a single thread.
  *
@@ -42,15 +46,18 @@ public interface Transformation : AutoCloseable {
     public fun transformTo(source: Buffer, byteCount: Long, sink: Buffer): Long
 
     /**
-     * Signals end of input and flushes any remaining transformed data.
+     * Transforms the final chunk of input data and flushes any remaining transformed data.
      *
-     * After calling this method, no more data should be transformed with this instance.
-     * This method may need to be called multiple times until all output is flushed.
+     * This method processes up to [byteCount] bytes from [source] as the final input,
+     * then completes the transformation by flushing any buffered output, writing trailers,
+     * etc. After calling this method, no more data should be transformed with this instance.
      *
-     * @param sink buffer to write remaining transformed output to
-     * @throws IOException if finalization fails
+     * @param source buffer containing the final input data to transform
+     * @param byteCount maximum number of bytes to read from source
+     * @param sink buffer to write transformed output to
+     * @throws IOException if transformation fails
      */
-    public fun finalizeTo(sink: Buffer)
+    public fun transformFinalTo(source: Buffer, byteCount: Long, sink: Buffer)
 
     /**
      * Releases all resources associated with this transformation.
@@ -58,6 +65,31 @@ public interface Transformation : AutoCloseable {
      * After closing, the transform should not be used.
      */
     override fun close()
+
+    /**
+     * Transforms a complete [ByteString] in one shot and returns the result.
+     *
+     * This method provides a convenient one-shot transformation for complete data.
+     * The default implementation uses [transformFinalTo] with buffer-based operations.
+     *
+     * Subclasses can override this method to provide optimized implementations that
+     * work directly with byte arrays or use algorithm-specific optimizations.
+     *
+     * This method is called even for empty [source] to ensure proper handling of
+     * transformations that produce output for empty input (e.g., compression formats
+     * with headers and trailers).
+     *
+     * @param source the ByteString to transform
+     * @return a new ByteString containing the transformed data
+     * @throws IOException if transformation fails
+     */
+    public fun transformFinal(source: ByteString): ByteString {
+        val inputBuffer = Buffer()
+        inputBuffer.write(source)
+        val outputBuffer = Buffer()
+        transformFinalTo(inputBuffer, inputBuffer.size, outputBuffer)
+        return outputBuffer.readByteString()
+    }
 }
 
 /**
@@ -148,7 +180,8 @@ internal class TransformingSink(
 
         // Finalize transformation and write any remaining data
         try {
-            transformation.finalizeTo(outputBuffer)
+            val emptyBuffer = Buffer()
+            transformation.transformFinalTo(emptyBuffer, 0L, outputBuffer)
             emitTransformedData()
         } catch (e: Throwable) {
             thrown = e
@@ -230,8 +263,9 @@ internal class TransformingSource(
                 // Upstream exhausted
                 // If inputBuffer is also empty, the transformation has nothing more to process
                 if (inputBuffer.exhausted()) {
-                    // Call finalize to allow the transformation to complete (e.g., for block ciphers)
-                    transformation.finalizeTo(sink)
+                    // Call transformFinalTo to allow the transformation to complete (e.g., for block ciphers)
+                    val emptyBuffer = Buffer()
+                    transformation.transformFinalTo(emptyBuffer, 0L, sink)
                     transformationFinished = true
                     val bytesRead = sink.size - startSize
                     return if (bytesRead == 0L) -1L else bytesRead

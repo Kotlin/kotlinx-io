@@ -95,14 +95,14 @@ internal class ZlibDecompressor(
         }
     }
 
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+    override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
         check(initialized) { "Decompressor is closed" }
 
         // Verify that decompression is complete
         if (!finished) {
             throw IOException("Truncated or corrupt deflate/gzip data")
         }
-        return FinalizeResult.done()
+        return TransformFinalResult.done()
     }
 
     override fun close() {

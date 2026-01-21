@@ -50,11 +50,11 @@ internal class InflaterDecompressor(
         return TransformResult.ok(consumed, produced)
     }
 
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+    override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
         if (!inflater.finished()) {
             throw IOException("Truncated or corrupt deflate data")
         }
-        return FinalizeResult.done()
+        return TransformFinalResult.done()
     }
 
     override fun close() {

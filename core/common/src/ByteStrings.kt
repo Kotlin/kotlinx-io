@@ -180,3 +180,33 @@ public fun Buffer.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
     }
     return -1
 }
+
+/**
+ * Transforms this byte string using the specified [transformation] and returns the result
+ * as a new byte string.
+ *
+ * The transformation is automatically closed after use, even if an exception is thrown.
+ * The transformation is run even for empty byte strings, ensuring proper initialization
+ * and finalization (e.g., for compression formats that produce headers and trailers).
+ *
+ * This function uses an optimized path when the transformation is an
+ * [UnsafeByteArrayTransformation][kotlinx.io.unsafe.UnsafeByteArrayTransformation],
+ * avoiding buffer allocation overhead by working directly with byte arrays.
+ *
+ * Example:
+ * ```kotlin
+ * val original = "Hello, World!".encodeToByteString()
+ * val compressed = original.transform(GZip().createCompressTransformation())
+ * val decompressed = compressed.transform(GZip.decompressor().createDecompressTransformation())
+ * ```
+ *
+ * @param transformation the transformation to apply to this byte string
+ * @return a new byte string containing the transformed data
+ * @throws IOException if transformation fails
+ *
+ * @see kotlinx.io.compression.compress
+ * @see kotlinx.io.compression.decompress
+ */
+public fun ByteString.transform(transformation: Transformation): ByteString {
+    return transformation.use { it.transformFinal(this) }
+}

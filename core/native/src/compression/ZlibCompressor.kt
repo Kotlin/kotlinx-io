@@ -88,9 +88,9 @@ internal class ZlibCompressor(
         }
     }
 
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+    override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
         check(initialized) { "Compressor is closed" }
-        if (finished) return FinalizeResult.done()
+        if (finished) return TransformFinalResult.done()
 
         if (!finishCalled) {
             zStream.next_in = null
@@ -111,11 +111,11 @@ internal class ZlibCompressor(
             when (deflateResult) {
                 Z_OK, Z_BUF_ERROR -> {
                     // More output pending
-                    FinalizeResult.ok(written)
+                    TransformFinalResult.ok(written)
                 }
                 Z_STREAM_END -> {
                     finished = true
-                    if (written > 0) FinalizeResult.ok(written) else FinalizeResult.done()
+                    if (written > 0) TransformFinalResult.ok(written) else TransformFinalResult.done()
                 }
                 else -> {
                     throw IOException("Compression failed: ${zlibErrorMessage(deflateResult)}")

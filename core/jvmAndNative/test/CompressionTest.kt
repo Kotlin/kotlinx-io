@@ -6,6 +6,9 @@
 package kotlinx.io.compression
 
 import kotlinx.io.*
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.decodeToString
+import kotlinx.io.bytestring.encodeToByteString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -354,5 +357,102 @@ class CompressionTest {
         // Using decompression factory
         val decompressed = compressed.decompressed(GZip.decompressor()).buffered().readString()
         assertEquals(original, decompressed)
+    }
+
+    // ByteString.transform, compress, decompress tests
+
+    @Test
+    fun byteStringCompressDecompressGzip() {
+        val original = "Hello, World! This is a test of ByteString compression.".encodeToByteString()
+
+        val compressed = original.compress(GZip())
+        assertTrue(compressed.size > 0, "Compressed data should not be empty")
+
+        val decompressed = compressed.decompress(GZip.decompressor())
+        assertEquals(original, decompressed)
+    }
+
+    @Test
+    fun byteStringCompressDecompressDeflate() {
+        val original = "Hello, World! This is a test of ByteString compression.".encodeToByteString()
+
+        val compressed = original.compress(Deflate())
+        assertTrue(compressed.size > 0, "Compressed data should not be empty")
+
+        val decompressed = compressed.decompress(Deflate.decompressor())
+        assertEquals(original, decompressed)
+    }
+
+    @Test
+    fun byteStringCompressDecompressEmpty() {
+        val original = ByteString()
+
+        // GZIP should produce header + trailer even for empty input
+        val compressedGzip = original.compress(GZip())
+        assertTrue(compressedGzip.size > 0, "GZIP compressed empty data should have header/trailer")
+
+        val decompressedGzip = compressedGzip.decompress(GZip.decompressor())
+        assertEquals(original, decompressedGzip)
+
+        // Deflate
+        val compressedDeflate = original.compress(Deflate())
+        val decompressedDeflate = compressedDeflate.decompress(Deflate.decompressor())
+        assertEquals(original, decompressedDeflate)
+    }
+
+    @Test
+    fun byteStringCompressDecompressLargeData() {
+        val original = "x".repeat(100000).encodeToByteString()
+
+        val compressed = original.compress(GZip())
+        assertTrue(compressed.size < original.size, "Compression should reduce size for repetitive data")
+
+        val decompressed = compressed.decompress(GZip.decompressor())
+        assertEquals(original, decompressed)
+    }
+
+    @Test
+    fun byteStringCompressDecompressBinaryData() {
+        val original = ByteString(*ByteArray(256) { it.toByte() })
+
+        val compressed = original.compress(GZip())
+        val decompressed = compressed.decompress(GZip.decompressor())
+
+        assertEquals(original, decompressed)
+    }
+
+    @Test
+    fun byteStringCompressWithDifferentLevels() {
+        val original = "Repeating pattern for compression test. ".repeat(100).encodeToByteString()
+
+        val compressedFast = original.compress(GZip(level = 1))
+        val compressedBest = original.compress(GZip(level = 9))
+
+        // Both should decompress correctly
+        assertEquals(original, compressedFast.decompress(GZip.decompressor()))
+        assertEquals(original, compressedBest.decompress(GZip.decompressor()))
+
+        // Best compression should be at least as good as fast
+        assertTrue(compressedBest.size <= compressedFast.size)
+    }
+
+    @Test
+    fun byteStringTransformWithTransformation() {
+        val original = "Test ByteString.transform() directly".encodeToByteString()
+
+        // Use transform() directly with a transformation
+        val compressed = original.transform(GZip().createCompressTransformation())
+        val decompressed = compressed.transform(GZip.decompressor().createDecompressTransformation())
+
+        assertEquals(original, decompressed)
+    }
+
+    @Test
+    fun byteStringDecompressInvalidData() {
+        val invalidData = "This is not valid GZIP data".encodeToByteString()
+
+        assertFailsWith<IOException> {
+            invalidData.decompress(GZip.decompressor())
+        }
     }
 }

@@ -41,15 +41,15 @@ internal class DeflaterCompressor(
         return TransformResult.ok(consumed, produced)
     }
 
-    override fun finalizeIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): FinalizeResult {
+    override fun transformFinalIntoByteArray(sink: ByteArray, startIndex: Int, endIndex: Int): TransformFinalResult {
         if (!finishCalled) {
             deflater.finish()
             finishCalled = true
         }
-        if (deflater.finished()) return FinalizeResult.done()
+        if (deflater.finished()) return TransformFinalResult.done()
 
         val produced = deflater.deflate(sink, startIndex, endIndex - startIndex)
-        return FinalizeResult.ok(produced)
+        return TransformFinalResult.ok(produced)
     }
 
     override fun close() {
