@@ -2,7 +2,7 @@
 kotlin = "2.3.0"
 java = "8"
 multi-release-toolchain = "17"
-dokka = "2.1.0"
+dokka = "2.2.0-Beta"
 kover = "0.9.3"
 benchmark = "0.4.14"
 jmh = "1.37"
