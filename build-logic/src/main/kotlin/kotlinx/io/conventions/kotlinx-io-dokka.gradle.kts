@@ -31,6 +31,10 @@ dokka {
     pluginsConfiguration.html {
         templatesDir = rootDir.resolve("dokka-templates")
     }
+
+    dokkaGeneratorIsolation.set(ProcessIsolation {
+        systemProperties.put("org.jetbrains.dokka.analysis.enableExperimentalKDocResolution", true)
+    })
 }
 
 dependencies {
