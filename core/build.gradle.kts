@@ -3,6 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENCE file.
  */
 
+@file:OptIn(ExperimentalWasmDsl::class)
+
 import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
@@ -29,10 +31,23 @@ kotlin {
                 useMocha {
                     timeout = "300s"
                 }
+                filter.setExcludePatterns("kotlinx.io.files.*")
             }
         }
     }
-    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        nodejs()
+        /*
+        browser {
+            testTask {
+                useKarma {
+                    // how to configure browsers available in CI?
+                }
+                filter.setExcludePatterns("kotlinx.io.files.*")
+            }
+        }
+         */
+    }
     wasmWasi {
         nodejs {
             testTask {
