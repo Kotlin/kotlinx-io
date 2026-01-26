@@ -20,12 +20,14 @@ plugins {
 rootProject.name = "kotlinx-io"
 
 include(":kotlinx-io-core")
+include(":kotlinx-io-coroutines")
 include(":kotlinx-io-benchmarks")
 include(":kotlinx-io-bytestring")
 include(":kotlinx-io-smoke-tests")
 include(":kotlinx-io-okio")
 
 project(":kotlinx-io-core").projectDir = file("./core")
+project(":kotlinx-io-coroutines").projectDir = file("./coroutines")
 project(":kotlinx-io-benchmarks").projectDir = file("./benchmarks")
 project(":kotlinx-io-bytestring").projectDir = file("./bytestring")
 project(":kotlinx-io-smoke-tests").projectDir = file("./smoke-tests")

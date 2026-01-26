@@ -1,0 +1,20 @@
+public final class kotlinx/io/coroutines/DelimitingByteStreamDecoder : kotlinx/io/coroutines/StreamingDecoder {
+	public fun <init> ()V
+	public fun <init> (B)V
+	public synthetic fun <init> (BILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun decode ([BLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getDelimiter ()B
+	public fun onClose (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class kotlinx/io/coroutines/SourceFlowKt {
+	public static final field READ_BUFFER_SIZE J
+	public static final fun asFlow (Lkotlinx/io/RawSource;Lkotlinx/io/coroutines/StreamingDecoder;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun asFlow$default (Lkotlinx/io/RawSource;Lkotlinx/io/coroutines/StreamingDecoder;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract interface class kotlinx/io/coroutines/StreamingDecoder {
+	public abstract fun decode ([BLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun onClose (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
