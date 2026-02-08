@@ -9,7 +9,6 @@ jmh = "1.37"
 coroutines = "1.10.2"
 animalsniffer = "2.0.1"
 okio = "3.10.2"
-browser = "0.5.0"
 
 [libraries]
 
@@ -20,11 +19,10 @@ power-assert-plugin = { group = "org.jetbrains.kotlin.plugin.power-assert", name
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 animalsniffer-gradle-plugin = { group = "ru.vyarus", name = "gradle-animalsniffer-plugin", version.ref = "animalsniffer" }
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
-kotlinx-browser = { group = "org.jetbrains.kotlinx", name = "kotlinx-browser", version.ref = "browser" }
 
 [plugins]
 
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 power-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
-kotlinx-benchmark-plugin = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "benchmark" }
+kotlinx-benchmark-plugin = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "benchmark"}

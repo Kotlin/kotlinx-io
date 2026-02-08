@@ -61,10 +61,6 @@ kotlin {
                 filter.setExcludePatterns("*SmokeFileTest*")
             }
         }
-
-        compilerOptions {
-            optIn.add("kotlin.js.ExperimentalWasmJsInterop")
-        }
     }
 
     @OptIn(ExperimentalWasmDsl::class)
@@ -72,10 +68,6 @@ kotlin {
         nodejs()
         //  Disabled because we can't exclude some tests: https://youtrack.jetbrains.com/issue/KT-58291
         // browser()
-
-        compilerOptions {
-            optIn.add("kotlin.js.ExperimentalWasmJsInterop")
-        }
     }
 
     @OptIn(ExperimentalWasmDsl::class)
