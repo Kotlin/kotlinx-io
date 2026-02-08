@@ -1,0 +1,29 @@
+// Klib ABI Dump
+// Targets: [js, wasmJs]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <org.jetbrains.kotlinx:kotlinx-io-browser>
+final class kotlinx.io.browser/ArrayBufferSink : kotlinx.io/RawSink { // kotlinx.io.browser/ArrayBufferSink|null[0]
+    constructor <init>(kotlin/Long) // kotlinx.io.browser/ArrayBufferSink.<init>|<init>(kotlin.Long){}[0]
+    constructor <init>(org.khronos.webgl/ArrayBuffer) // kotlinx.io.browser/ArrayBufferSink.<init>|<init>(org.khronos.webgl.ArrayBuffer){}[0]
+
+    final val arrayBuffer // kotlinx.io.browser/ArrayBufferSink.arrayBuffer|{}arrayBuffer[0]
+        final fun <get-arrayBuffer>(): org.khronos.webgl/ArrayBuffer // kotlinx.io.browser/ArrayBufferSink.arrayBuffer.<get-arrayBuffer>|<get-arrayBuffer>(){}[0]
+
+    final fun close() // kotlinx.io.browser/ArrayBufferSink.close|close(){}[0]
+    final fun flush() // kotlinx.io.browser/ArrayBufferSink.flush|flush(){}[0]
+    final fun write(kotlinx.io/Buffer, kotlin/Long) // kotlinx.io.browser/ArrayBufferSink.write|write(kotlinx.io.Buffer;kotlin.Long){}[0]
+}
+
+final class kotlinx.io.browser/ArrayBufferSource : kotlinx.io/RawSource { // kotlinx.io.browser/ArrayBufferSource|null[0]
+    constructor <init>(org.khronos.webgl/ArrayBuffer) // kotlinx.io.browser/ArrayBufferSource.<init>|<init>(org.khronos.webgl.ArrayBuffer){}[0]
+
+    final val arrayBuffer // kotlinx.io.browser/ArrayBufferSource.arrayBuffer|{}arrayBuffer[0]
+        final fun <get-arrayBuffer>(): org.khronos.webgl/ArrayBuffer // kotlinx.io.browser/ArrayBufferSource.arrayBuffer.<get-arrayBuffer>|<get-arrayBuffer>(){}[0]
+
+    final fun close() // kotlinx.io.browser/ArrayBufferSource.close|close(){}[0]
+    final fun readAtMostTo(kotlinx.io/Buffer, kotlin/Long): kotlin/Long // kotlinx.io.browser/ArrayBufferSource.readAtMostTo|readAtMostTo(kotlinx.io.Buffer;kotlin.Long){}[0]
+}
