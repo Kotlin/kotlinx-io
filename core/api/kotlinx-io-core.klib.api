@@ -1,5 +1,6 @@
 // Klib ABI Dump
 // Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm32Hfp, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, wasmWasi, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm32Hfp, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Alias: apple => [iosArm64, iosSimulatorArm64, iosX64, macosArm64, macosX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
@@ -301,6 +302,15 @@ final fun kotlinx.io/discardingSink(): kotlinx.io/RawSink // kotlinx.io/discardi
 final inline fun (kotlinx.io.unsafe/SegmentReadContext).kotlinx.io.unsafe/withData(kotlinx.io/Segment, kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Unit>) // kotlinx.io.unsafe/withData|withData@kotlinx.io.unsafe.SegmentReadContext(kotlinx.io.Segment;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Unit>){}[0]
 final inline fun (kotlinx.io/Sink).kotlinx.io/writeToInternalBuffer(kotlin/Function1<kotlinx.io/Buffer, kotlin/Unit>) // kotlinx.io/writeToInternalBuffer|writeToInternalBuffer@kotlinx.io.Sink(kotlin.Function1<kotlinx.io.Buffer,kotlin.Unit>){}[0]
 final inline fun <#A: kotlin/Any?> (kotlinx.io/Buffer).kotlinx.io/seek(kotlin/Long, kotlin/Function2<kotlinx.io/Segment?, kotlin/Long, #A>): #A // kotlinx.io/seek|seek@kotlinx.io.Buffer(kotlin.Long;kotlin.Function2<kotlinx.io.Segment?,kotlin.Long,0:0>){0§<kotlin.Any?>}[0]
+
+// Targets: [native]
+final fun (kotlinx.io/Sink).kotlinx.io/write(kotlinx.cinterop/CPointer<kotlinx.cinterop/ByteVarOf<kotlin/Byte>>, kotlin/Long) // kotlinx.io/write|write@kotlinx.io.Sink(kotlinx.cinterop.CPointer<kotlinx.cinterop.ByteVarOf<kotlin.Byte>>;kotlin.Long){}[0]
+
+// Targets: [native]
+final fun (kotlinx.io/Source).kotlinx.io/readAtMostTo(kotlinx.cinterop/CPointer<kotlinx.cinterop/ByteVarOf<kotlin/Byte>>, kotlin/Long): kotlin/Long // kotlinx.io/readAtMostTo|readAtMostTo@kotlinx.io.Source(kotlinx.cinterop.CPointer<kotlinx.cinterop.ByteVarOf<kotlin.Byte>>;kotlin.Long){}[0]
+
+// Targets: [native]
+final fun (kotlinx.io/Source).kotlinx.io/readTo(kotlinx.cinterop/CPointer<kotlinx.cinterop/ByteVarOf<kotlin/Byte>>, kotlin/Long) // kotlinx.io/readTo|readTo@kotlinx.io.Source(kotlinx.cinterop.CPointer<kotlinx.cinterop.ByteVarOf<kotlin.Byte>>;kotlin.Long){}[0]
 
 // Targets: [apple]
 final fun (kotlinx.io/Sink).kotlinx.io/asNSOutputStream(): platform.Foundation/NSOutputStream // kotlinx.io/asNSOutputStream|asNSOutputStream@kotlinx.io.Sink(){}[0]
