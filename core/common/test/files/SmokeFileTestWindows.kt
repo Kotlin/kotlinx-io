@@ -12,13 +12,20 @@ class SmokeFileTestWindows {
     @Test
     fun isAbsolute() {
         if (!isWindows) return
-        assertFalse(Path("C:").isAbsolute)
-        assertTrue(Path("C:\\").isAbsolute)
-        assertTrue(Path("C:/").isAbsolute)
-        assertTrue(Path("C:/../").isAbsolute)
-        assertFalse(Path("C:file").isAbsolute)
-        assertFalse(Path("bla\\bla\\bla").isAbsolute)
-        assertTrue(Path("\\\\server\\share").isAbsolute)
+        fun assertIsAbsolute(path: String) {
+            assertTrue(Path(path).isAbsolute, "Expected absolute path: $path")
+        }
+        fun assertIsRelative(path: String) {
+            assertFalse(Path(path).isAbsolute, "Expected relative path: $path")
+        }
+        assertIsRelative("C:")
+        assertIsAbsolute("C:\\")
+        assertIsAbsolute("C:/")
+        assertIsAbsolute("C:/../")
+        assertIsRelative("C:file")
+        assertIsRelative("bla\\bla\\bla")
+        assertIsAbsolute("\\\\server\\share")
+        assertIsAbsolute("\\\\?\\C:\\Test\\Foo.txt")
     }
 
     @Test

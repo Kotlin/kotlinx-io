@@ -13,7 +13,9 @@ import kotlinx.io.IOException
 import platform.posix.DIR
 import platform.posix.closedir
 import platform.posix.errno
+import platform.posix.opendir
 import platform.posix.strerror
+
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual class OpaqueDirEntry(private val dir: CPointer<DIR>) : AutoCloseable {
@@ -33,7 +35,7 @@ internal actual class OpaqueDirEntry(private val dir: CPointer<DIR>) : AutoClose
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun opendir(path: String): OpaqueDirEntry {
-    val dirent = platform.posix.opendir(path)
+    val dirent = opendir(path)
     if (dirent != null) return OpaqueDirEntry(dirent)
 
     val err = errno
