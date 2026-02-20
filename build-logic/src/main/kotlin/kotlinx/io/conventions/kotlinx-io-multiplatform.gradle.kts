@@ -22,6 +22,7 @@ kotlin {
     compilerOptions {
         allWarningsAsErrors = true
         freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.add("-Xreturn-value-checker=full")
     }
 
     val versionCatalog: VersionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -119,7 +120,12 @@ kotlin {
     tasks {
         val jvmJar by existing(Jar::class) {
             manifest {
-                attributes("Multi-Release" to true)
+                attributes(
+                    "Multi-Release" to true,
+                    "Implementation-Vendor" to "JetBrains",
+                    "Implementation-Title" to project.name,
+                    "Implementation-Version" to project.version,
+                )
             }
             from(project.sourceSets["java9ModuleInfo"].output)
         }

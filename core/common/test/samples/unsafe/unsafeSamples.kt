@@ -22,17 +22,16 @@ class UnsafeBufferOperationsSamples {
             require(byteCount > 0) { "byteCount should be positive. Was: $byteCount" }
             var remaining = byteCount
             while (remaining > 0) {
-                UnsafeBufferOperations.writeToTail(this, 1) { data, startIndex, endIndex ->
+                // writeToTail returns the total number of bytes written
+                remaining -= UnsafeBufferOperations.writeToTail(this, 1) { data, startIndex, endIndex ->
                     // data's slice from startIndex to endIndex is available for writing,
                     // but that slice could be much larger than what remained to write.
                     val correctedEndIndex = min(endIndex, startIndex + remaining)
                     // write random bytes
                     Random.Default.nextBytes(data, startIndex, correctedEndIndex)
-                    // number of bytes written
-                    val written = correctedEndIndex - startIndex
-                    remaining -= written
+                    // number of bytes written,
                     // that many bytes will be committed to the buffer
-                    written
+                    correctedEndIndex - startIndex
                 }
             }
         }
@@ -71,7 +70,7 @@ class UnsafeBufferOperationsSamples {
             while (!complete) {
                 require(1) // check if we still have something to read
 
-                UnsafeBufferOperations.readFromHead(this) { data, startOffset, endOffset ->
+                val _ = UnsafeBufferOperations.readFromHead(this) { data, startOffset, endOffset ->
                     var offset = startOffset
                     do {
                         val b = data[offset++]
@@ -110,7 +109,7 @@ class UnsafeBufferOperationsSamples {
                 if (exhausted()) throw EOFException()
                 // Pick the first segment and read from it either until the segment exhausted,
                 // or the number if finished.
-                UnsafeBufferOperations.readFromHead(this) { readCtx, segment ->
+                val _ = UnsafeBufferOperations.readFromHead(this) { readCtx, segment ->
                     // Iterate over every byte contained in the segment
                     for (offset in 0..< segment.size) {
                         if (shift > 28) throw NumberFormatException("Overflow")
@@ -153,7 +152,7 @@ class UnsafeBufferOperationsSamples {
             // In the worst case, int will be encoded using 5 bytes
             val minCapacity = 5
             // Acquire a segment that can fit at least 5 bytes
-            UnsafeBufferOperations.writeToTail(this, minCapacity) { ctx, segment ->
+            val _ = UnsafeBufferOperations.writeToTail(this, minCapacity) { ctx, segment ->
                 // Count how many bytes were actually written
                 var bytesWritten = 0
                 var remainingBits = value
@@ -181,7 +180,7 @@ class UnsafeBufferOperationsSamples {
         // update buffer's state after writing all bytes
 
         val minCapacity = 5 // in the worst case, int will be encoded using 5 bytes
-        UnsafeBufferOperations.writeToTail(this, minCapacity) { ctx, seg ->
+        val _ = UnsafeBufferOperations.writeToTail(this, minCapacity) { ctx, seg ->
             var bytesWritten = 0
             var remainingBits = value
             do {
@@ -212,7 +211,7 @@ class UnsafeBufferOperationsSamples {
                 // optimize small values encoding: anything below 127 will be encoded using a single byte anyway
                 if (value < 0x80u) {
                     // we need a space for a single byte, but if there's more - we'll try to fill it
-                    UnsafeBufferOperations.writeToTail(this, 1) { ctx, seg ->
+                    val _ = UnsafeBufferOperations.writeToTail(this, 1) { ctx, seg ->
                         var bytesWritten = 0
                         ctx.setUnchecked(seg, bytesWritten++, value.toByte())
 

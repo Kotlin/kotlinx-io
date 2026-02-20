@@ -210,7 +210,7 @@ public class Segment {
         prefix.limit = prefix.pos + byteCount
         pos += byteCount
         if (this.prev != null) {
-            this.prev!!.push(prefix)
+            val _ = this.prev!!.push(prefix)
         } else {
             prefix.next = this
             this.prev = prefix
