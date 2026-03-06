@@ -10,11 +10,13 @@ pluginManagement {
         mavenCentral()
         google()
         gradlePluginPortal()
+        mavenLocal()
     }
 }
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
+    id("org.jetbrains.kotlinx.artifacts-validator-plugin") version "0.0.1-SNAPSHOT"
 }
 
 rootProject.name = "kotlinx-io"
