@@ -11,6 +11,7 @@ import kotlinx.io.RawSource
 import kotlinx.io.node.fs
 import kotlinx.io.node.os
 import kotlinx.io.withCaughtException
+import kotlin.time.Instant
 
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
@@ -80,7 +81,9 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             metadata = FileMetadata(
                 isRegularFile = isFile,
                 isDirectory = (mode and fs.constants.S_IFMT) == fs.constants.S_IFDIR,
-                if (isFile) stat.size.toLong() else -1L
+                size = if (isFile) stat.size.toLong() else -1L,
+                createdAt = stat.ctimeMs.toInstant(),
+                updatedAt = stat.mtimeMs.toInstant(),
             )
         }?.also {
             throw IOException("Stat failed for $path", it)
@@ -128,3 +131,10 @@ public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
 
+
+private fun Double.toInstant(): Instant {
+    val epoch = this * 0.001
+    val seconds = epoch.toLong()
+    val nanos = (epoch - seconds).times(1e9).toLong()
+    return Instant.fromEpochSeconds(seconds, nanos)
+}

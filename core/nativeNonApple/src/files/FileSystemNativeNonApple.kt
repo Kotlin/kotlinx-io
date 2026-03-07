@@ -27,7 +27,9 @@ internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
         return FileMetadata(
             isRegularFile = isFile,
             isDirectory = (mode and S_IFMT) == S_IFDIR,
-            if (isFile) struct_stat.st_size.toLong() else -1L
+            size = if (isFile) struct_stat.st_size.toLong() else -1L,
+            createdAt = null,
+            updatedAt = null,
         )
     }
 }

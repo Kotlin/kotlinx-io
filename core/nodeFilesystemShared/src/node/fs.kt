@@ -70,7 +70,10 @@ internal external interface Fs {
  * Partial declaration of a class mirroring [node:fs.Stats](https://nodejs.org/api/fs.html#class-fsstats)
  */
 internal external interface Stats {
+    val atimeMs: Double
+    val ctimeMs: Double
     val mode: Int
+    val mtimeMs: Double
     val size: Int
     fun isDirectory(): Boolean
 }
