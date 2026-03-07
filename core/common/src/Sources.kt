@@ -106,7 +106,9 @@ public fun Source.readDecimalLong(): Long {
                             writeDecimalLong(value)
                             writeByte(b)
 
-                            if (!negative) readByte() // Skip negative sign.
+                            if (!negative) {
+                                val _ = readByte() // Skip negative sign.
+                            }
                             throw NumberFormatException("Number too large: ${readString()}")
                         }
                     }

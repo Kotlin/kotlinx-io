@@ -104,6 +104,7 @@ public fun Base64.encode(
  *
  * @return the destination appendable.
  */
+@IgnorableReturnValue
 public fun <A : Appendable> Base64.encodeToAppendable(
     source: ByteString,
     destination: A,

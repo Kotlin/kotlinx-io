@@ -5,6 +5,7 @@
 
 package kotlinx.io.files
 
+import kotlinx.io.isWindows
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

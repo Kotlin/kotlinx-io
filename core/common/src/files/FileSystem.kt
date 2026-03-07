@@ -225,5 +225,3 @@ public expect class FileNotFoundException(message: String?) : IOException
 
 internal const val WindowsPathSeparator: Char = '\\'
 internal const val UnixPathSeparator: Char = '/'
-
-internal expect val isWindows: Boolean

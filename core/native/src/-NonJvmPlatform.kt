@@ -20,6 +20,8 @@
  */
 package kotlinx.io
 
+import kotlin.experimental.ExperimentalNativeApi
+
 public actual open class IOException : Exception {
     public actual constructor() : super()
 
@@ -37,3 +39,6 @@ public actual open class EOFException : IOException {
 
     public constructor(message: String?, cause: Throwable?) : super(message, cause)
 }
+
+@OptIn(ExperimentalNativeApi::class)
+internal actual val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS

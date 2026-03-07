@@ -11,10 +11,8 @@ import kotlinx.io.RawSource
 import kotlinx.io.node.fs
 import kotlinx.io.node.os
 import kotlinx.io.withCaughtException
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
     override fun exists(path: Path): Boolean {
         return fs.existsSync(path.path)
@@ -133,9 +131,7 @@ public actual open class FileNotFoundException actual constructor(
     message: String?,
 ) : IOException(message)
 
-internal actual val isWindows = os.platform() == "win32"
 
-@OptIn(ExperimentalTime::class)
 private fun Double.toInstant(): Instant {
     val epoch = this * 0.001
     val seconds = epoch.toLong()

@@ -36,6 +36,7 @@ import java.nio.channels.ByteChannel
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.bufferTransferToStream
  */
+@IgnorableReturnValue
 public fun Buffer.transferFrom(input: InputStream): Buffer {
     write(input, Long.MAX_VALUE, true)
     return this
@@ -53,6 +54,7 @@ public fun Buffer.transferFrom(input: InputStream): Buffer {
  *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.writeInputStreamToBuffer
  */
+@IgnorableReturnValue
 public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
     checkByteCount(byteCount)
     write(input, byteCount, false)
@@ -62,16 +64,16 @@ public fun Buffer.write(input: InputStream, byteCount: Long): Buffer {
 @OptIn(UnsafeIoApi::class)
 private fun Buffer.write(input: InputStream, byteCount: Long, forever: Boolean) {
     var remainingByteCount = byteCount
-    var exchaused = false
-    while (!exchaused && (remainingByteCount > 0L || forever)) {
-        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+    var exhausted = false
+    while (!exhausted && (remainingByteCount > 0L || forever)) {
+        val _ = UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
             val maxToCopy = minOf(remainingByteCount, limit - pos).toInt()
             val bytesRead = input.read(data, pos, maxToCopy)
             if (bytesRead == -1) {
                 if (!forever) {
                     throw EOFException("Stream exhausted before $byteCount bytes were read.")
                 }
-                exchaused = true
+                exhausted = true
                 0
             } else {
                 remainingByteCount -= bytesRead
@@ -97,10 +99,9 @@ public fun Buffer.readTo(out: OutputStream, byteCount: Long = size) {
     var remainingByteCount = byteCount
 
     while (remainingByteCount > 0L) {
-        UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        remainingByteCount -= UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
             val toCopy = minOf(remainingByteCount, limit - pos).toInt()
             out.write(data, pos, toCopy)
-            remainingByteCount -= toCopy
             toCopy
         }
     }
@@ -156,9 +157,8 @@ public fun Buffer.copyTo(
 @OptIn(UnsafeIoApi::class)
 public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
     if (exhausted()) return -1
-    var toCopy = 0
-    UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
-        toCopy = minOf(sink.remaining(), limit - pos)
+    val toCopy = UnsafeBufferOperations.readFromHead(this) { data, pos, limit ->
+        val toCopy = minOf(sink.remaining(), limit - pos)
         sink.put(data, pos, toCopy)
         toCopy
     }
@@ -169,18 +169,20 @@ public fun Buffer.readAtMostTo(sink: ByteBuffer): Int {
 /**
  * Reads all data from [source] into this buffer.
  *
+ * @return this buffer.
+ *
  * @sample kotlinx.io.samples.KotlinxIoSamplesJvm.transferBufferFromByteBuffer
  */
+@IgnorableReturnValue
 @OptIn(UnsafeIoApi::class)
 public fun Buffer.transferFrom(source: ByteBuffer): Buffer {
     val byteCount = source.remaining()
     var remaining = byteCount
 
     while (remaining > 0) {
-        UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
+        remaining -= UnsafeBufferOperations.writeToTail(this, 1) { data, pos, limit ->
             val toCopy = minOf(remaining, limit - pos)
             source.get(data, pos, toCopy)
-            remaining -= toCopy
             toCopy
         }
     }

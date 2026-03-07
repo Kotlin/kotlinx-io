@@ -14,7 +14,7 @@ internal external interface Fs {
     /**
      * See https://nodejs.org/api/fs.html#fsmkdirsyncpath-options
      */
-    fun mkdirSync(path: String): Boolean
+    fun mkdirSync(path: String)
 
     /**
      * See https://nodejs.org/api/fs.html#fsrenamesyncoldpath-newpath

@@ -36,9 +36,8 @@ public fun RawSource.asOkioSource(): okio.Source = object : okio.Source {
         var remainingBytes = readBytes
         while (remainingBytes > 0) {
             @OptIn(UnsafeIoApi::class)
-            UnsafeBufferOperations.readFromHead(buffer) { data, from, to ->
+            remainingBytes -= UnsafeBufferOperations.readFromHead(buffer) { data, from, to ->
                 val len = to - from
-                remainingBytes -= len
                 sink.write(data, from, len)
                 len
             }
@@ -75,12 +74,10 @@ public fun RawSink.asOkioSink(): okio.Sink = object : okio.Sink {
         var remaining = byteCount
         while (remaining > 0) {
             @OptIn(UnsafeIoApi::class)
-            UnsafeBufferOperations.writeToTail(buffer, 1) { data, from, to ->
+            remaining -= UnsafeBufferOperations.writeToTail(buffer, 1) { data, from, to ->
                 val toWrite = min((to - from).toLong(), remaining).toInt()
-
                 val read = source.read(data, from, toWrite)
                 check(read != -1) { "Buffer was exhausted from reading $toWrite bytes from it." }
-                remaining -= read
                 read
             }
         }
@@ -103,9 +100,8 @@ public fun okio.Sink.asKotlinxIoRawSink(): RawSink = object : RawSink {
         var remaining = byteCount
         while (remaining > 0) {
             @OptIn(UnsafeIoApi::class)
-            UnsafeBufferOperations.readFromHead(source) { data, from, to ->
+            remaining -= UnsafeBufferOperations.readFromHead(source) { data, from, to ->
                 val toRead = min((to - from).toLong(), remaining).toInt()
-                remaining -= toRead
                 buffer.write(data, from, toRead)
                 toRead
             }
@@ -137,11 +133,10 @@ public fun okio.Source.asKotlinxIoRawSource(): RawSource = object : RawSource {
         var remaining = readBytes
         while (remaining > 0) {
             @OptIn(UnsafeIoApi::class)
-            UnsafeBufferOperations.writeToTail(sink, 1) { data, from, to ->
+            remaining -= UnsafeBufferOperations.writeToTail(sink, 1) { data, from, to ->
                 val toRead = min((to - from).toLong(), remaining).toInt()
                 val read = buffer.read(data, from, toRead)
                 check(read != -1) { "Buffer was exhausted before reading $toRead bytes from it." }
-                remaining -= read
                 read
             }
         }

@@ -80,7 +80,7 @@ class JvmPlatformTest {
         val bais = ByteArrayInputStream(byteArrayOf(0x61))
         val source = bais.asSource()
         val buffer = Buffer()
-        source.readAtMostTo(buffer, 1)
+        val _ = source.readAtMostTo(buffer, 1)
         assertEquals(buffer.readString(), "a")
     }
 
@@ -89,7 +89,7 @@ class JvmPlatformTest {
         val bais = ByteArrayInputStream(ByteArray(128))
         val source = bais.asSource()
         val buffer = Buffer()
-        source.readAtMostTo(buffer, 0)
+        val _ = source.readAtMostTo(buffer, 0)
         assertEquals(0, buffer.size)
     }
 
@@ -197,7 +197,7 @@ class JvmPlatformTest {
         }
         val source = socket.inputStream.asSource()
         val buffer = Buffer()
-        source.readAtMostTo(buffer, 1L)
+        val _ = source.readAtMostTo(buffer, 1L)
         assertEquals(buffer.readString(), "a")
     }
 }

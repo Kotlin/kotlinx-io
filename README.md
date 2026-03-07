@@ -4,7 +4,7 @@
 [![JetBrains incubator project](https://jb.gg/badges/incubator.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![GitHub license](https://img.shields.io/github/license/kotlin/kotlinx-io)](LICENSE)
 [![Download](https://img.shields.io/maven-central/v/org.jetbrains.kotlinx/kotlinx-io-core)](https://central.sonatype.com/artifact/org.jetbrains.kotlinx/kotlinx-io-core/)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.2-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.3-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![TeamCity build](https://img.shields.io/teamcity/build/s/KotlinTools_KotlinxIo_BuildAggregated.svg?server=http%3A%2F%2Fteamcity.jetbrains.com)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_KotlinxIo_BuildAggregated&guest=1)
 [![KDoc link](https://img.shields.io/badge/API_reference-KDoc-blue)](https://kotlinlang.org/api/kotlinx-io/)
 
@@ -49,7 +49,7 @@ repositories {
 Add the library to dependencies:
 ```kotlin
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.8.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.9.0")
 }
 ```
 
@@ -59,7 +59,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.8.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.9.0")
             }
         }
     }
@@ -73,7 +73,7 @@ Add the library to dependencies:
 <dependency>
     <groupId>org.jetbrains.kotlinx</groupId>
     <artifactId>kotlinx-io-core-jvm</artifactId>
-    <version>0.8.2</version>
+    <version>0.9.0</version>
 </dependency>
 ```
 

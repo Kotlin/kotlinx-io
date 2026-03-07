@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.9.0
+> Published 20 February 2026
+
+### Features
+- Updated Kotlin version to 2.3 and enabled the [unused return value checker](https://kotlinlang.org/docs/unused-return-value-checker.html)
+- Added `SystemLineSeparator` property which returns a line separator for the underlying platform [#448](https://github.com/Kotlin/kotlinx-io/issues/448)
+- Updated Dokka version ([#449](https://github.com/Kotlin/kotlinx-io/pull/499)) and filled `Implementaion-*` attributes in the JAR file manifests ([#489](https://github.com/Kotlin/kotlinx-io/pull/489))  
+
+### Bugfixes
+- Reimplemented FileSystem implementation for Wasm-WASI to correctly work with recent NodeJS versions [#484](https://github.com/Kotlin/kotlinx-io/issues/484)
+
 ## 0.8.2
 > Published 24 November 2025
 

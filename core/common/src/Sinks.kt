@@ -121,7 +121,7 @@ public fun Sink.writeDecimalLong(long: Long) {
     }
 
     writeToInternalBuffer { buffer ->
-        UnsafeBufferOperations.writeToTail(buffer, width) { ctx, segment ->
+        val _ = UnsafeBufferOperations.writeToTail(buffer, width) { ctx, segment ->
             for (pos in width - 1 downTo if (negative) 1 else 0) {
                 val digit = (v % 10).toByte()
                 ctx.setUnchecked(segment, pos, HEX_DIGIT_BYTES[digit.toInt()])
@@ -159,7 +159,7 @@ public fun Sink.writeHexadecimalUnsignedLong(long: Long) {
     val width = hexNumberLength(v)
 
     writeToInternalBuffer { buffer ->
-        UnsafeBufferOperations.writeToTail(buffer, width) { ctx, segment ->
+        val _ = UnsafeBufferOperations.writeToTail(buffer, width) { ctx, segment ->
             for (pos in width - 1 downTo 0) {
                 ctx.setUnchecked(segment, pos, HEX_DIGIT_BYTES[v.toInt().and(0xF)])
                 v = v ushr 4

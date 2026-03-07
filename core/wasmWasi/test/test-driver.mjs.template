@@ -1,6 +1,6 @@
-
 import { WASI } from 'wasi';
 import { argv, env } from 'node:process';
+import "./custom-formatters.js"
 
 const wasi = new WASI({ version: 'preview1', args: argv, env: env, preopens: {
     '/tmp': '<SYSTEM_TEMP_DIR>',

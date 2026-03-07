@@ -36,7 +36,7 @@ class UnsafeReadWriteSamplesJvm {
             // Write data into the channel until source buffer exhausted
             while (!source.exhausted()) {
                 // Take a byte buffer holding source's data prefix and send it to the channel
-                UnsafeBufferOperations.readFromHead(source) { headByteBuffer: ByteBuffer ->
+                val _ = UnsafeBufferOperations.readFromHead(source) { headByteBuffer: ByteBuffer ->
                     channel.write(headByteBuffer)
                 }
             }
@@ -64,7 +64,7 @@ class UnsafeReadWriteSamplesJvm {
                 // Require a byte buffer to read data into.
                 // By the end of the call,
                 // all data written into that byte buffer will be appended to the destination buffer.
-                UnsafeBufferOperations.writeToTail(destination, 1) { tailByteBuffer: ByteBuffer ->
+                val _ = UnsafeBufferOperations.writeToTail(destination, 1) { tailByteBuffer: ByteBuffer ->
                     val bytesRead = channel.read(tailByteBuffer)
                     // If we read nothing, it's time to wrap up.
                     finished = bytesRead <= 0
@@ -91,7 +91,7 @@ class UnsafeReadWriteSamplesJvm {
             while (!source.exhausted()) {
                 // Take as many byte buffers as possible (it depends on the source's size and the length
                 // buffers array) and send it all to the channel.
-                UnsafeBufferOperations.readBulk(source, buffers) { bbs: Array<ByteBuffer?>, byteBuffersCount: Int ->
+                val _ = UnsafeBufferOperations.readBulk(source, buffers) { bbs: Array<ByteBuffer?>, byteBuffersCount: Int ->
                     val bytesWritten = channel.write(bbs, 0, byteBuffersCount)
                     // Corresponding number of bytes will be consumed from the buffer by the end of readBulk call
                     bytesWritten
