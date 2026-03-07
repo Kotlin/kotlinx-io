@@ -8,13 +8,12 @@ package kotlinx.io.files
 import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.posix.*
-import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalForeignApi::class)
 public actual val SystemTemporaryDirectory: Path
     get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: "")
 
-@OptIn(ExperimentalForeignApi::class, UnsafeNumber::class, ExperimentalTime::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
 internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
     memScoped {
         val struct_stat = alloc<stat>()

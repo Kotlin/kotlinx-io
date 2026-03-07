@@ -11,7 +11,6 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributes
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
 
@@ -53,7 +52,6 @@ private val mover: Mover by lazy {
     }
 }
 
-@OptIn(ExperimentalTime::class)
 @JvmField
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
 

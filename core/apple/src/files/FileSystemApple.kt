@@ -10,7 +10,6 @@ import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.Foundation.*
 import platform.posix.*
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 
@@ -55,7 +54,6 @@ internal actual fun realpathImpl(path: String): String {
     }
 }
 
-@OptIn(ExperimentalTime::class)
 internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
     val attributes = NSFileManager.defaultManager().fileAttributesAtPath(path.path, traverseLink = true) ?: return null
     val fileType = attributes[NSFileType] as String
@@ -80,7 +78,6 @@ internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
     )
 }
 
-@OptIn(ExperimentalTime::class)
 private fun NSDate.toInstant(): Instant {
     val epoch = this.timeIntervalSince1970
     val seconds = epoch.toLong()

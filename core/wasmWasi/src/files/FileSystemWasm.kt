@@ -8,7 +8,6 @@ package kotlinx.io.files
 import kotlinx.io.*
 import kotlinx.io.wasi.*
 import kotlin.math.min
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
@@ -215,7 +214,6 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
         return FileSink(fd)
     }
 
-    @OptIn(ExperimentalTime::class)
     override fun metadataOrNull(path: Path): FileMetadata? {
         val (_, preOpen, relativePath) = PreOpens.resolvePreopenOrNull(path) ?: return null
         val md = metadataOrNullInternal(preOpen, relativePath, true) ?: return null
@@ -577,7 +575,6 @@ private class FileSource(private val fd: Fd) : RawSource {
     }
 }
 
-@OptIn(ExperimentalTime::class)
 private data class InternalMetadata(
     val createdAt: Instant?,
     val filesize: Long,
@@ -585,7 +582,7 @@ private data class InternalMetadata(
     val modifiedAt: Instant,
 )
 
-@OptIn(UnsafeWasmMemoryApi::class, ExperimentalTime::class)
+@OptIn(UnsafeWasmMemoryApi::class)
 private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boolean): InternalMetadata? {
     require(!path.isAbsolute) { "only relative paths are allowed, was: $path" }
     withScopedMemoryAllocator { allocator ->

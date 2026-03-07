@@ -9,10 +9,8 @@ import kotlinx.io.*
 import kotlin.test.*
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 class SmokeFileTest {
     private val files: MutableList<Path> = arrayListOf()
 
