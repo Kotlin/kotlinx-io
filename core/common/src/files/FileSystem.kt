@@ -213,7 +213,7 @@ public class FileMetadata(
     /**
      * Time when the file was last modified, or `null` if the filesystem does not support it.
      */
-    public val updatedAt: Instant? = null,
+    public val lastModificationTime: Instant? = null,
 )
 
 /**

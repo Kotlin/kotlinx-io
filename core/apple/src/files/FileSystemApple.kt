@@ -74,14 +74,14 @@ internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
         isDirectory = isDir,
         size = if (isFile) attributes[NSFileSize] as Long else -1,
         createdAt = createdAt,
-        updatedAt = updatedAt,
+        lastModificationTime = updatedAt,
     )
 }
 
 private fun NSDate.toInstant(): Instant {
     val nanosInSecond = 1_000_000_000L
     val epochSeconds = this.timeIntervalSince1970
-    val epochSecondsTruncated = epoch.toLong()
+    val epochSecondsTruncated = epochSeconds.toLong()
     val nanos = (epochSeconds - epochSecondsTruncated).times(nanosInSecond).toLong()
     return Instant.fromEpochSeconds(epochSecondsTruncated, nanos)
 }

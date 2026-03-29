@@ -226,7 +226,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             isDirectory = isDirectory,
             size = filesize,
             createdAt = md.createdAt,
-            updatedAt = md.modifiedAt,
+            lastModificationTime = md.modifiedAt,
         )
     }
 
@@ -602,10 +602,9 @@ private fun metadataOrNullInternal(rootFd: Fd, path: Path, followSymlinks: Boole
         if (res != Errno.success) throw IOException(res.description)
 
         val modifiedAt = run {
-            val epoch = filestat.modificationTime * 1e-9
-            val seconds = epoch.toLong()
-            val nanos = (epoch - seconds) * 1e9
-            Instant.fromEpochSeconds(seconds, nanos.toLong())
+            val seconds = filestat.modificationTime / 1_000_000_000
+            val nanos = filestat.modificationTime % 1_000_000_000
+            Instant.fromEpochSeconds(seconds, nanos)
         }
         return InternalMetadata(
             createdAt = null,

@@ -82,8 +82,8 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
                 isRegularFile = isFile,
                 isDirectory = (mode and fs.constants.S_IFMT) == fs.constants.S_IFDIR,
                 size = if (isFile) stat.size.toLong() else -1L,
-                createdAt = stat.ctimeMs.toInstant(),
-                updatedAt = stat.mtimeMs.toInstant(),
+                createdAt = null,
+                lastModificationTime = stat.mtimeMs.toInstantFromEpochMillis(),
             )
         }?.also {
             throw IOException("Stat failed for $path", it)
@@ -132,9 +132,10 @@ public actual open class FileNotFoundException actual constructor(
 ) : IOException(message)
 
 
-private fun Double.toInstant(): Instant {
+private fun Double.toInstantFromEpochMillis(): Instant {
+    val nanosInSeconds = 1_000_000_000
     val epoch = this * 0.001
     val seconds = epoch.toLong()
-    val nanos = (epoch - seconds).times(1e9).toLong()
+    val nanos = (epoch - seconds).times(nanosInSeconds).toLong()
     return Instant.fromEpochSeconds(seconds, nanos)
 }

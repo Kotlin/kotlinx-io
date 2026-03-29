@@ -95,7 +95,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
             isDirectory = path.file.isDirectory,
             size = if (path.file.isFile) path.file.length() else -1L,
             createdAt = attributes.creationTime().toInstant().toKotlinInstant(),
-            updatedAt = path.file.lastModified().let(Instant::fromEpochMilliseconds),
+            lastModificationTime = attributes.lastModifiedTime().toInstant().toKotlinInstant(),
         )
     }
 
