@@ -72,8 +72,8 @@ internal external interface Fs {
 internal external interface Stats {
     val atimeMs: Double
     val ctimeMs: Double
-    val mode: Int
     val mtimeMs: Double
+    val mode: Int
     val size: Int
     fun isDirectory(): Boolean
 }
