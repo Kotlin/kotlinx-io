@@ -11,7 +11,7 @@ import platform.posix.*
 
 @OptIn(ExperimentalForeignApi::class)
 public actual val SystemTemporaryDirectory: Path
-    get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: "")
+    get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: "/tmp")
 
 @OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
 internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
@@ -27,7 +27,9 @@ internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
         return FileMetadata(
             isRegularFile = isFile,
             isDirectory = (mode and S_IFMT) == S_IFDIR,
-            if (isFile) struct_stat.st_size.toLong() else -1L
+            size = if (isFile) struct_stat.st_size.toLong() else -1L,
+            createdAt = null,
+            lastModificationTime = null,
         )
     }
 }
