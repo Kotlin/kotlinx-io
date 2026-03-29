@@ -576,9 +576,9 @@ private class FileSource(private val fd: Fd) : RawSource {
 }
 
 private data class InternalMetadata(
-    val createdAt: Instant?,
     val filesize: Long,
     val filetype: FileType,
+    val createdAt: Instant?,
     val modifiedAt: Instant,
 )
 
