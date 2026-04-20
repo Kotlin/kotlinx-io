@@ -6,7 +6,7 @@ One can contribute to the project by reporting issues or submitting changes via 
 
 Please use [GitHub issues](https://github.com/Kotlin/kotlinx-io/issues) for filing feature requests and bug reports.
 
-Questions about usage and general inquiries are better suited for StackOverflow or the #io channel in KotlinLang Slack.
+Questions about usage and general inquiries are better suited for the [Discussions](https://github.com/Kotlin/kotlinx-io/discussions), StackOverflow, or the [#io](https://slack-chats.kotlinlang.org/c/io) channel in KotlinLang Slack.
 
 ## Submitting changes
 
