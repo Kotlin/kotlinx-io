@@ -7,6 +7,11 @@ package kotlinx.io.files
 
 import kotlinx.io.*
 import kotlin.test.*
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
+import kotlin.time.measureTime
 
 class SmokeFileTest {
     private val files: MutableList<Path> = arrayListOf()
@@ -259,19 +264,37 @@ class SmokeFileTest {
 
     @Test
     fun fileMetadata() {
+        val validateAt: (Instant?, Duration) -> Boolean = validateAt@{ at, took ->
+            if (at == null) {
+                return@validateAt true
+            }
+            val now = Clock.System.now()
+            val margin = took + 5.seconds
+            return@validateAt now.minus(margin) < at && now.plus(margin) > at
+        }
         val path = createTempPath()
         assertNull(SystemFileSystem.metadataOrNull(path))
 
-        SystemFileSystem.createDirectories(path)
+        var time = measureTime {
+            SystemFileSystem.createDirectories(path)
+        }
         val dirMetadata = SystemFileSystem.metadataOrNull(path)
         assertNotNull(dirMetadata)
         assertTrue(dirMetadata.isDirectory)
         assertFalse(dirMetadata.isRegularFile)
+        assertTrue(validateAt(dirMetadata.createdAt, time))
+        assertTrue(validateAt(dirMetadata.lastModificationTime, time))
 
         val filePath = Path(path, "test.txt")
         assertNull(SystemFileSystem.metadataOrNull(filePath))
-        SystemFileSystem.sink(filePath).buffered().use {
-            it.writeString("blablabla")
+
+        time = measureTime {
+            SystemFileSystem
+                .sink(filePath)
+                .buffered()
+                .use {
+                    it.writeString("blablabla")
+                }
         }
 
         try {
@@ -279,6 +302,8 @@ class SmokeFileTest {
             assertNotNull(fileMetadata)
             assertFalse(fileMetadata.isDirectory)
             assertTrue(fileMetadata.isRegularFile)
+            assertTrue(validateAt(fileMetadata.createdAt, time))
+            assertTrue(validateAt(fileMetadata.lastModificationTime, time))
         } finally {
             SystemFileSystem.delete(filePath, false)
         }
@@ -353,13 +378,15 @@ class SmokeFileTest {
         SystemFileSystem.sink(path).buffered().use {
             it.writeString("second")
         }
-        assertEquals("second",
+        assertEquals(
+            "second",
             SystemFileSystem.source(path).buffered().use { it.readString() })
 
         SystemFileSystem.sink(path, append = true).buffered().use {
             it.writeString(" third")
         }
-        assertEquals("second third",
+        assertEquals(
+            "second third",
             SystemFileSystem.source(path).buffered().use { it.readString() })
     }
 

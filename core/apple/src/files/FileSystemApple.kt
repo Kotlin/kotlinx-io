@@ -10,6 +10,7 @@ import kotlinx.cinterop.*
 import kotlinx.io.IOException
 import platform.Foundation.*
 import platform.posix.*
+import kotlin.time.Instant
 
 
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
@@ -58,9 +59,29 @@ internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
     val fileType = attributes[NSFileType] as String
     val isFile = fileType == NSFileTypeRegular
     val isDir = fileType == NSFileTypeDirectory
+    val createdAt = attributes[NSFileCreationDate]
+        .let {
+            it as? NSDate
+        }
+        ?.let(NSDate::toInstant)
+    val updatedAt = attributes[NSFileModificationDate]
+        .let {
+            it as? NSDate
+        }
+        ?.let(NSDate::toInstant)
     return FileMetadata(
         isRegularFile = isFile,
         isDirectory = isDir,
-        size = if (isFile) attributes[NSFileSize] as Long else -1
+        size = if (isFile) attributes[NSFileSize] as Long else -1,
+        createdAt = createdAt,
+        lastModificationTime = updatedAt,
     )
+}
+
+private fun NSDate.toInstant(): Instant {
+    val nanosInSecond = 1_000_000_000L
+    val epochSeconds = this.timeIntervalSince1970
+    val epochSecondsTruncated = epochSeconds.toLong()
+    val nanos = (epochSeconds - epochSecondsTruncated).times(nanosInSecond).toLong()
+    return Instant.fromEpochSeconds(epochSecondsTruncated, nanos)
 }
