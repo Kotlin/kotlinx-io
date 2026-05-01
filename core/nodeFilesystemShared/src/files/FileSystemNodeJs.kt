@@ -83,7 +83,7 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
                 isDirectory = (mode and fs.constants.S_IFMT) == fs.constants.S_IFDIR,
                 size = if (isFile) stat.size.toLong() else -1L,
                 createdAt = null,
-                lastModificationTime = stat.mtimeMs.toInstantFromEpochMillis(),
+                lastModifiedAt = stat.mtimeMs.toInstantFromEpochMillis(),
             )
         }?.also {
             throw IOException("Stat failed for $path", it)

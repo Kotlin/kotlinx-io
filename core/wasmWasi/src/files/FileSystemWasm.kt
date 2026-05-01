@@ -226,7 +226,7 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
             isDirectory = isDirectory,
             size = filesize,
             createdAt = md.createdAt,
-            lastModificationTime = md.modifiedAt,
+            lastModifiedAt = md.modifiedAt,
         )
     }
 

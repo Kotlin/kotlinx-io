@@ -74,7 +74,7 @@ internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
         isDirectory = isDir,
         size = if (isFile) attributes[NSFileSize] as Long else -1,
         createdAt = createdAt,
-        lastModificationTime = updatedAt,
+        lastModifiedAt = updatedAt,
     )
 }
 
