@@ -105,6 +105,10 @@ kotlin {
                     group("mingw")
                     group("linux")
                 }
+                group("nativeNonMingw") {
+                    group("apple")
+                    group("unix")
+                }
             }
             group("nodeFilesystemShared") {
                 withJs()
