@@ -7,55 +7,53 @@
 
 package kotlinx.io.node
 
-@JsFun("""
-    (globalThis.module = (typeof process !== 'undefined') && (process.release.name === 'node') ?
-        await import(/* webpackIgnore: true */'node:module') : void 0, () => {})
-""")
-internal external fun persistModule()
-
-@JsFun("""() => { 
-    const importMeta = import.meta;
-    return globalThis.module.default.createRequire(importMeta.url);
-}
-""")
-internal external fun getRequire(): JsAny
-
-private val require = persistModule().let { getRequire() }
-
-@JsFun("""
-    (require, mod) => {
-         try {
-             let m = require(mod);
-             if (m) return m;
-             return null;
-         } catch (e) {
-             return null;
-         }
-    }
-""")
-internal external fun requireModule(require: JsAny, mod: String): JsAny?
-
-internal fun loadModule(name: String): JsAny {
-    val mod = requireModule(require, name) ?: throw UnsupportedOperationException("Module '$name' could not be imported")
-    return mod
-}
-
 internal actual val buffer: BufferModule by lazy {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    loadModule("buffer") as BufferModule
+    (loadBuffer() ?: throwModuleCannotBeImported("path")) as BufferModule
 }
 
-internal actual val os: Os  by lazy {
+@JsFun("${LOAD_MODULE_PREFIX}buffer${LOAD_MODULE_POSTFIX}")
+private external fun loadBuffer(): JsAny?
+
+internal actual val os: Os by lazy {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    loadModule("os") as Os
+    (loadOs() ?: throwModuleCannotBeImported("os")) as Os
 }
+
+@JsFun("${LOAD_MODULE_PREFIX}os${LOAD_MODULE_POSTFIX}")
+private external fun loadOs(): JsAny?
 
 internal actual val path: Path by lazy {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    loadModule("path") as Path
+    (loadPath() ?: throwModuleCannotBeImported("path")) as Path
 }
+
+@JsFun("${LOAD_MODULE_PREFIX}path${LOAD_MODULE_POSTFIX}")
+private external fun loadPath(): JsAny?
 
 internal actual val fs: Fs by lazy {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    loadModule("fs") as Fs
+    (loadFs() ?: throwModuleCannotBeImported("fs")) as Fs
 }
+
+@JsFun("${LOAD_MODULE_PREFIX}fs${LOAD_MODULE_POSTFIX}")
+private external fun loadFs(): JsAny?
+
+private fun throwModuleCannotBeImported(name: String) {
+    throw UnsupportedOperationException("Module $name cannot be imported in this environment")
+}
+
+/*
+Wasm JsFun expect something invokeable, so we have to return an arrow function.
+IIFE which returns a function that returns an input parameter (resolved module).
+It helps us to work around the issue that we cannot use await import in non-async arrow functions.
+(
+    (module) => {
+        return () => module
+    }
+)(await import("module"))
+ */
+private const val LOAD_MODULE_PREFIX =
+    "((module) => () => module)(((typeof process !== 'undefined') && (process.release.name === 'node')) ? await import(/* webpackIgnore: true */'node:"
+
+private const val LOAD_MODULE_POSTFIX = "') : null)"
