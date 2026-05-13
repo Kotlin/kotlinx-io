@@ -62,4 +62,4 @@ internal actual fun realpathImpl(path: String): String {
 }
 
 internal actual val DefaultOpenFlags: Int
-    get() = _O_BINARY
+    get() = _O_BINARY or _O_NOINHERIT
