@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2026 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
@@ -60,3 +60,6 @@ internal actual fun realpathImpl(path: String): String {
         return buffer.toKString()
     }
 }
+
+internal actual val DefaultOpenFlags: Int
+    get() = _O_BINARY or _O_NOINHERIT
