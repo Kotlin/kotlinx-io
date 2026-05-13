@@ -9,54 +9,134 @@ package kotlinx.io.files
 
 import kotlinx.cinterop.*
 import kotlinx.io.IOException
-import platform.posix.*
 import platform.windows.*
 
+
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
-    if (MoveFileExA(source.path, destination.path, MOVEFILE_REPLACE_EXISTING.convert()) == 0) {
-        // TODO: get formatted error message
-        throw IOException("Move failed with error code: ${GetLastError()}")
+    if (MoveFileExW(source.path, destination.path, MOVEFILE_REPLACE_EXISTING.convert()) == 0) {
+        throw IOException("Move failed with error code: ${formatWin32ErrorMessage()}")
     }
 }
 
 internal actual fun dirnameImpl(path: String): String {
-    if (!path.contains(UnixPathSeparator) && !path.contains(WindowsPathSeparator)) {
-        return ""
-    }
+    val path = path.replace(UnixPathSeparator, WindowsPathSeparator)
     memScoped {
-        return dirname(path.cstr.ptr)?.toKString() ?: ""
+        val p = path.wcstr.ptr
+        // This function is deprecated, should use PathCchRemoveFileSpec,
+        // but it's not available in current version of Kotlin
+        PathRemoveFileSpecW(p)
+        return p.toKString()
     }
 }
 
 internal actual fun basenameImpl(path: String): String {
-    memScoped {
-        return basename(path.cstr.ptr)?.toKString() ?: ""
-    }
+    if (PathIsRootW(path) == TRUE) return ""
+    return PathFindFileNameW(path)?.toKString() ?: ""
 }
 
 internal actual fun isAbsoluteImpl(path: String): Boolean {
-    if (path.startsWith(SystemPathSeparator)) return true
-    if (path.length > 1 && path[1] == ':') {
-        if (path.length == 2) return false
-        val next = path[2]
-        return next == WindowsPathSeparator || next == SystemPathSeparator
+    val p = path.replace(UnixPathSeparator, WindowsPathSeparator)
+    if (PathIsRelativeW(p) == TRUE) {
+        return false
     }
-    return PathIsRelativeA(path) == 0
+    // PathIsRelativeW returns FALSE for paths like "C:relative\path" which are not absolute, in DoS
+    if (p.length >= 2 && p[0].isLetter() && p[1] == ':') {
+        return p.length > 2 && (p[2] == WindowsPathSeparator || p[2] == UnixPathSeparator)
+    }
+    return true
 }
 
 internal actual fun mkdirImpl(path: String) {
-    if (mkdir(path) != 0) {
-        throw IOException("mkdir failed: ${strerror(errno)?.toKString()}")
+    if (CreateDirectoryW(path, null) == FALSE) {
+        throw IOException("mkdir failed: $path: ${formatWin32ErrorMessage()}")
     }
 }
 
-private const val MAX_PATH_LENGTH = 32767
-
 internal actual fun realpathImpl(path: String): String {
     memScoped {
-        val buffer = allocArray<CHARVar>(MAX_PATH_LENGTH)
-        val len = GetFullPathNameA(path, MAX_PATH_LENGTH.convert(), buffer, null)
-        if (len == 0u) throw IllegalStateException()
-        return buffer.toKString()
+        // in practice, MAX_PATH is enough for most cases
+        var buf = allocArray<WCHARVar>(MAX_PATH)
+        var r = GetFullPathNameW(path, MAX_PATH.convert(), buf, null)
+        if (r >= MAX_PATH.toUInt()) {
+            // if not, we will retry with the required size
+            buf = allocArray<WCHARVar>(r.toInt())
+            r = GetFullPathNameW(path, r, buf, null)
+        }
+        if (r == 0u) {
+            error("GetFullPathNameW failed for $path: ${formatWin32ErrorMessage()}")
+        }
+        return buf.toKString()
     }
+}
+
+internal actual class OpaqueDirEntry(private val directory: String) : AutoCloseable {
+    private val arena = Arena()
+    private val data = arena.alloc<WIN32_FIND_DATAW>()
+    private var handle: HANDLE? = INVALID_HANDLE_VALUE
+    private var firstName: String? = null
+
+    init {
+        try {
+            // since the root
+            val directory0 =
+                if (directory.endsWith(UnixPathSeparator) || directory.endsWith(WindowsPathSeparator)) "$directory*" else "$directory/*"
+            handle = FindFirstFileW(directory0, data.ptr)
+            if (handle != INVALID_HANDLE_VALUE) {
+                firstName = data.cFileName.toKString()
+            } else {
+                val e = GetLastError()
+                if (e != ERROR_FILE_NOT_FOUND.toUInt()) {
+                    throw IOException("Can't open directory $directory: ${formatWin32ErrorMessage(e)}")
+                }
+            }
+        } catch (th: Throwable) {
+            if (handle != INVALID_HANDLE_VALUE) {
+                CloseHandle(handle)
+            }
+            arena.clear()
+            throw th
+        }
+    }
+
+    actual fun readdir(): String? {
+        if (firstName != null) {
+            return firstName.also { firstName = null }
+        }
+        if (handle == INVALID_HANDLE_VALUE) {
+            return null
+        }
+        if (FindNextFileW(handle, data.ptr) == TRUE) {
+            return data.cFileName.toKString()
+        }
+        val le = GetLastError()
+        if (le == ERROR_NO_MORE_FILES.toUInt()) {
+            return null
+        }
+        throw IOException("Can't readdir from $directory: ${formatWin32ErrorMessage(le)}")
+    }
+
+    actual override fun close() {
+        if (handle != INVALID_HANDLE_VALUE) {
+            FindClose(handle)
+        }
+        arena.clear()
+    }
+
+}
+
+internal actual fun opendir(path: String): OpaqueDirEntry = OpaqueDirEntry(path)
+
+internal actual fun existsImpl(path: String): Boolean = PathFileExistsW(path) == TRUE
+
+internal actual fun deleteNoCheckImpl(path: String) {
+    if (DeleteFileW(path) != FALSE) return
+    var e = GetLastError()
+    if (e == ERROR_FILE_NOT_FOUND.toUInt()) return // ignore it
+    if (e == ERROR_ACCESS_DENIED.toUInt()) {
+        // might be a directory
+        if (RemoveDirectoryW(path) != FALSE) return
+        e = GetLastError()
+        if (e == ERROR_FILE_NOT_FOUND.toUInt()) return // ignore it
+    }
+    throw IOException("Delete failed for $path: ${formatWin32ErrorMessage(e)}")
 }

@@ -99,11 +99,13 @@ kotlin {
                         group("androidNative")
                     }
                 }
-
-                group("nativeNonAndroid") {
+                group("appleAndLinux") {
                     group("apple")
-                    group("mingw")
                     group("linux")
+                }
+                group("posix") {
+                    group("apple")
+                    group("unix")
                 }
             }
             group("nodeFilesystemShared") {
