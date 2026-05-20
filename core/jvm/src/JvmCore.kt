@@ -77,37 +77,23 @@ private open class InputStreamSource(
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
-        try {
-            var readTotal: Long
-            val _ = UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
-                val maxToCopy = minOf(byteCount, limit - pos).toInt()
-                readTotal = input.read(data, pos, maxToCopy).toLong()
-                if (readTotal == -1L) {
-                    0
-                } else {
-                    readTotal.toInt()
-                }
+        var readTotal: Long
+        val _ = UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
+            val maxToCopy = minOf(byteCount, limit - pos).toInt()
+            readTotal = input.read(data, pos, maxToCopy).toLong()
+            if (readTotal == -1L) {
+                0
+            } else {
+                readTotal.toInt()
             }
-            return readTotal
-        } catch (e: AssertionError) {
-            if (e.isAndroidGetsocknameError) throw IOException(e)
-            throw e
         }
+        return readTotal
     }
 
     override fun close() = input.close()
 
     override fun toString() = "RawSource($input)"
 }
-
-/**
- * Returns true if this error is due to a firmware bug fixed after Android 4.2.2.
- * https://code.google.com/p/android/issues/detail?id=54072
- */
-internal val AssertionError.isAndroidGetsocknameError: Boolean
-    get() {
-        return cause != null && message?.contains("getsockname failed") ?: false
-    }
 
 /**
  * Sequence of characters used as a line separator by the underlying platform.
