@@ -5,6 +5,10 @@
 
 package kotlinx.io
 
-internal actual fun Short.reverseBytes(): Short = reverseBytesCommon()
-internal actual fun Int.reverseBytes(): Int = reverseBytesCommon()
-internal actual fun Long.reverseBytes(): Long = reverseBytesCommon()
+import platform.builtin.builtin_bswap16
+import platform.builtin.builtin_bswap32
+import platform.builtin.builtin_bswap64
+
+internal actual fun Short.reverseBytes(): Short = builtin_bswap16(this)
+internal actual fun Int.reverseBytes(): Int = builtin_bswap32(this)
+internal actual fun Long.reverseBytes(): Long = builtin_bswap64(this)
