@@ -19,6 +19,7 @@ import platform.Foundation.*
 import platform.darwin.NSObject
 import platform.posix.uint8_tVar
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(UnsafeNumber::class)
 class SourceNSInputStreamTest {
@@ -232,7 +233,7 @@ class SourceNSInputStreamTest {
                 opened.lockWithTimeout()
                 completed.lockWithTimeout()
                 // wait a bit to be sure delegate is no longer called
-                delay(200)
+                delay(200.milliseconds)
             }
             input.close()
         }

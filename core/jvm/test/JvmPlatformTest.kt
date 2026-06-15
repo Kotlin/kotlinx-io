@@ -167,7 +167,7 @@ class JvmPlatformTest {
         val link = File(tempDir, "link.txt")
         try {
             Files.createSymbolicLink(link.toPath(), file.toPath())
-        } catch (e: UnsupportedOperationException) {
+        } catch (_: UnsupportedOperationException) {
             // the FS does not support symlinks
             return
         }
