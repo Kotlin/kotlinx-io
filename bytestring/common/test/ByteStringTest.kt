@@ -12,9 +12,9 @@ class ByteStringTest {
     fun get() {
         val actual = ByteString("abc".encodeToByteArray())
         assertEquals(3, actual.size)
-        assertEquals(actual[0], 'a'.code.toByte())
-        assertEquals(actual[1], 'b'.code.toByte())
-        assertEquals(actual[2], 'c'.code.toByte())
+        assertEquals('a'.code.toByte(), actual[0])
+        assertEquals('b'.code.toByte(), actual[1])
+        assertEquals('c'.code.toByte(), actual[2])
     }
 
     @Test

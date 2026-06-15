@@ -29,8 +29,8 @@ class CommonPlatformTest {
     fun sourceBuffer() {
         val source = Buffer().also { it.writeString("a") }
         val buffered = (source as RawSource).buffered()
-        assertEquals(buffered.readString(), "a")
-        assertEquals(source.size, 0L)
+        assertEquals("a", buffered.readString())
+        assertEquals(0L, source.size)
     }
 
     @Test
@@ -38,9 +38,9 @@ class CommonPlatformTest {
         val sink = Buffer()
         val buffered = (sink as RawSink).buffered()
         buffered.writeString("a")
-        assertEquals(sink.size, 0L)
+        assertEquals(0L, sink.size)
         buffered.flush()
-        assertEquals(sink.size, 1L)
+        assertEquals(1L, sink.size)
     }
 
     @Test
