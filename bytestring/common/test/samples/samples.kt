@@ -6,6 +6,7 @@
 package kotlinx.io.bytestring.samples
 
 import kotlinx.io.bytestring.*
+import kotlin.random.Random
 import kotlin.test.*
 
 class ByteStringSamples {
@@ -253,5 +254,19 @@ class ByteStringSamples {
         val byteString = ByteString()
         assertTrue(byteString.isEmpty())
         assertContentEquals(ByteArray(0), byteString.toByteArray())
+    }
+
+    @Test
+    fun randomByteString() {
+        val a = Random.nextByteString(4)
+        println(a.toHexString())
+        val b = Random.nextByteString(4)
+        println(b.toHexString())
+        // These are two distinct byte strings
+        assertNotEquals(a, b)
+
+        assertEquals(0, Random.nextByteString(0).size)
+
+        assertFailsWith<IllegalArgumentException> { Random.nextByteString(-42)  }
     }
 }
