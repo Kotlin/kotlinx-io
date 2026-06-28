@@ -15,6 +15,41 @@ class ByteStringBuilderTest {
     fun emptyString() {
         assertTrue(ByteStringBuilder().toByteString().isEmpty())
         assertTrue(ByteStringBuilder(1024).toByteString().isEmpty())
+        assertTrue(ByteStringBuilder(byteArrayOf()).toByteString().isEmpty())
+    }
+
+    @Test
+    fun customBuffer() {
+        val byteArray = byteArrayOf(125, 126, 127)
+
+        assertEquals(ByteStringBuilder(byteArray).toByteString(), ByteString(byteArray))
+    }
+
+    @Test
+    fun appendByteToCustomBuffer() {
+        ByteStringBuilder(byteArrayOf(125, 126, 127)).apply {
+            append(1)
+            append(2)
+            append(3)
+            assertEquals(toByteString(), ByteString(1, 2, 3))
+
+            assertFailsWith<IndexOutOfBoundsException> {
+                append(4)
+            }
+        }
+    }
+
+    @Test
+    fun appendByteToCustomBufferWithCustomOffset() {
+        ByteStringBuilder(byteArrayOf(125, 126, 127), initialOffset = 1).apply {
+            append(2)
+            append(3)
+            assertEquals(toByteString(), ByteString(125, 2, 3))
+
+            assertFailsWith<IndexOutOfBoundsException> {
+                append(4)
+            }
+        }
     }
 
     @Test
