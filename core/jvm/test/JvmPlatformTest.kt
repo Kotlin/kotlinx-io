@@ -81,7 +81,7 @@ class JvmPlatformTest {
         val source = bais.asSource()
         val buffer = Buffer()
         val _ = source.readAtMostTo(buffer, 1)
-        assertEquals(buffer.readString(), "a")
+        assertEquals("a", buffer.readString())
     }
 
     @Test
@@ -106,7 +106,7 @@ class JvmPlatformTest {
         file.outputStream().asSink().use { sink ->
             sink.write(Buffer().also { it.writeString("a") }, 1L)
         }
-        assertEquals(file.readText(), "a")
+        assertEquals("a", file.readText())
     }
 
     @Test
@@ -116,7 +116,7 @@ class JvmPlatformTest {
         FileOutputStream(file, true).asSink().use { sink ->
             sink.write(Buffer().also { it.writeString("b") }, 1L)
         }
-        assertEquals(file.readText(), "ab")
+        assertEquals("ab", file.readText())
     }
 
     @Test
@@ -127,7 +127,7 @@ class JvmPlatformTest {
         file.inputStream().asSource().use { source ->
             source.readAtMostTo(buffer, 1L)
         }
-        assertEquals(buffer.readString(), "a")
+        assertEquals("a", buffer.readString())
     }
 
     @Test
@@ -136,7 +136,7 @@ class JvmPlatformTest {
         file.toPath().outputStream().asSink().use { sink ->
             sink.write(Buffer().also { it.writeString("a") }, 1L)
         }
-        assertEquals(file.readText(), "a")
+        assertEquals("a", file.readText())
     }
 
     @Test
@@ -146,7 +146,7 @@ class JvmPlatformTest {
         file.toPath().outputStream(StandardOpenOption.APPEND).asSink().use { sink ->
             sink.write(Buffer().also { it.writeString("b") }, 1L)
         }
-        assertEquals(file.readText(), "ab")
+        assertEquals("ab", file.readText())
     }
 
     @Test
@@ -157,7 +157,7 @@ class JvmPlatformTest {
         file.toPath().inputStream().asSource().use { source ->
             source.readAtMostTo(buffer, 1L)
         }
-        assertEquals(buffer.readString(), "a")
+        assertEquals("a", buffer.readString())
     }
 
     @Test
@@ -167,7 +167,7 @@ class JvmPlatformTest {
         val link = File(tempDir, "link.txt")
         try {
             Files.createSymbolicLink(link.toPath(), file.toPath())
-        } catch (e: UnsupportedOperationException) {
+        } catch (_: UnsupportedOperationException) {
             // the FS does not support symlinks
             return
         }
@@ -198,6 +198,6 @@ class JvmPlatformTest {
         val source = socket.inputStream.asSource()
         val buffer = Buffer()
         val _ = source.readAtMostTo(buffer, 1L)
-        assertEquals(buffer.readString(), "a")
+        assertEquals("a", buffer.readString())
     }
 }

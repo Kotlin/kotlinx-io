@@ -51,6 +51,7 @@ class ByteStringBase64Test {
         var length = Base64.encodeIntoByteArray(byteString, destination, endIndex = 3)
         assertContentEquals(encodedSymbols.encodeToByteArray(0, 4), destination.copyOf(length))
         length += Base64.encodeIntoByteArray(byteString, destination, destinationOffset = length, startIndex = 3)
+        assertEquals(encodedSymbols.length, length)
         assertContentEquals(encodedSymbols.encodeToByteArray(), destination)
     }
 
@@ -100,6 +101,7 @@ class ByteStringBase64Test {
         var length = Base64.decodeIntoByteArray(encodedByteString, destination, endIndex = 4)
         assertContentEquals(byteArray.copyOfRange(0, 3), destination.copyOf(length))
         length += Base64.decodeIntoByteArray(encodedByteString, destination, destinationOffset = length, startIndex = 4)
+        assertEquals(destination.size, length)
         assertContentEquals(byteArray, destination)
     }
 
