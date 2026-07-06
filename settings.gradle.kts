@@ -15,6 +15,7 @@ pluginManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
+    id("org.jetbrains.kotlinx.artifacts-validator-plugin") version "0.0.2"
 }
 
 rootProject.name = "kotlinx-io"
