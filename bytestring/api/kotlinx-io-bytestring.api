@@ -111,6 +111,10 @@ public final class kotlinx/io/bytestring/HexKt {
 	public static synthetic fun toHexString$default (Lkotlinx/io/bytestring/ByteString;Lkotlin/text/HexFormat;ILjava/lang/Object;)Ljava/lang/String;
 }
 
+public final class kotlinx/io/bytestring/RandomKt {
+	public static final fun nextByteString (Lkotlin/random/Random;I)Lkotlinx/io/bytestring/ByteString;
+}
+
 public abstract interface annotation class kotlinx/io/bytestring/unsafe/UnsafeByteStringApi : java/lang/annotation/Annotation {
 }
 
