@@ -1,18 +1,16 @@
 /*
- * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2026 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE.txt file.
  */
 
 package kotlinx.io.files
 
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 import platform.posix.*
-import kotlin.experimental.ExperimentalNativeApi
 
 @OptIn(ExperimentalForeignApi::class)
 public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl() {
@@ -73,20 +71,27 @@ public actual val SystemFileSystem: FileSystem = object : SystemFileSystemImpl()
     }
 
     override fun source(path: Path): RawSource {
-        val openFile: CPointer<FILE>? = fopen(path.path, "rb")
-        if (openFile == null) {
+        val openFd = open(path.path, O_RDONLY or DefaultOpenFlags)
+        if (openFd < 0) {
             if (errno == ENOENT) {
                 throw FileNotFoundException("File does not exist: $path")
             }
             throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
         }
-        return FileSource(openFile)
+        return FileSource(openFd)
     }
 
     override fun sink(path: Path, append: Boolean): RawSink {
-        val openFile: CPointer<FILE> = fopen(path.path, if (append) "ab" else "wb")
-            ?: throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
-        return FileSink(openFile)
+        val openFd = open(
+            path.path,
+            O_WRONLY or O_CREAT or DefaultOpenFlags
+                    or (if (append) O_APPEND else O_TRUNC),
+            PermissionDefault
+        )
+        if (openFd < 0) {
+            throw IOException("Failed to open $path with ${strerror(errno)?.toKString()}")
+        }
+        return FileSink(openFd)
     }
 
     override fun list(directory: Path): Collection<Path> {
@@ -118,8 +123,13 @@ public actual open class FileNotFoundException actual constructor(
     message: String?
 ) : IOException(message)
 
+// 666 in octal, rw for all (owner, group and others).
+internal const val PermissionDefault: UShort = 0b110110110u
+
 // 777 in octal, rwx for all (owner, group and others).
-internal const val PermissionAllowAll: UShort = 511u
+internal const val PermissionAllowAll: UShort = 0b111111111u
+
+internal expect val DefaultOpenFlags: Int
 
 internal expect class OpaqueDirEntry : AutoCloseable {
     fun readdir(): String?
