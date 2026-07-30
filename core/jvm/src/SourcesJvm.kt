@@ -95,16 +95,9 @@ public fun Source.readString(byteCount: Long, charset: Charset): String {
  */
 @OptIn(InternalIoApi::class)
 public fun Source.asInputStream(): InputStream {
-    val isClosed: () -> Boolean = when (this) {
-        is RealSource -> this::closed
-        is Buffer -> {
-            { false }
-        }
-    }
-
     return object : InputStream() {
         override fun read(): Int {
-            if (isClosed()) throw IOException("Underlying source is closed.")
+            if (this@asInputStream.isClosed()) throw IOException("Underlying source is closed.")
             if (exhausted()) {
                 return -1
             }
@@ -112,14 +105,14 @@ public fun Source.asInputStream(): InputStream {
         }
 
         override fun read(data: ByteArray, offset: Int, byteCount: Int): Int {
-            if (isClosed()) throw IOException("Underlying source is closed.")
+            if (this@asInputStream.isClosed()) throw IOException("Underlying source is closed.")
             checkOffsetAndCount(data.size.toLong(), offset.toLong(), byteCount.toLong())
 
             return this@asInputStream.readAtMostTo(data, offset, offset + byteCount)
         }
 
         override fun available(): Int {
-            if (isClosed()) throw IOException("Underlying source is closed.")
+            if (this@asInputStream.isClosed()) throw IOException("Underlying source is closed.")
             return minOf(buffer.size, Integer.MAX_VALUE).toInt()
         }
 
@@ -153,20 +146,18 @@ public fun Source.readAtMostTo(sink: ByteBuffer): Int {
  * Returns [ReadableByteChannel] backed by this source. Closing the source will close the source.
  */
 public fun Source.asByteChannel(): ReadableByteChannel {
-    val isClosed: () -> Boolean = when (this) {
-        is RealSource -> this::closed
-        is Buffer -> {
-            { false }
-        }
-    }
-
     return object : ReadableByteChannel {
         override fun close() {
             this@asByteChannel.close()
         }
 
-        override fun isOpen(): Boolean = !isClosed()
+        override fun isOpen(): Boolean = !this@asByteChannel.isClosed()
 
         override fun read(sink: ByteBuffer): Int = this@asByteChannel.readAtMostTo(sink)
     }
+}
+
+private fun Source.isClosed(): Boolean = when (this) {
+    is RealSource -> closed
+    is Buffer -> false
 }

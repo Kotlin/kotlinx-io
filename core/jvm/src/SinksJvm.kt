@@ -56,27 +56,20 @@ public fun Sink.writeString(string: String, charset: Charset, startIndex: Int = 
  */
 @OptIn(DelicateIoApi::class)
 public fun Sink.asOutputStream(): OutputStream {
-    val isClosed: () -> Boolean = when (this) {
-        is RealSink -> this::closed
-        is Buffer -> {
-            { false }
-        }
-    }
-
     return object : OutputStream() {
         override fun write(byte: Int) {
-            if (isClosed()) throw IOException("Underlying sink is closed.")
+            if (this@asOutputStream.isClosed()) throw IOException("Underlying sink is closed.")
             writeToInternalBuffer { it.writeByte(byte.toByte()) }
         }
 
         override fun write(data: ByteArray, offset: Int, byteCount: Int) {
-            if (isClosed()) throw IOException("Underlying sink is closed.")
+            if (this@asOutputStream.isClosed()) throw IOException("Underlying sink is closed.")
             writeToInternalBuffer { it.write(data, offset, offset + byteCount) }
         }
 
         override fun flush() {
             // For backwards compatibility, a flush() on a closed stream is a no-op.
-            if (!isClosed()) {
+            if (!this@asOutputStream.isClosed()) {
                 this@asOutputStream.flush()
             }
         }
@@ -110,23 +103,21 @@ public fun Sink.write(source: ByteBuffer): Int {
  * Returns [WritableByteChannel] backed by this sink. Closing the channel will also close the sink.
  */
 public fun Sink.asByteChannel(): WritableByteChannel {
-    val isClosed: () -> Boolean = when (this) {
-        is RealSink -> this::closed
-        is Buffer -> {
-            { false }
-        }
-    }
-
     return object : WritableByteChannel {
         override fun close() {
             this@asByteChannel.close()
         }
 
-        override fun isOpen(): Boolean = !isClosed()
+        override fun isOpen(): Boolean = !this@asByteChannel.isClosed()
 
         override fun write(source: ByteBuffer): Int {
-            check(!isClosed()) { "Underlying sink is closed." }
+            check(!this@asByteChannel.isClosed()) { "Underlying sink is closed." }
             return this@asByteChannel.write(source)
         }
     }
+}
+
+private fun Sink.isClosed(): Boolean = when (this) {
+    is RealSink -> closed
+    is Buffer -> false
 }
