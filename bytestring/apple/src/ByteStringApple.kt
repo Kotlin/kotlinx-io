@@ -16,7 +16,7 @@ import platform.Foundation.create
  *
  * @sample kotlinx.io.bytestring.samples.ByteStringSamplesApple.nsDataConversion
  */
-@OptIn(UnsafeNumber::class, BetaInteropApi::class, ExperimentalForeignApi::class)
+@OptIn(BetaInteropApi::class, ExperimentalForeignApi::class)
 public fun ByteString.toNSData(): NSData {
     if (isEmpty()) {
         return NSData()
@@ -32,7 +32,7 @@ public fun ByteString.toNSData(): NSData {
  *
  * @sample kotlinx.io.bytestring.samples.ByteStringSamplesApple.nsDataConversion
  */
-@OptIn(ExperimentalForeignApi::class, UnsafeNumber::class, UnsafeByteStringApi::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeByteStringApi::class)
 public fun NSData.toByteString(): ByteString {
     val l = length.toLong()
     if (l == 0L) {

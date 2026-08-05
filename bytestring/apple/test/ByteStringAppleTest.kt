@@ -14,7 +14,6 @@ import platform.posix.memset
 import kotlin.io.encoding.Base64
 import kotlin.test.*
 
-@OptIn(UnsafeNumber::class)
 class ByteStringAppleTest {
     @OptIn(ExperimentalForeignApi::class)
     @Test

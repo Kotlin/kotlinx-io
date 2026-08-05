@@ -14,7 +14,6 @@ import kotlin.test.assertEquals
 
 class NSOutputStreamSinkTest {
     @Test
-    @OptIn(UnsafeNumber::class)
     fun nsOutputStreamSink() {
         val out = NSOutputStream.outputStreamToMemory()
         val sink = out.asSink()

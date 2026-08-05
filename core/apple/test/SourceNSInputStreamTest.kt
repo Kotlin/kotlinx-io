@@ -20,7 +20,6 @@ import platform.darwin.NSObject
 import platform.posix.uint8_tVar
 import kotlin.test.*
 
-@OptIn(UnsafeNumber::class)
 class SourceNSInputStreamTest {
     @Test
     fun bufferInputStream() {

@@ -13,7 +13,7 @@ import platform.posix.*
 public actual val SystemTemporaryDirectory: Path
     get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: "")
 
-@OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun metadataOrNullImpl(path: Path): FileMetadata? {
     memScoped {
         val struct_stat = alloc<stat>()

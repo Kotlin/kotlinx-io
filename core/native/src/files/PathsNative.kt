@@ -106,7 +106,6 @@ internal class FileSource(
     }
 }
 
-@OptIn(UnsafeNumber::class)
 internal fun variantFread(
     target: CPointer<ByteVarOf<Byte>>,
     byteCount: UInt,
@@ -114,7 +113,6 @@ internal fun variantFread(
 ): UInt = fread(target, 1u, byteCount.convert(), file)
     .let { @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") it.toUInt() }
 
-@OptIn(UnsafeNumber::class)
 internal fun variantFwrite(
     source: CPointer<ByteVar>,
     byteCount: UInt,
