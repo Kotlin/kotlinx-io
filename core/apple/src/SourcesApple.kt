@@ -75,12 +75,12 @@ private class SourceNSInputStream(
     }
 
     override fun read(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
-        if (streamStatus != NSStreamStatusOpen && streamStatus != NSStreamStatusAtEnd || buffer == null) return -1
+        if (streamStatus != NSStreamStatusOpen && streamStatus != NSStreamStatusAtEnd || buffer == null) return (-1).convert()
         status = NSStreamStatusReading
         try {
             if (source.exhausted()) {
                 status = NSStreamStatusAtEnd
-                return 0
+                return 0.convert()
             }
             val toRead = minOf(maxLength.toLong(), source.buffer.size, Int.MAX_VALUE.toLong()).toInt()
             val read = source.buffer.readAtMostTo(buffer, toRead).convert<NSInteger>()
@@ -90,7 +90,7 @@ private class SourceNSInputStream(
         } catch (e: Exception) {
             error = e.toNSError()
             postEvent(NSStreamEventErrorOccurred)
-            return -1
+            return (-1).convert()
         }
     }
 

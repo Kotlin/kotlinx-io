@@ -8,6 +8,7 @@ plugins {
 }
 
 repositories {
+    maven("file:///Users/Nikolay.Lunyak/Documents/Projects/kotlin-worktrees/kotlin-platform-type-commonized-to-different-types/build/repo")
     mavenCentral()
 }
 
