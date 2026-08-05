@@ -77,7 +77,7 @@ private class SinkNSOutputStream(
 
     @OptIn(DelicateIoApi::class)
     override fun write(buffer: CPointer<uint8_tVar>?, maxLength: NSUInteger): NSInteger {
-        if (streamStatus != NSStreamStatusOpen || buffer == null) return -1
+        if (streamStatus != NSStreamStatusOpen || buffer == null) return (-1).convert()
         status = NSStreamStatusWriting
         val toWrite = minOf(maxLength, Int.MAX_VALUE.convert()).toInt()
         return try {
@@ -88,7 +88,7 @@ private class SinkNSOutputStream(
             toWrite.convert()
         } catch (e: Exception) {
             error = e.toNSError()
-            -1
+            (-1).convert()
         }
     }
 

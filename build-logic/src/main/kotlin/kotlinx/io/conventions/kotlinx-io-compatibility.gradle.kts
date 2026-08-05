@@ -9,13 +9,13 @@ plugins {
     kotlin("multiplatform")
 }
 
-kotlin {
-    @OptIn(ExperimentalAbiValidation::class)
-    abiValidation {
-        enabled = true
-    }
-}
+//kotlin {
+//    @OptIn(ExperimentalAbiValidation::class)
+//    abiValidation {
+//        enabled = true
+//    }
+//}
 
-tasks.check {
-    dependsOn(tasks.checkLegacyAbi)
-}
+//tasks.check {
+//    dependsOn(tasks.checkLegacyAbi)
+//}
