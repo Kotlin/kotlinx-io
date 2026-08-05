@@ -33,7 +33,7 @@ import kotlin.native.ref.WeakReference
  */
 public fun Source.asNSInputStream(): NSInputStream = SourceNSInputStream(this)
 
-@OptIn(InternalIoApi::class, UnsafeNumber::class)
+@OptIn(InternalIoApi::class)
 private class SourceNSInputStream(
     private val source: Source
 ) : NSInputStream(NSData()), NSStreamDelegateProtocol {

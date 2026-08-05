@@ -35,7 +35,7 @@ class KotlinxIoSamplesApple {
     }
 
     @Test
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, BetaInteropApi::class)
+    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     fun asStream() {
         val buffer = Buffer()
         val data = ByteArray(100) { it.toByte() }.toNSData()

@@ -6,13 +6,12 @@
 package kotlinx.io.bytestring.samples
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.io.bytestring.*
 import platform.Foundation.*
 import kotlin.test.*
 
 class ByteStringSamplesApple {
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class)
     @Test
     fun nsDataConversion() {
         val originalByteString: ByteString = "Compress me, please!".encodeToByteString()

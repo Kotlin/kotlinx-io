@@ -26,7 +26,6 @@ private fun NSOutputStream.write(vararg strings: String) {
     }
 }
 
-@OptIn(UnsafeNumber::class)
 class SinkNSOutputStreamTest {
 
     @Test

@@ -105,14 +105,12 @@ internal class FileSource(
     }
 }
 
-@OptIn(UnsafeNumber::class)
 internal fun variantFread(
     target: CPointer<ByteVarOf<Byte>>,
     byteCount: UInt,
     file: CPointer<FILE>
 ): UInt = fread(target, 1u, byteCount.convert(), file).convert()
 
-@OptIn(UnsafeNumber::class)
 internal fun variantFwrite(
     source: CPointer<ByteVar>,
     byteCount: UInt,

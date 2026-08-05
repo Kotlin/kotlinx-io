@@ -33,7 +33,6 @@ import kotlin.native.ref.WeakReference
  */
 public fun Sink.asNSOutputStream(): NSOutputStream = SinkNSOutputStream(this)
 
-@OptIn(UnsafeNumber::class)
 private class SinkNSOutputStream(
     private val sink: Sink
 ) : NSOutputStream(toMemory = Unit), NSStreamDelegateProtocol {
