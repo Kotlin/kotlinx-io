@@ -10,7 +10,6 @@ package kotlinx.io.files
 import kotlinx.cinterop.*
 import kotlinx.io.*
 import platform.posix.*
-import kotlin.let
 
 /*
  * The very base skeleton just to play around
@@ -111,16 +110,14 @@ internal fun variantFread(
     target: CPointer<ByteVarOf<Byte>>,
     byteCount: UInt,
     file: CPointer<FILE>
-): UInt = fread(target, 1u, byteCount.convert(), file)
-    .let { @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") it.toUInt() }
+): UInt = fread(target, 1u, byteCount.convert(), file).convert()
 
 @OptIn(UnsafeNumber::class)
 internal fun variantFwrite(
     source: CPointer<ByteVar>,
     byteCount: UInt,
     file: CPointer<FILE>
-): UInt = fwrite(source, 1u, byteCount.convert(), file)
-    .let { @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") it.toUInt() }
+): UInt = fwrite(source, 1u, byteCount.convert(), file).convert()
 
 internal class FileSink(
     private val file: CPointer<FILE>
