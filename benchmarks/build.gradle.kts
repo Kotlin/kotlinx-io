@@ -62,4 +62,19 @@ benchmark {
             register("native")
         }
     }
+    configurations {
+        create("utf8") {
+            include("kotlinx\\.io\\.benchmarks\\.Utf8.*")
+            warmups = 3
+            iterationTime = 2
+            iterationTimeUnit = "s"
+        }
+
+        create("multiByteRW") {
+            include("kotlinx\\.io\\.benchmarks\\.(Int|Long|Short).*")
+            warmups = 3
+            iterationTime = 2
+            iterationTimeUnit = "s"
+        }
+    }
 }
