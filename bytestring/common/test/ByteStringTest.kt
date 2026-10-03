@@ -45,6 +45,27 @@ class ByteStringTest {
         assertFalse(ByteString().equals(byteArrayOf(1, 2, 3)))
     }
 
+    @Test
+    fun equalsConstantTime() {
+        val byteString = ByteString(0, 1, 2)
+        assertTrue(byteString.equals(byteString, constantTime = true))
+        assertTrue(byteString.equals(ByteString(0, 1, 2), constantTime = true))
+        assertFalse(byteString.equals(ByteString(128.toByte(), 1, 2), constantTime = true))
+        assertFalse(byteString.equals(ByteString(0, 1, 128.toByte()), constantTime = true))
+        assertFalse(byteString.equals(ByteString(0, 1), constantTime = true))
+        assertFalse(byteString.equals(ByteString(0, 1, 2, 3), constantTime = true))
+
+        // Empty byte strings
+        assertTrue(ByteString().equals(ByteString(), constantTime = true))
+        assertFalse(ByteString().equals(ByteString(0), constantTime = true))
+        assertFalse(ByteString(0).equals(ByteString(), constantTime = true))
+
+        // Test non-constant time branch
+        assertTrue(byteString.equals(ByteString(0, 1, 2), constantTime = false))
+        assertFalse(byteString.equals(ByteString(0, 1, 3), constantTime = false))
+        assertFalse(byteString.equals(ByteString(0, 1), constantTime = false))
+    }
+
     private fun checkEqualsAndHashCodeAreSame(first: ByteString, second: ByteString) {
         assertEquals(first, second)
         assertEquals(first.hashCode(), second.hashCode())

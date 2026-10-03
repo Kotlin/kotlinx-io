@@ -20,6 +20,7 @@ final class kotlinx.io.bytestring/ByteString : kotlin/Comparable<kotlinx.io.byte
     final fun compareTo(kotlinx.io.bytestring/ByteString): kotlin/Int // kotlinx.io.bytestring/ByteString.compareTo|compareTo(kotlinx.io.bytestring.ByteString){}[0]
     final fun copyInto(kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ..., kotlin/Int = ...) // kotlinx.io.bytestring/ByteString.copyInto|copyInto(kotlin.ByteArray;kotlin.Int;kotlin.Int;kotlin.Int){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // kotlinx.io.bytestring/ByteString.equals|equals(kotlin.Any?){}[0]
+    final fun equals(kotlinx.io.bytestring/ByteString, kotlin/Boolean): kotlin/Boolean // kotlinx.io.bytestring/ByteString.equals|equals(kotlinx.io.bytestring.ByteString;kotlin.Boolean){}[0]
     final fun get(kotlin/Int): kotlin/Byte // kotlinx.io.bytestring/ByteString.get|get(kotlin.Int){}[0]
     final fun getBackingArrayReference(): kotlin/ByteArray // kotlinx.io.bytestring/ByteString.getBackingArrayReference|getBackingArrayReference(){}[0]
     final fun hashCode(): kotlin/Int // kotlinx.io.bytestring/ByteString.hashCode|hashCode(){}[0]

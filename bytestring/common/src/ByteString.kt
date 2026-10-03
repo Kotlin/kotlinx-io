@@ -132,6 +132,33 @@ public class ByteString private constructor(
     }
 
     /**
+     * Returns `true` if [other] is a byte string containing exactly the same byte sequence.
+     *
+     * When [constantTime] is `true`, this method always inspects every byte and does not short-circuit
+     * on the first mismatch, ensuring that execution time does not depend on the index of differing bytes.
+     * This is intended for timing-safe comparison of secrets such as cryptographic hashes or message
+     * authentication codes.
+     *
+     * If [constantTime] is `false`, this method behaves identically to [equals] and may return as soon
+     * as a mismatch is detected.
+     *
+     * @param other the other byte string to compare this byte string for equality to.
+     * @param constantTime whether to perform the comparison in constant time.
+     */
+    public fun equals(other: ByteString, constantTime: Boolean): Boolean {
+        if (constantTime) {
+            if (this === other) return true
+            if (other.data.size != data.size) return false
+            var result = 0
+            for (i in 0 until data.size) {
+                result = result or (data[i].toInt() xor other.data[i].toInt())
+            }
+            return result == 0
+        }
+        return this == other
+    }
+
+    /**
      * Returns a hash code based on the content of this byte string.
      */
     override fun hashCode(): Int {
