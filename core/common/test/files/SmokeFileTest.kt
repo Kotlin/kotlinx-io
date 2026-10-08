@@ -229,6 +229,22 @@ class SmokeFileTest {
             constructRelativePath("a", "b", "c"),
             Path("", "a", "b", "c").toString()
         )
+
+        // Using Path.div operator
+        assertEquals(
+            constructAbsolutePath("a", "b", "c"),
+            (Path(SystemPathSeparator.toString()) / "a" / "b" / "c").toString()
+        )
+
+        assertEquals(
+            constructAbsolutePath("a", "b", "..", "c"),
+            (Path("${SystemPathSeparator}a") / "b" / "..${SystemPathSeparator}c").toString()
+        )
+
+        assertEquals(
+            constructRelativePath("a", "b", "c"),
+            (Path("") / "a" / "b" / "c").toString()
+        )
     }
 
     @Test

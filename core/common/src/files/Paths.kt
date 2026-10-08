@@ -98,6 +98,11 @@ public fun Path(base: Path, vararg parts: String): Path {
 }
 
 /**
+ * Returns Path for the given path concatenated with [part] using [SystemPathSeparator].
+ */
+public operator fun Path.div(part: String): Path = Path(this, part)
+
+/**
  * Returns [RawSource] for the given file or throws if path is not a file or does not exist
  *
  * Use of this method is deprecated with warning since kotlinx-io 0.3.0, with error since 0.8.0,
