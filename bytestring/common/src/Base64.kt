@@ -16,7 +16,7 @@ import kotlin.io.encoding.Base64
  *
  * Each resulting symbol occupies one byte in the returned byte array.
  *
- * Use [encode] to get the output in string form.
+ * Use [encode][kotlinx.io.bytestring.encode] to get the output in string form.
  *
  * @param source the byte string to encode bytes from.
  * @param startIndex the beginning (inclusive) of the subrange to encode, 0 by default.
@@ -68,7 +68,7 @@ public fun Base64.encodeIntoByteArray(
  * If the size of the [source] byte string or its subrange is not an integral multiple of 3,
  * the result is padded with `'='` to an integral multiple of 4 symbols.
  *
- * Use [encodeToByteArray] to get the output in [ByteArray] form.
+ * Use [encodeToByteArray][kotlinx.io.bytestring.encodeToByteArray] to get the output in [ByteArray] form.
  *
  * @param source the byte string to encode bytes from.
  * @param startIndex the beginning (inclusive) of the subrange to encode, 0 by default.
