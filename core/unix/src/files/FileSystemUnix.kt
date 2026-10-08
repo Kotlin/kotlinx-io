@@ -14,6 +14,11 @@ import kotlinx.cinterop.toKString
 import kotlinx.io.IOException
 import platform.posix.*
 
+// TMPDIR is unset in most containers, systemd units and CI runners;
+// an empty fallback made every temporary path resolve against the filesystem root.
+public actual val SystemTemporaryDirectory: Path
+    get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: "/tmp")
+
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
     if (rename(source.path, destination.path) != 0) {
         throw IOException("Move failed: ${strerror(errno)?.toKString()}")
