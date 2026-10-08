@@ -161,6 +161,6 @@ kotlinx-io is licensed under the [Apache 2.0 License](LICENSE).
 
 Thanks to everyone involved in the project.
 
-An honorable mention goes to the developers of [Okio](https://square.github.io/okio/) 
+An honorable mention goes to the developers of [Okio](https://lysine.dev/okio/) 
 that served as the foundation for `kotlinx-io` and to [Jesse Wilson](https://github.com/swankjesse),
 for the help with `Okio` adaption, his suggestions, assistance and guidance with `kotlinx-io` development.

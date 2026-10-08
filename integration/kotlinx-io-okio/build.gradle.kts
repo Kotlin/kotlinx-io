@@ -41,8 +41,8 @@ kotlin {
 dokka {
     dokkaSourceSets.configureEach {
         externalDocumentationLinks.register("okio") {
-            url("https://square.github.io/okio/3.x/okio/")
-            packageListUrl("https://square.github.io/okio/3.x/okio/okio/package-list")
+            url("https://lysine.dev/okio/3.x/")
+            packageListUrl("https://lysine.dev/okio/3.x/package-list")
         }
     }
 }
