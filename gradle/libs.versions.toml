@@ -1,10 +1,10 @@
 [versions]
-kotlin = "2.3.0"
+kotlin = "2.4.21"
 java = "8"
 multi-release-toolchain = "17"
 dokka = "2.3.0-Beta"
-kover = "0.9.3"
-benchmark = "0.4.14"
+kover = "0.9.11"
+benchmark = "0.4.17"
 jmh = "1.37"
 coroutines = "1.10.2"
 animalsniffer = "2.0.1"

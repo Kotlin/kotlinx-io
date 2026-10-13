@@ -13,7 +13,8 @@ import kotlin.jvm.optionals.getOrNull
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.power-assert")
+    // TODO: enable it back after updating to Kotlin 2.5.x (KT-88322)
+    // kotlin("plugin.power-assert")
     id("kotlinx-io-clean")
 }
 
@@ -136,6 +137,8 @@ kotlin {
     }
 }
 
+/*
+TODO: enable it back after updating to Kotlin 2.5.x (KT-88322)
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 powerAssert {
     // assertFails* are not included as p-a does not help with them yet
@@ -153,6 +156,7 @@ powerAssert {
 
     functions.addAll(kotlinTestFunctions)
 }
+ */
 
 fun KotlinSourceSet.configureSourceSet() {
     val srcDir = if (name.endsWith("Main")) "src" else "test"
@@ -175,12 +179,14 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
     iosArm64()
     iosSimulatorArm64()
 
+    @Suppress("DEPRECATION")
     tvosX64()
     tvosArm64()
     tvosSimulatorArm64()
 
     watchosArm32()
     watchosArm64()
+    @Suppress("DEPRECATION")
     watchosX64()
     watchosSimulatorArm64()
     watchosDeviceArm64()
@@ -199,6 +205,7 @@ private fun KotlinMultiplatformExtension.nativeTargets() {
         linuxArm32Hfp()
     }
 
+    @Suppress("DEPRECATION")
     macosX64()
     macosArm64()
 

@@ -39,7 +39,6 @@ val nativeBenchmarksEnabled: String by project.parent!!
 if (nativeBenchmarksEnabled.toBoolean()) {
     kotlin {
         // TODO: consider supporting non-host native targets.
-        if (HostManager.host === KonanTarget.MACOS_X64) macosX64("native")
         if (HostManager.host === KonanTarget.MACOS_ARM64) macosArm64("native")
         if (HostManager.hostIsLinux) linuxX64("native")
         if (HostManager.hostIsMingw) mingwX64("native")

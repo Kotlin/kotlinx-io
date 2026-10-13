@@ -12,10 +12,5 @@ plugins {
 kotlin {
     @OptIn(ExperimentalAbiValidation::class)
     abiValidation {
-        enabled = true
     }
-}
-
-tasks.check {
-    dependsOn(tasks.checkLegacyAbi)
 }
