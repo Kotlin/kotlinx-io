@@ -34,11 +34,11 @@ class WasiFsTest {
         }
 
         checkPreOpen(forPath = "/data", expectedRoot = null)
-        checkPreOpen(forPath = "/tmp", expectedRoot = "/tmp", expectedRelative = "")
+        checkPreOpen(forPath = "/tmp", expectedRoot = "/tmp", expectedRelative = ".")
         checkPreOpen(forPath = "/tmp/a", expectedRoot = "/tmp", expectedRelative = "a")
         checkPreOpen(forPath = "/var", expectedRoot = null)
         checkPreOpen(forPath = "/var/what", expectedRoot = null)
-        checkPreOpen(forPath = "/var/log", expectedRoot = "/var/log", expectedRelative = "")
+        checkPreOpen(forPath = "/var/log", expectedRoot = "/var/log", expectedRelative = ".")
         checkPreOpen(forPath = "/tmp ", expectedRoot = null)
         checkPreOpen(forPath = "/tmpry", expectedRoot = null)
         checkPreOpen(forPath = "/var/logging", expectedRoot = null)
@@ -248,6 +248,57 @@ class WasiFsTest {
 
         assertFailsWith<IOException> {
             SystemFileSystem.list(PreOpens.roots.first())
+        }
+    }
+
+    @Test
+    fun operationsOnPreopen() {
+        val preopen = PreOpens.preopens.first().path
+
+        assertTrue(SystemFileSystem.exists(preopen))
+
+        val metadata = SystemFileSystem.metadataOrNull(preopen)
+        assertNotNull(metadata)
+        assertTrue(metadata.isDirectory)
+
+        assertFailsWith<IOException> {
+            SystemFileSystem.createDirectories(preopen, true)
+        }.also {
+            assertEquals("Directory already exists: $preopen", it.message)
+        }
+        SystemFileSystem.createDirectories(preopen, false)
+
+        // TODO: opening the directory as source does not throw, but reading a byte does (notcapable).
+        // Double-check whether it specific to NodeJS.
+        assertFailsWith<IOException> {
+            val _ = SystemFileSystem.source(preopen).buffered().readByte()
+        }
+
+        assertFailsWithContainsMessage<IOException>("Can't open $preopen for write") {
+            SystemFileSystem.sink(preopen).buffered().writeByte(0)
+        }
+
+        if (!isWindows) { // NodeJS does not support reading directory on Windows
+            assertTrue(SystemFileSystem.list(preopen).isEmpty())
+        }
+
+        assertEquals(preopen, SystemFileSystem.resolve(preopen))
+
+        // No "atomicMove" and "delete" here: it may or may not work depending on the runtime.
+        // TODO: handle it on our side?
+
+        val emptyPath = Path("") // resolves to a current working directory, which is the first pre-open
+        assertTrue(SystemFileSystem.exists(emptyPath))
+        val emptyDirMetadata = SystemFileSystem.metadataOrNull(emptyPath)
+        assertNotNull(emptyDirMetadata)
+        assertTrue(emptyDirMetadata.isDirectory)
+    }
+
+    private inline fun <reified T: Throwable> assertFailsWithContainsMessage(exceptionMessage: String, block:() -> Unit) {
+        assertFailsWith<T> {
+            block()
+        }.also {
+            assertContains(it.message!!, exceptionMessage)
         }
     }
 }
