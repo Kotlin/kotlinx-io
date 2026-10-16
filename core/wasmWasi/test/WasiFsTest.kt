@@ -278,13 +278,12 @@ class WasiFsTest {
             SystemFileSystem.sink(preopen).buffered().writeByte(0)
         }
 
-        SystemFileSystem.atomicMove(preopen, preopen)
-
         assertTrue(SystemFileSystem.list(preopen).isEmpty())
 
         assertEquals(preopen, SystemFileSystem.resolve(preopen))
 
-        // No "delete" here: it will actually delete the directory.
+        // No "atomicMove" and "delete" here: it may or may not work depending on the runtime.
+        // TODO: handle it on our side?
     }
 
     private inline fun <reified T: Throwable> assertFailsWithContainsMessage(exceptionMessage: String, block:() -> Unit) {
