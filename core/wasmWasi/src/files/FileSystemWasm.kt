@@ -69,10 +69,6 @@ internal object WasiFileSystem : SystemFileSystemImpl() {
 
     override fun createDirectories(path: Path, mustCreate: Boolean) {
         val (rootPath, preOpen, relativePath) = PreOpens.resolvePreOpen(path)
-        if (relativePath.path.isEmpty()) {
-            if (!mustCreate) return
-            throw IOException("Directory already exists: $path")
-        }
         val segmentNames: List<String> = buildList {
             var currentPath: Path? = relativePath
             while (currentPath != null) {
@@ -414,10 +410,14 @@ internal object PreOpens {
             val builder = mutableListOf<String>()
             while (p != null) {
                 if (preopen.path == p) {
+                    // If the path is fully equal to one of the pre-opened directories,
+                    // the relative path will be empty. When passed as is to system calls,
+                    // it will result in errors, so we replace an empty path with "." to avoid them.
+                    val relPath = builder.asReversed().joinToString(SystemPathSeparator.toString()).ifEmpty { "." }
                     return ResolvedRelativePath(
                         preopen.path,
                         preopen.fd,
-                        Path(builder.asReversed().joinToString(SystemPathSeparator.toString()))
+                        Path(relPath)
                     )
                 }
                 builder.add(p.name)
