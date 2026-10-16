@@ -50,6 +50,18 @@ internal actual fun mkdirImpl(path: String) {
     }
 }
 
+public actual val SystemTemporaryDirectory: Path
+    get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: windowsTemporaryDirectory())
+
+// GetTempPathA consults TMP, TEMP, USERPROFILE and the Windows directory in turn.
+private fun windowsTemporaryDirectory(): String = memScoped {
+    val buffer = allocArray<CHARVar>(MAX_PATH_LENGTH)
+    if (GetTempPathA(MAX_PATH_LENGTH.convert(), buffer) == 0u) {
+        throw IOException("GetTempPathA failed with error code: ${GetLastError()}")
+    }
+    buffer.toKString()
+}
+
 private const val MAX_PATH_LENGTH = 32767
 
 internal actual fun realpathImpl(path: String): String {
