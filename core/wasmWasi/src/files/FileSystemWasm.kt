@@ -402,7 +402,8 @@ internal object PreOpens {
     internal fun resolvePreopenOrNull(path: Path): ResolvedRelativePath? {
         if (!path.isAbsolute) {
             val preOpen = preopens.firstOrNull() ?: return null
-            return ResolvedRelativePath(preOpen.path, preOpen.fd, path)
+            val relPath = if (path.path.isEmpty()) Path(".") else path // See comment below
+            return ResolvedRelativePath(preOpen.path, preOpen.fd, relPath)
         }
 
         for (preopen in preopens) {

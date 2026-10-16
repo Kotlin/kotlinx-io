@@ -286,6 +286,12 @@ class WasiFsTest {
 
         // No "atomicMove" and "delete" here: it may or may not work depending on the runtime.
         // TODO: handle it on our side?
+
+        val emptyPath = Path("") // resolves to a current working directory, which is the first pre-open
+        assertTrue(SystemFileSystem.exists(emptyPath))
+        val emptyDirMetadata = SystemFileSystem.metadataOrNull(emptyPath)
+        assertNotNull(emptyDirMetadata)
+        assertTrue(emptyDirMetadata.isDirectory)
     }
 
     private inline fun <reified T: Throwable> assertFailsWithContainsMessage(exceptionMessage: String, block:() -> Unit) {
