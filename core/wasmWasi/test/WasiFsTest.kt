@@ -278,7 +278,9 @@ class WasiFsTest {
             SystemFileSystem.sink(preopen).buffered().writeByte(0)
         }
 
-        assertTrue(SystemFileSystem.list(preopen).isEmpty())
+        if (!isWindows) { // NodeJS does not support reading directory on Windows
+            assertTrue(SystemFileSystem.list(preopen).isEmpty())
+        }
 
         assertEquals(preopen, SystemFileSystem.resolve(preopen))
 
