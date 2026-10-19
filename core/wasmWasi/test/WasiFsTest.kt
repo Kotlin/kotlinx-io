@@ -5,12 +5,10 @@
 
 package kotlinx.io.files
 
-import kotlinx.io.IOException
-import kotlinx.io.buffered
-import kotlinx.io.isWindows
-import kotlinx.io.readLine
-import kotlinx.io.writeString
+import kotlinx.io.*
 import kotlin.test.*
+
+private val isRunningOnWindowsHost = getEnv("KOTLINX_IO_TEST_IS_WINDOWS") == "true"
 
 class WasiFsTest {
     @Test
@@ -244,8 +242,7 @@ class WasiFsTest {
     // https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19
     @Test
     fun readdirUnsupportedOnWindows() {
-        // TODO: isWindows is always false on Wasi :|
-        if (!isWindows) return
+        if (!isRunningOnWindowsHost) return
 
         assertFailsWith<IOException> {
             SystemFileSystem.list(PreOpens.roots.first())
@@ -279,10 +276,9 @@ class WasiFsTest {
             SystemFileSystem.sink(preopen).buffered().writeByte(0)
         }
 
-        // TODO: isWindows is always false on Wasi :|
-        // if (!isWindows) { // NodeJS does not support reading directory on Windows
-        //     assertTrue(SystemFileSystem.list(preopen).isEmpty())
-        // }
+        if (!isRunningOnWindowsHost) {
+            assertTrue(SystemFileSystem.list(preopen).isEmpty())
+        }
 
         assertEquals(preopen, SystemFileSystem.resolve(preopen))
 
