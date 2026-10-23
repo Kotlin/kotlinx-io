@@ -81,6 +81,8 @@ internal class FileSource(
         sink: Buffer,
         byteCount: Long
     ): Long {
+        checkByteCount(byteCount)
+        if (byteCount == 0L) return 0L
         val bytesRead = UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndex, endIndex ->
             val toRead = minOf((endIndex - startIndex).toLong(), byteCount)
             val bytesRead = bytes.usePinned {
