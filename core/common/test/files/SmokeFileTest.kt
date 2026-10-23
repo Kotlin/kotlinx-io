@@ -285,6 +285,26 @@ class SmokeFileTest {
     }
 
     @Test
+    fun readWriteZeroBytes() {
+        val path = createTempPath()
+        SystemFileSystem.sink(path).use { it.write(Buffer(), 0) }
+        assertEquals(0L, SystemFileSystem.source(path).use {
+            it.readAtMostTo(Buffer(), 0)
+        })
+    }
+
+    @Test
+    fun readWriteNegativeNumberOfBytes() {
+        val path = createTempPath()
+        assertFailsWith<IllegalArgumentException> {
+            SystemFileSystem.sink(path).use { it.write(Buffer(), -1L) }
+        }
+        assertFailsWith<IllegalArgumentException> {
+            SystemFileSystem.source(path).use { it.readAtMostTo(Buffer(), -1L) }
+        }
+    }
+
+    @Test
     fun fileSize() {
         val path = createTempPath()
         val expectedSize = 123
