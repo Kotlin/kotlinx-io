@@ -98,6 +98,7 @@ internal class FileSource(private val path: Path) : RawSource {
 
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         check(!closed) { "Source is closed." }
+        checkByteCount(byteCount)
         if (byteCount == 0L) {
             return 0
         }
@@ -147,6 +148,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
     @OptIn(UnsafeIoApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         check(!closed) { "Sink is closed." }
+        checkByteCount(byteCount)
         if (byteCount == 0L) {
             return
         }
