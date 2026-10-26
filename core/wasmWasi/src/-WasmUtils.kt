@@ -79,7 +79,7 @@ internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
 @OptIn(UnsafeWasmMemoryApi::class)
 internal fun MemoryAllocator.storeString(value: String): Pair<Pointer, Int> {
     val bytes = value.encodeToByteArray()
-    val ptr = allocate(bytes.size + 1)
+    val ptr = allocate(bytes.size)
     ptr.storeBytes(bytes)
     return ptr to bytes.size
 }
