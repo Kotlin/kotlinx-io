@@ -474,7 +474,7 @@ private class FileSink(private val fd: Fd) : RawSink {
 
     @OptIn(UnsafeWasmMemoryApi::class)
     override fun write(source: Buffer, byteCount: Long) {
-        check(byteCount >= 0)
+        checkByteCount(byteCount)
         if (byteCount == 0L) return
         withScopedMemoryAllocator { allocator ->
             val temporaryWriteBuffer = allocator.allocate(TEMP_CIOVEC_BUFFER_LEN)
@@ -526,7 +526,7 @@ private class FileSource(private val fd: Fd) : RawSource {
 
     @OptIn(UnsafeWasmMemoryApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-        check(byteCount >= 0)
+        checkByteCount(byteCount)
         if (byteCount == 0L) return 0L
         var totalRead = 0L
 
