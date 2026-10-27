@@ -72,29 +72,27 @@ internal fun Buffer.writeFromLinearMemory(pointer: Pointer, bytes: Int) {
 }
 
 /**
- * Encoding [value] into a NULL-terminated byte sequence using UTF-8 encoding
+ * Encoding [value] into a byte sequence using UTF-8 encoding
  * and writes it to a memory region allocated to fit the sequence.
  * Return a pointer to the beginning of the written byte sequence and its length.
  */
 @OptIn(UnsafeWasmMemoryApi::class)
 internal fun MemoryAllocator.storeString(value: String): Pair<Pointer, Int> {
     val bytes = value.encodeToByteArray()
-    val ptr = allocate(bytes.size + 1)
+    val ptr = allocate(bytes.size)
     ptr.storeBytes(bytes)
-    ptr.storeByte(bytes.size, 0)
-    return ptr to (bytes.size + 1)
+    return ptr to bytes.size
 }
 
 /**
- * Encodes [value] into a NULL-terminated byte sequence using UTF-8 encoding,
+ * Encodes [value] into a byte sequence using UTF-8 encoding,
  * stores it in memory starting at the position this pointer points to,
  * and returns the length of the stored bytes sequence.
  */
 internal fun Pointer.allocateString(value: String): Int {
     val bytes = value.encodeToByteArray()
     storeBytes(bytes)
-    storeByte(bytes.size, 0)
-    return bytes.size + 1
+    return bytes.size
 }
 
 /**

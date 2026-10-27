@@ -53,7 +53,11 @@ kotlin {
             testTask {
                 // fd_readdir is unsupported on Windows:
                 // https://github.com/nodejs/node/blob/6f4d6011ea1b448cf21f5d363c44e4a4c56ca34c/deps/uvwasi/src/uvwasi.c#L19
-                if (OperatingSystem.current().isWindows) {
+                // Thus a few hacks are required to correctly detect the current OS from the Wasi test.
+                val os = OperatingSystem.current()
+                environment("KOTLINX_IO_TEST_IS_WINDOWS", os.isWindows.toString())
+
+                if (os.isWindows) {
                     filter.setExcludePatterns("*SmokeFileTest.listDirectory")
                 }
             }
