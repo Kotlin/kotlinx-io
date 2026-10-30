@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 0.9.2
+> Published 30 October 2026
+
+### Features
+- `Random.nextByteString` extension generating random byte strings added [#510](https://github.com/Kotlin/kotlinx-io/issues/510)
+
+### Bug fixes
+- Native `FileSink` and `FileSource` were reimplemented, improving performance in some cases and fixing multiple issues:
+  - On Unix platforms files are now opened with `O_CLOEXEC` flag [#493](https://github.com/Kotlin/kotlinx-io/issues/493);
+  - Fixed issues with excessive buffering [#438](https://github.com/Kotlin/kotlinx-io/issues/438);
+  - Fixed negative (now it's always an error) and zero (now it's always handles gracefully) byte counts passed to read/write functions [#529](https://github.com/Kotlin/kotlinx-io/issues/529);
+- Reduced memory allocations for some extension functions on JVM [#517](https://github.com/Kotlin/kotlinx-io/pull/517)
+- Fixed path handling on WASI, allowing to use it with Wasmtime [#526](https://github.com/Kotlin/kotlinx-io/issues/526)
+
+### Misc
+- Updated Dokka version and tweaked documentation
+
 ## 0.9.1
 > Published 26 June 2026
 
