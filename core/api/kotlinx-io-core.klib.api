@@ -313,3 +313,63 @@ final fun (platform.Foundation/NSInputStream).kotlinx.io/asSource(): kotlinx.io/
 
 // Targets: [apple]
 final fun (platform.Foundation/NSOutputStream).kotlinx.io/asSink(): kotlinx.io/RawSink // kotlinx.io/asSink|asSink@platform.Foundation.NSOutputStream(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlinx.io.external/Uint8Array).kotlinx.io.external/get(kotlin/Double): kotlin/Byte // kotlinx.io.external/get|get@kotlinx.io.external.Uint8Array(kotlin.Double){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlinx.io.external/Uint8Array).kotlinx.io.external/set(kotlin/Double, kotlin/Byte) // kotlinx.io.external/set|set@kotlinx.io.external.Uint8Array(kotlin.Double;kotlin.Byte){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlinx.io.external/Uint8Array).kotlinx.io/asSink(): kotlinx.io/RawSink // kotlinx.io/asSink|asSink@kotlinx.io.external.Uint8Array(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlinx.io.external/Uint8Array).kotlinx.io/asSource(): kotlinx.io/RawSource // kotlinx.io/asSource|asSource@kotlinx.io.external.Uint8Array(){}[0]
+
+// Targets: [js]
+final class kotlinx.io.external/ArrayBuffer { // kotlinx.io.external/ArrayBuffer|null[0]
+    constructor <init>(kotlin/Double) // kotlinx.io.external/ArrayBuffer.<init>|<init>(kotlin.Double){}[0]
+    constructor <init>(kotlin/Double, kotlinx.io.external/ArrayBuffer.Options) // kotlinx.io.external/ArrayBuffer.<init>|<init>(kotlin.Double;kotlinx.io.external.ArrayBuffer.Options){}[0]
+
+    final fun resize(kotlin/Double) // kotlinx.io.external/ArrayBuffer.resize|resize(kotlin.Double){}[0]
+
+    abstract interface Options { // kotlinx.io.external/ArrayBuffer.Options|null[0]
+        abstract var maxByteLength // kotlinx.io.external/ArrayBuffer.Options.maxByteLength|{}maxByteLength[0]
+            abstract fun <get-maxByteLength>(): kotlin/Double // kotlinx.io.external/ArrayBuffer.Options.maxByteLength.<get-maxByteLength>|<get-maxByteLength>(){}[0]
+            abstract fun <set-maxByteLength>(kotlin/Double) // kotlinx.io.external/ArrayBuffer.Options.maxByteLength.<set-maxByteLength>|<set-maxByteLength>(kotlin.Double){}[0]
+    }
+}
+
+// Targets: [js]
+final class kotlinx.io.external/Uint8Array { // kotlinx.io.external/Uint8Array|null[0]
+    constructor <init>(kotlinx.io.external/ArrayBuffer) // kotlinx.io.external/Uint8Array.<init>|<init>(kotlinx.io.external.ArrayBuffer){}[0]
+
+    final val buffer // kotlinx.io.external/Uint8Array.buffer|{}buffer[0]
+        final fun <get-buffer>(): kotlinx.io.external/ArrayBuffer // kotlinx.io.external/Uint8Array.buffer.<get-buffer>|<get-buffer>(){}[0]
+    final val length // kotlinx.io.external/Uint8Array.length|{}length[0]
+        final fun <get-length>(): kotlin/Double // kotlinx.io.external/Uint8Array.length.<get-length>|<get-length>(){}[0]
+}
+
+// Targets: [wasmJs]
+final class kotlinx.io.external/ArrayBuffer : kotlin.js/JsAny { // kotlinx.io.external/ArrayBuffer|null[0]
+    constructor <init>(kotlin/Double) // kotlinx.io.external/ArrayBuffer.<init>|<init>(kotlin.Double){}[0]
+    constructor <init>(kotlin/Double, kotlinx.io.external/ArrayBuffer.Options) // kotlinx.io.external/ArrayBuffer.<init>|<init>(kotlin.Double;kotlinx.io.external.ArrayBuffer.Options){}[0]
+
+    final fun resize(kotlin/Double) // kotlinx.io.external/ArrayBuffer.resize|resize(kotlin.Double){}[0]
+
+    abstract interface Options : kotlin.js/JsAny { // kotlinx.io.external/ArrayBuffer.Options|null[0]
+        abstract var maxByteLength // kotlinx.io.external/ArrayBuffer.Options.maxByteLength|{}maxByteLength[0]
+            abstract fun <get-maxByteLength>(): kotlin/Double // kotlinx.io.external/ArrayBuffer.Options.maxByteLength.<get-maxByteLength>|<get-maxByteLength>(){}[0]
+            abstract fun <set-maxByteLength>(kotlin/Double) // kotlinx.io.external/ArrayBuffer.Options.maxByteLength.<set-maxByteLength>|<set-maxByteLength>(kotlin.Double){}[0]
+    }
+}
+
+// Targets: [wasmJs]
+final class kotlinx.io.external/Uint8Array : kotlin.js/JsAny { // kotlinx.io.external/Uint8Array|null[0]
+    constructor <init>(kotlinx.io.external/ArrayBuffer) // kotlinx.io.external/Uint8Array.<init>|<init>(kotlinx.io.external.ArrayBuffer){}[0]
+
+    final val buffer // kotlinx.io.external/Uint8Array.buffer|{}buffer[0]
+        final fun <get-buffer>(): kotlinx.io.external/ArrayBuffer // kotlinx.io.external/Uint8Array.buffer.<get-buffer>|<get-buffer>(){}[0]
+    final val length // kotlinx.io.external/Uint8Array.length|{}length[0]
+        final fun <get-length>(): kotlin/Double // kotlinx.io.external/Uint8Array.length.<get-length>|<get-length>(){}[0]
+}
