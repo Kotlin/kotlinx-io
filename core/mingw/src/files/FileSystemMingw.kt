@@ -51,15 +51,21 @@ internal actual fun mkdirImpl(path: String) {
 }
 
 public actual val SystemTemporaryDirectory: Path
-    get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: windowsTemporaryDirectory())
+    get() = Path(getenv("TMPDIR")?.toKString()?.ifBlank { null } ?: windowsTemporaryDirectory())
 
-// GetTempPathA consults TMP, TEMP, USERPROFILE and the Windows directory in turn.
+// GetTempPathW consults TMP, TEMP, USERPROFILE and the Windows directory in turn.
 private fun windowsTemporaryDirectory(): String = memScoped {
-    val buffer = allocArray<CHARVar>(MAX_PATH_LENGTH)
-    if (GetTempPathA(MAX_PATH_LENGTH.convert(), buffer) == 0u) {
-        throw IOException("GetTempPathA failed with error code: ${GetLastError()}")
+    // See https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-gettemppathw#return-value
+    val bufferLen = 256 + 1
+    val buffer = allocArray<WCHARVar>(bufferLen)
+    val returnValue: Int = GetTempPathW(bufferLen.convert(), buffer).convert()
+    if (returnValue == 0) {
+        throw IOException("GetTempPathW failed with error code: ${GetLastError()}")
     }
-    buffer.toKString()
+    if (returnValue > bufferLen) {
+        throw IOException("GetTempPathW's return value exceeds documented limit (256 + 1)")
+    }
+    return buffer.toKString()
 }
 
 private const val MAX_PATH_LENGTH = 32767
