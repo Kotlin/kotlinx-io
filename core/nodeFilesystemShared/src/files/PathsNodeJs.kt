@@ -156,9 +156,9 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
         var remainingBytes = minOf(byteCount, source.size)
         while (remainingBytes > 0) {
             val segmentBytes = UnsafeBufferOperations.readFromHead(source) { headData, headPos, headLimit ->
-                val segmentBytes = headLimit - headPos
-                val buf = buffer.Buffer.allocUnsafe(segmentBytes)
-                for (offset in 0 until segmentBytes) {
+                val toWrite = minOf(headLimit - headPos, remainingBytes).toInt()
+                val buf = buffer.Buffer.allocUnsafe(toWrite)
+                for (offset in 0 until toWrite) {
                     buf.writeInt8(headData[headPos + offset], offset)
                 }
                 withCaughtException {
@@ -166,7 +166,7 @@ internal class FileSink(path: Path, append: Boolean) : RawSink {
                 }?.also {
                     throw IOException("Write failed", it)
                 }
-                segmentBytes
+                toWrite
             }
             remainingBytes -= segmentBytes
         }
