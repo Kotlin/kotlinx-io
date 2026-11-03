@@ -55,6 +55,7 @@ public class ByteStringByteBufferExtensionsTest {
         assertFailsWith<IndexOutOfBoundsException> { bb.getByteString(at = 9, length = 1) }
         assertFailsWith<IndexOutOfBoundsException> { bb.getByteString(at = 7, length = 2) }
         assertFailsWith<IndexOutOfBoundsException> { bb.getByteString(at = 0, length = -1) }
+        assertFailsWith<IndexOutOfBoundsException> { bb.getByteString(at = 1, length = Int.MAX_VALUE) }
     }
 
     @Test

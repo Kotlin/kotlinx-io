@@ -129,7 +129,8 @@ private fun ByteBuffer.checkIndexAndCapacity(idx: Int, length: Int) {
     if (length < 0) {
         throw IndexOutOfBoundsException("length should be non-negative (was $length)")
     }
-    if (idx + length > limit()) {
+    // Extend to long to avoid overflow
+    if (idx.toLong() + length > limit().toLong()) {
         throw IndexOutOfBoundsException("There's not enough space to put ByteString of length $length starting" +
                 " from index $idx")
     }
