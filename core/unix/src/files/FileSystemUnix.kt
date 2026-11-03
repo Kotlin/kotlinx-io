@@ -17,7 +17,12 @@ import platform.posix.*
 // TMPDIR is unset in most containers, systemd units and CI runners;
 // an empty fallback made every temporary path resolve against the filesystem root.
 public actual val SystemTemporaryDirectory: Path
-    get() = Path(getenv("TMPDIR")?.toKString() ?: getenv("TMP")?.toKString() ?: "/tmp")
+    get(): Path {
+        val envValue = getenv("TMPDIR")?.toKString()?.ifBlank { null }
+            ?: getenv("TMP")?.toKString()?.ifBlank { null }
+            ?: "/tmp"
+        return Path(envValue)
+    }
 
 internal actual fun atomicMoveImpl(source: Path, destination: Path) {
     if (rename(source.path, destination.path) != 0) {
