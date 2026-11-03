@@ -77,9 +77,7 @@ public actual fun Path(path: String): Path {
 }
 
 internal class FileSource(private val path: Path) : RawSource {
-    private var buffer: kotlinx.io.node.Buffer? = null
     private var closed = false
-    private var offset = 0
     private val fd = open(path)
 
     private fun open(path: Path): Int {
@@ -102,23 +100,26 @@ internal class FileSource(private val path: Path) : RawSource {
         if (byteCount == 0L) {
             return 0
         }
-        if (buffer === null) {
-            withCaughtException {
-                buffer = fs.readFileSync(fd, null)
-            }?.also {
-                throw IOException("Failed to read data from ${path.path}", it)
-            }
+        // Bound the read to the caller's request so large files are not loaded whole.
+        val bytesToRead = minOf(byteCount, Int.MAX_VALUE.toLong()).toInt()
+        val chunk = buffer.Buffer.allocUnsafe(bytesToRead)
+        var bytesRead = -1
+        withCaughtException {
+            // position=null advances the fd's current offset (sequential reads).
+            bytesRead = fs.readSync(fd, chunk, 0, bytesToRead, null)
+        }?.also {
+            throw IOException("Failed to read data from ${path.path}", it)
         }
-        val len: Int = buffer!!.length
-        if (offset >= len) {
+        if (bytesRead < 0) {
+            throw IOException("Failed to read data from ${path.path}")
+        }
+        if (bytesRead == 0) {
             return -1L
         }
-        val bytesToRead = minOf(byteCount, (len - offset))
-        for (i in 0 until bytesToRead) {
-            sink.writeByte(buffer!!.readInt8(offset++))
+        for (i in 0 until bytesRead) {
+            sink.writeByte(chunk.readInt8(i))
         }
-
-        return bytesToRead
+        return bytesRead.toLong()
     }
 
     override fun close() {

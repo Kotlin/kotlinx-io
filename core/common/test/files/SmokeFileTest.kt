@@ -294,6 +294,22 @@ class SmokeFileTest {
     }
 
     @Test
+    fun readAtMostOneByteFromLargerFile() {
+        val path = createTempPath()
+        val payload = ByteArray(64) { (it + 1).toByte() }
+        SystemFileSystem.sink(path).buffered().use { it.write(payload) }
+
+        SystemFileSystem.source(path).use { source ->
+            val sink = Buffer()
+            assertEquals(1L, source.readAtMostTo(sink, 1L))
+            assertEquals(1, sink.size.toInt())
+            assertEquals(payload[0], sink.readByte())
+            assertEquals(1L, source.readAtMostTo(sink, 1L))
+            assertEquals(payload[1], sink.readByte())
+        }
+    }
+
+    @Test
     fun readWriteNegativeNumberOfBytes() {
         val path = createTempPath()
         assertFailsWith<IllegalArgumentException> {
