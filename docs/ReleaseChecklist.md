@@ -22,17 +22,13 @@ The following steps are usually performed:
 - Add a note describing what will be released to the [CHANGELOG](../CHANGELOG.md);
 - Bump up the current version in [gradle.properties](../gradle.properties);
 - Commit changes in `README`, `CHANGELOG` and `gradle.properties` into the `develop` branch;
-- [Deploy](https://teamcity.jetbrains.com/buildConfiguration/KotlinTools_KotlinxIo_DeployRunThisOne)
-a pre-release version of the library into [Sonatype](http://oss.sonatype.org) staging repository,
-close it and [run smoke tests](https://teamcity.jetbrains.com/buildConfiguration/KotlinTools_KotlinxIo_DeploymentSmokeTest) 
-with this pre-release version;
-- If smoke tests passed, merge the `develop` branch into `master`, wait until a successful test run in CI;
-- Drop the pre-release version from Sonatype;
+- Once CI is green, merge `develop` into `master`;
 - [Create a draft](https://github.com/Kotlin/kotlinx-io/releases/new) describing the next release in GH:
   - it's more or less fine to pick up the record from the [CHANGELOG](../CHANGELOG.md), update it if
   necessary;
   - release names are usually starts with `v`, like `v0.9.10`, but there's no `v` in a git tag, like `0.9.10`.
-- Deploy the release version, close the repo, run smoke tests with it and if tests passed, release the repository.
+- [Deploy](https://teamcity.jetbrains.com/buildConfiguration/KotlinTools_KotlinxIo_DeployToCentral_DeployRunThisOne) 
+  the library to Maven Central from `master` branch using the appropriate version as a `DeployVersion` parameter;
 - Update version in `KOTLINX_IO_RELEASE_TAG` for [JetBrains/kotlin-web-site](https://github.com/JetBrains/kotlin-web-site/blob/master/.teamcity/BuildParams.kt#L7)
 - Update version used by the Kotlin Playground in [https://github.com/JetBrains/kotlin-compiler-server](https://github.com/JetBrains/kotlin-compiler-server/blob/e2417f3a915bb671ec23101959ed1799a060d6f1/gradle/libs.versions.toml#L15)
 - Set previously created draft in [kotlinx-io/releases](https://github.com/Kotlin/kotlinx-io/releases)
