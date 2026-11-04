@@ -452,6 +452,19 @@ class SmokeFileTest {
     }
 
     @Test
+    fun readWriteAfterClose() {
+        val path = createTempPath()
+        SystemFileSystem.sink(path).buffered().use { it.writeString("blablabla") }
+        val buffer = Buffer().also { it.writeInt(42) }
+
+        val closedSink = SystemFileSystem.sink(path).also { it.close() }
+        assertFailsWith<IllegalStateException> { closedSink.write(buffer, 1) }
+
+        val closedSource = SystemFileSystem.source(path).also { it.close() }
+        assertFailsWith<IllegalStateException> { closedSource.readAtMostTo(buffer, 1) }
+    }
+
+    @Test
     fun listDirectory() {
         assertFailsWith<FileNotFoundException> { SystemFileSystem.list(createTempPath()) }
 

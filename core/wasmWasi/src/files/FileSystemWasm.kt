@@ -476,6 +476,8 @@ private class FileSink(private val fd: Fd) : RawSink {
     @OptIn(UnsafeWasmMemoryApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         checkByteCount(byteCount)
+        check(!closed) { "Sink is closed." }
+
         if (byteCount == 0L) return
         withScopedMemoryAllocator { allocator ->
             val temporaryWriteBuffer = allocator.allocate(TEMP_CIOVEC_BUFFER_LEN)
@@ -528,6 +530,8 @@ private class FileSource(private val fd: Fd) : RawSource {
     @OptIn(UnsafeWasmMemoryApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         checkByteCount(byteCount)
+        check(!closed) { "Source is closed." }
+
         if (byteCount == 0L) return 0L
         var totalRead = 0L
 

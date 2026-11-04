@@ -200,4 +200,16 @@ class JvmPlatformTest {
         val _ = source.readAtMostTo(buffer, 1L)
         assertEquals("a", buffer.readString())
     }
+
+    @Test
+    fun writeToClosedStreamSink() {
+        val sink = ByteArrayOutputStream().asSink().also { it.close() }
+        assertFailsWith<IllegalStateException> { sink.write(Buffer().also { it.writeInt(42) }, 1L) }
+    }
+
+    @Test
+    fun readFromClosedStreamSource() {
+        val source = ByteArrayInputStream(ByteArray(1)).asSource().also { it.close() }
+        assertFailsWith<IllegalStateException> { source.readAtMostTo(Buffer(), 1L) }
+    }
 }

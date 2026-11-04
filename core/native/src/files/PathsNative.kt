@@ -82,6 +82,8 @@ internal class FileSource(
         byteCount: Long
     ): Long {
         checkByteCount(byteCount)
+        check(!closed) { "Source is closed." }
+
         if (byteCount == 0L) return 0L
         val bytesRead = UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndex, endIndex ->
             val toRead = minOf((endIndex - startIndex).toLong(), byteCount)
@@ -123,7 +125,7 @@ internal class FileSink(
     ) {
         require(byteCount >= 0L) { "byteCount: $byteCount" }
         require(source.size >= byteCount) { "source.size=${source.size} < byteCount=$byteCount" }
-        check(!closed) { "closed" }
+        check(!closed) { "Sink is closed." }
 
         var remaining = byteCount
         while (remaining > 0) {
