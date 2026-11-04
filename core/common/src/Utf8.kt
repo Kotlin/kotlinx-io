@@ -611,13 +611,14 @@ private fun Buffer.commonReadUtf8(byteCount: Long): String {
         if (segment.size >= byteCount) {
             var result = ""
             ctx.withData(segment) { data, pos, limit ->
-                result = data.commonToUtf8String(pos, min(limit, pos + byteCount.toInt()))
+                result = decodeUtf8(data, pos, min(limit, pos + byteCount.toInt()))
                 skip(byteCount)
                 return result
             }
         }
         // If the string spans multiple segments, delegate to readBytes()
-        return readByteArray(byteCount.toInt()).commonToUtf8String()
+        val bytes = readByteArray(byteCount.toInt())
+        return decodeUtf8(bytes, 0, bytes.size)
     }
     error("Unreacheable")
 }

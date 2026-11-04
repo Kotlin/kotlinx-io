@@ -38,6 +38,16 @@ internal fun ByteArray.commonToUtf8String(beginIndex: Int = 0, endIndex: Int = s
     return chars.concatToString(0, length)
 }
 
+/**
+ * Decodes bytes in the range `[beginIndex..endIndex)` of [source] as a UTF-8 encoded string,
+ * substituting ill-formed byte sequences with replacement characters (`U+FFFD`).
+ *
+ * On most platforms, this delegates to [commonToUtf8String]. On JVM runtimes newer than JDK 8,
+ * a specialized implementation backed by the JDK's intrinsified UTF-8 decoder is loaded from
+ * the multi-release jar instead (see `Utf8Intrinsics` in the `jvm/src9` source root).
+ */
+internal expect fun decodeUtf8(source: ByteArray, beginIndex: Int, endIndex: Int): String
+
 internal const val REPLACEMENT_BYTE: Byte = '?'.code.toByte()
 internal const val REPLACEMENT_CHARACTER: Char = '\ufffd'
 internal const val REPLACEMENT_CODE_POINT: Int = REPLACEMENT_CHARACTER.code
