@@ -211,10 +211,13 @@ public class ByteString private constructor(
      *
      * @sample kotlinx.io.bytestring.samples.ByteStringSamples.substringSample
      */
-    public fun substring(startIndex: Int, endIndex: Int = size): ByteString = if (startIndex == endIndex) {
-        EMPTY
-    } else {
-        ByteString(data, startIndex, endIndex)
+    public fun substring(startIndex: Int, endIndex: Int = size): ByteString {
+        checkIndices(startIndex, endIndex)
+        return if (startIndex == endIndex) {
+            EMPTY
+        } else {
+            ByteString(data, startIndex, endIndex)
+        }
     }
 
     /**
@@ -546,4 +549,15 @@ public fun String.encodeToByteString(): ByteString {
  */
 public fun ByteString.contentEquals(array: ByteArray): Boolean {
     return getBackingArrayReference().contentEquals(array)
+}
+
+private fun ByteString.checkIndices(startIndex: Int, endIndex: Int) {
+    if (startIndex < 0 || endIndex > size) {
+        throw IndexOutOfBoundsException(
+            "startIndex ($startIndex) and endIndex ($endIndex) are out of ByteString bounds [0..$size)"
+        )
+    }
+    if (startIndex > endIndex) {
+        throw IllegalArgumentException("startIndex ($startIndex) > endIndex ($endIndex)")
+    }
 }
