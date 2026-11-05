@@ -305,6 +305,23 @@ class SmokeFileTest {
     }
 
     @Test
+    fun readWriteLimitedNumberOfBytes() {
+        val path = createTempPath()
+        val buffer = Buffer().also {
+            it.writeString("Hello, FS!")
+        }
+        SystemFileSystem.sink(path).use { it.write(buffer, 5) }
+        SystemFileSystem.source(path).buffered().use {
+            assertEquals("Hello", it.readString())
+        }
+        SystemFileSystem.source(path).use {
+            val outBuffer = Buffer()
+            val _ = it.readAtMostTo(outBuffer, 2)
+            assertEquals("He", outBuffer.readString())
+        }
+    }
+
+    @Test
     fun fileSize() {
         val path = createTempPath()
         val expectedSize = 123
