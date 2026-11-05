@@ -39,9 +39,12 @@ private open class OutputStreamSink(
     private val out: OutputStream,
 ) : RawSink {
 
+    private var closed = false
+
     @OptIn(UnsafeIoApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         checkOffsetAndCount(source.size, 0, byteCount)
+        check(!closed) { "Sink is closed." }
         var remaining = byteCount
         while (remaining > 0) {
             // kotlinx.io TODO: detect Interruption.
@@ -55,7 +58,11 @@ private open class OutputStreamSink(
 
     override fun flush() = out.flush()
 
-    override fun close() = out.close()
+    override fun close() {
+        if (closed) return
+        closed = true
+        out.close()
+    }
 
     override fun toString() = "RawSink($out)"
 }
@@ -73,10 +80,14 @@ private open class InputStreamSource(
     private val input: InputStream,
 ) : RawSource {
 
+    private var closed = false
+
     @OptIn(UnsafeIoApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-        if (byteCount == 0L) return 0L
         checkByteCount(byteCount)
+        check(!closed) { "Source is closed." }
+        if (byteCount == 0L) return 0L
+
         var readTotal: Long
         val _ = UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
             val maxToCopy = minOf(byteCount, limit - pos).toInt()
@@ -90,7 +101,11 @@ private open class InputStreamSource(
         return readTotal
     }
 
-    override fun close() = input.close()
+    override fun close() {
+        if (closed) return
+        closed = true
+        input.close()
+    }
 
     override fun toString() = "RawSource($input)"
 }
