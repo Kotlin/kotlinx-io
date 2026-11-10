@@ -41,6 +41,7 @@ public object UnsafeBufferOperations {
      */
     public fun moveToTail(buffer: Buffer, bytes: ByteArray, startIndex: Int = 0, endIndex: Int = bytes.size) {
         checkBounds(bytes.size, startIndex, endIndex)
+        if (startIndex == endIndex) return
         val segment = Segment.new(
             bytes, startIndex, endIndex,
             AlwaysSharedCopyTracker, /* to prevent recycling */

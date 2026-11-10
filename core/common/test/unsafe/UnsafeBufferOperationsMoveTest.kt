@@ -63,6 +63,19 @@ class UnsafeBufferOperationsMoveTest {
     }
 
     @Test
+    fun moveEmptySliceToEmptyBuffer() {
+        val buffer = Buffer()
+        UnsafeBufferOperations.moveToTail(buffer, byteArrayOf(0x53), 0, 0)
+        buffer.writeByte(0x50.toByte())
+
+        assertEquals(1L, buffer.size)
+        assertEquals(0x50.toByte(), buffer[0])
+        val copied = ByteArray(1)
+        assertEquals(1, buffer.readAtMostTo(copied))
+        assertEquals(0x50.toByte(), copied[0])
+    }
+
+    @Test
     fun illegalArgumentsHandling() {
         assertFailsWith<IndexOutOfBoundsException> {
             UnsafeBufferOperations.moveToTail(Buffer(), ByteArray(1), -1)
