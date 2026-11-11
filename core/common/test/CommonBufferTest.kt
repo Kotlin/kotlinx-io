@@ -291,8 +291,7 @@ class CommonBufferTest {
     @Test
     fun indexOfInBufferLargerThanIntMaxValue() {
         val value = 0x2a.toByte()
-        val chunk = ByteArray(1024 * 1024)
-        chunk[0] = value
+        val chunk = ByteArray(1024 * 1024).apply { this[0] = value }
 
         val buffer = Buffer()
         repeat(2048) {
@@ -301,6 +300,14 @@ class CommonBufferTest {
 
         assertEquals(2048L * 1024 * 1024, buffer.size)
         assertEquals(0L, buffer.indexOf(value))
+
+        val anotherValue = 0x2b.toByte()
+        val anotherChunk = ByteArray(1024 * 1024).apply { this[0] = anotherValue }
+
+        UnsafeBufferOperations.moveToTail(buffer, anotherChunk)
+
+        assertEquals(2049L * 1024 * 1024, buffer.size)
+        assertEquals(2048L * 1024 * 1024, buffer.indexOf(anotherValue, startIndex = 2040L * 1024 * 1024))
     }
 
     @Test
