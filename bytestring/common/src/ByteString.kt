@@ -554,7 +554,7 @@ public fun ByteString.contentEquals(array: ByteArray): Boolean {
 private fun ByteString.checkIndices(startIndex: Int, endIndex: Int) {
     if (startIndex < 0 || endIndex > size) {
         throw IndexOutOfBoundsException(
-            "startIndex ($startIndex) and endIndex ($endIndex) are out of ByteString bounds [0..$size)"
+            "startIndex ($startIndex) and endIndex ($endIndex) must be within ByteString bounds [0..$size)"
         )
     }
     if (startIndex > endIndex) {
