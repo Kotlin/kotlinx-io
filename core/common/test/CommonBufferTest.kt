@@ -22,6 +22,7 @@ package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -284,6 +285,22 @@ class CommonBufferTest {
         assertEquals((halfSegment * 3).toLong(), buffer.indexOf('d'.code.toByte(), (halfSegment * 2).toLong()))
         assertEquals((halfSegment * 3).toLong(), buffer.indexOf('d'.code.toByte(), (halfSegment * 3).toLong()))
         assertEquals((halfSegment * 4 - 1).toLong(), buffer.indexOf('d'.code.toByte(), (halfSegment * 4 - 1).toLong()))
+    }
+
+    @OptIn(UnsafeIoApi::class)
+    @Test
+    fun indexOfInBufferLargerThanIntMaxValue() {
+        val value = 0x2a.toByte()
+        val chunk = ByteArray(1024 * 1024)
+        chunk[0] = value
+
+        val buffer = Buffer()
+        repeat(2048) {
+            UnsafeBufferOperations.moveToTail(buffer, chunk)
+        }
+
+        assertEquals(2048L * 1024 * 1024, buffer.size)
+        assertEquals(0L, buffer.indexOf(value))
     }
 
     @Test
