@@ -153,7 +153,7 @@ public fun Buffer.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
                 // If start index within this segment, the diff will be positive and
                 // we'll scan the segment starting from the corresponding offset.
                 // Otherwise, the diff will be negative and we'll scan the segment from the beginning.
-                val startOffset = maxOf((startIndex - offset).toInt(), 0)
+                val startOffset = maxOf(startIndex - offset, 0L).toInt()
                 // Try to search the pattern within the current segment.
                 val idx = segment.indexOfBytesInbound(byteStringData, startOffset)
                 if (idx != -1) {

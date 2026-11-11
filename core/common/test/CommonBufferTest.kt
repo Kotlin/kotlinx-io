@@ -310,6 +310,23 @@ class CommonBufferTest {
         assertEquals(2048L * 1024 * 1024, buffer.indexOf(anotherValue, startIndex = 2040L * 1024 * 1024))
     }
 
+    @OptIn(UnsafeIoApi::class)
+    @Test
+    fun indexOfByteStringInBufferLargerThanIntMaxValue() {
+        val emptyChunk = ByteArray(1024 * 1024)
+        val pattern = byteArrayOf(1, 2, 3)
+        val patternChunk = ByteArray(1024 * 1024).apply { pattern.copyInto(this) }
+
+        val buffer = Buffer()
+        repeat(2049) {
+            UnsafeBufferOperations.moveToTail(buffer, emptyChunk)
+        }
+        UnsafeBufferOperations.moveToTail(buffer, patternChunk)
+
+        assertEquals(2050L * 1024 * 1024, buffer.size)
+        assertEquals(2049L * 1024 * 1024, buffer.indexOf(ByteString(pattern)))
+    }
+
     @Test
     fun byteAt() {
         val buffer = Buffer()
