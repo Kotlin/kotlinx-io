@@ -22,6 +22,7 @@ package kotlinx.io
 
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -284,6 +285,46 @@ class CommonBufferTest {
         assertEquals((halfSegment * 3).toLong(), buffer.indexOf('d'.code.toByte(), (halfSegment * 2).toLong()))
         assertEquals((halfSegment * 3).toLong(), buffer.indexOf('d'.code.toByte(), (halfSegment * 3).toLong()))
         assertEquals((halfSegment * 4 - 1).toLong(), buffer.indexOf('d'.code.toByte(), (halfSegment * 4 - 1).toLong()))
+    }
+
+    @OptIn(UnsafeIoApi::class)
+    @Test
+    fun indexOfInBufferLargerThanIntMaxValue() {
+        val value = 0x2a.toByte()
+        val chunk = ByteArray(1024 * 1024).apply { this[0] = value }
+
+        val buffer = Buffer()
+        repeat(2048) {
+            UnsafeBufferOperations.moveToTail(buffer, chunk)
+        }
+
+        assertEquals(2048L * 1024 * 1024, buffer.size)
+        assertEquals(0L, buffer.indexOf(value))
+
+        val anotherValue = 0x2b.toByte()
+        val anotherChunk = ByteArray(1024 * 1024).apply { this[0] = anotherValue }
+
+        UnsafeBufferOperations.moveToTail(buffer, anotherChunk)
+
+        assertEquals(2049L * 1024 * 1024, buffer.size)
+        assertEquals(2048L * 1024 * 1024, buffer.indexOf(anotherValue, startIndex = 2040L * 1024 * 1024))
+    }
+
+    @OptIn(UnsafeIoApi::class)
+    @Test
+    fun indexOfByteStringInBufferLargerThanIntMaxValue() {
+        val emptyChunk = ByteArray(1024 * 1024)
+        val pattern = byteArrayOf(1, 2, 3)
+        val patternChunk = ByteArray(1024 * 1024).apply { pattern.copyInto(this) }
+
+        val buffer = Buffer()
+        repeat(2049) {
+            UnsafeBufferOperations.moveToTail(buffer, emptyChunk)
+        }
+        UnsafeBufferOperations.moveToTail(buffer, patternChunk)
+
+        assertEquals(2050L * 1024 * 1024, buffer.size)
+        assertEquals(2049L * 1024 * 1024, buffer.indexOf(ByteString(pattern)))
     }
 
     @Test
