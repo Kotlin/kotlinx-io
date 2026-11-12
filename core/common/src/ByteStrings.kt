@@ -178,5 +178,4 @@ public fun Buffer.indexOf(byteString: ByteString, startIndex: Long = 0): Long {
             return -1L
         }
     }
-    return -1
 }
