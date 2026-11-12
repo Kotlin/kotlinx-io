@@ -54,7 +54,7 @@ internal fun Buffer.snapshotAsNSData(): NSData {
     val bytes = malloc(size.convert())?.reinterpret<uint8_tVar>()
         ?: throw Error("malloc failed: ${strerror(errno)?.toKString()}")
 
-    var index = 0
+    var index = 0L
     UnsafeBufferOperations.forEachSegment(this) { ctx, segment ->
         ctx.withData(segment) { data, pos, limit ->
             val length = limit - pos
