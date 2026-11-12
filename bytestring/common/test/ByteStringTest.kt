@@ -132,6 +132,8 @@ class ByteStringTest {
         assertFailsWith<IndexOutOfBoundsException> { str.substring(-1) }
         assertFailsWith<IndexOutOfBoundsException> { str.substring(0, 10) }
         assertFailsWith<IndexOutOfBoundsException> { str.substring(-10, 10) }
+        assertFailsWith<IndexOutOfBoundsException> { str.substring(-1, -1)}
+        assertFailsWith<IndexOutOfBoundsException> { str.substring(10, 10) }
     }
 
     @Test

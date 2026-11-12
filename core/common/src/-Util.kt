@@ -40,7 +40,7 @@ internal inline fun checkBounds(size: Int, startIndex: Int, endIndex: Int) =
 internal fun checkBounds(size: Long, startIndex: Long, endIndex: Long) {
     if (startIndex < 0 || endIndex > size) {
         throw IndexOutOfBoundsException(
-            "startIndex ($startIndex) and endIndex ($endIndex) are not within the range [0..size($size))"
+            "startIndex ($startIndex) and endIndex ($endIndex) must be within the range [0..size($size))"
         )
     }
     if (startIndex > endIndex) {
