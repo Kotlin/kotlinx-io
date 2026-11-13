@@ -8,7 +8,9 @@
 package kotlinx.io
 
 import kotlinx.cinterop.*
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import platform.Foundation.*
+import platform.darwin.NSUIntegerMax
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -47,5 +49,24 @@ class NSOutputStreamSinkTest {
         val outData2 = out.propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as NSData
         val outString2 = outData2.toByteArray().decodeToString()
         assertEquals("a" + "b".repeat(9998) + "c", outString2)
+    }
+
+
+    @OptIn(UnsafeNumber::class, UnsafeIoApi::class)
+    @Test
+    fun snapshotOver2GB() {
+        // Skip on platforms with small limit
+        if (NSUIntegerMax <= Int.MAX_VALUE.convert()) return
+
+        val buffer = Buffer().also { buf ->
+            val data = ByteArray(Segment.SIZE)
+            repeat(Int.MAX_VALUE / data.size + 1) {
+                UnsafeBufferOperations.moveToTail(buf, data)
+            }
+        }
+        buffer.writeByte(0)
+        assertEquals(Int.MAX_VALUE + 2L, buffer.size)
+        val snapshot = buffer.asNSOutputStream().propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as NSData
+        assertEquals(buffer.size, snapshot.length.convert())
     }
 }
