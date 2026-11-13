@@ -52,6 +52,11 @@ internal external interface Fs {
     fun readFileSync(fd: Int, options: String?): Buffer
 
     /**
+     * See https://nodejs.org/api/fs.html#fsreadsyncfd-buffer-offset-length-position
+     */
+    fun readSync(fd: Int, buffer: Buffer, offset: Int, length: Int, position: Int?): Int
+
+    /**
      * See https://nodejs.org/api/fs.html#fswritefilesyncfile-data-options
      */
     fun writeFileSync(fd: Int, buffer: Buffer)
