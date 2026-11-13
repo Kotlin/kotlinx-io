@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 0.9.3
+> Published 13 November 2026
+
+### Feature
+- Improved temporary path resolution on Native platform [#521](https://github.com/Kotlin/kotlinx-io/pull/521)
+
+### Bug fixes
+- Fixed invalid arguments handling for `ByteBuffer.getByteString` [#537](https://github.com/Kotlin/kotlinx-io/issues/537)
+- Fixed invalid arguments handling for `ByteString.substring` [#548](https://github.com/Kotlin/kotlinx-io/issues/548)
+- Fixed integer overflow in `Buffer.asNSOutputStream` [#551](https://github.com/Kotlin/kotlinx-io/issues/551)
+- Fixed integer overflow in `Buffer.indexOf` [#547](https://github.com/Kotlin/kotlinx-io/issues/547))
+- Fixed `UnsafeBufferOperations.moveToTail` behavior for empty slices [#546](https://github.com/Kotlin/kotlinx-io/issues/546)
+- Aligned `Sink` and `Source` implementations behavior after close with the contract [#544](https://github.com/Kotlin/kotlinx-io/pull/544)
+- Fixed byte limit handling in NodeJs's file sink [#533](https://github.com/Kotlin/kotlinx-io/pull/533)
+
 ## 0.9.2
 > Published 30 October 2026
 
