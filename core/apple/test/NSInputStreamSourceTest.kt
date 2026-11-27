@@ -82,4 +82,17 @@ class NSInputStreamSourceTest {
         val source = NSInputStream(data = ByteArray(100).toNSData()).asSource()
         assertFailsWith<IllegalArgumentException> { source.readAtMostTo(Buffer(), -1) }
     }
+
+    @Test
+    fun testReadErrorThrowsIOException() {
+        val failingSource = object : RawSource {
+            override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = throw IOException("Read failed")
+
+            override fun close() = Unit
+        }
+        val source = failingSource.buffered().asNSInputStream().asSource()
+
+        val exception = assertFailsWith<IOException> { source.readAtMostTo(Buffer(), 1L) }
+        assertEquals("Read failed", exception.message)
+    }
 }

@@ -98,10 +98,10 @@ private open class NSInputStreamSource(
                 @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD") // https://youtrack.jetbrains.com/issue/KT-81896
                 input.read(bytes, maxToCopy.convert()).toLong()
             }
-            maxOf(read.toInt(), 0)
+            if (read < 0) throw IOException(input.streamError?.localizedDescription ?: "Unknown error")
+            read.toInt()
         }
 
-        if (bytesRead < 0) throw IOException(input.streamError?.localizedDescription ?: "Unknown error")
         if (bytesRead == 0) return -1
         return bytesRead.toLong()
     }
